@@ -13,3 +13,12 @@ path = "src/main.rs"
 
 [lints]
 workspace = true
+
+[dependencies]
+adp-core = { path = "../adp-core" }
+adp-theme = { path = "../adp-theme" }
+# The window, drawn on wgpu, with AccessKit for screen readers (spec 030, research R2).
+eframe = { version = "0.37", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "wayland", "x11"] }
+
+[dev-dependencies]
+adp-context = { path = "../adp-context" }
