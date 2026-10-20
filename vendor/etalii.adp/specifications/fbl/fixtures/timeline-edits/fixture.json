@@ -1,0 +1,244 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The timeline body with CRLF endings, a comment and an unmodelled key: a save without change, then every kind of write the timeline makes, then undo back to the input.",
+  "binding": "../../timeline.fbl#timeline",
+  "input": "roadmap.tml",
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: Launch\r\n    begin: 2025-12-04\r\n    row: 8\r\n"
+    },
+    {
+      "doc": "A new moment goes after the last element, indented like its siblings, with the file's CRLF and the rule's key order.",
+      "edit": {
+        "add": {
+          "type": "Moment",
+          "id": "beta",
+          "attributes": {
+            "label": "Public beta",
+            "begin": "2025-10-01",
+            "row": 9
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 280,
+          "end": 280,
+          "text": "  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\n"
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: Launch\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\n"
+    },
+    {
+      "doc": "The first connection creates the missing connections key at the end of the document; the two splices share an offset and apply in the order listed.",
+      "edit": {
+        "add": {
+          "type": "Connection",
+          "id": "c1",
+          "attributes": {
+            "source": "discovery",
+            "target": "launch",
+            "label": "informs"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 353,
+          "end": 353,
+          "text": "connections:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 353,
+          "end": 353,
+          "text": "  - id: c1\r\n    from: discovery\r\n    to: launch\r\n    label: informs\r\n"
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: Launch\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n    label: informs\r\n"
+    },
+    {
+      "doc": "A label containing ': ' cannot be a plain scalar, so it is written double-quoted; the old value was plain.",
+      "edit": {
+        "set": {
+          "element": "launch",
+          "attributes": {
+            "label": "General availability: v1"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 237,
+          "end": 243,
+          "text": "\"General availability: v1\""
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: \"General availability: v1\"\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n    label: informs\r\n"
+    },
+    {
+      "doc": "Clearing a connection's label removes its key (empty: remove).",
+      "edit": {
+        "set": {
+          "element": "c1",
+          "attributes": {
+            "label": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 436,
+          "end": 456,
+          "text": ""
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: \"General availability: v1\"\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n"
+    },
+    {
+      "doc": "Giving the moment an end inserts the key at its place in the rule's key order; the element is now a Period.",
+      "edit": {
+        "set": {
+          "element": "beta",
+          "attributes": {
+            "end": "2025-11-15"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 361,
+          "end": 361,
+          "text": "    end: 2025-11-15\r\n"
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: \"General availability: v1\"\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    end: 2025-11-15\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n"
+    },
+    {
+      "doc": "Removing a period's end removes the end line; the comment on the next key stays where it is.",
+      "edit": {
+        "set": {
+          "element": "discovery",
+          "attributes": {
+            "end": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 133,
+          "end": 154,
+          "text": ""
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: \"General availability: v1\"\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    end: 2025-11-15\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 133,
+          "end": 133,
+          "text": "    end: 2025-06-05\r\n"
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: \"General availability: v1\"\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    end: 2025-11-15\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 361,
+          "end": 382,
+          "text": ""
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: \"General availability: v1\"\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 436,
+          "end": 436,
+          "text": "    label: informs\r\n"
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: \"General availability: v1\"\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n    label: informs\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 237,
+          "end": 263,
+          "text": "Launch"
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: Launch\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: launch\r\n    label: informs\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 353,
+          "end": 367,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 367,
+          "end": 436,
+          "text": ""
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: Launch\r\n    begin: 2025-12-04\r\n    row: 8\r\n  - id: beta\r\n    label: Public beta\r\n    begin: 2025-10-01\r\n    row: 9\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 280,
+          "end": 353,
+          "text": ""
+        }
+      ],
+      "expect": "timeline: 1\r\n# Product roadmap, kept by hand and by ADP.\r\nelements:\r\n  - id: discovery\r\n    label: Discovery\r\n    begin: 2025-04-27\r\n    end: 2025-06-05\r\n    row: 11\r\n    owner: product   # not modelled, kept\r\n  - id: launch\r\n    label: Launch\r\n    begin: 2025-12-04\r\n    row: 8\r\n"
+    }
+  ],
+  "read": {
+    "elements": [
+      {
+        "id": "discovery",
+        "type": "Period"
+      },
+      {
+        "id": "launch",
+        "type": "Moment"
+      }
+    ]
+  }
+}

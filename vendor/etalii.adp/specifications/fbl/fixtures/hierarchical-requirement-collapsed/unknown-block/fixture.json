@@ -1,0 +1,23 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A registration with a block the binding does not declare, reviewers: (FBL section 8.1). It is kept as written and reported as fbl.unknown-block, an information finding (FBL section 7.4), on its line 4, and the declared collapsed: block is read as usual. A save writes nothing.",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "lending.adp",
+  "read": {
+    "findings": [
+      {
+        "rule": "fbl.unknown-block",
+        "line": 4
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A save without an edit writes nothing; the unknown block stays byte for byte.",
+      "edit": {
+        "save": true
+      },
+      "splices": []
+    }
+  ]
+}

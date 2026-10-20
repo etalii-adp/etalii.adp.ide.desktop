@@ -1,0 +1,211 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.1/disl.schema.json#/$defs/Specification",
+  "disl": "0.1",
+  "language": {
+    "id": "org.example.erd",
+    "version": "2.0.0",
+    "label": "Entity–relationship diagram",
+    "doc": "Tables with typed columns and relationships in crow's-foot notation."
+  },
+
+  "metamodel": {
+    "enums": {
+      "SqlType": {
+        "extensible": true,
+        "values": { "uuid": {}, "text": {}, "varchar": {}, "int": {}, "bigint": {}, "numeric": {},
+                    "bool": {}, "date": {}, "timestamptz": {}, "jsonb": {} }
+      },
+      "Cardinality": {
+        "values": {
+          "one": { "label": "Exactly one" },
+          "zeroOrOne": { "label": "Zero or one" },
+          "oneOrMany": { "label": "One or many" },
+          "zeroOrMany": { "label": "Zero or many" }
+        }
+      }
+    },
+    "types": {
+      "Table": {
+        "attributes": {
+          "name": { "type": "string", "required": true, "key": true, "pattern": "^[a-z_][a-z0-9_]*$", "unique": "diagram",
+                    "doc": "snake_case table name." },
+          "schema": { "type": "string", "default": "public" },
+          "comment": { "type": "text" }
+        },
+        "children": { "allowed": ["Column"], "ordered": true, "min": 1,
+                      "slots": { "columns": { "allowed": ["Column"], "min": 1 } } }
+      },
+      "Column": {
+        "attributes": {
+          "name": { "type": "string", "required": true, "key": true, "unique": "parent" },
+          "dataType": { "type": "SqlType", "default": "text", "label": "Type" },
+          "nullable": { "type": "bool", "default": true },
+          "primaryKey": { "type": "bool", "default": false, "label": "Primary key" },
+          "references": { "type": "Column", "doc": "Foreign-key target column." }
+        }
+      }
+    },
+    "relations": {
+      "Relationship": {
+        "source": "Table",
+        "target": "Table",
+        "directed": false,
+        "allowSelfLoops": true,
+        "attributes": {
+          "name": { "type": "string" },
+          "sourceCardinality": { "type": "Cardinality", "default": "one" },
+          "targetCardinality": { "type": "Cardinality", "default": "zeroOrMany" },
+          "identifying": { "type": "bool", "default": false,
+                           "doc": "Identifying relationships make the parent key part of the child key." }
+        }
+      }
+    }
+  },
+
+  "coordinates": {
+    "snapProfiles": {
+      "coarse": { "both": { "grid": { "spacing": 20 } }, "targets": ["objects", "rule"],
+                  "doc": "Tables align to a 20 px grid; edges snap their bendpoints to 10 px.",
+                  "bendpoints": { "both": { "grid": { "spacing": 10 } } } }
+    },
+    "systems": {
+      "canvas": { "kind": "cartesian", "x": { "kind": "linear" }, "y": { "kind": "linear" }, "snapping": "coarse",
+                  "grid": { "visible": true, "style": "lines", "spacing": 20, "majorEvery": 5 } }
+    }
+  },
+
+  "notation": {
+    "styles": {
+      "table": { "fill": "#FFFFFF", "stroke": { "color": "#444441", "width": 1 }, "cornerRadius": 6,
+                 "font": { "family": "Inter, sans-serif", "size": 12 }, "shadow": { "dx": 0, "dy": 1, "blur": 3, "color": "#00000022" } }
+    },
+    "nodes": {
+      "Table": {
+        "shape": { "type": "roundedRect", "params": { "radius": 6 } },
+        "style": "table",
+        "size": { "default": [220, 120], "autoSize": "fitHeight", "resizable": "horizontal" },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "position": "top", "editable": "inline",
+            "background": { "fill": "#EEEDFE", "padding": [6, 8] },
+            "style": { "font": { "weight": 600, "color": "#3C3489" } } }
+        ],
+        "compartments": [
+          { "id": "columns",
+            "items": { "children": ["Column"], "slot": "columns" },
+            "itemText": { "cel": "item.name + '  ' + item.dataType + (item.nullable ? '' : ' not null')" },
+            "itemIcon": { "cel": "item.primaryKey ? 'key' : (has(item.references) ? 'link' : '')" },
+            "itemConditions": [ { "when": "item.primaryKey", "style": { "font": { "weight": 600, "decoration": "underline" } } } ],
+            "separator": { "color": "#D3D1C7", "width": 0.5 },
+            "overflow": "ellipsis", "maxItems": 20,
+            "editable": { "add": true, "remove": true, "reorder": true, "inline": true },
+            "emptyText": "No columns" }
+        ],
+        "anchors": { "mode": "sides", "spread": true },
+        "form": { "form": "columnsTable", "interaction": "onDoubleClick", "minZoom": 0.8, "fallback": "labels" },
+        "lod": [ { "maxZoom": 0.4, "hide": ["compartments"] } ]
+      },
+      "Column": { "shape": "none", "labels": [] }
+    },
+    "edges": {
+      "Relationship": {
+        "line": {
+          "stroke": { "color": "#444441", "width": 1.25,
+                      "dash": { "cel": "self.identifying ? 'solid' : 'dashed'" } },
+          "routing": "orthogonal",
+          "cornerRadius": 0,
+          "avoidNodes": true,
+          "minSegmentLength": 18,
+          "startDirection": "normal",
+          "endDirection": "normal",
+          "bendpoints": { "editable": true }
+        },
+        "jumps": { "style": "gap", "size": 5 },
+        "sourceMarker": { "cel": "'er' + self.sourceCardinality.substring(0, 1).upperAscii() + self.sourceCardinality.substring(1)" },
+        "targetMarker": { "cel": "'er' + self.targetCardinality.substring(0, 1).upperAscii() + self.targetCardinality.substring(1)" },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "at": "middle", "side": "above", "orientation": "upright",
+            "style": { "font": { "style": "italic", "size": 11 } }, "editable": "inline" },
+          { "id": "srcCard", "text": { "cel": "enumLabel('Cardinality', self.sourceCardinality)" }, "at": "start", "offset": 20,
+            "side": "below", "style": { "font": { "size": 10, "color": "#888780" } }, "visible": { "cel": "env.zoom > 1.2" } },
+          { "id": "tgtCard", "text": { "cel": "enumLabel('Cardinality', self.targetCardinality)" }, "at": "end", "offset": 20,
+            "side": "below", "style": { "font": { "size": 10, "color": "#888780" } }, "visible": { "cel": "env.zoom > 1.2" } }
+        ]
+      }
+    }
+  },
+
+  "forms": {
+    "columnsTable": {
+      "for": "Table",
+      "usage": ["embedded", "inspector"],
+      "layout": { "density": "compact" },
+      "items": [
+        { "attribute": "name" },
+        { "kind": "field", "attribute": "comment", "widget": "textarea", "rows": 2 }
+      ]
+    }
+  },
+
+  "toolbox": {
+    "groups": [
+      { "id": "model", "label": "Model", "tools": [
+        { "id": "table", "creates": "Table", "shortcut": "T" },
+        { "id": "rel", "creates": "Relationship", "shortcut": "R" },
+        { "id": "rel1n", "creates": "Relationship", "variantOf": "rel", "label": "One-to-many",
+          "initial": { "sourceCardinality": "one", "targetCardinality": "zeroOrMany" } },
+        { "id": "rel11", "creates": "Relationship", "variantOf": "rel", "label": "One-to-one",
+          "initial": { "sourceCardinality": "one", "targetCardinality": "zeroOrOne" } }
+      ] }
+    ],
+    "contextTools": [
+      { "for": ["Table"], "tools": [
+        { "kind": "create-child", "creates": "Column", "slot": "columns", "label": "Add column", "icon": "plus", "position": "bottom" }
+      ] }
+    ]
+  },
+
+  "constraints": {
+    "rules": [
+      { "id": "hasPrimaryKey", "scope": "Table",
+        "rule": "self.children.exists(c, c.primaryKey)",
+        "severity": "warning", "message": { "cel": "'Table ' + self.name + ' has no primary key.'" },
+        "fixes": [ { "label": "Add an id column",
+                     "actions": [ { "create": { "type": "'Column'", "parent": "self", "slot": "'columns'",
+                                                "attributes": { "name": "'id'", "dataType": "'uuid'", "primaryKey": "true", "nullable": "false" } } } ] } ] },
+      { "id": "fkTypeMatches", "scope": "Column", "when": "has(self.references)",
+        "rule": "self.references.dataType == self.dataType",
+        "attribute": "dataType",
+        "message": { "cel": "'Foreign key type ' + self.dataType + ' does not match ' + self.references.parent.name + '.' + self.references.name + ' (' + self.references.dataType + ').'" },
+        "fixes": [ { "label": "Use the referenced column's type", "actions": [ { "set": { "dataType": "self.references.dataType" } } ] } ] },
+      { "id": "pkNotNull", "scope": "Column", "when": "self.primaryKey", "rule": "!self.nullable",
+        "enforcement": "prevent-and-report", "attribute": "nullable",
+        "message": "Primary key columns cannot be nullable." }
+    ]
+  },
+
+  "behavior": {
+    "hooks": [
+      { "id": "pkImpliesNotNull", "on": "change", "for": "Column", "attribute": "primaryKey", "phase": "before",
+        "when": "self.primaryKey", "actions": [ { "set": { "nullable": "false" } } ] }
+    ]
+  },
+
+  "layout": {
+    "algorithms": { "orthogonal": { "algorithm": "elk:org.eclipse.elk.layered", "direction": "right",
+                                    "edgeRouting": "orthogonal", "spacing": { "node": 60, "layer": 120 } } },
+    "default": "orthogonal"
+  },
+
+  "persistence": {
+    "format": "yaml",
+    "ids": { "strategy": "natural", "stable": true },
+    "ordering": { "elements": "tree" },
+    "view": { "store": ["bounds", "waypoints", "labelOffsets", "collapsed"] },
+    "export": [ { "format": "plugin:sql-ddl", "label": "SQL DDL" } ]
+  },
+
+  "plugins": {
+    "sql-ddl": { "version": "^1.0.0", "provides": ["export"], "required": false,
+                 "doc": "Generates CREATE TABLE statements." }
+  }
+}

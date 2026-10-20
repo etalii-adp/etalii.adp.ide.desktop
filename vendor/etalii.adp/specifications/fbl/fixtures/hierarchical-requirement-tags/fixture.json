@@ -1,0 +1,501 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Tags over the Hierarchical Requirement Designer's binding, hierarchical-requirement.fbl#markdown, in the Markdown file (User Story 7; FR-026, FR-027, FR-028). tags is a word slot of the group words, with many (hierarchical-requirement.des: string, many), so it holds every #name word of the group in order (FBL 0.7 section 4.6). read lists it as a JSON array of the items: FBL section 15.3 names a string, a number, a bool and null, and leaves a list's form open. The tags the input carries, in the order of their first appearance, are security (spelt #Security on REQ-0003), ux (#UX on REQ-0004), self-service and privacy; with no registration they are the implicit members of the tag list (DESL 0.2 section 7.7.2), which hierarchical-requirement-tag-list states over this same body. Each step is one operation of hierarchical-requirement.des, given as the model changes it makes, and is followed by its undo, so every step starts from the input. The fixture format gives an edit one model change (FBL section 15.3), and an operation over several carriers is one transaction of several (FBL section 6.4): such a step's edit holds its first change, and x-transaction names the operation and lists every change in the order it makes them. An operation that also changes the tag list (a new tag, a rename, a delete) writes the registration in the same edit (DESL 0.2 section 5.5, FBL 0.7 section 8.4); one fixture shows one file, so this one shows the Markdown file's splices only, and hierarchical-requirement-tag-list shows the registration's, as each step says. The file has CRLF endings.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "requirements.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Sign-in",
+          "tags": [
+            "security"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A user signs in with an e-mail address and a password.",
+          "tags": [
+            "security"
+          ],
+          "category": "functional",
+          "state": "accepted"
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A password has at least twelve characters.",
+          "tags": [],
+          "category": "non-functional",
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Sessions",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A session ends after 30 minutes without activity.",
+          "tags": [
+            "Security",
+            "ux"
+          ]
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Profile",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A user changes their own e-mail address.",
+          "tags": [
+            "UX",
+            "self-service"
+          ],
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A user deletes their account.",
+          "tags": [
+            "privacy"
+          ],
+          "state": "rejected"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "addTag on ITEM-0002 with the name Security, typed: it equals the member security in any case, an implicit member, so the operation picks it with the list's spelling and creates no tag (FR-027): one set of tags, so only the Markdown file is written. ITEM-0002 has no word: the new item of the many slot tags is an insert-key of one space and the word, at the start of the group words, since no word of the group is held by tags or by a slot listed before it, and the empty group starts where the title Sessions ends (FBL 0.7 section 6.3, lines and blocks, a word a set adds).",
+      "edit": {
+        "set": {
+          "element": "ITEM-0002",
+          "attributes": {
+            "tags": [
+              "security"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 392,
+          "end": 392,
+          "text": " #security"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions #security\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 392,
+          "end": 402,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "addTag on REQ-0002 with the name security, a member: REQ-0002's group holds category:non-functional and state:proposed and no tag. tags is the first word slot of the group in the rule's attributes (tags, category, state), so no slot is listed before it and the insert-key of one space and #security goes at the start of the group, right after the title, which writes the tag before the category and the state (FBL 0.7 section 6.3; the companion, Items and requirements: tags first, then the category, then the state).",
+      "edit": {
+        "set": {
+          "element": "REQ-0002",
+          "attributes": {
+            "tags": [
+              "security"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 329,
+          "end": 329,
+          "text": " #security"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. #security category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 329,
+          "end": 339,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "addTag on REQ-0001 with the name ux, a member (implicit, from REQ-0003): REQ-0001 carries #security, then category:functional and state:accepted. The new item goes right after the last word held by tags, #security, as one space and #ux, and so still before the category and the state (FBL 0.7 section 6.3: items keep their order, and a new one is written after the slot's last).",
+      "edit": {
+        "set": {
+          "element": "REQ-0001",
+          "attributes": {
+            "tags": [
+              "security",
+              "ux"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 237,
+          "end": 237,
+          "text": " #ux"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security #ux category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 237,
+          "end": 241,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "addTag on REQ-0005 with the name security: its author wrote state:rejected before #privacy, which reads the same, since the trailing words are read in any order. The new item still goes right after the slot's last word, #privacy, so after the state: FBL places a new word by the words of its slot and of the slots before it, and never moves the words already written (FBL 0.7 section 6.3). The designer writes tags first on a line it writes itself; a line written in another order keeps it.",
+      "edit": {
+        "set": {
+          "element": "REQ-0005",
+          "attributes": {
+            "tags": [
+              "privacy",
+              "security"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 649,
+          "end": 649,
+          "text": " #security"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy #security\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 649,
+          "end": 659,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "addTag on REQ-0004 with the name user experience, typed with a space: the operation trims it and replaces the space with -, so the name is user-experience (hierarchical-requirement.des, addTag: p.name.trim().replace(' ', '-')), which no member has in any case, so the operation creates the tag at the end of the list and sets it on REQ-0004 (FR-027). The set is an insert-key of one space and #user-experience right after #self-service, the slot's last word, before state:proposed. The create of the Tag writes the registration in the same edit: hierarchical-requirement-tag-list shows those splices, for a registration with its tags block and for one without.",
+      "edit": [
+        {
+          "add": {
+            "type": "Tag",
+            "id": "tag/user-experience",
+            "attributes": {
+              "name": "user-experience",
+              "colour": "default"
+            }
+          }
+        },
+        {
+          "set": {
+            "element": "REQ-0004",
+            "attributes": {
+              "tags": [
+                "UX",
+                "self-service",
+                "user-experience"
+              ]
+            }
+          }
+        }
+      ],
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 566,
+          "end": 566,
+          "text": " #user-experience"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service #user-experience state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n",
+      "x-operation": {
+        "operation": "addTag",
+        "self": "REQ-0004",
+        "params": {
+          "name": "user experience"
+        }
+      }
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced in the Markdown file, and the document is the input again; the same undo takes the new member out of the registration.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 566,
+          "end": 583,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "removeTag on REQ-0004 with the name ux: the operation keeps the tags whose name is not ux in any case, so #UX goes and #self-service stays (hierarchical-requirement.des, removeTag). A removed item of a many word slot is a remove-key of the word and the whitespace before it (FBL 0.7 section 6.3). The member ux stays in the list, implicit through REQ-0003, so only the Markdown file is written.",
+      "edit": {
+        "set": {
+          "element": "REQ-0004",
+          "attributes": {
+            "tags": [
+              "self-service"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 548,
+          "end": 552,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 548,
+          "end": 548,
+          "text": " #UX"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "renameTag on the member security with the name infosec (FR-028): the operation sets the tags of every item and requirement that carries it, in any case, then the member's name, in one transaction, so one edit and one step of the history. The carriers are ITEM-0001, REQ-0001 and REQ-0003, in the order of the forEach over items, then requirements. Each changed item of the many slot tags is a replace-value of its word's group value, the name after # (FBL 0.7 section 6.3): Security on REQ-0003, spelt as its author wrote it, is replaced by infosec like the others. A tag is no reference (FBL section 5.7), so these are replace-value splices and not rewrite-reference ones. The member's new name writes the registration in the same edit: hierarchical-requirement-tag-list shows those splices. The fixture's edit holds the first change, x-transaction all four.",
+      "edit": [
+        {
+          "set": {
+            "element": "ITEM-0001",
+            "attributes": {
+              "tags": [
+                "infosec"
+              ]
+            }
+          }
+        },
+        {
+          "set": {
+            "element": "REQ-0001",
+            "attributes": {
+              "tags": [
+                "infosec"
+              ]
+            }
+          }
+        },
+        {
+          "set": {
+            "element": "REQ-0003",
+            "attributes": {
+              "tags": [
+                "infosec",
+                "ux"
+              ]
+            }
+          }
+        },
+        {
+          "set": {
+            "element": "tag/security",
+            "attributes": {
+              "name": "infosec"
+            }
+          }
+        }
+      ],
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 150,
+          "end": 158,
+          "text": "infosec"
+        },
+        {
+          "operation": "replace-value",
+          "start": 229,
+          "end": 237,
+          "text": "infosec"
+        },
+        {
+          "operation": "replace-value",
+          "start": 460,
+          "end": 468,
+          "text": "infosec"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #infosec\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #infosec category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #infosec #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n",
+      "x-operation": {
+        "operation": "renameTag",
+        "self": "tag/security",
+        "params": {
+          "name": "infosec"
+        }
+      }
+    },
+    {
+      "doc": "Undo of the rename: every carrier gets its old spelling back, Security on REQ-0003 included, in one step, as the edit was one (FR-028).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 150,
+          "end": 157,
+          "text": "security"
+        },
+        {
+          "operation": "replace-value",
+          "start": 228,
+          "end": 235,
+          "text": "security"
+        },
+        {
+          "operation": "replace-value",
+          "start": 458,
+          "end": 465,
+          "text": "Security"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    },
+    {
+      "doc": "deleteTag on the member ux, after its confirmation (2 entries carry #ux): the operation sets the tags of every carrier without it, in any case, then deletes the member, in one transaction (FR-028). The carriers are REQ-0003 (#ux) and REQ-0004 (#UX); each loses the word with the whitespace before it, a remove-key (FBL 0.7 section 6.3). The delete of the member writes the registration in the same edit: hierarchical-requirement-tag-list shows those splices. The fixture's edit holds the first change, x-transaction all three.",
+      "edit": [
+        {
+          "set": {
+            "element": "REQ-0003",
+            "attributes": {
+              "tags": [
+                "Security"
+              ]
+            }
+          }
+        },
+        {
+          "set": {
+            "element": "REQ-0004",
+            "attributes": {
+              "tags": [
+                "self-service"
+              ]
+            }
+          }
+        },
+        {
+          "remove": {
+            "element": "tag/ux"
+          }
+        }
+      ],
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 468,
+          "end": 472,
+          "text": ""
+        },
+        {
+          "operation": "remove-key",
+          "start": 548,
+          "end": 552,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n",
+      "x-operation": {
+        "operation": "deleteTag",
+        "self": "tag/ux"
+      }
+    },
+    {
+      "doc": "Undo of the delete: both carriers get #ux and #UX back where they stood, in one step.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 468,
+          "end": 468,
+          "text": " #ux"
+        },
+        {
+          "operation": "remove-key",
+          "start": 544,
+          "end": 544,
+          "text": " #UX"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Accounts\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Sign-in #security\r\n  - REQ-0001 A user signs in with an e-mail address and a password. #security category:functional state:accepted\r\n  - REQ-0002 A password has at least twelve characters. category:non-functional state:proposed\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 A session ends after 30 minutes without activity. #Security #ux\r\n- ITEM-0003 Profile\r\n  - REQ-0004 A user changes their own e-mail address. #UX #self-service state:proposed\r\n  - REQ-0005 A user deletes their account. state:rejected #privacy\r\n"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.7",
+  "doc": "The binding of this fixture alone (FBL 0.7, sections 4.8 and 6.3): one element type, Topic, read from the list items under the heading Topics of a Markdown file. An item's text is its id, a colon and its title (t1: Gather requirements); the lines under it before its first nested item are its notes; an item nested in another is that topic's child. Items under other headings, and everything else of the file, are unbound.",
+  "bindings": {
+    "topics": {
+      "title": "Topics, Markdown",
+      "claims": {
+        "registrationOnly": true
+      },
+      "body": {
+        "kind": "file",
+        "family": "bullets"
+      },
+      "reader": "declared",
+      "sections": [
+        {
+          "name": "topics",
+          "heading": "^Topics$"
+        }
+      ],
+      "elements": [
+        {
+          "name": "topic",
+          "type": "Topic",
+          "within": [
+            "topics"
+          ],
+          "line": "^(?<id>[a-z][a-z0-9-]*): (?<title>.+)$",
+          "id": {
+            "from": {
+              "group": "id"
+            }
+          },
+          "parent": {
+            "rules": [
+              "topic"
+            ],
+            "slot": "children"
+          },
+          "attributes": {
+            "title": {
+              "group": "title"
+            },
+            "notes": {
+              "continuation": true,
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "topics",
+            "emit": "{id}: {title}",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Topics"
+            }
+          },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

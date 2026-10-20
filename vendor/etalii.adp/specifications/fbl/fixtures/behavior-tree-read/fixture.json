@@ -1,0 +1,223 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An agent's instruction file read as an agent behavior model through behavior-tree.fbl (FBL 0.7, section 4.8), CRLF endings. It shows the six things the binding declares: each node's keyword in bold with its label after it; a Retry's count inside the keyword, singular (Retry up to 1 time) and plural (Retry up to 2 times), as attempts; an item without a keyword (Thank the reporter) read by the second Do rule as an implicit Do; ids derived from place, which the binding stores nowhere: they are the ones agent-behavior-modelling.dis derives with persistence.ids (strategy derived), its parent's place, a dot and its position among its siblings; notes as continuation lines, the blank line between two paragraphs included; and nesting by indentation, each item the child of the item it is nested in. The items under How to follow the behavior and under Labels stand in no section a rule names, so they are unbound, though they look like nodes. The first node of a file without the section, which appends ## Behavior, is the fixture first-add/ beside this one, since a fixture has one input and this one has the section.",
+  "binding": "../../behavior-tree.fbl#abm",
+  "input": "issue-triager.md",
+  "read": {
+    "elements": [
+      {
+        "id": "1",
+        "type": "Sequence",
+        "attributes": {
+          "label": "Triage the issue",
+          "notes": ""
+        }
+      },
+      {
+        "id": "1.1",
+        "type": "Fallback",
+        "attributes": {
+          "label": "Make sure the issue can be acted on"
+        }
+      },
+      {
+        "id": "1.1.1",
+        "type": "Check",
+        "attributes": {
+          "label": "The issue says what was expected and what happened",
+          "notes": ""
+        }
+      },
+      {
+        "id": "1.1.2",
+        "type": "AskUser",
+        "attributes": {
+          "label": "What did you expect, and what happened instead?"
+        }
+      },
+      {
+        "id": "1.2",
+        "type": "Retry",
+        "attributes": {
+          "label": "Label the issue",
+          "attempts": 1
+        }
+      },
+      {
+        "id": "1.2.1",
+        "type": "Do",
+        "attributes": {
+          "label": "Add the labels that fit, with the labels tool",
+          "notes": "Use only labels that already exist.\n\nNever remove a label someone else added.",
+          "implicit": false
+        }
+      },
+      {
+        "id": "1.3",
+        "type": "Retry",
+        "attributes": {
+          "label": "Find duplicates",
+          "attempts": 2
+        }
+      },
+      {
+        "id": "1.3.1",
+        "type": "Delegate",
+        "attributes": {
+          "label": "Search the closed issues for the same report"
+        }
+      },
+      {
+        "id": "1.4",
+        "type": "Do",
+        "attributes": {
+          "label": "Thank the reporter",
+          "implicit": true
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added.\r\n  - **Retry up to 2 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    },
+    {
+      "doc": "Notes on an item that has none: one insert-key at the end of its item line, before its line ending, writing a line ending and the note indented with spaces to the item's content column, 6 (FBL 4.8, continuation; 6.3, the continuation).",
+      "edit": {
+        "set": {
+          "element": "1.1.1",
+          "attributes": {
+            "notes": "Look in the issue's body and in its first comment."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 724,
+          "end": 724,
+          "text": "\r\n      Look in the issue's body and in its first comment."
+        }
+      ],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n      Look in the issue's body and in its first comment.\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added.\r\n  - **Retry up to 2 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    },
+    {
+      "doc": "Undo removes the note again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 724,
+          "end": 782,
+          "text": ""
+        }
+      ],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added.\r\n  - **Retry up to 2 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    },
+    {
+      "doc": "Notes of two paragraphs replaced by one line: a replace-value of the continuation's span, which runs from the end of the item line to the end of its last continuation line, the blank line between the paragraphs included; the nested item that follows is untouched.",
+      "edit": {
+        "set": {
+          "element": "1.2.1",
+          "attributes": {
+            "notes": "Use only labels that already exist, and never more than three."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 903,
+          "end": 996,
+          "text": "\r\n      Use only labels that already exist, and never more than three."
+        }
+      ],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist, and never more than three.\r\n  - **Retry up to 2 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    },
+    {
+      "doc": "Undo puts back both paragraphs and the blank line between them.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 903,
+          "end": 973,
+          "text": "\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added."
+        }
+      ],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added.\r\n  - **Retry up to 2 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    },
+    {
+      "doc": "A Retry's attempts are the count inside its keyword: one replace-value of the group attempts, the digits alone; the rest of the keyword and the label stay as written.",
+      "edit": {
+        "set": {
+          "element": "1.3",
+          "attributes": {
+            "attempts": 4
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1016,
+          "end": 1017,
+          "text": "4"
+        }
+      ],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added.\r\n  - **Retry up to 4 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    },
+    {
+      "doc": "Undo restores the count.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1016,
+          "end": 1017,
+          "text": "2"
+        }
+      ],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added.\r\n  - **Retry up to 2 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    },
+    {
+      "doc": "Renaming an implicit Do replaces the whole text of its item, which is its label; it stays an item without a keyword, and implicit stays true.",
+      "edit": {
+        "set": {
+          "element": "1.4",
+          "attributes": {
+            "label": "Thank the reporter by name"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1114,
+          "end": 1132,
+          "text": "Thank the reporter by name"
+        }
+      ],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added.\r\n  - **Retry up to 2 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter by name\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    },
+    {
+      "doc": "Undo restores the label.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1114,
+          "end": 1140,
+          "text": "Thank the reporter"
+        }
+      ],
+      "expect": "# Issue triager\r\n\r\nYou sort the new issues of this repository: you label them, and you ask the reporter for what is missing.\r\n\r\n## How to follow the behavior\r\n\r\nEach list item under Behavior is a node, and the items indented under a node are its children, in order:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Triage the issue\r\n  - **Try in order:** Make sure the issue can be acted on\r\n    - **Check:** The issue says what was expected and what happened\r\n    - **Ask the user:** What did you expect, and what happened instead?\r\n  - **Retry up to 1 time:** Label the issue\r\n    - **Do:** Add the labels that fit, with the labels tool\r\n      Use only labels that already exist.\r\n\r\n      Never remove a label someone else added.\r\n  - **Retry up to 2 times:** Find duplicates\r\n    - **Delegate:** Search the closed issues for the same report\r\n  - Thank the reporter\r\n\r\n## Labels\r\n\r\n- bug\r\n- question\r\n"
+    }
+  ]
+}

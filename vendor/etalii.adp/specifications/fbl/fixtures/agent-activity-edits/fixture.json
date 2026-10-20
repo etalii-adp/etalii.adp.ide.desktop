@@ -1,0 +1,624 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Every kind of edit the agent activity diagram makes, on the read fixture's example: an element, a task, a reference drawn as a relation, a pinned position, a group state and the canvas switch, each added, set, cleared and removed, then all undone and one redone. Comments, the unknown key and every line no edit concerns stay byte for byte, with CRLF endings.",
+  "binding": "../../../../definitions/diagrams/agent-activity-diagram.fbl#aad",
+  "input": "one-day.aad",
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: input-required\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Renaming a specification replaces its name in place; the comment line inside its tasks is not touched.",
+      "edit": {
+        "set": {
+          "element": "s-knowledge",
+          "attributes": {
+            "name": "Knowledge base designer"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 363,
+          "end": 381,
+          "text": "Knowledge base designer"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: input-required\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "A specification's name cannot be emptied (empty: refuse); nothing is written.",
+      "edit": {
+        "set": {
+          "element": "s-knowledge",
+          "attributes": {
+            "name": ""
+          }
+        }
+      },
+      "refused": "A specification's name is required.",
+      "splices": [],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: input-required\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "A task's status is written in its stored form; the comment above the task stays where it is.",
+      "edit": {
+        "set": {
+          "element": "t-k6",
+          "attributes": {
+            "status": "finished"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 747,
+          "end": 761,
+          "text": "finished"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: finished\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Clearing a task's updated time removes its key (empty: remove).",
+      "edit": {
+        "set": {
+          "element": "t-k2",
+          "attributes": {
+            "updated": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 580,
+          "end": 624,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: finished\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "A new task goes after the specification's last task, its keys in the binding's order; its time is written plain, because the attribute's DISL type is the date-time it reads as (FBL 6.3).",
+      "edit": {
+        "add": {
+          "type": "Task",
+          "id": "t-k7",
+          "parent": "s-knowledge",
+          "attributes": {
+            "title": "Property grid",
+            "status": "pending",
+            "updated": "2026-10-09T09:15:00+02:00"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 837,
+          "end": 837,
+          "text": "      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: finished\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Removing a task removes its entry with the comment directly above it, its leading comment (FBL 4.1.1).",
+      "edit": {
+        "remove": {
+          "element": "t-k6"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 580,
+          "end": 837,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Drawing a line from another specification to the agent sets its specification key: the reference is replaced by the new id.",
+      "edit": {
+        "set": {
+          "element": "a-dev2",
+          "attributes": {
+            "specification": "s-rider"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 864,
+          "end": 875,
+          "text": "s-rider"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-rider\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Removing the line clears the key, which FBL writes as removing it (empty: remove).",
+      "edit": {
+        "set": {
+          "element": "a-dev2",
+          "attributes": {
+            "specification": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 845,
+          "end": 873,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Drawing the line again inserts the key where the binding's key order puts it: after name, before link.",
+      "edit": {
+        "set": {
+          "element": "a-dev2",
+          "attributes": {
+            "specification": "s-knowledge"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 845,
+          "end": 845,
+          "text": "    specification: s-knowledge\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Dragging a pinned specification replaces its stored position under view; a number keeps at most two decimals.",
+      "edit": {
+        "set": {
+          "element": "pinned:s-knowledge",
+          "attributes": {
+            "x": 300,
+            "y": -120.5
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1668,
+          "end": 1671,
+          "text": "300"
+        },
+        {
+          "operation": "replace-value",
+          "start": 1682,
+          "end": 1685,
+          "text": "-120.5"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Pinning a location adds its placement after the last one, indented like it.",
+      "edit": {
+        "add": {
+          "type": "Placement",
+          "id": "pinned:l-kd",
+          "attributes": {
+            "element": "l-kd",
+            "x": 520,
+            "y": 40
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 1690,
+          "end": 1690,
+          "text": "    - element: l-kd\r\n      x: 520\r\n      y: 40\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n    - element: l-kd\r\n      x: 520\r\n      y: 40\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Unpinning the location removes its placement; the list keeps the other one, so no level is left empty.",
+      "edit": {
+        "remove": {
+          "element": "pinned:l-kd"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 1690,
+          "end": 1738,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Folding a group replaces its stored state.",
+      "edit": {
+        "set": {
+          "element": "groups:s-knowledge#pending",
+          "attributes": {
+            "collapsed": true
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1768,
+          "end": 1773,
+          "text": "true"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: true\r\n"
+    },
+    {
+      "doc": "Folding another group of the same specification adds a group state after the last one.",
+      "edit": {
+        "add": {
+          "type": "GroupState",
+          "id": "groups:s-knowledge#finished",
+          "attributes": {
+            "element": "s-knowledge",
+            "group": "finished",
+            "collapsed": true
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 1774,
+          "end": 1774,
+          "text": "    - element: s-knowledge\r\n      group: finished\r\n      collapsed: true\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: true\r\n    - element: s-knowledge\r\n      group: finished\r\n      collapsed: true\r\n"
+    },
+    {
+      "doc": "Turning on the canvas switch writes showArchived: true in place, under view.",
+      "edit": {
+        "set": {
+          "element": "diagram",
+          "attributes": {
+            "showArchived": true
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1609,
+          "end": 1614,
+          "text": "true"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: true\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: true\r\n    - element: s-knowledge\r\n      group: finished\r\n      collapsed: true\r\n"
+    },
+    {
+      "doc": "Removing a specification removes, bottom-up, its group states with the list they leave empty (the list's line listed first, so that the undo puts them back in order), its placement with its list, the agent's reference to it (DISL's default deletion policy unsets references), and last its own entry with its tasks. view still holds the switch, so it stays (remove-empty-levels stops at the first level that holds something); the rest of the file is untouched.",
+      "edit": {
+        "remove": {
+          "element": "s-knowledge"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-container",
+          "start": 1689,
+          "end": 1700,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 1700,
+          "end": 1773,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 1773,
+          "end": 1847,
+          "text": ""
+        },
+        {
+          "operation": "remove-container",
+          "start": 1615,
+          "end": 1630,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 1630,
+          "end": 1689,
+          "text": ""
+        },
+        {
+          "operation": "remove-key",
+          "start": 845,
+          "end": 877,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 305,
+          "end": 697,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: true\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: removing a specification removes, bottom-up, its group states with the list they leave empty (the list's line listed first, so that the undo puts them back in order), its placement with its list, the agent's reference to it (DISL's default deletion policy unsets references), and last its own entry with its tasks. view still holds the switch, so it stays (remove-empty-levels stops at the first level that holds something); the rest of the file is untouched.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 305,
+          "end": 305,
+          "text": "  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n"
+        },
+        {
+          "operation": "remove-key",
+          "start": 453,
+          "end": 453,
+          "text": "    specification: s-knowledge\r\n"
+        },
+        {
+          "operation": "remove-container",
+          "start": 1191,
+          "end": 1191,
+          "text": "  placements:\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 1191,
+          "end": 1191,
+          "text": "    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n"
+        },
+        {
+          "operation": "remove-container",
+          "start": 1191,
+          "end": 1191,
+          "text": "  groups:\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 1191,
+          "end": 1191,
+          "text": "    - element: s-knowledge\r\n      group: pending\r\n      collapsed: true\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 1191,
+          "end": 1191,
+          "text": "    - element: s-knowledge\r\n      group: finished\r\n      collapsed: true\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: true\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: true\r\n    - element: s-knowledge\r\n      group: finished\r\n      collapsed: true\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: turning on the canvas switch writes showArchived: true in place, under view.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1609,
+          "end": 1613,
+          "text": "false"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: true\r\n    - element: s-knowledge\r\n      group: finished\r\n      collapsed: true\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: folding another group of the same specification adds a group state after the last one.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 1774,
+          "end": 1848,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: true\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: folding a group replaces its stored state.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1768,
+          "end": 1772,
+          "text": "false"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: unpinning the location removes its placement; the list keeps the other one, so no level is left empty.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 1690,
+          "end": 1690,
+          "text": "    - element: l-kd\r\n      x: 520\r\n      y: 40\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n    - element: l-kd\r\n      x: 520\r\n      y: 40\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: pinning a location adds its placement after the last one, indented like it.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 1690,
+          "end": 1738,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 300\r\n      y: -120.5\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: dragging a pinned specification replaces its stored position under view; a number keeps at most two decimals.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 1668,
+          "end": 1671,
+          "text": "240"
+        },
+        {
+          "operation": "replace-value",
+          "start": 1682,
+          "end": 1688,
+          "text": "-80"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: drawing the line again inserts the key where the binding's key order puts it: after name, before link.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 845,
+          "end": 877,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: removing the line clears the key, which FBL writes as removing it (empty: remove).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 845,
+          "end": 845,
+          "text": "    specification: s-rider\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-rider\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: drawing a line from another specification to the agent sets its specification key: the reference is replaced by the new id.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 864,
+          "end": 871,
+          "text": "s-knowledge"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: removing a task removes its entry with the comment directly above it, its leading comment (FBL 4.1.1).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 580,
+          "end": 580,
+          "text": "      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: finished\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: finished\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n      - id: t-k7\r\n        title: Property grid\r\n        status: pending\r\n        updated: 2026-10-09T09:15:00+02:00\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: a new task goes after the specification's last task, its keys in the binding's order; its time is written plain, because the attribute's DISL type is the date-time it reads as (FBL 6.3).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 837,
+          "end": 954,
+          "text": ""
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: finished\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: clearing a task's updated time removes its key (empty: remove).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 580,
+          "end": 580,
+          "text": "        updated: 2026-10-08T23:44:00+02:00\r\n"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: finished\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: a task's status is written in its stored form; the comment above the task stays where it is.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 747,
+          "end": 755,
+          "text": "input-required"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: input-required\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit: renaming a specification replaces its name in place; the comment line inside its tasks is not touched.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 363,
+          "end": 386,
+          "text": "Knowledge designer"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: input-required\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    },
+    {
+      "doc": "Redo writes the first edit again, with the same splices.",
+      "redo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 363,
+          "end": 381,
+          "text": "Knowledge base designer"
+        }
+      ],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge base designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: input-required\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    }
+  ]
+}

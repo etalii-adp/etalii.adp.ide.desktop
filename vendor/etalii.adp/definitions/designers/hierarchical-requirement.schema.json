@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/definitions/designers/hierarchical-requirement.schema.json",
+  "title": "Requirement document",
+  "description": "The requirement document of the Hierarchical Requirement Designer (etalii/hierarchical-requirement), a DED 0.2 definition in Markdown, in the JSON form it is read into (hierarchical-requirement.md, The JSON form): the envelope's two values from line 1, the two marks from line 2, the items of the Requirements section as a tree, and the bullets of the Assessments section. The file itself is Markdown, not JSON; this is what it means. What a reading reports beside it (an unreadable bullet, a duplicate number, a mention or an assessment that names nothing, a requirement out of place) is not in this form: an entry that cannot be read, or that stands where it cannot, is left out of it, and a finding reports it.",
+  "type": "object",
+  "properties": {
+    "ded": { "description": "The version of DED the file is written in, from line 1. A Markdown definition is written in 0.2 or later (DED section 5).", "const": "0.2" },
+    "designer": { "description": "The designer type whose document this is, from line 1.", "const": "etalii/hierarchical-requirement" },
+    "lastItem": { "description": "The last item number given, from the mark line on line 2 (DESL section 5.3.5). Absent when the mark line is missing or names none.", "$ref": "#/$defs/ItemNumber" },
+    "lastRequirement": { "description": "The last requirement number given, from the mark line.", "$ref": "#/$defs/RequirementNumber" },
+    "items": { "description": "The top-level items of the Requirements section, in the order of the file.", "type": "array", "items": { "$ref": "#/$defs/Item" } },
+    "assessments": { "description": "The assessments of the Assessments section, in the order of the file.", "type": "array", "items": { "$ref": "#/$defs/Assessment" } }
+  },
+  "required": ["ded", "designer", "items", "assessments"],
+  "allOf": [{ "$ref": "https://etalii.net/adp/ded/schema/0.1/ded.schema.json#/$defs/Definition" }],
+  "additionalProperties": false,
+  "$defs": {
+    "ItemNumber": {
+      "description": "An item's number: `ITEM-` and at least one digit; the designer writes four or more. Ids are strings, so `ITEM-12` and `ITEM-0012` are different numbers.",
+      "type": "string",
+      "pattern": "^ITEM-[0-9]+$"
+    },
+    "RequirementNumber": {
+      "description": "A requirement's number: `REQ-` and at least one digit.",
+      "type": "string",
+      "pattern": "^REQ-[0-9]+$"
+    },
+    "Title": {
+      "description": "The one line between the number and the trailing words.",
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^\\r\\n]*$"
+    },
+    "Description": {
+      "description": "The lines indented under the bullet that are not bullets, joined by LF, with their indentation up to the bullet's content column taken off (FBL section 4.8). Absent when the bullet has none.",
+      "type": "string",
+      "minLength": 1
+    },
+    "Tag": {
+      "description": "A tag's name, as written after `#`: no whitespace and no `#`.",
+      "type": "string",
+      "pattern": "^[^\\s#]+$"
+    },
+    "Name": {
+      "description": "A category's or a state's name, as written after `category:` or `state:`: no whitespace.",
+      "type": "string",
+      "pattern": "^\\S+$"
+    },
+    "Item": {
+      "description": "One item: a level of the hierarchy, with the requirements and the items nested in it. Requirements are listed apart from the items, each in the order of the file.",
+      "type": "object",
+      "properties": {
+        "id": { "description": "The item's number, or `ITEM-NEW` for one a writer added without one.", "anyOf": [{ "$ref": "#/$defs/ItemNumber" }, { "const": "ITEM-NEW" }] },
+        "title": { "$ref": "#/$defs/Title" },
+        "description": { "$ref": "#/$defs/Description" },
+        "tags": { "description": "The tags the item carries, in the order of the line.", "type": "array", "items": { "$ref": "#/$defs/Tag" } },
+        "requirements": { "type": "array", "items": { "$ref": "#/$defs/Requirement" } },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/Item" } }
+      },
+      "required": ["id", "title", "requirements", "items"],
+      "additionalProperties": false
+    },
+    "Requirement": {
+      "description": "One requirement: its title states it.",
+      "type": "object",
+      "properties": {
+        "id": { "description": "The requirement's number, or `REQ-NEW` for one a writer added without one.", "anyOf": [{ "$ref": "#/$defs/RequirementNumber" }, { "const": "REQ-NEW" }] },
+        "title": { "$ref": "#/$defs/Title" },
+        "description": { "$ref": "#/$defs/Description" },
+        "tags": { "type": "array", "items": { "$ref": "#/$defs/Tag" } },
+        "category": { "description": "The first `category:` word of the line.", "$ref": "#/$defs/Name" },
+        "state": { "description": "The first `state:` word of the line.", "$ref": "#/$defs/Name" }
+      },
+      "required": ["id", "title"],
+      "additionalProperties": false
+    },
+    "Assessment": {
+      "description": "One assessment about one item or requirement.",
+      "type": "object",
+      "properties": {
+        "kind": { "description": "The kind, by its key in hierarchical-requirement.des (enumeration AssessmentKind); the file writes it Question, Remark, Warning or Idea, in any case.", "enum": ["question", "remark", "warning", "idea"] },
+        "about": { "description": "The number of the entry it is about, as written before the colon.", "type": "string", "pattern": "^[^\\s:]+$" },
+        "text": { "type": "string", "pattern": "^[^\\r\\n]*$" },
+        "detail": { "description": "The lines indented under it, as a description is read.", "type": "string", "minLength": 1 },
+        "resolved": { "description": "`[x]`; `[ ]` and a bullet without a checkbox are open.", "type": "boolean" }
+      },
+      "required": ["kind", "about", "text", "resolved"],
+      "additionalProperties": false
+    }
+  }
+}

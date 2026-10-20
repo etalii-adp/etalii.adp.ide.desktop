@@ -1,0 +1,76 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A requirement document, CRLF endings, without an Assessments heading: the section assessments does not exist, and the document reads no assessment and reports nothing (FBL 4.8, Sections).",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "web-shop.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001"
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001"
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The first assessment of a file without the section (the operation addAssessment on REQ-0001): the container assessments is created by the insert's create, at end-of-document with the text ## Assessments, one ensure-container at the end of the body that writes a line ending, the heading and a line ending, so that a blank line stands before the heading; the assessment follows at the same offset as the first item of a section that holds none, after a line ending, so that a blank line stands before it, with the marker - at column 0 (FBL 6.2, 6.3, a missing section; R7). Every line break is the body's CRLF. The checkbox is written open, as in the add of the fixture beside this one.",
+      "edit": {
+        "add": {
+          "type": "Assessment",
+          "id": "assessment/0",
+          "attributes": {
+            "kind": "question",
+            "about": "REQ-0001",
+            "text": "Is 30 minutes right for the mobile app?"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 281,
+          "end": 281,
+          "text": "\r\n## Assessments\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 281,
+          "end": 281,
+          "text": "\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0001 REQ-0002 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend\r\n  - REQ-0001 A session ends after 30 minutes without activity.\r\n  - REQ-0002 Users sign in with an e-mail address and a password.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced: the assessment and the heading go, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 281,
+          "end": 299,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 299,
+          "end": 367,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0001 REQ-0002 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend\r\n  - REQ-0001 A session ends after 30 minutes without activity.\r\n  - REQ-0002 Users sign in with an e-mail address and a password.\r\n"
+    }
+  ]
+}

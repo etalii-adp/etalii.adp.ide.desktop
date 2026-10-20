@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/ded/schema/0.1/ded.schema.json",
+  "title": "DED, the Designer Definition Language, version 0.2",
+  "description": "A DED definition in its YAML or JSON form: the envelope of DED section 2, and the designer type's own content beside it. A designer type's file schema refines $defs/Definition with an allOf; this schema checks the envelope only. The XML and Markdown forms are checked after reading their envelope into this form (DED section 6). The $id is the one DED 0.1 gave the schema: 0.2 keeps every 0.1 definition valid.",
+  "$ref": "#/$defs/Definition",
+  "$defs": {
+    "Definition": {
+      "description": "One document a user created of a designer type (DED section 3).",
+      "type": "object",
+      "properties": {
+        "ded": {"description": "The version of DED the definition is written in (DED section 2).", "enum": ["0.1", "0.2"]},
+        "designer": {"description": "The origin of the designer type the definition was made with, `<vendor>/<type>` (DESL section 3.2).", "$ref": "#/$defs/Origin"}
+      },
+      "required": ["ded", "designer"]
+    },
+    "Origin": {"type": "string", "pattern": "^[a-z0-9-]+/[a-z0-9-]+$"}
+  }
+}

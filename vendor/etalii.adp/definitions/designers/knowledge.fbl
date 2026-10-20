@@ -1,0 +1,935 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.4",
+  "doc": "The knowledge file of the Knowledge designer (definitions/designers/knowledge.des, knowledge.md): one table of typed properties, rows and views, in YAML, JSON or XML, one binding per format family. Every knowledge file is a DED definition: it opens with `ded` and `designer`, which are also the marker that lets a host recognise it without a registration. The file is ADP's own; every id is stored in it, a cell names its property by id and holds its value under a key named for its type, and several values are several entries.",
+  "bindings": {
+    "yaml": {
+      "title": "Knowledge file, YAML",
+      "claims": {
+        "extensions": [".yaml", ".yml"],
+        "shared": true,
+        "marker": { "rootKey": "designer", "value": "etalii/knowledge" },
+        "origins": ["etalii/knowledge"],
+        "suggest": { "contains": ["designer: etalii/knowledge"] }
+      },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "finalNewline": true, "sequenceIndent": "indented", "quote": "double" },
+      "header": { "key": "ded", "value": "0.1", "required": true },
+      "elements": [
+        {
+          "name": "table",
+          "type": "Table",
+          "doc": "The root mapping: the table's own settings. A rule at '/' binds the root's keys, as databricks-pipeline.fbl's 'pipeline' rule does.",
+          "at": "/",
+          "attributes": {
+            "version": { "key": "ded", "readOnly": "The version is written when the file is created and changed by nobody but a migration." },
+            "designer": { "key": "designer", "readOnly": "The designer type is written when the file is created and changed by nobody." },
+            "name": { "key": "name", "empty": "keep" },
+            "activeView": { "key": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } }
+          }
+        },
+        {
+          "name": "property",
+          "type": "Property",
+          "at": "/properties/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "name": { "key": "name", "empty": "refuse" },
+            "valueType": { "key": "type", "empty": "refuse" },
+            "title": { "key": "title", "empty": "remove", "default": false },
+            "targetFile": { "key": "target", "empty": "remove" },
+            "limit": { "key": "limit", "empty": "remove", "default": "none" },
+            "counterpart": { "key": "counterpart", "empty": "remove" },
+            "computed": { "key": "computed", "empty": "remove", "default": false },
+            "isParent": { "key": "parent", "empty": "remove", "default": false }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/properties",
+            "create": { "at": { "before": "views" } },
+            "keys": ["id", "name", "type", "title", "target", "limit", "counterpart", "computed", "parent"]
+          },
+          "remove": { "cascade": ["cell", "column", "sort", "condition1", "condition2", "condition3"] }
+        },
+        {
+          "name": "option",
+          "type": "Option",
+          "at": "/properties/*/options/*",
+          "parent": { "rules": ["property"], "slot": "options" },
+          "id": { "from": { "key": "id" } },
+          "attributes": { "name": { "key": "name", "empty": "refuse" }, "colour": { "key": "colour", "empty": "remove", "default": "default" } },
+          "insert": { "place": "after-last", "container": "options", "create": { "at": { "after": "type" } }, "keys": ["id", "name", "colour"] },
+          "remove": { "cascade": ["cell", "cellOption", "condition1", "condition2", "condition3"], "container": "remove-when-empty" }
+        },
+        {
+          "name": "view",
+          "type": "View",
+          "at": "/views/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "name": { "key": "name", "empty": "refuse" },
+            "filterMatch": { "key": "filterMatch", "empty": "remove", "default": "all" },
+            "groupBy": { "key": "groupBy", "empty": "remove", "reference": { "to": ["property"], "by": "id" } },
+            "hideEmptyGroups": { "key": "hideEmptyGroups", "empty": "remove", "default": false },
+            "freeze": { "key": "freeze", "empty": "remove", "reference": { "to": ["property"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/views",
+            "create": { "at": { "before": "rows" } },
+            "keys": ["id", "name", "filterMatch", "groupBy", "hideEmptyGroups", "freeze"]
+          },
+          "remove": {}
+        },
+        {
+          "name": "column",
+          "type": "Column",
+          "at": "/views/*/columns/*",
+          "parent": { "rules": ["view"], "slot": "columns" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "visible": { "key": "visible", "empty": "remove", "default": true },
+            "width": { "key": "width", "empty": "remove", "number": "shortest" },
+            "wrap": { "key": "wrap", "empty": "remove", "default": false },
+            "calculate": {
+              "key": "calculate",
+              "empty": "remove",
+              "map": {
+                "count-all": "countAll",
+                "count-values": "countValues",
+                "count-unique": "countUnique",
+                "count-empty": "countEmpty",
+                "count-not-empty": "countNotEmpty",
+                "percent-empty": "percentEmpty",
+                "percent-not-empty": "percentNotEmpty",
+                "earliest": "earliest",
+                "latest": "latest",
+                "date-range": "dateRange",
+                "sum": "sum",
+                "average": "average",
+                "median": "median",
+                "min": "min",
+                "max": "max",
+                "range": "range"
+              }
+            }
+          },
+          "insert": { "place": "after-last", "container": "columns", "create": { "at": "end" }, "keys": ["property", "visible", "width", "wrap", "calculate"] },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "sort",
+          "type": "Sort",
+          "at": "/views/*/sorts/*",
+          "parent": { "rules": ["view"], "slot": "sorts" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "direction": { "key": "direction", "empty": "remove", "default": "ascending" }
+          },
+          "insert": { "place": "after-last", "container": "sorts", "create": { "at": "end" }, "keys": ["property", "direction"] },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "condition1",
+          "type": "Condition",
+          "at": "/views/*/filter/*",
+          "when": "has(entry.operator)",
+          "parent": { "rules": ["view"], "slot": "filter" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "key": "operator", "empty": "refuse" },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "key": "checked", "empty": "remove" },
+            "date": { "key": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "key": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "key": "time", "empty": "remove" },
+            "option": { "key": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "filter",
+            "create": { "at": "end" },
+            "keys": ["property", "operator", "text", "number", "checked", "date", "dateTime", "time", "option"]
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "filterGroup1",
+          "type": "FilterGroup",
+          "at": "/views/*/filter/*",
+          "when": "has(entry.match)",
+          "parent": { "rules": ["view"], "slot": "filter" },
+          "attributes": { "match": { "key": "match", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "filter", "create": { "at": "end" }, "keys": ["match"] },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "condition2",
+          "type": "Condition",
+          "at": "/views/*/filter/*/conditions/*",
+          "when": "has(entry.operator)",
+          "parent": { "rules": ["filterGroup1"], "slot": "conditions" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "key": "operator", "empty": "refuse" },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "key": "checked", "empty": "remove" },
+            "date": { "key": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "key": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "key": "time", "empty": "remove" },
+            "option": { "key": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "conditions",
+            "create": { "at": { "after": "match" } },
+            "keys": ["property", "operator", "text", "number", "checked", "date", "dateTime", "time", "option"]
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "filterGroup2",
+          "type": "FilterGroup",
+          "at": "/views/*/filter/*/conditions/*",
+          "when": "has(entry.match)",
+          "parent": { "rules": ["filterGroup1"], "slot": "conditions" },
+          "attributes": { "match": { "key": "match", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "conditions", "create": { "at": { "after": "match" } }, "keys": ["match"] },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "condition3",
+          "type": "Condition",
+          "at": "/views/*/filter/*/conditions/*/conditions/*",
+          "when": "has(entry.operator)",
+          "parent": { "rules": ["filterGroup2"], "slot": "conditions" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "key": "operator", "empty": "refuse" },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "key": "checked", "empty": "remove" },
+            "date": { "key": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "key": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "key": "time", "empty": "remove" },
+            "option": { "key": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "conditions",
+            "create": { "at": { "after": "match" } },
+            "keys": ["property", "operator", "text", "number", "checked", "date", "dateTime", "time", "option"]
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "groupOrder",
+          "type": "GroupSetting",
+          "at": "/views/*/groupOrder/*",
+          "parent": { "rules": ["view"], "slot": "groupOrder" },
+          "attributes": { "key": { "key": "key", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "groupOrder", "create": { "at": { "after": "groupBy" } }, "keys": ["key"] },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "hiddenGroup",
+          "type": "GroupSetting",
+          "at": "/views/*/hiddenGroups/*",
+          "parent": { "rules": ["view"], "slot": "hiddenGroups" },
+          "attributes": { "key": { "key": "key", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "hiddenGroups", "create": { "at": { "after": "groupBy" } }, "keys": ["key"] },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "collapsedGroup",
+          "type": "GroupSetting",
+          "at": "/views/*/collapsed/*",
+          "parent": { "rules": ["view"], "slot": "collapsed" },
+          "attributes": { "key": { "key": "key", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "collapsed", "create": { "at": { "after": "groupBy" } }, "keys": ["key"] },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "row",
+          "type": "Row",
+          "at": "/rows/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": {},
+          "insert": { "place": "after-last", "container": "/rows", "create": { "at": { "under": "/" } }, "keys": ["id"] },
+          "remove": {}
+        },
+        {
+          "name": "cell",
+          "type": "Cell",
+          "at": "/rows/*/cells/*",
+          "parent": { "rules": ["row"], "slot": "cells" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "key": "checked", "empty": "remove" },
+            "date": { "key": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "key": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "key": "time", "empty": "remove" },
+            "option": { "key": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "cells",
+            "create": { "at": { "after": "id" } },
+            "keys": ["property", "text", "number", "checked", "date", "dateTime", "time", "option"]
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "cellOption",
+          "type": "CellItem",
+          "at": "/rows/*/cells/*/options/*",
+          "parent": { "rules": ["cell"], "slot": "items" },
+          "attributes": { "option": { "key": "option", "empty": "refuse", "reference": { "to": ["option"], "by": "id" } } },
+          "insert": { "place": "after-last", "container": "options", "create": { "at": { "after": "property" } }, "keys": ["option"] },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "cellRow",
+          "type": "CellItem",
+          "doc": "A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).",
+          "at": "/rows/*/cells/*/rows/*",
+          "parent": { "rules": ["cell"], "slot": "items" },
+          "attributes": { "row": { "key": "row", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "rows", "create": { "at": { "after": "property" } }, "keys": ["row"] },
+          "remove": { "container": "remove-when-empty" }
+        }
+      ],
+      "registration": { "createOnFirstPlacement": false },
+      "template": {
+        "text": "ded: \"0.1\"\r\ndesigner: etalii/knowledge\r\nname: {base}\r\nproperties:\r\n  - id: {newid:property}\r\n    name: Name\r\n    type: text\r\n    title: true\r\nviews:\r\n  - id: {newid:view}\r\n    name: Table\r\n"
+      }
+    },
+    "json": {
+      "title": "Knowledge file, JSON",
+      "claims": {
+        "extensions": [".json", ".ded"],
+        "shared": true,
+        "marker": { "rootKey": "designer", "value": "etalii/knowledge" },
+        "origins": ["etalii/knowledge"],
+        "suggest": { "contains": ["\"designer\": \"etalii/knowledge\""] }
+      },
+      "body": { "kind": "file", "family": "json" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "finalNewline": true },
+      "header": { "key": "ded", "value": "0.1", "required": true },
+      "elements": [
+        {
+          "name": "table",
+          "type": "Table",
+          "doc": "The root mapping: the table's own settings. A rule at '/' binds the root's keys, as databricks-pipeline.fbl's 'pipeline' rule does.",
+          "at": "/",
+          "attributes": {
+            "version": { "key": "ded", "readOnly": "The version is written when the file is created and changed by nobody but a migration." },
+            "designer": { "key": "designer", "readOnly": "The designer type is written when the file is created and changed by nobody." },
+            "name": { "key": "name", "empty": "keep" },
+            "activeView": { "key": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } }
+          }
+        },
+        {
+          "name": "property",
+          "type": "Property",
+          "at": "/properties/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "name": { "key": "name", "empty": "refuse" },
+            "valueType": { "key": "type", "empty": "refuse" },
+            "title": { "key": "title", "empty": "remove", "default": false },
+            "targetFile": { "key": "target", "empty": "remove" },
+            "limit": { "key": "limit", "empty": "remove", "default": "none" },
+            "counterpart": { "key": "counterpart", "empty": "remove" },
+            "computed": { "key": "computed", "empty": "remove", "default": false },
+            "isParent": { "key": "parent", "empty": "remove", "default": false }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/properties",
+            "create": { "at": { "before": "views" } },
+            "emit": "{ \"id\": \"{id}\", \"name\": \"{name}\", \"type\": \"{valueType}\"[, \"title\": {title}][, \"target\": \"{targetFile}\"][, \"limit\": \"{limit}\"][, \"counterpart\": \"{counterpart}\"][, \"computed\": {computed}][, \"parent\": {isParent}] }"
+          },
+          "remove": { "cascade": ["cell", "column", "sort", "condition1", "condition2", "condition3"] }
+        },
+        {
+          "name": "option",
+          "type": "Option",
+          "at": "/properties/*/options/*",
+          "parent": { "rules": ["property"], "slot": "options" },
+          "id": { "from": { "key": "id" } },
+          "attributes": { "name": { "key": "name", "empty": "refuse" }, "colour": { "key": "colour", "empty": "remove", "default": "default" } },
+          "insert": {
+            "place": "after-last",
+            "container": "options",
+            "create": { "at": { "after": "type" } },
+            "emit": "{ \"id\": \"{id}\", \"name\": \"{name}\"[, \"colour\": \"{colour}\"] }"
+          },
+          "remove": { "cascade": ["cell", "cellOption", "condition1", "condition2", "condition3"], "container": "remove-when-empty" }
+        },
+        {
+          "name": "view",
+          "type": "View",
+          "at": "/views/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "name": { "key": "name", "empty": "refuse" },
+            "filterMatch": { "key": "filterMatch", "empty": "remove", "default": "all" },
+            "groupBy": { "key": "groupBy", "empty": "remove", "reference": { "to": ["property"], "by": "id" } },
+            "hideEmptyGroups": { "key": "hideEmptyGroups", "empty": "remove", "default": false },
+            "freeze": { "key": "freeze", "empty": "remove", "reference": { "to": ["property"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/views",
+            "create": { "at": { "before": "rows" } },
+            "emit": "{ \"id\": \"{id}\", \"name\": \"{name}\"[, \"filterMatch\": \"{filterMatch}\"][, \"groupBy\": \"{groupBy}\"][, \"hideEmptyGroups\": {hideEmptyGroups}][, \"freeze\": \"{freeze}\"] }"
+          },
+          "remove": {}
+        },
+        {
+          "name": "column",
+          "type": "Column",
+          "at": "/views/*/columns/*",
+          "parent": { "rules": ["view"], "slot": "columns" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "visible": { "key": "visible", "empty": "remove", "default": true },
+            "width": { "key": "width", "empty": "remove", "number": "shortest" },
+            "wrap": { "key": "wrap", "empty": "remove", "default": false },
+            "calculate": {
+              "key": "calculate",
+              "empty": "remove",
+              "map": {
+                "count-all": "countAll",
+                "count-values": "countValues",
+                "count-unique": "countUnique",
+                "count-empty": "countEmpty",
+                "count-not-empty": "countNotEmpty",
+                "percent-empty": "percentEmpty",
+                "percent-not-empty": "percentNotEmpty",
+                "earliest": "earliest",
+                "latest": "latest",
+                "date-range": "dateRange",
+                "sum": "sum",
+                "average": "average",
+                "median": "median",
+                "min": "min",
+                "max": "max",
+                "range": "range"
+              }
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "columns",
+            "create": { "at": "end" },
+            "emit": "{ \"property\": \"{property}\"[, \"visible\": {visible}][, \"width\": {width}][, \"wrap\": {wrap}][, \"calculate\": \"{calculate}\"] }"
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "sort",
+          "type": "Sort",
+          "at": "/views/*/sorts/*",
+          "parent": { "rules": ["view"], "slot": "sorts" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "direction": { "key": "direction", "empty": "remove", "default": "ascending" }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "sorts",
+            "create": { "at": "end" },
+            "emit": "{ \"property\": \"{property}\"[, \"direction\": \"{direction}\"] }"
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "condition1",
+          "type": "Condition",
+          "at": "/views/*/filter/*",
+          "when": "has(entry.operator)",
+          "parent": { "rules": ["view"], "slot": "filter" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "key": "operator", "empty": "refuse" },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "key": "checked", "empty": "remove" },
+            "date": { "key": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "key": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "key": "time", "empty": "remove" },
+            "option": { "key": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "filter",
+            "create": { "at": "end" },
+            "emit": "{ \"property\": \"{property}\", \"operator\": \"{operator}\"[, \"text\": \"{text}\"][, \"number\": {number}][, \"checked\": {checked}][, \"date\": \"{date}\"][, \"dateTime\": \"{dateTime}\"][, \"time\": \"{time}\"][, \"option\": \"{option}\"] }"
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "filterGroup1",
+          "type": "FilterGroup",
+          "at": "/views/*/filter/*",
+          "when": "has(entry.match)",
+          "parent": { "rules": ["view"], "slot": "filter" },
+          "attributes": { "match": { "key": "match", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "filter", "create": { "at": "end" }, "emit": "{ \"match\": \"{match}\" }" },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "condition2",
+          "type": "Condition",
+          "at": "/views/*/filter/*/conditions/*",
+          "when": "has(entry.operator)",
+          "parent": { "rules": ["filterGroup1"], "slot": "conditions" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "key": "operator", "empty": "refuse" },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "key": "checked", "empty": "remove" },
+            "date": { "key": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "key": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "key": "time", "empty": "remove" },
+            "option": { "key": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "conditions",
+            "create": { "at": { "after": "match" } },
+            "emit": "{ \"property\": \"{property}\", \"operator\": \"{operator}\"[, \"text\": \"{text}\"][, \"number\": {number}][, \"checked\": {checked}][, \"date\": \"{date}\"][, \"dateTime\": \"{dateTime}\"][, \"time\": \"{time}\"][, \"option\": \"{option}\"] }"
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "filterGroup2",
+          "type": "FilterGroup",
+          "at": "/views/*/filter/*/conditions/*",
+          "when": "has(entry.match)",
+          "parent": { "rules": ["filterGroup1"], "slot": "conditions" },
+          "attributes": { "match": { "key": "match", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "conditions", "create": { "at": { "after": "match" } }, "emit": "{ \"match\": \"{match}\" }" },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "condition3",
+          "type": "Condition",
+          "at": "/views/*/filter/*/conditions/*/conditions/*",
+          "when": "has(entry.operator)",
+          "parent": { "rules": ["filterGroup2"], "slot": "conditions" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "key": "operator", "empty": "refuse" },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "key": "checked", "empty": "remove" },
+            "date": { "key": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "key": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "key": "time", "empty": "remove" },
+            "option": { "key": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "conditions",
+            "create": { "at": { "after": "match" } },
+            "emit": "{ \"property\": \"{property}\", \"operator\": \"{operator}\"[, \"text\": \"{text}\"][, \"number\": {number}][, \"checked\": {checked}][, \"date\": \"{date}\"][, \"dateTime\": \"{dateTime}\"][, \"time\": \"{time}\"][, \"option\": \"{option}\"] }"
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "groupOrder",
+          "type": "GroupSetting",
+          "at": "/views/*/groupOrder/*",
+          "parent": { "rules": ["view"], "slot": "groupOrder" },
+          "attributes": { "key": { "key": "key", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "groupOrder", "create": { "at": { "after": "groupBy" } }, "emit": "{ \"key\": \"{key}\" }" },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "hiddenGroup",
+          "type": "GroupSetting",
+          "at": "/views/*/hiddenGroups/*",
+          "parent": { "rules": ["view"], "slot": "hiddenGroups" },
+          "attributes": { "key": { "key": "key", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "hiddenGroups", "create": { "at": { "after": "groupBy" } }, "emit": "{ \"key\": \"{key}\" }" },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "collapsedGroup",
+          "type": "GroupSetting",
+          "at": "/views/*/collapsed/*",
+          "parent": { "rules": ["view"], "slot": "collapsed" },
+          "attributes": { "key": { "key": "key", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "collapsed", "create": { "at": { "after": "groupBy" } }, "emit": "{ \"key\": \"{key}\" }" },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "row",
+          "type": "Row",
+          "at": "/rows/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": {},
+          "insert": {
+            "place": "after-last",
+            "container": "/rows",
+            "create": { "at": { "under": "/" }, "text": "\"rows\": [\r\n  ]" },
+            "emit": "{ \"id\": \"{id}\" }"
+          },
+          "remove": {}
+        },
+        {
+          "name": "cell",
+          "type": "Cell",
+          "at": "/rows/*/cells/*",
+          "parent": { "rules": ["row"], "slot": "cells" },
+          "attributes": {
+            "property": { "key": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "key": "checked", "empty": "remove" },
+            "date": { "key": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "key": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "key": "time", "empty": "remove" },
+            "option": { "key": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "cells",
+            "create": { "at": { "after": "id" } },
+            "emit": "{ \"property\": \"{property}\"[, \"text\": \"{text}\"][, \"number\": {number}][, \"checked\": {checked}][, \"date\": \"{date}\"][, \"dateTime\": \"{dateTime}\"][, \"time\": \"{time}\"][, \"option\": \"{option}\"] }"
+          },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "cellOption",
+          "type": "CellItem",
+          "at": "/rows/*/cells/*/options/*",
+          "parent": { "rules": ["cell"], "slot": "items" },
+          "attributes": { "option": { "key": "option", "empty": "refuse", "reference": { "to": ["option"], "by": "id" } } },
+          "insert": { "place": "after-last", "container": "options", "create": { "at": { "after": "property" } }, "emit": "{ \"option\": \"{option}\" }" },
+          "remove": { "container": "remove-when-empty" }
+        },
+        {
+          "name": "cellRow",
+          "type": "CellItem",
+          "doc": "A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).",
+          "at": "/rows/*/cells/*/rows/*",
+          "parent": { "rules": ["cell"], "slot": "items" },
+          "attributes": { "row": { "key": "row", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "rows", "create": { "at": { "after": "property" } }, "emit": "{ \"row\": \"{row}\" }" },
+          "remove": { "container": "remove-when-empty" }
+        }
+      ],
+      "registration": { "createOnFirstPlacement": false },
+      "template": {
+        "text": "{\r\n  \"ded\": \"0.1\",\r\n  \"designer\": \"etalii/knowledge\",\r\n  \"name\": \"{base}\",\r\n  \"properties\": [\r\n    { \"id\": \"{newid:property}\", \"name\": \"Name\", \"type\": \"text\", \"title\": true }\r\n  ],\r\n  \"views\": [\r\n    { \"id\": \"{newid:view}\", \"name\": \"Table\" }\r\n  ],\r\n  \"rows\": [\r\n  ]\r\n}\r\n"
+      }
+    },
+    "xml": {
+      "title": "Knowledge file, XML",
+      "claims": {
+        "extensions": [".xml"],
+        "shared": true,
+        "marker": { "pattern": "^<ded\\s[^>]*designer=\"etalii/knowledge\"" },
+        "origins": ["etalii/knowledge"],
+        "suggest": { "contains": ["designer=\"etalii/knowledge\""] }
+      },
+      "body": { "kind": "file", "family": "xml" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "finalNewline": true },
+      "header": { "line": "^<ded(?:\\s|/|>)", "required": true },
+      "elements": [
+        {
+          "name": "table",
+          "type": "Table",
+          "doc": "The root element: the table's own settings.",
+          "at": "/ded",
+          "attributes": {
+            "version": { "attribute": "version", "readOnly": "The version is written when the file is created and changed by nobody but a migration." },
+            "designer": { "attribute": "designer", "readOnly": "The designer type is written when the file is created and changed by nobody." },
+            "name": { "attribute": "name", "empty": "keep" },
+            "activeView": { "attribute": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } }
+          }
+        },
+        {
+          "name": "property",
+          "type": "Property",
+          "at": "/ded/properties/property",
+          "id": { "from": { "attribute": "id" } },
+          "attributes": {
+            "name": { "attribute": "name", "empty": "refuse" },
+            "valueType": { "attribute": "type", "empty": "refuse" },
+            "title": { "attribute": "title", "empty": "remove", "default": false },
+            "targetFile": { "attribute": "target", "empty": "remove" },
+            "limit": { "attribute": "limit", "empty": "remove", "default": "none" },
+            "counterpart": { "attribute": "counterpart", "empty": "remove" },
+            "computed": { "attribute": "computed", "empty": "remove", "default": false },
+            "isParent": { "attribute": "parent", "empty": "remove", "default": false }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/ded/properties",
+            "emit": "<property id=\"{id}\" name=\"{name}\" type=\"{valueType}\"[ title=\"{title}\"][ target=\"{targetFile}\"][ limit=\"{limit}\"][ counterpart=\"{counterpart}\"][ computed=\"{computed}\"][ parent=\"{isParent}\"]/>"
+          },
+          "remove": { "cascade": ["cell", "column", "sort", "condition1", "condition2", "condition3"] }
+        },
+        {
+          "name": "option",
+          "type": "Option",
+          "at": "/ded/properties/property/option",
+          "parent": { "rules": ["property"], "slot": "options" },
+          "id": { "from": { "attribute": "id" } },
+          "attributes": { "name": { "attribute": "name", "empty": "refuse" }, "colour": { "attribute": "colour", "empty": "remove", "default": "default" } },
+          "insert": { "place": "last-child", "emit": "<option id=\"{id}\" name=\"{name}\"[ colour=\"{colour}\"]/>" },
+          "remove": { "cascade": ["cell", "cellOption", "condition1", "condition2", "condition3"] }
+        },
+        {
+          "name": "view",
+          "type": "View",
+          "at": "/ded/views/view",
+          "id": { "from": { "attribute": "id" } },
+          "attributes": {
+            "name": { "attribute": "name", "empty": "refuse" },
+            "filterMatch": { "attribute": "filterMatch", "empty": "remove", "default": "all" },
+            "groupBy": { "attribute": "groupBy", "empty": "remove", "reference": { "to": ["property"], "by": "id" } },
+            "hideEmptyGroups": { "attribute": "hideEmptyGroups", "empty": "remove", "default": false },
+            "freeze": { "attribute": "freeze", "empty": "remove", "reference": { "to": ["property"], "by": "id" } }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/ded/views",
+            "emit": "<view id=\"{id}\" name=\"{name}\"[ filterMatch=\"{filterMatch}\"][ groupBy=\"{groupBy}\"][ hideEmptyGroups=\"{hideEmptyGroups}\"][ freeze=\"{freeze}\"]/>"
+          },
+          "remove": {}
+        },
+        {
+          "name": "column",
+          "type": "Column",
+          "at": "/ded/views/view/column",
+          "parent": { "rules": ["view"], "slot": "columns" },
+          "attributes": {
+            "property": { "attribute": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "visible": { "attribute": "visible", "empty": "remove", "default": true },
+            "width": { "attribute": "width", "empty": "remove", "number": "shortest" },
+            "wrap": { "attribute": "wrap", "empty": "remove", "default": false },
+            "calculate": {
+              "attribute": "calculate",
+              "empty": "remove",
+              "map": {
+                "count-all": "countAll",
+                "count-values": "countValues",
+                "count-unique": "countUnique",
+                "count-empty": "countEmpty",
+                "count-not-empty": "countNotEmpty",
+                "percent-empty": "percentEmpty",
+                "percent-not-empty": "percentNotEmpty",
+                "earliest": "earliest",
+                "latest": "latest",
+                "date-range": "dateRange",
+                "sum": "sum",
+                "average": "average",
+                "median": "median",
+                "min": "min",
+                "max": "max",
+                "range": "range"
+              }
+            }
+          },
+          "insert": {
+            "place": "last-child",
+            "emit": "<column property=\"{property}\"[ visible=\"{visible}\"][ width=\"{width}\"][ wrap=\"{wrap}\"][ calculate=\"{calculate}\"]/>"
+          },
+          "remove": {}
+        },
+        {
+          "name": "sort",
+          "type": "Sort",
+          "at": "/ded/views/view/sort",
+          "parent": { "rules": ["view"], "slot": "sorts" },
+          "attributes": {
+            "property": { "attribute": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "direction": { "attribute": "direction", "empty": "remove", "default": "ascending" }
+          },
+          "insert": { "place": "last-child", "emit": "<sort property=\"{property}\"[ direction=\"{direction}\"]/>" },
+          "remove": {}
+        },
+        {
+          "name": "condition1",
+          "type": "Condition",
+          "at": "/ded/views/view/condition",
+          "parent": { "rules": ["view"], "slot": "filter" },
+          "attributes": {
+            "property": { "attribute": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "attribute": "operator", "empty": "refuse" },
+            "text": { "attribute": "text", "empty": "remove" },
+            "number": { "attribute": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "attribute": "checked", "empty": "remove" },
+            "date": { "attribute": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "attribute": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "attribute": "time", "empty": "remove" },
+            "option": { "attribute": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "last-child",
+            "emit": "<condition property=\"{property}\" operator=\"{operator}\"[ text=\"{text}\"][ number=\"{number}\"][ checked=\"{checked}\"][ date=\"{date}\"][ dateTime=\"{dateTime}\"][ time=\"{time}\"][ option=\"{option}\"]/>"
+          },
+          "remove": {}
+        },
+        {
+          "name": "filterGroup1",
+          "type": "FilterGroup",
+          "at": "/ded/views/view/filterGroup",
+          "parent": { "rules": ["view"], "slot": "filter" },
+          "attributes": { "match": { "attribute": "match", "empty": "refuse" } },
+          "insert": { "place": "last-child", "emit": "<filterGroup match=\"{match}\"/>" },
+          "remove": {}
+        },
+        {
+          "name": "condition2",
+          "type": "Condition",
+          "at": "/ded/views/view/filterGroup/condition",
+          "parent": { "rules": ["filterGroup1"], "slot": "conditions" },
+          "attributes": {
+            "property": { "attribute": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "attribute": "operator", "empty": "refuse" },
+            "text": { "attribute": "text", "empty": "remove" },
+            "number": { "attribute": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "attribute": "checked", "empty": "remove" },
+            "date": { "attribute": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "attribute": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "attribute": "time", "empty": "remove" },
+            "option": { "attribute": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "last-child",
+            "emit": "<condition property=\"{property}\" operator=\"{operator}\"[ text=\"{text}\"][ number=\"{number}\"][ checked=\"{checked}\"][ date=\"{date}\"][ dateTime=\"{dateTime}\"][ time=\"{time}\"][ option=\"{option}\"]/>"
+          },
+          "remove": {}
+        },
+        {
+          "name": "filterGroup2",
+          "type": "FilterGroup",
+          "at": "/ded/views/view/filterGroup/filterGroup",
+          "parent": { "rules": ["filterGroup1"], "slot": "conditions" },
+          "attributes": { "match": { "attribute": "match", "empty": "refuse" } },
+          "insert": { "place": "last-child", "emit": "<filterGroup match=\"{match}\"/>" },
+          "remove": {}
+        },
+        {
+          "name": "condition3",
+          "type": "Condition",
+          "at": "/ded/views/view/filterGroup/filterGroup/condition",
+          "parent": { "rules": ["filterGroup2"], "slot": "conditions" },
+          "attributes": {
+            "property": { "attribute": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "operator": { "attribute": "operator", "empty": "refuse" },
+            "text": { "attribute": "text", "empty": "remove" },
+            "number": { "attribute": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "attribute": "checked", "empty": "remove" },
+            "date": { "attribute": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "attribute": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "attribute": "time", "empty": "remove" },
+            "option": { "attribute": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "last-child",
+            "emit": "<condition property=\"{property}\" operator=\"{operator}\"[ text=\"{text}\"][ number=\"{number}\"][ checked=\"{checked}\"][ date=\"{date}\"][ dateTime=\"{dateTime}\"][ time=\"{time}\"][ option=\"{option}\"]/>"
+          },
+          "remove": {}
+        },
+        {
+          "name": "groupOrder",
+          "type": "GroupSetting",
+          "at": "/ded/views/view/groupOrder",
+          "parent": { "rules": ["view"], "slot": "groupOrder" },
+          "attributes": { "key": { "attribute": "key", "empty": "refuse" } },
+          "insert": { "place": "last-child", "emit": "<groupOrder key=\"{key}\"/>" },
+          "remove": {}
+        },
+        {
+          "name": "hiddenGroup",
+          "type": "GroupSetting",
+          "at": "/ded/views/view/hiddenGroup",
+          "parent": { "rules": ["view"], "slot": "hiddenGroups" },
+          "attributes": { "key": { "attribute": "key", "empty": "refuse" } },
+          "insert": { "place": "last-child", "emit": "<hiddenGroup key=\"{key}\"/>" },
+          "remove": {}
+        },
+        {
+          "name": "collapsedGroup",
+          "type": "GroupSetting",
+          "at": "/ded/views/view/collapsed",
+          "parent": { "rules": ["view"], "slot": "collapsed" },
+          "attributes": { "key": { "attribute": "key", "empty": "refuse" } },
+          "insert": { "place": "last-child", "emit": "<collapsed key=\"{key}\"/>" },
+          "remove": {}
+        },
+        {
+          "name": "row",
+          "type": "Row",
+          "at": "/ded/rows/row",
+          "id": { "from": { "attribute": "id" } },
+          "attributes": {},
+          "insert": { "place": "after-last", "container": "/ded/rows", "emit": "<row id=\"{id}\"/>" },
+          "remove": {}
+        },
+        {
+          "name": "cell",
+          "type": "Cell",
+          "at": "/ded/rows/row/cell",
+          "parent": { "rules": ["row"], "slot": "cells" },
+          "attributes": {
+            "property": { "attribute": "property", "empty": "refuse", "reference": { "to": ["property"], "by": "id" } },
+            "text": { "attribute": "text", "empty": "remove" },
+            "number": { "attribute": "number", "empty": "remove", "number": "shortest" },
+            "checked": { "attribute": "checked", "empty": "remove" },
+            "date": { "attribute": "date", "empty": "remove", "time": "keep-precision" },
+            "dateTime": { "attribute": "dateTime", "empty": "remove", "time": "keep-precision" },
+            "time": { "attribute": "time", "empty": "remove" },
+            "option": { "attribute": "option", "empty": "remove", "reference": { "to": ["option"], "by": "id" } }
+          },
+          "insert": {
+            "place": "last-child",
+            "emit": "<cell property=\"{property}\"[ text=\"{text}\"][ number=\"{number}\"][ checked=\"{checked}\"][ date=\"{date}\"][ dateTime=\"{dateTime}\"][ time=\"{time}\"][ option=\"{option}\"]/>"
+          },
+          "remove": {}
+        },
+        {
+          "name": "cellOption",
+          "type": "CellItem",
+          "at": "/ded/rows/row/cell/item",
+          "when": "has(entry.option)",
+          "parent": { "rules": ["cell"], "slot": "items" },
+          "attributes": { "option": { "attribute": "option", "empty": "refuse", "reference": { "to": ["option"], "by": "id" } } },
+          "insert": { "place": "last-child", "emit": "<item option=\"{option}\"/>" },
+          "remove": {}
+        },
+        {
+          "name": "cellRow",
+          "type": "CellItem",
+          "doc": "A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).",
+          "at": "/ded/rows/row/cell/item",
+          "when": "has(entry.row)",
+          "parent": { "rules": ["cell"], "slot": "items" },
+          "attributes": { "row": { "attribute": "row", "empty": "refuse" } },
+          "insert": { "place": "last-child", "emit": "<item row=\"{row}\"/>" },
+          "remove": {}
+        }
+      ],
+      "registration": { "createOnFirstPlacement": false },
+      "template": {
+        "text": "<ded version=\"0.1\" designer=\"etalii/knowledge\" name=\"{base}\">\r\n  <properties>\r\n    <property id=\"{newid:property}\" name=\"Name\" type=\"text\" title=\"true\"/>\r\n  </properties>\r\n  <views>\r\n    <view id=\"{newid:view}\" name=\"Table\"/>\r\n  </views>\r\n  <rows/>\r\n</ded>\r\n"
+      }
+    }
+  }
+}

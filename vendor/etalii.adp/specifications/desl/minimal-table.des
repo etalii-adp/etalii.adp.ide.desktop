@@ -1,0 +1,58 @@
+{
+  "$schema": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Specification",
+  "desl": "0.1",
+  "doc": "DESL's smallest example: a reading list, one row per book, with text and number fields and one view.",
+  "language": { "id": "net.etalii.adp.example.reading-list", "version": "0.1.0", "origin": "example/reading-list", "label": "Reading list" },
+  "metamodel": {
+    "types": {
+      "Field": {
+        "attributes": { "name": { "type": "string", "required": true }, "valueType": { "type": "ValueType", "required": true } },
+        "labelAttribute": "name"
+      },
+      "View": { "attributes": { "name": { "type": "string", "required": true } }, "labelAttribute": "name" },
+      "Book": { "children": { "allowed": ["Value"], "ordered": true, "slots": { "values": { "allowed": ["Value"] } } } },
+      "Value": { "attributes": { "field": { "type": "Field", "required": true }, "text": { "type": "text" }, "number": { "type": "number" } } }
+    },
+    "enums": { "ValueType": { "values": { "text": { "label": "Text" }, "number": { "label": "Number" } } } }
+  },
+  "persistence": {
+    "format": "fbl",
+    "bindings": ["minimal-table.fbl#yaml"],
+    "ids": {
+      "strategy": "uuid-v4",
+      "encoding": "base36",
+      "types": { "Value": { "strategy": "derived", "expression": "self.parent.id + '/' + self.field.id" } }
+    }
+  },
+  "constraints": {
+    "rules": [
+      {
+        "id": "uniqueFieldNames",
+        "code": "reading-list.duplicate-field-name",
+        "scope": ["Field"],
+        "severity": "error",
+        "rule": "document.elementsOfType('Field').filter(f, f.name == self.name).size() == 1",
+        "message": "Two fields have this name."
+      }
+    ]
+  },
+  "surface": {
+    "kind": "table",
+    "columns": { "type": "Field", "name": "name", "valueType": "valueType" },
+    "rows": { "type": "Book" },
+    "cells": { "type": "Value", "column": "field" },
+    "views": { "type": "View", "name": "name" },
+    "valueTypes": {
+      "text": { "label": "Text", "key": "text", "editor": "text", "comparisons": ["is", "contains"], "sort": "text", "converts": { "number": "parse" } },
+      "number": {
+        "label": "Number",
+        "key": "number",
+        "editor": "number",
+        "comparisons": ["equals", "greater-than", "less-than"],
+        "sort": "number",
+        "converts": { "text": "written-form" }
+      }
+    }
+  },
+  "operations": { "addBook": { "label": "New book", "for": "document", "actions": [{ "create": { "type": "'Book'" } }] } }
+}

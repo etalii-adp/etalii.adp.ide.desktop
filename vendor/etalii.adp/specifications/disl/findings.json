@@ -1,0 +1,47 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/ValidatorOutput",
+  "findings": [
+    {
+      "constraintId": "std.unparseable",
+      "code": "rdf.unparseable",
+      "severity": "error",
+      "message": "This is not RDF that can be read: expected '.' or ';' after the object, found 'ex:worksFor'.",
+      "location": { "file": "people/staff.ttl", "line": 42, "column": 17, "length": 11 }
+    },
+    {
+      "constraintId": "duplicatePrefix",
+      "code": "rdf.duplicate-prefix",
+      "severity": "warning",
+      "message": "The prefix 'ex:' is declared more than once; from here on it means http://example.org/v2/, which changes what every earlier-styled use would say.",
+      "location": { "file": "catalogue.ttl", "line": 7 },
+      "subject": "@prefix ex: <http://example.org/v2/>"
+    },
+    {
+      "constraintId": "duplicateTaskKey",
+      "code": "databricks.duplicate-task-key",
+      "severity": "error",
+      "message": "The task key 'ingest' is used more than once. Every task needs its own.",
+      "elementId": "task:ingest",
+      "elementIds": ["task:ingest"],
+      "attribute": "key",
+      "location": { "file": "resources/nightly.job.yml", "line": 31, "column": 21, "length": 6 }
+    },
+    {
+      "constraintId": "cycle",
+      "code": "databricks.cycle",
+      "severity": "warning",
+      "message": "'clean' → 'enrich' → 'publish' → 'clean' form a dependency circle, so none of them can ever run. Break the circle.",
+      "elementId": "task:clean",
+      "elementIds": ["task:clean", "task:enrich", "task:publish"],
+      "location": { "file": "resources/nightly.job.yml", "line": 18 }
+    },
+    {
+      "constraintId": "emptyView",
+      "code": "c4.empty-view",
+      "severity": "warning",
+      "message": "The 'Deployment - Live' view is empty.",
+      "view": "LiveDeployment",
+      "location": { "file": "workspace.dsl", "line": 112 }
+    }
+  ]
+}

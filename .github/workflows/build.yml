@@ -1,0 +1,63 @@
+# Checks every pull request into develop and every change to develop (etalii.adp spec 001-ci-and-badges; spec 030, FR-040).
+name: Build
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # The vendored specifications and definitions must be exactly etalii.adp's at the locked commit (spec 030, research R3).
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Compare vendor/etalii.adp with the locked etalii.adp commit
+        run: python tools/sync-etalii-adp.py --check
+
+  rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the toolchain rust-toolchain.toml names
+        run: rustup show
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --workspace
+
+  # Flags a retired use of the ADP vocabulary (etalii.adp spec 002, FR-017). The runner and its list of retired
+  # patterns and allowances live in etalii.adp and are read from its develop branch, so every repository is checked
+  # against the same list.
+  terminology:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Check the vocabulary against the glossary
+        env:
+          SOURCE: https://raw.githubusercontent.com/etalii-adp/etalii.adp/develop
+        run: |
+          curl -fsSL "$SOURCE/.github/scripts/terminology-check.py" -o "$RUNNER_TEMP/terminology-check.py"
+          python "$RUNNER_TEMP/terminology-check.py" --name "${{ github.event.repository.name }}" --config "$SOURCE/docs/terminology-check.json"

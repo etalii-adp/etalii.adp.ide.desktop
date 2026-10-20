@@ -1,0 +1,389 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The edits of the bullets family (FBL 0.7, sections 4.8, 5.5 and 6.3) on a Markdown file with LF endings: topics nested by indentation under the heading Topics, with the markers -, * and +, a continuation of two lines, a continuation line indented by a tab, and a list under another heading that no rule reads. Each step is followed by its undo, so every step starts from the input. The first add into a body without the section is in no-section/.",
+  "binding": "topics.fbl#topics",
+  "input": "plan.md",
+  "read": {
+    "elements": [
+      {
+        "id": "t1",
+        "type": "Topic",
+        "attributes": {
+          "title": "Gather requirements",
+          "notes": "Talk to the users first.\nThen write them down."
+        }
+      },
+      {
+        "id": "t2",
+        "type": "Topic",
+        "attributes": {
+          "title": "Interview users",
+          "notes": ""
+        }
+      },
+      {
+        "id": "t3",
+        "type": "Topic",
+        "attributes": {
+          "title": "Book rooms"
+        }
+      },
+      {
+        "id": "t4",
+        "type": "Topic",
+        "attributes": {
+          "title": "Survey"
+        }
+      },
+      {
+        "id": "t5",
+        "type": "Topic",
+        "attributes": {
+          "title": "Design",
+          "notes": ""
+        }
+      },
+      {
+        "id": "t6",
+        "type": "Topic",
+        "attributes": {
+          "title": "Sketch screens",
+          "notes": "Paper first, then the tool."
+        }
+      },
+      {
+        "id": "t7",
+        "type": "Topic",
+        "attributes": {
+          "title": "Build"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "An add after a previous sibling: t8 goes into t1 directly after t2, so after t2's line span, which holds its nested t3, and takes t2's marker * and indentation (FBL 6.3, a new item, where it goes).",
+      "edit": {
+        "add": {
+          "type": "Topic",
+          "id": "t8",
+          "parent": "t1",
+          "slot": "children",
+          "attributes": {
+            "title": "Review findings"
+          },
+          "position": {
+            "after": "t2"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 167,
+          "end": 167,
+          "text": "  * t8: Review findings\n"
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t8: Review findings\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 167,
+          "end": 191,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "An add before a next sibling: t9 at index 0 of the top level has no previous sibling, so it goes at the start of the line span of t1, its next sibling, and takes t1's marker and indentation (FBL 6.3, 6.4).",
+      "edit": {
+        "add": {
+          "type": "Topic",
+          "id": "t9",
+          "attributes": {
+            "title": "Kick-off"
+          },
+          "position": {
+            "index": 0
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 45,
+          "end": 45,
+          "text": "- t9: Kick-off\n"
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t9: Kick-off\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 45,
+          "end": 60,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "An add as the first child of t4, which has none: t10 takes its parent's marker * and its parent's content column 4, and goes at the end of the line ending of t4's last line before its first nested item, its item line. The add gives notes, so its continuation follows, each line indented with spaces to t10's content column 6, the empty line written empty (FBL 6.3). The position is index 0 among no siblings: the reading taken is that section 6.3's where-it-goes places it, since section 6.4 names only a sibling at the index or after the last.",
+      "edit": {
+        "add": {
+          "type": "Topic",
+          "id": "t10",
+          "parent": "t4",
+          "slot": "children",
+          "attributes": {
+            "title": "Draft questions",
+            "notes": "Ask about the workflow.\n\nAnd about the reports."
+          },
+          "position": {
+            "index": 0
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 182,
+          "end": 182,
+          "text": "    * t10: Draft questions\n      Ask about the workflow.\n\n      And about the reports.\n"
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n    * t10: Draft questions\n      Ask about the workflow.\n\n      And about the reports.\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 182,
+          "end": 269,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "A changed group is a replace-value of the group's span in the item's text; the marker, the indentation and the id stay (FBL 6.3, a changed value).",
+      "edit": {
+        "set": {
+          "element": "t5",
+          "attributes": {
+            "title": "Design the screens"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 188,
+          "end": 194,
+          "text": "Design the screens"
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design the screens\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 188,
+          "end": 206,
+          "text": "Design"
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Setting the continuation of t1, which has one, is a replace-value of its value span, from the end of the item line before its line ending to the end of the continuation's last line before its line ending; every line of the new value is written after a line ending and indented with spaces to t1's content column 2 (FBL 6.3, the continuation).",
+      "edit": {
+        "set": {
+          "element": "t1",
+          "attributes": {
+            "notes": "Talk to the users, then write it down."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 70,
+          "end": 121,
+          "text": "\n  Talk to the users, then write it down."
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users, then write it down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 70,
+          "end": 111,
+          "text": "\n  Talk to the users first.\n  Then write them down."
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Setting the continuation of t5, which has none (its nested t6 follows its item line directly), is an insert-key at the end of its item line, the value's line written after a line ending at t5's content column, so it stands before t6 (FBL 6.3, the continuation).",
+      "edit": {
+        "set": {
+          "element": "t5",
+          "attributes": {
+            "notes": "Needs a review."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 194,
+          "end": 194,
+          "text": "\n  Needs a review."
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  Needs a review.\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 194,
+          "end": 212,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Setting the continuation of t1 to the empty text is a remove-key of its value span: the item line keeps its own line ending and t2 follows it (FBL 6.3, the continuation; notes has empty remove).",
+      "edit": {
+        "set": {
+          "element": "t1",
+          "attributes": {
+            "notes": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 70,
+          "end": 121,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 70,
+          "end": 70,
+          "text": "\n  Talk to the users first.\n  Then write them down."
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Removing t2, which holds the nested t3, removes its whole line span, t3 with it, without cascade naming it (FBL 4.8, 6.2).",
+      "edit": {
+        "remove": {
+          "element": "t2"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 122,
+          "end": 167,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 122,
+          "end": 122,
+          "text": "  * t2: Interview users\n    + t3: Book rooms\n"
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "A move across depths: t6, nested in t5 with its marker at column 2 and a continuation line indented by a tab, is moved to the top level after t7. Its line span is removed and inserted after t7's line span, where a new item's marker would stand at column 0, so every line that is not blank is shifted left by 2: the item line loses two spaces, and the tab (four columns) that the shift cuts into is replaced by the two spaces that remain of it. The marker + is kept, not t7's - (FBL 5.5, 6.3, a move to another depth).",
+      "edit": {
+        "move": {
+          "element": "t6",
+          "parent": null,
+          "position": {
+            "after": "t7"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 195,
+          "end": 247,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 259,
+          "end": 259,
+          "text": "+ t6: Sketch screens\n  Paper first, then the tool.\n"
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n- t7: Build\n+ t6: Sketch screens\n  Paper first, then the tool.\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 195,
+          "end": 195,
+          "text": "  + t6: Sketch screens\n\tPaper first, then the tool.\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 207,
+          "end": 258,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: Gather requirements\n  Talk to the users first.\n  Then write them down.\n  * t2: Interview users\n    + t3: Book rooms\n  * t4: Survey\n- t5: Design\n  + t6: Sketch screens\n\tPaper first, then the tool.\n- t7: Build\n\n## Notes\n\n- n1: not a topic, outside the section\n"
+    }
+  ]
+}

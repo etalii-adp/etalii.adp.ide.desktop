@@ -1,0 +1,107 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The document hierarchical-requirement-references leaves after deleting REQ-0002, read through the same binding: the mentions that named it are kept as written and each is reported by std.mentions, a warning (DESL 0.2 sections 4.3 and 6.5; FR-039, FR-044), at the line where the mention stands: line 8, [REQ-0002] in ITEM-0001's description; line 18, the assessment about REQ-0002 (its about is a mention on a one-line attribute); line 20, [REQ-0002] in the detail of the assessment about ITEM-0002. The other mentions still name an entry: [REQ-0003] on line 18 and [ITEM-0003] on line 20. The title on line 9 and the link on line 10, both [REQ-0099], are still no mention and are not reported. Saving without an edit writes the bytes that were read.",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "requirements.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Checkout",
+          "description": "How a customer pays. The card rules are in [REQ-0002]."
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A customer pays by card or by bank transfer, as [REQ-0099] says.",
+          "description": "The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference."
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Refunds",
+          "description": ""
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A refund goes back to the card it came from.",
+          "description": ""
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Reporting",
+          "description": ""
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "Every payment is listed in the daily report.",
+          "description": ""
+        }
+      },
+      {
+        "id": "assessment/0",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "about": "REQ-0002",
+          "text": "Is ten seconds right when [REQ-0003] applies?",
+          "detail": ""
+        }
+      },
+      {
+        "id": "assessment/1",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "about": "ITEM-0002",
+          "text": "Partial refunds come later.",
+          "detail": "They wait for [REQ-0002] and for [ITEM-0003]."
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "std.mentions",
+        "line": 8
+      },
+      {
+        "rule": "std.mentions",
+        "line": 18
+      },
+      {
+        "rule": "std.mentions",
+        "line": 20
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read: the broken mentions are not changed (FR-044).",
+      "edit": {
+        "save": true
+      },
+      "splices": []
+    }
+  ]
+}

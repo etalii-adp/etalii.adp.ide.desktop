@@ -1,0 +1,246 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The shape of the hierarchy changed through the designer's binding (hierarchical-requirement.fbl#markdown; FBL 0.7, sections 4.8, 5.5, 6.2, 6.3 and 6.4; DESL 0.2, section 5.3.5), on a document an agent wrote with LF endings and a title holding a character of two UTF-8 bytes, so that every offset after it is a byte offset and not a character offset. Its mark, line 2, names ITEM-0005 and REQ-0008, above the highest numbers in the file, ITEM-0004 and REQ-0007: REQ-0005, ITEM-0005 and REQ-0008 were given and deleted before. The steps build on each other: a requirement added below a selected one, numbered REQ-0009 from the mark, which shows that a deleted number is not given again; a sub-item added after an item's last child; an item with everything in it moved two columns deeper, with no number changed; a delete; and an add undone, with the mark restored. After the steps the document reads ITEM-0001 with REQ-0001, REQ-0002 and ITEM-0006, and ITEM-0004 with REQ-0007 and ITEM-0003, which holds REQ-0004, REQ-0009 and REQ-0006 with its description unchanged; the mark is ITEM-0006 REQ-0009. Every add is one edit of the new bullet and the mark line (FR-022, FR-025); none writes the registration. The first item of a file without the Requirements heading is no-section/ beside this one.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "catalogue.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Search"
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A book is found by its title."
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A book is found by its author."
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Filters"
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "Results can be narrowed to one branch."
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Lending"
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A member borrows at most ten books at once."
+        }
+      },
+      {
+        "id": "REQ-0006",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A loan lasts three weeks."
+        }
+      },
+      {
+        "id": "ITEM-0004",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Accounts"
+        }
+      },
+      {
+        "id": "REQ-0007",
+        "type": "Requirement",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "A member signs in with a card number and a PIN."
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A requirement added below the selected REQ-0004, by addRequirementBelow: a create in its parent ITEM-0003 after it (User Story 4 scenario 3, FR-022). The add with position after is one insert-entry directly after that sibling's entry (FBL 6.4), at the end of the line span of REQ-0004, which runs to the end of its description's line (FBL 4.8, entries and spans; 6.3, where it goes). It takes the marker '*' and the column 2 of its previous sibling, REQ-0004 (6.3, a new item), with one space and the emit '{id} {title}'; the line ending is LF, the ending of the line its insertion point is on, not the binding's text.newline crlf, which serves a body without any ending (6.3, line endings). Its number: the mark on line 2 is REQ-0008 and the highest requirement number in the file REQ-0007, so the new id is one more than the higher, REQ-0009 (DESL 5.3.5); REQ-0008, which was given before and deleted, is not given again (FR-012). The mark is set to it in the same transaction, one replace-value of the group lastRequirement (FBL 6.3, lines: a changed value). One edit: the new bullet and the mark line (FR-025). The splices are listed with the mark's first: its id is made, and the mark set to it, when the transaction is first applied, before the element it is given to is created (DESL 5.3.1, 5.3.5), which is also the order of their offsets and the order the other fixtures of this designer list them in; FBL 6.4 orders an edit's splices as the transaction made its changes, and DESL 5.3.5 says only that both are in one transaction.",
+      "edit": {
+        "add": {
+          "type": "Requirement",
+          "id": "REQ-0009",
+          "parent": "ITEM-0003",
+          "attributes": {
+            "title": "New requirement"
+          },
+          "position": {
+            "after": "REQ-0004"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 81,
+          "end": 89,
+          "text": "REQ-0009"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 601,
+          "end": 601,
+          "text": "  * REQ-0009 New requirement\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\n<!-- last: ITEM-0005 REQ-0009 -->\n# The library's catalogue (bibliothèque)\n\n## Requirements\n\n- ITEM-0001 Search #core\n  Finding a book in the catalogue.\n  - REQ-0001 A book is found by its title. #search category:functional\n    Matched ignoring case.\n  - REQ-0002 A book is found by its author. category:functional\n  - ITEM-0002 Filters\n    - REQ-0003 Results can be narrowed to one branch.\n- ITEM-0003 Lending\n  Loans and their limits.\n  * REQ-0004 A member borrows at most ten books at once. state:accepted\n    Counted over every branch.\n  * REQ-0009 New requirement\n  * REQ-0006 A loan lasts three weeks.\n    Counted from the day the book is collected.\n\n    A renewal starts a new loan.\n- ITEM-0004 Accounts #security\n  + REQ-0007 A member signs in with a card number and a PIN.\n\n## Assessments\n"
+    },
+    {
+      "doc": "A sub-item added to ITEM-0001 by addItem, the control at the end of the item's content: a create with parent ITEM-0001 and no position, so the rule item's insert place last-child puts it after the last of the item's children, ITEM-0002 (FBL 6.2), after its line span, which ends with the line of REQ-0003 nested in it (FBL 4.8; 6.3, where it goes). It takes ITEM-0002's marker '-' and column 2 (6.3, a new item). Its number: the mark is ITEM-0005, the highest item number read ITEM-0004, so ITEM-0006, and the mark's group lastItem is replaced in the same edit, its splice listed first, as in the step before (DESL 5.3.5; FBL 6.3). Items and requirements are counted apart, so the requirement mark REQ-0009 stays (FR-010).",
+      "edit": {
+        "add": {
+          "type": "Item",
+          "id": "ITEM-0006",
+          "parent": "ITEM-0001",
+          "attributes": {
+            "title": "New item"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 71,
+          "end": 80,
+          "text": "ITEM-0006"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 452,
+          "end": 452,
+          "text": "  - ITEM-0006 New item\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\n<!-- last: ITEM-0006 REQ-0009 -->\n# The library's catalogue (bibliothèque)\n\n## Requirements\n\n- ITEM-0001 Search #core\n  Finding a book in the catalogue.\n  - REQ-0001 A book is found by its title. #search category:functional\n    Matched ignoring case.\n  - REQ-0002 A book is found by its author. category:functional\n  - ITEM-0002 Filters\n    - REQ-0003 Results can be narrowed to one branch.\n  - ITEM-0006 New item\n- ITEM-0003 Lending\n  Loans and their limits.\n  * REQ-0004 A member borrows at most ten books at once. state:accepted\n    Counted over every branch.\n  * REQ-0009 New requirement\n  * REQ-0006 A loan lasts three weeks.\n    Counted from the day the book is collected.\n\n    A renewal starts a new loan.\n- ITEM-0004 Accounts #security\n  + REQ-0007 A member signs in with a card number and a PIN.\n\n## Assessments\n"
+    },
+    {
+      "doc": "ITEM-0003 with everything in it, its description and its three requirements, the second of them with a description of two paragraphs, is dragged into ITEM-0004 after its one child, REQ-0007, by moveItem (FR-023): a move to the parent ITEM-0004 at index 1, the number of its children, so after the last sibling's entry (FBL 6.4). It is the remove-entry of ITEM-0003's line span and an insert-entry of the same bytes where a new item would go there, after REQ-0007's line span (FBL 5.5; 6.3, a move to another depth). A new item there would take its previous sibling REQ-0007's column 2, and ITEM-0003's marker stands at 0, so every line that is not blank is shifted right by writing two spaces before it; the blank line between the paragraphs stays empty; the marker '-' stays, not REQ-0007's '+', and the '*' of the nested requirements stays; every other byte is kept, so no number changes and the mark is not written (FR-011, SC-003). Both offsets are taken in the body before the edit (FBL 6.4).",
+      "edit": {
+        "move": {
+          "element": "ITEM-0003",
+          "parent": "ITEM-0004",
+          "position": {
+            "index": 1
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 475,
+          "end": 774,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 866,
+          "end": 866,
+          "text": "  - ITEM-0003 Lending\n    Loans and their limits.\n    * REQ-0004 A member borrows at most ten books at once. state:accepted\n      Counted over every branch.\n    * REQ-0009 New requirement\n    * REQ-0006 A loan lasts three weeks.\n      Counted from the day the book is collected.\n\n      A renewal starts a new loan.\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\n<!-- last: ITEM-0006 REQ-0009 -->\n# The library's catalogue (bibliothèque)\n\n## Requirements\n\n- ITEM-0001 Search #core\n  Finding a book in the catalogue.\n  - REQ-0001 A book is found by its title. #search category:functional\n    Matched ignoring case.\n  - REQ-0002 A book is found by its author. category:functional\n  - ITEM-0002 Filters\n    - REQ-0003 Results can be narrowed to one branch.\n  - ITEM-0006 New item\n- ITEM-0004 Accounts #security\n  + REQ-0007 A member signs in with a card number and a PIN.\n  - ITEM-0003 Lending\n    Loans and their limits.\n    * REQ-0004 A member borrows at most ten books at once. state:accepted\n      Counted over every branch.\n    * REQ-0009 New requirement\n    * REQ-0006 A loan lasts three weeks.\n      Counted from the day the book is collected.\n\n      A renewal starts a new loan.\n\n## Assessments\n"
+    },
+    {
+      "doc": "ITEM-0002 is deleted by deleteEntry, after the person confirms it, since it holds a requirement (FR-024, DESL 8.3): one remove-entry of its line span, which holds REQ-0003, so the nested requirement goes with it without cascade naming it (FBL 6.2, Remove; 4.8). Nothing else is written: the mark keeps ITEM-0006 and REQ-0009, so neither ITEM-0002 nor REQ-0003 is given again (FR-012).",
+      "edit": {
+        "remove": {
+          "element": "ITEM-0002"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 376,
+          "end": 452,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\n<!-- last: ITEM-0006 REQ-0009 -->\n# The library's catalogue (bibliothèque)\n\n## Requirements\n\n- ITEM-0001 Search #core\n  Finding a book in the catalogue.\n  - REQ-0001 A book is found by its title. #search category:functional\n    Matched ignoring case.\n  - REQ-0002 A book is found by its author. category:functional\n  - ITEM-0006 New item\n- ITEM-0004 Accounts #security\n  + REQ-0007 A member signs in with a card number and a PIN.\n  - ITEM-0003 Lending\n    Loans and their limits.\n    * REQ-0004 A member borrows at most ten books at once. state:accepted\n      Counted over every branch.\n    * REQ-0009 New requirement\n    * REQ-0006 A loan lasts three weeks.\n      Counted from the day the book is collected.\n\n      A renewal starts a new loan.\n\n## Assessments\n"
+    },
+    {
+      "doc": "A requirement added to ITEM-0001 by addRequirement, the control at the end of the item's content: a create after the item's last requirement, REQ-0002, so before its sub-item ITEM-0006, which the operation gives as a position, since the rule's place last-child would put it after ITEM-0006 (hierarchical-requirement.md, What the languages cannot state). It goes after REQ-0002's line span with its marker '-' and column 2 (FBL 6.4; 6.3, a new item). Its number is REQ-0010: the mark and the highest number are both REQ-0009 now; REQ-0003, deleted in the step before, is not given again (DESL 5.3.5, FR-012). The mark is replaced in the same edit, its splice listed first, as in the first step.",
+      "edit": {
+        "add": {
+          "type": "Requirement",
+          "id": "REQ-0010",
+          "parent": "ITEM-0001",
+          "attributes": {
+            "title": "New requirement"
+          },
+          "position": {
+            "after": "REQ-0002"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 81,
+          "end": 89,
+          "text": "REQ-0010"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 376,
+          "end": 376,
+          "text": "  - REQ-0010 New requirement\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\n<!-- last: ITEM-0006 REQ-0010 -->\n# The library's catalogue (bibliothèque)\n\n## Requirements\n\n- ITEM-0001 Search #core\n  Finding a book in the catalogue.\n  - REQ-0001 A book is found by its title. #search category:functional\n    Matched ignoring case.\n  - REQ-0002 A book is found by its author. category:functional\n  - REQ-0010 New requirement\n  - ITEM-0006 New item\n- ITEM-0004 Accounts #security\n  + REQ-0007 A member signs in with a card number and a PIN.\n  - ITEM-0003 Lending\n    Loans and their limits.\n    * REQ-0004 A member borrows at most ten books at once. state:accepted\n      Counted over every branch.\n    * REQ-0009 New requirement\n    * REQ-0006 A loan lasts three weeks.\n      Counted from the day the book is collected.\n\n      A renewal starts a new loan.\n\n## Assessments\n"
+    },
+    {
+      "doc": "Undo of the add: its inverse splices remove the bullet and put REQ-0009 back on line 2, so the mark is restored with the rest of the body and the number REQ-0010 is free again (DESL 5.3.5; FBL 7.1). Each inverse is listed under the operation of the splice it inverts (FBL 15.3).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 81,
+          "end": 89,
+          "text": "REQ-0009"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 376,
+          "end": 405,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\n<!-- last: ITEM-0006 REQ-0009 -->\n# The library's catalogue (bibliothèque)\n\n## Requirements\n\n- ITEM-0001 Search #core\n  Finding a book in the catalogue.\n  - REQ-0001 A book is found by its title. #search category:functional\n    Matched ignoring case.\n  - REQ-0002 A book is found by its author. category:functional\n  - ITEM-0006 New item\n- ITEM-0004 Accounts #security\n  + REQ-0007 A member signs in with a card number and a PIN.\n  - ITEM-0003 Lending\n    Loans and their limits.\n    * REQ-0004 A member borrows at most ten books at once. state:accepted\n      Counted over every branch.\n    * REQ-0009 New requirement\n    * REQ-0006 A loan lasts three weeks.\n      Counted from the day the book is collected.\n\n      A renewal starts a new loan.\n\n## Assessments\n"
+    }
+  ]
+}

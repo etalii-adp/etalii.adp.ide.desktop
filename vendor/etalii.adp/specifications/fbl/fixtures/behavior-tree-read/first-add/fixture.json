@@ -1,0 +1,57 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A Markdown file without a Behavior heading, read through behavior-tree.fbl: it holds no node. The first node added to it appends the section ## Behavior at the end of the file, as the tool does (agent-behavior-modelling.md, Adding to a file without a tree), and undo takes it away again.",
+  "binding": "../../../behavior-tree.fbl#abm",
+  "input": "release-notes-writer.md",
+  "read": {
+    "elements": [],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The first node, a Do in order without a parent: one ensure-container at the end of the body writes a line ending, the heading the binding's insert.create gives and a line ending, so that a blank line stands before the heading; the item follows at the same offset as the first item of a section that holds none, after a line ending, so that a blank line stands before it, with the marker - at column 0 and the rule's emit, the keyword in bold with the label after it (FBL 6.2; 6.3, a missing section). Its id is 1, the place the specification derives.",
+      "edit": {
+        "add": {
+          "type": "Sequence",
+          "attributes": {
+            "label": "Write the release notes"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 88,
+          "end": 88,
+          "text": "\r\n## Behavior\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 88,
+          "end": 88,
+          "text": "\r\n- **Do in order:** Write the release notes\r\n"
+        }
+      ],
+      "expect": "# Release notes writer\r\n\r\nYou write the release notes for each tag of this repository.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Write the release notes\r\n"
+    },
+    {
+      "doc": "Undo removes the item and the heading, and the file is the input again, byte for byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 88,
+          "end": 103,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 103,
+          "end": 149,
+          "text": ""
+        }
+      ],
+      "expect": "# Release notes writer\r\n\r\nYou write the release notes for each tag of this repository.\r\n"
+    }
+  ]
+}

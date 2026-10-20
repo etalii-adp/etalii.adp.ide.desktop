@@ -1,0 +1,1238 @@
+{
+  "$schema": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Specification",
+  "desl": "0.1",
+  "doc": "The Knowledge designer: ADP's first designer, specified by the standalone specification `knowledge-designer` and by etalii.adp's spec 013.",
+  "language": {
+    "id": "net.etalii.adp.etalii.knowledge",
+    "version": "0.1.0",
+    "origin": "etalii/knowledge",
+    "label": "Knowledge",
+    "doc": {
+      "summary": "Rows and typed properties in a YAML, JSON or XML file you own, with stored views and relations between files, working the way Notion's table does.",
+      "description": "One table per knowledge file: properties (text, number, checkbox, date, date and time, time, selection, multiple selection and relation), rows with one value per property, and named views that choose, order, size, sort, filter and group the columns. The file is plain text that a person or a language model can read and write without ADP, and every setting lives in it; the `.adp` registration beside it only identifies it. What DESL 0.1 cannot say - the file in each format, the layout and behaviour taken from Notion, the conversion table, the steps that write two files, the findings and the handling of entries without an id - is in `knowledge.md` beside this file.",
+      "rationale": "A table of knowledge is a table, not a drawing: a relation is a value in a cell and nothing is drawn connected, which is why this is a designer.",
+      "tags": ["knowledge", "table", "database", "notion", "properties", "views"],
+      "seeAlso": [
+        { "title": "What DESL cannot express for this tool", "href": "knowledge.md" },
+        { "title": "Notion: database properties", "href": "https://www.notion.com/help/database-properties" }
+      ]
+    },
+    "authors": [{ "name": "Peter Vrenken", "url": "https://github.com/vrenken" }],
+    "license": "Apache-2.0",
+    "homepage": "https://etalii.net/adp",
+    "icon": "mdi-table"
+  },
+  "metamodel": {
+    "document": {
+      "attributes": {
+        "name": { "type": "string", "required": true, "doc": "The table's name, shown on its tab." },
+        "activeView": { "type": "View", "doc": "The view the table was last left in; absent, the first view (Requirement 6.10)." }
+      },
+      "doc": "The table: the root of a knowledge file. Its DED envelope (`ded` and `designer`; `version` and `designer` in XML, DED section 2) is the binding's header and host attributes, not attributes of the model."
+    },
+    "enums": {
+      "ValueType": {
+        "values": {
+          "text": { "label": "Text", "icon": "mdi-format-text" },
+          "number": { "label": "Number", "icon": "mdi-pound" },
+          "checkbox": { "label": "Checkbox", "icon": "mdi-checkbox-marked-outline" },
+          "date": { "label": "Date", "icon": "mdi-calendar" },
+          "dateTime": { "label": "Date and time", "icon": "mdi-calendar-clock" },
+          "time": { "label": "Time", "icon": "mdi-clock-outline" },
+          "selection": { "label": "Selection", "icon": "mdi-chevron-down-circle-outline" },
+          "multipleSelection": { "label": "Multiple selection", "icon": "mdi-format-list-bulleted" },
+          "relation": { "label": "Relation", "icon": "mdi-arrow-top-right" }
+        },
+        "doc": "A property's type (Requirement 3.1); the keys of `surface.valueTypes`."
+      },
+      "Colour": {
+        "values": {
+          "default": { "label": "Default" },
+          "gray": { "label": "Gray" },
+          "brown": { "label": "Brown" },
+          "orange": { "label": "Orange" },
+          "yellow": { "label": "Yellow" },
+          "green": { "label": "Green" },
+          "blue": { "label": "Blue" },
+          "purple": { "label": "Purple" },
+          "pink": { "label": "Pink" },
+          "red": { "label": "Red" }
+        },
+        "doc": "An option's colour: Notion's ten names. Each is a light and a dark theme token in the host (Requirement 7.4)."
+      },
+      "Limit": { "values": { "none": { "label": "No limit" }, "one": { "label": "1 row" } }, "doc": "How many rows a relation cell may hold." },
+      "Direction": { "values": { "ascending": { "label": "Ascending" }, "descending": { "label": "Descending" } } },
+      "Match": { "values": { "all": { "label": "All" }, "any": { "label": "Any" } }, "doc": "Whether a filter's conditions must all hold or any one." },
+      "Calculation": {
+        "values": {
+          "countAll": { "label": "Count all" },
+          "countValues": { "label": "Count values" },
+          "countUnique": { "label": "Count unique values" },
+          "countEmpty": { "label": "Count empty" },
+          "countNotEmpty": { "label": "Count not empty" },
+          "percentEmpty": { "label": "Percent empty" },
+          "percentNotEmpty": { "label": "Percent not empty" },
+          "earliest": { "label": "Earliest date" },
+          "latest": { "label": "Latest date" },
+          "dateRange": { "label": "Date range" },
+          "sum": { "label": "Sum" },
+          "average": { "label": "Average" },
+          "median": { "label": "Median" },
+          "min": { "label": "Min" },
+          "max": { "label": "Max" },
+          "range": { "label": "Range" }
+        },
+        "doc": "What the line under a column shows of the rows in sight, as Notion's calculations do; the bindings write each as Notion's name, `countAll` as `count-all`. The counts and percentages suit every value type, earliest, latest and dateRange the dates, and sum to range the numbers (knowledge.md)."
+      }
+    },
+    "types": {
+      "Property": {
+        "label": "Property",
+        "icon": "mdi-table-column",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": { "type": "string", "required": true, "doc": "Unique within the table (Requirement 3.9)." },
+          "valueType": { "type": "ValueType", "required": true, "doc": "Stored under the key `type`, which DESL reserves." },
+          "title": { "type": "bool", "default": false, "doc": "Marks the one text property whose value names a row (Requirement 3.7)." },
+          "targetFile": {
+            "type": "string",
+            "doc": "A relation's target knowledge file, relative to this file; `.` is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action."
+          },
+          "limit": { "type": "Limit", "default": "none", "doc": "How many rows a relation cell may hold." },
+          "counterpart": {
+            "type": "string",
+            "doc": "A two-way relation's property in the target file, by its id there. The side that was created holds the values; the counterpart is `computed` (Requirement 5.4, Q5)."
+          },
+          "computed": {
+            "type": "bool",
+            "default": false,
+            "doc": "The counterpart side of a two-way relation: it shows the rows that point at this table's rows and holds no cells."
+          },
+          "isParent": {
+            "type": "bool",
+            "default": false,
+            "doc": "A relation to this file whose value is the row's parent (Requirement 5.9). Stored under the key `parent`, which DESL reserves."
+          }
+        },
+        "children": { "allowed": ["Option"], "ordered": true, "slots": { "options": { "allowed": ["Option"] } } },
+        "doc": "A column of the table. Document order is the property order."
+      },
+      "Option": {
+        "label": "Option",
+        "labelAttribute": "name",
+        "attributes": { "name": { "type": "string", "required": true }, "colour": { "type": "Colour", "default": "default" } },
+        "doc": "One value a selection or a multiple selection can take. Document order is the order a selection sorts and groups in."
+      },
+      "View": {
+        "label": "View",
+        "icon": "mdi-table-eye",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": { "type": "string", "required": true },
+          "filterMatch": { "type": "Match", "default": "all", "doc": "How the view's top-level conditions combine." },
+          "groupBy": {
+            "type": "Property",
+            "doc": "The property the rows are grouped by: a selection, a multiple selection, a checkbox, a relation, or the parent relation for nesting (Requirements 6.6, 6.7)."
+          },
+          "hideEmptyGroups": { "type": "bool", "default": false },
+          "freeze": { "type": "Property", "doc": "The columns up to and including this property's column stay in sight when the table scrolls sideways." }
+        },
+        "children": {
+          "allowed": ["Column", "Sort", "Condition", "FilterGroup", "GroupSetting"],
+          "ordered": true,
+          "slots": {
+            "columns": { "allowed": ["Column"] },
+            "sorts": { "allowed": ["Sort"] },
+            "filter": { "allowed": ["Condition", "FilterGroup"] },
+            "groupOrder": { "allowed": ["GroupSetting"] },
+            "hiddenGroups": { "allowed": ["GroupSetting"] },
+            "collapsed": { "allowed": ["GroupSetting"] }
+          }
+        },
+        "doc": "A named way of showing the table, stored with it. It stores only what differs from the default (DESL section 7.4)."
+      },
+      "Column": {
+        "attributes": {
+          "property": { "type": "Property", "required": true },
+          "visible": { "type": "bool", "default": true },
+          "width": { "type": "int", "min": 32, "doc": "In pixels at 100% zoom." },
+          "wrap": { "type": "bool", "default": false },
+          "calculate": { "type": "Calculation", "doc": "The calculation shown under the column; none when absent." }
+        },
+        "doc": "A property's place, visibility, width, wrapping and calculation in one view. Listed columns come first, in their order; the rest follow in property order."
+      },
+      "Sort": {
+        "attributes": { "property": { "type": "Property", "required": true }, "direction": { "type": "Direction", "default": "ascending" } },
+        "doc": "One sort of a view; the first sorts first."
+      },
+      "Condition": {
+        "attributes": {
+          "property": { "type": "Property", "required": true },
+          "operator": { "type": "string", "required": true, "doc": "One of the comparisons its property's value type lists, or `is-empty` or `is-not-empty`." },
+          "text": { "type": "text", "doc": "The compared text, for text." },
+          "number": { "type": "number", "doc": "The compared number." },
+          "checked": { "type": "bool", "doc": "The compared checkbox." },
+          "date": { "type": "date", "doc": "The compared date, ISO 8601." },
+          "dateTime": { "type": "datetime", "timezone": "preserve", "doc": "The compared date and time, ISO 8601 with its offset." },
+          "time": { "type": "time", "doc": "The compared time of day, ISO 8601." },
+          "option": { "type": "Option", "doc": "The compared option of a selection, by id." }
+        },
+        "doc": "One filter condition. The compared value sits under the key its property's value type names, as in a cell."
+      },
+      "FilterGroup": {
+        "attributes": { "match": { "type": "Match", "required": true } },
+        "children": { "allowed": ["Condition", "FilterGroup"], "ordered": true, "slots": { "conditions": { "allowed": ["Condition", "FilterGroup"] } } },
+        "doc": "A nested group of conditions, to three levels counting the view's own (Requirement 6.5)."
+      },
+      "GroupSetting": {
+        "attributes": {
+          "key": {
+            "type": "string",
+            "required": true,
+            "doc": "The group: an option's id, a related row's id, `true` or `false` for a checkbox, or `none` for the rows without a value."
+          }
+        },
+        "doc": "One group's place in `groupOrder`, or its being in `hiddenGroups` or `collapsed`, by its slot."
+      },
+      "Row": {
+        "label": "Row",
+        "icon": "mdi-table-row",
+        "children": { "allowed": ["Cell"], "ordered": true, "slots": { "cells": { "allowed": ["Cell"] } } },
+        "doc": "One entry of the table. Document order is the order of rows where no sort applies."
+      },
+      "Cell": {
+        "attributes": {
+          "property": { "type": "Property", "required": true },
+          "text": { "type": "text", "doc": "The cell's text, for text." },
+          "number": { "type": "number", "doc": "The cell's number." },
+          "checked": { "type": "bool", "doc": "The cell's checkbox." },
+          "date": { "type": "date", "doc": "The cell's date, ISO 8601." },
+          "dateTime": { "type": "datetime", "timezone": "preserve", "doc": "The cell's date and time, ISO 8601 with its offset." },
+          "time": { "type": "time", "doc": "The cell's time of day, ISO 8601." },
+          "option": { "type": "Option", "doc": "The cell's option of a selection, by id." }
+        },
+        "children": { "allowed": ["CellItem"], "ordered": true, "slots": { "items": { "allowed": ["CellItem"] } } },
+        "doc": "A row's value for one property, under the key the property's value type names; several values are items. A row has at most one cell per property; a property without a cell in a row is empty there."
+      },
+      "CellItem": {
+        "attributes": {
+          "option": { "type": "Option", "doc": "An option of a multiple selection." },
+          "row": {
+            "type": "string",
+            "doc": "A row of the relation's target file, by its id there. Not a reference: the target is another file, which the designer resolves."
+          }
+        },
+        "doc": "One of several values: an option or a related row."
+      }
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "bindings": ["knowledge.fbl#yaml", "knowledge.fbl#json", "knowledge.fbl#xml"],
+    "ids": {
+      "strategy": "uuid-v4",
+      "encoding": "base36",
+      "stable": true,
+      "missing": "assign",
+      "types": {
+        "Column": { "strategy": "derived", "expression": "self.parent.id + '/columns/' + self.property.id" },
+        "Sort": { "strategy": "derived", "expression": "self.parent.id + '/sorts/' + self.property.id" },
+        "Condition": {
+          "strategy": "derived",
+          "expression": "self.parent.id + (self.parent.isA('View') ? '/filter/' : '/') + string(self.positionIn(self.parent.children.filter(c, c.isA('Condition') || c.isA('FilterGroup'))))",
+          "ephemeral": true,
+          "doc": "Its place in the filter: a condition has no identity beyond it."
+        },
+        "FilterGroup": {
+          "strategy": "derived",
+          "expression": "self.parent.id + (self.parent.isA('View') ? '/filter/' : '/') + string(self.positionIn(self.parent.children.filter(c, c.isA('Condition') || c.isA('FilterGroup'))))",
+          "ephemeral": true
+        },
+        "GroupSetting": { "strategy": "derived", "expression": "self.parent.id + '/' + self.slot + '/' + self.key" },
+        "Cell": { "strategy": "derived", "expression": "self.parent.id + '/' + self.property.id", "doc": "A cell is its row and its property (Q3)." },
+        "CellItem": { "strategy": "derived", "expression": "self.parent.id + '/' + (self.option != null ? self.option.id : self.row)" }
+      },
+      "doc": "Properties, options, views and rows get a ShortGuid: a version 4 GUID written as 25 characters of base 36, never reused and never changed (Requirement 2.6). Ids written by hand are kept as written. An entry read without an id is given one by the first edit made in ADP (Requirement 8.5)."
+    },
+    "typeMap": {
+      "Table": {
+        "as": "document",
+        "hostAttributes": ["version", "designer"],
+        "doc": "The root's keys are the table's own attributes, after the DED envelope: `version` and `designer` are the envelope, read and checked by the binding."
+      }
+    },
+    "doc": "A knowledge file is YAML, JSON or XML, chosen when it is added and never changed (DESL section 5). `knowledge.md` describes each format."
+  },
+  "constraints": {
+    "defaults": { "timing": ["live"] },
+    "blockSaveOn": "never",
+    "rules": [
+      {
+        "id": "noTitle",
+        "code": "knowledge.no-title",
+        "scope": "document",
+        "severity": "warning",
+        "rule": "document.elementsOfType('Property').exists(p, p.title)",
+        "message": "The table has no title property; mark one text property as the title."
+      },
+      {
+        "id": "severalTitles",
+        "code": "knowledge.several-titles",
+        "scope": ["Property"],
+        "when": "self.title",
+        "severity": "warning",
+        "rule": "self.positionIn(document.elementsOfType('Property').filter(p, p.title)) == 0",
+        "message": { "cel": "'`' + self.name + '` is a second title property; a table has one.'" }
+      },
+      {
+        "id": "titleIsText",
+        "code": "knowledge.title-not-text",
+        "scope": ["Property"],
+        "when": "self.title",
+        "enforcement": "prevent-and-report",
+        "severity": "error",
+        "rule": "self.valueType == 'text'",
+        "message": "The title property must be a text property."
+      },
+      {
+        "id": "uniquePropertyNames",
+        "code": "knowledge.duplicate-property-name",
+        "scope": ["Property"],
+        "enforcement": "prevent-and-report",
+        "severity": "error",
+        "rule": "self.positionIn(document.elementsOfType('Property').filter(p, p.name.lowerAscii() == self.name.lowerAscii())) == 0",
+        "message": { "cel": "'A property named `' + self.name + '` already exists.'" }
+      },
+      {
+        "id": "unknownProperty",
+        "code": "knowledge.unknown-property",
+        "scope": ["Cell"],
+        "severity": "warning",
+        "rule": "self.property != null",
+        "message": "This cell names a property the table does not have."
+      },
+      {
+        "id": "valueOfAnotherType",
+        "code": "knowledge.value-of-another-type",
+        "scope": ["Cell"],
+        "when": "self.property != null",
+        "severity": "warning",
+        "rule": "(!has(self.text) || self.property.valueType == 'text') && (!has(self.number) || self.property.valueType == 'number') && (!has(self.checked) || self.property.valueType == 'checkbox') && (!has(self.date) || self.property.valueType == 'date') && (!has(self.dateTime) || self.property.valueType == 'dateTime') && (!has(self.time) || self.property.valueType == 'time') && (!has(self.option) || self.property.valueType == 'selection')",
+        "message": { "cel": "'This value is not a ' + self.property.valueType + '; it is kept as it is.'" }
+      },
+      {
+        "id": "unknownOption",
+        "code": "knowledge.unknown-option",
+        "scope": ["Cell"],
+        "when": "self.property != null && self.property.valueType == 'selection' && has(self.option)",
+        "severity": "warning",
+        "rule": "self.option != null",
+        "message": "This value names an option the property does not have."
+      },
+      {
+        "id": "unknownItemOption",
+        "code": "knowledge.unknown-option",
+        "scope": ["CellItem"],
+        "when": "self.parent.property != null && self.parent.property.valueType == 'multipleSelection'",
+        "severity": "warning",
+        "rule": "self.option != null",
+        "message": "This value names an option the property does not have."
+      },
+      {
+        "id": "relationOverLimit",
+        "code": "knowledge.relation-over-limit",
+        "scope": ["Cell"],
+        "when": "self.property != null && self.property.valueType == 'relation' && self.property.limit == 'one'",
+        "severity": "warning",
+        "rule": "self.children.size() <= 1",
+        "message": "This relation holds one row, and this cell holds several."
+      },
+      {
+        "id": "viewNamesMissingProperty",
+        "code": "knowledge.view-names-missing-property",
+        "scope": ["Column", "Sort", "Condition"],
+        "severity": "warning",
+        "rule": "self.property != null",
+        "message": "This setting names a property the table does not have; the view opens without it."
+      },
+      {
+        "id": "groupByMissingProperty",
+        "code": "knowledge.view-names-missing-property",
+        "scope": ["View"],
+        "when": "has(self.groupBy)",
+        "severity": "warning",
+        "rule": "self.groupBy != null",
+        "message": "This view is grouped by a property the table does not have; it opens ungrouped."
+      },
+      {
+        "id": "freezeMissingProperty",
+        "code": "knowledge.view-names-missing-property",
+        "scope": ["View"],
+        "when": "has(self.freeze)",
+        "severity": "warning",
+        "rule": "self.freeze != null",
+        "message": "This view freezes columns up to a property the table does not have; it opens with none frozen."
+      },
+      {
+        "id": "filterDepth",
+        "code": "knowledge.filter-too-deep",
+        "scope": ["FilterGroup"],
+        "severity": "warning",
+        "rule": "self.ancestorsOfType('FilterGroup').size() < 2",
+        "message": "Filter groups nest to three levels, counting the view's own conditions."
+      },
+      {
+        "id": "lastView",
+        "code": "knowledge.no-view",
+        "scope": "document",
+        "severity": "warning",
+        "rule": "document.elementsOfType('View').size() > 0",
+        "message": "The table has no view; ADP shows it as if it had one view with no settings."
+      }
+    ],
+    "doc": "The findings `knowledge.md` lists that a constraint can state. The others (an unresolved relation target or row, a parent cycle, a missing id, a newer version, an unknown type, unknown keys) are the host's, as `knowledge.md` says."
+  },
+  "surface": {
+    "kind": "table",
+    "columns": {
+      "type": "Property",
+      "name": "name",
+      "valueType": "valueType",
+      "title": "title",
+      "parent": "isParent",
+      "options": { "type": "Option", "name": "name", "colour": "colour" }
+    },
+    "rows": { "type": "Row" },
+    "cells": { "type": "Cell", "column": "property", "items": "CellItem" },
+    "views": {
+      "type": "View",
+      "name": "name",
+      "active": "activeView",
+      "settings": { "columns": "Column", "sorts": "Sort", "conditions": "Condition", "filterGroups": "FilterGroup", "groups": "GroupSetting" }
+    },
+    "valueTypes": {
+      "text": {
+        "label": "Text",
+        "key": "text",
+        "editor": "text",
+        "comparisons": ["is", "is-not", "contains", "does-not-contain", "starts-with", "ends-with"],
+        "sort": "text",
+        "converts": {
+          "number": "parse",
+          "checkbox": "parse",
+          "date": "parse",
+          "dateTime": "parse",
+          "time": "parse",
+          "selection": "match-option",
+          "multipleSelection": "match-option"
+        }
+      },
+      "number": {
+        "label": "Number",
+        "key": "number",
+        "editor": "number",
+        "comparisons": ["equals", "does-not-equal", "greater-than", "less-than", "at-least", "at-most"],
+        "sort": "number",
+        "converts": { "text": "written-form" }
+      },
+      "checkbox": {
+        "label": "Checkbox",
+        "key": "checked",
+        "editor": "checkbox",
+        "comparisons": ["is-checked", "is-not-checked"],
+        "sort": "false-first",
+        "converts": { "text": "written-form" }
+      },
+      "date": {
+        "label": "Date",
+        "key": "date",
+        "editor": "date",
+        "comparisons": ["is", "is-before", "is-after", "is-on-or-before", "is-on-or-after"],
+        "sort": "chronological",
+        "converts": { "text": "written-form" }
+      },
+      "dateTime": {
+        "label": "Date and time",
+        "key": "dateTime",
+        "editor": "dateTime",
+        "comparisons": ["is", "is-before", "is-after", "is-on-or-before", "is-on-or-after"],
+        "sort": "chronological",
+        "converts": { "text": "written-form" }
+      },
+      "time": {
+        "label": "Time",
+        "key": "time",
+        "editor": "time",
+        "comparisons": ["is", "is-before", "is-after", "is-on-or-before", "is-on-or-after"],
+        "sort": "chronological",
+        "converts": { "text": "written-form" }
+      },
+      "selection": {
+        "label": "Selection",
+        "key": "option",
+        "editor": "choice",
+        "comparisons": ["is", "is-not"],
+        "sort": "option-order",
+        "converts": { "text": "written-form", "multipleSelection": "wrap" }
+      },
+      "multipleSelection": {
+        "label": "Multiple selection",
+        "key": "option",
+        "many": true,
+        "editor": "choices",
+        "comparisons": ["contains", "does-not-contain"],
+        "sort": "option-order",
+        "converts": { "text": "written-form", "selection": "unwrap" }
+      },
+      "relation": {
+        "label": "Relation",
+        "key": "row",
+        "many": true,
+        "editor": "rows",
+        "comparisons": ["contains", "does-not-contain"],
+        "sort": "title",
+        "converts": { "text": "written-form" }
+      }
+    },
+    "doc": "Laid out as Notion's table view; `knowledge.md` section 6 says how."
+  },
+  "operations": {
+    "addProperty": {
+      "label": "New property",
+      "for": "document",
+      "params": {
+        "name": { "type": "string", "required": true },
+        "valueType": { "type": "ValueType", "required": true, "default": "text" },
+        "after": { "type": "Property" }
+      },
+      "actions": [
+        {
+          "create": {
+            "type": "'Property'",
+            "attributes": { "name": "uniqueName(p.name, document.elementsOfType('Property').map(x, x.name))", "valueType": "p.valueType" },
+            "after": "p.after"
+          },
+          "when": "has(p.after)"
+        },
+        {
+          "create": {
+            "type": "'Property'",
+            "attributes": { "name": "uniqueName(p.name, document.elementsOfType('Property').map(x, x.name))", "valueType": "p.valueType" }
+          },
+          "when": "!has(p.after)"
+        }
+      ],
+      "doc": "The `+` after the last column, or insert left or right from a column's menu (`after` the column to the left)."
+    },
+    "renameProperty": {
+      "label": "Rename",
+      "for": ["Property"],
+      "params": { "name": { "type": "string", "required": true } },
+      "actions": [{ "set": { "name": "p.name" } }],
+      "doc": "Refused, where the name is typed, when another property has the name (`uniquePropertyNames`)."
+    },
+    "changePropertyType": {
+      "label": "Change type",
+      "for": ["Property"],
+      "params": { "valueType": { "type": "ValueType", "required": true } },
+      "unavailable": [{ "when": "self.title", "message": "The title property stays a text property." }],
+      "actions": [{ "set": { "valueType": "p.valueType" } }],
+      "doc": "The host converts every cell of the property in the same step, by `surface.valueTypes[*].converts` (DESL section 7.6); a value with no conversion stays and is a finding."
+    },
+    "duplicateProperty": {
+      "label": "Duplicate",
+      "for": ["Property"],
+      "unavailable": [{ "when": "self.computed", "message": "The other side of a two-way relation is duplicated from its own table." }],
+      "actions": [
+        {
+          "create": {
+            "type": "'Property'",
+            "attributes": {
+              "name": "uniqueName(self.name, document.elementsOfType('Property').map(x, x.name))",
+              "valueType": "self.valueType",
+              "targetFile": "self.targetFile",
+              "limit": "self.limit"
+            },
+            "after": "self"
+          },
+          "as": "copy"
+        },
+        {
+          "forEach": "self.childrenOfType('Option')",
+          "as": "o",
+          "do": [{ "create": { "type": "'Option'", "parent": "copy", "slot": "'options'", "attributes": { "name": "o.name", "colour": "o.colour" } } }]
+        }
+      ],
+      "doc": "Copies the property and its options with new ids, right after it; the values are not copied."
+    },
+    "moveProperty": {
+      "label": "Move",
+      "for": ["Property"],
+      "params": { "after": { "type": "Property" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "document.elementsOfType('Property')[0]" }, "when": "!has(p.after)" }
+      ],
+      "doc": "Dragging a column's header: the property moves after `after`, or to the front."
+    },
+    "deleteProperty": {
+      "label": "Delete",
+      "for": ["Property"],
+      "unavailable": [{ "when": "self.title", "message": "The title property cannot be deleted." }],
+      "confirm": {
+        "message": { "cel": "'Delete `' + self.name + '` and its values in ' + string(count) + ' rows?'" },
+        "count": "document.elementsOfType('Cell').filter(c, c.property == self).size()",
+        "threshold": 1
+      },
+      "actions": [
+        {
+          "forEach": "document.elementsOfType('View').filter(v, v.groupBy == self)",
+          "as": "v",
+          "do": [{ "forEach": "v.childrenOfType('GroupSetting')", "as": "g", "do": [{ "delete": "g" }] }, { "unset": ["groupBy"], "target": "v" }]
+        },
+        { "forEach": "document.elementsOfType('View').filter(v, v.freeze == self)", "as": "v", "do": [{ "unset": ["freeze"], "target": "v" }] },
+        { "delete": "self" }
+      ],
+      "doc": "The binding's cascade removes its cells, columns, sorts and conditions (Requirement 3.8); a view grouped by it is ungrouped first, and a view frozen up to it freezes none."
+    },
+    "setTitleProperty": {
+      "label": "Use as title",
+      "for": ["Property"],
+      "unavailable": [{ "when": "self.valueType != 'text'", "message": "Only a text property can be the title." }],
+      "actions": [
+        { "forEach": "document.elementsOfType('Property').filter(x, x.title)", "as": "x", "do": [{ "unset": ["title"], "target": "x" }] },
+        { "set": { "title": "true" } }
+      ],
+      "doc": "Moves the title to this text property."
+    },
+    "createRelation": {
+      "label": "New relation",
+      "for": "document",
+      "params": {
+        "name": { "type": "string", "required": true },
+        "targetFile": { "type": "string", "required": true },
+        "limit": { "type": "Limit", "default": "none" },
+        "counterpartName": { "type": "string" }
+      },
+      "actions": [
+        {
+          "create": {
+            "type": "'Property'",
+            "attributes": {
+              "name": "uniqueName(p.name, document.elementsOfType('Property').map(x, x.name))",
+              "valueType": "'relation'",
+              "targetFile": "p.targetFile",
+              "limit": "p.limit"
+            }
+          }
+        }
+      ],
+      "doc": "Notion's steps: the target file, one row or no limit, and optionally the other side's name (Requirement 7.6). With `counterpartName`, the host adds the computed counterpart to the target file and sets `counterpart` here in the same step (`knowledge.md`, two-file steps)."
+    },
+    "setParentRelation": {
+      "label": "Use as parent",
+      "for": ["Property"],
+      "unavailable": [{ "when": "self.valueType != 'relation' || self.targetFile != '.'", "message": "Only a relation to this file can be the parent." }],
+      "actions": [
+        { "forEach": "document.elementsOfType('Property').filter(x, x.isParent)", "as": "x", "do": [{ "unset": ["isParent"], "target": "x" }] },
+        { "set": { "isParent": "true", "limit": "'one'" } }
+      ],
+      "doc": "A relation to this file becomes the parent relation (Requirement 5.9)."
+    },
+    "addOption": {
+      "label": "New option",
+      "for": ["Property"],
+      "params": { "name": { "type": "string", "required": true }, "colour": { "type": "Colour", "default": "default" } },
+      "unavailable": [{ "when": "self.valueType != 'selection' && self.valueType != 'multipleSelection'", "message": "Only a selection has options." }],
+      "actions": [{ "create": { "type": "'Option'", "parent": "self", "slot": "'options'", "attributes": { "name": "p.name", "colour": "p.colour" } } }],
+      "doc": "Also what typing a new name in a selection cell does, before the value is set."
+    },
+    "renameOption": {
+      "label": "Rename",
+      "for": ["Option"],
+      "params": { "name": { "type": "string", "required": true } },
+      "actions": [{ "set": { "name": "p.name" } }],
+      "doc": "Cells and conditions store the option's id, so nothing else changes."
+    },
+    "recolourOption": {
+      "label": "Colour",
+      "for": ["Option"],
+      "params": { "colour": { "type": "Colour", "required": true } },
+      "actions": [{ "set": { "colour": "p.colour" } }],
+      "doc": "One of the ten colours."
+    },
+    "moveOption": {
+      "label": "Move",
+      "for": ["Option"],
+      "params": { "after": { "type": "Option" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "self.parent.childrenOfType('Option')[0]" }, "when": "!has(p.after)" }
+      ],
+      "doc": "Dragging an option in the property's menu."
+    },
+    "deleteOption": {
+      "label": "Delete",
+      "for": ["Option"],
+      "confirm": {
+        "message": { "cel": "string(count) + ' rows use `' + self.name + '`. Delete it and clear them?'" },
+        "count": "document.elementsOfType('Cell').filter(c, c.option == self).size() + document.elementsOfType('CellItem').filter(i, i.option == self).size()",
+        "threshold": 1
+      },
+      "actions": [
+        { "forEach": "document.elementsOfType('GroupSetting').filter(g, g.key == self.id)", "as": "g", "do": [{ "delete": "g" }] },
+        { "delete": "self" }
+      ],
+      "doc": "The binding's cascade clears the cells, items and conditions naming it (Requirement 3.6); the group settings keyed by it go too."
+    },
+    "addRow": {
+      "label": "New row",
+      "for": "document",
+      "actions": [{ "create": { "type": "'Row'" } }],
+      "doc": "The *new* row at the bottom of the table. In a group, the host also sets the value that puts the row there, in the same step (Requirement 4.2)."
+    },
+    "deleteRows": {
+      "label": "Delete",
+      "for": "selection",
+      "actions": [{ "forEach": "selection.filter(e, e.isA('Row'))", "as": "r", "do": [{ "delete": "r" }] }],
+      "doc": "Every selected row, in one step (Requirement 4.6). The host says first how many rows of other files relate to them (Requirement 5.8)."
+    },
+    "moveRow": {
+      "label": "Move",
+      "for": ["Row"],
+      "params": { "after": { "type": "Row" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "document.elementsOfType('Row')[0]" }, "when": "!has(p.after)" }
+      ],
+      "doc": "Dragging a row, where the view has no sort."
+    },
+    "setText": {
+      "label": "Set text",
+      "for": ["Row"],
+      "params": { "property": { "type": "Property", "required": true }, "value": { "type": "text", "required": true } },
+      "actions": [
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "cell.size() == 0",
+          "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "text": "p.value" } } }],
+          "else": [{ "set": { "text": "p.value" }, "target": "cell[0]" }]
+        }
+      ],
+      "doc": "Sets a cell's text; a row without a cell for the property gets one."
+    },
+    "setNumber": {
+      "label": "Set number",
+      "for": ["Row"],
+      "params": { "property": { "type": "Property", "required": true }, "value": { "type": "number", "required": true } },
+      "actions": [
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "cell.size() == 0",
+          "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "number": "p.value" } } }],
+          "else": [{ "set": { "number": "p.value" }, "target": "cell[0]" }]
+        }
+      ],
+      "doc": "Sets a cell's number; a row without a cell for the property gets one."
+    },
+    "setChecked": {
+      "label": "Set checkbox",
+      "for": ["Row"],
+      "params": { "property": { "type": "Property", "required": true }, "value": { "type": "bool", "required": true } },
+      "actions": [
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "cell.size() == 0",
+          "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "checked": "p.value" } } }],
+          "else": [{ "set": { "checked": "p.value" }, "target": "cell[0]" }]
+        }
+      ],
+      "doc": "Sets a cell's checkbox; a row without a cell for the property gets one."
+    },
+    "setDate": {
+      "label": "Set date",
+      "for": ["Row"],
+      "params": { "property": { "type": "Property", "required": true }, "value": { "type": "date", "required": true } },
+      "actions": [
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "cell.size() == 0",
+          "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "date": "p.value" } } }],
+          "else": [{ "set": { "date": "p.value" }, "target": "cell[0]" }]
+        }
+      ],
+      "doc": "Sets a cell's date; a row without a cell for the property gets one."
+    },
+    "setDateTime": {
+      "label": "Set date and time",
+      "for": ["Row"],
+      "params": { "property": { "type": "Property", "required": true }, "value": { "type": "datetime", "required": true } },
+      "actions": [
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "cell.size() == 0",
+          "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "dateTime": "p.value" } } }],
+          "else": [{ "set": { "dateTime": "p.value" }, "target": "cell[0]" }]
+        }
+      ],
+      "doc": "Sets a cell's date and time; a row without a cell for the property gets one."
+    },
+    "setTime": {
+      "label": "Set time",
+      "for": ["Row"],
+      "params": { "property": { "type": "Property", "required": true }, "value": { "type": "time", "required": true } },
+      "actions": [
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "cell.size() == 0",
+          "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "time": "p.value" } } }],
+          "else": [{ "set": { "time": "p.value" }, "target": "cell[0]" }]
+        }
+      ],
+      "doc": "Sets a cell's time; a row without a cell for the property gets one."
+    },
+    "setOption": {
+      "label": "Set option",
+      "for": ["Row"],
+      "params": { "property": { "type": "Property", "required": true }, "value": { "type": "Option", "required": true } },
+      "actions": [
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "cell.size() == 0",
+          "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "option": "p.value" } } }],
+          "else": [{ "set": { "option": "p.value" }, "target": "cell[0]" }]
+        }
+      ],
+      "doc": "Sets a cell's option; a row without a cell for the property gets one."
+    },
+    "clearCell": {
+      "label": "Clear",
+      "for": ["Cell"],
+      "actions": [
+        { "unset": ["text", "number", "checked", "date", "dateTime", "time", "option"] },
+        { "forEach": "self.childrenOfType('CellItem')", "as": "i", "do": [{ "delete": "i" }] }
+      ],
+      "doc": "Empties the cell; the cell keeps naming its property."
+    },
+    "addItem": {
+      "label": "Add value",
+      "for": ["Row"],
+      "params": { "property": { "type": "Property", "required": true }, "option": { "type": "Option" }, "row": { "type": "string" } },
+      "actions": [
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "cell.size() == 0",
+          "then": [
+            { "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property" } }, "as": "made" },
+            { "create": { "type": "'CellItem'", "parent": "made", "slot": "'items'", "attributes": { "option": "p.option", "row": "p.row" } } }
+          ],
+          "else": [{ "create": { "type": "'CellItem'", "parent": "cell[0]", "slot": "'items'", "attributes": { "option": "p.option", "row": "p.row" } } }]
+        }
+      ],
+      "doc": "One more option of a multiple selection, or one more related row; for a relation limited to one row the host replaces the value instead."
+    },
+    "removeItem": { "label": "Remove value", "for": ["CellItem"], "actions": [{ "delete": "self" }], "doc": "One of several values." },
+    "addView": {
+      "label": "New view",
+      "for": "document",
+      "params": { "name": { "type": "string", "required": true, "default": "Table" } },
+      "actions": [{ "create": { "type": "'View'", "attributes": { "name": "p.name" } }, "as": "v" }, { "set": { "activeView": "v" }, "target": "document" }],
+      "doc": "A new view with no settings, made the active one."
+    },
+    "renameView": {
+      "label": "Rename",
+      "for": ["View"],
+      "params": { "name": { "type": "string", "required": true } },
+      "actions": [{ "set": { "name": "p.name" } }],
+      "doc": ""
+    },
+    "duplicateView": {
+      "label": "Duplicate",
+      "for": ["View"],
+      "actions": [
+        {
+          "create": {
+            "type": "'View'",
+            "attributes": {
+              "name": "self.name + ' copy'",
+              "filterMatch": "self.filterMatch",
+              "groupBy": "self.groupBy",
+              "hideEmptyGroups": "self.hideEmptyGroups",
+              "freeze": "self.freeze"
+            },
+            "after": "self"
+          },
+          "as": "v"
+        },
+        {
+          "forEach": "self.childrenOfType('Column')",
+          "as": "c",
+          "do": [
+            {
+              "create": {
+                "type": "'Column'",
+                "parent": "v",
+                "slot": "'columns'",
+                "attributes": { "property": "c.property", "visible": "c.visible", "width": "c.width", "wrap": "c.wrap", "calculate": "c.calculate" }
+              }
+            }
+          ]
+        },
+        {
+          "forEach": "self.childrenOfType('Sort')",
+          "as": "c",
+          "do": [
+            {
+              "create": { "type": "'Sort'", "parent": "v", "slot": "'sorts'", "attributes": { "property": "c.property", "direction": "c.direction" } }
+            }
+          ]
+        },
+        {
+          "forEach": "self.children.filter(x, x.isA('Condition') || x.isA('FilterGroup'))",
+          "as": "c1",
+          "do": [
+            {
+              "create": {
+                "type": "'Condition'",
+                "parent": "v",
+                "slot": "'filter'",
+                "attributes": {
+                  "property": "c1.property",
+                  "operator": "c1.operator",
+                  "text": "c1.text",
+                  "number": "c1.number",
+                  "checked": "c1.checked",
+                  "date": "c1.date",
+                  "dateTime": "c1.dateTime",
+                  "time": "c1.time",
+                  "option": "c1.option"
+                }
+              },
+              "when": "c1.isA('Condition')"
+            },
+            {
+              "create": { "type": "'FilterGroup'", "parent": "v", "slot": "'filter'", "attributes": { "match": "c1.match" } },
+              "as": "g1",
+              "when": "c1.isA('FilterGroup')"
+            },
+            {
+              "if": "c1.isA('FilterGroup')",
+              "then": [
+                {
+                  "forEach": "c1.children.filter(x, x.isA('Condition') || x.isA('FilterGroup'))",
+                  "as": "c2",
+                  "do": [
+                    {
+                      "create": {
+                        "type": "'Condition'",
+                        "parent": "g1",
+                        "slot": "'conditions'",
+                        "attributes": {
+                          "property": "c2.property",
+                          "operator": "c2.operator",
+                          "text": "c2.text",
+                          "number": "c2.number",
+                          "checked": "c2.checked",
+                          "date": "c2.date",
+                          "dateTime": "c2.dateTime",
+                          "time": "c2.time",
+                          "option": "c2.option"
+                        }
+                      },
+                      "when": "c2.isA('Condition')"
+                    },
+                    {
+                      "create": { "type": "'FilterGroup'", "parent": "g1", "slot": "'conditions'", "attributes": { "match": "c2.match" } },
+                      "as": "g2",
+                      "when": "c2.isA('FilterGroup')"
+                    },
+                    {
+                      "if": "c2.isA('FilterGroup')",
+                      "then": [
+                        {
+                          "forEach": "c2.children.filter(x, x.isA('Condition') || x.isA('FilterGroup'))",
+                          "as": "c3",
+                          "do": [
+                            {
+                              "create": {
+                                "type": "'Condition'",
+                                "parent": "g2",
+                                "slot": "'conditions'",
+                                "attributes": {
+                                  "property": "c3.property",
+                                  "operator": "c3.operator",
+                                  "text": "c3.text",
+                                  "number": "c3.number",
+                                  "checked": "c3.checked",
+                                  "date": "c3.date",
+                                  "dateTime": "c3.dateTime",
+                                  "time": "c3.time",
+                                  "option": "c3.option"
+                                }
+                              },
+                              "when": "c3.isA('Condition')"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "forEach": "self.childrenOfType('GroupSetting')",
+          "as": "c",
+          "do": [{ "create": { "type": "'GroupSetting'", "parent": "v", "slot": "c.slot", "attributes": { "key": "c.key" } } }]
+        }
+      ],
+      "doc": "The copy holds every setting of the original, after it. The bindings write it as one entry holding its settings, as the fixtures show."
+    },
+    "moveView": {
+      "label": "Move",
+      "for": ["View"],
+      "params": { "after": { "type": "View" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "document.elementsOfType('View')[0]" }, "when": "!has(p.after)" }
+      ],
+      "doc": "Dragging a view's tab."
+    },
+    "deleteView": {
+      "label": "Delete",
+      "for": ["View"],
+      "unavailable": [{ "when": "document.elementsOfType('View').size() == 1", "message": "A table keeps at least one view." }],
+      "actions": [
+        {
+          "set": { "activeView": "document.elementsOfType('View').filter(v, v != self)[0]" },
+          "target": "document",
+          "when": "document.activeView == self"
+        },
+        { "delete": "self" }
+      ],
+      "doc": ""
+    },
+    "switchView": {
+      "label": "Open",
+      "for": ["View"],
+      "actions": [{ "set": { "activeView": "self" }, "target": "document" }],
+      "doc": "Clicking a view's tab; stored, so the file opens in it again (Requirement 6.10)."
+    },
+    "setColumn": {
+      "label": "Column",
+      "for": ["View"],
+      "params": {
+        "property": { "type": "Property", "required": true },
+        "visible": { "type": "bool", "default": true },
+        "width": { "type": "int" },
+        "wrap": { "type": "bool", "default": false }
+      },
+      "actions": [
+        { "let": { "column": "self.childrenOfType('Column').filter(c, c.property == p.property)" } },
+        {
+          "if": "column.size() == 0",
+          "then": [
+            {
+              "create": {
+                "type": "'Column'",
+                "parent": "self",
+                "slot": "'columns'",
+                "attributes": { "property": "p.property", "visible": "p.visible", "width": "p.width", "wrap": "p.wrap" }
+              }
+            }
+          ],
+          "else": [{ "set": { "visible": "p.visible", "width": "p.width", "wrap": "p.wrap" }, "target": "column[0]" }]
+        }
+      ],
+      "doc": "Hiding or showing a column, dragging its border, or switching wrap: the view gets a column setting when it has none for the property."
+    },
+    "moveColumn": {
+      "label": "Move",
+      "for": ["Column"],
+      "params": { "after": { "type": "Column" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "self.parent.childrenOfType('Column')[0]" }, "when": "!has(p.after)" }
+      ],
+      "doc": "Dragging a column in one view. A property with no column setting gets one first, by `setColumn`."
+    },
+    "resetColumn": {
+      "label": "Reset",
+      "for": ["Column"],
+      "actions": [{ "delete": "self" }],
+      "doc": "Back to the default: visible, default width, no wrap, no calculation."
+    },
+    "calculate": {
+      "label": "Calculate",
+      "for": ["View"],
+      "params": { "property": { "type": "Property", "required": true }, "calculation": { "type": "Calculation", "required": true } },
+      "actions": [
+        { "let": { "column": "self.childrenOfType('Column').filter(c, c.property == p.property)" } },
+        {
+          "if": "column.size() == 0",
+          "then": [
+            {
+              "create": { "type": "'Column'", "parent": "self", "slot": "'columns'", "attributes": { "property": "p.property", "calculate": "p.calculation" } }
+            }
+          ],
+          "else": [{ "set": { "calculate": "p.calculation" }, "target": "column[0]" }]
+        }
+      ],
+      "doc": "Choosing a calculation from the line under a column: the view gets a column setting when it has none for the property."
+    },
+    "removeCalculation": { "label": "None", "for": ["Column"], "actions": [{ "unset": ["calculate"] }], "doc": "Choosing None under a column." },
+    "freeze": {
+      "label": "Freeze up to column",
+      "for": ["View"],
+      "params": { "property": { "type": "Property", "required": true } },
+      "actions": [{ "set": { "freeze": "p.property" } }],
+      "doc": "The columns up to and including the property stay in sight when the table scrolls sideways."
+    },
+    "unfreeze": { "label": "Unfreeze columns", "for": ["View"], "actions": [{ "unset": ["freeze"] }], "doc": "" },
+    "addSort": {
+      "label": "Sort",
+      "for": ["View"],
+      "params": { "property": { "type": "Property", "required": true }, "direction": { "type": "Direction", "default": "ascending" } },
+      "actions": [
+        {
+          "create": { "type": "'Sort'", "parent": "self", "slot": "'sorts'", "attributes": { "property": "p.property", "direction": "p.direction" } }
+        }
+      ],
+      "doc": "Sort ascending or descending from a column's menu, or a new sort in the sort bar."
+    },
+    "setSortDirection": {
+      "label": "Direction",
+      "for": ["Sort"],
+      "params": { "direction": { "type": "Direction", "required": true } },
+      "actions": [{ "set": { "direction": "p.direction" } }],
+      "doc": ""
+    },
+    "moveSort": {
+      "label": "Move",
+      "for": ["Sort"],
+      "params": { "after": { "type": "Sort" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "self.parent.childrenOfType('Sort')[0]" }, "when": "!has(p.after)" }
+      ],
+      "doc": "Dragging a sort in the sort bar."
+    },
+    "removeSort": { "label": "Remove", "for": ["Sort"], "actions": [{ "delete": "self" }], "doc": "" },
+    "addCondition": {
+      "label": "Add filter",
+      "for": ["View", "FilterGroup"],
+      "params": {
+        "property": { "type": "Property", "required": true },
+        "operator": { "type": "string", "required": true },
+        "text": { "type": "text", "doc": "The compared text, for text." },
+        "number": { "type": "number", "doc": "The compared number." },
+        "checked": { "type": "bool", "doc": "The compared checkbox." },
+        "date": { "type": "date", "doc": "The compared date, ISO 8601." },
+        "dateTime": { "type": "datetime", "timezone": "preserve", "doc": "The compared date and time, ISO 8601 with its offset." },
+        "time": { "type": "time", "doc": "The compared time of day, ISO 8601." },
+        "option": { "type": "Option", "doc": "The compared option of a selection, by id." }
+      },
+      "actions": [
+        {
+          "create": {
+            "type": "'Condition'",
+            "parent": "self",
+            "slot": "self.isA('View') ? 'filter' : 'conditions'",
+            "attributes": {
+              "property": "p.property",
+              "operator": "p.operator",
+              "text": "p.text",
+              "number": "p.number",
+              "checked": "p.checked",
+              "date": "p.date",
+              "dateTime": "p.dateTime",
+              "time": "p.time",
+              "option": "p.option"
+            }
+          }
+        }
+      ],
+      "doc": "A condition with its comparison and the value under its property's key."
+    },
+    "setCondition": {
+      "label": "Edit filter",
+      "for": ["Condition"],
+      "params": { "operator": { "type": "string", "required": true } },
+      "actions": [{ "set": { "operator": "p.operator" } }],
+      "doc": "The value is set as a cell's is, by the value key of the property's type."
+    },
+    "removeCondition": { "label": "Remove", "for": ["Condition", "FilterGroup"], "actions": [{ "delete": "self" }], "doc": "A group goes with its conditions." },
+    "addFilterGroup": {
+      "label": "Add filter group",
+      "for": ["View", "FilterGroup"],
+      "params": { "match": { "type": "Match", "default": "all" } },
+      "unavailable": [{ "when": "self.isA('FilterGroup') && self.ancestorsOfType('FilterGroup').size() >= 1", "message": "Filter groups nest to three levels." }],
+      "actions": [
+        {
+          "create": { "type": "'FilterGroup'", "parent": "self", "slot": "self.isA('View') ? 'filter' : 'conditions'", "attributes": { "match": "p.match" } }
+        }
+      ],
+      "doc": ""
+    },
+    "setMatch": {
+      "label": "All or any",
+      "for": ["View", "FilterGroup"],
+      "params": { "match": { "type": "Match", "required": true } },
+      "actions": [{ "set": { "filterMatch": "p.match" }, "when": "self.isA('View')" }, { "set": { "match": "p.match" }, "when": "self.isA('FilterGroup')" }],
+      "doc": ""
+    },
+    "groupBy": {
+      "label": "Group by",
+      "for": ["View"],
+      "params": { "property": { "type": "Property", "required": true } },
+      "actions": [{ "forEach": "self.childrenOfType('GroupSetting')", "as": "g", "do": [{ "delete": "g" }] }, { "set": { "groupBy": "p.property" } }],
+      "doc": "Group settings belong to the grouping, so a new grouping starts without them."
+    },
+    "ungroup": {
+      "label": "Ungroup",
+      "for": ["View"],
+      "actions": [{ "forEach": "self.childrenOfType('GroupSetting')", "as": "g", "do": [{ "delete": "g" }] }, { "unset": ["groupBy", "hideEmptyGroups"] }],
+      "doc": ""
+    },
+    "hideEmptyGroups": {
+      "label": "Hide empty groups",
+      "for": ["View"],
+      "params": { "hide": { "type": "bool", "required": true } },
+      "actions": [{ "set": { "hideEmptyGroups": "p.hide" } }],
+      "doc": ""
+    },
+    "setGroup": {
+      "label": "Group",
+      "for": ["View"],
+      "params": { "slot": { "type": "string", "required": true }, "key": { "type": "string", "required": true } },
+      "actions": [
+        {
+          "if": "p.slot == 'groupOrder' || !self.childrenOfType('GroupSetting').exists(g, g.slot == p.slot && g.key == p.key)",
+          "then": [{ "create": { "type": "'GroupSetting'", "parent": "self", "slot": "p.slot", "attributes": { "key": "p.key" } } }]
+        }
+      ],
+      "doc": "Hiding (`hiddenGroups`) or collapsing (`collapsed`) a group, or giving it its place (`groupOrder`); collapsing a parent row in a nested view is the same, keyed by the row's id (Requirement 6.9)."
+    },
+    "unsetGroup": {
+      "label": "Show or expand",
+      "for": ["GroupSetting"],
+      "actions": [{ "delete": "self" }],
+      "doc": "Showing a hidden group or expanding a collapsed one."
+    },
+    "moveGroup": {
+      "label": "Move",
+      "for": ["GroupSetting"],
+      "params": { "after": { "type": "GroupSetting" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        {
+          "reorder": { "by": "-self.positionIn(self.parent.childrenOfType('GroupSetting').filter(g, g.slot == 'groupOrder'))" },
+          "when": "!has(p.after)"
+        }
+      ],
+      "doc": "Dragging a group heading: its place in `groupOrder`."
+    }
+  }
+}

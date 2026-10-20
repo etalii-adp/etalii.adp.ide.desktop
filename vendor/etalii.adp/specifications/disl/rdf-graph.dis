@@ -1,0 +1,632 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.2",
+  "language": {
+    "id": "org.example.rdf.graph",
+    "version": "0.1.0",
+    "origin": "w3c/rdf",
+    "label": "RDF graph",
+    "limits": {
+      "maxElements": 1000,
+      "budgets": {
+        "cards": {
+          "measure": { "count": ["Resource", "BlankNode"] },
+          "max": 1000,
+          "order": "[self.isA('Resource') ? 0 : 1, index]",
+          "withhold": { "edits": "none", "doc": "The edit gate (behavior.editGate) withholds edits while this budget truncates; moves stay allowed." },
+          "finding": { "severity": "info", "message": { "cel": "'This file projects to ' + string(budget('cards').total) + ' cards; the diagram draws the first ' + string(budget('cards').shown) + '.'" } },
+          "doc": "At most 1000 cards are drawn, IRI cards before blank nodes, each in document order; a statement is drawn only when both its cards are (w3c-rdf.md, budget)."
+        },
+        "rdfNodes": {
+          "measure": { "cel": "diagram.nodesOfType('Triple').map(t, t.oKind == 'literal' ? [t.s] : [t.s, t.o]).flatten().distinct().size()" },
+          "max": 5000,
+          "truncate": false,
+          "notice": false,
+          "withhold": { "edits": "model", "reason": { "reason": "tooLarge" } },
+          "doc": "The RDF nodes the file names, counted by CEL rather than by drawn cards (types used only as badges count too). It cuts nothing and gates model edits."
+        }
+      }
+    },
+    "requires": { "conformance": "standard", "features": ["limits.budgets", "canvas.notices"] },
+    "doc": {
+      "summary": "A trimmed excerpt of the RDF graph definition (definitions/diagrams/w3c-rdf.dis), used to show DISL 0.2 constructs.",
+      "description": "The subjects and objects of an RDF graph as cards and its statements as arrows labelled with their predicate. The format binding reads the file into one stored `Triple` record per triple; the cards, their rows and badges, the type bands they sit in and the statement edges are derived from those triples. The excerpt keeps that projection, the budget, the context menus and dialogs, some of the rules and the plugin functions; the Turtle reader and writer and the layout plugin of the full definition are left out."
+    }
+  },
+
+  "functions": {
+    "typeTriple": {
+      "params": [{ "name": "t", "type": "Element" }],
+      "returns": "bool",
+      "cel": "t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && t.oKind == 'iri'",
+      "doc": "An `rdf:type` triple with an IRI object: a type badge, never an edge."
+    },
+    "termNode": {
+      "params": [{ "name": "term", "type": "string" }, { "name": "kind", "type": "string" }],
+      "returns": "Element",
+      "uses": ["diagram"],
+      "cel": "kind == 'blank' ? diagram.nodesOfType('BlankNode').filter(b, b.writtenLabel == term).first().orValue(null) : diagram.elementById('res:' + term)",
+      "doc": "The card a subject or object term is drawn as."
+    },
+    "collectionText": {
+      "params": [{ "name": "head", "type": "string" }],
+      "returns": "string",
+      "uses": ["diagram"],
+      "recursion": { "maxDepth": 32, "atMaxDepth": "'…'" },
+      "cel": "cel.bind(ts, diagram.nodesOfType('Triple').filter(t, t.s == head), cel.bind(first, ts.filter(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(rest, ts.filter(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), first.size() == 0 ? '' : rdfDisplayName(first[0].o) + (rest.size() > 0 && rest[0].o != 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil' ? ', ' + collectionText(rest[0].o) : ''))))",
+      "doc": "The members of an RDF collection starting at `head`, walked through `rdf:rest`; a list longer than 32 members ends in '…'. A stand-in for w3c-owl's recursive expression text."
+    }
+  },
+
+  "metamodel": {
+    "doc": "The format binding produces one stored Triple per triple and never draws it. Every other node and relation type is derived from the triples (4.11): cards group every triple sharing a subject or object term, and statements are the triples between two cards. Derived elements are never written, never on the undo history, and fire no hooks; their edits go through the operations their `edits` name.",
+    "diagram": {
+      "attributes": {
+        "prefixes": { "type": "PrefixDeclaration", "many": true, "readOnly": true, "doc": "Every prefix declaration in document order, re-declarations included." },
+        "relativeIriLine": { "type": "int", "default": 0, "readOnly": true, "doc": "The 1-based line of the first triple that uses a relative IRI; 0 when every IRI is absolute." }
+      }
+    },
+    "dataTypes": {
+      "LiteralRow": {
+        "doc": "One triple whose object is a literal, folded into its subject's card.",
+        "fields": {
+          "predicateIri": { "type": "uri", "required": true },
+          "value": { "type": "string", "required": true },
+          "language": { "type": "string", "default": "" },
+          "datatype": { "type": "string", "default": "" }
+        },
+        "display": { "cel": "rdfDisplayName(value.predicateIri) + ': ' + value.value + (value.language != '' ? ' @' + value.language : '')" }
+      },
+      "PrefixDeclaration": {
+        "fields": {
+          "prefix": { "type": "string", "required": true },
+          "iri": { "type": "uri", "required": true },
+          "line": { "type": "int", "required": true }
+        },
+        "display": { "cel": "value.prefix + ': <' + value.iri + '>'" }
+      }
+    },
+    "enums": {
+      "TermKind": { "values": { "iri": { "label": "IRI" }, "blank": { "label": "Blank node" }, "literal": { "label": "Literal" } } }
+    },
+    "types": {
+      "Triple": {
+        "doc": "One triple of the file as the format binding reads it, with the line it starts on. Never drawn.",
+        "attributes": {
+          "s": { "type": "string", "required": true },
+          "sKind": { "type": "TermKind", "required": true },
+          "p": { "type": "uri", "required": true },
+          "o": { "type": "string", "required": true },
+          "oKind": { "type": "TermKind", "required": true },
+          "language": { "type": "string", "default": "" },
+          "datatype": { "type": "string", "default": "" },
+          "line": { "type": "int", "readOnly": true }
+        }
+      },
+      "Base": {
+        "doc": "The file's last `@base` or `BASE` directive; at most one. Never drawn.",
+        "multiplicity": { "max": 1 },
+        "attributes": {
+          "iri": { "type": "uri", "required": true, "readOnly": true }
+        }
+      },
+      "Term": {
+        "abstract": true,
+        "doc": "What IRI cards and blank-node cards share: the types the file asserts for them and the literal rows they carry.",
+        "attributes": {
+          "types": { "type": "uri", "many": true, "readOnly": true, "label": "Types" },
+          "rows": {
+            "type": "LiteralRow",
+            "many": true,
+            "readOnly": true,
+            "label": "Values",
+            "readOnlyReasons": [ { "reason": "truncated" }, "Values are stated by triples; add or remove them as statements." ],
+            "emptyText": "No literal values"
+          },
+          "badgeLine": { "type": "string", "derived": "self.types.map(t, rdfDisplayName(t)).join(' · ')" }
+        }
+      },
+      "Band": {
+        "label": "Type band",
+        "doc": "One band per first type badge; the cards of that type sit in it. Declared before the card types, so their `parent` can name a band.",
+        "children": { "slots": { "cards": { "allowed": ["Resource", "BlankNode"] } } },
+        "attributes": {
+          "typeIri": { "type": "uri" },
+          "members": { "type": "int" }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Triple').filter(t, typeTriple(t) && t.positionIn(diagram.nodesOfType('Triple').filter(u, u.s == t.s && typeTriple(u))) == 0)",
+          "key": "item.o",
+          "id": "'band:' + item.o",
+          "attributes": { "typeIri": "item.o", "members": "group.size()" },
+          "sources": "group",
+          "reason": "A band groups the cards whose first type is this one; it moves with its cards and cannot be edited itself."
+        }
+      },
+      "Resource": {
+        "extends": "Term",
+        "label": "Resource",
+        "labelAttribute": "display",
+        "attributes": {
+          "iri": { "type": "uri", "label": "IRI", "group": "Identity" },
+          "display": { "type": "string", "derived": "rdfDisplayName(self.iri)" }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Triple').map(t, t.oKind == 'iri' && !typeTriple(t) ? (t.sKind == 'iri' ? [[t.s, t], [t.o, t]] : [[t.o, t]]) : (t.sKind == 'iri' ? [[t.s, t]] : [])).flatten()",
+          "key": "item[0]",
+          "id": "'res:' + item[0]",
+          "attributes": {
+            "iri": "item[0]",
+            "types": "group.map(g, g[1]).filter(t, t.s == item[0] && typeTriple(t)).map(t, t.o)",
+            "rows": "group.map(g, g[1]).filter(t, t.s == item[0] && t.oKind == 'literal').map(t, {'predicateIri': t.p, 'value': t.o, 'language': t.language, 'datatype': t.datatype})"
+          },
+          "parent": "cel.bind(ts, group.map(g, g[1]).filter(t, t.s == item[0] && typeTriple(t)), ts.size() > 0 ? diagram.elementById('band:' + ts[0].o) : null)",
+          "slot": "'cards'",
+          "sources": "group.map(g, g[1]).distinct()",
+          "reason": "Resources are read from the triples; add, rename or remove them through the context menu.",
+          "edits": { "delete": "removeResource", "rename": "renameResource" },
+          "doc": "One card per IRI in subject or object position, grouping every triple that names it. A class used only as an `rdf:type` object is a badge, not a card. Its band is computed containment, a stand-in for sparql-query's shallowest-scope placement."
+        }
+      },
+      "BlankNode": {
+        "extends": "Term",
+        "label": "Blank node",
+        "labelAttribute": "name",
+        "attributes": {
+          "ordinal": { "type": "int", "readOnly": true, "doc": "The zero-based order of first appearance within one parse." },
+          "writtenLabel": { "type": "string", "default": "", "readOnly": true },
+          "name": { "type": "string", "derived": "self.writtenLabel != '' ? '_:' + self.writtenLabel : '_:b' + string(self.ordinal)" },
+          "listText": { "type": "string", "derived": "collectionText(self.writtenLabel)", "doc": "The members when this blank node heads an RDF collection." }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Triple').map(t, (t.sKind == 'blank' ? [[t.s, t]] : []) + (t.oKind == 'blank' ? [[t.o, t]] : [])).flatten()",
+          "key": "item[0]",
+          "id": "'blank:' + string(index)",
+          "attributes": {
+            "ordinal": "index",
+            "writtenLabel": "item[0]",
+            "types": "group.map(g, g[1]).filter(t, t.s == item[0] && typeTriple(t)).map(t, t.o)",
+            "rows": "group.map(g, g[1]).filter(t, t.s == item[0] && t.oKind == 'literal').map(t, {'predicateIri': t.p, 'value': t.o, 'language': t.language, 'datatype': t.datatype})"
+          },
+          "parent": "cel.bind(ts, group.map(g, g[1]).filter(t, t.s == item[0] && typeTriple(t)), ts.size() > 0 ? diagram.elementById('band:' + ts[0].o) : null)",
+          "slot": "'cards'",
+          "sources": "group.map(g, g[1]).distinct()",
+          "reason": "A blank node's identity does not survive a reparse, so nothing about it can be edited from the diagram."
+        }
+      }
+    },
+    "relations": {
+      "Statement": {
+        "label": "Statement",
+        "source": { "types": ["Resource", "BlankNode"] },
+        "target": { "types": ["Resource", "BlankNode"] },
+        "directed": true,
+        "allowSelfLoops": true,
+        "allowParallel": true,
+        "attributes": {
+          "predicateIri": { "type": "uri", "required": true, "label": "Predicate", "group": "Identity" }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Triple').filter(t, t.oKind != 'literal' && !typeTriple(t))",
+          "id": "cel.bind(n, item.positionIn(diagram.nodesOfType('Triple').filter(t, t.s == item.s && t.p == item.p && t.o == item.o)), 'edge:' + termNode(item.s, item.sKind).id + '|' + item.p + '|' + termNode(item.o, item.oKind).id + (n > 0 ? '|' + string(n) : ''))",
+          "source": "termNode(item.s, item.sKind)",
+          "target": "termNode(item.o, item.oKind)",
+          "attributes": { "predicateIri": "item.p" },
+          "sources": "[item]",
+          "reason": "A statement is a triple of the file; remove it, or relate two resources to state a new one.",
+          "edits": { "delete": "removeStatement", "connect": "relate" },
+          "doc": "One edge per triple between two cards; repeated identical triples each draw their own edge, numbered by a repeat counter."
+        }
+      }
+    }
+  },
+
+  "notation": {
+    "theme": {
+      "tokens": {
+        "color.surface": "#ffffff",
+        "color.band": "#f8fafc",
+        "color.text": "#0f172a",
+        "color.text.muted": "#64748b",
+        "color.border": "#e2e8f0",
+        "color.primary": "limegreen",
+        "font.body": "system-ui, sans-serif"
+      },
+      "modes": {
+        "dark": {
+          "color.surface": "#1e293b",
+          "color.band": "#0f172a",
+          "color.text": "#f1f5f9",
+          "color.text.muted": "#94a3b8",
+          "color.border": "#334155"
+        }
+      },
+      "followSystem": true
+    },
+    "styles": {
+      "card": {
+        "fill": { "token": "color.surface" },
+        "stroke": { "color": { "token": "color.border" }, "width": 1.5 },
+        "font": { "family": { "token": "font.body" }, "size": 12, "color": { "token": "color.text" } }
+      },
+      "band": { "fill": { "token": "color.band" }, "stroke": { "width": 0 }, "font": { "size": 13, "weight": 600, "color": { "token": "color.text.muted" } } },
+      "badge": { "font": { "size": 11, "color": { "token": "color.primary" } } },
+      "row": { "font": { "size": 11, "color": { "token": "color.text.muted" } } },
+      "statement": {
+        "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 },
+        "font": { "size": 11, "color": { "token": "color.text.muted" } }
+      }
+    },
+    "nodes": {
+      "Band": {
+        "shape": "rect",
+        "style": "band",
+        "labels": [ { "id": "type", "text": { "cel": "rdfDisplayName(self.typeIri)" }, "position": "top-left", "editable": false } ],
+        "container": { "layout": "grid", "columns": 4, "gap": 60, "padding": [32, 16, 16, 16] },
+        "selectable": false
+      },
+      "Resource": {
+        "shape": "rect",
+        "style": "card",
+        "size": { "default": [220, 40], "resizable": false, "autoSize": "fitHeight" },
+        "labels": [
+          { "id": "title", "text": { "attribute": "display" }, "position": { "anchor": [0.5, 0], "offset": [0, 20] }, "overflow": "ellipsis", "maxLines": 1, "editable": false },
+          { "id": "badges", "text": { "attribute": "badgeLine" }, "position": { "anchor": [0, 0], "offset": [8, 40], "align": "start" }, "style": "badge", "overflow": "ellipsis", "maxLines": 1, "visible": { "cel": "size(self.types) > 0" } }
+        ],
+        "compartments": [
+          { "id": "rows", "items": { "attribute": "rows" }, "itemText": { "cel": "rdfDisplayName(item.predicateIri) + ': ' + item.value" }, "itemStyle": "row", "layout": "vertical", "separator": "none", "overflow": "grow" }
+        ],
+        "anchors": { "mode": "fixed", "points": [ { "id": "w", "x": 0, "y": 0.5 }, { "id": "e", "x": 1, "y": 0.5 }, { "id": "s", "x": 0.5, "y": 1 } ] },
+        "tooltip": { "cel": "self.iri + (self.derived ? ' (' + string(self.sources.size()) + ' statements)' : '')" },
+        "copyable": false,
+        "refusals": {
+          "reparent": [ "A resource has no parent to move it under; its band follows from its first type. Dragging changes where it sits on the canvas." ]
+        }
+      },
+      "BlankNode": {
+        "shape": "rect",
+        "style": ["card", { "stroke": { "dash": [5, 3], "dashScale": "absolute" }, "opacity": 0.75 }],
+        "size": { "default": [220, 40], "resizable": false, "autoSize": "fitHeight" },
+        "labels": [
+          { "id": "title", "text": { "cel": "self.listText != '' ? '(' + self.listText + ')' : self.name" }, "position": { "anchor": [0.5, 0], "offset": [0, 20] }, "overflow": "ellipsis", "maxLines": 1, "editable": false }
+        ],
+        "anchors": { "mode": "outline" },
+        "copyable": false
+      }
+    },
+    "edges": {
+      "Statement": {
+        "style": "statement",
+        "line": { "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 }, "routing": "straight" },
+        "sourceMarker": "none",
+        "targetMarker": "arrowFilled",
+        "labels": [
+          { "id": "predicate", "text": { "cel": "rdfDisplayName(self.predicateIri)" }, "at": "middle", "side": "above", "distance": 6, "editable": false }
+        ],
+        "reconnectable": false,
+        "refusals": {
+          "move": [ "That element is not something this diagram can move." ],
+          "reconnect": [ "A statement's ends are what it states; remove it and relate the resources you mean." ]
+        },
+        "connect": {
+          "from": { "w": "source", "e": "source" },
+          "doc": "A statement starts only at a resource card's left or right side, and the card dragged from becomes its subject. The bottom anchor starts a pending connection instead (the `connection` menu)."
+        }
+      }
+    },
+    "canvas": {
+      "notices": [
+        {
+          "id": "budget:cards",
+          "severity": "warning",
+          "position": "top",
+          "text": { "cel": "'Showing ' + string(budget('cards').shown) + ' of ' + string(budget('cards').total) + ' resources — edits are withheld on this truncated view'" },
+          "doc": "The truncation banner outside the drawing, replacing the watermark of w3c-rdf.dis. Its id replaces the built-in notice of the cards budget, so it is shown only while that budget truncates."
+        }
+      ]
+    }
+  },
+
+  "forms": {
+    "resourceInspector": {
+      "for": ["Resource"],
+      "usage": ["inspector"],
+      "items": [
+        { "attribute": "iri", "widget": "readonly", "readOnlyReasons": [ "Rename through the context menu, so every reference follows the name." ] },
+        { "attribute": "types", "widget": "tags", "readOnlyReasons": [ { "reason": "truncated" }, "Types are stated by triples; add or remove them as statements." ] },
+        { "attribute": "rows", "widget": "list" },
+        { "kind": "findings" }
+      ]
+    },
+    "renameDialog": {
+      "for": ["Resource"],
+      "usage": ["popover"],
+      "label": { "cel": "'Rename ' + rdfDisplayName(self.iri)" },
+      "icon": "mdi:pencil-outline",
+      "submitLabel": "Rename",
+      "cancelLabel": "Keep the name",
+      "danger": false,
+      "items": [
+        {
+          "attribute": "newName",
+          "label": "New IRI or prefixed name",
+          "placeholder": "New IRI or prefixed name",
+          "initial": "rdfCompress(self.iri)",
+          "validate": [
+            { "rule": "rdfResolveTerm(value) != ''", "message": { "cel": "rdfTermRefusal(value)" } },
+            {
+              "rule": "!diagram.nodesOfType('Resource').exists(r, r.iri == rdfResolveTerm(value) && r != self)",
+              "message": { "cel": "rdfResolveTerm(value) + ' already names something in this document; renaming onto it would silently merge two resources.'" },
+              "timing": "commit"
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "toolbox": {
+    "generic": { "select": true, "pan": true },
+    "groups": [
+      {
+        "id": "rdf",
+        "label": "RDF",
+        "tools": [
+          {
+            "id": "resource",
+            "kind": "operation",
+            "operation": "addResource",
+            "label": "Resource",
+            "icon": "mdi:card-plus-outline",
+            "mode": "drop",
+            "drop": { "elsewhere": "menu" },
+            "doc": "Dropped on the canvas, it opens the canvas menu at the drop point, whose entries run with that `position`."
+          },
+          {
+            "id": "prefix",
+            "kind": "operation",
+            "operation": "declarePrefix",
+            "label": "Prefix",
+            "icon": "mdi:at",
+            "unavailable": [ { "reason": "truncated" } ]
+          }
+        ]
+      }
+    ],
+    "contextMenus": [
+      {
+        "for": ["Resource"],
+        "placement": "menu",
+        "tools": [
+          { "kind": "operation", "operation": "renameResource", "label": "Rename…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
+          {
+            "kind": "operation",
+            "operation": "removeResource",
+            "icon": "mdi:delete-outline",
+            "shortcut": "Delete",
+            "unavailable": [
+              { "when": "self.sources.exists(t, t.sKind == 'blank' || t.oKind == 'blank')", "message": "That element is rooted in a blank node, which has no identity that survives a reparse, so this edit cannot land in the file. Name the node with an IRI to edit it." }
+            ]
+          }
+        ]
+      },
+      {
+        "for": ["diagram"],
+        "placement": "menu",
+        "when": "self.prefixes.size() > 0",
+        "doc": "The canvas background, offered once the file declares a prefix, under which a new resource's IRI is minted.",
+        "tools": [
+          { "kind": "operation", "operation": "addResource", "label": "Add resource here…", "icon": "mdi:card-plus-outline" },
+          { "kind": "operation", "operation": "declarePrefix", "label": "Declare prefix…", "icon": "mdi:at" }
+        ]
+      },
+      {
+        "for": ["connection"],
+        "placement": "menu",
+        "when": "source.isA('Term') && target.isA('Term')",
+        "runSingle": true,
+        "doc": "A connection drawn from a card's bottom anchor, before any statement exists; cancelling leaves the file unchanged.",
+        "tools": [
+          { "kind": "operation", "operation": "relate", "label": "Relate…", "icon": "mdi:ray-start-arrow", "args": { "from": "source", "to": "target" } },
+          { "kind": "operation", "operation": "addType", "label": { "cel": "'State that it is a ' + (target.isA('Resource') ? target.display : 'blank node')" }, "icon": "mdi:tag-outline", "visible": "target.isA('Resource')", "args": { "subject": "source", "type": "target" } }
+        ]
+      }
+    ]
+  },
+
+  "constraints": {
+    "doc": "Facts about the file, never a reasoner's opinion. A parse failure is the one finding `rdf.unparseable`, which replaces every other finding in the file; findings on a card borrow the location of its first source triple.",
+    "builtIn": {
+      "std.unparseable": { "code": "rdf.unparseable", "message": { "cel": "'This is not RDF that can be read: ' + detail.reason" } },
+      "std.endpoints": { "severity": "warning" },
+      "std.derivedFailed": { "severity": "warning", "code": "rdf.projection-failed" },
+      "std.derivedId": { "severity": "warning", "code": "rdf.projection-clash" },
+      "std.derivedEnds": { "severity": "warning", "code": "rdf.projection-ends" },
+      "std.pluginMissing": { "severity": "warning", "code": "rdf.engine-missing", "message": "The RDF engine is not installed, so names are shown as their local names and nothing can be edited." },
+      "std.ephemeralViewData": {
+        "severity": "info",
+        "code": "rdf.stale-position",
+        "message": { "cel": "'A position stored for ' + detail.key + ' was ignored: that is a blank node, whose identity does not survive a reparse.'" }
+      }
+    },
+    "rules": [
+      {
+        "id": "duplicatePrefix",
+        "code": "rdf.duplicate-prefix",
+        "label": "Prefix declared more than once",
+        "scope": "diagram",
+        "forEach": "diagram.prefixes.filter(d, diagram.prefixes.exists(e, e.prefix == d.prefix && e.line < d.line))",
+        "severity": "warning",
+        "message": { "cel": "'The prefix \\'' + item.prefix + ':\\' is declared more than once; from here on it means ' + item.iri + ', which changes what every earlier-styled use would say.'" },
+        "location": "{'file': diagram.file, 'line': item.line}",
+        "subject": "'@prefix ' + item.prefix + ': <' + item.iri + '>'",
+        "doc": "One finding per re-declaration, even one that repeats the same IRI, at its line and naming it, since a prefix is not an element."
+      },
+      {
+        "id": "relativeIri",
+        "code": "rdf.relative-iri",
+        "label": "Relative IRIs without a base",
+        "scope": "diagram",
+        "rule": "diagram.nodesOfType('Base').size() > 0 || diagram.relativeIriLine == 0",
+        "severity": "warning",
+        "message": "This document uses relative IRIs but declares no base, so their meaning depends on where the file happens to sit. Declare an @base.",
+        "location": "{'file': diagram.file, 'line': diagram.relativeIriLine}"
+      },
+      {
+        "id": "languageTag",
+        "code": "rdf.language-tag",
+        "label": "Malformed language tag",
+        "scope": ["Resource", "BlankNode"],
+        "rule": "self.rows.all(r, r.language == '' || r.language.matches('^[A-Za-z]+(-[A-Za-z0-9]+)*$'))",
+        "severity": "warning",
+        "attribute": "rows",
+        "message": { "cel": "'\\'@' + self.rows.filter(r, r.language != '' && !r.language.matches('^[A-Za-z]+(-[A-Za-z0-9]+)*$'))[0].language + '\\' is not a well-formed language tag.'" }
+      },
+      {
+        "id": "gestureNotToSelf",
+        "kind": "connect",
+        "when": "relationType == 'Statement'",
+        "rule": "source != target",
+        "message": "A statement drawn on the canvas relates two different resources; write a self-reference in the file."
+      }
+    ]
+  },
+
+  "behavior": {
+    "reasons": {
+      "truncated": {
+        "when": "budget('cards').truncated",
+        "message": "The diagram shows only the first part of this file under the drawn-element budget, so edits through it are withheld - an edit through a partial view could touch what the view does not show. Edit the file as text instead.",
+        "doc": "The truncation gate (w3c-rdf.md): one sentence, declared once, shown on every withheld gesture, menu entry and property row."
+      },
+      "tooLarge": {
+        "message": { "cel": "'This file names ' + string(budget('rdfNodes').total) + ' RDF nodes, more than the ' + string(budget('rdfNodes').shown) + ' the diagram edits safely. Edit the file as text instead.'" }
+      }
+    },
+    "editGate": [ { "reason": "truncated" } ],
+    "messages": {
+      "std.notApplicable": { "cel": "'\\'' + operationId + '\\' does not apply to this selection.'" }
+    },
+    "operations": {
+      "addResource": {
+        "label": "Add resource here…",
+        "icon": "mdi:card-plus-outline",
+        "for": "diagram",
+        "params": { "iri": { "type": "string", "label": "IRI or prefixed name", "required": true } },
+        "doc": "Writes one triple, `{iri} a rdfs:Resource`; the card follows from it. Invoked from the canvas menu it sees the clicked `position`, which the card is placed at through the registration's layout.",
+        "actions": [
+          { "if": "rdfResolveTerm(p.iri) == ''", "then": [ { "abort": { "message": "rdfTermRefusal(p.iri)" } } ] },
+          { "create": { "type": "'Triple'", "attributes": { "s": "rdfResolveTerm(p.iri)", "sKind": "'iri'", "p": "'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'", "o": "'http://www.w3.org/2000/01/rdf-schema#Resource'", "oKind": "'iri'" } } },
+          { "if": "position != null", "then": [ { "move": { "target": "diagram.elementById('res:' + rdfResolveTerm(p.iri))", "x": "position.x", "y": "position.y" } } ] }
+        ]
+      },
+      "declarePrefix": {
+        "label": "Declare prefix…",
+        "icon": "mdi:at",
+        "for": "diagram",
+        "params": { "declaration": { "type": "string", "label": "Declaration, e.g. ex: http://example.org/", "required": true } },
+        "plugin": { "name": "net.etalii.adp.w3c.turtle", "args": { "action": "addPrefix" } }
+      },
+      "renameResource": {
+        "label": "Rename…",
+        "for": ["Resource"],
+        "params": { "newName": { "type": "string", "label": "New IRI or prefixed name", "required": true } },
+        "paramsForm": "renameDialog",
+        "plugin": { "name": "net.etalii.adp.w3c.turtle", "args": { "action": "renameTerm" } }
+      },
+      "removeResource": {
+        "for": ["Resource"],
+        "label": { "cel": "self.sources.size() > 1 ? 'Remove (with ' + string(self.sources.size()) + ' statements)' : 'Remove'" },
+        "confirm": {
+          "count": "self.sources.size()",
+          "threshold": 2,
+          "message": { "cel": "'Remove ' + self.display + ' and the ' + string(count) + ' statements it appears in?'" },
+          "confirmLabel": "Remove",
+          "danger": true
+        },
+        "actions": [ { "delete": "self.sources" } ],
+        "doc": "Removes every triple the card is drawn from; the card disappears on recomputation. A resource in one statement goes without a question."
+      },
+      "removeStatement": {
+        "label": "Remove statement",
+        "for": ["Statement"],
+        "actions": [ { "delete": "self.sources" } ]
+      },
+      "relate": {
+        "label": "Relate…",
+        "icon": "mdi:ray-start-arrow",
+        "for": "diagram",
+        "params": {
+          "from": { "type": "Term", "required": true },
+          "to": { "type": "Term", "required": true },
+          "predicate": { "type": "string", "label": "Predicate (IRI or prefixed name)", "required": true }
+        },
+        "actions": [
+          { "if": "rdfResolveTerm(p.predicate) == ''", "then": [ { "abort": { "message": "rdfTermRefusal(p.predicate)" } } ] },
+          { "create": { "type": "'Triple'", "attributes": {
+              "s": "p.from.isA('Resource') ? p.from.iri : p.from.writtenLabel", "sKind": "p.from.isA('Resource') ? 'iri' : 'blank'",
+              "p": "rdfResolveTerm(p.predicate)",
+              "o": "p.to.isA('Resource') ? p.to.iri : p.to.writtenLabel", "oKind": "p.to.isA('Resource') ? 'iri' : 'blank'" } } }
+        ]
+      },
+      "addType": {
+        "label": "Add type",
+        "for": "diagram",
+        "params": { "subject": { "type": "Term", "required": true }, "type": { "type": "Resource", "required": true } },
+        "actions": [
+          { "create": { "type": "'Triple'", "attributes": {
+              "s": "p.subject.isA('Resource') ? p.subject.iri : p.subject.writtenLabel", "sKind": "p.subject.isA('Resource') ? 'iri' : 'blank'",
+              "p": "'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'", "o": "p.type.iri", "oKind": "'iri'" } } }
+        ]
+      }
+    },
+    "doc": "Hooks never fire for derived elements appearing, changing or disappearing: an edit writes triples, and the cards and edges follow from recomputation."
+  },
+
+  "persistence": {
+    "doc": "The RDF file itself is the model, read and written by the format binding; positions live in the `.adp` registration, keyed by element id.",
+    "ids": {
+      "strategy": "natural",
+      "stable": false,
+      "pattern": "^(res:.+|blank:[0-9]+|band:.+|edge:.+|triple:.+|base)$",
+      "types": {
+        "Triple": {
+          "strategy": "derived",
+          "expression": "cel.bind(n, self.positionIn(diagram.nodesOfType('Triple').filter(t, t.s == self.s && t.p == self.p && t.o == self.o)), 'triple:' + self.s + '|' + self.p + '|' + self.o + (n > 0 ? '|' + string(n) : ''))",
+          "doc": "A triple and a repeat counter for the second and later identical triples, in reading order."
+        },
+        "Base": { "strategy": "derived", "expression": "'base'", "doc": "A fixed singleton id." },
+        "BlankNode": {
+          "ephemeral": true,
+          "reason": "That is a blank node, whose identity does not survive a reparse, so a stored position could not be trusted. Name it with an IRI to arrange it.",
+          "doc": "Blank-node ids (`blank:` and the order of first appearance) restart with every parse. Nothing is stored for them, and moving one is refused with this reason."
+        }
+      }
+    },
+    "view": { "store": ["bounds"], "styleOverrides": "none" }
+  },
+
+  "viewpoints": {
+    "graph": {
+      "label": "Graph",
+      "exclude": ["Triple", "Base"],
+      "default": true
+    }
+  },
+
+  "plugins": {
+    "net.etalii.adp.w3c.turtle": {
+      "version": "^0.1.0",
+      "provides": ["action", "celFunctions"],
+      "required": false,
+      "doc": "The RDF family's engine functions. Every function is called by its bare name; without the plugin a call evaluates its `fallback`, or else fails as an evaluation error, and one `std.pluginMissing` finding is reported.",
+      "celFunctions": [
+        { "name": "rdfLocalName", "params": [ { "name": "iri", "type": "string" } ], "returns": "string", "cost": 1, "fallback": "iri.substring(math.greatest(iri.lastIndexOf('#'), iri.lastIndexOf('/')) + 1)", "doc": "The part of an IRI after its last '#' or '/', or the whole IRI." },
+        { "name": "rdfDisplayName", "params": [ { "name": "iri", "type": "string" } ], "returns": "string", "cost": 10, "uses": ["diagram"], "fallback": "rdfLocalName(iri) != '' ? rdfLocalName(iri) : iri", "doc": "An IRI as drawn: prefixed name under the file's prefixes, else the local name, else the IRI." },
+        { "name": "rdfCompress", "params": [ { "name": "iri", "type": "string" } ], "returns": "string", "cost": 10, "uses": ["diagram"], "fallback": "'<' + iri + '>'", "doc": "An IRI as the writer spells it: `prefix:local`, else the bracketed `<iri>`." },
+        { "name": "rdfResolveTerm", "params": [ { "name": "term", "type": "string" } ], "returns": "string", "cost": 10, "uses": ["diagram"], "doc": "The full IRI a typed term names; '' when it names nothing. No fallback: without the engine a typed term cannot be resolved, so the dialogs refuse." },
+        { "name": "rdfTermRefusal", "params": [ { "name": "term", "type": "string" } ], "returns": "string", "cost": 10, "uses": ["diagram"], "fallback": "'\\'' + term + '\\' cannot be resolved without the RDF engine.'", "doc": "The sentence explaining why rdfResolveTerm returned ''." }
+      ]
+    }
+  }
+}

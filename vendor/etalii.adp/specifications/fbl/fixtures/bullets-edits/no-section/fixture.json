@@ -1,0 +1,57 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A bullets body without the section the binding names (FBL 0.7, sections 6.2 and 6.3): it reads no topic, and the first add creates the section's heading at the end of the document, then writes the item into it, both at one offset; undo removes both.",
+  "binding": "../topics.fbl#topics",
+  "input": "plan.md",
+  "read": {
+    "elements": []
+  },
+  "steps": [
+    {
+      "doc": "The first topic of a body without the section Topics: one ensure-container at the end of the body writes a line ending, the heading and a line ending, so a blank line stands before the heading; the item follows at the same offset as the first item of a section that holds none, after a line ending, so a blank line stands before it, with the marker - at column 0 (FBL 6.2, 6.3, a missing section).",
+      "edit": {
+        "add": {
+          "type": "Topic",
+          "id": "t1",
+          "attributes": {
+            "title": "First topic"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "\n## Topics\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "\n- t1: First topic\n"
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n\n## Topics\n\n- t1: First topic\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 44,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 44,
+          "end": 63,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\nSome intro text.\n"
+    }
+  ]
+}

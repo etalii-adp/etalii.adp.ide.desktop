@@ -1,0 +1,354 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Assessments of a requirement document (hierarchical-requirement.fbl#markdown), CRLF endings, read by the rule assessment, which is caseInsensitive (FBL 4.8, 5.1). The four kinds are read in any case: Question, warning, REMARK and idea. The wire value matches a key of the map of kind ignoring case and is kept as written (FBL 5.2, map), and the model holds the enumeration AssessmentKind's key, the stored form Question, Warning, Remark or Idea mapped back to question, warning, remark or idea (DESL 4.4). The checkbox: [ ] reads resolved false, [x] and [X] (line 21) true through the map of resolved, matched ignoring case, and line 20, which leaves it out, reads the binding's default, false (FBL 5.2, default). Line 18's detail is its continuation, the line indented under it, read with its indentation taken off (FBL 4.8, Continuation); an assessment without one reads the empty text. ITEM-0003 holds no requirement, and line 21 is about it: about names an Item or a Requirement through its mentions facet (DESL 4.3). Line 22 is about REQ-0006, which the mark shows was given and since deleted: the assessment is kept as written and reported by std.mentions (FR-039). An assessment has no number: its id is derived from its place among the elements of type Assessment, zero-based (the specification's derived rule, DESL 9.4 positionIn), and is ephemeral. Each edit is followed by its undo, so every edit starts from the input. The first assessment of a file without the section is first-assessment/ beside this one, since a fixture has one input.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "web-shop.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001"
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001"
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001"
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002"
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Data",
+          "description": "Everything the shop keeps about its customers and their orders."
+        }
+      },
+      {
+        "id": "assessment/0",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "question",
+          "about": "REQ-0001",
+          "text": "Is 30 minutes right for the mobile app?",
+          "detail": "",
+          "resolved": false
+        }
+      },
+      {
+        "id": "assessment/1",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "warning",
+          "about": "ITEM-0002",
+          "text": "Overlaps with the gateway's own session handling.",
+          "detail": "The gateway's session ends first, so ours never times out alone.",
+          "resolved": true
+        }
+      },
+      {
+        "id": "assessment/2",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "remark",
+          "about": "REQ-0002",
+          "text": "Two customers asked to sign in with a passkey.",
+          "detail": "",
+          "resolved": false
+        }
+      },
+      {
+        "id": "assessment/3",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "idea",
+          "about": "ITEM-0003",
+          "text": "Split the data into orders and customers.",
+          "detail": "",
+          "resolved": true
+        }
+      },
+      {
+        "id": "assessment/4",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "question",
+          "about": "REQ-0006",
+          "text": "Is a failed payment retried?",
+          "detail": "",
+          "resolved": false
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "std.mentions",
+        "line": 22
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "An add (the operation addAssessment on REQ-0003, kind question by its default): the rule assessment's insert, place end, container assessments, puts it after the section's last entry, the line span of line 22, which ends at the end of the body, with that sibling's marker - and indentation (FBL 6.2, 6.3, a new item). The emit \\[{resolved}\\] {kind} {about}: {text} writes literal brackets around the wire value of resolved and the wire value of kind, each the first key of its map whose value matches (FBL 6.2, emit; 5.2, map): the kind question's stored form Question gives Question. The add gives resolved no value; the reading taken is that its placeholder writes the attribute's value, the binding's default false, so the wire value ' ', and the new assessment is open, [ ] (FR-036, FR-037). An assessment has no id of its own: assessment/5 is the one its place derives. The line takes the body's CRLF.",
+      "edit": {
+        "add": {
+          "type": "Assessment",
+          "id": "assessment/5",
+          "attributes": {
+            "kind": "question",
+            "about": "REQ-0003",
+            "text": "Does a refreshed token count as activity?"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 917,
+          "end": 917,
+          "text": "- [ ] Question REQ-0003: Does a refreshed token count as activity?\r\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n- [ ] Question REQ-0003: Does a refreshed token count as activity?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 917,
+          "end": 985,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "A change (the operation changeAssessment on assessment/0): the kind becomes remark, a replace-value of the group kind with the wire value of remark, Remark, since the model value changes (FBL 5.2, map; 6.3, a changed value); the text is a replace-value of the group text; the detail is set to the empty text, which it is already, so it writes nothing. What it is about is not changed, nor its checkbox.",
+      "edit": {
+        "set": {
+          "element": "assessment/0",
+          "attributes": {
+            "kind": "remark",
+            "text": "Is 30 minutes right on a phone?",
+            "detail": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 526,
+          "end": 534,
+          "text": "Remark"
+        },
+        {
+          "operation": "replace-value",
+          "start": 545,
+          "end": 584,
+          "text": "Is 30 minutes right on a phone?"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Remark REQ-0001: Is 30 minutes right on a phone?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 526,
+          "end": 532,
+          "text": "Question"
+        },
+        {
+          "operation": "replace-value",
+          "start": 543,
+          "end": 574,
+          "text": "Is 30 minutes right for the mobile app?"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "A resolve (the operation resolveAssessment on assessment/0, open): resolved becomes true, a replace-value of the group done, the one character between the brackets, with true's wire value, the first key of the map whose value matches, x (FBL 5.2, map; 6.3). One replace-value of one character (FR-038); the assessment stays in the file.",
+      "edit": {
+        "set": {
+          "element": "assessment/0",
+          "attributes": {
+            "resolved": true
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 523,
+          "end": 524,
+          "text": "x"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [x] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 523,
+          "end": 524,
+          "text": " "
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "A reopen (the operation resolveAssessment on assessment/1, resolved): resolved becomes false, a replace-value of the group done with false's wire value, a space. One replace-value of one character; the detail under it stays.",
+      "edit": {
+        "set": {
+          "element": "assessment/1",
+          "attributes": {
+            "resolved": false
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 589,
+          "end": 590,
+          "text": " "
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [ ] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 589,
+          "end": 590,
+          "text": "x"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "A resolve of line 20, which has no checkbox: the group done has no span in the item's text, and the emit places \\[{resolved}\\] first, after no present value, so it cannot be an insert-key, and the item's text is rewritten by re-emit-line from the emit with the element's current values (FBL 6.3, lines: a value whose slot has no span; bullets: re-emit-line rewrites the item's text, never its marker). resolved writes x, and kind, whose model value does not change, keeps its written REMARK (FBL 5.2, map). This is the one resolve that is not one character: an agent that leaves the checkbox out gets it written.",
+      "edit": {
+        "set": {
+          "element": "assessment/2",
+          "attributes": {
+            "resolved": true
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "re-emit-line",
+          "start": 732,
+          "end": 795,
+          "text": "[x] REMARK REQ-0002: Two customers asked to sign in with a passkey."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- [x] REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "re-emit-line",
+          "start": 732,
+          "end": 799,
+          "text": "REMARK REQ-0002: Two customers asked to sign in with a passkey."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "A remove (the operation removeAssessment on assessment/1): a remove-entry of its line span, its item line and its detail, lines 18 and 19 with their line endings (FBL 6.2, Remove; 4.8, Entries and spans).",
+      "edit": {
+        "remove": {
+          "element": "assessment/1"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 586,
+          "end": 730,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 586,
+          "end": 586,
+          "text": "- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "A delete of the entry an assessment is about (the operation deleteEntry on REQ-0001, which asks first, since assessment/0 names it): a remove-entry of REQ-0001's line span only, line 8. The rule requirement's remove cascades to nothing, and an assessment's about is a mention, text no runtime changes (DESL 4.3): assessment/0 is kept as written, and read afterwards it names no element and is reported by std.mentions, as line 22 is in the input (FR-039).",
+      "edit": {
+        "remove": {
+          "element": "REQ-0001"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 156,
+          "end": 250,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 156,
+          "end": 156,
+          "text": "  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n- ITEM-0003 Data\r\n  Everything the shop keeps about its customers and their orders.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n- [x] warning ITEM-0002: Overlaps with the gateway's own session handling.\r\n  The gateway's session ends first, so ours never times out alone.\r\n- REMARK REQ-0002: Two customers asked to sign in with a passkey.\r\n- [X] idea ITEM-0003: Split the data into orders and customers.\r\n- [ ] Question REQ-0006: Is a failed payment retried?\r\n"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.1",
+  "doc": "A Freeplane mind map (definitions/diagrams/mindmap.dis, mindmap.md section 3): the xml family. Nodes nest; every construct ADP does not model (styles, icons, clouds, bookmarks, attributes) is kept byte for byte, and fold state and positions are never written.",
+  "bindings": {
+    "freeplane": {
+      "title": "Freeplane mind map",
+      "claims": {
+        "extensions": [".mm"],
+        "origins": ["freeplane/mindmap"],
+        "marker": { "pattern": "^<map[\\s>]", "lines": 5 }
+      },
+      "body": { "kind": "file", "family": "xml" },
+      "reader": "declared",
+      "text": { "newline": "lf" },
+      "header": { "line": "^<map[\\s>]", "required": true },
+      "elements": [
+        {
+          "name": "node",
+          "type": "Node",
+          "at": "/map/**/node",
+          "parent": { "rules": ["node"], "slot": "children" },
+          "id": { "from": { "attribute": "ID" } },
+          "attributes": {
+            "text": {
+              "attribute": "TEXT",
+              "override": { "child": "richcontent[@TYPE='NODE']", "text": true },
+              "content": "html-paragraphs"
+            },
+            "notes": {
+              "child": "richcontent[@TYPE='NOTE']",
+              "text": true,
+              "content": "html-paragraphs",
+              "empty": "remove",
+              "create": {
+                "emit": "<richcontent TYPE=\"NOTE\"><html><head/><body>{value}</body></html></richcontent>",
+                "place": { "before": "node" }
+              }
+            },
+            "link": { "attribute": "LINK", "empty": "remove" },
+            "folded": { "attribute": "FOLDED", "readOnly": "Folding is a viewer's state and is never written to the map." },
+            "position": { "attribute": "POSITION", "readOnly": "The side of the central topic follows Freeplane's layout and is kept as Freeplane wrote it." }
+          },
+          "insert": { "place": "last-child", "emit": "<node TEXT=\"{text}\" ID=\"{id}\"/>" },
+          "remove": {}
+        }
+      ],
+      "relations": [
+        {
+          "name": "branch",
+          "type": "Branch",
+          "at": "/map/**/node/node",
+          "source": { "parent": "ID" },
+          "target": { "attribute": "ID" },
+          "readOnly": "A branch is the nesting of one node in another; move or remove the node instead."
+        }
+      ],
+      "template": {
+        "text": "<map version=\"freeplane 1.11.5\">\n<node TEXT=\"{base}\" ID=\"{newid:node}\"/>\n</map>\n"
+      }
+    }
+  }
+}

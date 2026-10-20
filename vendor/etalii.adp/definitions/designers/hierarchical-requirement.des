@@ -1,0 +1,581 @@
+{
+  "$schema": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Specification",
+  "desl": "0.2",
+  "doc": "The Hierarchical Requirement Designer: the requirements of one subject as nested boxes, kept in one Markdown file a person and an agent both read and write, specified by etalii.adp's spec 028.",
+  "language": {
+    "id": "net.etalii.adp.etalii.hierarchical-requirement",
+    "version": "0.1.0",
+    "origin": "etalii/hierarchical-requirement",
+    "label": "Hierarchical Requirement Designer",
+    "doc": {
+      "summary": "The requirements of one subject as boxes that contain boxes, in a Markdown file you and an agent both keep.",
+      "description": "A requirement document is one Markdown file: items, the parts of the subject, nest to any depth and hold requirements, each with a number that never changes, a title, a description, tags, a category and a state; assessments (questions, remarks, warnings and ideas) name the entry they are about; a reference names an entry by its number in square brackets. The designer shows the whole document as one page of boxes. The `.adp` registration beside the file keeps only what an agent does not need to read: the lists' colours and order, what is collapsed and the stored filters. What DESL 0.2 cannot say (the file format in full, the legend, the looks taken from the Knowledge designer, the gestures) is in `hierarchical-requirement.md` beside this file.",
+      "rationale": "Requirements are discussed by their place in the subject, not connected to one another: an item contains, a reference is a value in a description, and nothing is drawn connected, which is why this is a designer.",
+      "tags": ["requirements", "hierarchy", "markdown", "agents", "assessments"],
+      "seeAlso": [
+        { "title": "What DESL cannot express for this tool", "href": "hierarchical-requirement.md" },
+        { "title": "The Markdown binding", "href": "hierarchical-requirement.fbl" }
+      ]
+    },
+    "authors": [{ "name": "Peter Vrenken", "url": "https://github.com/vrenken" }],
+    "license": "Apache-2.0",
+    "homepage": "https://etalii.net/adp",
+    "icon": "mdi-file-tree-outline"
+  },
+  "metamodel": {
+    "document": {
+      "children": { "allowed": ["Item", "Assessment", "Tag", "Category", "State", "Filter"], "doc": "A requirement stands in an item, so std.containment reports one at the top level (DESL section 4.6)." },
+      "attributes": {
+        "lastItem": { "type": "string", "pattern": "^ITEM-[0-9]+$", "doc": "The last item number the counter gave: the mark of Item's counter (DESL section 5.3.5), on line 2 of the file." },
+        "lastRequirement": { "type": "string", "pattern": "^REQ-[0-9]+$", "doc": "The last requirement number the counter gave: the mark of Requirement's counter." }
+      },
+      "doc": "The requirement document. Its DED envelope (line 1, DED section 2) is the binding's header, not an attribute of the model."
+    },
+    "enums": {
+      "Colour": {
+        "values": {
+          "default": { "label": "Default" },
+          "gray": { "label": "Gray" },
+          "brown": { "label": "Brown" },
+          "orange": { "label": "Orange" },
+          "yellow": { "label": "Yellow" },
+          "green": { "label": "Green" },
+          "blue": { "label": "Blue" },
+          "purple": { "label": "Purple" },
+          "pink": { "label": "Pink" },
+          "red": { "label": "Red" }
+        },
+        "doc": "A tag's, a category's or a state's colour: the Knowledge designer's enumeration, Notion's ten names. Each is a light and a dark theme token in the host."
+      },
+      "AssessmentKind": {
+        "values": {
+          "question": { "value": "Question", "label": "Question", "icon": "mdi-help-circle-outline" },
+          "remark": { "value": "Remark", "label": "Remark", "icon": "mdi-comment-text-outline" },
+          "warning": { "value": "Warning", "label": "Warning", "icon": "mdi-alert-outline" },
+          "idea": { "value": "Idea", "label": "Idea", "icon": "mdi-lightbulb-outline" }
+        },
+        "doc": "What an assessment is (FR-033). The file writes the stored form, Question, Remark, Warning or Idea, and reads it in any case. A thought is a remark. The icon that stands for several assessments is the host's."
+      }
+    },
+    "types": {
+      "Item": {
+        "label": "Item",
+        "icon": "mdi-folder-outline",
+        "labelAttribute": "title",
+        "attributes": {
+          "title": { "type": "string", "required": true, "doc": "The one line on its bullet (FR-018)." },
+          "description": {
+            "type": "text",
+            "doc": "The lines indented under its bullet. A reference `[REQ-0002]` in it names an entry; a link with a target, `[REQ-0002](https://…)`, does not (FR-043).",
+            "mentions": { "pattern": "\\[(?:ITEM|REQ)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:ITEM|REQ)-\\d+)\\]", "types": ["Item", "Requirement"] }
+          },
+          "tags": { "type": "string", "many": true, "pattern": "^[^\\s#]+$", "doc": "The tags it carries, each naming a member of the tag list by name, ignoring case (DESL section 7.7.2)." },
+          "collapsed": { "type": "bool", "default": false, "doc": "Folded on the page (FR-019). Kept in the registration's collapsed block, not in the file." }
+        },
+        "children": { "allowed": ["Requirement", "Item"], "ordered": true },
+        "doc": "One level of the hierarchy, a part of the subject: a box whose requirements, then its items, stand to its right (FR-016). Nested to any depth (FR-008)."
+      },
+      "Requirement": {
+        "label": "Requirement",
+        "icon": "mdi-checkbox-blank-outline",
+        "labelAttribute": "title",
+        "attributes": {
+          "title": { "type": "string", "required": true, "doc": "The requirement itself (FR-018)." },
+          "description": {
+            "type": "text",
+            "doc": "Optional clarification, with references as in an item's.",
+            "mentions": { "pattern": "\\[(?:ITEM|REQ)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:ITEM|REQ)-\\d+)\\]", "types": ["Item", "Requirement"] }
+          },
+          "tags": { "type": "string", "many": true, "pattern": "^[^\\s#]+$" },
+          "category": { "type": "string", "pattern": "^\\S+$", "doc": "At most one, naming a member of the category list (FR-030)." },
+          "state": { "type": "string", "pattern": "^\\S+$", "doc": "At most one, naming a member of the state list (FR-031)." },
+          "collapsed": { "type": "bool", "default": false }
+        },
+        "doc": "One requirement, in an item. It contains nothing."
+      },
+      "Assessment": {
+        "label": "Assessment",
+        "icon": "mdi-comment-question-outline",
+        "labelAttribute": "text",
+        "attributes": {
+          "kind": { "type": "AssessmentKind", "required": true },
+          "about": {
+            "type": "string",
+            "required": true,
+            "doc": "The number of the one item or requirement it is about (FR-035). A mention, so that it is kept as written and reported when it names nothing (FR-039).",
+            "mentions": { "pattern": "^(?<id>\\S+)$", "types": ["Item", "Requirement"] }
+          },
+          "text": {
+            "type": "string",
+            "doc": "What follows the colon.",
+            "mentions": { "pattern": "\\[(?:ITEM|REQ)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:ITEM|REQ)-\\d+)\\]", "types": ["Item", "Requirement"] }
+          },
+          "detail": {
+            "type": "text",
+            "doc": "The lines indented under it.",
+            "mentions": { "pattern": "\\[(?:ITEM|REQ)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:ITEM|REQ)-\\d+)\\]", "types": ["Item", "Requirement"] }
+          },
+          "resolved": { "type": "bool", "default": false, "doc": "`[x]` in the file. A resolved assessment stays and no longer counts towards the icon (FR-038)." }
+        },
+        "doc": "A question, remark, warning or idea about one entry, written by an agent or a person (FR-032 to FR-035)."
+      },
+      "Tag": {
+        "label": "Tag",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": { "type": "string", "required": true, "pattern": "^[^\\s#]+$", "doc": "No whitespace: typing a space in the designer writes `-`." },
+          "colour": { "type": "Colour", "default": "default" }
+        },
+        "doc": "A member of the tag list, kept in the registration's tags block in its order."
+      },
+      "Category": {
+        "label": "Category",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": { "type": "string", "required": true, "pattern": "^\\S+$" },
+          "colour": { "type": "Colour", "default": "default" }
+        },
+        "doc": "A member of the category list, kept in the categories block."
+      },
+      "State": {
+        "label": "State",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": { "type": "string", "required": true, "pattern": "^\\S+$" },
+          "colour": { "type": "Colour", "default": "default" }
+        },
+        "doc": "A member of the state list, kept in the states block."
+      },
+      "Filter": {
+        "label": "Filter",
+        "icon": "mdi-filter-outline",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": { "type": "string", "required": true, "doc": "What it is found under (FR-048): the key of its entry in the registration's filters block, which may hold `: `, since the key is everything before the last one (FBL section 8.1)." },
+          "query": { "type": "string", "required": true, "pattern": "^(?:[^:\\r\\n]|:[^ \\r\\n])*:?$", "doc": "Words separated by spaces, in the file's notation (DESL section 7.7.3): `#security state:proposed item:back* sort:state`." }
+        },
+        "doc": "A stored filter with its sorting, kept in the filters block."
+      }
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "bindings": ["hierarchical-requirement.fbl#markdown"],
+    "typeMap": {
+      "Marks": { "as": "document", "doc": "Line 2 of the file holds the last numbers the counters gave." },
+      "Unreadable": { "as": "unreadable", "doc": "A bullet under Requirements or Assessments in no known form: reported by std.unreadableEntry, kept with everything nested in it, and not read (FR-053)." }
+    },
+    "ids": {
+      "missing": "assign",
+      "types": {
+        "Item": { "strategy": "counter", "prefix": "ITEM-", "digits": 4, "mark": "lastItem", "placeholder": "NEW", "doc": "ITEM-0001 onwards; ITEM-NEW is numbered with the next edit (FR-009 to FR-013)." },
+        "Requirement": { "strategy": "counter", "prefix": "REQ-", "digits": 4, "mark": "lastRequirement", "placeholder": "NEW", "doc": "REQ-0001 onwards, counted apart from the items (FR-010)." },
+        "Assessment": {
+          "strategy": "derived",
+          "expression": "'assessment/' + string(self.positionIn(document.elementsOfType('Assessment')))",
+          "ephemeral": true,
+          "reason": "An assessment is known by its place, which changes when the file is edited, so nothing can be kept for it.",
+          "doc": "Nothing refers to an assessment (R7)."
+        },
+        "Tag": { "strategy": "derived", "expression": "'tag/' + self.name.lowerAscii()" },
+        "Category": { "strategy": "derived", "expression": "'category/' + self.name.lowerAscii()" },
+        "State": { "strategy": "derived", "expression": "'state/' + self.name.lowerAscii()" },
+        "Filter": { "strategy": "derived", "expression": "'filter/' + self.name" }
+      }
+    },
+    "settings": {
+      "tags": { "type": "Tag", "key": "name", "value": "colour", "initial": [], "doc": "The tag list starts empty: every tag an entry carries is an implicit member (DESL section 7.7.2)." },
+      "categories": {
+        "type": "Category",
+        "key": "name",
+        "value": "colour",
+        "initial": [
+          { "name": "functional", "colour": "blue" },
+          { "name": "non-functional", "colour": "purple" },
+          { "name": "technical", "colour": "brown" }
+        ],
+        "doc": "FR-030."
+      },
+      "states": {
+        "type": "State",
+        "key": "name",
+        "value": "colour",
+        "initial": [
+          { "name": "proposed", "colour": "gray" },
+          { "name": "accepted", "colour": "green" },
+          { "name": "rejected", "colour": "red" },
+          { "name": "done", "colour": "blue" }
+        ],
+        "doc": "FR-031."
+      },
+      "collapsed": { "attribute": "collapsed", "of": ["Item", "Requirement"], "doc": "Only a collapsed entry is stored, `<number>: yes` (FR-020)." },
+      "filters": { "type": "Filter", "key": "name", "value": "query", "initial": [], "doc": "FR-048." }
+    }
+  },
+  "surface": {
+    "kind": "hierarchy",
+    "levels": { "type": "Item", "title": "title", "description": "description" },
+    "entries": { "type": "Requirement", "title": "title", "description": "description" },
+    "labels": {
+      "tags": { "on": ["Item", "Requirement"], "options": { "type": "Tag", "name": "name", "colour": "colour" }, "prefix": "#", "doc": "Drawn as tags below the title (FR-026)." },
+      "category": { "on": ["Requirement"], "options": { "type": "Category", "name": "name", "colour": "colour" }, "prefix": "category:" },
+      "state": { "on": ["Requirement"], "options": { "type": "State", "name": "name", "colour": "colour" }, "prefix": "state:" }
+    },
+    "notes": { "type": "Assessment", "about": "about", "kind": "kind", "text": "text", "detail": "detail", "resolved": "resolved" },
+    "collapsed": "collapsed",
+    "filters": { "type": "Filter", "name": "name", "query": "query" },
+    "ids": "shown",
+    "doc": "Both parties point at an entry by its number, so it is shown beside the title (FR-009)."
+  },
+  "operations": {
+    "addTopItem": {
+      "label": "New item",
+      "for": "document",
+      "actions": [{ "create": { "type": "'Item'", "attributes": { "title": "'New item'" } } }],
+      "doc": "The control at the end of the page, and the first item of an empty document: an item at the top level, after the last one. The host selects its title for typing (FR-022)."
+    },
+    "addItem": {
+      "label": "New item",
+      "for": ["Item"],
+      "actions": [{ "create": { "type": "'Item'", "parent": "self", "attributes": { "title": "'New item'" } } }],
+      "doc": "The control at the end of an item's content: a sub-item after the item's last child (R25)."
+    },
+    "addItemBelow": {
+      "label": "New item below",
+      "for": ["Item"],
+      "actions": [{ "create": { "type": "'Item'", "parent": "self.parent", "after": "self", "attributes": { "title": "'New item'" } } }],
+      "doc": "The key from a selected item: a sibling directly below it."
+    },
+    "addRequirement": {
+      "label": "New requirement",
+      "for": ["Item"],
+      "actions": [
+        { "let": { "requirements": "self.childrenOfType('Requirement')" } },
+        { "let": { "items": "self.childrenOfType('Item')" } },
+        { "create": { "type": "'Requirement'", "parent": "self", "after": "requirements[requirements.size() - 1]", "attributes": { "title": "'New requirement'" } }, "when": "requirements.size() > 0" },
+        { "create": { "type": "'Requirement'", "parent": "self", "before": "items[0]", "attributes": { "title": "'New requirement'" } }, "when": "requirements.size() == 0 && items.size() > 0" },
+        { "create": { "type": "'Requirement'", "parent": "self", "attributes": { "title": "'New requirement'" } }, "when": "requirements.size() == 0 && items.size() == 0" }
+      ],
+      "doc": "The control at the end of an item's content: a requirement after the item's last requirement, or before its first sub-item when it has none (R25)."
+    },
+    "addRequirementBelow": {
+      "label": "New requirement below",
+      "for": ["Requirement"],
+      "unavailable": [{ "when": "self.parent == null", "message": "This requirement stands in no item. Indent it under one first." }],
+      "actions": [{ "create": { "type": "'Requirement'", "parent": "self.parent", "after": "self", "attributes": { "title": "'New requirement'" } } }],
+      "doc": "The key from a selected requirement: a new one directly below it, ready for typing, with no dialog (User Story 4 scenario 3)."
+    },
+    "setTitle": {
+      "label": "Title",
+      "for": ["Item", "Requirement"],
+      "params": { "title": { "type": "string", "required": true, "minLength": 1 } },
+      "actions": [{ "set": { "title": "p.title" } }],
+      "doc": "Typing in a title. The binding refuses an empty title."
+    },
+    "setDescription": {
+      "label": "Description",
+      "for": ["Item", "Requirement"],
+      "params": { "description": { "type": "text", "default": "" } },
+      "actions": [{ "set": { "description": "p.description" } }],
+      "doc": "Typing in a description, a picked reference included (FR-040, FR-041): typing `#` opens the lookup, and picking an entry writes its number in square brackets. The empty text removes the description's lines."
+    },
+    "moveItem": {
+      "label": "Move",
+      "for": ["Item"],
+      "params": {
+        "item": { "type": "Item", "doc": "The item it goes into; absent, the top level." },
+        "after": { "type": "Item", "doc": "The sibling it goes after there; absent, after the last item there, or to the front within its own parent." }
+      },
+      "actions": [
+        { "let": { "into": "has(p.item) ? p.item : null" } },
+        { "let": { "siblings": "has(p.item) ? p.item.childrenOfType('Item').filter(i, i != self) : document.elementsOfType('Item').filter(i, i.parent == null && i != self)" } },
+        {
+          "if": "self.parent == into",
+          "then": [
+            { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+            { "reorder": { "before": "siblings[0]" }, "when": "!has(p.after) && siblings.size() > 0" }
+          ],
+          "else": [
+            { "move": { "parent": "into", "after": "p.after" }, "when": "has(p.after)" },
+            { "move": { "parent": "into" }, "when": "!has(p.after)" }
+          ]
+        }
+      ],
+      "doc": "Dragging an item, with everything in it, below another item or to another place (FR-023). Within one parent it is a reorder, to another a move; no number changes (FR-011). A move into the item itself or into anything it contains is rolled back (DESL section 8.2)."
+    },
+    "moveRequirement": {
+      "label": "Move",
+      "for": ["Requirement"],
+      "params": {
+        "item": { "type": "Item", "required": true, "doc": "The item it goes into." },
+        "after": { "type": "Requirement", "doc": "The requirement it goes after there; absent, where a new requirement would go, or to the front within its own item." }
+      },
+      "actions": [
+        { "let": { "requirements": "p.item.childrenOfType('Requirement').filter(r, r != self)" } },
+        { "let": { "items": "p.item.childrenOfType('Item')" } },
+        {
+          "if": "self.parent == p.item",
+          "then": [
+            { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+            { "reorder": { "before": "requirements[0]" }, "when": "!has(p.after) && requirements.size() > 0" }
+          ],
+          "else": [
+            { "move": { "parent": "p.item", "after": "p.after" }, "when": "has(p.after)" },
+            { "move": { "parent": "p.item", "after": "requirements[requirements.size() - 1]" }, "when": "!has(p.after) && requirements.size() > 0" },
+            { "move": { "parent": "p.item", "before": "items[0]" }, "when": "!has(p.after) && requirements.size() == 0 && items.size() > 0" },
+            { "move": { "parent": "p.item" }, "when": "!has(p.after) && requirements.size() == 0 && items.size() == 0" }
+          ]
+        }
+      ],
+      "doc": "Dragging a requirement to another item or another place (FR-023). Its number, and every reference and assessment naming it, are unchanged (SC-003)."
+    },
+    "deleteEntry": {
+      "label": "Delete",
+      "for": ["Item", "Requirement"],
+      "confirm": {
+        "message": { "cel": "'Delete ' + self.id + ' with everything in it? ' + string(count) + ' entries, references or assessments concern it; the references and assessments are kept, and reported.'" },
+        "count": "self.children.size() + document.elementsOfType('Assessment').filter(a, a.about == self.id || a.text.contains('[' + self.id + ']') || a.detail.contains('[' + self.id + ']')).size() + (document.elementsOfType('Item') + document.elementsOfType('Requirement')).filter(e, e.description.contains('[' + self.id + ']')).size()",
+          "doc": "What is nested in the entry, the assessments about it or mentioning it, and the descriptions that mention it. CEL cannot tell a mention from a link with a target, so a link counts too, which only asks once more.",
+        "threshold": 1
+      },
+      "actions": [{ "delete": "self" }],
+      "doc": "Delete, with what it contains. Asks first when it contains anything, or when a reference or an assessment names it (FR-024). Its number is never given again (FR-012); its references and assessments are kept as written and reported by std.mentions (FR-039, FR-044)."
+    },
+    "toggleCollapsed": {
+      "label": { "cel": "self.collapsed ? 'Expand' : 'Collapse'" },
+      "for": ["Item", "Requirement"],
+      "actions": [{ "set": { "collapsed": "!self.collapsed" } }],
+      "doc": "The control to the left of a title (FR-019). Written to the registration's collapsed block, outside the history. An entry without a usable number is collapsed for the session only (DESL section 5.3.3)."
+    },
+    "addTag": {
+      "label": "Add tag",
+      "for": ["Item", "Requirement"],
+      "params": { "name": { "type": "string", "required": true, "minLength": 1 } },
+      "actions": [
+        { "let": { "name": "p.name.trim().replace(' ', '-')" } },
+        { "let": { "found": "document.elementsOfType('Tag').filter(t, t.name.lowerAscii() == name.lowerAscii())" } },
+        { "create": { "type": "'Tag'", "attributes": { "name": "name", "colour": "'default'" } }, "when": "found.size() == 0" },
+        { "set": { "tags": "self.tags + [found.size() > 0 ? found[0].name : name]" }, "when": "!self.tags.exists(t, t.lowerAscii() == name.lowerAscii())" }
+      ],
+      "doc": "Typing in the tag field, then Enter: a name equal to a tag's name in any case picks that tag, with the list's spelling; a name that equals none creates the tag, at the end of the list (FR-027). Tags are written before the category and the state, in the order they were added."
+    },
+    "removeTag": {
+      "label": "Remove tag",
+      "for": ["Item", "Requirement"],
+      "params": { "name": { "type": "string", "required": true } },
+      "actions": [{ "set": { "tags": "self.tags.filter(t, t.lowerAscii() != p.name.lowerAscii())" } }],
+      "doc": "The tag's cross on an entry."
+    },
+    "renameTag": {
+      "label": "Rename",
+      "for": ["Tag"],
+      "params": { "name": { "type": "string", "required": true, "minLength": 1 } },
+      "actions": [
+        { "let": { "old": "self.name.lowerAscii()" } },
+        { "let": { "name": "p.name.trim().replace(' ', '-')" } },
+        {
+          "forEach": "document.elementsOfType('Item') + document.elementsOfType('Requirement')",
+          "as": "e",
+          "do": [{ "set": { "tags": "e.tags.map(t, t.lowerAscii() == old ? name : t)" }, "target": "e", "when": "e.tags.exists(t, t.lowerAscii() == old)" }]
+        },
+        { "set": { "name": "name" } }
+      ],
+      "doc": "Every entry that carries the tag follows, in the same undoable step (FR-028)."
+    },
+    "recolourTag": {
+      "label": "Colour",
+      "for": ["Tag"],
+      "params": { "colour": { "type": "Colour", "required": true } },
+      "actions": [{ "set": { "colour": "p.colour" } }],
+      "doc": "Writes the registration only (User Story 7 scenario 3)."
+    },
+    "moveTag": {
+      "label": "Move",
+      "for": ["Tag"],
+      "params": { "after": { "type": "Tag" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "document.elementsOfType('Tag')[0]" }, "when": "!has(p.after)" }
+      ],
+      "doc": "Dragging a tag in the list: a remove-entry and an insert-entry in the kept tags block."
+    },
+    "deleteTag": {
+      "label": "Delete",
+      "for": ["Tag"],
+      "confirm": {
+        "message": { "cel": "string(count) + ' entries carry #' + self.name + '. Delete it and remove it from them?'" },
+        "count": "(document.elementsOfType('Item') + document.elementsOfType('Requirement')).filter(e, e.tags.exists(t, t.lowerAscii() == self.name.lowerAscii())).size()",
+        "threshold": 1
+      },
+      "actions": [
+        {
+          "forEach": "document.elementsOfType('Item') + document.elementsOfType('Requirement')",
+          "as": "e",
+          "do": [{ "set": { "tags": "e.tags.filter(t, t.lowerAscii() != self.name.lowerAscii())" }, "target": "e", "when": "e.tags.exists(t, t.lowerAscii() == self.name.lowerAscii())" }]
+        },
+        { "delete": "self" }
+      ],
+      "doc": "Every carrier loses it in the same step (FR-028)."
+    },
+    "setCategory": {
+      "label": "Category",
+      "for": ["Requirement"],
+      "params": { "category": { "type": "Category", "required": true } },
+      "actions": [{ "set": { "category": "p.category.name" } }],
+      "doc": "Picking a category on a requirement (FR-030). It is written after the tags."
+    },
+    "clearCategory": {
+      "label": "No category",
+      "for": ["Requirement"],
+      "actions": [{ "unset": ["category"] }]
+    },
+    "addCategory": {
+      "label": "New category",
+      "for": "document",
+      "params": { "name": { "type": "string", "required": true, "minLength": 1 }, "colour": { "type": "Colour", "default": "default" } },
+      "actions": [{ "create": { "type": "'Category'", "attributes": { "name": "p.name.trim().replace(' ', '-')", "colour": "p.colour" } } }],
+      "doc": "Adds to the category list. Its first change writes the whole list, the initial members with it (DESL section 5.5)."
+    },
+    "renameCategory": {
+      "label": "Rename",
+      "for": ["Category"],
+      "params": { "name": { "type": "string", "required": true, "minLength": 1 } },
+      "actions": [
+        { "let": { "old": "self.name.lowerAscii()" } },
+        { "let": { "name": "p.name.trim().replace(' ', '-')" } },
+        { "forEach": "document.elementsOfType('Requirement').filter(r, r.category.lowerAscii() == old)", "as": "r", "do": [{ "set": { "category": "name" }, "target": "r" }] },
+        { "set": { "name": "name" } }
+      ],
+      "doc": "Every requirement that carries it follows, in the same step (R25)."
+    },
+    "recolourCategory": {
+      "label": "Colour",
+      "for": ["Category"],
+      "params": { "colour": { "type": "Colour", "required": true } },
+      "actions": [{ "set": { "colour": "p.colour" } }]
+    },
+    "moveCategory": {
+      "label": "Move",
+      "for": ["Category"],
+      "params": { "after": { "type": "Category" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "document.elementsOfType('Category')[0]" }, "when": "!has(p.after)" }
+      ],
+      "doc": "The list's order is the order a sort by category follows (DESL section 7.7.3)."
+    },
+    "deleteCategory": {
+      "label": "Delete",
+      "for": ["Category"],
+      "confirm": {
+        "message": { "cel": "string(count) + ' requirements are ' + self.name + '. Delete it and clear them?'" },
+        "count": "document.elementsOfType('Requirement').filter(r, r.category.lowerAscii() == self.name.lowerAscii()).size()",
+        "threshold": 1
+      },
+      "actions": [
+        { "forEach": "document.elementsOfType('Requirement').filter(r, r.category.lowerAscii() == self.name.lowerAscii())", "as": "r", "do": [{ "unset": ["category"], "target": "r" }] },
+        { "delete": "self" }
+      ]
+    },
+    "setState": {
+      "label": "State",
+      "for": ["Requirement"],
+      "params": { "state": { "type": "State", "required": true } },
+      "actions": [{ "set": { "state": "p.state.name" } }],
+      "doc": "Picking a state on a requirement (FR-031). It is written after the tags and the category."
+    },
+    "clearState": {
+      "label": "No state",
+      "for": ["Requirement"],
+      "actions": [{ "unset": ["state"] }]
+    },
+    "addState": {
+      "label": "New state",
+      "for": "document",
+      "params": { "name": { "type": "string", "required": true, "minLength": 1 }, "colour": { "type": "Colour", "default": "default" } },
+      "actions": [{ "create": { "type": "'State'", "attributes": { "name": "p.name.trim().replace(' ', '-')", "colour": "p.colour" } } }]
+    },
+    "renameState": {
+      "label": "Rename",
+      "for": ["State"],
+      "params": { "name": { "type": "string", "required": true, "minLength": 1 } },
+      "actions": [
+        { "let": { "old": "self.name.lowerAscii()" } },
+        { "let": { "name": "p.name.trim().replace(' ', '-')" } },
+        { "forEach": "document.elementsOfType('Requirement').filter(r, r.state.lowerAscii() == old)", "as": "r", "do": [{ "set": { "state": "name" }, "target": "r" }] },
+        { "set": { "name": "name" } }
+      ]
+    },
+    "recolourState": {
+      "label": "Colour",
+      "for": ["State"],
+      "params": { "colour": { "type": "Colour", "required": true } },
+      "actions": [{ "set": { "colour": "p.colour" } }]
+    },
+    "moveState": {
+      "label": "Move",
+      "for": ["State"],
+      "params": { "after": { "type": "State" } },
+      "actions": [
+        { "reorder": { "after": "p.after" }, "when": "has(p.after)" },
+        { "reorder": { "before": "document.elementsOfType('State')[0]" }, "when": "!has(p.after)" }
+      ]
+    },
+    "deleteState": {
+      "label": "Delete",
+      "for": ["State"],
+      "confirm": {
+        "message": { "cel": "string(count) + ' requirements are ' + self.name + '. Delete it and clear them?'" },
+        "count": "document.elementsOfType('Requirement').filter(r, r.state.lowerAscii() == self.name.lowerAscii()).size()",
+        "threshold": 1
+      },
+      "actions": [
+        { "forEach": "document.elementsOfType('Requirement').filter(r, r.state.lowerAscii() == self.name.lowerAscii())", "as": "r", "do": [{ "unset": ["state"], "target": "r" }] },
+        { "delete": "self" }
+      ]
+    },
+    "addAssessment": {
+      "label": "New assessment",
+      "for": ["Item", "Requirement"],
+      "params": { "kind": { "type": "AssessmentKind", "default": "question" }, "text": { "type": "string", "required": true } },
+      "actions": [{ "create": { "type": "'Assessment'", "attributes": { "kind": "p.kind", "about": "self.id", "text": "p.text" } } }],
+      "doc": "From the icon at the top right of an entry, or its list (FR-036, FR-037): an open assessment at the end of Assessments, the section appended when the file has none (R7)."
+    },
+    "changeAssessment": {
+      "label": "Change",
+      "for": ["Assessment"],
+      "params": { "kind": { "type": "AssessmentKind", "required": true }, "text": { "type": "string", "required": true }, "detail": { "type": "text", "default": "" } },
+      "actions": [{ "set": { "kind": "p.kind", "text": "p.text", "detail": "p.detail" } }],
+      "doc": "Editing an assessment in the list. What it is about is not changed."
+    },
+    "resolveAssessment": {
+      "label": { "cel": "self.resolved ? 'Reopen' : 'Resolve'" },
+      "for": ["Assessment"],
+      "actions": [{ "set": { "resolved": "!self.resolved" } }],
+      "doc": "A switch between `[ ]` and `[x]`: one replace-value of one character (R7, R25)."
+    },
+    "removeAssessment": {
+      "label": "Remove",
+      "for": ["Assessment"],
+      "actions": [{ "delete": "self" }]
+    },
+    "storeFilter": {
+      "label": "Store filter",
+      "for": "document",
+      "params": { "name": { "type": "string", "required": true, "minLength": 1 }, "query": { "type": "string", "required": true, "minLength": 1 } },
+      "actions": [{ "create": { "type": "'Filter'", "attributes": { "name": "p.name", "query": "p.query" } } }],
+      "doc": "Keeps the applied filter with its sorting under a name, after the stored ones (FR-048). Applying a filter or a sort writes nothing (FR-049)."
+    },
+    "renameFilter": {
+      "label": "Rename",
+      "for": ["Filter"],
+      "params": { "name": { "type": "string", "required": true, "minLength": 1 } },
+      "actions": [{ "set": { "name": "p.name" } }]
+    },
+    "removeFilter": {
+      "label": "Remove",
+      "for": ["Filter"],
+      "actions": [{ "delete": "self" }]
+    }
+  }
+}

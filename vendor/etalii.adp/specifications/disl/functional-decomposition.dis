@@ -1,0 +1,341 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.2",
+  "language": {
+    "id": "org.example.functional-decomposition",
+    "version": "0.1.0",
+    "origin": "etalii/functional-decomposition-graph",
+    "label": "Functional decomposition graph",
+    "doc": {
+      "summary": "A trimmed excerpt of the functional decomposition graph definition (definitions/diagrams/functional-decomposition-graph.dis), used to show DISL 0.2 constructs.",
+      "description": "An application broken down into its UI elements, the actions on them, the data they hold and the functions behind them, joined by ownership links. The excerpt keeps the element and relation hierarchies, their notation, the toolbox, the forms and the rules; the `.fdg` file format of the full definition is left out. It shows the superellipse, a custom diode shape, a contrast requirement, a height that is fixed and never stored, acyclicity over an abstract relation type, the built-in refusals worded by the tool, a deletion confirmation that asks only for connected elements, the findings form row and base-36 ShortGuids."
+    }
+  },
+
+  "metamodel": {
+    "doc": "Five element types and five relation types. The four named element types are linked parent to child by the four ownership relations; Shows links an Action to the UI Element it shows; a Comment links to nothing.",
+    "types": {
+      "FdgElement": {
+        "abstract": true,
+        "attributes": {
+          "description": { "type": "text", "label": "Description", "markup": "plain" },
+          "height": { "type": "number", "label": "Height", "min": 48, "doc": "Stored only for a Comment; the four named types fix it." }
+        }
+      },
+      "NamedElement": {
+        "abstract": true,
+        "extends": "FdgElement",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": { "type": "string", "label": "Name", "order": 0 },
+          "height": { "type": "number", "fixed": 48, "doc": "The four named types share one height of 48. A constant: read-only, never written to the .fdg, and a stored value is ignored." }
+        }
+      },
+      "UiElement": { "extends": "NamedElement", "label": "UI element" },
+      "DataElement": { "extends": "NamedElement", "label": "Data element" },
+      "Action": { "extends": "NamedElement", "label": "Action" },
+      "Function": { "extends": "NamedElement", "label": "Function" },
+      "Comment": {
+        "extends": "FdgElement",
+        "label": "Comment",
+        "labelAttribute": "text",
+        "attributes": {
+          "text": { "type": "text", "label": "Text", "markup": "plain", "order": 0 }
+        }
+      }
+    },
+    "relations": {
+      "FdgRelation": {
+        "abstract": true,
+        "directed": true,
+        "allowSelfLoops": false,
+        "attributes": {
+          "name": { "type": "string", "label": "Name", "order": 0 }
+        }
+      },
+      "Owns": {
+        "abstract": true,
+        "extends": "FdgRelation",
+        "acyclic": true,
+        "doc": "Ownership: every owned element has at most one owner. `acyclic` on this abstract type forbids a loop through any mix of its four subtypes, so no separate ownership-loop invariant is needed; Shows is not ownership and may close a navigation round trip."
+      },
+      "UiChild": {
+        "extends": "Owns",
+        "label": "UI child",
+        "source": "UiElement",
+        "target": { "types": ["UiElement"], "max": 1, "role": "child" }
+      },
+      "OwnsAction": {
+        "extends": "Owns",
+        "label": "Action",
+        "source": "UiElement",
+        "target": { "types": ["Action"], "max": 1, "role": "action" }
+      },
+      "OwnsData": {
+        "extends": "Owns",
+        "label": "Data",
+        "source": ["UiElement", "Action", "DataElement"],
+        "target": { "types": ["DataElement"], "max": 1, "role": "data" }
+      },
+      "OwnsFunction": {
+        "extends": "Owns",
+        "label": "Function",
+        "source": ["UiElement", "Action", "DataElement", "Function"],
+        "target": { "types": ["Function"], "max": 1, "role": "function" }
+      },
+      "Shows": {
+        "extends": "FdgRelation",
+        "label": "Shows",
+        "source": { "types": ["Action"], "max": 1, "role": "action" },
+        "target": { "types": ["UiElement"], "role": "shown" }
+      }
+    }
+  },
+
+  "coordinates": {
+    "systems": {
+      "canvas": {
+        "kind": "cartesian",
+        "x": { "kind": "linear" },
+        "y": { "kind": "linear" }
+      }
+    }
+  },
+
+  "notation": {
+    "theme": {
+      "tokens": {
+        "color.text": "#0f172a",
+        "color.border": "#e2e8f0",
+        "color.fdg.ui-element": "#aaed92",
+        "color.fdg.data-element": "#ededed",
+        "color.fdg.action": "#9edcfa",
+        "color.fdg.function": "#86e6d9",
+        "color.fdg.comment": "#fcf281"
+      },
+      "modes": {
+        "dark": {
+          "color.text": "#f1f5f9",
+          "color.border": "#334155",
+          "color.fdg.ui-element": "#2e7814",
+          "color.fdg.data-element": "#696969",
+          "color.fdg.action": "#086fa1",
+          "color.fdg.function": "#187569",
+          "color.fdg.comment": "#736a03"
+        }
+      },
+      "defaultMode": "light",
+      "followSystem": true,
+      "contrast": [
+        {
+          "foreground": "color.text",
+          "background": ["color.fdg.ui-element", "color.fdg.data-element", "color.fdg.action", "color.fdg.function", "color.fdg.comment"],
+          "minRatio": 4.5,
+          "doc": "The fills were chosen for text contrast against the text colour in both themes; a specification validator checks every pair in light and dark mode and warns below 4.5."
+        }
+      ]
+    },
+    "styles": {
+      "element": {
+        "stroke": { "color": { "token": "color.border" }, "width": 1.5 },
+        "font": { "size": 12, "color": { "token": "color.text" } },
+        "textAlign": "center",
+        "verticalAlign": "middle"
+      },
+      "uiElement": { "extends": "element", "fill": { "token": "color.fdg.ui-element" } },
+      "dataElement": { "extends": "element", "fill": { "token": "color.fdg.data-element" } },
+      "action": { "extends": "element", "fill": { "token": "color.fdg.action" } },
+      "function": { "extends": "element", "fill": { "token": "color.fdg.function" } },
+      "comment": { "extends": "element", "fill": { "token": "color.fdg.comment" }, "textAlign": "left", "verticalAlign": "top" },
+      "link": {
+        "stroke": { "color": { "token": "color.text" }, "width": 1.5 },
+        "font": { "size": 12, "color": { "token": "color.text" } }
+      }
+    },
+    "shapes": {
+      "parallelogramRight": {
+        "label": "Parallelogram, top shifted right",
+        "path": {
+          "segments": [
+            { "op": "M", "x": "w * 0.2", "y": 0 },
+            { "op": "L", "x": "w", "y": 0 },
+            { "op": "L", "x": "w * 0.8", "y": "h" },
+            { "op": "L", "x": 0, "y": "h" },
+            { "op": "Z" }
+          ]
+        },
+        "textArea": { "x": "w * 0.15 + 6", "y": "h * 0.25", "w": "w * 0.7 - 12", "h": "h * 0.5" }
+      },
+      "diode": {
+        "label": "Diode",
+        "doc": "Square on the left and round on the right: a rectangle from the left edge to w - r, closed on the right by a semicircle of radius r = min(h / 2, w). A custom shape is exact here, so DISL needs no built-in for it.",
+        "path": {
+          "segments": [
+            { "op": "M", "x": 0, "y": 0 },
+            { "op": "L", "x": "w - min(h / 2.0, w)", "y": 0 },
+            { "op": "A", "rx": "min(h / 2.0, w)", "ry": "min(h / 2.0, w)", "rotation": 0, "largeArc": false, "sweep": true, "x": "w - min(h / 2.0, w)", "y": "h" },
+            { "op": "L", "x": 0, "y": "h" },
+            { "op": "Z" }
+          ]
+        },
+        "textArea": { "x": 6, "y": "h * 0.25", "w": "w - 0.134 * min(h / 2.0, w) - 12", "h": "h * 0.5" }
+      }
+    },
+    "nodes": {
+      "UiElement": {
+        "shape": { "type": "superellipse", "params": { "exponent": 4 } },
+        "style": "uiElement",
+        "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
+        "placement": { "height": { "attribute": "height" } },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
+        "anchors": { "mode": "outline" },
+        "doc": "The built-in superellipse |2x/w - 1|^4 + |2y/h - 1|^4 = 1, which the 0.1 definition approximated with four cubic curves."
+      },
+      "DataElement": {
+        "shape": "parallelogramRight",
+        "style": "dataElement",
+        "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
+        "anchors": { "mode": "outline" }
+      },
+      "Action": {
+        "shape": "rect",
+        "style": "action",
+        "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
+        "anchors": { "mode": "outline" }
+      },
+      "Function": {
+        "shape": "diode",
+        "style": "function",
+        "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
+        "anchors": { "mode": "outline" }
+      },
+      "Comment": {
+        "shape": "rect",
+        "style": "comment",
+        "size": { "default": [240, 96], "min": [80, 48], "resizable": true },
+        "placement": { "height": { "attribute": "height" } },
+        "labels": [ { "id": "text", "text": { "attribute": "text" }, "editable": "multiline", "wrap": "word", "maxWidth": "parent", "overflow": "ellipsis", "position": "top-left" } ],
+        "connectable": false,
+        "doc": "Resizable both ways; its height is the stored `height`, while the named types' height is the fixed 48."
+      }
+    },
+    "edges": {
+      "UiChild": {
+        "style": "link",
+        "line": { "routing": "bezier" },
+        "sourceMarker": "none",
+        "targetMarker": "arrowFilled",
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "at": "middle", "side": "above", "editable": "inline" } ]
+      },
+      "OwnsAction": { "style": "link", "line": { "routing": "bezier" }, "sourceMarker": "none", "targetMarker": "arrowFilled" },
+      "OwnsData": { "style": "link", "line": { "routing": "bezier" }, "sourceMarker": "none", "targetMarker": "arrowFilled" },
+      "OwnsFunction": { "style": "link", "line": { "routing": "bezier" }, "sourceMarker": "none", "targetMarker": "arrowFilled" },
+      "Shows": {
+        "style": "link",
+        "line": { "routing": "bezier", "stroke": { "dash": [6, 4] } },
+        "sourceMarker": "none",
+        "targetMarker": "arrowFilled"
+      }
+    }
+  },
+
+  "forms": {
+    "namedElement": {
+      "for": ["UiElement", "DataElement", "Action", "Function"],
+      "usage": ["inspector"],
+      "items": [
+        {
+          "kind": "section",
+          "title": "Identity",
+          "items": [
+            { "attribute": "name" },
+            { "attribute": "description", "widget": "textarea", "rows": 3 },
+            { "attribute": "height", "widget": "readonly", "readOnlyReasons": [ "Every UI element, data element, action and function is 48 high; only a comment's height can change." ] },
+            { "kind": "computed", "label": "Owns, directly or through others", "value": { "cel": "string(self.reachable('Owns').size()) + ' elements'" } }
+          ]
+        },
+        { "kind": "findings", "doc": "The findings on this element, listed under its properties (DISL 0.1 called this row kind `problems`)." }
+      ]
+    }
+  },
+
+  "toolbox": {
+    "groups": [
+      {
+        "id": "elements",
+        "label": "Elements",
+        "tools": [
+          { "id": "uiElement", "creates": "UiElement", "label": "UI element", "mode": "click", "after": "select" },
+          { "id": "action", "creates": "Action", "label": "Action", "mode": "click", "after": "select" },
+          { "id": "dataElement", "creates": "DataElement", "label": "Data element", "mode": "click", "after": "select" },
+          { "id": "function", "creates": "Function", "label": "Function", "mode": "click", "after": "select" },
+          { "id": "comment", "creates": "Comment", "label": "Comment", "mode": "click", "after": "select", "initial": { "text": "New comment", "height": 96 } }
+        ]
+      },
+      {
+        "id": "links",
+        "label": "Links",
+        "tools": [
+          { "id": "uiChild", "creates": "UiChild", "mode": "drag" },
+          { "id": "ownsAction", "creates": "OwnsAction", "mode": "drag" },
+          { "id": "ownsData", "creates": "OwnsData", "mode": "drag" },
+          { "id": "ownsFunction", "creates": "OwnsFunction", "mode": "drag" },
+          { "id": "shows", "creates": "Shows", "mode": "drag" }
+        ]
+      }
+    ]
+  },
+
+  "constraints": {
+    "doc": "The rules are declared on the metamodel: the relations' endpoints and limits, no self-links, and acyclicity over the abstract Owns. A connect gesture is checked in DISL's fixed order - type (std.endpoints), then cardinality (std.multiplicity), then cycle (std.acyclic) - and the first refusal is shown, in the tool's own words. A document edited outside ADP that breaks the rules still opens, and each breach is reported.",
+    "blockSaveOn": "never",
+    "builtIn": {
+      "std.endpoints": { "severity": "error" },
+      "std.multiplicity": {
+        "severity": "error",
+        "refusal": { "cel": "'Refused by the cardinality check: `' + (target.name != '' ? target.name : target.id) + '` already has its `' + violation.relationType + '` parent, and may have ' + string(violation.max) + '.'" },
+        "doc": "The refusal of the connect gesture, which sees `violation`; findings on a stored document keep the runtime's wording. Covers fdg.second-parent and fdg.second-shows."
+      },
+      "std.acyclic": {
+        "severity": "error",
+        "code": "fdg.ownership-cycle",
+        "refusal": { "cel": "'Refused by the cycle check: `' + (target.name != '' ? target.name : target.id) + '` already owns `' + (source.name != '' ? source.name : source.id) + '`, so this link would make an ownership loop.'" },
+        "doc": "Over Owns and all four of its subtypes; `violation.cycle` lists the loop."
+      },
+      "std.references": { "severity": "error", "code": "fdg.dangling-reference" },
+      "std.duplicateId": { "severity": "error", "code": "fdg.duplicate-id" },
+      "std.unreadableEntry": { "code": "fdg.unreadable-entry" }
+    }
+  },
+
+  "behavior": {
+    "deletion": {
+      "NamedElement": {
+        "relations": "delete",
+        "confirm": {
+          "count": "self.incoming.size() + self.outgoing.size()",
+          "threshold": 1,
+          "title": "Remove element",
+          "message": { "cel": "'Removing this element also removes the ' + (count == 1 ? '1 connection' : string(count) + ' connections') + ' to or from it.'" },
+          "confirmLabel": "Remove",
+          "danger": true,
+          "doc": "Asks only when the element has connections, naming how many; an unconnected element goes without a question."
+        }
+      },
+      "Comment": { "relations": "delete" }
+    }
+  },
+
+  "persistence": {
+    "ids": {
+      "strategy": "uuid-v4",
+      "encoding": "base36",
+      "stable": true,
+      "doc": "Ids ADP creates are random GUIDs written as 25 lowercase base-36 characters. Hand-authored ids, such as task-detail, are kept."
+    },
+    "view": { "store": ["bounds"] }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A requirement document without the Requirements heading, LF endings, whose section was deleted with its entries by hand: it reads as an empty document with no finding (FBL 4.8), and its mark, line 2, still names ITEM-0002 and REQ-0003. The first item added to it, by addTopItem, appends the section (contracts/requirement-document.md, What reading reports: the first item added appends the section). Its number is one more than the mark, since the file holds no item: ITEM-0003, so the numbers of the deleted items are not given again (DESL 5.3.5, FR-012).",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "opening-hours.md",
+  "read": {
+    "elements": [],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The first item: the rule item's insert finds no section requirements, its container, so insert.create writes it, at end-of-document with the text '## Requirements': one ensure-container at the end of the body that writes a line ending, the heading and a line ending, so that a blank line stands before the heading. The item follows at the same offset as the first item of a section that holds none, after a line ending, so that a blank line stands before it, with the marker '-' at column 0, since it has no sibling and no parent (FBL 6.2; 6.3, a missing section and a new item). The line endings are LF, the ending of the body's last line. The mark's group lastItem is replaced by ITEM-0003 in the same edit (FBL 6.3, lines: a changed value). The mark's splice is listed first, as in the fixture one folder up, then the add's two, in the order section 6.2 gives them, at one offset (FBL 6.2, 6.4).",
+      "edit": {
+        "add": {
+          "type": "Item",
+          "id": "ITEM-0003",
+          "attributes": {
+            "title": "New item"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 71,
+          "end": 80,
+          "text": "ITEM-0003"
+        },
+        {
+          "operation": "ensure-container",
+          "start": 196,
+          "end": 196,
+          "text": "\n## Requirements\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 196,
+          "end": 196,
+          "text": "\n- ITEM-0003 New item\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\n<!-- last: ITEM-0003 REQ-0003 -->\n# Opening hours\n\nThe requirements were moved to the library's own document. Their numbers stay given.\n\n## Requirements\n\n- ITEM-0003 New item\n"
+    },
+    {
+      "doc": "Undo removes the heading and the item and gives line 2 back its ITEM-0002: the file is the input again, byte for byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 71,
+          "end": 80,
+          "text": "ITEM-0002"
+        },
+        {
+          "operation": "ensure-container",
+          "start": 196,
+          "end": 213,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 213,
+          "end": 235,
+          "text": ""
+        }
+      ],
+      "expectFile": "opening-hours.md"
+    }
+  ]
+}

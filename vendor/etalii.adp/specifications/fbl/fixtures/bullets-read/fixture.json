@@ -1,0 +1,83 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The bullets family read (FBL 0.7, sections 4.8, 5.2 and 5.5), LF endings. Line 1, 'Owner: peter', is a statement that the rule owner (no within) matches: the element peter. Line 2 is an item outside every named section, unbound although its text has a topic's shape. The section Outline is the lines after '# Outline' on line 4, up to '# Appendix' on line 39, a heading of the same level, so the item x3 after it is not read; '## Details' on line 35 has more '#' and does not end it. In it: a paragraph line, a statement no rule matches, kept and not reported (unmatched is keep); t1 with the marker '-' and two continuation lines with a blank line between them, its notes the two lines joined by LF with the blank line read as an empty line, the two columns before its content column taken off each; t2 nested in t1 two columns deeper and without continuation (notes empty); t3, indented by a tab, which counts four columns, so its marker stands at column 4 and it nests in t2, its content column 6; the line '  After a nested item ...' closes t2 and t3 and is a continuation line of t1 after its first nested item, part of t1's span and not in its notes; t4 with the marker '*', whose continuation line 'Owner: nobody' is not a statement although the rule owner would match it; t5 with the marker '+', whose continuation is a fence that opens on a continuation line, so every line of it is a continuation line of t5 whatever its indentation (the line '# not a heading ...' at column 0 neither closes t5 nor is a heading, and the line '  - not an item ...' is no item); an item no rule matches, unbound with the item x1 nested in it; the line '- - -', a thematic break and not an item line, which closes the two items open before it, as any line at column 0 does, and does not end the section; t6 after it; a fence at the top level, opened with no item open, unbound with the line '- [x2] ...' in it; and t7 under '## Details'. Parents are stated with parent (FBL 0.7, section 15.3): t2's is t1, t3's is t2, the other topics are top-level. Readings taken: a fence's opening line is not itself 'inside a fence' (rule 1), so it is decided by rules 3 to 8 and closes the items its indentation closes; the tab of t3 is the first character of its line, so the flat four columns and a tab stop at the next multiple of four agree. Opening and saving without an edit writes the bytes that were read.",
+  "binding": "outline.fbl#outline",
+  "input": "outline.md",
+  "read": {
+    "elements": [
+      {
+        "id": "peter",
+        "type": "Owner"
+      },
+      {
+        "id": "t1",
+        "type": "Topic",
+        "attributes": {
+          "title": "First topic",
+          "notes": "Its notes, first paragraph.\n\nSecond paragraph, after a blank line."
+        }
+      },
+      {
+        "id": "t2",
+        "type": "Topic",
+        "parent": "t1",
+        "attributes": {
+          "title": "Nested two columns deeper",
+          "notes": ""
+        }
+      },
+      {
+        "id": "t3",
+        "type": "Topic",
+        "parent": "t2",
+        "attributes": {
+          "title": "Nested by a tab, four columns",
+          "notes": "Notes of t3."
+        }
+      },
+      {
+        "id": "t4",
+        "type": "Topic",
+        "attributes": {
+          "title": "Star marker",
+          "notes": "Owner: nobody"
+        }
+      },
+      {
+        "id": "t5",
+        "type": "Topic",
+        "attributes": {
+          "title": "Plus marker",
+          "notes": "```text\n- not an item, inside the fence\n# not a heading, inside the fence\n```"
+        }
+      },
+      {
+        "id": "t6",
+        "type": "Topic",
+        "attributes": {
+          "title": "After the thematic break, still in Outline",
+          "notes": ""
+        }
+      },
+      {
+        "id": "t7",
+        "type": "Topic",
+        "attributes": {
+          "title": "Under a deeper heading, still in Outline",
+          "notes": ""
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expectFile": "outline.md"
+    }
+  ]
+}

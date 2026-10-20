@@ -1,0 +1,59 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Opening an empty flow sequence (FBL sections 6.2 and 6.3, gap 4 of dependency-graph.md): a new dependency graph is the binding's template, whose elements: [] carries a value, here with a comment after it. The first node replaces the empty flow sequence by nothing, keeping the comment where it was, and inserts a block entry under the key, in the body's line endings and with the binding's indentation. FBL does not yet say that a host may open an empty flow collection, with which splices, or what becomes of a comment on its line; this fixture shows what the library does.",
+  "binding": "../../dependency-graph.fbl#dgr",
+  "input": "graph.dgr",
+  "read": {
+    "elements": []
+  },
+  "steps": [
+    {
+      "doc": "The first node: the flow sequence goes, the comment stays on the key's line, and the entry is a block entry below it.",
+      "edit": {
+        "add": {
+          "type": "Node",
+          "id": "n1",
+          "attributes": {
+            "label": "First",
+            "x": 240,
+            "row": 2
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 26,
+          "end": 29,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 51,
+          "end": 51,
+          "text": "  - id: n1\r\n    label: First\r\n    x: 240\r\n    row: 2\r\n"
+        }
+      ],
+      "expect": "dependencies: 1\r\nelements: # nothing drawn yet\r\n  - id: n1\r\n    label: First\r\n    x: 240\r\n    row: 2\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced: the empty flow sequence, and no entry.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 26,
+          "end": 26,
+          "text": " []"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 48,
+          "end": 102,
+          "text": ""
+        }
+      ],
+      "expect": "dependencies: 1\r\nelements: [] # nothing drawn yet\r\n"
+    }
+  ]
+}

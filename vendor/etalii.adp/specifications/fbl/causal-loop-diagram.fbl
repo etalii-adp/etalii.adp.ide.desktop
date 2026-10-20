@@ -1,0 +1,174 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.2",
+  "doc": "The causal loop diagram's .cld body (definitions/diagrams/causal-loop-diagram.dis, causal-loop-diagram.md): the lines family, as the standalone module reads it. One statement per line. The header is read as an entry of its own, so a missing or repeated one raises nothing. A link is an element whose ends are reference attributes, so a link with an end that names nothing is kept and reported rather than dropped; its cause and effect names are read again as read-only value slots, which the definition keys the link by. A word after a link's arrow is a quoted run, a weight written as a number, or a bare word without '='; a link with any other word, such as weight=heavy, is not a link. A name may be quoted, and a quoted name may hold spaces. The last rule takes every statement no other rule reads, so it is kept byte for byte and reported on its line. Removing a variable removes the links and loops that name it.",
+  "bindings": {
+    "cld": {
+      "title": "Causal loop diagram",
+      "claims": {
+        "extensions": [
+          ".cld"
+        ],
+        "origins": [
+          "systems/causal-loop-diagram"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "lines"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "crlf",
+        "finalNewline": true
+      },
+      "comment": "^\\s*#",
+      "unmatched": "report",
+      "elements": [
+        {
+          "name": "header",
+          "type": "Header",
+          "line": "^\\s*causal-loop(\\s.*)?$"
+        },
+        {
+          "name": "variable",
+          "type": "Variable",
+          "line": "^\\s*variable\\s+(?<name>\"[^\"]+\"|[^\\s\"]+)(?:\\s+(?<label>\"[^\"]*\"|[^\\s\"]+))?(?<rest>.*)$",
+          "attributes": {
+            "name": {
+              "group": "name",
+              "word": "^.+$",
+              "empty": "refuse"
+            },
+            "label": {
+              "group": "label",
+              "word": "^.+$",
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "emit": "variable {name}[ \"{label}\"]"
+          },
+          "remove": {
+            "cascade": [
+              "link",
+              "loop"
+            ]
+          }
+        },
+        {
+          "name": "link",
+          "type": "Link",
+          "line": "^\\s*link\\s+(?<from>\"[^\"]+\"|[^\\s\"]+)\\s+->\\s+(?<to>\"[^\"]+\"|[^\\s\"]+)(?<tail>(?:\\s+(?:\"[^\"]*\"|weight=[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?|[^\\s\"=]+))*)\\s*$",
+          "attributes": {
+            "from": {
+              "group": "from",
+              "word": "^.+$",
+              "reference": {
+                "to": [
+                  "variable"
+                ],
+                "by": "name"
+              }
+            },
+            "to": {
+              "group": "to",
+              "word": "^.+$",
+              "reference": {
+                "to": [
+                  "variable"
+                ],
+                "by": "name"
+              }
+            },
+            "causeName": {
+              "value": "groups.from.replace('\"', '')"
+            },
+            "effectName": {
+              "value": "groups.to.replace('\"', '')"
+            },
+            "polarity": {
+              "group": "tail",
+              "word": "^[+\\-sSoO]$",
+              "map": {
+                "+": "positive",
+                "s": "positive",
+                "S": "positive",
+                "-": "negative",
+                "o": "negative",
+                "O": "negative"
+              },
+              "empty": "remove"
+            },
+            "delayed": {
+              "group": "tail",
+              "word": "^delayed$",
+              "flag": true
+            },
+            "flipped": {
+              "group": "tail",
+              "word": "^flipped$",
+              "flag": true
+            },
+            "weight": {
+              "group": "tail",
+              "word": "^weight=(?<value>.+)$",
+              "number": "shortest",
+              "empty": "remove"
+            },
+            "note": {
+              "group": "tail",
+              "word": "^\".*\"$",
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "emit": "link {from} -> {to}[ {polarity}][ {delayed}][ {flipped}][ weight={weight}][ \"{note}\"]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "loop",
+          "type": "Loop",
+          "line": "^\\s*loop\\s+(?<identifier>[^\\s\"]+)\\s+(?<title>\"[^\"]*\"|[^\\s\"]+)(?<members>(?:\\s+[^\\s\"]+)+)\\s*$",
+          "attributes": {
+            "identifier": {
+              "group": "identifier",
+              "empty": "refuse"
+            },
+            "title": {
+              "group": "title",
+              "word": "^.+$",
+              "empty": "keep"
+            },
+            "members": {
+              "group": "members",
+              "reference": {
+                "to": [
+                  "variable"
+                ],
+                "by": "name"
+              }
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "emit": "loop {identifier} \"{title}\" {members}"
+          },
+          "remove": {}
+        },
+        {
+          "name": "unreadable",
+          "type": "Unreadable",
+          "line": "^.*\\S.*$",
+          "readOnly": true
+        }
+      ],
+      "template": {
+        "text": "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\nlink population -> births +\r\nlink births -> population +\r\n\r\nloop R1 \"Births beget births\" population births\r\n"
+      }
+    }
+  }
+}

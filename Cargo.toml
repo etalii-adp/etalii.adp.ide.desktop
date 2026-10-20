@@ -1,0 +1,35 @@
+# The desktop host's workspace (etalii.adp spec 030-desktop-native-rust, plan "Project Structure").
+[workspace]
+resolver = "3"
+members = [
+    "crates/adp-core",
+    "crates/adp-projects",
+    "crates/adp-hierarchy",
+    "crates/adp-documents",
+    "crates/adp-history",
+    "crates/adp-context",
+    "crates/adp-problems",
+    "crates/adp-layout",
+    "crates/adp-fbl",
+    "crates/adp-disl",
+    "crates/adp-desl",
+    "crates/adp-cel",
+    "crates/adp-theme",
+    "crates/adp-text",
+    "crates/adp-conformance",
+    "crates/adp-parity",
+    "crates/adp-shell",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/etalii-adp/etalii.adp.ide.desktop"
+
+# Principle VI: no clippy warnings. CI runs clippy with -D warnings; a lint that does not fit is allowed here, with its reason.
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

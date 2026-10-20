@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/definitions/designers/knowledge.schema.json",
+  "title": "Knowledge file",
+  "description": "The knowledge file of the Knowledge designer (etalii/knowledge): a DED 0.1 definition, in its YAML and JSON forms; knowledge.md describes it and its XML form. A file this schema refuses may still open: ADP keeps keys it does not know and values it cannot read, and reports them as findings. What the schema cannot check (that a cell names a property of the table, an option of its property, one title property) are the constraints of knowledge.des.",
+  "type": "object",
+  "properties": {
+    "ded": { "description": "The version of DED the file is written in.", "const": "0.1" },
+    "designer": { "description": "The designer type whose document this is.", "const": "etalii/knowledge" },
+    "name": { "description": "The table's name.", "type": "string" },
+    "activeView": { "description": "The view the table was last left in, by id.", "$ref": "#/$defs/Id" },
+    "properties": { "description": "The columns, in order. One is the title.", "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Property" } },
+    "views": { "description": "The views, in tab order; at least one.", "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/View" } },
+    "rows": { "description": "The rows, in order.", "type": "array", "items": { "$ref": "#/$defs/Row" } }
+  },
+  "required": ["ded", "designer", "name", "properties", "views"],
+  "allOf": [{ "$ref": "https://etalii.net/adp/ded/schema/0.1/ded.schema.json#/$defs/Definition" }],
+  "additionalProperties": false,
+  "$defs": {
+    "Id": {
+      "description": "A ShortGuid (25 characters of base 36) as ADP writes them, or any id written by hand.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:#-]{1,128}$"
+    },
+    "Date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "DateTime": {
+      "description": "ISO 8601 with its offset.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2}(\\.[0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "Time": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}(:[0-9]{2}(\\.[0-9]+)?)?$" },
+    "Property": {
+      "description": "A column.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["text", "number", "checkbox", "date", "dateTime", "time", "selection", "multipleSelection", "relation"] },
+        "title": { "type": "boolean" },
+        "target": { "description": "A relation's target file, relative to this one.", "type": "string", "minLength": 1 },
+        "limit": { "enum": ["none", "one"] },
+        "counterpart": { "description": "A two-way relation's property in the target file, by its id there.", "$ref": "#/$defs/Id" },
+        "computed": { "description": "The side of a two-way relation that holds no values.", "type": "boolean" },
+        "parent": { "description": "The relation to this file that holds each row's parent.", "type": "boolean" },
+        "options": { "type": "array", "items": { "$ref": "#/$defs/Option" } }
+      },
+      "required": ["id", "name", "type"],
+      "additionalProperties": false
+    },
+    "Option": {
+      "description": "One value of a selection.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "name": { "type": "string", "minLength": 1 },
+        "colour": { "enum": ["default", "gray", "brown", "orange", "yellow", "green", "blue", "purple", "pink", "red"] }
+      },
+      "required": ["id", "name"],
+      "additionalProperties": false
+    },
+    "View": {
+      "description": "A named way of showing the table: only what differs from the default.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "name": { "type": "string", "minLength": 1 },
+        "filterMatch": { "enum": ["all", "any"] },
+        "columns": { "type": "array", "items": { "$ref": "#/$defs/Column" } },
+        "sorts": { "type": "array", "items": { "$ref": "#/$defs/Sort" } },
+        "filter": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/Condition" }, { "$ref": "#/$defs/FilterGroup2" }] } },
+        "groupBy": { "description": "The property the rows are grouped by, by id.", "$ref": "#/$defs/Id" },
+        "hideEmptyGroups": { "type": "boolean" },
+        "freeze": { "description": "The last property, by id, of the columns that stay in sight when the table scrolls sideways.", "$ref": "#/$defs/Id" },
+        "groupOrder": {
+          "description": "The groups in the order shown; groups not listed follow in their natural order.",
+          "type": "array",
+          "items": {
+            "description": "One group, by its key.",
+            "type": "object",
+            "properties": { "key": { "type": "string", "minLength": 1 } },
+            "required": ["key"],
+            "additionalProperties": false
+          }
+        },
+        "hiddenGroups": {
+          "description": "The groups not shown.",
+          "type": "array",
+          "items": {
+            "description": "One group, by its key.",
+            "type": "object",
+            "properties": { "key": { "type": "string", "minLength": 1 } },
+            "required": ["key"],
+            "additionalProperties": false
+          }
+        },
+        "collapsed": {
+          "description": "The groups, or the parent rows of a nested view, shown collapsed.",
+          "type": "array",
+          "items": {
+            "description": "One group, by its key.",
+            "type": "object",
+            "properties": { "key": { "type": "string", "minLength": 1 } },
+            "required": ["key"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["id", "name"],
+      "additionalProperties": false
+    },
+    "Column": {
+      "description": "One property's place, visibility, width, wrapping and calculation in a view.",
+      "type": "object",
+      "properties": {
+        "property": { "$ref": "#/$defs/Id" },
+        "visible": { "type": "boolean" },
+        "width": { "type": "integer", "minimum": 32 },
+        "wrap": { "type": "boolean" },
+        "calculate": {
+          "description": "The calculation shown under the column.",
+          "enum": [
+            "count-all",
+            "count-values",
+            "count-unique",
+            "count-empty",
+            "count-not-empty",
+            "percent-empty",
+            "percent-not-empty",
+            "earliest",
+            "latest",
+            "date-range",
+            "sum",
+            "average",
+            "median",
+            "min",
+            "max",
+            "range"
+          ]
+        }
+      },
+      "required": ["property"],
+      "additionalProperties": false
+    },
+    "Sort": {
+      "description": "One sort; the first sorts first.",
+      "type": "object",
+      "properties": { "property": { "$ref": "#/$defs/Id" }, "direction": { "enum": ["ascending", "descending"] } },
+      "required": ["property"],
+      "additionalProperties": false
+    },
+    "Condition": {
+      "description": "One filter condition, its compared value under its property's value key.",
+      "type": "object",
+      "properties": {
+        "property": { "$ref": "#/$defs/Id" },
+        "operator": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "text": { "type": "string" },
+        "number": { "type": "number" },
+        "checked": { "type": "boolean" },
+        "date": { "$ref": "#/$defs/Date" },
+        "dateTime": { "$ref": "#/$defs/DateTime" },
+        "time": { "$ref": "#/$defs/Time" },
+        "option": { "$ref": "#/$defs/Id" }
+      },
+      "required": ["property", "operator"],
+      "additionalProperties": false,
+      "maxProperties": 3
+    },
+    "FilterGroup2": {
+      "description": "A group of conditions, nested once.",
+      "type": "object",
+      "properties": {
+        "match": { "enum": ["all", "any"] },
+        "conditions": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/Condition" }, { "$ref": "#/$defs/FilterGroup3" }] } }
+      },
+      "required": ["match"],
+      "additionalProperties": false
+    },
+    "FilterGroup3": {
+      "description": "A group of conditions, nested twice: the deepest level.",
+      "type": "object",
+      "properties": { "match": { "enum": ["all", "any"] }, "conditions": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/Condition" }] } } },
+      "required": ["match"],
+      "additionalProperties": false
+    },
+    "Row": {
+      "description": "One entry of the table.",
+      "type": "object",
+      "properties": { "id": { "$ref": "#/$defs/Id" }, "cells": { "type": "array", "items": { "$ref": "#/$defs/Cell" } } },
+      "required": ["id"],
+      "additionalProperties": false
+    },
+    "Cell": {
+      "description": "A row's value for one property, under the key its property's type names; a cell without one is empty.",
+      "type": "object",
+      "properties": {
+        "property": { "$ref": "#/$defs/Id" },
+        "text": { "type": "string" },
+        "number": { "type": "number" },
+        "checked": { "type": "boolean" },
+        "date": { "$ref": "#/$defs/Date" },
+        "dateTime": { "$ref": "#/$defs/DateTime" },
+        "time": { "$ref": "#/$defs/Time" },
+        "option": { "$ref": "#/$defs/Id" },
+        "options": {
+          "type": "array",
+          "items": {
+            "description": "One option of a multiple selection.",
+            "type": "object",
+            "properties": { "option": { "$ref": "#/$defs/Id" } },
+            "required": ["option"],
+            "additionalProperties": false
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "description": "One related row, by its id in the target file.",
+            "type": "object",
+            "properties": { "row": { "$ref": "#/$defs/Id" } },
+            "required": ["row"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["property"],
+      "additionalProperties": false,
+      "maxProperties": 2
+    }
+  }
+}

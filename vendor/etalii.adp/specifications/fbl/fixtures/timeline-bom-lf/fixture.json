@@ -1,0 +1,98 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A byte-order mark, LF endings, four-space sequence indentation, single quotes and no final newline all survive, and new text copies them.",
+  "binding": "../../timeline.fbl#timeline",
+  "input": "odd.tml",
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "﻿timeline: 1\nelements:\n    - id: a\n      label: 'Kick-off'\n      begin: 2026-01-05T09:30:00\n      row: 0"
+    },
+    {
+      "doc": "A replaced value keeps its quoting style, and a time keeps the date-time precision it had.",
+      "edit": {
+        "set": {
+          "element": "a",
+          "attributes": {
+            "label": "Kick-off meeting",
+            "begin": "2026-01-06T10:00:00"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 50,
+          "end": 60,
+          "text": "'Kick-off meeting'"
+        },
+        {
+          "operation": "replace-value",
+          "start": 74,
+          "end": 93,
+          "text": "2026-01-06T10:00:00"
+        }
+      ],
+      "expect": "﻿timeline: 1\nelements:\n    - id: a\n      label: 'Kick-off meeting'\n      begin: 2026-01-06T10:00:00\n      row: 0"
+    },
+    {
+      "doc": "Appending after a last line with no newline adds the file's LF before the entry and none after it, so the file still has no final newline.",
+      "edit": {
+        "add": {
+          "type": "Moment",
+          "id": "b",
+          "attributes": {
+            "label": "Review",
+            "begin": "2026-02-01",
+            "row": 1
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 114,
+          "end": 114,
+          "text": "\n    - id: b\n      label: Review\n      begin: 2026-02-01\n      row: 1"
+        }
+      ],
+      "expect": "﻿timeline: 1\nelements:\n    - id: a\n      label: 'Kick-off meeting'\n      begin: 2026-01-06T10:00:00\n      row: 0\n    - id: b\n      label: Review\n      begin: 2026-02-01\n      row: 1"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 114,
+          "end": 183,
+          "text": ""
+        }
+      ],
+      "expect": "﻿timeline: 1\nelements:\n    - id: a\n      label: 'Kick-off meeting'\n      begin: 2026-01-06T10:00:00\n      row: 0"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 50,
+          "end": 68,
+          "text": "'Kick-off'"
+        },
+        {
+          "operation": "replace-value",
+          "start": 82,
+          "end": 101,
+          "text": "2026-01-05T09:30:00"
+        }
+      ],
+      "expect": "﻿timeline: 1\nelements:\n    - id: a\n      label: 'Kick-off'\n      begin: 2026-01-05T09:30:00\n      row: 0"
+    }
+  ]
+}

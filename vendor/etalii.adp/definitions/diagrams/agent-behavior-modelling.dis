@@ -1,0 +1,2557 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.3",
+  "language": {
+    "id": "net.etalii.adp.etalii.agent-behavior-modelling",
+    "version": "0.3.0",
+    "origin": "etalii/agent-behavior-modelling",
+    "label": "Agent Behavior Modelling",
+    "doc": {
+      "summary": "A chat agent's instructions drawn as a behavior tree - what it checks, does, tries, repeats and asks - stored as the Markdown the agent reads.",
+      "description": "Agent Behavior Modelling borrows the behavior tree from game development and tunes it to agent engineering. A tree of nodes says how an agent works through a task: composites (Do in order, Try in order, Do together) arrange their children, wrappers (Retry up to N times, Repeat until, Only while, Ask approval before) govern exactly one child, and leaves (Check, Do, Ask the user, Delegate) are the work itself.\n\nThe tree is not stored in a model file of its own. It is a keyword-marked bullet list under the `Behavior` heading of an ordinary Markdown file, and that Markdown file is the instruction file the agent reads (a system prompt, an `AGENTS.md`, a skill). The `.adp` registration beside it keeps only what the drawing needs: the heights the author dragged rows to.\n\nWhat this specification states through `x-abm-` keys, each shaped as the construct proposed for it - a drop placed under the nearest node above with room, the Kind field filtered by children, the right-button line, the tidy-tree layout, and the plugin changes FBL lacks - and the Markdown format itself are described in `agent-behavior-modelling.md` beside this file.",
+      "rationale": "An instruction file written as prose hides its control flow: which steps are ordered, which are alternatives, where the agent must stop and ask. Drawn as a behavior tree, the flow is visible and checkable, while the file the agent reads stays plain Markdown.",
+      "tags": [
+        "agent",
+        "behavior tree",
+        "prompt",
+        "instructions",
+        "agent engineering",
+        "humans and agents together"
+      ],
+      "audience": [
+        "user",
+        "author"
+      ],
+      "seeAlso": [
+        {
+          "title": "Behavior tree (artificial intelligence, robotics and control)",
+          "href": "https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)"
+        }
+      ]
+    },
+    "defaultLocale": "en",
+    "authors": [
+      {
+        "name": "Peter Vrenken"
+      }
+    ],
+    "license": "Apache-2.0",
+    "icon": "mdi-robot-outline",
+    "fileExtension": "md",
+    "requires": {
+      "conformance": "standard",
+      "features": [
+        "anchor.sides"
+      ]
+    }
+  },
+  "functions": {
+    "keyword": {
+      "params": [
+        {
+          "name": "n",
+          "type": "Element"
+        }
+      ],
+      "returns": "string",
+      "cel": "n.type == 'Retry' ? 'Retry up to ' + string(n.attempts) + (n.attempts == 1 ? ' time' : ' times') : {'Sequence': 'Do in order', 'Fallback': 'Try in order', 'Parallel': 'Do together', 'RepeatUntil': 'Repeat until', 'Guard': 'Only while', 'Approval': 'Ask approval before', 'Check': 'Check', 'Do': 'Do', 'AskUser': 'Ask the user', 'Delegate': 'Delegate'}[n.type]",
+      "doc": "The keyword a node is drawn and named with: the canonical one of its kind, with a Retry's count and the singular `time` for one attempt (AbmNodeKinds.KeywordOf)."
+    },
+    "kinds": {
+      "params": [],
+      "returns": "list(string)",
+      "cel": "['Sequence', 'Fallback', 'Parallel', 'Retry', 'RepeatUntil', 'Guard', 'Approval', 'Check', 'Do', 'AskUser', 'Delegate']",
+      "doc": "The eleven kinds, in the order the toolbox and the menus list them (AbmNodeKinds.All)."
+    },
+    "kindChoice": {
+      "params": [
+        {
+          "name": "t",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "{'Sequence': 'Do in order', 'Fallback': 'Try in order', 'Parallel': 'Do together', 'Retry': 'Retry', 'RepeatUntil': 'Repeat until', 'Guard': 'Only while', 'Approval': 'Ask approval before', 'Check': 'Check', 'Do': 'Do', 'AskUser': 'Ask the user', 'Delegate': 'Delegate'}[t]",
+      "doc": "A kind as menus and the Kind choice name it: its keyword, and `Retry` for a Retry."
+    },
+    "familyOf": {
+      "params": [
+        {
+          "name": "t",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "{'Sequence': 'composite', 'Fallback': 'composite', 'Parallel': 'composite', 'Retry': 'decorator', 'RepeatUntil': 'decorator', 'Guard': 'decorator', 'Approval': 'decorator', 'Check': 'leaf', 'Do': 'leaf', 'AskUser': 'leaf', 'Delegate': 'leaf'}[t]",
+      "doc": "A kind's family: `composite`, `decorator` or `leaf` (AbmNodeCategory)."
+    },
+    "startingLabel": {
+      "params": [
+        {
+          "name": "t",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "{'Sequence': 'New steps', 'Fallback': 'New alternatives', 'Parallel': 'New independent work', 'Retry': '', 'RepeatUntil': 'New condition', 'Guard': 'New condition', 'Approval': '', 'Check': 'New question', 'Do': 'New action', 'AskUser': 'New question for the user', 'Delegate': 'New task'}[t]",
+      "doc": "The label a new node of a kind starts with, before the author types their own (AddAbmNodeCommandHandler.StartingLabel); empty for a Retry and an Ask approval before."
+    },
+    "takesAnotherChild": {
+      "params": [
+        {
+          "name": "n",
+          "type": "Element"
+        }
+      ],
+      "returns": "bool",
+      "cel": "n.isA('Composite') || (n.isA('Decorator') && n.children.size() == 0)",
+      "doc": "Whether another child may be added beneath a node (AbmNode.TakesAnotherChild)."
+    },
+    "canBecome": {
+      "params": [
+        {
+          "name": "t",
+          "type": "string"
+        },
+        {
+          "name": "n",
+          "type": "Element"
+        }
+      ],
+      "returns": "bool",
+      "cel": "familyOf(t) == 'leaf' ? n.children.size() == 0 : (familyOf(t) == 'decorator' ? n.children.size() <= 1 : true)",
+      "doc": "Whether a node can become kind `t` without losing a child (AbmContextPropertyProvider.KindsFor)."
+    },
+    "shorten": {
+      "params": [
+        {
+          "name": "s",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "size(s) <= 60 ? s : s.substring(0, 57) + '...'",
+      "doc": "A label cut to 60 characters for a message (AbmParser.Shorten)."
+    }
+  },
+  "metamodel": {
+    "doc": "Eleven node types in three families, nested to any depth. The tree is containment: every node but a root has exactly one parent, the order of a node's children is meaningful and stored, and the family decides how many children a node may hold.",
+    "types": {
+      "BehaviorNode": {
+        "abstract": true,
+        "doc": "Everything that can be placed in a behavior tree.",
+        "labelAttribute": "label",
+        "attributes": {
+          "label": {
+            "type": "string",
+            "label": "Label",
+            "default": "",
+            "order": 1,
+            "doc": {
+              "summary": "What this node does, or the condition it names.",
+              "description": "The text after the keyword on the node's list item, kept on one line. For Repeat until and Only while it is the condition; for Delegate it names the sub-agent or links another behavior file."
+            }
+          },
+          "notes": {
+            "type": "text",
+            "label": "Notes",
+            "markup": "markdown",
+            "default": "",
+            "order": 3,
+            "doc": {
+              "summary": "Further instructions for this node, kept as written.",
+              "description": "The lines indented under the node's list item that are not list items themselves. The agent reads them with the node; the diagram never draws them."
+            }
+          }
+        }
+      },
+      "Composite": {
+        "abstract": true,
+        "extends": "BehaviorNode",
+        "doc": "A node that arranges one or more children.",
+        "children": {
+          "allowed": [
+            "BehaviorNode"
+          ],
+          "ordered": true,
+          "min": 1
+        }
+      },
+      "Decorator": {
+        "abstract": true,
+        "extends": "BehaviorNode",
+        "doc": "A node that governs exactly one child: when it runs, how often, or whether the user agrees first.",
+        "children": {
+          "allowed": [
+            "BehaviorNode"
+          ],
+          "ordered": true,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "Leaf": {
+        "abstract": true,
+        "extends": "BehaviorNode",
+        "doc": "A node that does the work and holds no children."
+      },
+      "Sequence": {
+        "extends": "Composite",
+        "label": "Do in order",
+        "icon": "mdi-arrow-right-bold-outline",
+        "doc": "Runs its children one after another, and fails as soon as one fails.",
+        "x-abm": {
+          "keyword": "Do in order",
+          "kind": "sequence"
+        }
+      },
+      "Fallback": {
+        "extends": "Composite",
+        "label": "Try in order",
+        "icon": "mdi-help-rhombus-outline",
+        "doc": "Tries its children one after another, and succeeds as soon as one succeeds.",
+        "x-abm": {
+          "keyword": "Try in order",
+          "kind": "fallback"
+        }
+      },
+      "Parallel": {
+        "extends": "Composite",
+        "label": "Do together",
+        "icon": "mdi-call-split",
+        "doc": "Runs its children independently, at the same time where you can, and succeeds when all of them succeed.",
+        "x-abm": {
+          "keyword": "Do together",
+          "kind": "parallel"
+        }
+      },
+      "Retry": {
+        "extends": "Decorator",
+        "label": "Retry",
+        "icon": "mdi-replay",
+        "doc": "Runs its child again when it fails, at most N times in all.",
+        "x-abm": {
+          "keyword": "Retry up to N times",
+          "kind": "retry"
+        },
+        "attributes": {
+          "attempts": {
+            "type": "int",
+            "label": "Attempts",
+            "default": 3,
+            "min": 1,
+            "order": 2,
+            "doc": "The N of `Retry up to N times`: the most attempts in all, the first included. A new Retry, and a node changed into one, allows 3. `std.facets` is switched off, so a Retry read with 0 is reported once, by `abm.no-attempts`."
+          }
+        }
+      },
+      "RepeatUntil": {
+        "extends": "Decorator",
+        "label": "Repeat until",
+        "icon": "mdi-repeat",
+        "doc": "Runs its child again and again until its condition holds.",
+        "x-abm": {
+          "keyword": "Repeat until",
+          "kind": "repeat"
+        }
+      },
+      "Guard": {
+        "extends": "Decorator",
+        "label": "Only while",
+        "icon": "mdi-shield-outline",
+        "doc": "Runs its child only while its condition holds, and abandons it when the condition stops holding.",
+        "x-abm": {
+          "keyword": "Only while",
+          "kind": "guard"
+        }
+      },
+      "Approval": {
+        "extends": "Decorator",
+        "label": "Ask approval before",
+        "icon": "mdi-account-check-outline",
+        "doc": "Says what its child is about to do and waits for the user's explicit approval; without it, the node fails.",
+        "x-abm": {
+          "keyword": "Ask approval before",
+          "kind": "approval"
+        }
+      },
+      "Check": {
+        "extends": "Leaf",
+        "label": "Check",
+        "icon": "mdi-help-circle-outline",
+        "doc": "Answers its question from the conversation, your memory or a tool result; it succeeds when the answer is yes, and never acts.",
+        "x-abm": {
+          "keyword": "Check",
+          "kind": "check"
+        }
+      },
+      "Do": {
+        "extends": "Leaf",
+        "label": "Do",
+        "icon": "mdi-play-outline",
+        "doc": "Carries out one piece of work: a tool call, an answer, an edit.",
+        "x-abm": {
+          "keyword": "Do",
+          "kind": "action"
+        },
+        "attributes": {
+          "implicit": {
+            "type": "bool",
+            "label": "Implicit",
+            "default": false,
+            "readOnly": true,
+            "readOnlyReasons": [
+              "Whether an item carries a keyword is read from the Markdown; give it one by changing its Kind."
+            ],
+            "doc": "True for a list item the Markdown gave no keyword (or a bold lead that is none of the eleven): it is read as a Do labelled with the whole item, drawn dashed and reported by `abm.no-keyword`. Set by the reader only, never written."
+          }
+        }
+      },
+      "AskUser": {
+        "extends": "Leaf",
+        "label": "Ask the user",
+        "icon": "mdi-account-question-outline",
+        "doc": "Asks its question and waits for the answer.",
+        "x-abm": {
+          "keyword": "Ask the user",
+          "kind": "ask"
+        }
+      },
+      "Delegate": {
+        "extends": "Leaf",
+        "label": "Delegate",
+        "icon": "mdi-account-arrow-right-outline",
+        "doc": "Hands its task to a sub-agent, or follows the behavior file it links to.",
+        "x-abm": {
+          "keyword": "Delegate",
+          "kind": "delegate"
+        }
+      }
+    },
+    "relations": {
+      "Child": {
+        "label": "Child",
+        "doc": {
+          "summary": "The line from a node to each of its children, in order.",
+          "description": "Not a stored relation: a line is derived from containment, one per node that has a parent, named `child:` and the child's place. A line is drawn even under a leaf, so a file that breaks a rule is drawn as the agent will read it. Drawing a new line from a node to another moves the second, with everything under it, to be the first's last child (the `moveUnder` operation); removing or reconnecting one is not offered."
+        },
+        "source": "BehaviorNode",
+        "target": "BehaviorNode",
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": false,
+        "acyclic": true,
+        "derived": {
+          "from": "diagram.nodes.filter(n, n.parent != null)",
+          "id": "'child:' + item.id",
+          "source": "item.parent",
+          "target": "item",
+          "sources": "[item]",
+          "edits": {
+            "connect": "moveUnder"
+          },
+          "doc": "One line per node with a parent. The source end is any node rather than Composite or Decorator, so a leaf's children keep their lines; which nodes may start a new line is said by `moveUnder`'s aborts."
+        }
+      }
+    }
+  },
+  "coordinates": {
+    "doc": "One free pixel canvas. Every position is computed by the tree layout; a row the author dragged keeps its height in the .adp registration.",
+    "systems": {
+      "canvas": {
+        "kind": "cartesian",
+        "x": {
+          "kind": "linear",
+          "unit": "px"
+        },
+        "y": {
+          "kind": "linear",
+          "unit": "px"
+        },
+        "orientation": "y-down",
+        "grid": {
+          "visible": false
+        }
+      }
+    },
+    "default": "canvas"
+  },
+  "notation": {
+    "doc": "The family is the shape, as behavior tree editors in games draw it: a composite is a squircle, a wrapper a hexagon. Among the leaves a Check is a pill, a Do a box, an Ask the user a parallelogram and a Delegate a diode. Every node shows its keyword in small capitals above its label.",
+    "theme": {
+      "tokens": {
+        "color.text": "#0f172a",
+        "color.text.muted": "#64748b",
+        "color.surface": "#ffffff",
+        "color.border": "#e2e8f0",
+        "color.abm.composite": "#aaed92",
+        "color.abm.decorator": "#fcf281",
+        "color.abm.check": "#9edcfa",
+        "color.abm.action": "#ededed",
+        "color.abm.other": "#86e6d9"
+      },
+      "modes": {
+        "dark": {
+          "color.text": "#f1f5f9",
+          "color.text.muted": "#94a3b8",
+          "color.surface": "#1e293b",
+          "color.border": "#334155",
+          "color.abm.composite": "#2e7814",
+          "color.abm.decorator": "#736a03",
+          "color.abm.check": "#086fa1",
+          "color.abm.action": "#696969",
+          "color.abm.other": "#187569"
+        }
+      },
+      "defaultMode": "light",
+      "followSystem": true,
+      "doc": "The fills are the functional decomposition graph's: composites green, wrappers yellow, a Check blue, a Do grey, an Ask the user and a Delegate teal."
+    },
+    "styles": {
+      "node": {
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1.5
+        },
+        "font": {
+          "size": 12,
+          "color": {
+            "token": "color.text"
+          }
+        },
+        "textAlign": "center",
+        "verticalAlign": "middle"
+      },
+      "composite": {
+        "extends": "node",
+        "fill": {
+          "token": "color.abm.composite"
+        }
+      },
+      "decorator": {
+        "extends": "node",
+        "fill": {
+          "token": "color.abm.decorator"
+        }
+      },
+      "check": {
+        "extends": "node",
+        "fill": {
+          "token": "color.abm.check"
+        }
+      },
+      "action": {
+        "extends": "node",
+        "fill": {
+          "token": "color.abm.action"
+        }
+      },
+      "other": {
+        "extends": "node",
+        "fill": {
+          "token": "color.abm.other"
+        }
+      },
+      "implicit": {
+        "stroke": {
+          "dash": [
+            4,
+            3
+          ]
+        }
+      },
+      "keyword": {
+        "font": {
+          "size": 10,
+          "weight": 600,
+          "letterSpacing": 0.2,
+          "transform": "uppercase",
+          "color": {
+            "token": "color.text"
+          }
+        }
+      },
+      "label": {
+        "font": {
+          "size": 12,
+          "color": {
+            "token": "color.text"
+          }
+        }
+      },
+      "child": {
+        "stroke": {
+          "color": {
+            "token": "color.text.muted"
+          },
+          "width": 1.5
+        }
+      }
+    },
+    "shapes": {
+      "diode": {
+        "label": "Diode",
+        "doc": "Square on the left and round on the right: a rectangle closed on the right by a semicircle of radius r = min(h / 2, w), as the canvas library's built-in diode draws it. DISL has no built-in diode.",
+        "path": {
+          "segments": [
+            {
+              "op": "M",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "op": "L",
+              "x": "w - min(h / 2.0, w)",
+              "y": 0
+            },
+            {
+              "op": "A",
+              "rx": "min(h / 2.0, w)",
+              "ry": "min(h / 2.0, w)",
+              "rotation": 0,
+              "largeArc": false,
+              "sweep": true,
+              "x": "w - min(h / 2.0, w)",
+              "y": "h"
+            },
+            {
+              "op": "L",
+              "x": 0,
+              "y": "h"
+            },
+            {
+              "op": "Z"
+            }
+          ]
+        },
+        "textArea": {
+          "x": 6,
+          "y": "h * 0.15",
+          "w": "w - 0.134 * min(h / 2.0, w) - 12",
+          "h": "h * 0.7"
+        }
+      }
+    },
+    "nodes": {
+      "Sequence": {
+        "shape": {
+          "type": "superellipse",
+          "params": {
+            "exponent": 4
+          }
+        },
+        "style": "composite",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel",
+        "doc": "Every node is 200 by 60, with its keyword in small capitals 20 below its top and its label 40 below it. Only the label is edited in place: the keyword is the node's kind, changed through the Kind field. Lines leave the middle of the parent's bottom and arrive at the middle of the child's top."
+      },
+      "Fallback": {
+        "shape": {
+          "type": "superellipse",
+          "params": {
+            "exponent": 4
+          }
+        },
+        "style": "composite",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      },
+      "Parallel": {
+        "shape": {
+          "type": "superellipse",
+          "params": {
+            "exponent": 4
+          }
+        },
+        "style": "composite",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      },
+      "Retry": {
+        "shape": "hexagon",
+        "style": "decorator",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      },
+      "RepeatUntil": {
+        "shape": "hexagon",
+        "style": "decorator",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      },
+      "Guard": {
+        "shape": "hexagon",
+        "style": "decorator",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      },
+      "Approval": {
+        "shape": "hexagon",
+        "style": "decorator",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      },
+      "Check": {
+        "shape": "pill",
+        "style": "check",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      },
+      "Do": {
+        "shape": "rect",
+        "style": "action",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel",
+        "conditions": [
+          {
+            "when": "self.implicit",
+            "style": "implicit",
+            "doc": "An item without a keyword is drawn dashed, so the author sees it was read as a Do."
+          }
+        ]
+      },
+      "AskUser": {
+        "shape": {
+          "type": "parallelogram",
+          "params": {
+            "skew": 0.2,
+            "direction": "right"
+          }
+        },
+        "style": "other",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      },
+      "Delegate": {
+        "shape": "diode",
+        "style": "other",
+        "size": {
+          "default": [
+            200,
+            60
+          ],
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false
+        },
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "top",
+            "bottom"
+          ]
+        },
+        "labels": [
+          {
+            "id": "keyword",
+            "text": {
+              "cel": "keyword(self)"
+            },
+            "editable": false,
+            "style": "keyword",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                20
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis"
+          },
+          {
+            "id": "label",
+            "text": {
+              "attribute": "label"
+            },
+            "editable": "inline",
+            "style": "label",
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                40
+              ]
+            },
+            "wrap": "none",
+            "overflow": "ellipsis",
+            "tooltip": {
+              "cel": "self.label"
+            }
+          }
+        ],
+        "accessibility": {
+          "role": "button",
+          "name": {
+            "cel": "keyword(self) + ': ' + self.label"
+          }
+        },
+        "doubleClick": "editLabel"
+      }
+    },
+    "edges": {
+      "Child": {
+        "style": "child",
+        "line": {
+          "routing": "orthogonal",
+          "bendpoints": {
+            "editable": false
+          }
+        },
+        "sourceMarker": "none",
+        "targetMarker": "arrowFilled",
+        "deletable": false,
+        "reconnectable": false,
+        "connect": {
+          "pointer": {
+            "button": "secondary",
+            "start": "body",
+            "doc": "A new line is drawn by dragging with the right mouse button from the parent's body to the child's body, because side anchors draw no handle."
+          }
+        },
+        "doc": "An orthogonal line from the middle of the parent's bottom down to the middle of the child's top, with an arrowhead at the child."
+      }
+    }
+  },
+  "forms": {
+    "node": {
+      "for": "BehaviorNode",
+      "usage": [
+        "inspector"
+      ],
+      "label": "Behavior node",
+      "items": [
+        {
+          "kind": "section",
+          "title": "Node",
+          "items": [
+            {
+              "kind": "type",
+              "label": "Kind",
+              "options": {
+                "cel": "kinds().filter(t, canBecome(t, self))"
+              },
+              "optionLabel": "kindChoice(item)",
+              "refusals": [
+                {
+                  "when": "familyOf(newValue) == 'leaf' && self.children.size() > 0",
+                  "message": {
+                    "cel": "'\"' + kindChoice(newValue) + '\" holds no children, and this node has ' + (self.children.size() == 1 ? '1 child' : string(self.children.size()) + ' children') + '.'"
+                  }
+                },
+                {
+                  "when": "familyOf(newValue) == 'decorator' && self.children.size() > 1",
+                  "message": {
+                    "cel": "'\"' + (newValue == 'Retry' ? 'Retry up to 3 times' : kindChoice(newValue)) + '\" holds exactly one child, and this node has ' + string(self.children.size()) + '.'"
+                  }
+                }
+              ],
+              "doc": "An editable choice of the kinds this node can become without losing a child, shown by their menu names, which retypes the node through `behavior.retype` as one undoable step. The refusals are reached only by a value typed past the list."
+            },
+            {
+              "attribute": "label",
+              "label": "Label"
+            },
+            {
+              "attribute": "attempts",
+              "label": "Attempts",
+              "visible": "self.type == 'Retry'",
+              "validate": [
+                {
+                  "rule": "value >= 1",
+                  "message": {
+                    "cel": "'\\'' + string(value) + '\\' is not a number of attempts; a Retry allows at least 1.'"
+                  },
+                  "timing": "commit"
+                }
+              ]
+            },
+            {
+              "attribute": "notes",
+              "label": "Notes",
+              "widget": "textarea"
+            },
+            {
+              "kind": "computed",
+              "label": "Place",
+              "value": {
+                "cel": "self.id"
+              },
+              "readOnlyReasons": [
+                "A node's place follows from where it sits in the tree."
+              ],
+              "doc": "The node's place in the tree (1, 1.2, 1.2.1), which is also its id."
+            }
+          ]
+        }
+      ]
+    },
+    "notesDialog": {
+      "for": "BehaviorNode",
+      "usage": [
+        "popover"
+      ],
+      "label": "Notes",
+      "icon": "mdi-note-text-outline",
+      "submitLabel": "Save",
+      "items": [
+        {
+          "attribute": "notes",
+          "label": "Notes",
+          "widget": "textarea",
+          "initial": "self.notes"
+        }
+      ]
+    }
+  },
+  "toolbox": {
+    "doc": "One tool per kind, in one list. A tool is dropped where the node belongs: it goes under the nearest node above the drop that can take another child, among that node's children by where it landed, or becomes the root of an empty tree; its label is then edited in place. New lines are drawn on the canvas with a right-button drag, not from the toolbox.",
+    "generic": {
+      "select": true,
+      "pan": true
+    },
+    "groups": [
+      {
+        "id": "nodes",
+        "tools": [
+          {
+            "id": "sequence",
+            "creates": "Sequence",
+            "mode": "drop",
+            "label": "Do in order",
+            "icon": "mdi-arrow-right-bold-outline",
+            "doc": "Runs its children one after another, and fails as soon as one fails. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New steps"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "fallback",
+            "creates": "Fallback",
+            "mode": "drop",
+            "label": "Try in order",
+            "icon": "mdi-help-rhombus-outline",
+            "doc": "Tries its children one after another, and succeeds as soon as one succeeds. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New alternatives"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "parallel",
+            "creates": "Parallel",
+            "mode": "drop",
+            "label": "Do together",
+            "icon": "mdi-call-split",
+            "doc": "Runs its children independently, at the same time where you can, and succeeds when all of them succeed. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New independent work"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "retry",
+            "creates": "Retry",
+            "mode": "drop",
+            "label": "Retry",
+            "icon": "mdi-replay",
+            "doc": "Runs its child again when it fails, at most N times in all. Drop it below the node it belongs under.",
+            "initial": {
+              "label": ""
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "repeat",
+            "creates": "RepeatUntil",
+            "mode": "drop",
+            "label": "Repeat until",
+            "icon": "mdi-repeat",
+            "doc": "Runs its child again and again until its condition holds. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New condition"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "guard",
+            "creates": "Guard",
+            "mode": "drop",
+            "label": "Only while",
+            "icon": "mdi-shield-outline",
+            "doc": "Runs its child only while its condition holds, and abandons it when the condition stops holding. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New condition"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "approval",
+            "creates": "Approval",
+            "mode": "drop",
+            "label": "Ask approval before",
+            "icon": "mdi-account-check-outline",
+            "doc": "Says what its child is about to do and waits for the user's explicit approval; without it, the node fails. Drop it below the node it belongs under.",
+            "initial": {
+              "label": ""
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "check",
+            "creates": "Check",
+            "mode": "drop",
+            "label": "Check",
+            "icon": "mdi-help-circle-outline",
+            "doc": "Answers its question from the conversation, your memory or a tool result; it succeeds when the answer is yes, and never acts. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New question"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "action",
+            "creates": "Do",
+            "mode": "drop",
+            "label": "Do",
+            "icon": "mdi-play-outline",
+            "doc": "Carries out one piece of work: a tool call, an answer, an edit. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New action"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "ask",
+            "creates": "AskUser",
+            "mode": "drop",
+            "label": "Ask the user",
+            "icon": "mdi-account-question-outline",
+            "doc": "Asks its question and waits for the answer. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New question for the user"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          },
+          {
+            "id": "delegate",
+            "creates": "Delegate",
+            "mode": "drop",
+            "label": "Delegate",
+            "icon": "mdi-account-arrow-right-outline",
+            "doc": "Hands its task to a sub-agent, or follows the behavior file it links to. Drop it below the node it belongs under.",
+            "initial": {
+              "label": "New task"
+            },
+            "after": "none",
+            "drop": {
+              "place": "underNearestAbove"
+            }
+          }
+        ]
+      }
+    ],
+    "contextMenus": [
+      {
+        "for": [
+          "BehaviorNode"
+        ],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          {
+            "kind": "editLabel",
+            "group": "edit",
+            "label": "Rename…",
+            "icon": "mdi-pencil-outline",
+            "shortcut": "F2"
+          },
+          {
+            "kind": "operation",
+            "operation": "editNotes",
+            "group": "edit",
+            "label": "Edit notes…",
+            "icon": "mdi-note-text-outline"
+          },
+          {
+            "kind": "moveUp",
+            "group": "edit",
+            "label": "Move earlier",
+            "icon": "mdi-arrow-left",
+            "shortcut": "Alt+Up"
+          },
+          {
+            "kind": "moveDown",
+            "group": "edit",
+            "label": "Move later",
+            "icon": "mdi-arrow-right",
+            "shortcut": "Alt+Down"
+          },
+          {
+            "kind": "delete",
+            "group": "edit",
+            "label": "Remove",
+            "icon": "mdi-delete-outline",
+            "shortcut": "Delete"
+          },
+          {
+            "kind": "operation",
+            "operation": "addChild",
+            "group": "add",
+            "forEach": "kinds()",
+            "as": "kind",
+            "label": {
+              "cel": "'Add child: ' + kindChoice(kind)"
+            },
+            "icon": "mdi-plus",
+            "args": {
+              "kind": "kind"
+            },
+            "visible": "takesAnotherChild(self)"
+          },
+          {
+            "kind": "operation",
+            "operation": "arrangeFromNode",
+            "group": "arrange",
+            "label": "Arrange diagram",
+            "icon": "mdi-sitemap-outline"
+          }
+        ]
+      },
+      {
+        "for": [
+          "diagram"
+        ],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "addHere",
+            "group": "add",
+            "forEach": "kinds()",
+            "as": "kind",
+            "label": {
+              "cel": "'Add ' + kindChoice(kind) + ' here'"
+            },
+            "icon": "mdi-plus",
+            "args": {
+              "kind": "kind"
+            }
+          },
+          {
+            "kind": "operation",
+            "operation": "arrange",
+            "group": "arrange",
+            "label": "Arrange diagram",
+            "icon": "mdi-sitemap-outline"
+          }
+        ],
+        "doc": "The menu of the empty canvas: a node of any kind placed where the menu was opened, and Arrange diagram."
+      }
+    ]
+  },
+  "behavior": {
+    "doc": "Every change - add, remove, rename, change the kind, edit notes, reorder, re-parent, drag - is one undoable step that restores the whole Markdown text.",
+    "messages": {
+      "std.atStart": "It is already the first of its siblings.",
+      "std.atEnd": "It is already the last of its siblings."
+    },
+    "placements": {
+      "underNearestAbove": {
+        "candidates": "diagram.nodes.filter(n, takesAnotherChild(n) && n.view.bounds.center()[1] < position.y)",
+        "as": "candidate",
+        "rank": "math.abs(position.x - candidate.view.bounds.center()[0]) + 2.0 * (position.y - candidate.view.bounds.center()[1])",
+        "index": "parent.children.filter(c, c.view.bounds.center()[0] < position.x).size()",
+        "whenEmpty": "root",
+        "refusal": "Drop the node below the node it belongs under: a Do in order, a Try in order, a Do together, or a Retry, Repeat until, Only while or Ask approval before that has no child yet.",
+        "doc": "The parent is the candidate of lowest rank, the first in model order on a tie; the new node goes before its first child whose centre lies right of the drop. An empty tree takes the node as its root."
+      }
+    },
+    "operations": {
+      "addChild": {
+        "label": "Add child",
+        "for": [
+          "BehaviorNode"
+        ],
+        "icon": "mdi-plus",
+        "params": {
+          "kind": {
+            "type": "string",
+            "label": "Kind"
+          }
+        },
+        "unavailable": [
+          {
+            "when": "self.isA('Leaf')",
+            "message": {
+              "cel": "'\"' + keyword(self) + '\" holds no children. Add the node under a Do in order, Try in order or Do together.'"
+            }
+          },
+          {
+            "when": "self.isA('Decorator') && self.children.size() > 0",
+            "message": {
+              "cel": "'\"' + keyword(self) + '\" holds exactly one child, and already has it.'"
+            }
+          }
+        ],
+        "doc": "Adds a node of the chosen kind as the last child, then edits its label in place.",
+        "actions": [
+          {
+            "create": {
+              "type": "p.kind",
+              "parent": "self",
+              "attributes": {
+                "label": "startingLabel(p.kind)"
+              }
+            },
+            "as": "added"
+          },
+          {
+            "select": "added"
+          },
+          {
+            "editLabel": {
+              "target": "added",
+              "label": "label"
+            }
+          }
+        ]
+      },
+      "addHere": {
+        "label": "Add here",
+        "for": "diagram",
+        "icon": "mdi-plus",
+        "params": {
+          "kind": {
+            "type": "string",
+            "label": "Kind"
+          }
+        },
+        "doc": "Adds a node of the chosen kind where the empty-canvas menu was opened, placed as a toolbox drop is, then edits its label in place.",
+        "actions": [
+          {
+            "create": {
+              "type": "p.kind",
+              "attributes": {
+                "label": "startingLabel(p.kind)"
+              },
+              "place": "underNearestAbove"
+            },
+            "as": "added"
+          },
+          {
+            "select": "added"
+          },
+          {
+            "editLabel": {
+              "target": "added",
+              "label": "label"
+            }
+          }
+        ]
+      },
+      "editNotes": {
+        "label": "Edit notes…",
+        "for": [
+          "BehaviorNode"
+        ],
+        "icon": "mdi-note-text-outline",
+        "params": {
+          "notes": {
+            "type": "text",
+            "label": "Notes",
+            "markup": "markdown"
+          }
+        },
+        "paramsForm": "notesDialog",
+        "doc": "Replaces the node's notes from a dialog pre-filled with them; empty notes remove the lines.",
+        "actions": [
+          {
+            "set": {
+              "notes": "p.notes"
+            }
+          }
+        ]
+      },
+      "moveUnder": {
+        "label": "Move under this node",
+        "for": [
+          "Child"
+        ],
+        "icon": "mdi-file-tree-outline",
+        "doc": "Run by a new line drawn from a node (the source) to another (the target), mapped from the derived Child's `connect` gesture: the target moves, with everything under it, to be the source's last child. The menu always offers it, as the module does; a line that cannot move the target is refused when it is run, with the writer's sentence, so the refusals are aborts rather than `unavailable` reasons.",
+        "actions": [
+          {
+            "if": "self.source.id == self.target.id || self.target.descendants().exists(d, d.id == self.source.id)",
+            "then": [
+              {
+                "abort": {
+                  "message": "'A node cannot move beneath itself.'"
+                }
+              }
+            ]
+          },
+          {
+            "if": "self.source.isA('Leaf')",
+            "then": [
+              {
+                "abort": {
+                  "message": {
+                    "cel": "'\"' + keyword(self.source) + '\" holds no children.'"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "if": "self.source.isA('Decorator') && self.source.children.size() > 0 && !(self.target.parent != null && self.target.parent.id == self.source.id)",
+            "then": [
+              {
+                "abort": {
+                  "message": {
+                    "cel": "'\"' + keyword(self.source) + '\" holds exactly one child, and already has it.'"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "if": "self.target.parent != null && self.target.parent.id == self.source.id && self.target.positionIn(self.source.children) == self.source.children.size() - 1",
+            "then": [
+              {
+                "abort": {
+                  "message": "'That node is already there.'"
+                }
+              }
+            ]
+          },
+          {
+            "reparent": {
+              "target": "self.target",
+              "parent": "self.source"
+            }
+          }
+        ]
+      },
+      "arrange": {
+        "label": "Arrange diagram",
+        "for": "diagram",
+        "icon": "mdi-sitemap-outline",
+        "unavailable": [
+          {
+            "when": "diagram.nodes.size() == 0",
+            "message": "There is nothing to arrange until this behavior model has a node."
+          }
+        ],
+        "doc": "Forgets every position a node was dragged to, so the whole tree is drawn by the computed layout again: it removes the registration's `layout:` block and never touches the Markdown, and one undo puts the registration back byte for byte. The plugin refuses with \"This behavior model was opened without a registration, so it has no dragged positions to forget.\" and \"This behavior model is already arranged.\"",
+        "plugin": {
+          "name": "net.etalii.adp.etalii.abmArrange"
+        }
+      },
+      "arrangeFromNode": {
+        "label": "Arrange diagram",
+        "for": [
+          "BehaviorNode"
+        ],
+        "icon": "mdi-sitemap-outline",
+        "unavailable": [
+          {
+            "when": "diagram.nodes.size() == 0",
+            "message": "There is nothing to arrange until this behavior model has a node."
+          }
+        ],
+        "doc": "Arrange diagram offered on a node, because it is about the whole tree; an operation's `for` cannot name both the diagram and a type.",
+        "plugin": {
+          "name": "net.etalii.adp.etalii.abmArrange"
+        }
+      }
+    },
+    "deletion": {
+      "BehaviorNode": {
+        "children": "delete",
+        "relations": "delete",
+        "confirm": {
+          "count": "self.descendants().size()",
+          "threshold": 1,
+          "title": "Remove",
+          "message": {
+            "cel": "count == 1 ? 'Removing this node also removes the 1 node beneath it.' : 'Removing this node also removes the ' + string(count) + ' nodes beneath it.'"
+          },
+          "confirmLabel": "Remove",
+          "danger": true
+        },
+        "doc": "Removing a node removes everything under it, as one splice of its lines. A leaf, or a node with nothing beneath it, goes without asking."
+      }
+    },
+    "retype": {
+      "Sequence": {
+        "to": [
+          "Fallback",
+          "Parallel",
+          "Retry",
+          "RepeatUntil",
+          "Guard",
+          "Approval",
+          "Check",
+          "Do",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "Fallback": {
+        "to": [
+          "Sequence",
+          "Parallel",
+          "Retry",
+          "RepeatUntil",
+          "Guard",
+          "Approval",
+          "Check",
+          "Do",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "Parallel": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Retry",
+          "RepeatUntil",
+          "Guard",
+          "Approval",
+          "Check",
+          "Do",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "Retry": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Parallel",
+          "RepeatUntil",
+          "Guard",
+          "Approval",
+          "Check",
+          "Do",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "RepeatUntil": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Parallel",
+          "Retry",
+          "Guard",
+          "Approval",
+          "Check",
+          "Do",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "Guard": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Parallel",
+          "Retry",
+          "RepeatUntil",
+          "Approval",
+          "Check",
+          "Do",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "Approval": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Parallel",
+          "Retry",
+          "RepeatUntil",
+          "Guard",
+          "Check",
+          "Do",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "Check": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Parallel",
+          "Retry",
+          "RepeatUntil",
+          "Guard",
+          "Approval",
+          "Do",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "Do": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Parallel",
+          "Retry",
+          "RepeatUntil",
+          "Guard",
+          "Approval",
+          "Check",
+          "AskUser",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "AskUser": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Parallel",
+          "Retry",
+          "RepeatUntil",
+          "Guard",
+          "Approval",
+          "Check",
+          "Do",
+          "Delegate"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      },
+      "Delegate": {
+        "to": [
+          "Sequence",
+          "Fallback",
+          "Parallel",
+          "Retry",
+          "RepeatUntil",
+          "Guard",
+          "Approval",
+          "Check",
+          "Do",
+          "AskUser"
+        ],
+        "attributeMapping": {
+          "attempts": "has(old.attempts) ? max(old.attempts, 3) : 3"
+        }
+      }
+    }
+  },
+  "constraints": {
+    "doc": "A Markdown file edited by hand that breaks a rule still opens and draws; each finding is reported on its node's line. Three built-ins are switched off because a declared rule reports the same breach once, in today's words: `std.containment` (a leaf with children), `std.multiplicity` (a wrapper without exactly one child, a composite without children) and `std.facets` (a Retry with no attempt). The reader adds `abm.no-behavior` (information) when the file has no Behavior heading or the section holds no list.",
+    "blockSaveOn": "never",
+    "order": [
+      "abm.no-keyword",
+      "abm.several-roots"
+    ],
+    "builtIn": {
+      "std.containment": {
+        "enabled": false,
+        "doc": "Reported once per leaf by abm.leaf-with-children, with its count, rather than once per child."
+      },
+      "std.multiplicity": {
+        "enabled": false,
+        "doc": "Reported by abm.decorator-children (error) and abm.empty-composite (warning)."
+      },
+      "std.facets": {
+        "enabled": false,
+        "doc": "Reported by abm.no-attempts; the Attempts field refuses a value below 1 itself."
+      }
+    },
+    "rules": [
+      {
+        "id": "noKeyword",
+        "code": "abm.no-keyword",
+        "label": "Item without a keyword",
+        "scope": [
+          "Do"
+        ],
+        "rule": "!self.implicit",
+        "severity": "warning",
+        "suppressible": false,
+        "message": {
+          "cel": "'\"' + shorten(self.label) + '\" has no keyword, so it is read as a Do. Start it with one, such as **Do:** or **Check:**.'"
+        }
+      },
+      {
+        "id": "severalRoots",
+        "code": "abm.several-roots",
+        "label": "More than one root",
+        "scope": "diagram",
+        "rule": "diagram.nodes.filter(n, n.parent == null).size() <= 1",
+        "severity": "warning",
+        "suppressible": false,
+        "target": "diagram.nodes.filter(n, n.parent == null)[1]",
+        "message": {
+          "cel": "'The tree has ' + string(diagram.nodes.filter(n, n.parent == null).size()) + ' roots, and an agent starts at one. Put them under a Do in order or a Try in order to say how they relate.'"
+        },
+        "doc": "Reported on the second root."
+      },
+      {
+        "id": "leafWithChildren",
+        "code": "abm.leaf-with-children",
+        "label": "Leaf with children",
+        "scope": [
+          "Leaf"
+        ],
+        "rule": "self.children.size() == 0",
+        "severity": "error",
+        "message": {
+          "cel": "'\"' + keyword(self) + ': ' + self.label + '\" holds no children, but has ' + string(self.children.size()) + '. Make it a Do in order, or move them out.'"
+        }
+      },
+      {
+        "id": "decoratorChildren",
+        "code": "abm.decorator-children",
+        "label": "Wrapper without exactly one child",
+        "scope": [
+          "Decorator"
+        ],
+        "rule": "self.children.size() == 1",
+        "severity": "error",
+        "message": {
+          "cel": "'\"' + keyword(self) + '\" wraps exactly one child, but has ' + string(self.children.size()) + '.' + (self.children.size() > 1 ? ' Put them under a Do in order first.' : ' Add the node it applies to beneath it.')"
+        }
+      },
+      {
+        "id": "emptyComposite",
+        "code": "abm.empty-composite",
+        "label": "Composite without children",
+        "scope": [
+          "Composite"
+        ],
+        "rule": "self.children.size() > 0",
+        "severity": "warning",
+        "suppressible": false,
+        "message": {
+          "cel": "'\"' + keyword(self) + ': ' + self.label + '\" has no children, so it has nothing to run.'"
+        },
+        "doc": "A warning, because it is the natural state while a tree is being written."
+      },
+      {
+        "id": "noAttempts",
+        "code": "abm.no-attempts",
+        "label": "Retry without attempts",
+        "scope": [
+          "Retry"
+        ],
+        "rule": "self.attempts >= 1",
+        "severity": "error",
+        "message": "A Retry that allows no attempt never runs its child."
+      }
+    ]
+  },
+  "layout": {
+    "algorithms": {
+      "tree": {
+        "algorithm": "tidyTree",
+        "direction": "down",
+        "spacing": {
+          "node": 28,
+          "layer": 56,
+          "component": 56
+        },
+        "tidyTree": {
+          "order": "children",
+          "parentAlign": "firstLastCentre",
+          "origin": "leftmostAtZero",
+          "rows": {
+            "stored": "y",
+            "minGap": 16
+          },
+          "drag": {
+            "carry": "subtree",
+            "across": "reorder",
+            "down": "row"
+          },
+          "doc": "Reingold-Tilford outline packing in document order, each parent centred over its first and last child, the roots packed 56 apart, the leftmost node at x = 0. Across, a node's x is always the computed one; down, all children of one parent share a row, drawn at the first height stored for any of them or 56 below the parent's bottom, never closer than 16. A drag carries the subtree, takes a sibling's place once dropped past its centre (the order is written to the Markdown), and stores the row's height for every node in the row and beneath it, as one undo step."
+        },
+        "doc": "Top-down: the root at the top, each node's children left to right in document order beneath it, each subtree packed as close as its outline allows."
+      }
+    },
+    "default": "tree",
+    "trigger": "always",
+    "respect": "pinned",
+    "animate": false,
+    "doc": "The tree is laid out on every change. A drag pins a row's height in the .adp registration, under the place ids of the row and everything beneath it; across, the order decides."
+  },
+  "persistence": {
+    "format": "fbl",
+    "binding": "agent-behavior-modelling.fbl#abm",
+    "ids": {
+      "strategy": "derived",
+      "expression": "self.parent == null ? string(self.positionIn(diagram.nodes.filter(n, n.parent == null)) + 1) : self.parent.id + '.' + string(self.positionIn(self.parent.children) + 1)",
+      "doc": "A node's id is its place in the tree: 1, 1.2, 1.2.1 - its parent's place, a dot, and its position among its siblings counted from 1. Nothing is written into the Markdown to name it. A rename keeps the place; a reorder or a move changes it, and a drag renames the stored positions with it."
+    },
+    "view": {
+      "store": [
+        "pinned",
+        "bounds"
+      ]
+    },
+    "doc": "The tree is the first bullet list under the first Behavior heading of a Markdown file; everything else in the file is the author's and is kept byte for byte. The binding `agent-behavior-modelling.fbl#abm` names the persistence plugin `net.etalii.adp.etalii.abmMarkdown` as its reader. Positions the author dragged live in the .adp registration's layout block, never in the Markdown."
+  },
+  "plugins": {
+    "net.etalii.adp.etalii.abmMarkdown": {
+      "version": "^0.1.0",
+      "provides": [
+        "persistenceFormat"
+      ],
+      "required": true,
+      "doc": "The FBL section 11 reader of the binding agent-behavior-modelling.fbl#abm, wrapping today's AbmParser and AbmWriter: reads the tree from a Markdown file's Behavior section, sets `implicit` on an item without a keyword, reports `abm.no-behavior` (information) on line 1 when the file has no Behavior heading or on the heading's line when the section holds no list, and plans every edit as line splices so every other byte survives.",
+      "plans": [
+        "add",
+        "set",
+        "remove",
+        "move",
+        "retype"
+      ],
+      "add": {
+        "position": true
+      },
+      "move": {
+        "position": true
+      },
+      "x-abm-plan": {
+        "retype": {
+          "keeps": [
+            "label",
+            "notes"
+          ]
+        },
+        "doc": "A retype keeps the node's label and notes in the Markdown. Not yet a DISL key."
+      }
+    },
+    "net.etalii.adp.etalii.abmArrange": {
+      "version": "^0.1.0",
+      "provides": [
+        "action"
+      ],
+      "required": false,
+      "doc": "Arrange diagram: removes the layout block from the .adp registration, leaving the Markdown untouched."
+    }
+  },
+  "x-abm": {
+    "doc": "Today's wire ids, which the standalone client (client/abmIds.ts) and backend share, mapped from this specification's names. An element's wire type is the prefix followed by its kind.",
+    "typePrefix": "etalii/agent-behavior-modelling+",
+    "types": {
+      "Sequence": "sequence",
+      "Fallback": "fallback",
+      "Parallel": "parallel",
+      "Retry": "retry",
+      "RepeatUntil": "repeat",
+      "Guard": "guard",
+      "Approval": "approval",
+      "Check": "check",
+      "Do": "action",
+      "AskUser": "ask",
+      "Delegate": "delegate",
+      "Child": "child"
+    },
+    "tools": {
+      "sequence": {
+        "id": "abm.toolbox.sequence",
+        "drop": "abm.add.sequence"
+      },
+      "fallback": {
+        "id": "abm.toolbox.fallback",
+        "drop": "abm.add.fallback"
+      },
+      "parallel": {
+        "id": "abm.toolbox.parallel",
+        "drop": "abm.add.parallel"
+      },
+      "retry": {
+        "id": "abm.toolbox.retry",
+        "drop": "abm.add.retry"
+      },
+      "repeat": {
+        "id": "abm.toolbox.repeat",
+        "drop": "abm.add.repeat"
+      },
+      "guard": {
+        "id": "abm.toolbox.guard",
+        "drop": "abm.add.guard"
+      },
+      "approval": {
+        "id": "abm.toolbox.approval",
+        "drop": "abm.add.approval"
+      },
+      "check": {
+        "id": "abm.toolbox.check",
+        "drop": "abm.add.check"
+      },
+      "action": {
+        "id": "abm.toolbox.action",
+        "drop": "abm.add.action"
+      },
+      "ask": {
+        "id": "abm.toolbox.ask",
+        "drop": "abm.add.ask"
+      },
+      "delegate": {
+        "id": "abm.toolbox.delegate",
+        "drop": "abm.add.delegate"
+      }
+    },
+    "actions": {
+      "editLabel": "abm.rename",
+      "delete": "abm.remove",
+      "moveUp": "abm.move-earlier",
+      "moveDown": "abm.move-later",
+      "editNotes": "abm.edit-notes",
+      "addChild": "abm.add.<kind>",
+      "addHere": "abm.add.<kind>",
+      "moveUnder": "abm.connect.child",
+      "arrange": "abm.arrange",
+      "arrangeFromNode": "abm.arrange"
+    },
+    "properties": {
+      "Kind": "abm.kind",
+      "label": "abm.label",
+      "attempts": "abm.attempts",
+      "notes": "abm.notes",
+      "Place": "abm.place"
+    }
+  },
+  "x-adp": {
+    "kind": "Diagram",
+    "state": "Prototype",
+    "companion": "agent-behavior-modelling.md"
+  }
+}

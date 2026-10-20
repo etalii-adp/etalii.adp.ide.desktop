@@ -1,0 +1,61 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.3",
+  "doc": "The YAML binding of minimal-table.des, DESL's smallest example: a reading list of books, with typed fields and one view.",
+  "bindings": {
+    "yaml": {
+      "title": "Reading list",
+      "claims": { "extensions": [".yaml", ".yml"], "shared": true, "marker": { "rootKey": "designer", "value": "example/reading-list" }, "origins": ["example/reading-list"] },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "text": { "newline": "lf", "indent": 2 },
+      "header": { "key": "ded", "value": "0.1", "required": true },
+      "elements": [
+        {
+          "name": "field",
+          "type": "Field",
+          "at": "/fields/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": { "name": { "key": "name", "empty": "refuse" }, "valueType": { "key": "type", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "/fields", "keys": ["id", "name", "type"] },
+          "remove": { "cascade": ["value"] }
+        },
+        {
+          "name": "view",
+          "type": "View",
+          "at": "/views/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": { "name": { "key": "name", "empty": "refuse" } },
+          "insert": { "place": "after-last", "container": "/views", "keys": ["id", "name"] },
+          "remove": {}
+        },
+        {
+          "name": "book",
+          "type": "Book",
+          "at": "/books/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": {},
+          "insert": { "place": "after-last", "container": "/books", "create": { "at": { "under": "/" } }, "keys": ["id"] },
+          "remove": {}
+        },
+        {
+          "name": "value",
+          "type": "Value",
+          "at": "/books/*/values/*",
+          "parent": { "rules": ["book"], "slot": "values" },
+          "attributes": {
+            "field": { "key": "field", "empty": "refuse", "reference": { "to": ["field"], "by": "id" } },
+            "text": { "key": "text", "empty": "remove" },
+            "number": { "key": "number", "empty": "remove", "number": "shortest" }
+          },
+          "insert": { "place": "after-last", "container": "values", "create": { "at": { "after": "id" } }, "keys": ["field", "text", "number"] },
+          "remove": { "container": "remove-when-empty" }
+        }
+      ],
+      "registration": { "createOnFirstPlacement": false },
+      "template": {
+        "text": "ded: \"0.1\"\ndesigner: example/reading-list\nfields:\n  - id: {newid:field}\n    name: Title\n    type: text\nviews:\n  - id: {newid:view}\n    name: All books\n"
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A requirement document whose line 1, the envelope, an agent has removed, with CRLF endings. The binding's header is required, so a body whose line 1 does not match it is unreadable (FBL 5.6, 7.5): it opens as an empty, read-only model with one finding, std.unparseable, located at the problem, line 1, which replaces every other finding (DESL 6.3, Parse failure), and it is never written (FBL 6.6). The bullets are not read, though they are well-formed. Such a file is not claimed by routing, since the claim's marker is the envelope (FBL 12): it reaches the binding through a registration that names it as its body, or when an open document is read again after the change, which keeps the last readable model on screen, read-only (FBL 7.3).",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "web-shop.md",
+  "read": {
+    "elements": [],
+    "findings": [
+      {
+        "rule": "std.unparseable",
+        "line": 1
+      }
+    ],
+    "unreadable": true
+  },
+  "steps": [
+    {
+      "doc": "Saving an unreadable body writes nothing: it is never written (FBL 6.6, 7.5).",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "<!-- last: ITEM-0002 REQ-0003 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Storefront\r\n  - REQ-0001 A customer finds a product by its name.\r\n- ITEM-0002 Backend\r\n  - REQ-0002 A session ends after 30 minutes without activity.\r\n  - REQ-0003 Users sign in with an e-mail address and a password.\r\n"
+    },
+    {
+      "doc": "An add into an unreadable body is refused and writes nothing: the model is empty and read-only (FBL 7.5).",
+      "edit": {
+        "add": {
+          "type": "Item",
+          "id": "ITEM-0003",
+          "attributes": {
+            "title": "New item"
+          }
+        }
+      },
+      "refused": "The document cannot be read, so it is read-only.",
+      "splices": [],
+      "expect": "<!-- last: ITEM-0002 REQ-0003 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Storefront\r\n  - REQ-0001 A customer finds a product by its name.\r\n- ITEM-0002 Backend\r\n  - REQ-0002 A session ends after 30 minutes without activity.\r\n  - REQ-0003 Users sign in with an e-mail address and a password.\r\n"
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A requirement document read through the designer's binding (hierarchical-requirement.fbl#markdown; FBL 0.7, sections 4.8, 5.2, 5.5 and 15.3), CRLF endings, three levels of items with requirements at every depth: ITEM-0001 holds REQ-0001 and REQ-0002, ITEM-0002 in it holds REQ-0003, and ITEM-0003 in that holds REQ-0004 and REQ-0005; ITEM-0004 holds REQ-0006 and ITEM-0005 with REQ-0007; ITEM-0006 holds REQ-0008. Line 1 is the envelope, the binding's required header (FBL 5.6). Line 2 is the mark line, a statement the rule marks (no within) matches: the specification maps its type Marks as the document (DESL 5.2), so it gives the document's attributes lastItem ITEM-0006 and lastRequirement REQ-0011 and no element; a fixture's read has no place to state a document attribute (FBL 15.3), so they are only named here. The author's text is unbound and kept (FBL 4.1.2, 4.8): the title and its paragraph; the legend under How to read this file, whose fenced block holds two bullets in an item's form, fence lines and no items (4.8 rules 1 and 8); the paragraph after the heading Requirements, a statement no rule matches, kept and not reported, since the binding's unmatched is not report; the line 'The author's note ...' at column 2, which closes ITEM-0002 and everything in it (rule 3) and is a continuation line of ITEM-0001 after its first nested item, so part of its span and not of its description (4.8, Continuation); and the item ITEM-0099 under Notes, which stands in no section a rule names, so it is unbound and reported by nothing (FR-055). The section requirements is the lines after '## Requirements' up to '## Assessments', a heading with as many #; '### Catalogue and accounts' has more and does not end it (4.8, Sections), and the line closes every open item first (rule 3). The section assessments is empty. Markers: '-', '*' (ITEM-0002, REQ-0003, ITEM-0003) and '+' (REQ-0004, REQ-0005) are all item lines (rule 4). Nesting is by the marker's column (FBL 5.5): REQ-0006 and ITEM-0005 are indented by a tab, four columns, so both nest in ITEM-0004, and ITEM-0005's marker at column 4 closes REQ-0006 (rule 3); REQ-0007 is a tab and two spaces, column 6, so it nests in ITEM-0005; its description line, two tabs, eight columns, is its content column, all of which is taken off. Each entry's text is matched by the rules item, then requirement (FBL 5.1): the title is the lazy group before the longest run of trailing words (the group words, split into words by 4.6). REQ-0002 has its words in another order, and of its two category words the first, functional, is read and the second stays as written. On an item's line only #name words are trailing words, so ITEM-0006's title is 'Accounts category:admin'. The description is the continuation slot: the lines before the first nested item, joined by LF though the body has CRLF, each with the whitespace before the item's content column taken off, the blank line inside ITEM-0001's read as an empty line (4.8, Continuation); an entry without continuation reads the empty text. A reference [ITEM-0004] names an entry and a link with a target is no mention, so reading reports nothing. Parents are stated with parent (FBL 15.3); tags, an attribute with many (DESL), are stated as a JSON array of the words' values in order (FBL 4.6), which 15.3 does not spell out for a many attribute; an absent category or state is not named. The document without a Requirements heading is no-section/ beside this one, since a fixture has one input.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "library.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Lending",
+          "description": "Everything between a member and the books they borrow.\n\nLending at every branch.",
+          "tags": [
+            "core"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A member borrows at most ten books at once.",
+          "description": "Counted over every branch, see [ITEM-0004].",
+          "tags": [
+            "limits"
+          ],
+          "category": "functional",
+          "state": "accepted"
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A loan lasts three weeks.",
+          "description": "",
+          "tags": [],
+          "category": "functional",
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Renewals",
+          "description": "A renewal extends a loan by three weeks.",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A loan is renewed twice at most.",
+          "description": "",
+          "tags": [
+            "limits",
+            "renewals"
+          ]
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "Online renewals",
+          "description": "",
+          "tags": [
+            "web"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A member renews a loan on the website.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A renewal is refused while the book is reserved.",
+          "description": "The member is told that someone is waiting, without their name.",
+          "tags": [],
+          "category": "functional"
+        }
+      },
+      {
+        "id": "ITEM-0004",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Catalogue",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0006",
+        "type": "Requirement",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "Every book can be found by its title, author or ISBN.",
+          "description": "",
+          "tags": [
+            "search"
+          ],
+          "state": "done"
+        }
+      },
+      {
+        "id": "ITEM-0005",
+        "type": "Item",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "Search results",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0007",
+        "type": "Requirement",
+        "parent": "ITEM-0005",
+        "attributes": {
+          "title": "Results are sorted by relevance.",
+          "description": "Relevance weighs the title above the author.",
+          "tags": []
+        }
+      },
+      {
+        "id": "ITEM-0006",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Accounts category:admin",
+          "description": "",
+          "tags": [
+            "security"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0008",
+        "type": "Requirement",
+        "parent": "ITEM-0006",
+        "attributes": {
+          "title": "A member signs in with a library card number and a PIN.",
+          "description": "See the [card rules](https://example.org/cards).",
+          "tags": [
+            "security"
+          ]
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read (FBL 6.6, SC-004).",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expectFile": "library.md"
+    }
+  ]
+}

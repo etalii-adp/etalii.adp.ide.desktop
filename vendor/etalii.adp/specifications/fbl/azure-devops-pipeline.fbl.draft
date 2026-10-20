@@ -1,0 +1,304 @@
+{
+  "x-draft": {
+    "doc": "A draft, offered for the Azure DevOps pipeline diagram (etalii.adp.ide.standalone, specification azure-devops-pipeline-disl-fbl, Requirement 9.2): the declared half that FBL 17 expects. It is NOT valid FBL 0.2, and is named .fbl.draft so the examples check does not read it as FBL. Every object that uses a construct FBL lacks carries an x-gap note naming it; the constructs are the gaps 1 to 7 of definitions/diagrams/azure-devops-pipeline.md. Rules for a deployment job, for the steps of a lifecycle hook and for the /jobs/* and /steps/* shapes repeat the ones shown and are left out.",
+    "unsettled": [
+      "style: \"flow\" writes several names as [a, b], where the tool writes a block list.",
+      "The step rule binds one kind key, where the tool reads nine in written order (companion gap 8).",
+      "insert.keys cannot say \"after whatever the entry's last key is\", which is where a hand-edited element wants a new key.",
+      "The template text is the standalone tool's new document as its parity transcript records it: CRLF, with a final newline."
+    ]
+  },
+  "fbl": "0.2",
+  "bindings": {
+    "pipeline": {
+      "title": "Azure DevOps pipeline",
+      "claims": {
+        "extensions": [
+          ".yml"
+        ],
+        "shared": true,
+        "registrationOnly": true,
+        "origins": [
+          "azure-devops/pipeline"
+        ],
+        "suggest": {
+          "contains": [
+            "stages:",
+            "jobs:",
+            "steps:"
+          ]
+        }
+      },
+      "body": {
+        "kind": "file",
+        "family": "yaml"
+      },
+      "reader": "declared",
+      "expand": {
+        "plugin": "net.etalii.adp.azure-devops.templates",
+        "rules": [
+          "stageTemplate",
+          "jobTemplate",
+          "stepTemplate",
+          "extends"
+        ]
+      },
+      "text": {
+        "newline": "crlf",
+        "indent": 2,
+        "sequenceIndent": "indented",
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "pipeline",
+          "type": "Pipeline",
+          "at": "/",
+          "also": [
+            {
+              "type": "ImplicitStage",
+              "when": "!has(entry.stages) && (has(entry.jobs) || has(entry.steps))"
+            },
+            {
+              "type": "ImplicitJob",
+              "when": "!has(entry.stages) && !has(entry.jobs) && has(entry.steps)"
+            }
+          ],
+          "attributes": {
+            "hasStagesBlock": {
+              "value": "has(entry.stages)"
+            }
+          },
+          "readOnly": true,
+          "x-gap": "also: FBL has no entry that stands for several elements, nor a parent that is not an entry (finding B3, companion gap 3)."
+        },
+        {
+          "name": "extends",
+          "type": "TemplateReference",
+          "at": "/extends",
+          "attributes": {
+            "reference": {
+              "key": "template",
+              "as": "text",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            }
+          },
+          "readOnly": true
+        },
+        {
+          "name": "stageTemplate",
+          "type": "TemplateReference",
+          "at": "/stages/*",
+          "through": "^\\$\\{\\{",
+          "when": "has(entry.template)",
+          "attributes": {
+            "reference": {
+              "key": "template",
+              "as": "text",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            }
+          },
+          "readOnly": true,
+          "x-gap": "through: FBL cannot select through a key containing braces at any depth, binding the keys on the way (finding B4, companion gap 4)."
+        },
+        {
+          "name": "stage",
+          "type": "Stage",
+          "at": "/stages/*",
+          "through": "^\\$\\{\\{",
+          "when": "!has(entry.template)",
+          "attributes": {
+            "name": {
+              "key": "stage",
+              "as": "text",
+              "readOnly": "This is edited in the pipeline file. A wrong value here would break the build.",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "displayName": {
+              "key": "displayName",
+              "as": "text",
+              "empty": "remove",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "dependsOn": {
+              "key": "dependsOn",
+              "as": "text",
+              "list": "scalar-or-sequence",
+              "empty": "keep",
+              "unset": "remove",
+              "style": "flow",
+              "reference": {
+                "to": [
+                  "stage"
+                ],
+                "by": "name",
+                "compare": "ignore-case"
+              },
+              "x-gap": [
+                "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2).",
+                "\"list\": \"scalar-or-sequence\": FBL has no value read from one scalar or a sequence of scalars, with its written forms (finding B5, companion gap 5).",
+                "unset: FBL has no model change that unsets a slot as distinct from emptying it (finding B5, companion gap 6).",
+                "reference.compare and reference.scope: FBL has no reference by a name compared without case and resolved in a scope (finding B6, companion gap 7)."
+              ]
+            },
+            "condition": {
+              "key": "condition",
+              "as": "text",
+              "readOnly": true,
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "enabled": {
+              "key": "enabled",
+              "as": "text",
+              "empty": "remove",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "trigger": {
+              "key": "trigger",
+              "as": "text",
+              "readOnly": true,
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "isSkippable": {
+              "key": "isSkippable",
+              "as": "text",
+              "readOnly": true,
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/stages",
+            "keys": [
+              "stage",
+              "displayName",
+              "dependsOn",
+              "condition",
+              "enabled"
+            ],
+            "skeleton": "jobs:\n  - job: {name}Job\n    steps:\n      - script: echo Add your build steps here\n"
+          },
+          "remove": {},
+          "x-gap": "through: FBL cannot select through a key containing braces at any depth, binding the keys on the way (finding B4, companion gap 4)."
+        },
+        {
+          "name": "job",
+          "type": "Job",
+          "at": "/stages/*/jobs/*",
+          "through": "^\\$\\{\\{",
+          "when": "!has(entry.template) && !has(entry.deployment)",
+          "parent": {
+            "rules": [
+              "stage"
+            ],
+            "slot": "jobs"
+          },
+          "attributes": {
+            "name": {
+              "key": "job",
+              "as": "text",
+              "readOnly": true,
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "displayName": {
+              "key": "displayName",
+              "as": "text",
+              "empty": "remove",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "dependsOn": {
+              "key": "dependsOn",
+              "as": "text",
+              "list": "scalar-or-sequence",
+              "empty": "keep",
+              "unset": "remove",
+              "style": "flow",
+              "reference": {
+                "to": [
+                  "job"
+                ],
+                "by": "name",
+                "compare": "ignore-case",
+                "scope": "parent"
+              },
+              "x-gap": [
+                "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2).",
+                "\"list\": \"scalar-or-sequence\": FBL has no value read from one scalar or a sequence of scalars, with its written forms (finding B5, companion gap 5).",
+                "unset: FBL has no model change that unsets a slot as distinct from emptying it (finding B5, companion gap 6).",
+                "reference.compare and reference.scope: FBL has no reference by a name compared without case and resolved in a scope (finding B6, companion gap 7)."
+              ]
+            },
+            "enabled": {
+              "key": "enabled",
+              "as": "text",
+              "empty": "remove",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "jobs",
+            "keys": [
+              "job",
+              "displayName",
+              "dependsOn",
+              "enabled"
+            ],
+            "skeleton": "steps:\n  - script: echo Add your build steps here\n"
+          },
+          "remove": {},
+          "x-gap": "through: FBL cannot select through a key containing braces at any depth, binding the keys on the way (finding B4, companion gap 4)."
+        },
+        {
+          "name": "step",
+          "type": "Step",
+          "at": "/stages/*/jobs/*/steps/*",
+          "when": "true",
+          "parent": {
+            "rules": [
+              "job"
+            ],
+            "slot": "steps"
+          },
+          "attributes": {
+            "displayName": {
+              "key": "displayName",
+              "as": "text",
+              "empty": "remove",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "enabled": {
+              "key": "enabled",
+              "as": "text",
+              "empty": "remove",
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            },
+            "script": {
+              "key": "script",
+              "as": "text",
+              "readOnly": true,
+              "x-gap": "\"as\": \"text\": FBL has no slot that reads a scalar as written (finding B1, companion gap 2)."
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "steps",
+            "keys": [
+              "script",
+              "displayName",
+              "enabled"
+            ]
+          },
+          "remove": {}
+        }
+      ],
+      "registration": {
+        "createOnFirstPlacement": false
+      },
+      "template": {
+        "text": "# {base}\r\n\r\ntrigger:\r\n  - main\r\n\r\npool:\r\n  vmImage: ubuntu-latest\r\n\r\njobs:\r\n  - job: Build\r\n    displayName: Build\r\n    steps:\r\n      - script: echo \"Replace this with your build\"\r\n        displayName: Build\r\n"
+      },
+      "x-gap": "expand: FBL has no plugin for part of a declared reading (finding B2, companion gap 1)."
+    }
+  }
+}

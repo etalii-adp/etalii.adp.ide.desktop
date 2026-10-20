@@ -1,0 +1,106 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An add with empty attributes applies each attribute binding's empty rule, with a set's defaults (FBL 0.6, sections 5.2, 6.2 and 6.4), in the json family. Four string attributes: kept (empty keep), removed (empty remove), refused (empty refuse) and undeclared (no empty, so keep, the default for strings). An add that gives refused its empty value is refused; the same add without refused writes \"kept\": \"\" and the same for undeclared, and leaves removed out; an add that gives no attribute writes the id alone. The new entries have the same keys as in ../insert-empty-yaml/, the same adds in YAML.",
+  "binding": "cards.fbl#cards",
+  "input": "deck.json",
+  "read": {
+    "elements": [
+      {
+        "id": "c1",
+        "type": "Card",
+        "attributes": {
+          "kept": "first",
+          "removed": "first",
+          "refused": "first",
+          "undeclared": "first"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "An add that gives refused its empty value is refused, whatever the other attributes are, and nothing is written (empty refuse applies to an insert as to a set).",
+      "edit": {
+        "add": {
+          "type": "Card",
+          "id": "c2",
+          "attributes": {
+            "kept": "",
+            "removed": "",
+            "refused": "",
+            "undeclared": ""
+          }
+        }
+      },
+      "refused": "A card's refused attribute cannot be empty.",
+      "splices": []
+    },
+    {
+      "doc": "The same add without refused, which it does not give, so its key is left out. An empty value is a value: kept (empty keep) and undeclared (no empty, keep for a string) are written with the empty string, and removed (empty remove) is left out. The keys follow insert.keys.",
+      "edit": {
+        "add": {
+          "type": "Card",
+          "id": "c2",
+          "attributes": {
+            "kept": "",
+            "removed": "",
+            "undeclared": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 155,
+          "end": 155,
+          "text": ",\r\n    {\r\n      \"id\": \"c2\",\r\n      \"kept\": \"\",\r\n      \"undeclared\": \"\"\r\n    }"
+        }
+      ],
+      "expect": "{\r\n  \"cards\": [\r\n    {\r\n      \"id\": \"c1\",\r\n      \"kept\": \"first\",\r\n      \"removed\": \"first\",\r\n      \"refused\": \"first\",\r\n      \"undeclared\": \"first\"\r\n    },\r\n    {\r\n      \"id\": \"c2\",\r\n      \"kept\": \"\",\r\n      \"undeclared\": \"\"\r\n    }\r\n  ]\r\n}\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 155,
+          "end": 232,
+          "text": ""
+        }
+      ],
+      "expect": "{\r\n  \"cards\": [\r\n    {\r\n      \"id\": \"c1\",\r\n      \"kept\": \"first\",\r\n      \"removed\": \"first\",\r\n      \"refused\": \"first\",\r\n      \"undeclared\": \"first\"\r\n    }\r\n  ]\r\n}\r\n"
+    },
+    {
+      "doc": "An add that gives no attribute at all writes the id alone: an attribute the add does not give has no value, and its key is left out whatever empty says.",
+      "edit": {
+        "add": {
+          "type": "Card",
+          "id": "c3"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 155,
+          "end": 155,
+          "text": ",\r\n    {\r\n      \"id\": \"c3\"\r\n    }"
+        }
+      ],
+      "expect": "{\r\n  \"cards\": [\r\n    {\r\n      \"id\": \"c1\",\r\n      \"kept\": \"first\",\r\n      \"removed\": \"first\",\r\n      \"refused\": \"first\",\r\n      \"undeclared\": \"first\"\r\n    },\r\n    {\r\n      \"id\": \"c3\"\r\n    }\r\n  ]\r\n}\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 155,
+          "end": 188,
+          "text": ""
+        }
+      ],
+      "expect": "{\r\n  \"cards\": [\r\n    {\r\n      \"id\": \"c1\",\r\n      \"kept\": \"first\",\r\n      \"removed\": \"first\",\r\n      \"refused\": \"first\",\r\n      \"undeclared\": \"first\"\r\n    }\r\n  ]\r\n}\r\n"
+    }
+  ]
+}

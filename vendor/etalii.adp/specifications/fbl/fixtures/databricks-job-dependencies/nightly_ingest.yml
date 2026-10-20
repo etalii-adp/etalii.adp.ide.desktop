@@ -1,0 +1,19 @@
+bundle:
+  name: ingest
+resources:
+  jobs:
+    nightly_ingest:
+      name: Nightly ingest
+      tasks:
+        - task_key: ingest
+          notebook_task:
+            notebook_path: ./ingest.ipynb
+        - task_key: quality_gate
+          depends_on:
+            - task_key: ingest
+          notebook_task:
+            notebook_path: ./gate.ipynb
+        - task_key: publish
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: ./publish.ipynb

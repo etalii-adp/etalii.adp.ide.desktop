@@ -1,0 +1,818 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.1/disl.schema.json#/$defs/Specification",
+  "disl": "0.1",
+  "language": {
+    "id": "net.etalii.adp.wardley.map",
+    "version": "0.1.0",
+    "label": "Wardley map",
+    "doc": {
+      "summary": "A value chain positioned against evolution, so a strategy can be argued about rather than asserted.",
+      "description": "A Wardley map places every **component** of a value chain on two axes. The vertical axis is **visibility**: how visible the component is to the user the map is drawn for, 1 at the top (the user's need) and 0 at the bottom (invisible infrastructure). The horizontal axis is **evolution** (maturity): how far the component has come in its life cycle, from 0 (genesis) to 1 (commodity), divided into the four stages Genesis, Custom built, Product (+rental) and Commodity (+utility). **Dependencies** join a component to what it needs; **flows** mark where value or money moves. A component can be marked as **evolving** to a later maturity, as having **inertia**, and with the decorators market, ecosystem, build, buy and outsource. **Pipelines** show one component offered at several maturities; **notes**, **annotations**, **accelerators** and **attitudes** (pioneers, settlers, town planners) comment on the map.\n\nDiagrams are stored in the Online Wardley Maps text format (`.owm`), so onlinewardleymaps.com and the tools that read it can open what ADP writes, and ADP can open what they write, with everything ADP does not understand preserved byte for byte. Origin tag: `wardley/map`. What this specification cannot express - the `.owm` grammar and its byte-identical round trip, the identity sidecar, the stage bands, the legacy pipeline form and the places where the standalone implementation differs - is described in `wardley-map.md` beside this file.",
+      "rationale": "The evolution axis puts each component where it is in its life cycle, which is the point of a Wardley map and what a generic diagram leaves out.",
+      "tags": ["wardley map", "strategy", "value chain", "evolution", "technology assessment", "planning and roadmapping"],
+      "seeAlso": [
+        { "title": "Aspects DISL cannot express", "href": "wardley-map.md" },
+        { "title": "Standalone module", "href": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/wardley-map" },
+        { "title": "Learn Wardley Mapping", "href": "https://learnwardleymapping.com/" },
+        { "title": "Online Wardley Maps", "href": "https://onlinewardleymaps.com/" }
+      ]
+    },
+    "authors": [{ "name": "Peter Vrenken", "url": "https://github.com/vrenken" }],
+    "license": "Apache-2.0",
+    "homepage": "https://etalii.net/adp",
+    "icon": "mdi-chart-line",
+    "fileExtension": "owm",
+    "requires": {
+      "conformance": "standard",
+      "features": ["placement.bound", "placement.computed", "shape.composite"]
+    }
+  },
+
+  "metamodel": {
+    "doc": "Components, anchors and submaps are the positioned elements a map is about; dependencies and flows connect them. Evolutions, pipelines, notes, accelerators, attitudes and annotations say something about the positioned elements or about the map. Every position is a pair of fractions: visibility (0 bottom, 1 top) and maturity (0 genesis, 1 commodity).",
+    "diagram": {
+      "attributes": {
+        "title": { "type": "string", "doc": "The map's `title` statement. A new map is created with the file's base name as its title." },
+        "style": { "type": "string", "doc": "The map's `style` statement (for example `wardley`, `handwritten`, `colour`). Kept and written back; the standalone host does not change its rendering by it." },
+        "size": { "type": "MapSize", "doc": "The map's `size [width, height]` statement, in pixels of the reference renderer. Kept and written back; the standalone host fits the map to its pane instead." },
+        "annotationsPosition": { "type": "MapPosition", "doc": "The `annotations [visibility, maturity]` statement: where the annotation legend sits. Kept and written back; the standalone host does not draw the legend." },
+        "urls": { "type": "UrlDefinition", "many": true, "doc": "The `url name [address]` statements, which components and submaps refer to by name." }
+      }
+    },
+    "dataTypes": {
+      "Fraction": { "base": "number", "min": 0, "max": 1, "doc": "A position on one axis of the map, as a fraction of the axis." },
+      "MapPosition": {
+        "fields": {
+          "visibility": { "type": "Fraction", "required": true },
+          "maturity": { "type": "Fraction", "required": true }
+        },
+        "display": { "cel": "'[' + string(value.visibility) + ', ' + string(value.maturity) + ']'" }
+      },
+      "MapSize": {
+        "fields": {
+          "width": { "type": "number", "min": 0, "required": true, "unit": "px" },
+          "height": { "type": "number", "min": 0, "required": true, "unit": "px" }
+        },
+        "display": { "cel": "string(value.width) + ' × ' + string(value.height)" }
+      },
+      "UrlDefinition": {
+        "fields": {
+          "name": { "type": "string", "required": true },
+          "address": { "type": "string", "required": true, "doc": "Taken as written. It is not fetched or opened by the runtime; a submap's address may name another map file." }
+        },
+        "display": { "cel": "value.name + ' → ' + value.address" }
+      },
+      "LegacyExtent": {
+        "fields": {
+          "start": { "type": "number", "required": true },
+          "end": { "type": "number", "required": true }
+        },
+        "doc": "The two numbers of a legacy `pipeline Name [a, b]` statement, kept as written."
+      }
+    },
+    "enums": {
+      "Decorator": {
+        "values": {
+          "market": { "label": "Market", "doc": "The component is a market." },
+          "ecosystem": { "label": "Ecosystem", "doc": "The component is an ecosystem." },
+          "build": { "label": "Build", "doc": "The component is built in house." },
+          "buy": { "label": "Buy", "doc": "The component is bought." },
+          "outsource": { "label": "Outsource", "doc": "The component is outsourced." }
+        },
+        "doc": "The decorators a component may carry, written `(market)`, `(build)` and so on after its coordinates. `market` and `ecosystem` are decorators, not kinds of component."
+      },
+      "EvolutionStage": {
+        "ordered": true,
+        "values": {
+          "genesis": { "label": "Genesis", "doc": "Maturity below 0.175." },
+          "custom": { "label": "Custom Built", "doc": "Maturity from 0.175 to below 0.4." },
+          "product": { "label": "Product (+rental)", "doc": "Maturity from 0.4 to below 0.7." },
+          "commodity": { "label": "Commodity (+utility)", "doc": "Maturity from 0.7 up to and including 1." }
+        },
+        "doc": "The four stages of the evolution axis. The boundaries are the reference renderer's offsets 3.5, 8 and 14 on its 20-unit scale."
+      },
+      "AttitudeKind": {
+        "values": {
+          "pioneers": { "label": "Pioneers" },
+          "settlers": { "label": "Settlers" },
+          "townplanners": { "label": "Town planners" }
+        }
+      },
+      "PipelineForm": {
+        "values": {
+          "nested": { "label": "Nested", "doc": "`pipeline Parent { component Child [maturity] ... }`." },
+          "legacy": { "label": "Legacy", "doc": "`pipeline Parent [a, b]`, with no components; read and written back unchanged, never edited." }
+        }
+      }
+    },
+    "types": {
+      "Positioned": {
+        "abstract": true,
+        "doc": "An element of the value chain with a name and a position on the map: a component, an anchor or a submap.",
+        "attributes": {
+          "name": { "type": "string", "required": true, "minLength": 1, "group": "Identity", "order": 1, "doc": "Unique among components, anchors and submaps; links, evolutions and pipelines refer to the element by it." },
+          "visibility": { "type": "Fraction", "required": true, "group": "Position", "order": 1, "step": 0.01 },
+          "maturity": { "type": "Fraction", "required": true, "group": "Position", "order": 2, "step": 0.01 },
+          "stage": { "type": "EvolutionStage", "readOnly": true, "group": "Position", "order": 3,
+            "derived": "self.maturity < 0.175 ? 'genesis' : self.maturity < 0.4 ? 'custom' : self.maturity < 0.7 ? 'product' : 'commodity'",
+            "doc": "The evolution stage the maturity falls in." },
+          "inertia": { "type": "bool", "default": false, "group": "Strategy", "order": 1, "doc": "The bare word `inertia`: the component resists change." },
+          "decorators": { "type": "Decorator", "many": true, "uniqueItems": true, "group": "Strategy", "order": 2 },
+          "url": { "type": "string", "group": "Strategy", "order": 3, "doc": "The name of a `url` definition, written `url(name)`." }
+        },
+        "labelAttribute": "name"
+      },
+      "Component": {
+        "extends": "Positioned",
+        "icon": "mdi-shape-outline",
+        "doc": "A capability, activity, practice or data in the value chain."
+      },
+      "Anchor": {
+        "extends": "Positioned",
+        "icon": "mdi-anchor",
+        "doc": "The user, or the user need, the value chain serves. A map with components is expected to have at least one."
+      },
+      "Submap": {
+        "extends": "Positioned",
+        "icon": "mdi-map-outline",
+        "doc": "A component whose detail is another map; its `url` names that map."
+      },
+      "Evolution": {
+        "doc": "The `evolve Name maturity` statement: where a component is expected to move to. Drawn as a ring at the target maturity, at the component's visibility, joined to the component.",
+        "attributes": {
+          "component": { "type": "Positioned", "required": true },
+          "maturity": { "type": "Fraction", "required": true, "doc": "The target maturity." },
+          "renamedTo": { "type": "string", "doc": "The new name in `evolve Name->NewName maturity`: what the component will be called once evolved." }
+        },
+        "labelAttribute": "renamedTo"
+      },
+      "Pipeline": {
+        "doc": "The `pipeline Parent` statement: one component offered at several maturities. Its components share the parent's visibility.",
+        "icon": "mdi-pipe",
+        "attributes": {
+          "component": { "type": "Component", "required": true, "doc": "The parent component, named after `pipeline`." },
+          "form": { "type": "PipelineForm", "default": "nested", "readOnly": true },
+          "legacyExtent": { "type": "LegacyExtent", "readOnly": true, "doc": "Present only on the legacy form." }
+        },
+        "children": { "allowed": ["PipelineComponent"], "ordered": true, "doc": "A legacy pipeline has no components. A pipeline may be empty." }
+      },
+      "PipelineComponent": {
+        "doc": "A component inside a pipeline. It has a maturity of its own and the pipeline's visibility.",
+        "attributes": {
+          "name": { "type": "string", "required": true, "minLength": 1, "unique": "parent", "group": "Identity" },
+          "maturity": { "type": "Fraction", "required": true, "group": "Position", "step": 0.01 },
+          "stage": { "type": "EvolutionStage", "readOnly": true, "group": "Position",
+            "derived": "self.maturity < 0.175 ? 'genesis' : self.maturity < 0.4 ? 'custom' : self.maturity < 0.7 ? 'product' : 'commodity'" }
+        },
+        "labelAttribute": "name"
+      },
+      "Note": {
+        "viewOnly": true,
+        "icon": "mdi-note-outline",
+        "doc": "The `note text [visibility, maturity]` statement: free text on the map.",
+        "attributes": {
+          "text": { "type": "string", "required": true, "minLength": 1 },
+          "visibility": { "type": "Fraction", "required": true },
+          "maturity": { "type": "Fraction", "required": true }
+        },
+        "labelAttribute": "text"
+      },
+      "Accelerator": {
+        "viewOnly": true,
+        "doc": "The `accelerator Name [visibility, maturity]` and `deaccelerator Name [visibility, maturity]` statements: a force that speeds up or slows down evolution.",
+        "attributes": {
+          "name": { "type": "string", "required": true },
+          "visibility": { "type": "Fraction", "required": true },
+          "maturity": { "type": "Fraction", "required": true },
+          "deaccelerator": { "type": "bool", "default": false }
+        },
+        "labelAttribute": "name"
+      },
+      "Attitude": {
+        "viewOnly": true,
+        "doc": "The `pioneers|settlers|townplanners [visibility1, maturity1, visibility2, maturity2]` statements: a region of the map worked with that attitude.",
+        "attributes": {
+          "attitude": { "type": "AttitudeKind", "required": true, "doc": "The statement's keyword: pioneers, settlers or townplanners." },
+          "visibility1": { "type": "Fraction", "required": true },
+          "maturity1": { "type": "Fraction", "required": true },
+          "visibility2": { "type": "Fraction", "required": true },
+          "maturity2": { "type": "Fraction", "required": true }
+        }
+      },
+      "Annotation": {
+        "viewOnly": true,
+        "icon": "mdi-comment-text-outline",
+        "doc": "The `annotation N [visibility, maturity] text` statement, or `annotation N [[v1, m1], [v2, m2], ...] text` with several occurrences. Every occurrence is drawn as a numbered pin.",
+        "attributes": {
+          "number": { "type": "int", "required": true, "min": 1, "unique": "type" },
+          "text": { "type": "string" }
+        },
+        "labelAttribute": "text",
+        "children": { "allowed": ["AnnotationPin"], "ordered": true, "min": 1 }
+      },
+      "AnnotationPin": {
+        "viewOnly": true,
+        "doc": "One occurrence of an annotation on the map.",
+        "attributes": {
+          "visibility": { "type": "Fraction", "required": true },
+          "maturity": { "type": "Fraction", "required": true }
+        }
+      }
+    },
+    "relations": {
+      "Link": {
+        "abstract": true,
+        "source": "Positioned",
+        "target": "Positioned",
+        "allowSelfLoops": false,
+        "allowParallel": false,
+        "attributes": {
+          "context": { "type": "string", "doc": "The text after `;` on the link's line." }
+        },
+        "doc": "A link between two positioned elements. The kind is part of the link's identity: one pair may carry one dependency and one flow."
+      },
+      "Dependency": {
+        "extends": "Link",
+        "label": "Dependency",
+        "doc": "`A->B`: A needs B."
+      },
+      "Flow": {
+        "extends": "Link",
+        "label": "Flow",
+        "doc": "`A+>B`: value, money or information moves from A to B."
+      }
+    }
+  },
+
+  "coordinates": {
+    "axes": {
+      "maturity": {
+        "kind": "linear",
+        "label": "Evolution",
+        "doc": "Maturity, from genesis at the left to commodity at the right. The four stages are drawn as bands (see `wardley-map.md`).",
+        "min": 0,
+        "max": 1,
+        "precision": 2
+      },
+      "visibility": {
+        "kind": "linear",
+        "label": "Value chain",
+        "doc": "Visibility to the user, from visible at the top to invisible at the bottom.",
+        "min": 0,
+        "max": 1,
+        "reversed": true,
+        "precision": 2
+      }
+    },
+    "systems": {
+      "map": {
+        "kind": "cartesian",
+        "x": "maturity",
+        "y": "visibility",
+        "bounds": { "x": [0, 1], "y": [0, 1] },
+        "grid": { "visible": false },
+        "doc": "The whole map is the unit square; positions are continuous, with no snapping."
+      }
+    },
+    "default": "map"
+  },
+
+  "notation": {
+    "theme": {
+      "tokens": {
+        "color.surface": "#FFFFFF",
+        "color.surface.raised": "#F4F3EF",
+        "color.text": "#1F1E1C",
+        "color.text.muted": "#6B6A65",
+        "color.border": "#8A8880"
+      },
+      "modes": {
+        "dark": {
+          "color.surface": "#1F1E1C",
+          "color.surface.raised": "#2A2926",
+          "color.text": "#F1EFE8",
+          "color.text.muted": "#A8A69E",
+          "color.border": "#B4B2A9"
+        }
+      },
+      "followSystem": true,
+      "doc": "The standalone host draws with its own theme's surface, text, muted text and border colours; these tokens stand in for them."
+    },
+    "styles": {
+      "mark": {
+        "fill": { "token": "color.surface" },
+        "stroke": { "color": { "token": "color.text" }, "width": 2 }
+      },
+      "name": { "font": { "size": 13, "color": { "token": "color.text" } } },
+      "muted": { "font": { "size": 12, "color": { "token": "color.text.muted" } } }
+    },
+    "shapes": {
+      "doubleRing": {
+        "label": "Submap",
+        "doc": "A ring inside a fainter outer ring: a component whose detail is another map.",
+        "parts": [
+          { "id": "outer", "shape": "circle", "box": { "x": -3, "y": -3, "w": "w + 6.0", "h": "h + 6.0" },
+            "style": { "fill": "none", "stroke": { "width": 1 }, "opacity": 0.6 } },
+          { "id": "inner", "shape": "circle", "box": { "x": 0, "y": 0, "w": "w", "h": "h" }, "outline": true }
+        ],
+        "aspectRatio": 1
+      }
+    },
+    "nodes": {
+      "Component": {
+        "shape": "circle",
+        "style": "mark",
+        "size": { "fixed": [18, 18] },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity" },
+          "y": { "attribute": "visibility" },
+          "anchor": "center",
+          "movable": true,
+          "doc": "Dragging moves the component on both axes; the move is clamped to the map."
+        },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "position": { "anchor": [1, 0.5], "offset": [6, 4], "align": "start" },
+            "editable": "inline", "style": "name" },
+          { "id": "decorators", "text": { "cel": "(self.decorators.map(d, string(d)) + (self.inertia ? ['inertia'] : [])).join(' · ')" },
+            "position": { "anchor": [1, 0.5], "offset": [6, 18], "align": "start" }, "editable": false, "style": "muted",
+            "visible": { "cel": "self.decorators.size() > 0 || self.inertia" } }
+        ],
+        "badges": [
+          { "id": "inertia", "position": "right", "offset": [4, 0], "shape": { "type": "line", "params": { "orientation": "vertical" } },
+            "size": 30, "style": { "stroke": { "color": { "token": "color.text" }, "width": 4, "cap": "round" } },
+            "visible": { "attribute": "inertia" }, "tooltip": "Inertia",
+            "doc": "A thick vertical bar beside the mark, from 6 above it to 6 below it." }
+        ],
+        "tooltip": { "cel": "self.name + ' (' + string(self.stage) + ')'" }
+      },
+      "Anchor": {
+        "shape": "rect",
+        "style": { "fill": { "token": "color.text" }, "stroke": { "color": { "token": "color.text" }, "width": 2 } },
+        "size": { "fixed": [18, 18] },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity" },
+          "y": { "attribute": "visibility" },
+          "anchor": "center"
+        },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "position": { "anchor": [1, 0.5], "offset": [6, 4], "align": "start" },
+            "editable": "inline", "style": "name" }
+        ]
+      },
+      "Submap": {
+        "shape": "doubleRing",
+        "style": "mark",
+        "size": { "fixed": [18, 18] },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity" },
+          "y": { "attribute": "visibility" },
+          "anchor": "center"
+        },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "position": { "anchor": [1, 0.5], "offset": [6, 4], "align": "start" },
+            "editable": "inline", "style": "name" }
+        ]
+      },
+      "Evolution": {
+        "shape": "circle",
+        "style": { "fill": "none", "stroke": { "color": { "token": "color.text" }, "width": 2, "dash": [4, 3] } },
+        "size": { "fixed": [18, 18] },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity" },
+          "y": { "cel": "self.component.visibility" },
+          "anchor": "center",
+          "movable": false,
+          "doc": "The target sits at the component's visibility; it is changed through the component's Evolve operation, not by dragging."
+        },
+        "labels": [
+          { "id": "renamedTo", "text": { "attribute": "renamedTo" }, "position": { "anchor": [1, 0.5], "offset": [6, 4], "align": "start" },
+            "editable": false, "style": "name", "visible": { "cel": "has(self.renamedTo)" } }
+        ],
+        "selectable": false,
+        "deletable": false
+      },
+      "Pipeline": {
+        "shape": "none",
+        "size": { "fixed": [0, 0] },
+        "placement": {
+          "system": "map",
+          "x": { "cel": "self.component.maturity" },
+          "y": { "cel": "self.component.visibility" },
+          "anchor": "center",
+          "movable": false
+        },
+        "labels": [],
+        "selectable": false,
+        "doc": "A pipeline draws no box of its own; its components are drawn at the parent's visibility."
+      },
+      "PipelineComponent": {
+        "shape": "circle",
+        "style": "mark",
+        "size": { "fixed": [18, 18] },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity" },
+          "y": { "cel": "self.parent.component.visibility" },
+          "anchor": "center",
+          "movable": { "x": true, "y": false },
+          "doc": "Dragging changes the maturity only; the visibility is the pipeline's."
+        },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "position": { "anchor": [1, 0.5], "offset": [6, 4], "align": "start" },
+            "editable": false, "style": "name" }
+        ]
+      },
+      "Note": {
+        "shape": "text",
+        "style": { "font": { "size": 14, "color": { "token": "color.text" } } },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity" },
+          "y": { "attribute": "visibility" },
+          "anchor": "left",
+          "movable": false
+        },
+        "labels": [ { "id": "text", "text": { "attribute": "text" }, "editable": false } ],
+        "selectable": false
+      },
+      "Accelerator": {
+        "shape": { "type": "line", "params": { "orientation": "horizontal" } },
+        "style": { "stroke": { "color": { "token": "color.text" }, "width": 2 } },
+        "size": { "fixed": [16, 2] },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity" },
+          "y": { "attribute": "visibility" },
+          "anchor": "left",
+          "movable": false
+        },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "position": { "anchor": [0, 0.5], "offset": [22, 4], "align": "start" },
+            "editable": false, "style": "name" }
+        ],
+        "variants": [
+          { "when": "self.deaccelerator", "style": { "stroke": { "dash": [4, 3] } } }
+        ],
+        "selectable": false
+      },
+      "Attitude": {
+        "shape": "rect",
+        "style": { "fill": { "token": "color.text" }, "fillOpacity": 0.05, "stroke": { "color": { "token": "color.text.muted" }, "width": 1, "dash": [4, 4] } },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity1" },
+          "x2": { "attribute": "maturity2" },
+          "y": { "attribute": "visibility1" },
+          "y2": { "attribute": "visibility2" },
+          "movable": false,
+          "resizable": false
+        },
+        "labels": [ { "id": "kind", "text": { "cel": "enumLabel('AttitudeKind', self.attitude)" }, "position": "top-left", "editable": false, "style": "muted" } ],
+        "layer": "background",
+        "selectable": false
+      },
+      "Annotation": {
+        "shape": "none",
+        "size": { "fixed": [0, 0] },
+        "labels": [],
+        "selectable": false,
+        "doc": "The annotation itself is not drawn; each of its pins is."
+      },
+      "AnnotationPin": {
+        "shape": "circle",
+        "style": { "fill": { "token": "color.surface" }, "stroke": { "color": { "token": "color.text" }, "width": 1.5 } },
+        "size": { "fixed": [22, 22] },
+        "placement": {
+          "system": "map",
+          "x": { "attribute": "maturity" },
+          "y": { "attribute": "visibility" },
+          "anchor": "center",
+          "movable": false
+        },
+        "labels": [ { "id": "number", "text": { "cel": "string(self.parent.number)" }, "position": "center", "editable": false, "style": "muted" } ],
+        "tooltip": { "cel": "has(self.parent.text) ? self.parent.text : ''" },
+        "selectable": false
+      }
+    },
+    "edges": {
+      "Dependency": {
+        "line": { "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 }, "routing": "straight" },
+        "sourceMarker": "none",
+        "targetMarker": "none",
+        "selectable": false,
+        "doc": "A plain straight line with no arrowhead: the value chain reads top to bottom."
+      },
+      "Flow": {
+        "line": { "stroke": { "color": { "token": "color.text" }, "width": 3 }, "routing": "straight" },
+        "sourceMarker": "none",
+        "targetMarker": "none",
+        "selectable": false
+      },
+      "Evolution.component": {
+        "line": { "stroke": { "color": { "token": "color.text" }, "width": 2, "dash": [8, 6] }, "routing": "straight" },
+        "sourceMarker": "none",
+        "targetMarker": "none",
+        "selectable": false,
+        "doc": "The dashed line from a component to its evolution target."
+      }
+    },
+    "canvas": {
+      "background": { "token": "color.surface" },
+      "bounds": { "x": 0, "y": 0, "w": 1000, "h": 1000 },
+      "legend": { "visible": false }
+    }
+  },
+
+  "toolbox": {
+    "groups": [
+      {
+        "id": "map",
+        "label": "Wardley map",
+        "tools": [
+          { "id": "component", "label": "Component", "icon": "mdi-shape-outline", "creates": "Component", "mode": "click",
+            "initial": { "visibility": 0.5, "maturity": 0.5 }, "after": "editLabel",
+            "doc": "A capability, activity or practice in the value chain." },
+          { "id": "anchor", "label": "Anchor", "icon": "mdi-anchor", "creates": "Anchor", "mode": "click",
+            "initial": { "visibility": 0.5, "maturity": 0.5 }, "after": "editLabel",
+            "doc": "The user, or the user need, the value chain serves." },
+          { "id": "market", "label": "Market", "icon": "mdi-store-outline", "creates": "Component", "mode": "click",
+            "initial": { "visibility": 0.5, "maturity": 0.5, "decorators": ["market"] }, "after": "editLabel",
+            "doc": "A component decorated as a market." },
+          { "id": "ecosystem", "label": "Ecosystem", "icon": "mdi-graph-outline", "creates": "Component", "mode": "click",
+            "initial": { "visibility": 0.5, "maturity": 0.5, "decorators": ["ecosystem"] }, "after": "editLabel",
+            "doc": "A component decorated as an ecosystem." },
+          { "id": "submap", "label": "Submap", "icon": "mdi-map-outline", "creates": "Submap", "mode": "click",
+            "initial": { "visibility": 0.5, "maturity": 0.5 }, "after": "editLabel",
+            "doc": "A component whose detail is another map." },
+          { "id": "pipeline", "kind": "operation", "label": "Pipeline", "icon": "mdi-pipe", "operation": "addToPipeline",
+            "doc": "Drop on a component to start its pipeline, or to add a component to it." },
+          { "id": "note", "label": "Note", "icon": "mdi-note-outline", "creates": "Note", "mode": "click",
+            "initial": { "visibility": 0.5, "maturity": 0.5 }, "after": "editLabel",
+            "doc": "Free text on the map." },
+          { "id": "annotation", "label": "Annotation", "icon": "mdi-comment-text-outline", "creates": "Annotation", "mode": "click",
+            "initial": { "number": { "cel": "diagram.nodesOfType('Annotation').size() == 0 ? 1 : diagram.nodesOfType('Annotation').map(a, a.number).max() + 1" } },
+            "after": "editLabel",
+            "doc": "A numbered comment pinned to the map. It takes the next free number." }
+        ]
+      }
+    ],
+    "generic": { "select": true, "pan": true },
+    "contextMenus": [
+      {
+        "for": ["Positioned"],
+        "placement": "menu",
+        "standardEntries": false,
+        "when": "!env.readOnly",
+        "tools": [
+          { "kind": "editLabel", "label": "Rename…", "shortcut": "F2" },
+          { "kind": "operation", "operation": "evolve", "label": "Evolve to…" },
+          { "kind": "operation", "operation": "stopEvolving", "label": "Stop evolving" },
+          { "kind": "operation", "operation": "toggleInertia", "label": "Mark as having inertia" },
+          { "kind": "operation", "operation": "toggleMarket", "label": "Mark as market" },
+          { "kind": "operation", "operation": "toggleEcosystem", "label": "Mark as ecosystem" },
+          { "kind": "operation", "operation": "toggleBuild", "label": "Mark as build" },
+          { "kind": "operation", "operation": "toggleBuy", "label": "Mark as buy" },
+          { "kind": "operation", "operation": "toggleOutsource", "label": "Mark as outsource" },
+          { "kind": "connect", "creates": "Dependency", "label": "Link to…" },
+          { "kind": "connect", "creates": "Flow", "label": "Flow to…" },
+          { "kind": "operation", "operation": "addToPipeline", "label": "Add to pipeline…" },
+          { "kind": "delete", "label": "Remove", "shortcut": "Delete" }
+        ],
+        "doc": "The labels of the evolve, inertia and decorator entries change with the element's state; see `wardley-map.md`."
+      },
+      {
+        "for": ["PipelineComponent"],
+        "placement": "menu",
+        "standardEntries": false,
+        "when": "!env.readOnly",
+        "tools": [
+          { "kind": "operation", "operation": "removeFromPipeline", "label": "Remove from pipeline", "shortcut": "Delete" }
+        ]
+      },
+      {
+        "for": ["Dependency", "Flow"],
+        "placement": "menu",
+        "standardEntries": false,
+        "when": "!env.readOnly",
+        "tools": [
+          { "kind": "delete", "label": "Remove link", "shortcut": "Delete" }
+        ]
+      }
+    ]
+  },
+
+  "forms": {
+    "positioned": {
+      "for": "Positioned",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "group", "label": "Identity", "items": [
+          { "attribute": "name" },
+          { "kind": "computed", "label": "Kind", "value": { "cel": "self.type == 'Anchor' ? 'anchor' : self.type == 'Submap' ? 'submap' : 'component'" } }
+        ] },
+        { "kind": "group", "label": "Position", "items": [
+          { "attribute": "visibility", "widget": "number" },
+          { "attribute": "maturity", "widget": "number" },
+          { "attribute": "stage", "widget": "readonly" },
+          { "kind": "computed", "label": "Evolves to",
+            "value": { "cel": "diagram.nodesOfType('Evolution').exists(e, e.component == self) ? string(diagram.nodesOfType('Evolution').filter(e, e.component == self)[0].maturity) : ''" } }
+        ] },
+        { "kind": "group", "label": "Strategy", "items": [
+          { "attribute": "inertia", "widget": "switch" },
+          { "attribute": "decorators", "widget": "multiselect" },
+          { "attribute": "url", "widget": "readonly" }
+        ] }
+      ]
+    },
+    "pipelineComponent": {
+      "for": "PipelineComponent",
+      "usage": ["inspector"],
+      "items": [
+        { "attribute": "name", "widget": "readonly" },
+        { "kind": "computed", "label": "Kind", "value": { "cel": "'pipeline component'" } },
+        { "kind": "computed", "label": "Visibility", "value": { "cel": "string(self.parent.component.visibility)" } },
+        { "attribute": "maturity", "widget": "number" },
+        { "attribute": "stage", "widget": "readonly" }
+      ]
+    },
+    "link": {
+      "for": ["Dependency", "Flow"],
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "computed", "label": "From", "value": { "cel": "self.source.name" } },
+        { "kind": "computed", "label": "To", "value": { "cel": "self.target.name" } },
+        { "kind": "computed", "label": "Kind", "value": { "cel": "self.type == 'Flow' ? 'flow' : 'dependency'" } },
+        { "attribute": "context" }
+      ]
+    },
+    "pipeline": {
+      "for": "Pipeline",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "computed", "label": "Name", "value": { "cel": "self.component.name" } },
+        { "kind": "computed", "label": "Visibility", "value": { "cel": "string(self.component.visibility)" } },
+        { "kind": "computed", "label": "Components", "value": { "cel": "self.children.map(c, c.name).join(', ')" } }
+      ]
+    }
+  },
+
+  "constraints": {
+    "rules": [
+      {
+        "id": "uniqueName",
+        "scope": "Positioned",
+        "rule": "diagram.nodes.filter(n, n.type in ['Component', 'Anchor', 'Submap'] && n.name == self.name).size() == 1",
+        "severity": "error",
+        "enforcement": "prevent-and-report",
+        "attribute": "name",
+        "message": { "cel": "'Another component, anchor or submap is already named \"' + self.name + '\".'" },
+        "doc": "Standalone rule `wardley.duplicate-name`. Links, evolutions and pipelines refer to elements by name, so a name must identify one element."
+      },
+      {
+        "id": "anchorMissing",
+        "scope": "diagram",
+        "when": "diagram.nodesOfType('Component').size() > 0",
+        "rule": "diagram.nodesOfType('Anchor').size() > 0",
+        "severity": "warning",
+        "message": "This map has components but no anchor: a value chain is drawn for a user or a user need.",
+        "doc": "Standalone rule `wardley.anchor-missing`."
+      },
+      {
+        "id": "urlUndefined",
+        "scope": "Positioned",
+        "when": "has(self.url)",
+        "rule": "diagram.urls.exists(u, u.name == self.url)",
+        "severity": "warning",
+        "attribute": "url",
+        "message": { "cel": "'No url definition is named \"' + self.url + '\".'" },
+        "doc": "Standalone rule `wardley.url-undefined`."
+      },
+      {
+        "id": "pipelineComponentUnique",
+        "scope": "PipelineComponent",
+        "rule": "self.parent.children.filter(c, c.name == self.name).size() == 1",
+        "severity": "error",
+        "enforcement": "prevent-and-report",
+        "attribute": "name",
+        "message": "A pipeline cannot hold two components with the same name."
+      },
+      {
+        "id": "oneEvolutionPerComponent",
+        "scope": "Evolution",
+        "rule": "diagram.nodesOfType('Evolution').filter(e, e.component == self.component).size() == 1",
+        "severity": "warning",
+        "message": "This component already evolves; only the first evolve statement is drawn."
+      }
+    ],
+    "doc": "Positions out of the unit square are reported by `std.facets` on the `Fraction` data type (standalone rule `wardley.coordinate-out-of-range`); links, evolutions and pipelines naming a missing element by `std.references` (`wardley.link-target-missing`, `wardley.evolve-target-missing`, `wardley.pipeline-parent-missing`). `wardley.submap-missing`, which needs the file system, is described in `wardley-map.md`."
+  },
+
+  "behavior": {
+    "operations": {
+      "evolve": {
+        "label": "Evolve to…",
+        "for": ["Positioned"],
+        "params": { "maturity": { "type": "Fraction", "required": true, "label": "Target maturity" } },
+        "actions": [
+          { "if": "diagram.nodesOfType('Evolution').exists(e, e.component == self)",
+            "then": [ { "set": { "maturity": "p.maturity" }, "target": "diagram.nodesOfType('Evolution').filter(e, e.component == self)[0]" } ],
+            "else": [ { "create": { "type": "'Evolution'", "attributes": { "component": "self", "maturity": "p.maturity" } } } ] }
+        ],
+        "doc": "Adds `evolve Name maturity`, or changes the target of the existing one."
+      },
+      "stopEvolving": {
+        "label": "Stop evolving",
+        "for": ["Positioned"],
+        "enabled": "diagram.nodesOfType('Evolution').exists(e, e.component == self)",
+        "actions": [
+          { "delete": "diagram.nodesOfType('Evolution').filter(e, e.component == self)" }
+        ]
+      },
+      "toggleInertia": {
+        "label": "Toggle inertia",
+        "for": ["Positioned"],
+        "actions": [ { "set": { "inertia": "!self.inertia" } } ]
+      },
+      "toggleMarket": {
+        "label": "Toggle market",
+        "for": ["Positioned"],
+        "actions": [ { "set": { "decorators": "'market' in self.decorators ? self.decorators.filter(d, d != 'market') : self.decorators + ['market']" } } ]
+      },
+      "toggleEcosystem": {
+        "label": "Toggle ecosystem",
+        "for": ["Positioned"],
+        "actions": [ { "set": { "decorators": "'ecosystem' in self.decorators ? self.decorators.filter(d, d != 'ecosystem') : self.decorators + ['ecosystem']" } } ]
+      },
+      "toggleBuild": {
+        "label": "Toggle build",
+        "for": ["Positioned"],
+        "actions": [ { "set": { "decorators": "'build' in self.decorators ? self.decorators.filter(d, d != 'build') : self.decorators + ['build']" } } ]
+      },
+      "toggleBuy": {
+        "label": "Toggle buy",
+        "for": ["Positioned"],
+        "actions": [ { "set": { "decorators": "'buy' in self.decorators ? self.decorators.filter(d, d != 'buy') : self.decorators + ['buy']" } } ]
+      },
+      "toggleOutsource": {
+        "label": "Toggle outsource",
+        "for": ["Positioned"],
+        "actions": [ { "set": { "decorators": "'outsource' in self.decorators ? self.decorators.filter(d, d != 'outsource') : self.decorators + ['outsource']" } } ]
+      },
+      "addToPipeline": {
+        "label": "Add to pipeline…",
+        "for": ["Component"],
+        "params": { "name": { "type": "string", "required": true, "minLength": 1, "label": "Component name" } },
+        "enabled": "!diagram.nodesOfType('Pipeline').exists(p, p.component == self && p.form == 'legacy')",
+        "actions": [
+          { "if": "!diagram.nodesOfType('Pipeline').exists(p, p.component == self)",
+            "then": [ { "create": { "type": "'Pipeline'", "attributes": { "component": "self", "form": "'nested'" } } } ] },
+          { "create": { "type": "'PipelineComponent'",
+                        "attributes": { "name": "p.name", "maturity": "self.maturity" },
+                        "parent": "diagram.nodesOfType('Pipeline').filter(q, q.component == self)[0]" } }
+        ],
+        "doc": "Starts the component's pipeline if it has none, then adds a component to it at the parent's maturity. Not offered on a legacy pipeline."
+      },
+      "removeFromPipeline": {
+        "label": "Remove from pipeline",
+        "for": ["PipelineComponent"],
+        "actions": [ { "delete": "self" } ]
+      }
+    },
+    "deletion": {
+      "Positioned": {
+        "relations": "delete",
+        "references": "delete-referencing",
+        "confirm": "Remove this element, and every link and evolution that names it?"
+      }
+    },
+    "doc": "Every edit is one undoable step. Nothing can be edited while the map's file is read-only."
+  },
+
+  "layout": {
+    "trigger": "manual",
+    "doc": "There is no automatic layout: every position is authored, and positions are the map's meaning."
+  },
+
+  "persistence": {
+    "format": "plugin:net.etalii.adp.wardley.owm",
+    "encoding": "utf-8",
+    "files": { "mode": "single", "model": "{name}.owm", "doc": "The `.owm` body only. A sidecar `{name}.identities.json` keeps element ids stable across edits; see `wardley-map.md`." },
+    "ids": { "strategy": "uuid-v4" },
+    "view": { "store": ["viewport", "labelOffsets"] },
+    "doc": "The Online Wardley Maps text format, read and written by the `net.etalii.adp.wardley.owm` plugin. A document ADP did not change is written back byte for byte; an edit replaces only the text it changes; statements ADP does not model are kept as they are. The per-component label offset `label [dx, dy]` is kept as view data."
+  },
+
+  "plugins": {
+    "net.etalii.adp.wardley.owm": {
+      "version": "^0.1.0",
+      "provides": ["persistenceFormat"],
+      "required": true,
+      "doc": "Reads and writes the Online Wardley Maps `.owm` text format (the `.wm` extension is read too). References are by name in the text; renaming an element rewrites every statement that names it. Unmodelled statements (`y_axis`, `x_axis`, `evolution`, `presentation` and unknown keywords) and `//` comments are preserved verbatim.",
+      "source": { "url": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/wardley-map/backend" }
+    }
+  }
+}

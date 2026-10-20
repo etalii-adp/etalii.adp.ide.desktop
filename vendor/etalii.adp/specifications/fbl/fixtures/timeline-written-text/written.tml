@@ -1,0 +1,27 @@
+timeline: 1
+# What a timeline reads is what its author wrote.
+elements:
+  - id: 007
+    label: yes
+    begin: 2026/07/01
+    end:
+    row: 2
+  - id: alpha
+    label: 1.0
+    begin: 2026-03-10
+    row: "3"
+  - id: beta
+    label: 'null'
+    begin: July 5, 2026
+    row: wide   # not a row, read as 0
+  - id: "12"
+    label: ~
+    begin: 2026-04-01T10:00
+    row:
+connections:
+  - id: c1
+    from: 007
+    to: alpha
+  - id: c2
+    from: 7
+    to: beta

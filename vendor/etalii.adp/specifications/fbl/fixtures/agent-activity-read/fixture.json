@@ -1,0 +1,73 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An activity file with every key the binding reads, CRLF endings, two comments and a key the diagram does not read (an environment's owner). Reading gives every element, task and pull request by its stored id, the root as the diagram, and the placement and group state under view by the element they name (agent-activity-diagram.dis, persistence.view.bind); FBL reports nothing. Opening and saving without an edit writes the bytes that were read.",
+  "binding": "../../../../definitions/diagrams/agent-activity-diagram.fbl#aad",
+  "input": "one-day.aad",
+  "read": {
+    "elements": [
+      {
+        "id": "diagram",
+        "type": "Diagram"
+      },
+      {
+        "id": "p-standalone",
+        "type": "Project"
+      },
+      {
+        "id": "p-adp",
+        "type": "Project"
+      },
+      {
+        "id": "s-knowledge",
+        "type": "Specification"
+      },
+      {
+        "id": "t-k2",
+        "type": "Task"
+      },
+      {
+        "id": "t-k6",
+        "type": "Task"
+      },
+      {
+        "id": "s-rider",
+        "type": "Specification"
+      },
+      {
+        "id": "a-dev2",
+        "type": "Agent"
+      },
+      {
+        "id": "l-kd",
+        "type": "Location"
+      },
+      {
+        "id": "pr-150",
+        "type": "PullRequest"
+      },
+      {
+        "id": "e-fractal",
+        "type": "Environment"
+      },
+      {
+        "id": "pinned:s-knowledge",
+        "type": "Placement"
+      },
+      {
+        "id": "groups:s-knowledge#pending",
+        "type": "GroupState"
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "agent-activity-diagram: 1\r\n# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.\r\nprojects:\r\n  - id: p-standalone\r\n    name: etalii.adp.ide.standalone\r\n    link: https://github.com/etalii-adp/etalii.adp.ide.standalone\r\n  - id: p-adp\r\n    name: etalii.adp\r\nspecifications:\r\n  - id: s-knowledge\r\n    project: p-standalone\r\n    name: Knowledge designer\r\n    link: .spec-workflow/specs/knowledge-designer/requirements.md\r\n    status: progressing\r\n    tasks:\r\n      - id: t-k2\r\n        title: Trial the three bindings\r\n        status: progressing\r\n        updated: 2026-10-08T23:44:00+02:00\r\n      # Waits on Peter's answer about the table header.\r\n      - id: t-k6\r\n        title: Table component\r\n        status: input-required\r\n        updated: 2026-10-08T21:10:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\n  - id: s-rider\r\n    project: p-standalone\r\n    name: Rider warnings cleanup\r\n    status: archived\r\nagents:\r\n  - id: a-dev2\r\n    name: Developer 2\r\n    specification: s-knowledge\r\n    link: https://claude.ai/code\r\nlocations:\r\n  - id: l-kd\r\n    agent: a-dev2\r\n    environment: e-fractal\r\n    folder: .claude/worktrees/kd\r\n    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd\r\n    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer\r\n    branch: features/knowledge-designer\r\n    pullRequests:\r\n      - id: pr-150\r\n        title: \"150: Knowledge designer, tasks 2 and 6\"\r\n        updated: 2026-10-08T23:50:00+02:00\r\n        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150\r\nenvironments:\r\n  - id: e-fractal\r\n    name: Fractal\r\n    kind: local-machine\r\n    owner: Peter   # not read by the diagram, kept\r\nview:\r\n  showArchived: false\r\n  placements:\r\n    - element: s-knowledge\r\n      x: 240\r\n      y: -80\r\n  groups:\r\n    - element: s-knowledge\r\n      group: pending\r\n      collapsed: false\r\n"
+    }
+  ]
+}

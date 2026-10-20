@@ -1,0 +1,62 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.1",
+  "doc": "A bare Databricks pipeline settings file (definitions/diagrams/databricks-pipeline.dis, databricks-pipeline.md), as the pipeline UI and API export it: JSON, or the same settings in YAML. Shows the json family's separator rules: adding a library gives the previous last item its comma, removing the last item takes the new last item's comma away.",
+  "bindings": {
+    "settings": {
+      "title": "Databricks pipeline settings",
+      "claims": {
+        "extensions": [".json", ".yml", ".yaml"],
+        "shared": true,
+        "registrationOnly": true,
+        "origins": ["databricks/pipeline"],
+        "suggest": { "contains": ["\"libraries\"", "libraries:"] }
+      },
+      "body": { "kind": "file", "family": "json", "alsoRead": ["yaml"] },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "finalNewline": true },
+      "elements": [
+        {
+          "name": "pipeline",
+          "type": "Pipeline",
+          "at": "/",
+          "when": "has(entry.name) || has(entry.libraries)",
+          "attributes": {
+            "name": { "key": "name", "empty": "refuse" },
+            "catalog": { "key": "catalog", "empty": "remove", "absent": { "json": "refuse" } },
+            "schema": { "key": "schema", "empty": "remove", "absent": { "json": "refuse" } },
+            "channel": { "key": "channel", "empty": "remove", "absent": { "json": "refuse" } },
+            "serverless": { "key": "serverless", "readOnly": true },
+            "continuous": { "key": "continuous", "readOnly": true },
+            "development": { "key": "development", "readOnly": true }
+          }
+        },
+        {
+          "name": "library",
+          "type": "Library",
+          "at": "/libraries/*",
+          "attributes": {
+            "libraryKind": {
+              "value": "has(entry.notebook) ? 'notebook' : has(entry.file) ? 'file' : has(entry.glob) ? 'glob' : 'other'",
+              "readOnly": "The kind is which mapping the library entry carries."
+            },
+            "path": {
+              "value": "has(entry.notebook) ? entry.notebook.path : has(entry.file) ? entry.file.path : has(entry.glob) ? entry.glob.include : ''",
+              "readOnly": "A library's path is changed by removing it and adding another."
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/libraries",
+            "when": "attributes.libraryKind == 'notebook' || attributes.libraryKind == 'file'",
+            "emit": "{ \"{libraryKind}\": { \"path\": \"{path}\" } }"
+          },
+          "remove": { "container": "keep" }
+        }
+      ],
+      "template": {
+        "text": "{\r\n  \"name\": \"{base}\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./{key}\" } }\r\n  ]\r\n}\r\n"
+      }
+    }
+  }
+}

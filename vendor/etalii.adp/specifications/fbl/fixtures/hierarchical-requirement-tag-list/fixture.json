@@ -1,0 +1,759 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The tag list in the registration of the Hierarchical Requirement Designer (User Story 7; FR-005, FR-029, FR-049, SC-006), through hierarchical-requirement.fbl#markdown, whose registration declares tags as a kept block keyed by names, in the history (FBL 0.7 section 8.1). The body, requirements.md, is the input of hierarchical-requirement-tags, byte for byte. The input registration, requirements.adp, is the text FBL section 8.4 creates beside it when the first setting changes under createOnFirstPlacement: the origin alone, since the body has the registration's base name, with the body's CRLF. It holds no block, so it reads as a document without a registration does (DESL 0.2 section 5.5), and it stands for one: deleting the registration and opening the body again reads the same (FR-005, SC-006). read lists the body's elements, then the members of the three lists, which DESL adds to them (FBL section 15.3 names the elements of the body; the list members are elements of the document's model too, DESL 0.2 sections 5.5 and 7.7.2): the tags security, ux, self-service and privacy are implicit members, in the order of their first appearance in the body (ITEM-0001, REQ-0003, REQ-0004, REQ-0005), spelt as they first appear (ux on REQ-0003 before UX on REQ-0004) and with the colour default, with no action of the body's writer (FR-029); the categories and the states are their initial members. The steps: the first recolour, which writes the whole list and so creates the tags block, with its undo and redo; a recolour; a reorder as a remove-entry and an insert-entry; and the registration's halves of hierarchical-requirement-tags' new tag, rename and delete, with the block present and with it absent. A colour and a place write the registration only: they have no splice in the Markdown file (FR-049, User Story 7 scenario 3). A new tag, a rename and a delete write the Markdown file too, in the same edit (FBL 0.7 section 8.4); one fixture shows one file, and hierarchical-requirement-tags shows that file's splices.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "requirements.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Sign-in",
+          "tags": [
+            "security"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A user signs in with an e-mail address and a password.",
+          "tags": [
+            "security"
+          ],
+          "category": "functional",
+          "state": "accepted"
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A password has at least twelve characters.",
+          "tags": [],
+          "category": "non-functional",
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Sessions",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A session ends after 30 minutes without activity.",
+          "tags": [
+            "Security",
+            "ux"
+          ]
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Profile",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A user changes their own e-mail address.",
+          "tags": [
+            "UX",
+            "self-service"
+          ],
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A user deletes their account.",
+          "tags": [
+            "privacy"
+          ],
+          "state": "rejected"
+        }
+      },
+      {
+        "id": "tag/security",
+        "type": "Tag",
+        "attributes": {
+          "name": "security",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "tag/ux",
+        "type": "Tag",
+        "attributes": {
+          "name": "ux",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "tag/self-service",
+        "type": "Tag",
+        "attributes": {
+          "name": "self-service",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "tag/privacy",
+        "type": "Tag",
+        "attributes": {
+          "name": "privacy",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "category/functional",
+        "type": "Category",
+        "attributes": {
+          "name": "functional",
+          "colour": "blue"
+        }
+      },
+      {
+        "id": "category/non-functional",
+        "type": "Category",
+        "attributes": {
+          "name": "non-functional",
+          "colour": "purple"
+        }
+      },
+      {
+        "id": "category/technical",
+        "type": "Category",
+        "attributes": {
+          "name": "technical",
+          "colour": "brown"
+        }
+      },
+      {
+        "id": "state/proposed",
+        "type": "State",
+        "attributes": {
+          "name": "proposed",
+          "colour": "gray"
+        }
+      },
+      {
+        "id": "state/accepted",
+        "type": "State",
+        "attributes": {
+          "name": "accepted",
+          "colour": "green"
+        }
+      },
+      {
+        "id": "state/rejected",
+        "type": "State",
+        "attributes": {
+          "name": "rejected",
+          "colour": "red"
+        }
+      },
+      {
+        "id": "state/done",
+        "type": "State",
+        "attributes": {
+          "name": "done",
+          "colour": "blue"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "recolourTag on ux with blue, the first change of the tag list. The list's block is absent, so the change writes the whole list (DESL 0.2 section 5.5, absent or complete), and the implicit members become stored members, in their order (DESL 0.2 section 7.7.2): one ensure-container of tags:, then one insert-entry per member, all at the same offset, in that order (FBL 0.7 sections 6.2 and 8.4). tags is the first block the binding declares and none exists, so it goes right after the headers, here after line 1. ux is written with its new colour in its place; the others with their colour, default (DESL 0.2 section 5.5, values: an enumeration value as its stored form). The setting edit names the change the person made; the members that come with it are DESL's to add, which a host knows from the specification. The Markdown file is not written.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "ux",
+          "value": "blue"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "tags:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  security: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  ux: blue\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  self-service: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  privacy: default\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "Undo of the first recolour: tags: and its entries go, and the registration is the text the first setting created. The file itself stays: creating it was not part of the edit (FBL 0.7 section 8.4), and with no block it reads as no registration does.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 40,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 61,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 61,
+          "end": 73,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 73,
+          "end": 98,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 98,
+          "end": 118,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\n"
+    },
+    {
+      "doc": "Redo writes the whole list again, at the same offset.",
+      "redo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "tags:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  security: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  ux: blue\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  self-service: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  privacy: default\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "recolourTag on privacy with red: a changed value of a kept block is a replace-value of the value (FBL 0.7 section 8.4). No splice in the Markdown file: a colour is not in it (FR-049).",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "privacy",
+          "value": "red"
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 109,
+          "end": 116,
+          "text": "red"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: red\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 109,
+          "end": 112,
+          "text": "default"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "moveTag on privacy without after, dragged to the front: the operation reorders it before the first member, security (hierarchical-requirement.des, moveTag). A move in a kept block is a remove-entry and an insert-entry of the entry's own bytes (FBL 0.7 sections 6.1 and 8.4), the insertion's place taken in the registration before the edit, at the start of security's line, among the entries that remain once the moved one is taken out. No splice in the Markdown file: a place in the list is not in it (FR-049).",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "privacy",
+          "position": {
+            "before": "security"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 40,
+          "text": "  privacy: default\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 98,
+          "end": 118,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  privacy: default\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n"
+    },
+    {
+      "doc": "Undo of the reorder: the copy at the front goes and privacy's line comes back after self-service.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 60,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 118,
+          "end": 118,
+          "text": "  privacy: default\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "The registration's half of hierarchical-requirement-tags' step 9, addTag on REQ-0004 with the name user experience, written user-experience: the create of the new Tag puts it at the end of the list (DESL 0.2 section 8.2, a create without after or before is appended last), which in a kept block without a position is an insert-entry after the last entry (FBL 0.7 section 8.4), here the end of the registration. The insert-key in the Markdown file belongs to the same edit.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "user-experience",
+          "value": "default"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 118,
+          "end": 118,
+          "text": "  user-experience: default\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n  user-experience: default\r\n"
+    },
+    {
+      "doc": "Undo takes the new member out; in the same step the Markdown file loses #user-experience.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 118,
+          "end": 146,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "The registration's half of hierarchical-requirement-tags' step 13, renameTag on security with infosec: a renamed key of a kept block is a replace-value of the key (FBL 0.7 section 8.4); the entry keeps its place and its colour. The three replace-value splices of the carriers in the Markdown file belong to the same edit, one step of the history (FR-028).",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "security",
+          "rename": "infosec"
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 42,
+          "end": 50,
+          "text": "infosec"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  infosec: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "Undo gives the entry its old key back; in the same step every carrier gets security back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 42,
+          "end": 49,
+          "text": "security"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "The registration's half of hierarchical-requirement-tags' step 15, deleteTag on ux: a removed entry is a remove-entry of its line (FBL 0.7 section 8.4). The block keeps its other entries, so its line stays. The two remove-key splices of the carriers in the Markdown file belong to the same edit.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "ux",
+          "remove": true
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 61,
+          "end": 73,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "Undo puts ux: blue back in its place; in the same step both carriers get their word back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 61,
+          "end": 61,
+          "text": "  ux: blue\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: blue\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "Undo of the first recolour, redone in the third step: the registration is the created text again, with no block, and the tags are implicit members once more.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 40,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 61,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 61,
+          "end": 73,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 73,
+          "end": 98,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 98,
+          "end": 118,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\n"
+    },
+    {
+      "doc": "The registration's half of hierarchical-requirement-tags' step 9 as that fixture has it, against a body with no registration: the create of user-experience is the list's first change, so it writes the whole list, the implicit members first, in their order, then the new member last, all with default (DESL 0.2 sections 5.5 and 7.7.2). Without a registration, createOnFirstPlacement creates this registration first, outside the edit (FBL 0.7 section 8.4).",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "user-experience",
+          "value": "default"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "tags:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  security: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  ux: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  self-service: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  privacy: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  user-experience: default\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  ux: default\r\n  self-service: default\r\n  privacy: default\r\n  user-experience: default\r\n"
+    },
+    {
+      "doc": "Undo takes the whole list out again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 40,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 61,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 61,
+          "end": 76,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 76,
+          "end": 101,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 101,
+          "end": 121,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 121,
+          "end": 149,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\n"
+    },
+    {
+      "doc": "The registration's half of hierarchical-requirement-tags' step 13 against a body with no registration: renaming the implicit member security is the list's first change, so the whole list is written, with infosec in security's place. The setting edit names an entry the block does not hold yet: the reading taken is that a setting on an absent list's member is planned as the first change of that list (DESL 0.2 section 5.5), and FBL section 15.3 does not say otherwise.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "security",
+          "rename": "infosec"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "tags:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  infosec: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  ux: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  self-service: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  privacy: default\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  infosec: default\r\n  ux: default\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "Undo takes the whole list out again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 40,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 60,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 60,
+          "end": 75,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 75,
+          "end": 100,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 100,
+          "end": 120,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\n"
+    },
+    {
+      "doc": "The registration's half of hierarchical-requirement-tags' step 15 against a body with no registration: deleting the implicit member ux is the list's first change, so the whole list is written without it: the other three implicit members become stored members. The body's carriers lose #ux in the same edit, so ux is not read as an implicit member afterwards either.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "ux",
+          "remove": true
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "tags:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  security: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  self-service: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  privacy: default\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: default\r\n  self-service: default\r\n  privacy: default\r\n"
+    },
+    {
+      "doc": "Undo takes the whole list out again, and the registration is the input.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 40,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 61,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 61,
+          "end": 86,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 86,
+          "end": 106,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\n"
+    }
+  ]
+}

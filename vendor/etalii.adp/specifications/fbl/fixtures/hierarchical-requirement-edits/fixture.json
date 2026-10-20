@@ -1,0 +1,183 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Edits of a requirement document (hierarchical-requirement.fbl#markdown), CRLF endings, in which an agent wrote a second REQ-0002 into ITEM-0002. Line 2 is the mark line: the document's attributes lastItem ITEM-0003 and lastRequirement REQ-0006 (DESL 5.2, 5.3.5), named here since a fixture's read has no place for them; REQ-0005 and REQ-0006 were deleted, and their numbers are not given again. The first holder of REQ-0002, line 11, keeps the id; the second, line 14, is reported by std.duplicateId, listed under the same id and ephemeral (DESL 5.3.4). Each edit is followed by its undo, so every edit starts from the input. An edit while an entry is REQ-NEW is numbering/ beside this one, and the mark line written again is no-mark/, since a fixture has one input.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "web-shop.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Backend",
+          "tags": [
+            "core"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A session ends after 30 minutes without activity."
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Users sign in with an e-mail address and a password."
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Sessions"
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "Tokens are refreshed without the user noticing."
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A session can be ended from every device at once.",
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Data"
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "Personal data is kept no longer than it is needed.",
+          "category": "non-functional"
+        }
+      },
+      {
+        "id": "assessment/0",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "about": "REQ-0001",
+          "resolved": false
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "std.duplicateId",
+        "line": 14
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read: no splice, and the duplicate is not renumbered, since the designer never changes an id by itself (SC-004, DESL 5.3.4).",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  Everything behind the public interface.\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional state:accepted\r\n    Activity is any request the user makes. See [REQ-0002] for sign-in.\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n    - REQ-0002 A session can be ended from every device at once. state:proposed\r\n- ITEM-0003 Data\r\n  - REQ-0004 Personal data is kept no longer than it is needed. category:non-functional\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n"
+    },
+    {
+      "doc": "A change of one title splices that entry only: a replace-value of REQ-0004's group title in its item's text, the trailing word category:non-functional, the marker and the indentation staying as they are (FBL 6.3, lines and bullets: a changed value). No other entry, and not the mark line, is touched: the edit numbers nothing (FR-025).",
+      "edit": {
+        "set": {
+          "element": "REQ-0004",
+          "attributes": {
+            "title": "Personal data is removed once it is no longer needed."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 658,
+          "end": 708,
+          "text": "Personal data is removed once it is no longer needed."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  Everything behind the public interface.\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional state:accepted\r\n    Activity is any request the user makes. See [REQ-0002] for sign-in.\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n    - REQ-0002 A session can be ended from every device at once. state:proposed\r\n- ITEM-0003 Data\r\n  - REQ-0004 Personal data is removed once it is no longer needed. category:non-functional\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 658,
+          "end": 711,
+          "text": "Personal data is kept no longer than it is needed."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  Everything behind the public interface.\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional state:accepted\r\n    Activity is any request the user makes. See [REQ-0002] for sign-in.\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n    - REQ-0002 A session can be ended from every device at once. state:proposed\r\n- ITEM-0003 Data\r\n  - REQ-0004 Personal data is kept no longer than it is needed. category:non-functional\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n"
+    },
+    {
+      "doc": "The person gives the duplicate the next number from its finding, the user's action DESL 5.3.4 asks for and 5.3.5 offers: REQ-0007, one more than the higher of the mark REQ-0006 and the highest requirement number in the document, REQ-0004. It is written in place of the old id, a replace-value of the second holder's group id on line 14 (FBL 5.3, a rename of the id), and the mark is set to it in the same transaction, a replace-value of the group lastRequirement on line 2 (DESL 5.3.5, FBL 6.3). No reference is rewritten: none can name the second holder (DESL 5.3.4), and [REQ-0002] in REQ-0001's description names the first. FBL 15.3's edits have no form for a new id and none to name the second holder of a duplicated id, so the edit is written as a set of id on the element REQ-0002, with x-occurrence 2 saying that it is the second element read with that id.",
+      "edit": {
+        "set": {
+          "element": "REQ-0002",
+          "attributes": {
+            "id": "REQ-0007"
+          },
+          "occurrence": 2
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 82,
+          "end": 90,
+          "text": "REQ-0007"
+        },
+        {
+          "operation": "replace-value",
+          "start": 552,
+          "end": 560,
+          "text": "REQ-0007"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0007 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  Everything behind the public interface.\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional state:accepted\r\n    Activity is any request the user makes. See [REQ-0002] for sign-in.\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n    - REQ-0007 A session can be ended from every device at once. state:proposed\r\n- ITEM-0003 Data\r\n  - REQ-0004 Personal data is kept no longer than it is needed. category:non-functional\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced: the duplicate is REQ-0002 again and the mark REQ-0006, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 82,
+          "end": 90,
+          "text": "REQ-0006"
+        },
+        {
+          "operation": "replace-value",
+          "start": 552,
+          "end": 560,
+          "text": "REQ-0002"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0006 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  Everything behind the public interface.\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security category:functional state:accepted\r\n    Activity is any request the user makes. See [REQ-0002] for sign-in.\r\n  - REQ-0002 Users sign in with an e-mail address and a password. #security\r\n  - ITEM-0002 Sessions\r\n    - REQ-0003 Tokens are refreshed without the user noticing.\r\n    - REQ-0002 A session can be ended from every device at once. state:proposed\r\n- ITEM-0003 Data\r\n  - REQ-0004 Personal data is kept no longer than it is needed. category:non-functional\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is 30 minutes right for the mobile app?\r\n"
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The lines family: a rename rewrites every link and loop that names the variable; a value with no word in the line re-emits the line in canonical form (so 's' becomes '+'); removing a variable removes its links. The ids are the ones DISL derives under definitions/diagrams/causal-loop-diagram.dis (natural, with its prefixes): the binding stores none.",
+  "binding": "../../causal-loop-diagram.fbl#cld",
+  "input": "growth.cld",
+  "steps": [
+    {
+      "doc": "Renaming a variable rewrites its declaration and every reference to it, one splice each, as one edit.",
+      "edit": {
+        "set": {
+          "element": "variable:births",
+          "attributes": {
+            "name": "birthRate"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 60,
+          "end": 66,
+          "text": "birthRate"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 114,
+          "end": 120,
+          "text": "birthRate"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 129,
+          "end": 135,
+          "text": "birthRate"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 204,
+          "end": 210,
+          "text": "birthRate"
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable birthRate \"Births\"\r\n\r\n# Reinforcing.\r\nlink population -> birthRate s\r\nlink birthRate -> population + delayed\r\n\r\nloop R1 \"Births beget births\" population birthRate\r\n"
+    },
+    {
+      "doc": "The weight has no word in the line, so the whole statement is re-emitted from the rule's emit template.",
+      "edit": {
+        "set": {
+          "element": "link:population|birthRate",
+          "attributes": {
+            "weight": 2
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "re-emit-line",
+          "start": 98,
+          "end": 128,
+          "text": "link population -> birthRate + weight=2"
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable birthRate \"Births\"\r\n\r\n# Reinforcing.\r\nlink population -> birthRate + weight=2\r\nlink birthRate -> population + delayed\r\n\r\nloop R1 \"Births beget births\" population birthRate\r\n"
+    },
+    {
+      "doc": "A statement is removed with its line ending; the blank line before it stays.",
+      "edit": {
+        "remove": {
+          "element": "loop:R1"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 181,
+          "end": 233,
+          "text": ""
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable birthRate \"Births\"\r\n\r\n# Reinforcing.\r\nlink population -> birthRate + weight=2\r\nlink birthRate -> population + delayed\r\n\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 181,
+          "end": 181,
+          "text": "loop R1 \"Births beget births\" population birthRate\r\n"
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable birthRate \"Births\"\r\n\r\n# Reinforcing.\r\nlink population -> birthRate + weight=2\r\nlink birthRate -> population + delayed\r\n\r\nloop R1 \"Births beget births\" population birthRate\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "re-emit-line",
+          "start": 98,
+          "end": 137,
+          "text": "link population -> birthRate s"
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable birthRate \"Births\"\r\n\r\n# Reinforcing.\r\nlink population -> birthRate s\r\nlink birthRate -> population + delayed\r\n\r\nloop R1 \"Births beget births\" population birthRate\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 60,
+          "end": 69,
+          "text": "births"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 117,
+          "end": 126,
+          "text": "births"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 135,
+          "end": 144,
+          "text": "births"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 213,
+          "end": 222,
+          "text": "births"
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\n# Reinforcing.\r\nlink population -> births s\r\nlink births -> population + delayed\r\n\r\nloop R1 \"Births beget births\" population births\r\n"
+    }
+  ],
+  "read": {
+    "elements": [
+      {
+        "id": "variable:population",
+        "type": "Variable"
+      },
+      {
+        "id": "variable:births",
+        "type": "Variable"
+      },
+      {
+        "id": "loop:R1",
+        "type": "Loop"
+      },
+      {
+        "id": "link:population|births",
+        "type": "Link"
+      },
+      {
+        "id": "link:births|population",
+        "type": "Link"
+      }
+    ]
+  }
+}

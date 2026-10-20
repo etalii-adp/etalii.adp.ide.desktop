@@ -1,0 +1,323 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The category list in the registration (FR-030; DESL 0.2 section 5.5), through hierarchical-requirement.fbl#markdown, whose registration declares categories as a kept block keyed by names (FBL 0.7 section 8.1). requirements.md is the body of hierarchical-requirement-category-state, byte for byte; requirements.adp is the text FBL section 8.4 creates beside it under createOnFirstPlacement with the first setting: the origin alone, with the body's CRLF. With no categories block the list is its initial members, functional blue, non-functional purple and technical brown (hierarchical-requirement.des, persistence.settings.categories), then legal, the implicit member REQ-0004 names, with the colour default (DESL 0.2 section 7.7.2); category:Technical on REQ-0005 names technical, and REQ-0004's second word counts for nothing. read lists the body's elements, then the members of the category and the state lists. Each step is the list's first change, so it writes the initial members with it, and is followed by its undo; the states block is not written, since its list does not change.",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "requirements.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Ordering",
+          "tags": [
+            "shop"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A customer orders without signing in.",
+          "tags": [
+            "guest",
+            "checkout"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "An order is confirmed by e-mail.",
+          "tags": [
+            "mail"
+          ],
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "An order can be cancelled within an hour.",
+          "category": "technical",
+          "state": "accepted"
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Orders are kept for seven years.",
+          "tags": [
+            "archive"
+          ],
+          "category": "legal"
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Delivery"
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A parcel is tracked from the warehouse to the door.",
+          "category": "Technical"
+        }
+      },
+      {
+        "id": "category/functional",
+        "type": "Category",
+        "attributes": {
+          "name": "functional",
+          "colour": "blue"
+        }
+      },
+      {
+        "id": "category/non-functional",
+        "type": "Category",
+        "attributes": {
+          "name": "non-functional",
+          "colour": "purple"
+        }
+      },
+      {
+        "id": "category/technical",
+        "type": "Category",
+        "attributes": {
+          "name": "technical",
+          "colour": "brown"
+        }
+      },
+      {
+        "id": "category/legal",
+        "type": "Category",
+        "attributes": {
+          "name": "legal",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "state/proposed",
+        "type": "State",
+        "attributes": {
+          "name": "proposed",
+          "colour": "gray"
+        }
+      },
+      {
+        "id": "state/accepted",
+        "type": "State",
+        "attributes": {
+          "name": "accepted",
+          "colour": "green"
+        }
+      },
+      {
+        "id": "state/rejected",
+        "type": "State",
+        "attributes": {
+          "name": "rejected",
+          "colour": "red"
+        }
+      },
+      {
+        "id": "state/done",
+        "type": "State",
+        "attributes": {
+          "name": "done",
+          "colour": "blue"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "addCategory with the name security and the colour red: the first change of the category list, which is absent, so the whole list is written (DESL 0.2 section 5.5, absent or complete): the initial members first, in the order of initial, then the implicit member legal (DESL 0.2 section 7.7.2), then security, which a create without after or before appends last (DESL 0.2 section 8.2). One ensure-container of categories:, then one insert-entry per member, all at one offset, in that order (FBL 0.7 sections 6.2 and 8.4). categories goes after tags in the binding's order, and no block exists, so it goes right after the headers. The setting edit names the change the person made; the members that come with it are DESL's. The Markdown file is not written.",
+      "edit": {
+        "setting": {
+          "block": "categories",
+          "key": "security",
+          "value": "red"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "categories:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  functional: blue\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  non-functional: purple\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  technical: brown\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  legal: default\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  security: red\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncategories:\r\n  functional: blue\r\n  non-functional: purple\r\n  technical: brown\r\n  legal: default\r\n  security: red\r\n"
+    },
+    {
+      "doc": "Undo takes the whole list out, and the registration is the created text again; the initial members are the list once more.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 46,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 46,
+          "end": 66,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 66,
+          "end": 92,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 92,
+          "end": 112,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 112,
+          "end": 130,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 130,
+          "end": 147,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\n"
+    },
+    {
+      "doc": "The registration's half of the rename in hierarchical-requirement-category-state's step 15, renameCategory on technical with engineering: the first change of the absent list, so the whole list is written, with engineering in technical's place and its colour brown. The two replace-value splices of the carriers in the Markdown file belong to the same edit, one step of the history.",
+      "edit": {
+        "setting": {
+          "block": "categories",
+          "key": "technical",
+          "rename": "engineering"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "categories:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  functional: blue\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  non-functional: purple\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  engineering: brown\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  legal: default\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncategories:\r\n  functional: blue\r\n  non-functional: purple\r\n  engineering: brown\r\n  legal: default\r\n"
+    },
+    {
+      "doc": "Undo takes the whole list out, and the registration is the input again; in the same step the carriers get technical back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 46,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 46,
+          "end": 66,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 66,
+          "end": 92,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 92,
+          "end": 114,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 114,
+          "end": 132,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\n"
+    }
+  ]
+}
