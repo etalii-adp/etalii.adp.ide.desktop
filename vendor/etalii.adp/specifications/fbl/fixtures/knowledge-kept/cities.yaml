@@ -1,0 +1,29 @@
+ded: "0.1"
+designer: etalii/knowledge
+name: Cities
+properties:
+  - id: p1
+    name: Name
+    type: text
+    title: true
+  - id: p3
+    name: Population
+    type: number
+views:
+  - id: v1
+    name: All cities
+    density: compact   # a setting this version does not know
+rows:
+  - id: r1
+    cells:
+      - property: p1
+        text: Amsterdam
+      - property: p3
+        number: 931298
+    source: census 2024   # not modelled, kept
+  - id: r2
+    cells:
+      - property: p1
+        text: Antwerp
+      - property: p3
+        number: about half a million

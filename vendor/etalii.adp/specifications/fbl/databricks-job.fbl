@@ -1,0 +1,81 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.1",
+  "doc": "One job of a Databricks Asset Bundle resource file (definitions/diagrams/databricks-job.dis, databricks-job.md). The file belongs to Databricks' tooling and has a shared extension, so the binding claims it only through a registration, whose resource header picks the job when the file declares several.",
+  "bindings": {
+    "job": {
+      "title": "Databricks job",
+      "claims": {
+        "extensions": [".yml", ".yaml"],
+        "shared": true,
+        "registrationOnly": true,
+        "origins": ["databricks/job"],
+        "suggest": { "contains": ["resources:", "jobs:", "task_key:"] }
+      },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "sequenceIndent": "indented", "finalNewline": true, "quote": "double" },
+      "registration": { "resource": { "capture": "job" }, "createOnFirstPlacement": false },
+      "elements": [
+        {
+          "name": "task",
+          "type": "Task",
+          "at": "/resources/jobs/{job}/tasks/*",
+          "when": "has(entry.task_key)",
+          "attributes": {
+            "key": { "key": "task_key", "reference": { "to": ["task"], "by": "key" }, "empty": "refuse" },
+            "taskType": {
+              "value": "['notebook_task', 'spark_python_task', 'python_wheel_task', 'sql_task', 'dbt_task', 'pipeline_task', 'run_job_task', 'condition_task', 'for_each_task', 'spark_jar_task'].exists(k, k in entry) ? ['notebook_task', 'spark_python_task', 'python_wheel_task', 'sql_task', 'dbt_task', 'pipeline_task', 'run_job_task', 'condition_task', 'for_each_task', 'spark_jar_task'].filter(k, k in entry)[0].replace('_task', '') : 'other'",
+              "readOnly": "The type is which *_task mapping the file carries; change it in the file."
+            },
+            "clusterKey": { "key": "job_cluster_key", "empty": "remove", "reference": { "to": ["cluster"], "by": "key" } },
+            "runIf": { "key": "run_if", "empty": "remove" }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/resources/jobs/{job}/tasks",
+            "keys": ["task_key", "depends_on", "job_cluster_key", "run_if"],
+            "skeleton": "notebook_task:\n  notebook_path: ./{key}.ipynb\n"
+          },
+          "remove": { "cascade": ["dependency"] },
+          "undo": "snapshot"
+        },
+        {
+          "name": "cluster",
+          "type": "JobCluster",
+          "at": "/resources/jobs/{job}/job_clusters/*",
+          "attributes": {
+            "key": { "key": "job_cluster_key", "reference": { "to": ["cluster"], "by": "key" }, "empty": "refuse" },
+            "sparkVersion": { "key": "spark_version", "child": "new_cluster" },
+            "nodeType": { "key": "node_type_id", "child": "new_cluster" },
+            "workers": { "key": "num_workers", "child": "new_cluster" }
+          },
+          "readOnly": "Job clusters are edited in the file."
+        }
+      ],
+      "relations": [
+        {
+          "name": "dependency",
+          "type": "Dependency",
+          "at": "/resources/jobs/{job}/tasks/*/depends_on/*",
+          "source": { "key": "task_key" },
+          "target": { "parent": "task_key" },
+          "attributes": {
+            "outcome": { "key": "outcome", "empty": "remove" }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "depends_on",
+            "create": { "at": { "after": "task_key" } },
+            "keys": ["task_key", "outcome"]
+          },
+          "remove": { "container": "remove-when-empty" },
+          "undo": "snapshot"
+        }
+      ],
+      "template": {
+        "text": "resources:\r\n  jobs:\r\n    {key}:\r\n      name: {base}\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: ./main.ipynb\r\n"
+      }
+    }
+  }
+}

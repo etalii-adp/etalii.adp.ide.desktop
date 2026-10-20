@@ -1,0 +1,54 @@
+{
+  "$schema": "https://etalii.net/adp/did/schema/0.2/did.schema.json#/$defs/Definition",
+  "did": "0.2",
+  "language": { "id": "org.example.history", "version": "0.2.0" },
+  "meta": { "createdAt": "2026-09-30T09:00:00Z", "modifiedAt": "2026-09-30T11:25:00Z", "generator": "Reference runtime 0.2" },
+  "diagram": {
+    "attributes": {
+      "title": "Writing and the web",
+      "from": "-3200-01",
+      "to": "2026-12"
+    }
+  },
+  "elements": [
+    { "id": "era_cuneiform", "type": "Era",
+      "attributes": { "name": "Cuneiform", "start": "-3200-01", "stop": "-0100-12", "kind": "script" } },
+    { "id": "era_codex", "type": "Era",
+      "attributes": { "name": "Codex", "start": "0000-01", "stop": "1450-12", "kind": "book" } },
+    { "id": "era_web", "type": "Era",
+      "attributes": { "name": "World Wide Web", "start": "1989-03", "stop": "2026-09", "kind": "network" } },
+    { "id": "ev_moveable_type", "type": "Event",
+      "attributes": { "name": "Moveable type in Mainz", "at": "1450-01-01" } },
+    { "id": "ev_proposal", "type": "Event",
+      "attributes": { "name": "Information management: a proposal", "at": "1989-03-12" } },
+    { "id": "ev_first_site", "type": "Event",
+      "attributes": { "name": "First website online", "at": "1991-08-06" } },
+    { "id": "ev_draft", "type": "Event",
+      "attributes": { "name": "Draft of this diagram started", "at": "2026-09-30T09:00:00Z" } },
+    { "id": "ev_review", "type": "Event",
+      "attributes": { "name": "Review of this diagram", "at": "2026-10-02T14:30" } }
+  ],
+  "relations": [
+    { "id": "inf_codex_web", "type": "Influence", "source": "era_codex", "target": "era_web" },
+    { "id": "inf_web_open", "type": "Influence", "source": "era_web",
+      "attributes": { "note": "Not yet connected" } }
+  ],
+  "views": [
+    {
+      "id": "v_eras",
+      "viewpoint": "main",
+      "name": "Eras",
+      "viewport": { "x": 0, "y": 0, "zoom": 1 },
+      "nodes": {
+        "ev_review": { "labels": { "name": { "dx": 0, "dy": -8 } } }
+      },
+      "edges": {}
+    }
+  ],
+  "suppressions": [
+    { "constraint": "eraOverlap", "element": "era_web",
+      "reason": "The web era is still open.", "by": "editor@example.org", "at": "2026-09-30T11:20:00Z" },
+    { "constraint": "sourcesCited", "subject": "bibliography",
+      "reason": "The bibliography is kept outside this diagram.", "by": "editor@example.org", "at": "2026-09-30T11:22:00Z" }
+  ]
+}

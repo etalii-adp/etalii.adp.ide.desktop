@@ -1,0 +1,149 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "JSON separators: a new last item gives the previous one its comma; removing the last item takes the comma off the new last one; a key the object lacks is refused rather than spliced.",
+  "binding": "../../databricks-pipeline.fbl#settings",
+  "input": "sales.json",
+  "steps": [
+    {
+      "doc": "The comma and the new item are one splice, written on one line like its siblings.",
+      "edit": {
+        "add": {
+          "type": "Library",
+          "attributes": {
+            "libraryKind": "notebook",
+            "path": "./gold"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 150,
+          "end": 150,
+          "text": ",\r\n    { \"notebook\": { \"path\": \"./gold\" } }"
+        }
+      ],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"main\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./bronze\" } },\r\n    { \"notebook\": { \"path\": \"./silver\" } },\r\n    { \"notebook\": { \"path\": \"./gold\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    },
+    {
+      "doc": "Removing the last item removes the separator before it.",
+      "edit": {
+        "remove": {
+          "element": "library:./gold"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 150,
+          "end": 193,
+          "text": ""
+        }
+      ],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"main\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./bronze\" } },\r\n    { \"notebook\": { \"path\": \"./silver\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    },
+    {
+      "doc": "Removing the first item removes its line and the separator after it.",
+      "edit": {
+        "remove": {
+          "element": "library:./bronze"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 63,
+          "end": 108,
+          "text": ""
+        }
+      ],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"main\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./silver\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    },
+    {
+      "doc": "Setting a key the JSON object does not have is refused and writes nothing.",
+      "edit": {
+        "set": {
+          "element": "pipeline",
+          "attributes": {
+            "schema": "sales"
+          }
+        }
+      },
+      "refused": "The settings file has no \"schema\" to rewrite.",
+      "splices": [],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"main\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./silver\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    },
+    {
+      "doc": "A JSON string is replaced with its quotes; the comma after it stays.",
+      "edit": {
+        "set": {
+          "element": "pipeline",
+          "attributes": {
+            "catalog": "prod"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 36,
+          "end": 42,
+          "text": "\"prod\""
+        }
+      ],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"prod\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./silver\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 36,
+          "end": 42,
+          "text": "\"main\""
+        }
+      ],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"main\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./silver\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 63,
+          "end": 63,
+          "text": "    { \"notebook\": { \"path\": \"./bronze\" } },\r\n"
+        }
+      ],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"main\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./bronze\" } },\r\n    { \"notebook\": { \"path\": \"./silver\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 150,
+          "end": 150,
+          "text": ",\r\n    { \"notebook\": { \"path\": \"./gold\" } }"
+        }
+      ],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"main\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./bronze\" } },\r\n    { \"notebook\": { \"path\": \"./silver\" } },\r\n    { \"notebook\": { \"path\": \"./gold\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 150,
+          "end": 193,
+          "text": ""
+        }
+      ],
+      "expect": "{\r\n  \"name\": \"sales\",\r\n  \"catalog\": \"main\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"./bronze\" } },\r\n    { \"notebook\": { \"path\": \"./silver\" } }\r\n  ],\r\n  \"continuous\": false\r\n}\r\n"
+    }
+  ]
+}

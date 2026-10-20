@@ -1,0 +1,173 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A requirement document, CRLF endings, written by hand without the mark line: line 2 is the title. No statement matches the rule marks, so the document has no Marks entry and the marks lastItem and lastRequirement have no value, which reads as no mark: the count continues from the highest number in the document (DESL 5.3.5). REQ-NEW on line 8 is reported by std.missingId and read as REQ-0003, after the highest requirement number REQ-0002. A missing mark line is not reported. Each edit is followed by its undo.",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "web-shop.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Backend"
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A session ends after 30 minutes without activity."
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Users sign in with an e-mail address and a password."
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Data"
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "Personal data is kept no longer than it is needed."
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "std.missingId",
+        "line": 8
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A change of REQ-0001's title numbers REQ-NEW as REQ-0003 (a replace-value of its group id) and so sets the mark lastRequirement in the same transaction (DESL 5.3.5). The body has no entry of the type Marks, which the specification maps as the document, so the set is planned as an add of such an entry by the rule marks' insert (DESL 5.2): an insert-entry at after-header, as a line of its own right after the line the header matched (FBL 6.2), the emit with the line ending of the line the insertion point is on, CRLF (FBL 6.3). The emit's optional segment [ {lastItem}] is left out, since lastItem has no value: the edit gives no item a number (FBL 6.2, emit). The line is written again with the next numbering, <!-- last: REQ-0003 -->, which the rule marks reads back. The title is a replace-value of its group.",
+      "edit": {
+        "set": {
+          "element": "REQ-0001",
+          "attributes": {
+            "title": "A session ends after 15 minutes without activity."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 61,
+          "end": 61,
+          "text": "<!-- last: REQ-0003 -->\r\n"
+        },
+        {
+          "operation": "replace-value",
+          "start": 128,
+          "end": 177,
+          "text": "A session ends after 15 minutes without activity."
+        },
+        {
+          "operation": "replace-value",
+          "start": 183,
+          "end": 190,
+          "text": "REQ-0003"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: REQ-0003 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend\r\n  - REQ-0001 A session ends after 15 minutes without activity.\r\n  - REQ-0003 Users sign in with an e-mail address and a password.\r\n- ITEM-0002 Data\r\n  - REQ-0002 Personal data is kept no longer than it is needed.\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced: the mark line goes with the rest, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 61,
+          "end": 86,
+          "text": ""
+        },
+        {
+          "operation": "replace-value",
+          "start": 153,
+          "end": 202,
+          "text": "A session ends after 30 minutes without activity."
+        },
+        {
+          "operation": "replace-value",
+          "start": 208,
+          "end": 216,
+          "text": "REQ-NEW"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend\r\n  - REQ-0001 A session ends after 30 minutes without activity.\r\n  - REQ-NEW Users sign in with an e-mail address and a password.\r\n- ITEM-0002 Data\r\n  - REQ-0002 Personal data is kept no longer than it is needed.\r\n"
+    },
+    {
+      "doc": "A new item at the top level (the operation addTopItem): its id is ITEM-0003, one more than the highest item number, there being no mark (DESL 5.3.5). The edit also writes REQ-NEW's id, REQ-0003. Both marks are set in the same transaction, and the Marks entry is added as above with both of the emit's optional segments: <!-- last: ITEM-0003 REQ-0003 --> at after-header. The item is planned by the rule item's insert, place last-child, container requirements: with no parent, its siblings are the section's top-level items, and it goes after the line span of the last of them, ITEM-0002 with REQ-0002 in it, which ends at the end of the body, with ITEM-0002's marker - and indentation, and the emit {id} {title} (FBL 6.2, 6.3, a new item). The end of the body is after a line ending, so the item's line takes the body's CRLF and ends with it.",
+      "edit": {
+        "add": {
+          "type": "Item",
+          "id": "ITEM-0003",
+          "attributes": {
+            "title": "New item"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 61,
+          "end": 61,
+          "text": "<!-- last: ITEM-0003 REQ-0003 -->\r\n"
+        },
+        {
+          "operation": "replace-value",
+          "start": 183,
+          "end": 190,
+          "text": "REQ-0003"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 328,
+          "end": 328,
+          "text": "- ITEM-0003 New item\r\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0003 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend\r\n  - REQ-0001 A session ends after 30 minutes without activity.\r\n  - REQ-0003 Users sign in with an e-mail address and a password.\r\n- ITEM-0002 Data\r\n  - REQ-0002 Personal data is kept no longer than it is needed.\r\n- ITEM-0003 New item\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced: the item and the mark line go, REQ-NEW is a placeholder again, and the document is the input again, so ITEM-0003 is free once more (DESL 5.3.5).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 61,
+          "end": 96,
+          "text": ""
+        },
+        {
+          "operation": "replace-value",
+          "start": 218,
+          "end": 226,
+          "text": "REQ-NEW"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 364,
+          "end": 386,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend\r\n  - REQ-0001 A session ends after 30 minutes without activity.\r\n  - REQ-NEW Users sign in with an e-mail address and a password.\r\n- ITEM-0002 Data\r\n  - REQ-0002 Personal data is kept no longer than it is needed.\r\n"
+    }
+  ]
+}

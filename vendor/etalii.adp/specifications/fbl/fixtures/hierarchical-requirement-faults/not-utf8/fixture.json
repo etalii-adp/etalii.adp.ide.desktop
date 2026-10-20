@@ -1,0 +1,25 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A file that is not UTF-8 (FBL section 2.6): line 3 holds the byte 0xE9 of Latin-1 for é, which no UTF-8 sequence starts that way. The body is unreadable (FBL section 7.5): it opens as an empty, read-only model with one std.unparseable finding, at line 3, and is never written, so a save writes nothing (FR-054).",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "cafe.md",
+  "read": {
+    "elements": [],
+    "findings": [
+      {
+        "rule": "std.unparseable",
+        "line": 3
+      }
+    ],
+    "unreadable": true
+  },
+  "steps": [
+    {
+      "doc": "A save of an unreadable body writes nothing (FBL section 6.6).",
+      "edit": {
+        "save": true
+      },
+      "splices": []
+    }
+  ]
+}

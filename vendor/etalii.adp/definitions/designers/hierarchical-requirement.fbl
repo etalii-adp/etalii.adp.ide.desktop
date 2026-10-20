@@ -1,0 +1,148 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.7",
+  "doc": {
+    "summary": "The Markdown binding of the Hierarchical Requirement Designer (hierarchical-requirement.des), in the bullets family (FBL section 4.8).",
+    "description": "A requirement document is one Markdown file (hierarchical-requirement.md, The file). Line 1 is DED's envelope, the binding's required header and its claim's marker (DED section 2). Line 2 is the mark line, a statement read by the rule marks into the document's attributes lastItem and lastRequirement, the marks of the counter strategy (DESL section 5.3.5). The hierarchy is the list items under the first heading Requirements, at any level and in any case; the assessments are the list items under the first heading Assessments, by the same rule. Everything else (the title, the legend, any other section, every fenced block) is unbound and kept byte for byte. An item is `ITEM-0004 <title> <tags>`, a requirement `REQ-0031 <title> <tags> <category> <state>`: the trailing words are one group, words, read by word slots, and the title is what stands between the number and the longest run of trailing words that ends the line. Lines indented under a bullet are its description, through the continuation slot. A bullet in no known form under either heading is read by a catch-all rule whose type the specification maps as unreadable, so that std.unreadableEntry stands at it. The registration keeps the lists' colours and order, what is collapsed and the stored filters, in five declared blocks (FBL section 8.1). Where FBL 0.7 and DESL 0.2 say so: an entry of the type the specification maps as unreadable is an unreadable item, so the items nested in it are not looked into (FBL section 4.8, Unbound); setting a mark when the mark line is missing adds the line through the rule marks' insert at after-header (DESL section 5.2); and the assessment's insert writes its checkbox from the attribute resolved through its map, `\\[{resolved}\\]` (FBL section 6.2), so that a re-emitted assessment keeps whether it is resolved, where a literal `\\[ \\]` would reopen it.",
+    "seeAlso": [
+      { "title": "The companion: the file format in full", "href": "hierarchical-requirement.md" },
+      { "title": "The designer type's specification", "href": "hierarchical-requirement.des" }
+    ]
+  },
+  "bindings": {
+    "markdown": {
+      "title": "Requirement document, Markdown",
+      "claims": {
+        "extensions": [".md"],
+        "shared": true,
+        "marker": { "pattern": "^<!--[ \\t]+ded:[ \\t]+[^ \\t]+[ \\t]+designer:[ \\t]+etalii/hierarchical-requirement[ \\t]+-->[ \\t]*$", "lines": 1 },
+        "origins": ["etalii/hierarchical-requirement"]
+      },
+      "body": { "kind": "file", "family": "bullets" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "finalNewline": true },
+      "header": { "line": "^<!--[ \\t]+ded:[ \\t]+[^ \\t]+[ \\t]+designer:[ \\t]+[^ \\t]+[ \\t]+-->[ \\t]*$", "required": true },
+      "sections": [
+        {
+          "name": "requirements",
+          "doc": "The hierarchy: the lines after the first heading whose text is Requirements, at any level and in any case, up to the next heading with as many # or fewer.",
+          "heading": "^Requirements$",
+          "caseInsensitive": true
+        },
+        {
+          "name": "assessments",
+          "doc": "The assessments: the lines after the first heading whose text is Assessments, by the same rule.",
+          "heading": "^Assessments$",
+          "caseInsensitive": true
+        }
+      ],
+      "elements": [
+        {
+          "name": "marks",
+          "type": "Marks",
+          "doc": "The mark line, `<!-- last: ITEM-0003 REQ-0004 -->`: the last number the counter gave of each kind, the item's first. The specification maps the type as the document, so the two groups are the document's attributes lastItem and lastRequirement. A body without it reads as having no mark (DESL section 5.3.5), and the line is written again, right after the envelope, with the next numbering.",
+          "line": "^<!--[ \\t]+last:(?:[ \\t]+(?<lastItem>ITEM-\\d+))?(?:[ \\t]+(?<lastRequirement>REQ-\\d+))?[ \\t]+-->[ \\t]*$",
+          "attributes": {
+            "lastItem": { "group": "lastItem" },
+            "lastRequirement": { "group": "lastRequirement" }
+          },
+          "insert": { "place": "after-header", "emit": "<!-- last:[ {lastItem}][ {lastRequirement}] -->" }
+        },
+        {
+          "name": "item",
+          "type": "Item",
+          "doc": "An item: `ITEM-` and its number (or the placeholder NEW), whitespace, its title, and its tags at the end of the line. On an item's line only `#name` words are trailing words, so a `category:` or `state:` word there is part of the title. Its parent is the item it is nested in; nested in a requirement it is reported by std.containment, since a requirement contains nothing.",
+          "within": ["requirements"],
+          "line": "^(?<id>ITEM-(?:\\d+|NEW))(?:[ \\t]+|$)(?<title>.*?)(?<words>(?:[ \\t]+#[^\\s#]+)*)[ \\t]*$",
+          "id": { "from": { "group": "id" } },
+          "parent": { "rules": ["item", "requirement"] },
+          "attributes": {
+            "title": { "group": "title", "empty": "refuse" },
+            "tags": { "group": "words", "word": "^#(?<value>[^\\s#]+)$", "empty": "remove" },
+            "description": { "continuation": true, "empty": "remove" }
+          },
+          "insert": {
+            "place": "last-child",
+            "container": "requirements",
+            "create": { "at": "end-of-document", "text": "## Requirements" },
+            "emit": "{id} {title}"
+          },
+          "remove": {}
+        },
+        {
+          "name": "requirement",
+          "type": "Requirement",
+          "doc": "A requirement: `REQ-` and its number (or the placeholder NEW), whitespace, its title, which states the requirement, then its trailing words in any order: tags (`#name`), a category (`category:name`) and a state (`state:name`). Of several category or state words the first is read and the others stay in the group as written. Its parent is the item it is nested in. At the top level it is reported by std.containment, since the document's children do not allow a Requirement (DESL section 4.6); nested in a requirement it is reported by std.containment.",
+          "within": ["requirements"],
+          "line": "^(?<id>REQ-(?:\\d+|NEW))(?:[ \\t]+|$)(?<title>.*?)(?<words>(?:[ \\t]+(?:#[^\\s#]+|category:\\S+|state:\\S+))*)[ \\t]*$",
+          "id": { "from": { "group": "id" } },
+          "parent": { "rules": ["item", "requirement"] },
+          "attributes": {
+            "title": { "group": "title", "empty": "refuse" },
+            "tags": { "group": "words", "word": "^#(?<value>[^\\s#]+)$", "empty": "remove" },
+            "category": { "group": "words", "word": "^category:(?<value>\\S+)$", "empty": "remove" },
+            "state": { "group": "words", "word": "^state:(?<value>\\S+)$", "empty": "remove" },
+            "description": { "continuation": true, "empty": "remove" }
+          },
+          "insert": {
+            "place": "last-child",
+            "container": "requirements",
+            "create": { "at": "end-of-document", "text": "## Requirements" },
+            "emit": "{id} {title}"
+          },
+          "remove": {}
+        },
+        {
+          "name": "unreadable-requirement",
+          "type": "Unreadable",
+          "doc": "Any other bullet under Requirements: neither an item nor a requirement. The specification maps the type as unreadable, so it is reported by std.unreadableEntry at the bullet, and its bytes, with everything nested in it, are kept and not read.",
+          "within": ["requirements"],
+          "line": "^.*$"
+        },
+        {
+          "name": "assessment",
+          "type": "Assessment",
+          "doc": "An assessment: an optional checkbox (`[ ]` open, `[x]` resolved; without one it is open), its kind (Question, Remark, Warning or Idea, in any case), the number of the entry it is about, a colon and its text. The lines indented under it are its detail. It has no number: the specification derives its id from its place.",
+          "within": ["assessments"],
+          "line": "^(?:\\[(?<done>[ xX])\\][ \\t]+)?(?<kind>Question|Remark|Warning|Idea)[ \\t]+(?<about>[^\\s:]+):[ \\t]*(?<text>.*?)[ \\t]*$",
+          "caseInsensitive": true,
+          "attributes": {
+            "resolved": { "group": "done", "map": { " ": "false", "x": "true" }, "default": false },
+            "kind": { "group": "kind", "map": { "Question": "Question", "Remark": "Remark", "Warning": "Warning", "Idea": "Idea" } },
+            "about": { "group": "about", "empty": "refuse" },
+            "text": { "group": "text", "empty": "keep" },
+            "detail": { "continuation": true, "empty": "remove" }
+          },
+          "insert": {
+            "place": "end",
+            "container": "assessments",
+            "create": { "at": "end-of-document", "text": "## Assessments" },
+            "emit": "\\[{resolved}\\] {kind} {about}: {text}"
+          },
+          "remove": {}
+        },
+        {
+          "name": "unreadable-assessment",
+          "type": "Unreadable",
+          "doc": "Any other bullet under Assessments, reported by std.unreadableEntry and kept as written.",
+          "within": ["assessments"],
+          "line": "^.*$"
+        }
+      ],
+      "registration": {
+        "createOnFirstPlacement": true,
+        "blocks": {
+          "tags": { "order": "kept", "keys": "names", "doc": "The tag list in its order, `<name>: <colour>` (hierarchical-requirement.des, persistence.settings.tags)." },
+          "categories": { "order": "kept", "keys": "names", "doc": "The category list in its order, `<name>: <colour>`." },
+          "states": { "order": "kept", "keys": "names", "doc": "The state list in its order, `<name>: <colour>`." },
+          "collapsed": { "order": "ordinal", "keys": "ids", "history": false, "doc": "The collapsed items and requirements, `<number>: yes`, outside the history, so that undo takes back the last change to the requirements and not the last box folded." },
+          "filters": { "order": "kept", "keys": "names", "doc": "The stored filters in their order, `<name>: <query>` (DESL section 7.7.3)." }
+        }
+      },
+      "template": {
+        "text": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0007 REQ-0009 -->\r\n# {base}\r\n\r\n## How to read this file\r\n\r\nThis file holds the requirements of one subject, kept by people and agents together. Leave its first two lines as they are.\r\n\r\n- Under `Requirements` each bullet is an item (`ITEM-`), a part of the subject, or a requirement (`REQ-`), which states one requirement. An item holds requirements and further items, indented under it. A requirement stands in an item and holds nothing.\r\n- A number is never changed and never used again. Add an entry with `ITEM-NEW` or `REQ-NEW` in place of a number: the designer numbers it.\r\n- Lines indented under a bullet that are not bullets describe it. A description holds no bullets.\r\n- A bullet's first line ends with its tags (`#name`), and a requirement's with one category (`category:name`) and one state (`state:name`) after them. A name has no spaces. A title does not end in a word that starts with `#`, `category:` or `state:`.\r\n- The categories are functional, non-functional and technical, and the states proposed, accepted, rejected and done; others can be added.\r\n- Refer to an entry by its number in square brackets: `[REQ-0001]`.\r\n- Under `Assessments` each bullet is a question, remark, warning or idea about one entry, named by its number: `- [ ] Question REQ-0001: text`. Write `[x]` to resolve one. Lines indented under it are its detail.\r\n\r\n```markdown\r\n- ITEM-NEW Checkout #core\r\n  What a customer does between the basket and the receipt.\r\n  - REQ-NEW An order is confirmed by e-mail. #mail category:functional state:proposed\r\n    Sent once the payment of [REQ-0001] succeeds.\r\n\r\n- [ ] Question REQ-0001: Which payment methods count?\r\n- [x] Idea ITEM-0001: Offer a guest checkout.\r\n```\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 User interface\r\n  - REQ-0001 Every page can be used on a phone, a tablet and a desktop screen.\r\n  - REQ-0002 Every action can be taken with the keyboard alone.\r\n  - ITEM-0002 Accessibility\r\n    - REQ-0003 Text and controls meet WCAG 2.2 at level AA.\r\n- ITEM-0003 Integration\r\n  - REQ-0004 Every external service is reached through one documented interface.\r\n- ITEM-0004 Backend\r\n  - REQ-0005 Every request is answered within two seconds.\r\n  - REQ-0006 A failed request is logged with what is needed to repeat it.\r\n  - ITEM-0005 Security\r\n    - REQ-0007 A user signs in before seeing or changing their own data.\r\n- ITEM-0006 Data\r\n  - REQ-0008 Personal data is kept no longer than it is needed.\r\n- ITEM-0007 Processes\r\n  - REQ-0009 A release can be rolled back within one hour.\r\n\r\n## Assessments\r\n",
+        "doc": "A new requirement document, with CRLF: the envelope, the mark line naming the last numbers the template gives, the title, the legend that tells an agent how the file is written with its examples in a fenced block, a starting structure of five top items with at most three requirements in each and one sub-item under two of them, and an empty Assessments section."
+      }
+    }
+  }
+}

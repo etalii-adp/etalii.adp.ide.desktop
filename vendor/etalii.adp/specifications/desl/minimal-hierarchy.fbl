@@ -1,0 +1,86 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.7",
+  "doc": "The Markdown binding of minimal-hierarchy.des, in the bullets family (FBL section 4.8): the envelope on line 1, the counters' marks on line 2, the outline under the heading Outline and the notes as a task list under the heading Notes. The tags' colours are kept in the registration's tags block.",
+  "bindings": {
+    "markdown": {
+      "title": "Outline",
+      "claims": {
+        "extensions": [".md"],
+        "shared": true,
+        "marker": { "pattern": "^<!--[ \\t]+ded:[ \\t]+[^ \\t]+[ \\t]+designer:[ \\t]+example/outline[ \\t]+-->", "lines": 1 },
+        "origins": ["example/outline"]
+      },
+      "body": { "kind": "file", "family": "bullets" },
+      "reader": "declared",
+      "text": { "newline": "crlf" },
+      "header": { "line": "^<!--[ \\t]+ded:[ \\t]+[^ \\t]+[ \\t]+designer:[ \\t]+[^ \\t]+[ \\t]+-->[ \\t]*$", "required": true },
+      "sections": [
+        { "name": "outline", "heading": "^Outline$", "caseInsensitive": true },
+        { "name": "notes", "heading": "^Notes$", "caseInsensitive": true }
+      ],
+      "elements": [
+        {
+          "name": "marks",
+          "type": "Marks",
+          "line": "^<!--[ \\t]+last:(?:[ \\t]+(?<lastSection>S-\\d+))?(?:[ \\t]+(?<lastTask>T-\\d+))?[ \\t]+-->[ \\t]*$",
+          "attributes": { "lastSection": { "group": "lastSection" }, "lastTask": { "group": "lastTask" } }
+        },
+        {
+          "name": "section",
+          "type": "Section",
+          "within": ["outline"],
+          "line": "^(?<id>S-(?:\\d+|NEW))[ \\t]+(?<title>.*?)(?<words>(?:[ \\t]+#[^\\s#]+)*)[ \\t]*$",
+          "id": { "from": { "group": "id" } },
+          "parent": { "rules": ["section", "task"] },
+          "attributes": {
+            "title": { "group": "title", "empty": "refuse" },
+            "tags": { "group": "words", "word": "^#(?<value>[^\\s#]+)$" },
+            "description": { "continuation": true, "empty": "remove" }
+          },
+          "insert": { "place": "last-child", "container": "outline", "create": { "at": "end-of-document", "text": "## Outline" }, "emit": "{id} {title}" },
+          "remove": {}
+        },
+        {
+          "name": "task",
+          "type": "Task",
+          "within": ["outline"],
+          "line": "^(?<id>T-(?:\\d+|NEW))[ \\t]+(?<title>.*?)(?<words>(?:[ \\t]+#[^\\s#]+)*)[ \\t]*$",
+          "id": { "from": { "group": "id" } },
+          "parent": { "rules": ["section", "task"] },
+          "attributes": {
+            "title": { "group": "title", "empty": "refuse" },
+            "tags": { "group": "words", "word": "^#(?<value>[^\\s#]+)$" },
+            "description": { "continuation": true, "empty": "remove" }
+          },
+          "insert": { "place": "last-child", "container": "outline", "create": { "at": "end-of-document", "text": "## Outline" }, "emit": "{id} {title}" },
+          "remove": {}
+        },
+        {
+          "name": "note",
+          "type": "Note",
+          "within": ["notes"],
+          "line": "^(?:\\[(?<done>[ xX])\\][ \\t]+)?(?<kind>Question|Remark)[ \\t]+(?<about>[^\\s:]+):[ \\t]*(?<text>.*?)[ \\t]*$",
+          "attributes": {
+            "kind": { "group": "kind" },
+            "about": { "group": "about", "empty": "refuse" },
+            "text": { "group": "text" },
+            "resolved": { "group": "done", "map": { " ": "false", "x": "true", "X": "true" }, "default": false },
+            "detail": { "continuation": true, "empty": "remove" }
+          },
+          "insert": { "place": "end", "container": "notes", "create": { "at": "end-of-document", "text": "## Notes" }, "emit": "\\[ \\] {kind} {about}: {text}" },
+          "remove": {}
+        }
+      ],
+      "registration": {
+        "createOnFirstPlacement": true,
+        "blocks": {
+          "tags": { "order": "kept", "keys": "names", "doc": "The tags' list in its order, each with its colour (minimal-hierarchy.des, persistence.settings)." }
+        }
+      },
+      "template": {
+        "text": "<!-- ded: 0.2 designer: example/outline -->\r\n<!-- last: S-0001 T-0001 -->\r\n# {base}\r\n\r\n## Outline\r\n\r\n- S-0001 First section\r\n  - T-0001 First task\r\n\r\n## Notes\r\n"
+      }
+    }
+  }
+}

@@ -1,0 +1,284 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The block collapsed of the designer's registration (hierarchical-requirement.fbl#markdown, registration.blocks.collapsed: order ordinal, keys ids, history false; hierarchical-requirement.des, persistence.settings.collapsed, the state form of DESL 0.2 section 5.5), replayed on lending.adp, the registration of lending.md beside it (FBL 0.7, sections 7.1, 8.1, 8.2, 8.4, 8.5 and 15.3). The input is the text createOnFirstPlacement writes for lending.md before the first setting is planned, the origin and nothing else (FBL 8.4, 15.3). The fixture's read is that of the document the registration opens, the elements of lending.md, CRLF, with nothing collapsed while the block is absent (DESL 5.5, without the registration); collapsed is read from the registration, not from the file, and stated as a bool. The steps: the first collapse creates the block; entries stand in ordinal order of their keys; an expand removes its entry, and the last one the block; a stored filter, a step of the history, is undone and redone across the folds, which no undo or redo takes back, and its last undo leaves the registration as created (FR-020). An entry whose number is not in the model, pruned with the next write, is stale/ beside this one, since this input has no block to hold one.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "lending.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Loans",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A member borrows at most ten books at once.",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A loan lasts three weeks.",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Renewals",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A loan is renewed twice at most.",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0004",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Reservations",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "A reserved book is kept for a week.",
+          "collapsed": false
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The person collapses ITEM-0002 by toggleCollapsed (FR-019): a set of its attribute collapsed to true, which persistence.settings keeps as a state in the block collapsed, keyed by the element's id, a bool written yes (DESL 5.5). This is the first setting the person changes, so createOnFirstPlacement creates the registration first: lending.adp beside lending.md, the origin and no body header, since the base names are the same, with the body's dominant CRLF, written outside the history (FBL 8.4); the input is that text (FBL 15.3), and the body is found as the sibling with the registration's base name (FBL 8.2). The edit then creates the block: none of the blocks declared before collapsed (tags, categories, states) exists, and neither does layout: or identities:, so collapsed: goes right after the headers, here the end of the registration, by one ensure-container, and its entry by one insert-entry at the same offset, in that order (FBL 6.2, 8.4), indented by two spaces with the registration's CRLF. collapsed is declared with history false, so the write is applied at once and is no step of the history (FBL 7.1, 8.1): folding a box is not what undo takes back (FR-020).",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "ITEM-0002",
+          "value": "yes"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "collapsed:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  ITEM-0002: yes\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0002: yes\r\n"
+    },
+    {
+      "doc": "A step of the history, so that the steps after it show what the folds are not: the person stores the applied filter under the name Proposed, by storeFilter, a create of a Filter, whose list the block filters keeps (DESL 5.5). The block is absent and the list starts empty, so the first change writes the whole list, this one entry. filters is declared after collapsed, which exists, so it is created right after collapsed's last line, here the end of the registration, by one ensure-container and one insert-entry at one offset (FBL 8.4). The value holds ':' but not ': ', so it is one value. filters has the default history true: this is a step of the history.",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Proposed",
+          "value": "state:proposed sort:number"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 63,
+          "end": 63,
+          "text": "filters:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 63,
+          "end": 63,
+          "text": "  Proposed: state:proposed sort:number\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Proposed: state:proposed sort:number\r\n"
+    },
+    {
+      "doc": "The person collapses the requirement REQ-0005. collapsed is ordinal, so the new entry goes where the ordinal order of the keys puts it, the byte order of their UTF-8 encoding (FBL 8.1, 8.3, 8.4): REQ-0005 after ITEM-0002, since I comes before R, whatever the numbers. Outside the history (FBL 7.1).",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "REQ-0005",
+          "value": "yes"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 63,
+          "end": 63,
+          "text": "  REQ-0005: yes\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0002: yes\r\n  REQ-0005: yes\r\nfilters:\r\n  Proposed: state:proposed sort:number\r\n"
+    },
+    {
+      "doc": "The person collapses ITEM-0001: ITEM-0001 comes before ITEM-0002 in ordinal order, so its entry goes at the start of ITEM-0002's line (FBL 8.4). Outside the history.",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "ITEM-0001",
+          "value": "yes"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 45,
+          "end": 45,
+          "text": "  ITEM-0001: yes\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0001: yes\r\n  ITEM-0002: yes\r\n  REQ-0005: yes\r\nfilters:\r\n  Proposed: state:proposed sort:number\r\n"
+    },
+    {
+      "doc": "Undo undoes the last step of the history, the stored filter, and not a fold (FBL 7.1, 15.3; FR-020): its inverse splices remove filters: and its entry, at offsets moved by the 35 bytes the folds of REQ-0005 and ITEM-0001 added before them, and the three entries of collapsed stay.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 98,
+          "end": 108,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 108,
+          "end": 148,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0001: yes\r\n  ITEM-0002: yes\r\n  REQ-0005: yes\r\n"
+    },
+    {
+      "doc": "The person expands ITEM-0002: a set of collapsed to false, its default, which the block does not store (DESL 5.5: only a value that differs from the default), so the change removes the entry, one remove-entry of its line (FBL 8.4). Outside the history, so it leaves the redo stack as it is (FBL 7.1).",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "ITEM-0002",
+          "remove": true
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 63,
+          "end": 81,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0001: yes\r\n  REQ-0005: yes\r\n"
+    },
+    {
+      "doc": "Redo makes the undone filter's edit again, the expand having left the redo stack as it was: filters: and its entry after collapsed's last line, at the end of the registration, at an offset moved by what the three writes outside the history added and removed (FBL 7.1).",
+      "redo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 80,
+          "end": 80,
+          "text": "filters:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 80,
+          "end": 80,
+          "text": "  Proposed: state:proposed sort:number\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0001: yes\r\n  REQ-0005: yes\r\nfilters:\r\n  Proposed: state:proposed sort:number\r\n"
+    },
+    {
+      "doc": "The person expands ITEM-0001: its entry is removed (DESL 5.5, FBL 8.4). Outside the history.",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "ITEM-0001",
+          "remove": true
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 45,
+          "end": 63,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  REQ-0005: yes\r\nfilters:\r\n  Proposed: state:proposed sort:number\r\n"
+    },
+    {
+      "doc": "The person expands REQ-0005, the last collapsed entry: the block's line goes with its last entry, by a remove-container of the line collapsed: before the remove-entry of the entry (FBL 8.4: the order of blocks), so that the block is absent again, which is how DESL 5.5 keeps a state with no value that differs from the default. Outside the history.",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "REQ-0005",
+          "remove": true
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-container",
+          "start": 33,
+          "end": 45,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 45,
+          "end": 62,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\nfilters:\r\n  Proposed: state:proposed sort:number\r\n"
+    },
+    {
+      "doc": "Undo undoes the redone filter, the only step in the history: no fold or expand was ever a step of it, so the registration is the text its creation wrote, the origin alone, and nothing that was collapsed comes back by undo (FBL 7.1, 8.4; FR-020). The file itself stays, since its creation is not part of an edit (FBL 8.4).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 43,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 43,
+          "end": 83,
+          "text": ""
+        }
+      ],
+      "expectFile": "lending.adp"
+    }
+  ]
+}

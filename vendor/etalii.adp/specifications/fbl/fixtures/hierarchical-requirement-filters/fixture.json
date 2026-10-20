@@ -1,0 +1,380 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Stored filters in the registration of the Hierarchical Requirement Designer (User Story 8; FR-048, FR-049), through hierarchical-requirement.fbl#markdown, whose registration declares filters as a kept block keyed by names, in the history (FBL 0.7 section 8.1). A Filter is an element of the list form of persistence.settings.filters: its name is the entry's key and its query, words in the file's notation with its sorting (DESL 0.2 section 7.7.3), the entry's value; its id is filter/ and its name. The input registration, requirements.adp, beside the body requirements.md, holds the tag list complete and ITEM-0002 collapsed, and no filters block: the filter list starts empty (initial: []). read lists the body's elements, with collapsed read from the registration, then the members of the three lists. Narrowing and sorting write nothing (FR-049) and have no step: only storing, renaming and removing a filter write, and each is a step of the history, in the registration only; none writes the Markdown file. The steps: a filter stored with its sorting, which creates the block; a second one after it; one renamed, with its undo; a rename to a name another filter has, refused; a query holding ': ', refused; a name holding ': ', which FBL does not refuse; the first filter removed, with its undo; and the undo of the second store, the removal of the last filter with its block, and the undo of the first store. The registration keeps CRLF.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "requirements.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Sign-in",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "tags": [
+            "security"
+          ],
+          "state": "proposed",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Interface",
+          "collapsed": true
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "tags": [
+            "ux"
+          ],
+          "state": "accepted",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "tags": [
+            "ux",
+            "security"
+          ],
+          "state": "proposed",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "tag/security",
+        "type": "Tag",
+        "attributes": {
+          "name": "security",
+          "colour": "red"
+        }
+      },
+      {
+        "id": "tag/ux",
+        "type": "Tag",
+        "attributes": {
+          "name": "ux",
+          "colour": "blue"
+        }
+      },
+      {
+        "id": "category/functional",
+        "type": "Category",
+        "attributes": {
+          "name": "functional",
+          "colour": "blue"
+        }
+      },
+      {
+        "id": "category/non-functional",
+        "type": "Category",
+        "attributes": {
+          "name": "non-functional",
+          "colour": "purple"
+        }
+      },
+      {
+        "id": "category/technical",
+        "type": "Category",
+        "attributes": {
+          "name": "technical",
+          "colour": "brown"
+        }
+      },
+      {
+        "id": "state/proposed",
+        "type": "State",
+        "attributes": {
+          "name": "proposed",
+          "colour": "gray"
+        }
+      },
+      {
+        "id": "state/accepted",
+        "type": "State",
+        "attributes": {
+          "name": "accepted",
+          "colour": "green"
+        }
+      },
+      {
+        "id": "state/rejected",
+        "type": "State",
+        "attributes": {
+          "name": "rejected",
+          "colour": "red"
+        }
+      },
+      {
+        "id": "state/done",
+        "type": "State",
+        "attributes": {
+          "name": "done",
+          "colour": "blue"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "storeFilter with the name Open security and the query #security state:proposed sort:state, the applied filter with its sorting (FR-048; hierarchical-requirement.des, storeFilter). The filter list is absent and starts empty, so its first change writes the whole list, this one filter (DESL 0.2 section 5.5). filters is declared after collapsed, which exists, so the block goes right after collapsed's last line, here the end of the registration (FBL 0.7 section 8.4, the order of blocks): one ensure-container of filters: and one insert-entry, at one offset, in that order. The value holds ':' but not ': ', and the key holds a space, which a key may.",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Open security",
+          "value": "#security state:proposed sort:state"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 99,
+          "end": 99,
+          "text": "filters:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 99,
+          "end": 99,
+          "text": "  Open security: #security state:proposed sort:state\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n"
+    },
+    {
+      "doc": "storeFilter with the name Keyboard and forms and the query #ux item:inter* sort:title: a create without after or before is appended last (DESL 0.2 section 8.2), which in a kept block without a position is an insert-entry after the last entry (FBL 0.7 section 8.4).",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Keyboard and forms",
+          "value": "#ux item:inter* sort:title"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 163,
+          "end": 163,
+          "text": "  Keyboard and forms: #ux item:inter* sort:title\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n  Keyboard and forms: #ux item:inter* sort:title\r\n"
+    },
+    {
+      "doc": "renameFilter on Keyboard and forms with the name Interface: a renamed key is a replace-value of the key (FBL 0.7 section 8.4); the entry keeps its place and its query. The filter's id, filter/ and its name, changes with it; nothing refers to a filter.",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Keyboard and forms",
+          "rename": "Interface"
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 165,
+          "end": 183,
+          "text": "Interface"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n  Interface: #ux item:inter* sort:title\r\n"
+    },
+    {
+      "doc": "Undo of the rename: the entry gets its old key back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 165,
+          "end": 174,
+          "text": "Keyboard and forms"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n  Keyboard and forms: #ux item:inter* sort:title\r\n"
+    },
+    {
+      "doc": "renameFilter on Keyboard and forms with the name Open security: the key of another entry of the block, which FBL refuses, writing nothing (FBL 0.7 section 8.4, refusals).",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Keyboard and forms",
+          "rename": "Open security"
+        }
+      },
+      "refused": "Another stored filter has this name.",
+      "splices": []
+    },
+    {
+      "doc": "storeFilter with the name Accepted and the query state: accepted, which holds ': ': FBL refuses a value that holds ': ' and writes nothing (FBL 0.7 sections 8.1 and 8.4), since the key of an entry is everything before the last ': ' of its line, so the line '  Accepted: state: accepted' would read as the key 'Accepted: state' with the value 'accepted'.",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Accepted",
+          "value": "state: accepted"
+        }
+      },
+      "refused": "A stored filter's query cannot hold ': '.",
+      "splices": []
+    },
+    {
+      "doc": "storeFilter with the name Security: open and the query #security state:proposed. FBL does not refuse it: a key may hold ': ', since the key is everything before the last ': ' of the line and a value holds none (FBL 0.7 sections 8.1 and 8.4), so the entry reads back with the key 'Security: open'. Filter.name has no pattern: its doc says the key may hold `: `, since the key is everything before the last one (FBL section 8.1), so only the query is held to the rule that a value holds no `: `.facets, a finding of the default enforcement report, which refuses nothing (DESL 0.2 sections 4.3, 6.2 and 6.5): the document holds the filter and reports it. The reading taken is the one the languages give; a refusal of the name, which tasks.md asks for, is not stated by them (see the report of task T062).",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Security: open",
+          "value": "#security state:proposed"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 213,
+          "end": 213,
+          "text": "  Security: open: #security state:proposed\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n  Keyboard and forms: #ux item:inter* sort:title\r\n  Security: open: #security state:proposed\r\n"
+    },
+    {
+      "doc": "Undo takes the entry out again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 213,
+          "end": 257,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n  Keyboard and forms: #ux item:inter* sort:title\r\n"
+    },
+    {
+      "doc": "removeFilter on Open security: a removed entry is a remove-entry of its line (FBL 0.7 section 8.4). The block keeps Keyboard and forms, so its line stays.",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Open security",
+          "remove": true
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 109,
+          "end": 163,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Keyboard and forms: #ux item:inter* sort:title\r\n"
+    },
+    {
+      "doc": "Undo puts Open security back before Keyboard and forms, where it stood.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 109,
+          "end": 109,
+          "text": "  Open security: #security state:proposed sort:state\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n  Keyboard and forms: #ux item:inter* sort:title\r\n"
+    },
+    {
+      "doc": "Undo of the second store: Keyboard and forms goes. The refused steps and the undone ones are no steps of the history, so the undo takes back the store before them.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 163,
+          "end": 213,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n"
+    },
+    {
+      "doc": "removeFilter on Open security, the block's last entry: the block's line goes with it, a remove-container of the filters: line and a remove-entry of the entry's line (FBL 0.7 section 8.4, the order of blocks), and the registration is the input again. An absent filter list and an empty one are the same list, since it starts empty.",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Open security",
+          "remove": true
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-container",
+          "start": 99,
+          "end": 109,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 109,
+          "end": 163,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\n"
+    },
+    {
+      "doc": "Undo of the removal: filters: and Open security come back after collapsed.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-container",
+          "start": 99,
+          "end": 99,
+          "text": "filters:\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 99,
+          "end": 99,
+          "text": "  Open security: #security state:proposed sort:state\r\n"
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\nfilters:\r\n  Open security: #security state:proposed sort:state\r\n"
+    },
+    {
+      "doc": "Undo of the first store: filters: and its entry go, and the registration is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 99,
+          "end": 109,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 109,
+          "end": 163,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ntags:\r\n  security: red\r\n  ux: blue\r\ncollapsed:\r\n  ITEM-0002: yes\r\n"
+    }
+  ]
+}

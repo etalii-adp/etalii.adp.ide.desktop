@@ -1,0 +1,393 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.2",
+  "language": {
+    "id": "org.example.mindmap",
+    "version": "0.1.0",
+    "origin": "freeplane/mindmap",
+    "label": "Mind map",
+    "doc": {
+      "summary": "A trimmed excerpt of the mind map definition (definitions/diagrams/mindmap.dis), used to show DISL 0.2 constructs.",
+      "description": "Ideas branch from one central topic. The excerpt keeps the node type, the derived branch relation, their notation, the toolbox, the context menu and the operations; the Freeplane file format, the two-sided layout and the plugins of the full definition are left out. It shows per-viewer folding, positional create and reorder, branch-or-leaf confirmations, a text metric, anchors restricted to sides, containment drawn as edges, a file-system rule and tolerant ids."
+    }
+  },
+
+  "metamodel": {
+    "doc": "One node type, nested to any depth. The tree is containment: every node but the central topic has exactly one parent node, and the order of a node's children is meaningful.",
+    "enums": {
+      "Side": {
+        "doc": "Freeplane's `POSITION` attribute on a first-level node: which side of the central topic the branch is drawn on.",
+        "values": {
+          "right": { "label": "Right (Freeplane 1.11)" },
+          "left": { "label": "Left (Freeplane 1.11)" },
+          "bottom_or_right": { "label": "Right (Freeplane 1.12)" },
+          "top_or_left": { "label": "Left (Freeplane 1.12)" }
+        }
+      }
+    },
+    "types": {
+      "Node": {
+        "label": "Node",
+        "doc": "A topic in the map. The one node without a parent is the central topic.",
+        "attributes": {
+          "text": { "type": "string", "label": "Text", "default": "", "order": 1 },
+          "notes": { "type": "text", "markup": "plain", "label": "Notes", "default": "", "order": 2 },
+          "link": { "type": "string", "label": "Link", "doc": "A path relative to the map file, or an absolute URL.", "order": 3 },
+          "folded": {
+            "type": "bool",
+            "label": "Collapsed",
+            "readOnly": true,
+            "default": false,
+            "group": "View",
+            "doc": "Freeplane's `FOLDED=\"true\"`. It seeds each viewer's own fold state (persistence.view.initial) and is never written by ADP.",
+            "order": 4
+          },
+          "position": { "type": "Side", "label": "Side", "readOnly": true, "doc": "Freeplane's `POSITION` on a first-level node, when the file has one.", "order": 5 }
+        },
+        "children": { "allowed": ["Node"], "ordered": true },
+        "labelAttribute": "text"
+      }
+    },
+    "relations": {
+      "Branch": {
+        "label": "Branch",
+        "doc": "The line from a node to its parent. Not stored: one branch is derived per node that has a parent.",
+        "source": "Node",
+        "target": "Node",
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": false,
+        "acyclic": true,
+        "derived": "diagram.nodes.filter(n, n.parent != null).map(n, {'source': n.parent, 'target': n})"
+      }
+    }
+  },
+
+  "coordinates": {
+    "systems": {
+      "canvas": {
+        "kind": "cartesian",
+        "x": { "kind": "linear", "unit": "px" },
+        "y": { "kind": "linear", "unit": "px" },
+        "orientation": "y-down",
+        "grid": { "visible": false }
+      }
+    },
+    "default": "canvas"
+  },
+
+  "notation": {
+    "theme": {
+      "tokens": {
+        "color.surface": "#FFFFFF",
+        "color.border": "#E2E8F0",
+        "color.text": "#0F172A",
+        "color.primary": "limegreen",
+        "font.body": "system-ui, sans-serif"
+      },
+      "modes": {
+        "dark": {
+          "color.surface": "#1E293B",
+          "color.border": "#334155",
+          "color.text": "#F1F5F9"
+        }
+      },
+      "defaultMode": "light",
+      "followSystem": true
+    },
+    "textMetric": {
+      "kind": "average",
+      "advance": 0.55,
+      "count": "utf16",
+      "lineHeight": 1.4
+    },
+    "doc": "The text metric is mindmap.md 4's: textWidth = characters x 14 x 0.55, a character being a UTF-16 code unit, so every host sizes the boxes, and so lays the map out, alike.",
+    "styles": {
+      "node": {
+        "fill": { "token": "color.surface" },
+        "stroke": { "color": { "token": "color.border" }, "width": 1.5 },
+        "font": { "family": { "token": "font.body" }, "size": 14, "color": { "token": "color.text" } },
+        "padding": [6, 10]
+      },
+      "branch": {
+        "stroke": { "color": { "token": "color.border" }, "width": 1.5 }
+      }
+    },
+    "nodes": {
+      "Node": {
+        "shape": "rect",
+        "style": "node",
+        "size": {
+          "width": { "cel": "math.round(max(32.0, textWidth(self.text, 14.0) + 20.0) * 100.0) / 100.0" },
+          "height": { "cel": "textHeight(1, 14.0) + 12.0" },
+          "resizable": false,
+          "doc": "Node width = max(32, textWidth + 20), rounded to two decimals; height = 14 x 1.4 + 12 (mindmap.md 4)."
+        },
+        "labels": [
+          { "id": "text", "text": { "attribute": "text" }, "editable": "inline", "position": "center", "wrap": "none" },
+          {
+            "id": "indicators",
+            "text": { "cel": "[self.notes != '' ? '•' : '', has(self.link) && self.link != '' ? '↗' : '', self.view.collapsed && self.children.size() > 0 ? '⊕' : ''].filter(s, s != '').join(' ')" },
+            "visible": { "cel": "self.notes != '' || (has(self.link) && self.link != '') || (self.view.collapsed && self.children.size() > 0)" },
+            "position": { "anchor": [1, 0], "align": "end", "offset": { "cel": "self.parent == null ? [-8.0, 14.0] : [-4.0, 12.0]" } },
+            "doc": "Corner glyphs: • notes, ↗ link, ⊕ collapsed. The offset is computed (a stand-in for wardley-map's per-element label offsets, which bind `offset` to an attribute)."
+          }
+        ],
+        "anchors": { "mode": "sides", "sides": ["left", "right"] },
+        "container": {
+          "nesting": "none",
+          "collapsible": true,
+          "highlightOnDrop": true,
+          "doc": "Children are not drawn inside their parent: the derived Branch edges draw the tree, and containment still governs parent, children, deletion and collapsing."
+        },
+        "states": {
+          "dropTarget": { "stroke": { "color": { "token": "color.primary" }, "width": 2.5, "dash": [6, 3], "dashScale": "absolute" } }
+        },
+        "deletable": { "cel": "self.parent != null" },
+        "doubleClick": "editLabel",
+        "doc": "A plain box sized to its text by the declared text metric, with the text centred and the corner glyphs top right."
+      }
+    },
+    "edges": {
+      "Branch": {
+        "line": {
+          "stroke": { "color": { "token": "color.border" }, "width": 1.5 },
+          "routing": "bezier"
+        },
+        "style": "branch",
+        "sourceMarker": "none",
+        "targetMarker": "none",
+        "anchoring": {
+          "source": { "mode": "sides", "sides": ["left", "right"] },
+          "target": { "mode": "sides", "sides": ["left", "right"] }
+        },
+        "selectable": false,
+        "deletable": false,
+        "reconnectable": false,
+        "layer": "belowNodes",
+        "doc": "A smooth curve from the facing left or right side of the parent to that of the child, under the boxes, with no arrowheads; never from the top or bottom (mindmap.md 6)."
+      }
+    },
+    "canvas": {
+      "background": { "token": "color.surface" }
+    }
+  },
+
+  "toolbox": {
+    "generic": { "select": true, "pan": true },
+    "groups": [
+      {
+        "id": "mindmap",
+        "label": "Mind map",
+        "tools": [
+          {
+            "id": "node",
+            "kind": "operation",
+            "operation": "addChild",
+            "label": "Node",
+            "icon": "mdi-card-plus-outline",
+            "mode": "drop",
+            "drop": {
+              "targets": [ { "on": ["Node"], "kind": "operation", "operation": "addChild" } ],
+              "elsewhere": "ignore"
+            },
+            "doc": "Drop on a node to add a child under it; dropping it on empty canvas does nothing."
+          }
+        ]
+      }
+    ],
+    "contextTools": [
+      {
+        "for": ["Node"],
+        "placement": "menu",
+        "doc": "Actions that do not apply are not offered rather than disabled (mindmap.md 7.1), so they use `visible`, not `enabled`.",
+        "tools": [
+          { "kind": "operation", "operation": "addChild", "label": "Add child", "icon": "mdi-subdirectory-arrow-right", "shortcut": "Insert" },
+          { "kind": "operation", "operation": "addSibling", "label": "Add sibling", "icon": "mdi-plus", "shortcut": "Enter", "visible": "self.parent != null" },
+          { "kind": "editLabel", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
+          { "kind": "delete", "label": "Delete", "icon": "mdi-trash-can-outline", "shortcut": "Delete", "visible": "self.parent != null" },
+          { "kind": "operation", "operation": "editNotes", "label": { "cel": "self.notes != '' ? 'Edit notes…' : 'Add notes…'" }, "icon": "mdi-note-text-outline" },
+          { "kind": "operation", "operation": "toggleFold", "label": { "cel": "self.view.collapsed ? 'Expand' : 'Collapse'" }, "icon": "mdi-unfold-less-horizontal", "shortcut": "Space", "visible": "self.children.size() > 0" },
+          { "kind": "moveUp", "label": "Move up", "icon": "mdi-arrow-up", "shortcut": "Ctrl+Up", "visible": "self.parent != null" },
+          { "kind": "moveDown", "label": "Move down", "icon": "mdi-arrow-down", "shortcut": "Ctrl+Down", "visible": "self.parent != null" },
+          { "kind": "operation", "operation": "promote", "label": "Move up a level", "icon": "mdi-format-indent-decrease", "shortcut": "Ctrl+Left", "visible": "self.parent != null && self.parent.parent != null" },
+          { "kind": "operation", "operation": "moveFirst", "label": "Move to the top of its branch", "icon": "mdi-arrow-collapse-up", "visible": "self.parent != null" }
+        ]
+      }
+    ]
+  },
+
+  "constraints": {
+    "builtIn": {
+      "std.unparseable": {
+        "code": "mindmap.not-a-map",
+        "message": { "cel": "'\\'' + diagram.file + '\\' is not a readable mind map: ' + detail.reason" }
+      },
+      "std.missingId": {
+        "severity": "info",
+        "code": "mindmap.missing-id",
+        "message": { "cel": "'The node \\'' + self.text + '\\' had no ID in the file; it was given one, which is written with the next save.'" }
+      },
+      "std.duplicateId": {
+        "severity": "error",
+        "code": "mindmap.duplicate-id",
+        "message": { "cel": "'Two nodes share the id \\'' + detail.id + '\\' (\\'' + detail.first.text + '\\' and \\'' + self.text + '\\').'" },
+        "doc": "Nodes and branches share one id space. In a hand-edited .mm two nodes may share an id; the first in reading order keeps it and the second and later are ephemeral until the user fixes it."
+      }
+    },
+    "rules": [
+      {
+        "id": "unnamedCentralTopic",
+        "code": "mindmap.unnamed-root",
+        "label": "Named central topic",
+        "scope": "Node",
+        "when": "self.parent == null",
+        "rule": "self.text.trim() != ''",
+        "severity": "warning",
+        "attribute": "text",
+        "message": { "cel": "'The map \\'' + diagram.file + '\\' has an unnamed central topic.'" }
+      },
+      {
+        "id": "missingLinkTarget",
+        "code": "mindmap.missing-link-target",
+        "scope": "Node",
+        "when": "has(self.link) && self.link != '' && !self.link.contains(':')",
+        "rule": "self.link.endsWith('/') ? fs.isDirectory(self.link).orValue(true) : fs.exists(self.link).orValue(true)",
+        "severity": "warning",
+        "attribute": "link",
+        "message": { "cel": "\"The node '\" + self.text + \"' links to '\" + self.link + \"', which is not in this project.\"" },
+        "doc": "The missing-link-target rule mindmap.md 11 lists as missing; a stand-in for wardley-map's `wardley.submap-missing`. `fs.exists` is confined to the subject's root, so a link outside the project gives `optional.none()` and the rule stays silent."
+      },
+      {
+        "id": "keepCentralTopic",
+        "kind": "delete",
+        "scope": "Node",
+        "rule": "self.parent != null",
+        "message": "The root node cannot be removed."
+      },
+      {
+        "id": "reparentWithinTree",
+        "kind": "containment",
+        "when": "has(child.id)",
+        "rule": "child.parent != null && parent != null && parent.id != child.id && !child.descendants().exists(d, d.id == parent.id)",
+        "message": "A node cannot be moved into its own branch, and the root node cannot be moved."
+      },
+      {
+        "id": "keepSide",
+        "kind": "reorder",
+        "scope": "Node",
+        "when": "parent.parent == null && has(self.position)",
+        "rule": "!has(siblings[newIndex].position) || siblings[newIndex].position == self.position",
+        "message": { "cel": "'\\'' + self.text + '\\' is fixed to the ' + enumLabel('Side', self.position) + ' side by the file, so it moves only among the branches on that side.'" },
+        "doc": "A first-level branch whose side the file fixes (POSITION) keeps its place among the branches on that side."
+      }
+    ]
+  },
+
+  "behavior": {
+    "messages": {
+      "std.atStart": "This node is already the first under its parent.",
+      "std.atEnd": "This node is already the last under its parent."
+    },
+    "operations": {
+      "addChild": {
+        "label": "Add child",
+        "for": ["Node"],
+        "icon": "mdi-subdirectory-arrow-right",
+        "shortcut": "Insert",
+        "doc": "Adds a node as the last child, then edits its text in place.",
+        "actions": [
+          { "create": { "type": "'Node'", "parent": "self", "attributes": { "text": "siblingName(self.children.map(c, c.text))" } }, "as": "added" },
+          { "select": "added" },
+          { "editLabel": { "target": "added", "label": "text" } }
+        ]
+      },
+      "addSibling": {
+        "label": "Add sibling",
+        "for": ["Node"],
+        "icon": "mdi-plus",
+        "shortcut": "Enter",
+        "enabled": "self.parent != null",
+        "doc": "Adds a node right after this one under the same parent, then edits its text in place.",
+        "actions": [
+          { "create": { "type": "'Node'", "parent": "self.parent", "after": "self", "attributes": { "text": "siblingName(self.parent.children.map(c, c.text))" } }, "as": "added" },
+          { "select": "added" },
+          { "editLabel": { "target": "added", "label": "text" } }
+        ]
+      },
+      "promote": {
+        "label": "Move up a level",
+        "for": ["Node"],
+        "shortcut": "Ctrl+Left",
+        "enabled": "self.parent != null && self.parent.parent != null",
+        "doc": "Makes the node a sibling of its parent, placed right after it, with its whole branch.",
+        "actions": [ { "reparent": { "target": "self", "parent": "self.parent.parent", "after": "self.parent" } } ]
+      },
+      "moveFirst": {
+        "label": "Move to the top of its branch",
+        "for": ["Node"],
+        "enabled": "self.parent != null",
+        "unavailable": [
+          { "when": "self.positionIn(self.parent.children) == 0", "message": "This node is already the first under its parent." }
+        ],
+        "actions": [ { "reorder": { "target": "self", "before": "self.parent.children[0]" } } ]
+      },
+      "editNotes": {
+        "label": { "cel": "self.notes != '' ? 'Edit notes' : 'Add notes'" },
+        "for": ["Node"],
+        "icon": "mdi-note-text-outline",
+        "params": { "notes": { "type": "text", "label": "Notes" } },
+        "actions": [ { "set": { "notes": "p.notes" } } ]
+      },
+      "toggleFold": {
+        "label": { "cel": "self.view.collapsed ? 'Expand' : 'Collapse'" },
+        "for": ["Node"],
+        "shortcut": "Space",
+        "enabled": "self.children.size() > 0",
+        "doc": "Collapses or expands the branch for this viewer only: a view action, so nothing is written, nothing lands on the undo history, and it is offered in read-only mode.",
+        "actions": [ { "view": { "collapsed": "!self.view.collapsed" }, "target": "self" } ]
+      }
+    },
+    "deletion": {
+      "Node": {
+        "children": "delete",
+        "relations": "delete",
+        "confirm": {
+          "count": "self.descendants().size()",
+          "threshold": 1,
+          "title": "Delete branch?",
+          "message": { "cel": "'Delete \\'' + self.text + '\\' and the ' + string(count) + ' nodes under it? You can undo this.'" },
+          "confirmLabel": "Delete",
+          "danger": true,
+          "doc": "A leaf has no descendants, so deleting it asks nothing; deleting a branch asks, naming how many nodes go with it (mindmap.md 7.4)."
+        }
+      }
+    }
+  },
+
+  "functions": {
+    "siblingName": {
+      "params": [{ "name": "names", "type": "list(string)" }],
+      "returns": "string",
+      "cel": "names.exists(n, n == 'Node') ? 'Node ' + string(names.size() + 1) : 'Node'",
+      "doc": "The name for a new node among siblings with `names`; a simplified form of the sibling naming in mindmap.md 7.2."
+    }
+  },
+
+  "persistence": {
+    "ids": {
+      "strategy": "uuid-v4",
+      "prefix": "ID_",
+      "stable": true,
+      "missing": "assign",
+      "doc": "A node with no ID in the file gets `ID_` plus a new id in memory on open; it is written on the next save, never on open and never by the read-only validator (mindmap.md 3)."
+    },
+    "view": {
+      "store": [],
+      "viewer": ["collapsed", "viewport", "selection"],
+      "initial": { "collapsed": { "cel": "self.folded" } },
+      "revealExpands": true,
+      "doc": "Folding belongs to each viewer: FOLDED in the file seeds it once, it is never written and never on the undo history, and revealing a node expands its collapsed ancestors."
+    }
+  }
+}

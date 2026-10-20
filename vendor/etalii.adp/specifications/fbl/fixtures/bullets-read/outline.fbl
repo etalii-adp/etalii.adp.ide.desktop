@@ -1,0 +1,39 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.7",
+  "doc": "The binding of this fixture alone (FBL 0.7, section 4.8): the bullets family. A Markdown outline whose list items under the heading Outline are topics, written '[id] title' with their notes in the item's continuation and their subtopics nested by indentation, and one statement, 'Owner: login', read anywhere outside a list item.",
+  "bindings": {
+    "outline": {
+      "title": "Outline, Markdown",
+      "claims": { "registrationOnly": true },
+      "body": { "kind": "file", "family": "bullets" },
+      "reader": "declared",
+      "text": { "newline": "lf", "finalNewline": true },
+      "sections": [
+        { "name": "outline", "heading": "^Outline$" }
+      ],
+      "elements": [
+        {
+          "name": "topic",
+          "type": "Topic",
+          "doc": "A list item of the section Outline, at any depth: its text is '[id] title', its continuation its notes, and the topic it is nested in its parent.",
+          "within": ["outline"],
+          "line": "^\\[(?<id>[a-z0-9]+)\\] (?<title>.+)$",
+          "id": { "from": { "group": "id" } },
+          "parent": { "rules": ["topic"], "slot": "subtopics" },
+          "attributes": {
+            "title": { "group": "title" },
+            "notes": { "continuation": true }
+          }
+        },
+        {
+          "name": "owner",
+          "type": "Owner",
+          "doc": "A statement, a line outside every list item, in a section or not: 'Owner: login'.",
+          "line": "^\\s*Owner:\\s*(?<login>\\S+)\\s*$",
+          "id": { "from": { "group": "login" } }
+        }
+      ]
+    }
+  }
+}

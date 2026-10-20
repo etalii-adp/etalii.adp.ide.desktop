@@ -1,0 +1,563 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.3",
+  "language": {
+    "id": "net.etalii.adp.generic.dependencies",
+    "version": "1.1.0",
+    "origin": "generic/dependencies",
+    "label": "Dependency graph",
+    "doc": {
+      "summary": "What needs what - named nodes on rows, joined by directed depends-on edges, placed wherever the author puts them.",
+      "description": "A node is a labelled box at an **authored position**: a horizontal coordinate the author owns and a row it snaps to. A dependency is a directed edge: its source **depends on** its target, and the arrowhead is drawn at the target, the thing being depended upon.\n\nNeither axis means anything beyond where the author put a node. Rows are a placement grid, not lanes: several nodes may share a row, rows may be negative, and gaps between rows are the author's business.\n\nEverything this specification cannot say (the `.dgr` file format, the gestures, the curve, the order of the findings) is written down beside it in `dependency-graph.md`. What the standalone tool calls each palette entry, menu entry and property row is in the `x-dependencies` block.",
+      "tags": ["dependencies", "graph", "boxes and arrows", "architecture", "build order"],
+      "seeAlso": [
+        { "title": "What DISL cannot express about this diagram type", "href": "https://github.com/etalii-adp/etalii.adp/blob/develop/definitions/diagrams/dependency-graph.md" },
+        { "title": "The standalone implementation", "href": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/dependency-graph" }
+      ]
+    },
+    "authors": [ { "name": "Peter Vrenken" } ],
+    "license": "Apache-2.0",
+    "homepage": "https://etalii.net/adp",
+    "icon": "mdi-graph-outline",
+    "fileExtension": "dgr",
+    "requires": { "conformance": "standard", "features": ["placement.bound", "edge.bezier", "label.parse", "persist.yaml"] }
+  },
+
+  "metamodel": {
+    "doc": "One node type and one relation type. The diagram root carries no attributes of its own: a new graph is the version marker and an empty element list, and nothing else.",
+    "types": {
+      "Node": {
+        "label": "Node",
+        "icon": "mdi-rectangle-outline",
+        "doc": {
+          "summary": "Something other things can depend on.",
+          "description": "A labelled box at an authored position. It has no date, no duration and no instant: the horizontal coordinate means nothing but where the box sits."
+        },
+        "labelAttribute": "label",
+        "attributes": {
+          "label": {
+            "type": "string",
+            "label": "Label",
+            "default": "",
+            "group": "Identity",
+            "order": 1,
+            "doc": "What the node is called. When it is empty the canvas shows the node's id instead; the property row shows it empty."
+          },
+          "x": {
+            "type": "number",
+            "label": "X",
+            "default": 0,
+            "unit": "canvas units",
+            "group": "Placement",
+            "order": 2,
+            "doc": {
+              "summary": "The horizontal coordinate of the node's left edge, in canvas units.",
+              "description": "Authored, never derived. Whole, fractional, negative and zero values are all valid, and the number is written in its shortest invariant form. A value that does not read as a number reads as 0."
+            }
+          },
+          "row": {
+            "type": "int",
+            "label": "Row",
+            "default": 0,
+            "group": "Placement",
+            "order": 3,
+            "doc": {
+              "summary": "Which row the node sits on: a placement grid, not a lane.",
+              "description": "Negative rows are as valid as positive ones, several nodes may share a row, and gaps between rows are the author's business. A value that does not read as a whole number reads as 0; the property row refuses a fractional row rather than truncating it."
+            }
+          }
+        }
+      }
+    },
+    "relations": {
+      "DependsOn": {
+        "label": "Dependency",
+        "icon": "mdi-ray-start-arrow",
+        "doc": {
+          "summary": "The source depends on the target: the one that needs the other points at the one that is needed.",
+          "description": "The direction is part of the document, not a drawing convention. Two dependencies between the same pair are legal (the label carries the difference), a dependency need not carry a label, and cycles are allowed: the type has no cycle rule yet."
+        },
+        "source": { "types": ["Node"], "role": "dependent", "doc": "The node that needs the other." },
+        "target": { "types": ["Node"], "role": "dependency", "doc": "The node that is needed." },
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": true,
+        "attributes": {
+          "label": {
+            "type": "string",
+            "label": "Label",
+            "default": "",
+            "group": "Identity",
+            "order": 1,
+            "doc": "What the author calls the dependency (\"calls\", \"publishes to\"), or empty."
+          }
+        }
+      }
+    }
+  },
+
+  "coordinates": {
+    "doc": "Both axes are authored and neither is derived. Nothing here is a time: this type is the timeline diagram with time taken out.",
+    "axes": {
+      "x": {
+        "kind": "linear",
+        "unit": "px",
+        "label": "X",
+        "doc": "A plain canvas coordinate the author owns. It has no ruler, because there is nothing to name along it."
+      },
+      "rows": {
+        "kind": "linear",
+        "unit": "row",
+        "scale": 60,
+        "precision": 0,
+        "label": "Row",
+        "doc": "Rows 60 canvas units apart. The spacing is a rendering constant, not data: changing it re-spaces every graph without touching a file."
+      }
+    },
+    "systems": {
+      "canvas": {
+        "kind": "cartesian",
+        "x": "x",
+        "y": "rows",
+        "orientation": "y-down",
+        "infinite": true,
+        "grid": { "visible": false },
+        "snapping": {
+          "mode": "always",
+          "userToggle": false,
+          "bypassModifier": "none",
+          "x": "none",
+          "y": { "grid": { "spacing": 1 }, "direction": "nearest" },
+          "doc": {
+            "summary": "Nodes move freely left and right, and land on the nearest row when dropped.",
+            "rationale": "Rows keep related nodes lined up without giving the vertical axis a meaning."
+          }
+        }
+      }
+    },
+    "default": "canvas"
+  },
+
+  "notation": {
+    "doc": "The look is the host's shared canvas theme; this type adds only the arrowhead and the loop a dependency draws when it points backwards.",
+    "theme": {
+      "tokens": {
+        "color.surface": "#FFFFFF",
+        "color.border": "#8892A6",
+        "color.text": "#1C2333",
+        "color.text.muted": "#5A6376"
+      },
+      "followSystem": true
+    },
+    "styles": {
+      "node": {
+        "fill": { "token": "color.surface" },
+        "stroke": { "color": { "token": "color.border" }, "width": 1.5 },
+        "cornerRadius": 6,
+        "font": { "size": 12, "color": { "token": "color.text" } },
+        "textAlign": "center",
+        "verticalAlign": "middle"
+      },
+      "dependency": {
+        "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 }
+      }
+    },
+    "nodes": {
+      "Node": {
+        "shape": { "type": "roundedRect", "params": { "radius": 6 } },
+        "style": "node",
+        "size": { "fixed": [160, 36] },
+        "placement": {
+          "system": "canvas",
+          "x": { "attribute": "x" },
+          "y": { "attribute": "row" },
+          "anchor": "top-left",
+          "movable": true,
+          "resizable": false,
+          "doc": "Drag anywhere along a row; the node lands on the nearest row when released."
+        },
+        "labels": [
+          {
+            "id": "label",
+            "text": { "cel": "self.label != '' ? self.label : self.id" },
+            "parse": { "write": [ { "set": { "label": "value" } } ] },
+            "editable": "inline",
+            "position": "center",
+            "wrap": "none",
+            "maxLines": 1,
+            "overflow": "ellipsis",
+            "doc": "The node's label, or its id when it has none. Editing it renames the node."
+          }
+        ],
+        "anchors": {
+          "mode": "fixed",
+          "points": [
+            { "id": "left", "x": 0, "y": 0.5 },
+            { "id": "right", "x": 1, "y": 0.5 }
+          ]
+        },
+        "copyable": false,
+        "doubleClick": "editLabel"
+      }
+    },
+    "edges": {
+      "DependsOn": {
+        "style": "dependency",
+        "line": {
+          "routing": { "plugin": "net.etalii.adp.generic.dependencyCurve" },
+          "startDirection": "right",
+          "endDirection": "auto"
+        },
+        "anchoring": {
+          "source": { "mode": "fixed", "points": [ { "id": "left", "x": 0, "y": 0.5 }, { "id": "right", "x": 1, "y": 0.5 } ] },
+          "target": { "mode": "fixed", "points": [ { "id": "left", "x": 0, "y": 0.5 }, { "id": "right", "x": 1, "y": 0.5 } ] }
+        },
+        "connect": { "from": { "right": "source", "left": "target" }, "tool": "dependsOn" },
+        "sourceMarker": "none",
+        "targetMarker": "arrowFilled",
+        "labels": [
+          { "id": "label", "text": { "attribute": "label" }, "at": "middle", "side": "above", "distance": 6, "editable": "inline" }
+        ],
+        "reconnectable": false,
+        "doc": "A curve from the dependent to its dependency, with the arrowhead at the dependency."
+      }
+    }
+  },
+
+  "toolbox": {
+    "doc": "The palette offers one entry, a node. Dependencies are drawn from a node's side anchors rather than picked from the palette.",
+    "groups": [
+      {
+        "id": "graph",
+        "label": "Dependency graph",
+        "tools": [
+          {
+            "id": "node",
+            "creates": "Node",
+            "label": "Node",
+            "icon": "mdi-rectangle-outline",
+            "mode": "drop",
+            "after": "none",
+            "initial": {
+              "label": "New node",
+              "x": { "cel": "double(position.x)" },
+              "row": { "cel": "int(math.round(double(position.y)))" }
+            },
+            "doc": "Something other things can depend on. Drop it on the canvas where it belongs."
+          }
+        ]
+      }
+    ],
+    "tools": {
+      "dependsOn": {
+        "id": "dependsOn",
+        "creates": "DependsOn",
+        "label": "Depends on",
+        "icon": "mdi-ray-start-arrow",
+        "mode": "drag",
+        "createSource": {
+          "type": "Node",
+          "initial": {
+            "label": "New node",
+            "x": { "cel": "double(position.x)" },
+            "row": { "cel": "int(math.round(double(position.y)))" }
+          }
+        },
+        "createTarget": {
+          "type": "Node",
+          "initial": {
+            "label": "New node",
+            "x": { "cel": "double(position.x)" },
+            "row": { "cel": "int(math.round(double(position.y)))" }
+          }
+        },
+        "doc": {
+          "summary": "Drag from a node's side anchor to another node to make a dependency; release on empty canvas to create the other node there.",
+          "description": "Dragged out of the right anchor, the dragged node depends on the one it lands on. Dragged out of the left anchor, the direction reverses: the node it lands on depends on the dragged one. Released on empty canvas, a new node labelled \"New node\" is created at the release point and related, as one undo step."
+        }
+      }
+    },
+    "contextMenus": [
+      {
+        "for": ["Node"],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          { "kind": "editLabel", "group": "edit", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
+          { "kind": "delete", "group": "edit", "label": "Remove", "icon": "mdi-delete-outline", "shortcut": "Delete" },
+          { "kind": "operation", "operation": "addRight", "group": "add", "label": "Add node to the right", "icon": "mdi-arrow-expand-right", "shortcut": "Tab" },
+          { "kind": "operation", "operation": "addBelow", "group": "add", "label": "Add node below", "icon": "mdi-arrow-expand-down", "shortcut": "Enter" }
+        ],
+        "doc": "Changing the node, then adding the next one, as two groups. Offered on a graph that could not be read as well: the edits refuse there instead."
+      },
+      {
+        "for": ["DependsOn"],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          { "kind": "editLabel", "group": "edit", "label": "Relabel…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
+          { "kind": "delete", "group": "edit", "label": "Remove dependency", "icon": "mdi-vector-polyline-remove", "shortcut": "Delete" }
+        ]
+      },
+      {
+        "for": ["diagram"],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          { "kind": "operation", "operation": "addNodeHere", "group": "add", "label": "Add node here", "icon": "mdi-plus" }
+        ],
+        "doc": "Empty canvas, and a toolbox drop there, which runs the same action."
+      },
+      {
+        "for": ["connection"],
+        "placement": "menu",
+        "standardEntries": false,
+        "runSingle": true,
+        "tools": [
+          { "kind": "connect", "via": "DependsOn", "label": "Depends on", "icon": "mdi-ray-start-arrow" }
+        ],
+        "doc": "A finished connect gesture from a node's side anchor to another node or to empty canvas."
+      }
+    ]
+  },
+
+  "forms": {
+    "node": {
+      "for": "Node",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [ { "attribute": "label", "label": "Label" } ] },
+        { "kind": "section", "label": "Placement", "items": [
+          { "attribute": "x", "label": "X", "widget": "number",
+            "validate": [ {
+              "rule": "value.trim().matches('^[+-]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$')",
+              "message": { "cel": "'\\'' + string(value) + '\\' is not a number this graph can place a node at.'" },
+              "timing": "commit"
+            } ] },
+          { "attribute": "row", "label": "Row", "widget": "number",
+            "validate": [ {
+              "rule": "value.trim().matches('^[+-]?[0-9]+$')",
+              "message": { "cel": "'\\'' + string(value) + '\\' is not a number this graph can place a node at.'" },
+              "timing": "commit"
+            } ] }
+        ] }
+      ]
+    },
+    "dependency": {
+      "for": "DependsOn",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [
+          { "attribute": "label", "label": "Label" },
+          { "kind": "computed", "id": "from", "label": "Depends on (from)", "value": { "cel": "self.source.id" },
+            "readOnlyReasons": [ "Reconnecting is done on the canvas, by dragging the dependency's end to another node." ],
+            "doc": "The dependent, by the id the file names, whether or not a node holds it." },
+          { "kind": "computed", "id": "to", "label": "Depended on (to)", "value": { "cel": "self.target.id" },
+            "readOnlyReasons": [ "Reconnecting is done on the canvas, by dragging the dependency's end to another node." ],
+            "doc": "The dependency, by the id the file names, whether or not a node holds it." }
+        ] }
+      ]
+    }
+  },
+
+  "constraints": {
+    "doc": "Every problem is a warning naming its element, because the rest of the graph still draws. The one error is a file that is not YAML, which replaces every other finding. The findings are reported in two groups, which `constraints.order` cannot state (see dependency-graph.md, section 3): first the ids (dependencies.missing-id and dependencies.duplicate-id, interleaved in declaration order, nodes before dependencies), then per dependency in declaration order its dangling source, its dangling target and its self-dependency.",
+    "defaults": { "severity": "warning", "timing": ["live"] },
+    "blockSaveOn": "never",
+    "builtIn": {
+      "std.unparseable": {
+        "severity": "error",
+        "code": "dependencies.unparseable",
+        "message": { "cel": "'This is not YAML that can be read: ' + detail.reason" },
+        "doc": "At the parser's line, or line 1 when it names none."
+      },
+      "std.duplicateId": {
+        "code": "dependencies.duplicate-id",
+        "message": { "cel": "'The id \\'' + detail.id + '\\' is declared more than once, which makes every reference to it ambiguous.'" },
+        "doc": "Nodes and dependencies share one id space. Each second and later declaration is reported, at its first line; nodes are read before dependencies."
+      },
+      "std.references": {
+        "enabled": false,
+        "doc": "Reported by danglingSource and danglingTarget instead, which leave an end written empty or not written at all unreported, as the tool does, and which read the id an end is written with."
+      },
+      "std.unreadableEntry": {
+        "enabled": false,
+        "doc": "An entry of `elements` or `relations` that is not a mapping is kept as it is and not drawn, silently, as the tool has always skipped it (the binding's two `Unreadable` rules)."
+      },
+      "std.endpoints": {
+        "enabled": false,
+        "doc": "A self-dependency is reported by selfDependency instead, which judges the ids as written, also when no node holds them; std.endpoints judges only a relation whose two ends both resolve. Nothing in the tool can create one; the command refuses it with \"A node cannot depend on itself.\""
+      }
+    },
+    "rules": [
+      {
+        "id": "missingId",
+        "code": "dependencies.missing-id",
+        "scope": ["Node", "DependsOn"],
+        "rule": "self.id != ''",
+        "message": { "cel": "self.isA('DependsOn') ? 'A dependency has no id, so nothing can select, connect or edit it.' : '\\'' + self.label + '\\' has no id, so nothing can select, connect or edit it.'" },
+        "doc": "An absent or empty id, at the declaration's first line; the element is drawn under an ephemeral id. `self.id` is the id as written. A node is named by its label, which is empty when it has none."
+      },
+      {
+        "id": "danglingSource",
+        "code": "dependencies.dangling-relation",
+        "scope": "DependsOn",
+        "when": "writtenEnd(self, 'source') != ''",
+        "rule": "has(self.source) && self.source.isA('Node')",
+        "message": { "cel": "'A dependency names \\'' + writtenEnd(self, 'source') + '\\', and no node with that id is in this graph.'" },
+        "doc": "Once per end that names an id no node holds, on the dependency. An end that names nothing at all is not reported."
+      },
+      {
+        "id": "danglingTarget",
+        "code": "dependencies.dangling-relation",
+        "scope": "DependsOn",
+        "when": "writtenEnd(self, 'target') != ''",
+        "rule": "has(self.target) && self.target.isA('Node')",
+        "message": { "cel": "'A dependency names \\'' + writtenEnd(self, 'target') + '\\', and no node with that id is in this graph.'" }
+      },
+      {
+        "id": "selfDependency",
+        "code": "dependencies.self-dependency",
+        "scope": "DependsOn",
+        "when": "writtenEnd(self, 'source') != ''",
+        "rule": "writtenEnd(self, 'source') != writtenEnd(self, 'target')",
+        "message": { "cel": "'\\'' + writtenEnd(self, 'source') + '\\' is declared to depend on itself, which says nothing about what needs what.'" },
+        "doc": "From `allowSelfLoops: false`: a dependency whose two ends name the same id, on the dependency, whether or not a node holds that id."
+      }
+    ]
+  },
+
+  "behavior": {
+    "doc": "Every edit is one command on the project's history, so each is one undo away.",
+    "operations": {
+      "addRight": {
+        "label": "Add node to the right",
+        "icon": "mdi-arrow-expand-right",
+        "shortcut": "Tab",
+        "for": ["Node"],
+        "doc": "Adds a node a fixed step to the right on the same row, which the selected node depends on.",
+        "actions": [
+          { "create": { "type": "'Node'", "attributes": { "label": "'New node'", "x": "self.x + 240.0", "row": "self.row" } }, "as": "added" },
+          { "connect": { "type": "'DependsOn'", "source": "self", "target": "added" } }
+        ]
+      },
+      "addBelow": {
+        "label": "Add node below",
+        "icon": "mdi-arrow-expand-down",
+        "shortcut": "Enter",
+        "for": ["Node"],
+        "doc": "Adds a node at the same coordinate one row down, which the selected node depends on.",
+        "actions": [
+          { "create": { "type": "'Node'", "attributes": { "label": "'New node'", "x": "self.x", "row": "self.row + 1" } }, "as": "added" },
+          { "connect": { "type": "'DependsOn'", "source": "self", "target": "added" } }
+        ]
+      },
+      "addNodeHere": {
+        "label": "Add node here",
+        "icon": "mdi-plus",
+        "for": "diagram",
+        "doc": "Adds a node labelled \"New node\" where the canvas was clicked or the palette entry dropped: its left edge at the point's x, on the row nearest the point's y.",
+        "actions": [
+          { "create": { "type": "'Node'", "at": "position", "attributes": { "label": "'New node'", "x": "double(position.x)", "row": "int(math.round(double(position.y)))" } } }
+        ]
+      }
+    },
+    "deletion": {
+      "Node": {
+        "relations": "delete",
+        "confirm": {
+          "count": "self.incoming.size() + self.outgoing.filter(r, r.target != self).size()",
+          "threshold": 1,
+          "title": "Remove",
+          "message": { "cel": "'Removing this node also removes the ' + string(count) + (count == 1 ? ' dependency' : ' dependencies') + ' attached to it.'" },
+          "confirmLabel": "Remove",
+          "danger": true
+        }
+      }
+    }
+  },
+
+  "layout": {
+    "doc": "No automatic layout: every position is the author's.",
+    "algorithms": { "manual": { "algorithm": "none" } },
+    "default": "manual",
+    "trigger": "manual"
+  },
+
+  "persistence": {
+    "doc": "Stored as a `.dgr` file: ADP's own YAML schema, owned outright by this type. The FBL binding `dgr` reads and writes it, and `typeMap` maps the binding's element types and attributes onto this metamodel (see dependency-graph.md, section 1). The binding reads a dependency as an element with reference attributes, so one whose end names nothing is kept and reported, and every entry and end a second time as written, for the rules that judge the ids as written.",
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/dependency-graph/backend/EtAlii.Adp.Diagram.DependencyGraph/dependency-graph.fbl#dgr",
+    "ids": {
+      "strategy": "uuid-v4",
+      "encoding": "base36",
+      "stable": true,
+      "doc": "New ids are ShortGuids: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `api-gateway` are kept as they are."
+    },
+    "view": { "store": [] },
+    "collaboration": { "mode": "none" },
+    "typeMap": {
+      "Node": { "as": "Node", "hostAttributes": ["storedId"] },
+      "Dependency": { "as": "DependsOn", "attributes": { "from": "source", "to": "target" }, "hostAttributes": ["storedId", "writtenFrom", "writtenTo"] },
+      "Unreadable": { "as": "unreadable" }
+    }
+  },
+
+  "plugins": {
+    "net.etalii.adp.generic.dependencyEnds": {
+      "version": "^1.0.0",
+      "provides": ["celFunctions"],
+      "required": false,
+      "doc": "A dependency's ends as the file writes them, which DISL's CEL cannot read: an end that names no node is null in the model (4.9). The standalone module implements it over its own reading (`DependencyGraphFindings.cs`).",
+      "celFunctions": [
+        {
+          "name": "writtenEnd",
+          "params": [ { "name": "relation", "type": "dyn" }, { "name": "end", "type": "string" } ],
+          "returns": "string",
+          "cost": 1,
+          "fallback": "end == 'source' ? (has(relation.source) ? relation.source.id : '') : (has(relation.target) ? relation.target.id : '')",
+          "doc": "The id a dependency's `source` or `target` end is written with in the file (`from` or `to`), also when it names no node and the end is null in the model; the empty text when the key is absent or empty."
+        }
+      ]
+    },
+    "net.etalii.adp.generic.dependencyCurve": {
+      "version": "^1.0.0",
+      "provides": ["routing"],
+      "required": false,
+      "fallback": { "routing": "bezier" },
+      "doc": "The dependency curve: a horizontal bezier between the facing side anchors while the dependency sits clear to the right, and a forward loop out of the dependent's right side into the dependency's left side when it sits behind."
+    }
+  },
+
+  "x-dependencies": {
+    "doc": "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type>. A property is keyed by its form item's row id: its id, else its attribute.",
+    "tools": {
+      "node": { "id": "dependencies.toolbox.node", "drop": "dependencies.add-element" }
+    },
+    "actions": {
+      "editLabel": "dependencies.rename",
+      "delete": "dependencies.remove",
+      "DependsOn/editLabel": "dependencies.relabel",
+      "DependsOn/delete": "dependencies.disconnect",
+      "addRight": "dependencies.add-after",
+      "addBelow": "dependencies.add-below",
+      "addNodeHere": "dependencies.add-element",
+      "connect": "dependencies.connect"
+    },
+    "properties": {
+      "label": "dependencies.label",
+      "x": "dependencies.x",
+      "row": "dependencies.row",
+      "from": "dependencies.from",
+      "to": "dependencies.to"
+    }
+  },
+
+  "x-adp": {
+    "kind": "Diagram",
+    "state": "Implemented",
+    "implementations": {
+      "standalone": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/dependency-graph"
+    }
+  }
+}

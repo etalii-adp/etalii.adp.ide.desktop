@@ -1,0 +1,572 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.1/disl.schema.json#/$defs/Specification",
+  "disl": "0.1",
+  "language": {
+    "id": "net.etalii.adp.etalii.functional-decomposition-graph",
+    "version": "0.1.0",
+    "label": "Functional decomposition graph",
+    "doc": {
+      "summary": "What an application is made of - its screens, the actions on them, the data it keeps and the functions behind them - each owned by one parent, with Shows for where an action leads.",
+      "description": "A functional decomposition graph structures frontend application development before and while it is built: which screens exist and how they nest, what a user can do on each, which data each screen and action works on, and which background processes sit behind them.\n\nFour kinds of element (UI Element, Data Element, Action, Function) are linked parent to child by four **ownership** relations, which together form a set of strict trees: every element has at most one parent and ownership never loops. A fifth relation, **Shows**, is navigation: an Action shows or updates one UI Element, and navigation may loop back (a task list, a task detail and back to the task list). Comments annotate the graph and connect to nothing.",
+      "rationale": "Because only meaningful links can be drawn, the diagram doubles as a check on the design: ownership stays a clean tree, while navigation is free to loop back.",
+      "tags": ["frontend", "decomposition", "ui", "software delivery"],
+      "audience": ["user", "author"]
+    },
+    "defaultLocale": "en",
+    "authors": [{ "name": "Peter Vrenken" }],
+    "license": "Apache-2.0",
+    "icon": "mdi:file-tree-outline",
+    "fileExtension": "fdg",
+    "requires": { "conformance": "standard" }
+  },
+
+  "functions": {
+    "uniqueName": {
+      "params": [{ "name": "base", "type": "string" }],
+      "returns": "string",
+      "uses": ["diagram"],
+      "cel": "!diagram.nodes.exists(n, n.isA('NamedElement') && n.name == base) ? base : base + ' ' + string(lists.range(diagram.nodes.size() + 2).filter(i, i >= 2 && !diagram.nodes.exists(n, n.isA('NamedElement') && n.name == base + ' ' + string(i)))[0])",
+      "doc": "The name itself when no element carries it yet, otherwise the name followed by the lowest number from 2 up that makes it unique (\"New action\", \"New action 2\", \"New action 3\")."
+    }
+  },
+
+  "metamodel": {
+    "doc": "Five element types and five relation types. The four named element types are linked parent to child by the four ownership relations; Shows links an Action to the UI Element it shows; a Comment links to nothing.",
+    "types": {
+      "FdgElement": {
+        "abstract": true,
+        "doc": "Everything that can be placed on a functional decomposition graph.",
+        "attributes": {
+          "description": {
+            "type": "text",
+            "label": "Description",
+            "markup": "plain",
+            "doc": {
+              "summary": "What this element means. Kept in the document and shown in the property grid, but never drawn on the diagram.",
+              "rationale": "Requirement 7.1 of the standalone specification: every element and connection has a Description that is never shown on the diagram."
+            }
+          }
+        }
+      },
+      "NamedElement": {
+        "abstract": true,
+        "extends": "FdgElement",
+        "doc": "An element that shows its Name inside its shape: a UI Element, Data Element, Action or Function.",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "label": "Name",
+            "order": 0,
+            "doc": "Drawn inside the shape, editable in place and in the property grid. It may be empty."
+          },
+          "description": { "type": "text", "label": "Description", "markup": "plain", "order": 1,
+                           "doc": "What this element means. Never drawn on the diagram." }
+        }
+      },
+      "UiElement": {
+        "extends": "NamedElement",
+        "label": "UI element",
+        "icon": "mdi:application-outline",
+        "doc": {
+          "summary": "A screen, or a part of one. Drop it where it belongs; its parent is a connection drawn to it.",
+          "description": "UI windows, pages and components. A UI Element may own child UI Elements, Actions, Data Elements and Functions, and has at most one parent UI Element.",
+          "tags": ["screen", "page", "component", "window"]
+        },
+        "x-fdg": { "documentType": "ui-element" }
+      },
+      "DataElement": {
+        "extends": "NamedElement",
+        "label": "Data element",
+        "icon": "mdi:database-outline",
+        "doc": {
+          "summary": "Something the application keeps. A screen, an action or other data owns it.",
+          "description": "Input fields, data objects and collections shown in a list. A Data Element may own nested Data Elements (child properties) and Functions, and has at most one parent in total among UI Element, Action and Data Element.",
+          "tags": ["data", "field", "object", "collection"]
+        },
+        "x-fdg": { "documentType": "data-element" }
+      },
+      "Action": {
+        "extends": "NamedElement",
+        "label": "Action",
+        "icon": "mdi:gesture-tap",
+        "doc": {
+          "summary": "Something the user does on a screen. A screen owns it.",
+          "description": "Actions and interactions, for example a button click. An Action has at most one parent UI Element, may own Data Elements and Functions, and shows at most one UI Element.",
+          "tags": ["action", "interaction", "click"]
+        },
+        "x-fdg": { "documentType": "action" }
+      },
+      "Function": {
+        "extends": "NamedElement",
+        "label": "Function",
+        "icon": "mdi:cog-outline",
+        "doc": {
+          "summary": "Something that runs behind the screens. Anything but a Comment may own it.",
+          "description": "Background processes and important code functions. A Function has at most one parent in total among UI Element, Action, Data Element and Function; Function to Function is a call chain. A background process shared by several parents cannot be drawn: each parent needs its own Function.",
+          "tags": ["function", "background process", "service"]
+        },
+        "x-fdg": { "documentType": "function" }
+      },
+      "Comment": {
+        "extends": "FdgElement",
+        "label": "Comment",
+        "icon": "mdi:note-text-outline",
+        "labelAttribute": "text",
+        "doc": {
+          "summary": "A note on the graph. It connects to nothing.",
+          "description": "A resizable, multiline box whose text wraps automatically. A Comment has no Name: its text is its content, editable in place and in the property grid.",
+          "tags": ["note", "comment"]
+        },
+        "attributes": {
+          "text": {
+            "type": "text",
+            "label": "Text",
+            "markup": "plain",
+            "order": 0,
+            "doc": "The comment's content, drawn wrapped inside the box. Line breaks are kept."
+          },
+          "description": { "type": "text", "label": "Description", "markup": "plain", "order": 1,
+                           "doc": "What this comment is for. Never drawn on the diagram." }
+        },
+        "x-fdg": { "documentType": "comment" }
+      }
+    },
+    "relations": {
+      "FdgRelation": {
+        "abstract": true,
+        "doc": "Every link of a functional decomposition graph: directed, from parent to child, never from an element to itself, and never to or from a Comment.",
+        "directed": true,
+        "allowSelfLoops": false,
+        "attributes": {
+          "name": {
+            "type": "string",
+            "label": "Name",
+            "order": 0,
+            "doc": "Drawn beside the curve when given; when empty nothing is drawn."
+          },
+          "description": {
+            "type": "text",
+            "label": "Description",
+            "markup": "plain",
+            "order": 1,
+            "doc": "What this link means. Never drawn on the diagram."
+          }
+        }
+      },
+      "Owns": {
+        "abstract": true,
+        "extends": "FdgRelation",
+        "acyclic": true,
+        "doc": {
+          "summary": "Ownership: the four relations a decomposition is made of.",
+          "description": "UI child, Action, Data and Function together form a set of strict trees. Each child kind has exactly one ownership relation arriving at it, and that relation allows one parent, so every element has at most one parent in total. `acyclic` on this abstract type covers all four subtypes together: no directed cycle may run through any mix of them. Shows is not ownership and is exempt.",
+          "rationale": "The one-parent limits alone do not prevent a loop - a Data Element that owns another which owns it back has one parent each - so it is the cycle rule that keeps ownership loop-free."
+        }
+      },
+      "UiChild": {
+        "extends": "Owns",
+        "label": "UI child",
+        "source": "UiElement",
+        "target": { "types": ["UiElement"], "max": 1, "role": "child",
+                    "doc": "A UI Element has at most one parent UI Element." },
+        "doc": "A UI Element nested in another: a page holding a list, a list holding a row. A UI Element may have any number of UI children.",
+        "x-fdg": { "documentType": "ui-child" }
+      },
+      "OwnsAction": {
+        "extends": "Owns",
+        "label": "Action",
+        "source": "UiElement",
+        "target": { "types": ["Action"], "max": 1, "role": "action",
+                    "doc": "An Action has at most one parent." },
+        "doc": "An Action offered by a UI Element, such as a button click. A UI Element may have any number of Actions.",
+        "x-fdg": { "documentType": "owns-action" }
+      },
+      "OwnsData": {
+        "extends": "Owns",
+        "label": "Data",
+        "source": ["UiElement", "Action", "DataElement"],
+        "target": { "types": ["DataElement"], "max": 1, "role": "data",
+                    "doc": "A Data Element has at most one parent in total." },
+        "doc": "Data a UI Element shows or binds, data an Action works on, or a child property of a Data Element (nesting allowed). A parent may have any number of Data Elements.",
+        "x-fdg": { "documentType": "owns-data" }
+      },
+      "OwnsFunction": {
+        "extends": "Owns",
+        "label": "Function",
+        "source": ["UiElement", "Action", "DataElement", "Function"],
+        "target": { "types": ["Function"], "max": 1, "role": "function",
+                    "doc": "A Function has at most one parent in total." },
+        "doc": "A background process or important code function that relates to its parent. Function to Function is a call chain. A parent may have any number of Functions.",
+        "x-fdg": { "documentType": "owns-function" }
+      },
+      "Shows": {
+        "extends": "FdgRelation",
+        "label": "Shows",
+        "source": { "types": ["Action"], "max": 1, "role": "action",
+                    "doc": "An Action shows or updates at most one UI Element." },
+        "target": { "types": ["UiElement"], "role": "shown" },
+        "doc": {
+          "summary": "An Action shows a page, or updates a UI Element.",
+          "description": "Navigation, not ownership: it is exempt from the cycle rule, so an Action may show its own page or any page above it, and a navigation round trip can be drawn. A UI Element may be shown by any number of Actions."
+        },
+        "x-fdg": { "documentType": "shows" }
+      }
+    }
+  },
+
+  "coordinates": {
+    "doc": "One free canvas in pixels. Positions are the author's and are never computed; nothing snaps.",
+    "systems": {
+      "canvas": { "kind": "cartesian", "x": { "kind": "linear" }, "y": { "kind": "linear" },
+                  "doc": "The top-left corner of each element is stored; the y axis grows downwards." }
+    }
+  },
+
+  "notation": {
+    "doc": "Each element type is recognisable at a glance by its shape and its fill. Four types share one height of 48 and differ in width; a Comment is sized freely.",
+    "theme": {
+      "tokens": {
+        "color.text": "#0f172a",
+        "color.surface": "#ffffff",
+        "color.border": "#e2e8f0",
+        "color.fdg.ui-element": "#aaed92",
+        "color.fdg.data-element": "#ededed",
+        "color.fdg.action": "#9edcfa",
+        "color.fdg.function": "#86e6d9",
+        "color.fdg.comment": "#fcf281"
+      },
+      "modes": {
+        "dark": {
+          "color.text": "#f1f5f9",
+          "color.surface": "#1e293b",
+          "color.border": "#334155",
+          "color.fdg.ui-element": "#2e7814",
+          "color.fdg.data-element": "#696969",
+          "color.fdg.action": "#086fa1",
+          "color.fdg.function": "#187569",
+          "color.fdg.comment": "#736a03"
+        }
+      },
+      "defaultMode": "light",
+      "followSystem": true,
+      "doc": {
+        "summary": "Light mode uses the requested colours exactly; dark mode uses a darker variant of each hue.",
+        "rationale": "Each dark variant keeps the light colour's hue and saturation with the lightness lowered to the lightest value that reaches 5.0:1 against the dark text, a margin above the 4.5:1 WCAG AA line. The light fills reach 11.96:1 to 15.44:1 against the light text."
+      }
+    },
+
+    "styles": {
+      "element": {
+        "stroke": { "color": { "token": "color.border" }, "width": 1.5 },
+        "font": { "size": 12, "color": { "token": "color.text" } },
+        "textAlign": "center",
+        "verticalAlign": "middle"
+      },
+      "uiElement": { "extends": "element", "fill": { "token": "color.fdg.ui-element" } },
+      "dataElement": { "extends": "element", "fill": { "token": "color.fdg.data-element" } },
+      "action": { "extends": "element", "fill": { "token": "color.fdg.action" } },
+      "function": { "extends": "element", "fill": { "token": "color.fdg.function" } },
+      "comment": { "extends": "element", "fill": { "token": "color.fdg.comment" }, "textAlign": "left", "verticalAlign": "top" },
+      "link": {
+        "stroke": { "color": { "token": "color.text" }, "width": 1.5 },
+        "font": { "size": 12, "color": { "token": "color.text" } }
+      }
+    },
+
+    "shapes": {
+      "superellipse": {
+        "label": "Superellipse",
+        "doc": "The squircle |x/a|^4 + |y/b|^4 = 1 inscribed in the bounds, written as four cubic Bezier quarters with control factor 0.919 (within 0.5% of the curve).",
+        "path": { "segments": [
+          { "op": "M", "x": "w", "y": "h * 0.5" },
+          { "op": "C", "c1x": "w", "c1y": "h * 0.9595", "c2x": "w * 0.9595", "c2y": "h", "x": "w * 0.5", "y": "h" },
+          { "op": "C", "c1x": "w * 0.0405", "c1y": "h", "c2x": 0, "c2y": "h * 0.9595", "x": 0, "y": "h * 0.5" },
+          { "op": "C", "c1x": 0, "c1y": "h * 0.0405", "c2x": "w * 0.0405", "c2y": 0, "x": "w * 0.5", "y": 0 },
+          { "op": "C", "c1x": "w * 0.9595", "c1y": 0, "c2x": "w", "c2y": "h * 0.0405", "x": "w", "y": "h * 0.5" },
+          { "op": "Z" }
+        ] },
+        "textArea": { "x": "w * 0.01 + 6", "y": "h * 0.25", "w": "w * 0.98 - 12", "h": "h * 0.5" }
+      },
+      "parallelogramRight": {
+        "label": "Parallelogram, top shifted right",
+        "doc": "Corners at (0.2, 0), (1, 0), (0.8, 1) and (0, 1) of the bounds: the top edge is shifted right relative to the bottom edge.",
+        "path": { "segments": [
+          { "op": "M", "x": "w * 0.2", "y": 0 },
+          { "op": "L", "x": "w", "y": 0 },
+          { "op": "L", "x": "w * 0.8", "y": "h" },
+          { "op": "L", "x": 0, "y": "h" },
+          { "op": "Z" }
+        ] },
+        "textArea": { "x": "w * 0.15 + 6", "y": "h * 0.25", "w": "w * 0.7 - 12", "h": "h * 0.5" }
+      },
+      "trapezoidNarrowBottom": {
+        "label": "Trapezoid, narrower at the bottom",
+        "doc": "Corners at (0, 0), (1, 0), (0.85, 1) and (0.15, 1) of the bounds: the bottom edge is narrower than the top edge.",
+        "path": { "segments": [
+          { "op": "M", "x": 0, "y": 0 },
+          { "op": "L", "x": "w", "y": 0 },
+          { "op": "L", "x": "w * 0.85", "y": "h" },
+          { "op": "L", "x": "w * 0.15", "y": "h" },
+          { "op": "Z" }
+        ] },
+        "textArea": { "x": "w * 0.1125 + 6", "y": "h * 0.25", "w": "w * 0.775 - 12", "h": "h * 0.5" }
+      },
+      "diode": {
+        "label": "Diode",
+        "doc": "Square on the left and round on the right: a rectangle from the left edge to w - r, closed on the right by a semicircle of radius r = min(h / 2, w). Just a fill and a border, no other ornaments.",
+        "path": { "segments": [
+          { "op": "M", "x": 0, "y": 0 },
+          { "op": "L", "x": "w - min(h / 2.0, w)", "y": 0 },
+          { "op": "A", "rx": "min(h / 2.0, w)", "ry": "min(h / 2.0, w)", "rotation": 0, "largeArc": false, "sweep": true,
+            "x": "w - min(h / 2.0, w)", "y": "h" },
+          { "op": "L", "x": 0, "y": "h" },
+          { "op": "Z" }
+        ] },
+        "textArea": { "x": 6, "y": "h * 0.25", "w": "w - 0.134 * min(h / 2.0, w) - 12", "h": "h * 0.5" }
+      }
+    },
+
+    "nodes": {
+      "UiElement": {
+        "shape": "superellipse",
+        "style": "uiElement",
+        "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
+        "anchors": { "mode": "outline" },
+        "doubleClick": "editLabel",
+        "doc": "A superellipse filled with the UI Element colour."
+      },
+      "DataElement": {
+        "shape": "parallelogramRight",
+        "style": "dataElement",
+        "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
+        "anchors": { "mode": "outline" },
+        "doubleClick": "editLabel",
+        "doc": "A parallelogram with its top shifted right relative to its bottom, filled with the Data Element colour."
+      },
+      "Action": {
+        "shape": "trapezoidNarrowBottom",
+        "style": "action",
+        "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
+        "anchors": { "mode": "outline" },
+        "doubleClick": "editLabel",
+        "doc": "A trapezoid narrower at the bottom than the top, filled with the Action colour."
+      },
+      "Function": {
+        "shape": "diode",
+        "style": "function",
+        "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
+        "anchors": { "mode": "outline" },
+        "doubleClick": "editLabel",
+        "doc": "A diode, square on the left and round on the right, filled with the Function colour."
+      },
+      "Comment": {
+        "shape": "rect",
+        "style": "comment",
+        "size": { "default": [240, 96], "min": [80, 48], "resizable": true },
+        "labels": [ { "id": "text", "text": { "attribute": "text" }, "editable": "multiline", "wrap": "word",
+                      "maxWidth": "parent", "overflow": "ellipsis", "position": "top-left",
+                      "tooltip": { "cel": "self.text" } } ],
+        "connectable": false,
+        "doubleClick": "editLabel",
+        "doc": "A box filled with the Comment colour, resizable in both directions, its text wrapped inside it. It has no anchors: no connection starts or ends on it and it is never highlighted as a target."
+      }
+    },
+
+    "edges": {
+      "UiChild": { "style": "link",
+        "line": { "routing": "bezier", "startDirection": "normal", "endDirection": "normal", "bendpoints": { "editable": false } },
+        "sourceMarker": "none", "targetMarker": "arrowFilled",
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "at": "middle", "side": "above", "editable": "inline" } ] },
+      "OwnsAction": { "style": "link",
+        "line": { "routing": "bezier", "startDirection": "normal", "endDirection": "normal", "bendpoints": { "editable": false } },
+        "sourceMarker": "none", "targetMarker": "arrowFilled",
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "at": "middle", "side": "above", "editable": "inline" } ] },
+      "OwnsData": { "style": "link",
+        "line": { "routing": "bezier", "startDirection": "normal", "endDirection": "normal", "bendpoints": { "editable": false } },
+        "sourceMarker": "none", "targetMarker": "arrowFilled",
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "at": "middle", "side": "above", "editable": "inline" } ] },
+      "OwnsFunction": { "style": "link",
+        "line": { "routing": "bezier", "startDirection": "normal", "endDirection": "normal", "bendpoints": { "editable": false } },
+        "sourceMarker": "none", "targetMarker": "arrowFilled",
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "at": "middle", "side": "above", "editable": "inline" } ] },
+      "Shows": { "style": "link",
+        "line": { "routing": "bezier", "startDirection": "normal", "endDirection": "normal", "bendpoints": { "editable": false } },
+        "sourceMarker": "none", "targetMarker": "arrowFilled",
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "at": "middle", "side": "above", "editable": "inline" } ] }
+    }
+  },
+
+  "forms": {
+    "namedElement": {
+      "for": ["UiElement", "DataElement", "Action", "Function"],
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "title": "Identity", "items": [
+          { "attribute": "name" },
+          { "attribute": "description", "widget": "textarea", "rows": 3 }
+        ] }
+      ]
+    },
+    "comment": {
+      "for": "Comment",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "title": "Identity", "items": [
+          { "attribute": "text", "widget": "textarea", "rows": 4 },
+          { "attribute": "description", "widget": "textarea", "rows": 3 }
+        ] }
+      ]
+    },
+    "link": {
+      "for": ["UiChild", "OwnsAction", "OwnsData", "OwnsFunction", "Shows"],
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "title": "Identity", "items": [
+          { "attribute": "name" },
+          { "attribute": "description", "widget": "textarea", "rows": 3 }
+        ] }
+      ]
+    }
+  },
+
+  "toolbox": {
+    "groups": [
+      { "id": "elements", "label": "Elements", "tools": [
+        { "id": "uiElement", "creates": "UiElement", "label": "UI element", "icon": "mdi:application-outline", "mode": "click", "after": "select",
+          "doc": "A screen, or a part of one. Drop it where it belongs; its parent is a connection drawn to it." },
+        { "id": "action", "creates": "Action", "label": "Action", "icon": "mdi:gesture-tap", "mode": "click", "after": "select",
+          "doc": "Something the user does on a screen. A screen owns it." },
+        { "id": "dataElement", "creates": "DataElement", "label": "Data element", "icon": "mdi:database-outline", "mode": "click", "after": "select",
+          "doc": "Something the application keeps. A screen, an action or other data owns it." },
+        { "id": "function", "creates": "Function", "label": "Function", "icon": "mdi:cog-outline", "mode": "click", "after": "select",
+          "doc": "Something that runs behind the screens. Anything but a Comment may own it." },
+        { "id": "comment", "creates": "Comment", "label": "Comment", "icon": "mdi:note-text-outline", "mode": "click", "after": "select",
+          "initial": { "text": "New comment" },
+          "doc": "A note on the graph. It connects to nothing." }
+      ] },
+      { "id": "links", "label": "Links", "doc": "One tool per relation. Every arrow points from parent to child.", "tools": [
+        { "id": "uiChild", "creates": "UiChild", "mode": "drag", "icon": "mdi:ray-start-arrow" },
+        { "id": "ownsAction", "creates": "OwnsAction", "mode": "drag", "icon": "mdi:ray-start-arrow" },
+        { "id": "ownsData", "creates": "OwnsData", "mode": "drag", "icon": "mdi:ray-start-arrow" },
+        { "id": "ownsFunction", "creates": "OwnsFunction", "mode": "drag", "icon": "mdi:ray-start-arrow" },
+        { "id": "shows", "creates": "Shows", "mode": "drag", "icon": "mdi:ray-start-arrow" }
+      ] }
+    ],
+    "contextMenus": [
+      { "for": ["UiElement", "DataElement", "Action", "Function"], "placement": "menu", "tools": [
+        { "kind": "editLabel", "label": "Rename…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
+        { "kind": "delete", "label": "Remove", "icon": "mdi:delete-outline", "shortcut": "Delete" }
+      ] },
+      { "for": ["Comment"], "placement": "menu", "tools": [
+        { "kind": "editLabel", "label": "Edit text…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
+        { "kind": "delete", "label": "Remove", "icon": "mdi:delete-outline", "shortcut": "Delete" }
+      ] },
+      { "for": ["UiChild", "OwnsAction", "OwnsData", "OwnsFunction", "Shows"], "placement": "menu", "tools": [
+        { "kind": "editLabel", "label": "Rename…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
+        { "kind": "delete", "label": "Remove connection", "icon": "mdi:vector-polyline-remove", "shortcut": "Delete" }
+      ] }
+    ]
+  },
+
+  "constraints": {
+    "doc": "The rules are declared on the metamodel: the relations' endpoints and limits, no self-links, and the cycle rule on ownership. A document edited outside ADP that breaks them still opens, and each breach is reported naming the elements involved.",
+    "blockSaveOn": "never",
+    "builtIn": {
+      "std.endpoints": { "severity": "error" },
+      "std.multiplicity": { "severity": "error" },
+      "std.acyclic": { "severity": "error" },
+      "std.references": { "severity": "error" }
+    },
+    "rules": [
+      {
+        "id": "ownershipLoop",
+        "label": "Ownership loop",
+        "scope": ["UiElement", "DataElement", "Action", "Function"],
+        "rule": "!self.inCycle('Owns')",
+        "severity": "error",
+        "cost": "expensive",
+        "message": { "cel": "'Ownership loops through ' + (self.name != '' ? self.name : self.id) + '.'" },
+        "doc": {
+          "summary": "Ownership links (UI child, Action, Data, Function) never form a loop.",
+          "rationale": "Together with the one-parent limits this makes ownership a set of strict trees. Shows is navigation and is not counted, so a navigation round trip is legal.",
+          "description": "Stated explicitly beside `acyclic` on the abstract `Owns` relation, so that a document edited outside ADP reports the loop on every element in it."
+        }
+      },
+      {
+        "id": "noOwnershipLoopWhileDrawing",
+        "label": "No ownership loop",
+        "kind": "connect",
+        "when": "relationType in ['UiChild', 'OwnsAction', 'OwnsData', 'OwnsFunction']",
+        "rule": "!(source in target.reachable('Owns'))",
+        "enforcement": "prevent",
+        "message": { "cel": "'Refused by the cycle check: ' + (target.name != '' ? target.name : target.id) + ' already owns ' + (source.name != '' ? source.name : source.id) + ', so this link would make an ownership loop.'" },
+        "doc": "A target that would close an ownership loop is never offered or highlighted while a link is drawn. Shows is exempt."
+      }
+    ]
+  },
+
+  "behavior": {
+    "doc": "Every change - add, remove, move, resize, connect, disconnect, rename, set a description - is one undoable step.",
+    "hooks": [
+      {
+        "id": "nameNewElement",
+        "on": "create",
+        "for": ["NamedElement"],
+        "when": "!has(self.name)",
+        "actions": [
+          { "set": { "name": "uniqueName({'UiElement': 'New UI element', 'Action': 'New action', 'DataElement': 'New data element', 'Function': 'New function'}[self.type])" } }
+        ],
+        "doc": "A new element is named \"New UI element\", \"New action\", \"New data element\" or \"New function\", numbered from 2 when the name is taken."
+      }
+    ],
+    "deletion": {
+      "UiElement": { "relations": "delete", "doc": "Removing an element also removes every connection to or from it, in the same undoable step." },
+      "DataElement": { "relations": "delete" },
+      "Action": { "relations": "delete" },
+      "Function": { "relations": "delete" },
+      "Comment": { "relations": "delete" }
+    }
+  },
+
+  "layout": {
+    "trigger": "manual",
+    "respect": "all",
+    "doc": "No automatic layout: positions are the author's own, written to the document and never computed."
+  },
+
+  "persistence": {
+    "format": "plugin:net.etalii.adp.etalii.fdg",
+    "encoding": "utf-8",
+    "newline": "crlf",
+    "files": { "mode": "single", "model": "{name}.fdg" },
+    "ids": { "strategy": "uuid-v4", "stable": true,
+             "doc": "Ids ADP creates are random GUIDs written in base 36. Hand-authored ids, such as task-detail, are any non-empty token and are kept." },
+    "ordering": { "elements": "creation" },
+    "omitDefaults": true,
+    "precision": { "canvas": 4 },
+    "view": { "store": ["bounds"] },
+    "definition": { "embed": "none" },
+    "doc": "A functional decomposition graph is stored in a .fdg file, a line-oriented YAML subset with a version header, then its elements and connections, registered by an .adp file whose origin is etalii/functional-decomposition-graph. A document ADP did not change is written back byte-identical, and an edit rewrites only the lines that change."
+  },
+
+  "plugins": {
+    "net.etalii.adp.etalii.fdg": {
+      "version": "^1.0.0",
+      "provides": ["persistenceFormat"],
+      "required": true,
+      "doc": "Reads and writes the .fdg document (`functional-decomposition-graph: 1`): elements and connections as indented YAML entries, edited line by line so comments, blank lines, indentation, line endings and a missing final newline survive every edit."
+    }
+  },
+
+  "x-adp": {
+    "origin": "etalii/functional-decomposition-graph",
+    "kind": "Diagram",
+    "state": "Prototype",
+    "companion": "functional-decomposition-graph.md"
+  }
+}

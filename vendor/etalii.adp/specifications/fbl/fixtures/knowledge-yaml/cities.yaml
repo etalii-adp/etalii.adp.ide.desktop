@@ -1,0 +1,98 @@
+ded: "0.1"
+designer: etalii/knowledge
+# Cities of the Low Countries, kept by hand and by ADP.
+name: Cities
+activeView: v1
+properties:
+  - id: p1
+    name: Name
+    type: text
+    title: true
+  - id: p2
+    name: Country
+    type: selection
+    options:
+      - id: o1
+        name: Netherlands
+        colour: blue
+      - id: o2
+        name: Belgium
+        colour: yellow
+  - id: p3
+    name: Population
+    type: number
+  - id: p4
+    name: Tags
+    type: multipleSelection
+    options:
+      - id: o3
+        name: Port
+      - id: o4
+        name: Capital
+        colour: red
+  - id: p5
+    name: Province
+    type: relation
+    target: provinces.yaml
+    limit: one
+  - id: p6
+    name: Visited
+    type: checkbox
+  - id: p7
+    name: Founded
+    type: date
+  - id: p8
+    name: Updated
+    type: dateTime
+  - id: p9
+    name: Opens
+    type: time
+views:
+  - id: v1
+    name: All cities
+    columns:
+      - property: p3
+        width: 120
+    sorts:
+      - property: p3
+        direction: descending
+    filter:
+      - property: p2
+        operator: is
+        option: o1
+    groupBy: p2
+  - id: v2
+    name: Map
+rows:
+  - id: r1
+    cells:
+      - property: p1
+        text: Amsterdam
+      - property: p2
+        option: o1
+      - property: p3
+        number: 931298
+      - property: p4
+        options:
+          - option: o3
+          - option: o4
+      - property: p5
+        rows:
+          - row: nh
+      - property: p6
+        checked: true
+      - property: p7
+        date: "1275-10-27"
+      - property: p8
+        dateTime: "2026-10-08T09:30:00Z"
+      - property: p9
+        time: 09:00
+  - id: r2
+    cells:
+      - property: p1
+        text: Antwerp
+      - property: p2
+        option: o2
+      - property: p4
+        options:
+          - option: o3

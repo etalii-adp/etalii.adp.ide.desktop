@@ -1,0 +1,47 @@
+{
+  "$schema": "https://etalii.net/adp/did/schema/0.1/did.schema.json#/$defs/Definition",
+  "did": "0.1",
+  "language": { "id": "org.example.timeline", "version": "0.4.0" },
+  "meta": { "createdAt": "2026-09-21T08:12:00Z", "modifiedAt": "2026-09-25T16:40:00Z", "generator": "Reference runtime 0.1" },
+  "diagram": {
+    "attributes": {
+      "title": "Website relaunch",
+      "projectStart": "2026-10-01",
+      "projectEnd": "2026-12-18",
+      "holidays": ["2026-10-03", "2026-12-24", "2026-12-25"]
+    }
+  },
+  "elements": [
+    { "id": "ms_01K5YZT2", "type": "Milestone",
+      "attributes": { "title": "Go live", "start": "2026-12-01", "assignee": "res_01K5YX10" } },
+    { "id": "res_01K5YX10", "type": "Resource", "attributes": { "name": "Design team" } },
+    { "id": "res_01K5YX11", "type": "Resource", "attributes": { "name": "Frontend", "position": 1, "capacity": 2 } },
+    { "id": "task_01K5YY01", "type": "Task",
+      "attributes": { "title": "Wireframes", "start": "2026-10-01", "end": "2026-10-09",
+                      "assignee": "res_01K5YX10", "status": "done", "progress": 1 } },
+    { "id": "task_01K5YY02", "type": "Task",
+      "attributes": { "title": "Visual design", "start": "2026-10-12", "end": "2026-10-30",
+                      "assignee": "res_01K5YX10", "status": "active", "progress": 0.4 } },
+    { "id": "task_01K5YY03", "type": "Task",
+      "attributes": { "title": "Build pages", "start": "2026-11-03", "end": "2026-11-27",
+                      "assignee": "res_01K5YX11" } }
+  ],
+  "relations": [
+    { "id": "dep_01K5Z1A8", "type": "Dependency", "source": "task_01K5YY01", "target": "task_01K5YY02" },
+    { "id": "dep_01K5Z1A9", "type": "Dependency", "source": "task_01K5YY02", "target": "task_01K5YY03",
+      "attributes": { "lag": 1 } },
+    { "id": "dep_01K5Z1B0", "type": "Dependency", "source": "task_01K5YY03", "target": "ms_01K5YZT2" }
+  ],
+  "views": [
+    {
+      "id": "v_schedule",
+      "viewpoint": "main",
+      "name": "Schedule",
+      "viewport": { "x": 0, "y": 0, "zoom": 1 },
+      "nodes": {
+        "task_01K5YY02": { "labels": { "dates": { "dx": 4, "dy": 0 } } }
+      },
+      "edges": {}
+    }
+  ]
+}

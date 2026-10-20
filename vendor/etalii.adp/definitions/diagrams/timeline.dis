@@ -1,0 +1,846 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.3",
+  "language": {
+    "id": "net.etalii.adp.generic.timeline",
+    "version": "1.1.0",
+    "origin": "generic/timeline",
+    "label": "Timeline diagram",
+    "doc": {
+      "summary": "When things happen and for how long - periods and moments on rows along a time axis, connected however the author means it.",
+      "description": "Time runs left to right. Every element has a **begin**; an element with an **end** as well is a **period** drawn as a bar from begin to end, an element without one is a **moment** drawn as a diamond. Each element sits on an authored **row**: an integer the author chooses, which several elements may share and which carries no meaning of its own. **Connections** join any two elements and mean whatever their label says.\n\nPlacement is authored on both axes and never computed: x is authored as time through begin and end, y as a row. Times are taken at face value, with no time zone, no calendar and no working days. Reading a time, comparing two and counting days are the `net.etalii.adp.generic.timelineTimes` plugin's CEL functions, because DISL's CEL has no timestamps; what DISL 0.3 cannot state, the wire ids, is declared under `x-timeline`, and the rest is in timeline.md beside this file.",
+      "rationale": "Distinct from a Gantt chart: placement is authored on both axes rather than computed, and connections are arbitrary rather than scheduling dependencies.",
+      "tags": ["timeline", "roadmap", "planning", "periods", "moments"],
+      "seeAlso": [
+        { "title": "What DISL cannot express for this tool", "href": "timeline.md" },
+        { "title": "Standalone module", "href": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/timeline" }
+      ]
+    },
+    "authors": [ { "name": "Peter Vrenken" } ],
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/timeline",
+    "icon": "mdi-chart-timeline",
+    "fileExtension": "tml",
+    "requires": {
+      "conformance": "standard",
+      "features": ["axis.time", "placement.bound", "snap.calendar", "edge.bezier", "persist.yaml"]
+    }
+  },
+
+  "plugins": {
+    "net.etalii.adp.generic.timelineRowArrange": {
+      "version": "^1.0.0",
+      "provides": ["layout"],
+      "required": false,
+      "doc": "The row arrangement behind Arrange diagram (`TimelineArrangement.cs` in the standalone module). Extents are taken at the client's first fit (the timeline's span over 1000 of its 1200 units, at least one day): a period from its begin to its end, at least 2 units wide; a moment from 9 units before its time to 15 units after it plus its shown label's width at 12 units. Elements without an id, a readable begin, or with an id an earlier element has, keep their row. Clearance 12; relations draw linked elements to nearby rows; a moment and a later element it is linked to are kept apart. Only `row` is written, in one undo step. A host without the plugin offers no arrangement."
+    },
+    "net.etalii.adp.generic.timelineTimes": {
+      "version": "^1.0.0",
+      "provides": ["celFunctions"],
+      "required": false,
+      "doc": "The timeline's reading of times, which DISL's CEL cannot do because it has no timestamps. The standalone module implements these functions with the same .NET calls its parser uses (`TimelineTimes.cs`); without the plugin, the fallbacks read ISO 8601 dates and date-times only.",
+      "celFunctions": [
+        {
+          "name": "readableTime",
+          "params": [ { "name": "text", "type": "string" } ],
+          "returns": "bool",
+          "cost": 10,
+          "fallback": "text.trim().matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?)?$')",
+          "doc": "Whether `text` is a time this timeline can read: what .NET's `DateTimeOffset.TryParse` reads under the invariant culture, surrounding whitespace ignored, a value without an offset taken as UTC. That includes forms beyond ISO 8601, such as `2026/07/01` and `July 5, 2026`; `2026-02-30` and the empty text are not readable."
+        },
+        {
+          "name": "compareTimes",
+          "params": [ { "name": "a", "type": "string" }, { "name": "b", "type": "string" } ],
+          "returns": "int",
+          "cost": 10,
+          "fallback": "a < b ? -1 : (a > b ? 1 : 0)",
+          "doc": "-1, 0 or 1 as the instant `a` names is before, at or after the one `b` names, both read as `readableTime` reads them, offsets applied. Only called on two readable times."
+        },
+        {
+          "name": "dateAfter",
+          "params": [ { "name": "time", "type": "string" }, { "name": "days", "type": "int" } ],
+          "returns": "string",
+          "cost": 10,
+          "doc": "The date `days` days after the instant `time` names, written date-only as `yyyy-MM-dd`, in UTC: `dateAfter('2026-01-05T22:00:00', 6)` is `2026-01-11`."
+        },
+        {
+          "name": "today",
+          "params": [],
+          "returns": "string",
+          "cost": 1,
+          "deterministic": false,
+          "doc": "Today's date in UTC, written as `yyyy-MM-dd`: where an addition starts when the element it grows from has no readable time, and what a begin asked for in a dialog is prefilled with."
+        },
+        {
+          "name": "writtenEnd",
+          "params": [ { "name": "relation", "type": "dyn" }, { "name": "end", "type": "string" } ],
+          "returns": "string",
+          "cost": 1,
+          "fallback": "end == 'source' ? (has(relation.source) ? relation.source.id : '') : (has(relation.target) ? relation.target.id : '')",
+          "doc": "The id a relation's `source` or `target` end is written with in the file (`from` or `to`): the end the relation keeps, which the typeMap maps from `from` and `to`, also when it names no element and the end is unset in the model (11.2); the empty text when the key is absent or empty. It stays a function rather than `std.references`, because `std.references` reports every unset end and the tool does not report an end written empty or not written at all."
+        }
+      ]
+    }
+  },
+
+  "functions": {
+    "displayName": {
+      "params": [ { "name": "e", "type": "dyn" } ],
+      "returns": "string",
+      "cel": "e.label != '' ? '\\'' + e.label + '\\'' : '\\'' + e.id + '\\''",
+      "doc": "An element as a finding names it: its label in quotes, or its id when the label is empty."
+    },
+    "shownLabel": {
+      "params": [ { "name": "e", "type": "dyn" } ],
+      "returns": "string",
+      "cel": "e.label != '' ? e.label : e.id",
+      "doc": "What the canvas writes on an element: its label, or its id when the label is empty."
+    }
+  },
+
+  "metamodel": {
+    "diagram": {
+      "doc": "A timeline has no diagram-level attributes of its own. The document's schema marker and any keys it does not model are kept verbatim (see timeline.md)."
+    },
+    "types": {
+      "Element": {
+        "abstract": true,
+        "doc": "Something on the timeline: a period when it has an end, a moment when it does not.",
+        "labelAttribute": "label",
+        "attributes": {
+          "label": {
+            "type": "string",
+            "label": "Label",
+            "group": "Identity",
+            "order": 1,
+            "doc": "What it is called. May be empty; the canvas then shows the element's id."
+          },
+          "begin": {
+            "type": "datetime",
+            "label": "Begin",
+            "required": true,
+            "timezone": "preserve",
+            "group": "Timing",
+            "order": 2,
+            "doc": {
+              "summary": "When it starts, as written: normally an ISO 8601 date (2026-01-05) or date-time (2026-01-05T14:30:00).",
+              "description": "Kept exactly as written, including whether it is a date or a date-time, and also when it is not a time at all: such a value is reported (`timeline.unreadable-time`) and the element is still drawn, as a moment at the epoch. A missing `begin` key reads as the empty text. Taken at face value: no time zone conversion, no calendar, no working days."
+            }
+          },
+          "row": {
+            "type": "int",
+            "label": "Row",
+            "default": 0,
+            "group": "Placement",
+            "order": 4,
+            "doc": {
+              "summary": "The row it sits on: an integer placement index, not a pixel.",
+              "description": "Negative rows are as valid as positive ones and gaps are the author's business. A row is a placement grid and nothing more: it has no identity, no label, no membership and no meaning of its own. Several elements may share a row, overlapping or not. A value that is not an integer reads as row 0."
+            }
+          }
+        }
+      },
+      "Period": {
+        "extends": "Element",
+        "label": "Element",
+        "icon": "mdi-arrow-expand-horizontal",
+        "doc": "Something with a begin and an end. Drop on the canvas at the time and row it starts.",
+        "attributes": {
+          "end": {
+            "type": "datetime",
+            "label": "End",
+            "required": true,
+            "timezone": "preserve",
+            "group": "Timing",
+            "order": 3,
+            "doc": "When it finishes, as written. An `end` key makes the element a period even when its value is empty or unreadable; such a value is reported. Written in the same form as begin: both dates, or both date-times."
+          }
+        }
+      },
+      "Moment": {
+        "extends": "Element",
+        "label": "Moment",
+        "icon": "mdi-rhombus-medium",
+        "doc": "A single point in time. Drop on the canvas at the time and row it marks."
+      }
+    },
+    "relations": {
+      "Connection": {
+        "label": "Relation",
+        "icon": "mdi-ray-start-arrow",
+        "doc": "A line from one element to another, carrying whatever the author says it means and nothing this type assigns to it. It does not schedule and does not propagate.",
+        "source": "Element",
+        "target": "Element",
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": true,
+        "attributes": {
+          "label": {
+            "type": "string",
+            "label": "Label",
+            "doc": "What the author calls it, or empty."
+          }
+        }
+      }
+    }
+  },
+
+  "coordinates": {
+    "axes": {
+      "time": {
+        "kind": "time",
+        "label": "Time",
+        "doc": "Time at face value, increasing left to right: no time zone, no calendar, no working days. A value written is the value drawn.",
+        "valueType": "datetime",
+        "timezone": "UTC",
+        "origin": "1970-01-01T00:00:00Z",
+        "scale": { "unit": "day", "size": 20 },
+        "expand": "auto",
+        "ruler": {
+          "visible": true,
+          "position": "bottom",
+          "size": 24
+        }
+      },
+      "rows": {
+        "kind": "linear",
+        "label": "Row",
+        "doc": "Authored rows: an integer index, one row every 60 canvas units, negative and positive alike.",
+        "unit": "row",
+        "scale": 60,
+        "precision": 0,
+        "expand": "auto"
+      }
+    },
+    "systems": {
+      "timeline": {
+        "kind": "cartesian",
+        "label": "Timeline",
+        "doc": "Time across, rows down.",
+        "x": "time",
+        "y": "rows",
+        "orientation": "y-down",
+        "infinite": true,
+        "grid": { "visible": false },
+        "guides": { "smart": false, "distribution": false, "user": false },
+        "snapping": {
+          "enabled": true,
+          "userToggle": false,
+          "mode": "always",
+          "reference": "anchor",
+          "x": {
+            "calendar": { "unit": "day", "align": "nearest" },
+            "doc": "A date-only element's begin lands on the start of a day. An element whose times carry a time of day is not snapped in x and keeps whole seconds (see timeline.md)."
+          },
+          "y": {
+            "grid": { "spacing": 1 },
+            "direction": "nearest",
+            "doc": "An element comes to rest on the nearest row, never between two. Halves round away from zero."
+          },
+          "size": {
+            "x": {
+              "calendar": { "unit": "day", "align": "nearest" },
+              "doc": "Dragging an edge of a date-only period lands on a day."
+            }
+          },
+          "targets": ["rule"],
+          "bypassModifier": "none",
+          "feedback": { "showGhost": false, "showValue": true },
+          "doc": {
+            "summary": "Horizontal moves time, vertical moves row.",
+            "rationale": "A timeline reads in dates and rows; an element stranded between two rows or on a time nobody wrote says something the author did not."
+          }
+        }
+      }
+    },
+    "default": "timeline"
+  },
+
+  "notation": {
+    "styles": {
+      "element": {
+        "fill": { "token": "color.surface" },
+        "stroke": { "color": { "token": "color.border" }, "width": 1 },
+        "cornerRadius": 4,
+        "font": { "size": 12 }
+      },
+      "moment": {
+        "fill": { "token": "color.accent" },
+        "stroke": { "width": 0 }
+      },
+      "connection": {
+        "stroke": { "color": { "token": "color.border" }, "width": 1.5 }
+      }
+    },
+    "nodes": {
+      "Period": {
+        "shape": "roundedRect",
+        "style": "element",
+        "size": { "default": [null, 36], "min": [2, 36], "resizable": "horizontal" },
+        "placement": {
+          "system": "timeline",
+          "x": { "attribute": "begin" },
+          "x2": { "attribute": "end" },
+          "y": { "attribute": "row" },
+          "anchor": "top-left",
+          "movable": { "x": true, "y": true },
+          "resizable": { "x": true, "y": false },
+          "stack": { "mode": "overlap" },
+          "doc": "Drag to move it in time or to another row; the duration is kept. Drag the left edge to change when it begins, the right edge to change when it ends; an edge stops at the other rather than crossing it."
+        },
+        "labels": [
+          {
+            "id": "label",
+            "text": { "cel": "shownLabel(self)" },
+            "position": "center",
+            "editable": "inline",
+            "overflow": "ellipsis",
+            "wrap": "none",
+            "maxLines": 1
+          }
+        ],
+        "anchors": {
+          "mode": "fixed",
+          "points": [
+            { "id": "begin", "x": 0, "y": 0.5 },
+            { "id": "end", "x": 1, "y": 0.5 }
+          ]
+        },
+        "doubleClick": "editLabel"
+      },
+      "Moment": {
+        "shape": "diamond",
+        "style": "moment",
+        "size": { "fixed": [18, 18] },
+        "placement": {
+          "system": "timeline",
+          "x": { "attribute": "begin" },
+          "y": { "attribute": "row", "offset": 0.3 },
+          "anchor": "left",
+          "movable": { "x": true, "y": true },
+          "resizable": false,
+          "stack": { "mode": "overlap" },
+          "doc": "Drag to move it in time or to another row. A moment has no right edge to drag; give it an end from its menu."
+        },
+        "labels": [
+          {
+            "id": "label",
+            "text": { "cel": "shownLabel(self)" },
+            "position": "outside-right",
+            "editable": "inline",
+            "wrap": "none"
+          }
+        ],
+        "anchors": {
+          "mode": "fixed",
+          "points": [
+            { "id": "begin", "x": 0, "y": 0.5 },
+            { "id": "end", "x": 1, "y": 0.5 }
+          ]
+        },
+        "doubleClick": "editLabel"
+      }
+    },
+    "edges": {
+      "Connection": {
+        "style": "connection",
+        "line": {
+          "routing": "bezier",
+          "startDirection": "right",
+          "endDirection": "left"
+        },
+        "anchoring": {
+          "source": { "mode": "fixed", "points": [ { "id": "end", "x": 1, "y": 0.5 } ] },
+          "target": { "mode": "fixed", "points": [ { "id": "begin", "x": 0, "y": 0.5 } ] }
+        },
+        "connect": { "from": { "end": "source", "begin": "target" }, "tool": "relate" },
+        "sourceMarker": "none",
+        "targetMarker": "arrowFilled",
+        "labels": [
+          { "id": "label", "text": { "attribute": "label" }, "at": "middle", "side": "above", "distance": 6, "editable": "inline" }
+        ],
+        "reconnectable": false,
+        "layer": "belowNodes",
+        "doc": "A horizontal cubic bezier from the source's end to the target's begin. When the target begins before the source ends, the curve loops forward and back between those two points."
+      }
+    },
+    "canvas": {
+      "minimap": false
+    }
+  },
+
+  "toolbox": {
+    "groups": [
+      {
+        "id": "timeline",
+        "label": "Timeline",
+        "tools": [
+          {
+            "id": "element",
+            "creates": "Period",
+            "label": "Element",
+            "icon": "mdi-arrow-expand-horizontal",
+            "mode": "drop",
+            "initial": {
+              "label": "New element",
+              "begin": { "cel": "position.x" },
+              "end": { "cel": "dateAfter(position.x, 14)" },
+              "row": { "cel": "position.y" }
+            },
+            "after": "none",
+            "doc": "Something with a begin and an end. Drop on the canvas at the time and row it starts."
+          },
+          {
+            "id": "moment",
+            "creates": "Moment",
+            "label": "Moment",
+            "icon": "mdi-rhombus-medium",
+            "mode": "drop",
+            "initial": {
+              "label": "New moment",
+              "begin": { "cel": "position.x" },
+              "row": { "cel": "position.y" }
+            },
+            "after": "none",
+            "doc": "A single point in time. Drop on the canvas at the time and row it marks."
+          }
+        ]
+      }
+    ],
+    "tools": {
+      "relate": {
+        "id": "relate",
+        "creates": "Connection",
+        "label": "Relate",
+        "icon": "mdi-ray-start-arrow",
+        "mode": "drag",
+        "createTarget": {
+          "type": "Period",
+          "initial": {
+            "label": "New element",
+            "begin": { "cel": "position.x" },
+            "end": { "cel": "dateAfter(position.x, 14)" },
+            "row": { "cel": "position.y" }
+          }
+        },
+        "createSource": {
+          "type": "Period",
+          "initial": {
+            "label": "New element",
+            "begin": { "cel": "position.x" },
+            "end": { "cel": "dateAfter(position.x, 14)" },
+            "row": { "cel": "position.y" }
+          }
+        },
+        "doc": "The relation gesture, started from an element's anchor rather than from the palette, which does not show it. Released on empty canvas it creates a period two weeks long, its begin at the start of the day under the pointer, on the nearest row, and relates it in one step: as the target from the end anchor, as the source from the begin anchor."
+      }
+    },
+    "generic": { "select": true, "pan": true },
+    "contextTools": [
+      {
+        "for": ["Element"],
+        "placement": "around",
+        "tools": [
+          { "kind": "connect", "via": "Connection", "position": "right", "label": "Relate", "icon": "mdi-ray-start-arrow",
+            "doc": "Drag from the end anchor to another element's begin, or release on empty canvas to create a new element there, related. Dragging from the begin anchor makes the relation point into this element instead." }
+        ]
+      }
+    ],
+    "contextMenus": [
+      {
+        "for": ["Element"],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          { "kind": "editLabel", "group": "edit", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
+          { "kind": "operation", "operation": "giveEnd", "group": "edit", "label": "Give it an end…", "icon": "mdi-ray-start-end", "visible": "self.isA('Moment')" },
+          { "kind": "operation", "operation": "removeEnd", "group": "edit", "label": "Remove its end", "icon": "mdi-ray-start", "visible": "self.isA('Period')" },
+          { "kind": "delete", "group": "edit", "label": "Remove", "icon": "mdi-delete-outline", "shortcut": "Delete" },
+          { "kind": "operation", "operation": "addAfter", "group": "add", "label": "Add element after", "icon": "mdi-arrow-expand-right", "shortcut": "Tab" },
+          { "kind": "operation", "operation": "addBelow", "group": "add", "label": "Add element below", "icon": "mdi-arrow-expand-down", "shortcut": "Enter" },
+          { "kind": "operation", "operation": "arrange", "group": "arrange", "label": "Arrange diagram", "icon": "mdi-sitemap-outline" }
+        ],
+        "doc": "Changing this element, then adding the next one - after it in time, below it in rows - then arranging the whole diagram, each its own group."
+      },
+      {
+        "for": ["Connection"],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          { "kind": "editLabel", "group": "edit", "label": "Relabel…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
+          { "kind": "delete", "group": "edit", "label": "Remove relation", "icon": "mdi-vector-polyline-remove", "shortcut": "Delete" },
+          { "kind": "operation", "operation": "arrange", "group": "arrange", "label": "Arrange diagram", "icon": "mdi-sitemap-outline" }
+        ]
+      },
+      {
+        "for": ["diagram"],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          { "kind": "operation", "operation": "addElementHere", "group": "add", "label": "Add element here", "icon": "mdi-plus" },
+          { "kind": "operation", "operation": "addMomentHere", "group": "add", "label": "Add moment here", "icon": "mdi-rhombus-medium" },
+          { "kind": "operation", "operation": "arrange", "group": "arrange", "label": "Arrange diagram", "icon": "mdi-sitemap-outline" }
+        ],
+        "doc": "Empty canvas, at the time and row that was clicked or dropped on. A toolbox drop runs the same additions."
+      },
+      {
+        "for": ["connection"],
+        "placement": "menu",
+        "standardEntries": false,
+        "runSingle": true,
+        "tools": [
+          { "kind": "connect", "via": "Connection", "label": "Relate", "icon": "mdi-ray-start-arrow" }
+        ],
+        "doc": "A finished relation gesture: from an element's end anchor to another element, or released on empty canvas, where a new element is created and related in one step."
+      }
+    ]
+  },
+
+  "forms": {
+    "period": {
+      "for": "Period",
+      "usage": ["inspector"],
+      "commit": "onBlur",
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [ { "attribute": "label" } ] },
+        { "kind": "section", "label": "Timing", "items": [
+          { "attribute": "begin", "widget": "text",
+            "validate": [
+              { "rule": "readableTime(value)", "message": { "cel": "'\\'' + value + '\\' is not a time this timeline can read.'" }, "timing": "commit" },
+              { "rule": "value.contains('T') == self.end.contains('T')", "message": "This element uses the other time form; begin and end must both be dates, or both carry a time.", "timing": "commit" }
+            ] },
+          { "attribute": "end", "widget": "text",
+            "validate": [
+              { "rule": "readableTime(value)", "message": { "cel": "'\\'' + value + '\\' is not a time this timeline can read.'" }, "timing": "commit" },
+              { "rule": "value.contains('T') == self.begin.contains('T')", "message": "This element uses the other time form; begin and end must both be dates, or both carry a time.", "timing": "commit" },
+              { "rule": "!readableTime(self.begin) || compareTimes(value, self.begin) >= 0", "message": "An element cannot end before it begins.", "timing": "commit" }
+            ] }
+        ] },
+        { "kind": "section", "label": "Placement", "items": [ { "attribute": "row", "widget": "number" } ] }
+      ]
+    },
+    "moment": {
+      "for": "Moment",
+      "usage": ["inspector"],
+      "commit": "onBlur",
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [ { "attribute": "label" } ] },
+        { "kind": "section", "label": "Timing", "items": [
+          { "attribute": "begin", "widget": "text",
+            "validate": [
+              { "rule": "readableTime(value)", "message": { "cel": "'\\'' + value + '\\' is not a time this timeline can read.'" }, "timing": "commit" }
+            ] }
+        ] },
+        { "kind": "section", "label": "Placement", "items": [ { "attribute": "row", "widget": "number" } ] }
+      ],
+      "doc": "A moment shows no empty End row: giving it an end is the menu's job (giveEnd)."
+    },
+    "connection": {
+      "for": "Connection",
+      "usage": ["inspector"],
+      "commit": "onBlur",
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [
+          { "attribute": "label" },
+          { "kind": "computed", "id": "from", "label": "From", "value": { "cel": "writtenEnd(self, 'source')" },
+            "readOnlyReasons": [ "Reconnecting is done on the canvas, by dragging the relation's end to another element." ] },
+          { "kind": "computed", "id": "to", "label": "To", "value": { "cel": "writtenEnd(self, 'target')" },
+            "readOnlyReasons": [ "Reconnecting is done on the canvas, by dragging the relation's end to another element." ] }
+        ] }
+      ],
+      "doc": "From and To show the ids the relation is written with, also one that names no element on the timeline."
+    }
+  },
+
+  "constraints": {
+    "defaults": { "severity": "warning", "timing": ["live"] },
+    "blockSaveOn": "never",
+    "builtIn": {
+      "std.unparseable": {
+        "severity": "error",
+        "code": "timeline.unparseable",
+        "message": { "cel": "'This is not YAML that can be read: ' + detail.reason" },
+        "doc": "The YAML parser's own message, at its line. Nothing else is reported for a file that does not parse."
+      },
+      "std.duplicateId": {
+        "code": "timeline.duplicate-id",
+        "message": { "cel": "'The id \\'' + detail.id + '\\' is declared more than once, which makes every reference to it ambiguous.'" },
+        "doc": "Ids are unique across elements and relations together. Every holder after the first is reported, at its line; the first keeps the id."
+      },
+      "std.references": {
+        "enabled": false,
+        "doc": "Reported by danglingSource and danglingTarget instead, which leave an end written empty or not written at all unreported, as the tool does, and which read the id an end is written with."
+      },
+      "std.endpoints": {
+        "enabled": false,
+        "doc": "A relation from an element to itself cannot be drawn (noSelfRelation), but one written by hand is drawn and not reported."
+      },
+      "std.required": {
+        "enabled": false,
+        "doc": "A missing or empty begin or end is reported as unreadable (timeline.unreadable-time), not as missing."
+      }
+    },
+    "rules": [
+      {
+        "id": "missingId",
+        "code": "timeline.missing-id",
+        "scope": ["Element", "Connection"],
+        "rule": "self.id != ''",
+        "message": { "cel": "(self.isA('Connection') ? 'A relation' : displayName(self)) + ' has no id, so nothing can select, connect or edit it.'" },
+        "doc": "An element or relation without an id, or with an empty one, at its line; it is drawn under an ephemeral id. `self.id` is the id as written."
+      },
+      {
+        "id": "unreadableBegin",
+        "code": "timeline.unreadable-time",
+        "scope": "Element",
+        "rule": "readableTime(self.begin)",
+        "attribute": "begin",
+        "message": { "cel": "displayName(self) + ' begins at \\'' + self.begin + '\\', which is not a time this timeline can read.'" },
+        "doc": "The element is still drawn, as a moment at the epoch, so it stays selectable."
+      },
+      {
+        "id": "unreadableEnd",
+        "code": "timeline.unreadable-time",
+        "scope": "Period",
+        "rule": "readableTime(self.end)",
+        "attribute": "end",
+        "message": { "cel": "displayName(self) + ' ends at \\'' + self.end + '\\', which is not a time this timeline can read.'" }
+      },
+      {
+        "id": "endBeforeBegin",
+        "code": "timeline.end-before-begin",
+        "label": "Ends before it begins",
+        "scope": "Period",
+        "when": "readableTime(self.begin) && readableTime(self.end)",
+        "rule": "compareTimes(self.end, self.begin) >= 0",
+        "attribute": "end",
+        "message": { "cel": "displayName(self) + ' ends before it begins. No edit in ADP can create this, so the file was changed by hand.'" },
+        "doc": {
+          "summary": "An element's end lies before its begin.",
+          "rationale": "Readable from a hand-edited file, so it is reported and the element still drawn; no gesture, form edit or menu action can create it."
+        }
+      },
+      {
+        "id": "mixedPrecision",
+        "code": "timeline.mixed-precision",
+        "scope": "Period",
+        "when": "readableTime(self.begin) && readableTime(self.end)",
+        "rule": "self.begin.contains('T') == self.end.contains('T')",
+        "message": { "cel": "displayName(self) + ' mixes a date-only value with a date-time one; begin and end should use the same form.'" },
+        "doc": "A time is a date-time when its text contains a `T`, and a date otherwise - also `Tuesday 7 July 2026`, which is how the tool reads it. DISL's std.mixedPrecision compares written precisions, which this runtime does not know for a text kept as written, so the tool's own test is stated here."
+      },
+      {
+        "id": "danglingSource",
+        "code": "timeline.dangling-connection",
+        "scope": "Connection",
+        "when": "writtenEnd(self, 'source') != ''",
+        "rule": "has(self.source) && self.source.isA('Element')",
+        "message": { "cel": "'A relation names \\'' + writtenEnd(self, 'source') + '\\', and no element with that id is on this timeline.'" },
+        "doc": "The relation is kept and sent to the canvas with its end as written, so the canvas can show it; an end that names a relation rather than an element dangles too."
+      },
+      {
+        "id": "danglingTarget",
+        "code": "timeline.dangling-connection",
+        "scope": "Connection",
+        "when": "writtenEnd(self, 'target') != ''",
+        "rule": "has(self.target) && self.target.isA('Element')",
+        "message": { "cel": "'A relation names \\'' + writtenEnd(self, 'target') + '\\', and no element with that id is on this timeline.'" }
+      },
+      {
+        "id": "noInversionByGesture",
+        "label": "No inversion by a gesture",
+        "kind": "placement",
+        "scope": "Period",
+        "rule": "newBounds.x2 >= newBounds.x",
+        "enforcement": "prevent",
+        "message": "An element cannot end before it begins.",
+        "doc": "A resize stops the moving edge at the other rather than letting the element invert."
+      },
+      {
+        "id": "noSelfRelation",
+        "label": "No relation to itself",
+        "kind": "connect",
+        "when": "relationType == 'Connection'",
+        "rule": "source.id != target.id",
+        "enforcement": "prevent",
+        "message": "An element cannot be connected to itself."
+      }
+    ],
+    "doc": "All findings are warnings except timeline.unparseable. They are reported grouped as the tool reports them, which constraints.order cannot state (see timeline.md): first the ids (timeline.missing-id and timeline.duplicate-id, in document order, elements before relations), then the times per element (unreadable begin, unreadable end, end before begin, mixed precision), then the relations' ends per relation (source, then target)."
+  },
+
+  "behavior": {
+    "operations": {
+      "addElementHere": {
+        "label": "Add element here",
+        "icon": "mdi-plus",
+        "for": "diagram",
+        "actions": [
+          { "create": { "type": "'Period'", "attributes": { "label": "'New element'", "begin": "position.x", "end": "dateAfter(position.x, 14)", "row": "position.y" } } }
+        ],
+        "doc": "A period two weeks long, its begin at the start of the day that was clicked or dropped on, on the nearest row. Where the menu has no position, the begin is asked for, prefilled with today, and the row is that of the element the menu was opened on, or 0."
+      },
+      "addMomentHere": {
+        "label": "Add moment here",
+        "icon": "mdi-rhombus-medium",
+        "for": "diagram",
+        "actions": [
+          { "create": { "type": "'Moment'", "attributes": { "label": "'New moment'", "begin": "position.x", "row": "position.y" } } }
+        ],
+        "doc": "A moment at the start of the day that was clicked or dropped on, on the nearest row; asked for as addElementHere is where the menu has no position."
+      },
+      "giveEnd": {
+        "label": "Give it an end…",
+        "icon": "mdi-ray-start-end",
+        "for": ["Moment"],
+        "params": {
+          "end": { "type": "datetime", "label": "End", "required": true, "default": { "cel": "self.begin" } }
+        },
+        "actions": [
+          { "if": "!readableTime(p.end)", "then": [ { "abort": { "message": "'\\'' + p.end + '\\' is not a time this timeline can read.'" } } ] },
+          { "if": "readableTime(self.begin) && compareTimes(p.end, self.begin) < 0", "then": [ { "abort": { "message": "'An element cannot end before it begins.'" } } ] },
+          { "retype": { "to": "'Period'" } },
+          { "set": { "end": "p.end" } }
+        ],
+        "doc": "Turns a moment into a period ending at the given time, written as typed. The dialog is titled \"Give it an end\", its field \"End\" and its button \"Set\", prefilled with the begin as written."
+      },
+      "removeEnd": {
+        "label": "Remove its end",
+        "icon": "mdi-ray-start",
+        "for": ["Period"],
+        "actions": [
+          { "unset": ["end"] },
+          { "retype": { "to": "'Moment'" } }
+        ],
+        "doc": "Turns a period into a moment at its begin: the `end` line is removed."
+      },
+      "addAfter": {
+        "label": "Add element after",
+        "icon": "mdi-arrow-expand-right",
+        "shortcut": "Tab",
+        "for": ["Element"],
+        "actions": [
+          { "let": { "start": "dateAfter(self.isA('Period') && readableTime(self.end) ? self.end : (readableTime(self.begin) ? self.begin : today()), 6)" } },
+          { "create": { "type": "'Period'", "attributes": { "label": "'New element'", "begin": "start", "end": "dateAfter(start, 14)", "row": "self.row" } }, "as": "next" },
+          { "connect": { "type": "'Connection'", "source": "self", "target": "next" } }
+        ],
+        "doc": "The next thing, a little later on the same row: six days after this one ends (or begins, for a moment, or after today when neither reads), two weeks long, and related from the one it grew from, in one step."
+      },
+      "addBelow": {
+        "label": "Add element below",
+        "icon": "mdi-arrow-expand-down",
+        "shortcut": "Enter",
+        "for": ["Element"],
+        "actions": [
+          { "let": { "start": "dateAfter(readableTime(self.begin) ? self.begin : today(), 0)" } },
+          { "create": { "type": "'Period'", "attributes": { "label": "'New element'", "begin": "start", "end": "dateAfter(start, 14)", "row": "self.row + 1" } }, "as": "next" },
+          { "connect": { "type": "'Connection'", "source": "self", "target": "next" } }
+        ],
+        "doc": "A parallel track: the same begin as a date, one row down, two weeks long, and related from the one it grew from, in one step."
+      },
+      "arrange": {
+        "label": "Arrange diagram",
+        "icon": "mdi-sitemap-outline",
+        "for": "diagram",
+        "unavailable": [
+          { "when": "diagram.nodes.size() == 0", "message": "There is nothing to arrange until this timeline has an element." }
+        ],
+        "actions": [
+          { "layout": { "algorithm": "rowArrange" } }
+        ],
+        "doc": "Puts every element on the row that keeps the diagram least cluttered, as one undoable step; only rows change, never a time. Invoked, never automatic. The menu shows the reason beside the entry also while it is available."
+      }
+    },
+    "retype": {
+      "Moment": { "to": ["Period"] },
+      "Period": { "to": ["Moment"] }
+    },
+    "deletion": {
+      "Element": {
+        "relations": "delete",
+        "confirm": {
+          "count": "self.incoming.size() + self.outgoing.filter(r, r.target != self).size()",
+          "threshold": 1,
+          "title": "Remove",
+          "message": { "cel": "'Removing this element also removes the ' + string(count) + (count == 1 ? ' relation' : ' relations') + ' attached to it.'" },
+          "confirmLabel": "Remove",
+          "danger": true
+        }
+      }
+    }
+  },
+
+  "layout": {
+    "algorithms": {
+      "rowArrange": {
+        "algorithm": "plugin:net.etalii.adp.generic.timelineRowArrange",
+        "doc": "Arrange diagram (`timeline.arrange`): rows only, because across is the data. Not the standard `rows` algorithm (10.2): besides packing elements onto as few rows as their extents at the canvas's first fit allow, with related elements drawn to nearby rows, it keeps a moment and an element later than it that it is linked to on different rows, so their link does not run through the moment's label. See the plugin's doc."
+      }
+    },
+    "trigger": "manual",
+    "respect": "all"
+  },
+
+  "persistence": {
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/timeline/backend/EtAlii.Adp.Diagram.Timeline/timeline.fbl#timeline",
+    "ids": {
+      "strategy": "uuid-v4",
+      "encoding": "base36",
+      "stable": true,
+      "doc": "New elements and relations get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `discovery` are kept as written. Ids are unique across elements and relations together."
+    },
+    "references": "id",
+    "view": { "store": [] },
+    "collaboration": { "mode": "none" },
+    "typeMap": {
+      "Period": {
+        "as": "Period",
+        "hostAttributes": ["storedId"],
+        "doc": "An entry of `elements` with an `end` key. `storedId` is the id as written, kept beside the model, so that an id written more than once is reported and an element is found by what is written."
+      },
+      "Moment": {
+        "as": "Moment",
+        "hostAttributes": ["storedId"],
+        "doc": "An entry of `elements` without an `end` key."
+      },
+      "Connection": {
+        "as": "Connection",
+        "attributes": { "from": "source", "to": "target" },
+        "hostAttributes": ["storedId"],
+        "doc": "Read as an entry with reference attributes, so a relation whose end names no element is kept, with that end unset, and reported by the rules `danglingSource` and `danglingTarget`."
+      }
+    },
+    "doc": "A .tml document (Timeline Markup Language): YAML with a top-level schema marker 'timeline: 1', an 'elements' list and a 'connections' list, registered by a sibling .adp file whose first line is 'generic/timeline'. It is read and written through the timeline module's own FBL binding, whose types and attributes the typeMap maps onto this metamodel; the file layout and how the module's binding differs from the example `specifications/fbl/timeline.fbl` are in timeline.md."
+  },
+
+  "x-timeline": {
+    "doc": "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type>. A property is keyed by its form item's row id: its id, else its attribute.",
+    "tools": {
+      "element": { "id": "timeline.toolbox.element", "drop": "timeline.add-element" },
+      "moment": { "id": "timeline.toolbox.moment", "drop": "timeline.add-moment" }
+    },
+    "actions": {
+      "editLabel": "timeline.rename",
+      "Connection/editLabel": "timeline.relabel",
+      "delete": "timeline.remove",
+      "Connection/delete": "timeline.disconnect",
+      "giveEnd": "timeline.give-end",
+      "removeEnd": "timeline.remove-end",
+      "addAfter": "timeline.add-after",
+      "addBelow": "timeline.add-below",
+      "addElementHere": "timeline.add-element",
+      "addMomentHere": "timeline.add-moment",
+      "arrange": "timeline.arrange",
+      "connect": "timeline.connect"
+    },
+    "properties": {
+      "label": "timeline.label",
+      "begin": "timeline.begin",
+      "end": "timeline.end",
+      "row": "timeline.row",
+      "from": "timeline.from",
+      "to": "timeline.to"
+    }
+  }
+}

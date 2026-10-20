@@ -1,0 +1,100 @@
+{
+  "$schema": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Specification",
+  "desl": "0.2",
+  "doc": "DESL's smallest hierarchy (DESL 0.2, section 7.7): an outline of sections that hold tasks and further sections, with counted ids, tags whose colours the registration keeps, mentions in a description, notes about an entry, and a move to another section.",
+  "language": { "id": "net.etalii.adp.example.outline", "version": "0.1.0", "origin": "example/outline", "label": "Outline" },
+  "metamodel": {
+    "document": {
+      "attributes": {
+        "lastSection": { "type": "string", "doc": "The last section id the counter gave (DESL section 5.3.5)." },
+        "lastTask": { "type": "string", "doc": "The last task id the counter gave." }
+      }
+    },
+    "types": {
+      "Section": {
+        "attributes": {
+          "title": { "type": "string", "required": true },
+          "description": { "type": "text", "mentions": { "pattern": "\\[(?:S|T)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:S|T)-\\d+)\\]", "types": ["Section", "Task"] } },
+          "tags": { "type": "string", "many": true }
+        },
+        "children": { "allowed": ["Section", "Task"], "ordered": true },
+        "labelAttribute": "title"
+      },
+      "Task": {
+        "attributes": {
+          "title": { "type": "string", "required": true },
+          "description": { "type": "text", "mentions": { "pattern": "\\[(?:S|T)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:S|T)-\\d+)\\]", "types": ["Section", "Task"] } },
+          "tags": { "type": "string", "many": true }
+        },
+        "labelAttribute": "title"
+      },
+      "Note": {
+        "attributes": {
+          "about": { "type": "string", "required": true, "mentions": { "pattern": "^(?<id>(?:S|T)-\\d+)$", "types": ["Section", "Task"] } },
+          "kind": { "type": "NoteKind", "required": true },
+          "text": { "type": "string" },
+          "detail": { "type": "text" },
+          "resolved": { "type": "bool", "default": false }
+        },
+        "labelAttribute": "text"
+      },
+      "Tag": {
+        "attributes": {
+          "name": { "type": "string", "required": true, "pattern": "^[^\\s:]+$" },
+          "colour": { "type": "Colour", "default": "default" }
+        },
+        "labelAttribute": "name"
+      }
+    },
+    "enums": {
+      "NoteKind": { "values": { "question": { "value": "Question", "icon": "help-circle" }, "remark": { "value": "Remark", "icon": "comment" } } },
+      "Colour": { "values": { "default": {}, "gray": {}, "red": {}, "green": {}, "blue": {} } }
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "bindings": ["minimal-hierarchy.fbl#markdown"],
+    "typeMap": {
+      "Marks": { "as": "document", "doc": "Line 2 of the file holds the last ids the counters gave." }
+    },
+    "ids": {
+      "missing": "assign",
+      "types": {
+        "Section": { "strategy": "counter", "prefix": "S-", "digits": 4, "mark": "lastSection", "placeholder": "NEW" },
+        "Task": { "strategy": "counter", "prefix": "T-", "digits": 4, "mark": "lastTask", "placeholder": "NEW" },
+        "Note": { "strategy": "derived", "expression": "'note/' + string(self.positionIn(document.elementsOfType('Note')))", "ephemeral": true },
+        "Tag": { "strategy": "derived", "expression": "'tag/' + self.name.lowerAscii()" }
+      }
+    },
+    "settings": {
+      "tags": { "type": "Tag", "key": "name", "value": "colour", "initial": [] }
+    }
+  },
+  "surface": {
+    "kind": "hierarchy",
+    "levels": { "type": "Section", "title": "title", "description": "description" },
+    "entries": { "type": "Task", "title": "title", "description": "description" },
+    "labels": { "tags": { "on": ["Section", "Task"], "options": { "type": "Tag", "name": "name", "colour": "colour" }, "prefix": "#" } },
+    "notes": { "type": "Note", "about": "about", "kind": "kind", "text": "text", "detail": "detail", "resolved": "resolved" },
+    "ids": "shown"
+  },
+  "operations": {
+    "addTask": {
+      "label": "New task",
+      "for": ["Section"],
+      "actions": [{ "create": { "type": "'Task'", "parent": "self", "attributes": { "title": "'New task'" } } }]
+    },
+    "moveTask": {
+      "label": "Move to section",
+      "for": ["Task"],
+      "params": { "section": { "type": "Section", "required": true } },
+      "unavailable": [{ "when": "document.elementsOfType('Section').size() < 2", "message": "There is no other section to move it to." }],
+      "actions": [{ "move": { "parent": "p.section" } }]
+    },
+    "resolveNote": {
+      "label": { "cel": "self.resolved ? 'Reopen' : 'Resolve'" },
+      "for": ["Note"],
+      "actions": [{ "set": { "resolved": "!self.resolved" } }]
+    }
+  }
+}

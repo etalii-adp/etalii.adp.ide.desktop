@@ -1,0 +1,46 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.5",
+  "doc": "The dependency graph's .dgr body (definitions/diagrams/dependency-graph.dis, dependency-graph.md), as the standalone module embeds it: ADP's own YAML, written by hand as often as by the tool. A dependency is an element rule whose from and to are references by storedId, so a dependency whose end names no node is kept and reported by the definition's rules. Every rule reads the id as written as the host attribute storedId, and a dependency each end a second time as written, writtenFrom and writtenTo, for the rules that judge the ids as written. Every scalar is read as written (FBL 0.5). x and row are read as their text and typed by the definition, so a value that will not read is 0. There is no header, so a missing or other dependencies: line raises nothing. An entry that is not a mapping is read as Unreadable, kept and not drawn.",
+  "bindings": {
+    "dgr": {
+      "title": "Dependency graph",
+      "claims": { "extensions": [".dgr"], "origins": ["generic/dependencies"] },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "sequenceIndent": "indented", "finalNewline": true, "quote": "double" },
+      "elements": [
+        {
+          "name": "node", "type": "Node", "at": "/elements/*", "when": "entry.all(k, true)",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "storedId": { "key": "id", "read": "text", "readOnly": true },
+            "label": { "key": "label", "read": "text", "default": "", "empty": "keep" },
+            "x": { "key": "x", "read": "text", "style": "plain", "default": "" },
+            "row": { "key": "row", "read": "text", "style": "plain", "default": "" }
+          },
+          "insert": { "place": "after-last", "container": "/elements", "create": { "at": { "before": "relations" } }, "keys": ["id", "label", "x", "row"] },
+          "remove": { "cascade": ["dependency"] }
+        },
+        {
+          "name": "dependency", "type": "Dependency", "at": "/relations/*", "when": "entry.all(k, true)",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "storedId": { "key": "id", "read": "text", "readOnly": true },
+            "from": { "key": "from", "read": "text", "reference": { "to": ["node"], "by": "storedId" } },
+            "to": { "key": "to", "read": "text", "reference": { "to": ["node"], "by": "storedId" } },
+            "writtenFrom": { "key": "from", "read": "text", "default": "", "readOnly": true },
+            "writtenTo": { "key": "to", "read": "text", "default": "", "readOnly": true },
+            "label": { "key": "label", "read": "text", "default": "", "empty": "remove" }
+          },
+          "insert": { "place": "after-last", "container": "/relations", "create": { "at": "end-of-document" }, "keys": ["id", "from", "to", "label"] },
+          "remove": { "container": "keep" }
+        },
+        { "name": "node-not-a-mapping", "type": "Unreadable", "at": "/elements/*", "readOnly": "This entry is not a mapping, so it is kept as it is." },
+        { "name": "dependency-not-a-mapping", "type": "Unreadable", "at": "/relations/*", "readOnly": "This entry is not a mapping, so it is kept as it is." }
+      ],
+      "registration": { "createOnFirstPlacement": false },
+      "template": { "text": "dependencies: 1\r\nelements: []\r\n" }
+    }
+  }
+}

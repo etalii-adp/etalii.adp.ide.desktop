@@ -1,0 +1,194 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A Databricks job file: dependencies created and removed with their depends_on container, a rename that follows every reference, and a key removed when its value empties.",
+  "binding": "../../databricks-job.fbl#job",
+  "input": "nightly_ingest.yml",
+  "steps": [
+    {
+      "doc": "Connecting a task with no depends_on creates the key directly under task_key, then the entry.",
+      "edit": {
+        "add": {
+          "type": "Dependency",
+          "attributes": {
+            "source": "task:quality_gate",
+            "target": "task:publish"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 375,
+          "end": 375,
+          "text": "          depends_on:\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 375,
+          "end": 375,
+          "text": "            - task_key: quality_gate\n"
+        }
+      ],
+      "expect": "bundle:\n  name: ingest\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: ./ingest.ipynb\n        - task_key: quality_gate\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: ./gate.ipynb\n        - task_key: publish\n          depends_on:\n            - task_key: quality_gate\n          run_if: ALL_SUCCESS\n          notebook_task:\n            notebook_path: ./publish.ipynb\n"
+    },
+    {
+      "doc": "Renaming a task rewrites its own task_key and every depends_on entry that names it, as one edit.",
+      "edit": {
+        "set": {
+          "element": "task:quality_gate",
+          "attributes": {
+            "key": "gate"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 216,
+          "end": 228,
+          "text": "gate"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 421,
+          "end": 433,
+          "text": "gate"
+        }
+      ],
+      "expect": "bundle:\n  name: ingest\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: ./ingest.ipynb\n        - task_key: gate\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: ./gate.ipynb\n        - task_key: publish\n          depends_on:\n            - task_key: gate\n          run_if: ALL_SUCCESS\n          notebook_task:\n            notebook_path: ./publish.ipynb\n"
+    },
+    {
+      "doc": "Emptying run_if removes the key: absent means ALL_SUCCESS.",
+      "edit": {
+        "set": {
+          "element": "task:publish",
+          "attributes": {
+            "runIf": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 418,
+          "end": 448,
+          "text": ""
+        }
+      ],
+      "expect": "bundle:\n  name: ingest\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: ./ingest.ipynb\n        - task_key: gate\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: ./gate.ipynb\n        - task_key: publish\n          depends_on:\n            - task_key: gate\n          notebook_task:\n            notebook_path: ./publish.ipynb\n"
+    },
+    {
+      "doc": "Removing the last dependency of a task removes the depends_on key with it (remove-when-empty).",
+      "edit": {
+        "remove": {
+          "element": "edge:gate->publish"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-container",
+          "start": 367,
+          "end": 389,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 389,
+          "end": 418,
+          "text": ""
+        }
+      ],
+      "expect": "bundle:\n  name: ingest\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: ./ingest.ipynb\n        - task_key: gate\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: ./gate.ipynb\n        - task_key: publish\n          notebook_task:\n            notebook_path: ./publish.ipynb\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-container",
+          "start": 367,
+          "end": 367,
+          "text": "          depends_on:\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 367,
+          "end": 367,
+          "text": "            - task_key: gate\n"
+        }
+      ],
+      "expect": "bundle:\n  name: ingest\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: ./ingest.ipynb\n        - task_key: gate\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: ./gate.ipynb\n        - task_key: publish\n          depends_on:\n            - task_key: gate\n          notebook_task:\n            notebook_path: ./publish.ipynb\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 418,
+          "end": 418,
+          "text": "          run_if: ALL_SUCCESS\n"
+        }
+      ],
+      "expect": "bundle:\n  name: ingest\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: ./ingest.ipynb\n        - task_key: gate\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: ./gate.ipynb\n        - task_key: publish\n          depends_on:\n            - task_key: gate\n          run_if: ALL_SUCCESS\n          notebook_task:\n            notebook_path: ./publish.ipynb\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 216,
+          "end": 220,
+          "text": "quality_gate"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 413,
+          "end": 417,
+          "text": "quality_gate"
+        }
+      ],
+      "expect": "bundle:\n  name: ingest\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: ./ingest.ipynb\n        - task_key: quality_gate\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: ./gate.ipynb\n        - task_key: publish\n          depends_on:\n            - task_key: quality_gate\n          run_if: ALL_SUCCESS\n          notebook_task:\n            notebook_path: ./publish.ipynb\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 375,
+          "end": 397,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 397,
+          "end": 434,
+          "text": ""
+        }
+      ],
+      "expect": "bundle:\n  name: ingest\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: ./ingest.ipynb\n        - task_key: quality_gate\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: ./gate.ipynb\n        - task_key: publish\n          run_if: ALL_SUCCESS\n          notebook_task:\n            notebook_path: ./publish.ipynb\n"
+    }
+  ],
+  "read": {
+    "elements": [
+      {
+        "id": "task:ingest",
+        "type": "Task"
+      },
+      {
+        "id": "task:quality_gate",
+        "type": "Task"
+      },
+      {
+        "id": "task:publish",
+        "type": "Task"
+      },
+      {
+        "id": "edge:ingest->quality_gate",
+        "type": "Dependency"
+      }
+    ]
+  }
+}

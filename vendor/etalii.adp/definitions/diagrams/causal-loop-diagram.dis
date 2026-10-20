@@ -1,0 +1,1044 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.3",
+  "language": {
+    "id": "net.etalii.adp.systems.causal-loop-diagram",
+    "version": "2.0.0",
+    "origin": "systems/causal-loop-diagram",
+    "label": "Causal loop diagram",
+    "doc": {
+      "summary": "How the parts of a system feed back on each other: variables joined by polarised causal links, with the loops they form identified as reinforcing or balancing.",
+      "description": "The entry notation of system dynamics, drawn the established way: polarity on the link, `R` or `B` on the loop, two strokes across a delayed arrow and a circular arrow around each loop identifier.\n\nWhat this diagram type adds is the check. Whether a loop reinforces or balances is a mechanical property of its arrows (**reinforcing on an even count of negative links, zero included, and balancing on an odd count**), so the polarity of every loop is computed rather than trusted, a loop whose stated letter its own arrows contradict is reported, and every feedback cycle nobody named is reported too. Nothing is ever corrected for the author: the label may be the intent and an arrow the mistake.\n\nThe diagram states structure and simulates nothing. There are no stocks, flows or equations, and a weight is an annotation.\n\nThe `.cld` body is read and written through the FBL binding the standalone module ships. Every sentence, label and code below is the standalone tool's, as its parity transcript records them. What DISL 0.3 cannot state is written down in `causal-loop-diagram.md` beside this file, and the wire ids the standalone client and backend share are declared under `x-cld`.",
+      "tags": ["systems", "system dynamics", "feedback", "causality"],
+      "seeAlso": [
+        { "title": "What DISL cannot express for this tool", "href": "causal-loop-diagram.md" },
+        { "title": "Standalone implementation", "href": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/causal-loop-diagram" }
+      ]
+    },
+    "defaultLocale": "en",
+    "authors": [{ "name": "Peter Vrenken" }],
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/causal-loop-diagram",
+    "icon": "mdi-sync-circle",
+    "fileExtension": "cld",
+    "limits": { "maxElements": 1000 },
+    "requires": {
+      "conformance": "standard",
+      "features": ["canvas.chrome", "label.parse", "label.editText", "form.parse", "form.rowId", "persist.typeMap", "constraints.order"]
+    }
+  },
+
+  "functions": {
+    "feedbackCycles": {
+      "params": [],
+      "returns": "list(list(Element))",
+      "uses": ["diagram"],
+      "cel": "causalCycles(diagram.nodesOfType('Variable'), diagram.relationsOfType('CausalLink'), 1000)",
+      "doc": "Every elementary cycle the causal links form, at most 1,000 of them, in the tool's order: the plugin function `causalCycles`, or DISL 12.4's `diagram.cycles` and its order where the plugin is absent. The order decides the order of the unlabelled-loop findings and which cycle Claim a loop picks among the shortest (causal-loop-diagram.md, Other differences: the order of cycles)."
+    },
+    "linksBetween": {
+      "params": [{ "name": "a", "type": "Element" }, { "name": "b", "type": "Element" }],
+      "returns": "list(Element)",
+      "uses": ["diagram"],
+      "cel": "diagram.relationsOfType('CausalLink').filter(l, l.causeName == a.name && l.effectName == b.name)",
+      "doc": "The causal link from a to b, as a list of zero or one. Compared by the names the link writes, so a link whose other end names nothing is never one of them."
+    },
+    "cycleSteps": {
+      "params": [{ "name": "m", "type": "list(Element)" }],
+      "returns": "list(list(Element))",
+      "uses": ["diagram"],
+      "cel": "lists.range(m.size()).map(i, linksBetween(m[i], m[(i + 1) % m.size()]))",
+      "doc": "For a path of variables read as a closed cycle, the link each step runs along; the last variable steps back to the first."
+    },
+    "closesCycle": {
+      "params": [{ "name": "m", "type": "list(Element)" }],
+      "returns": "bool",
+      "uses": ["diagram"],
+      "cel": "m.size() > 0 && cycleSteps(m).all(s, s.size() > 0)",
+      "doc": "Whether the links actually close the path into a cycle."
+    },
+    "decidable": {
+      "params": [{ "name": "m", "type": "list(Element)" }],
+      "returns": "bool",
+      "uses": ["diagram"],
+      "cel": "closesCycle(m) && cycleSteps(m).all(s, s[0].polarity != 'unstated')",
+      "doc": "Whether every link around the cycle states a polarity, so that its negatives can be counted. Unknown is not none."
+    },
+    "negativeCount": {
+      "params": [{ "name": "m", "type": "list(Element)" }],
+      "returns": "int",
+      "uses": ["diagram"],
+      "cel": "cycleSteps(m).filter(s, s.size() > 0 && s[0].polarity == 'negative').size()",
+      "doc": "How many negative links the cycle runs through; meaningful only where the cycle is decidable."
+    },
+    "cyclePolarity": {
+      "params": [{ "name": "m", "type": "list(Element)" }],
+      "returns": "string",
+      "uses": ["diagram"],
+      "cel": "!decidable(m) ? 'undecidable' : (negativeCount(m) % 2 == 0 ? 'reinforcing' : 'balancing')",
+      "doc": {
+        "summary": "The polarity the arrows give a cycle: reinforcing on an even count of negative links, balancing on an odd one, undecidable where any link states none.",
+        "rationale": "Zero is even, so a loop of nothing but positive links is reinforcing; that is the case readers most often get wrong."
+      }
+    },
+    "claimedPolarity": {
+      "params": [{ "name": "identifier", "type": "string" }],
+      "returns": "string",
+      "cel": "identifier.upperAscii().startsWith('R') ? 'reinforcing' : (identifier.upperAscii().startsWith('B') ? 'balancing' : 'unclaimed')",
+      "doc": "What a loop identifier claims: R for reinforcing, B for balancing, anything else claims nothing."
+    },
+    "signature": {
+      "params": [{ "name": "m", "type": "list(Element)" }],
+      "returns": "string",
+      "cel": "m.size() == 0 ? '' : cel.bind(ids, m.map(e, e.name), cel.bind(start, ids.indexOf(ids.sort()[0]), lists.range(ids.size()).map(i, ids[(start + i) % ids.size()]).join('\"')))",
+      "doc": "A cycle's identity wherever it was entered: its variable names rotated to start at the least in code-point order, joined by a double quote, which no name can hold (a quoted name may hold a space). Direction still matters, so this rotates rather than sorts (`CycleFinder.CanonicalSignature`)."
+    },
+    "claimed": {
+      "params": [{ "name": "c", "type": "list(Element)" }],
+      "returns": "bool",
+      "uses": ["diagram"],
+      "cel": "diagram.nodesOfType('Loop').exists(l, signature(l.members) == signature(c))",
+      "doc": "Whether a loop statement already names the cycle."
+    },
+    "nextLoopIdentifier": {
+      "params": [{ "name": "prefix", "type": "string" }],
+      "returns": "string",
+      "uses": ["diagram"],
+      "cel": "prefix + string(diagram.nodesOfType('Loop').filter(l, l.identifier.size() > 1 && l.identifier.substring(0, 1).upperAscii() == prefix && l.identifier.substring(1).matches('^[0-9]+$')).map(l, int(l.identifier.substring(1))).sort().last().orValue(0) + 1)",
+      "doc": "The identifier a loop claimed by drawing a link takes: its prefix (R or B) and one past the highest number any loop identifier carries behind that prefix, in either case. Read inside the `claimClosedLoops` hook, it sees the loops earlier iterations created, so the second loop claimed counts on (`CausalLoopWriter.NextNumber`)."
+    },
+    "lowestFreeLoopIdentifier": {
+      "params": [],
+      "returns": "string",
+      "uses": ["diagram"],
+      "cel": "cel.bind(free, lists.range(1000).filter(n, n > 0 && !diagram.nodesOfType('Loop').exists(l, l.identifier == 'R' + string(n))), free.size() > 0 ? 'R' + string(free[0]) : 'R')",
+      "doc": "The identifier Claim a loop proposes: the lowest R number below 1,000 no loop uses, or R alone when every one is taken (`NextLoopIdentifier`)."
+    },
+    "lowestFreeVariableNumber": {
+      "params": [],
+      "returns": "int",
+      "uses": ["diagram"],
+      "cel": "cel.bind(free, lists.range(diagram.nodesOfType('Variable').size() + 2).filter(n, n > 0 && !diagram.nodesOfType('Variable').exists(v, v.name == 'variable' + string(n))), free.size() > 0 ? free[0] : 0)",
+      "doc": "The number of the next new variable: the lowest from 1 for which `variable<n>` is not declared (`CausalLoopWriter.NextVariableName`). It searches only up to the number of variables plus one, which always holds a free number because n variables block at most n numbers, so the search stays within the CEL cost limit."
+    },
+    "usableName": {
+      "params": [{ "name": "s", "type": "string" }],
+      "returns": "bool",
+      "cel": "s.matches('^[^\\\\s\"]+$')",
+      "doc": "A name or loop identifier the statement grammar can write: at least one character, no whitespace and no double quote (`CausalLoopWriter.IsUsableName`)."
+    },
+    "removalCount": {
+      "params": [{ "name": "v", "type": "Element" }],
+      "returns": "int",
+      "uses": ["diagram"],
+      "cel": "diagram.relationsOfType('CausalLink').filter(l, l.causeName == v.name || l.effectName == v.name).size() + diagram.nodesOfType('Loop').filter(l, l.members.exists(m, m.id == v.id)).size()",
+      "doc": "How many links and loops name a variable, and so go when it is removed; a link from the variable to itself counts once (`CausalLoopWriter.CountVariableRemoval`, less the variable itself)."
+    }
+  },
+
+  "metamodel": {
+    "doc": "Three things exist: variables, the causal links between them, and the loops an author claims. Which cycles the links form, and whether each reinforces or balances, is computed from these and never stored.",
+    "enums": {
+      "Polarity": {
+        "doc": {
+          "summary": "What a causal link asserts about the direction of its effect.",
+          "description": "`+`, `s` and `S` (same) mean positive, `-`, `o` and `O` (opposite) mean negative, because both traditions are in live use. A link whose polarity nobody wrote is **unstated**, which is an absence rather than a default."
+        },
+        "values": {
+          "positive": { "label": "Same direction (+)", "doc": "An increase in the cause produces an increase in the effect, all else equal. Written + or s." },
+          "negative": { "label": "Opposite direction (−)", "doc": "An increase in the cause produces a decrease in the effect, all else equal. Written - or o." },
+          "unstated": { "label": "Unstated", "doc": "No polarity was written. Every loop through this link is undecidable." }
+        }
+      },
+      "LoopPolarity": {
+        "doc": "What the arrows say a loop is, as opposed to what its identifier claims.",
+        "values": {
+          "reinforcing": { "label": "Reinforcing", "color": "#0369A1", "doc": "An even number of negative links, zero included. The loop amplifies." },
+          "balancing": { "label": "Balancing", "color": "#C2410C", "doc": "An odd number of negative links. The loop self-corrects." },
+          "undecidable": { "label": "Undecidable", "color": "#64748B", "doc": "Some link around the cycle states no polarity, so the parity cannot be counted." }
+        }
+      }
+    },
+    "types": {
+      "Variable": {
+        "label": "Variable",
+        "doc": "A quantity the system has, one that can go up or down. The label is what a reader sees; the name is what links and loops refer to.",
+        "icon": "mdi-circle-outline",
+        "labelAttribute": "label",
+        "attributes": {
+          "name": {
+            "type": "string", "required": true, "key": true, "minLength": 1,
+            "label": "Identifier", "group": "Identity", "order": 2,
+            "doc": "What links and loops refer to this variable by. Written as one word, or between double quotes when it holds a space; an edit gives it one word with no quote. Changing it carries every link and loop that names the variable with it; the canvas's Rename edits the label instead."
+          },
+          "label": {
+            "type": "string", "pattern": "^[^\"\\r\\n]*$", "label": "Label", "group": "Identity", "order": 1,
+            "doc": "What a reader sees on the canvas. May hold spaces but no quote or line break; the identifier is shown when it is empty."
+          },
+          "display": {
+            "type": "string", "derived": "self.label != '' ? self.label : self.name",
+            "doc": "The text drawn on the variable: its label, or its identifier where no label is written."
+          }
+        }
+      },
+      "Loop": {
+        "label": "Feedback loop",
+        "doc": {
+          "summary": "A feedback loop the author claims: an identifier, a descriptive name and the cycle of variables it runs through.",
+          "description": "The identifier's letter is a **claim**, R for reinforcing and B for balancing, checked against the arrows rather than trusted. A loop has no position of its own: its badge is drawn at the centre of the variables it runs through."
+        },
+        "icon": "mdi-sync",
+        "labelAttribute": "identifier",
+        "attributes": {
+          "identifier": {
+            "type": "string", "required": true, "key": true, "minLength": 1, "pattern": "^[^\\s\"]+$",
+            "label": "Identifier", "group": "Identity", "order": 1,
+            "doc": "As written, for example R1 or B2. A claim about polarity, not a finding."
+          },
+          "title": {
+            "type": "string", "pattern": "^[^\"\\r\\n]*$", "label": "Name", "group": "Identity", "order": 2,
+            "doc": "The descriptive name drawn beside the identifier."
+          },
+          "members": {
+            "type": "Variable", "many": true, "minItems": 1,
+            "label": "Runs through", "group": "Feedback", "order": 5,
+            "doc": "The cycle, in the order the loop runs; the last variable links back to the first. Chosen in the property grid among the cycles the arrows form through the loop's variables."
+          },
+          "computed": {
+            "type": "LoopPolarity", "derived": "cyclePolarity(self.members)",
+            "label": "Computed polarity", "group": "Feedback", "order": 3,
+            "doc": "Counted from the polarity of the links around the cycle. Change an arrow to change this."
+          },
+          "stated": {
+            "type": "string", "derived": "claimedPolarity(self.identifier)",
+            "label": "Stated polarity", "group": "Feedback", "order": 4,
+            "doc": "What the identifier claims: reinforcing, balancing, or unclaimed where the identifier starts with neither R nor B."
+          },
+          "disagrees": {
+            "type": "bool", "derived": "self.computed != 'undecidable' && self.stated != 'unclaimed' && self.stated != self.computed",
+            "doc": "Whether the stated and the computed polarity disagree. Undecidable is not a disagreement."
+          },
+          "caption": {
+            "type": "string", "derived": "self.title != '' ? self.identifier + ' · ' + self.title : self.identifier",
+            "doc": "How the identifier and the name read together on the badge."
+          }
+        }
+      }
+    },
+    "relations": {
+      "CausalLink": {
+        "label": "Causal link",
+        "icon": "mdi-arrow-right-thin",
+        "doc": "An arrow from a cause to an effect, carrying what it asserts about the direction of that effect. A link is identified by the names of its two ends, and is kept when an end names no variable: it is then not drawn, and reported (`causal-loop.dangling-link`).",
+        "source": { "types": ["Variable"], "role": "cause" },
+        "target": { "types": ["Variable"], "role": "effect" },
+        "directed": true,
+        "allowSelfLoops": true,
+        "allowParallel": false,
+        "attributes": {
+          "causeName": {
+            "type": "string", "key": true, "readOnly": true,
+            "readOnlyReasons": ["A link is identified by the two variables it joins. Draw a new link on the canvas rather than changing an end here."],
+            "doc": "The name the link's cause is written with, whether or not a variable of that name is declared. With `effectName` it is the link's natural id, `link:<from>|<to>`."
+          },
+          "effectName": {
+            "type": "string", "key": true, "readOnly": true,
+            "readOnlyReasons": ["A link is identified by the two variables it joins. Draw a new link on the canvas rather than changing an end here."],
+            "doc": "The name the link's effect is written with, whether or not a variable of that name is declared."
+          },
+          "polarity": {
+            "type": "Polarity", "default": "unstated", "label": "Polarity", "group": "Causality", "order": 2,
+            "doc": "Same direction (+), opposite direction (−), or unstated. A link created on the canvas starts as same direction."
+          },
+          "delayed": {
+            "type": "bool", "default": false, "label": "Delayed", "group": "Causality", "order": 3,
+            "doc": "The effect arrives late; drawn as two short strokes across the arrow."
+          },
+          "flipped": {
+            "type": "bool", "default": false, "label": "Flipped curve",
+            "doc": "Bows this link's curve to the other side of its chord, where the automatic side crosses something. The document's one presentation word; set from the link's menu, not the property grid."
+          },
+          "weight": {
+            "type": "number", "label": "Weight", "group": "Causality", "order": 4,
+            "doc": {
+              "summary": "An author's annotation of strength. Recorded, never evaluated.",
+              "rationale": "This diagram states structure and simulates nothing, so the number is an annotation and nothing reads it as a coefficient. Absent and zero differ: an unweighted link is not a link of weight zero."
+            }
+          },
+          "note": {
+            "type": "string", "pattern": "^[^\"\\r\\n]*$", "label": "Note", "group": "Identity", "order": 1,
+            "doc": "An optional note on the link, written between double quotes."
+          }
+        }
+      }
+    }
+  },
+
+  "coordinates": {
+    "systems": {
+      "canvas": {
+        "kind": "cartesian",
+        "x": { "kind": "linear" },
+        "y": { "kind": "linear" },
+        "doc": "One free canvas. Positions are authored by dragging or by Arrange diagram, and otherwise come from the ring layout."
+      }
+    }
+  },
+
+  "notation": {
+    "theme": {
+      "tokens": {
+        "color.surface": "#FFFFFF",
+        "color.text": "#0F172A",
+        "color.text.muted": "#64748B",
+        "color.border": "#94A3B8",
+        "color.selected": "#7C3AED",
+        "color.loop.reinforcing": "#0369A1",
+        "color.loop.balancing": "#C2410C",
+        "font.body": "system-ui, sans-serif"
+      },
+      "modes": {
+        "dark": {
+          "color.surface": "#1E293B",
+          "color.text": "#F1F5F9",
+          "color.text.muted": "#94A3B8",
+          "color.border": "#64748B"
+        }
+      },
+      "followSystem": true
+    },
+    "styles": {
+      "variable": {
+        "fill": { "token": "color.surface" },
+        "stroke": { "color": { "token": "color.border" }, "width": 1 },
+        "font": { "family": { "token": "font.body" }, "size": 14, "color": { "token": "color.text" } }
+      },
+      "link": {
+        "stroke": { "color": { "token": "color.text" }, "width": 1.5 }
+      },
+      "loopBadge": {
+        "font": { "family": { "token": "font.body" }, "size": 12, "weight": 600 }
+      },
+      "emptyHint": {
+        "font": { "family": { "token": "font.body" }, "size": 14, "color": { "token": "color.text.muted" } }
+      }
+    },
+    "nodes": {
+      "Variable": {
+        "doc": "A pill carrying the variable's label, as wide as the label needs and never narrower than 90.",
+        "shape": "pill",
+        "style": "variable",
+        "size": { "default": [90, 39.6], "min": [90, 39.6], "autoSize": "fitWidth", "resizable": false },
+        "labels": [
+          {
+            "id": "display",
+            "text": { "cel": "self.display" },
+            "position": "center",
+            "wrap": "none",
+            "maxLines": 1,
+            "editable": "inline",
+            "editText": { "cel": "self.display" },
+            "parse": {
+              "accepts": "value != '' && !value.matches('[\"\\\\x00-\\\\x1F\\\\x7F-\\\\x9F]')",
+              "write": [ { "set": { "label": "value" } } ],
+              "refusal": "A name needs at least one character, and cannot contain a quote or a line break.",
+              "doc": "Rename edits the label in place and leaves the identifier alone; it starts from the text drawn. It refuses an empty name, a quote and a control character, a line break among them, with the tool's sentence; the property grid's Label row refuses a quote with std.facets' and takes an empty label (companion, What the definition now states)."
+            }
+          }
+        ],
+        "anchors": { "mode": "outline" },
+        "doubleClick": "editLabel",
+        "tooltip": { "cel": "self.label != '' && self.label != self.name ? self.label + ' (' + self.name + ')' : self.name" },
+        "accessibility": { "name": { "cel": "'Variable ' + self.display" } }
+      },
+      "Loop": {
+        "doc": "A badge with no body: the circular loop marker and the caption, drawn at the centroid of the variables the loop runs through. It selects but never moves.",
+        "shape": "none",
+        "size": { "fixed": [80, 40] },
+        "placement": {
+          "x": { "cel": "self.members.map(m, m.view.bounds.center()[0]).avg()" },
+          "y": { "cel": "self.members.map(m, m.view.bounds.center()[1]).avg()" },
+          "anchor": "center",
+          "movable": false,
+          "doc": "A loop has no position of its own: it sits at the centre of its members and moves with them."
+        },
+        "icon": {
+          "icon": "mdi-sync",
+          "position": "top",
+          "size": 26,
+          "color": { "cel": "token('color.text')" },
+          "flip": { "cel": "self.computed == 'balancing' ? 'horizontal' : 'none'" },
+          "doc": "The circular loop arrow turns clockwise for a reinforcing loop and, mirrored, anticlockwise for a balancing one."
+        },
+        "labels": [
+          { "id": "caption", "text": { "cel": "self.caption" }, "position": "bottom", "style": "loopBadge", "wrap": "none", "editable": false }
+        ],
+        "conditions": [
+          { "when": "self.computed == 'reinforcing'", "style": { "font": { "color": { "token": "color.loop.reinforcing" } } }, "doc": "Reinforcing loops are blue." },
+          { "when": "self.computed == 'balancing'", "style": { "font": { "color": { "token": "color.loop.balancing" } } }, "doc": "Balancing loops are orange." },
+          { "when": "self.computed == 'undecidable'", "style": { "font": { "color": { "token": "color.text.muted" } } }, "doc": "Undecidable loops are grey." },
+          { "when": "self.disagrees", "style": { "font": { "decoration": "underline" } }, "doc": "A loop whose label disagrees with its arrows is marked, never corrected. The standalone tool draws the underline wavy, which DISL cannot say (companion, gap 4)." }
+        ],
+        "connectable": false,
+        "doubleClick": "none",
+        "refusals": { "move": ["Only a variable can be moved; a link is drawn between its ends and a loop label among its members."] },
+        "tooltip": { "cel": "self.caption + ': computed ' + self.computed + (self.disagrees ? ', but labelled ' + self.stated : '')" },
+        "accessibility": { "name": { "cel": "'Loop ' + self.caption + ', ' + self.computed" } }
+      }
+    },
+    "edges": {
+      "CausalLink": {
+        "doc": "One quadratic curve whose control point lies 0.2 of the chord from its midpoint, to the left of the direction of travel (a positive curvature bows left, DISL 0.2), so A → B and B → A bow to opposite sides and a two-variable loop draws as an ellipse.",
+        "style": "link",
+        "line": {
+          "stroke": {
+            "color": { "token": "color.text" },
+            "width": { "cel": "!has(self.weight) ? 1.5 : (self.weight >= 2.0 ? 2.5 : (self.weight <= 0.5 ? 1.0 : 1.5))" }
+          },
+          "routing": "curved",
+          "curvature": 0.2,
+          "bendpoints": { "editable": false }
+        },
+        "variants": [
+          { "when": "self.flipped", "doc": "A flipped link bows to the right of its direction of travel instead.",
+            "line": { "routing": "curved", "curvature": -0.2, "bendpoints": { "editable": false } } }
+        ],
+        "sourceMarker": "none",
+        "targetMarker": "arrowFilled",
+        "anchoring": { "source": { "mode": "outline" }, "target": { "mode": "outline" } },
+        "selfLoop": { "shape": "arc", "size": 26, "side": "top" },
+        "midMarkers": [
+          { "marker": { "type": "bar", "params": { "width": 16 } }, "at": 0.44, "orient": "auto", "visible": { "cel": "self.delayed" } },
+          { "marker": { "type": "bar", "params": { "width": 16 } }, "at": 0.56, "orient": "auto", "visible": { "cel": "self.delayed" } }
+        ],
+        "labels": [
+          { "id": "polarity", "text": { "cel": "self.polarity == 'positive' ? '+' : (self.polarity == 'negative' ? '−' : '')" },
+            "at": 0.86, "side": "left", "distance": 11, "orientation": "horizontal", "draggable": false, "editable": false,
+            "style": { "font": { "size": 15, "weight": 600 } },
+            "doc": "The polarity mark beside the arrowhead. Nothing where the polarity is unstated: drawing a + would put a claim on the canvas the document does not make." }
+        ],
+        "states": { "selected": { "stroke": { "color": { "token": "color.selected" } } } },
+        "tooltip": { "cel": "self.source.display + ' → ' + self.target.display + (self.note != '' ? ': ' + self.note : '')" },
+        "reconnectable": false,
+        "refusals": { "move": ["Only a variable can be moved; a link is drawn between its ends and a loop label among its members."] },
+        "connect": {
+          "pointer": { "button": "secondary", "start": "body", "doc": "A link is drawn by dragging with the secondary button from one variable to another (`CausalLoopCanvas.tsx`, `onConnectionDrawn`)." }
+        }
+      }
+    },
+    "canvas": {
+      "background": { "token": "color.surface" },
+      "empty": {
+        "text": "This causal loop diagram states no variables yet.",
+        "when": "diagram.nodesOfType('Variable').size() == 0",
+        "style": "emptyHint"
+      }
+    }
+  },
+
+  "forms": {
+    "variable": {
+      "for": "Variable",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [
+          { "attribute": "label", "label": "Label", "widget": "text" },
+          { "attribute": "name", "label": "Identifier", "widget": "text",
+            "doc": "The identifier links and loops refer to. Restating it here carries them with it; renaming on the canvas edits the label and leaves it alone." }
+        ] }
+      ]
+    },
+    "link": {
+      "for": "CausalLink",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [
+          { "kind": "computed", "label": "Cause (from)", "widget": "text", "value": { "cel": "self.causeName" },
+            "readOnlyReasons": ["A link is identified by the two variables it joins. Draw a new link on the canvas rather than changing an end here."] },
+          { "kind": "computed", "label": "Effect (to)", "widget": "text", "value": { "cel": "self.effectName" },
+            "readOnlyReasons": ["A link is identified by the two variables it joins. Draw a new link on the canvas rather than changing an end here."] },
+          { "attribute": "note", "label": "Note", "widget": "text" }
+        ] },
+        { "kind": "section", "label": "Causality", "items": [
+          {
+            "attribute": "polarity",
+            "label": "Polarity",
+            "widget": "select",
+            "options": ["positive", "negative", "unstated"],
+            "display": { "cel": "string(value)" },
+            "parse": {
+              "accepts": "value.trim().upperAscii() in ['POSITIVE', '+', 'S', 'NEGATIVE', '-', 'O', 'UNSTATED', '']",
+              "write": [
+                { "set": { "polarity": "'positive'" }, "when": "value.trim().upperAscii() in ['POSITIVE', '+', 'S']" },
+                { "set": { "polarity": "'negative'" }, "when": "value.trim().upperAscii() in ['NEGATIVE', '-', 'O']" },
+                { "unset": ["polarity"], "when": "value.trim().upperAscii() in ['UNSTATED', '']" }
+              ],
+              "refusal": { "cel": "'\\'' + value + '\\' is not a polarity a link can state.'" },
+              "doc": "The row offers the three values and also takes a polarity as the document writes it, in either case: `+` or `s`, `-` or `o`, and empty for unstated."
+            }
+          },
+          { "attribute": "delayed", "label": "Delayed", "widget": "switch" },
+          {
+            "attribute": "weight",
+            "label": "Weight",
+            "widget": "text",
+            "parse": {
+              "accepts": "value.trim() == '' || value.trim().matches('^[+-]?([0-9]+\\\\.?[0-9]*|\\\\.[0-9]+)([eE][+-]?[0-9]+)?$')",
+              "write": [
+                { "unset": ["weight"], "when": "value.trim() == ''" },
+                { "set": { "weight": "double(value.trim())" }, "when": "value.trim() != ''" }
+              ],
+              "refusal": { "cel": "'\\'' + value + '\\' is not a number. A weight is an annotation this diagram records and never evaluates; leave it empty to remove it.'" },
+              "doc": "A decimal number, signed, with or without an exponent; an empty row removes the weight. How the number is shown and written is the companion, Other differences: numbers."
+            }
+          }
+        ] }
+      ]
+    },
+    "loop": {
+      "for": "Loop",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [
+          { "attribute": "identifier", "label": "Identifier", "widget": "text" },
+          { "attribute": "title", "label": "Name", "widget": "text" }
+        ] },
+        { "kind": "section", "label": "Feedback", "items": [
+          { "kind": "computed", "label": "Computed polarity", "widget": "text", "value": { "cel": "string(self.computed)" },
+            "readOnlyReasons": ["Counted from the polarity of the links around the cycle. Change an arrow to change this."] },
+          { "kind": "computed", "label": "Stated polarity", "widget": "text", "value": { "cel": "self.stated" }, "visible": "self.disagrees",
+            "readOnlyReasons": [ { "cel": "'\\'' + self.identifier + '\\' claims this, and the arrows say ' + string(self.computed) + '. Neither is corrected for you: change the identifier or change an arrow.'" } ],
+            "doc": "Shown only where it differs from the computed polarity." },
+          { "attribute": "members", "label": "Runs through", "widget": "select",
+            "display": { "cel": "value.map(m, m.name).join(' → ')" },
+            "options": { "cel": "[{'value': self.members, 'label': self.members.map(m, m.name).join(' → ')}] + feedbackCycles().filter(c, c.exists(v, self.members.exists(m, m.id == v.id)) && !claimed(c)).map(c, {'value': c, 'label': c.map(v, v.name).join(' → ')})" },
+            "validate": [ { "timing": "commit",
+              "rule": "signature(value) == signature(self.members) || (value.exists(v, self.members.exists(m, m.id == v.id)) && !claimed(value) && feedbackCycles().exists(c, signature(c) == signature(value)))",
+              "message": { "cel": "'\\'' + (type(value) == string ? value : value.map(v, v.name).join(' → ')) + '\\' is not a cycle this loop can run through: choose one the arrows form through its variables that no other loop claims.'" } } ],
+            "doc": "The loop's own cycle, first and as written, then every other cycle the arrows form through at least one of its variables that no loop claims yet. Choosing one changes what the loop runs through, as one undo step." }
+        ] }
+      ]
+    },
+    "addLink": {
+      "for": "Variable",
+      "label": "Add link",
+      "icon": "mdi-arrow-right-thin",
+      "submitLabel": "Apply",
+      "items": [
+        { "attribute": "to", "label": "To variable", "widget": "text", "initial": "''",
+          "validate": [ { "timing": "commit", "rule": "diagram.nodesOfType('Variable').exists(v, v.name == value)",
+            "message": { "cel": "'\\'' + value + '\\' is not a variable in this diagram.'" } } ] }
+      ]
+    },
+    "claimLoop": {
+      "for": "Variable",
+      "label": "Claim a loop",
+      "icon": "mdi-sync",
+      "submitLabel": "Apply",
+      "items": [
+        { "attribute": "identifier", "label": "Identifier", "widget": "text", "initial": "lowestFreeLoopIdentifier()",
+          "validate": [ { "timing": "commit", "rule": "!diagram.nodesOfType('Loop').exists(l, l.identifier == value)",
+            "message": "A loop of that identifier is already stated in this diagram." } ] }
+      ]
+    },
+    "renameLoop": {
+      "for": "Loop",
+      "label": "Rename loop",
+      "icon": "mdi-rename-outline",
+      "submitLabel": "Apply",
+      "items": [
+        { "attribute": "title", "label": "Name", "widget": "text", "initial": "self.title" }
+      ]
+    }
+  },
+
+  "toolbox": {
+    "groups": [
+      { "id": "causalLoop", "label": "Causal loop", "tools": [
+        { "id": "variable", "creates": "Variable", "mode": "drop", "icon": "mdi-circle-outline", "label": "Variable", "after": "none",
+          "doc": "Drop on the canvas to declare a quantity the system has.",
+          "initial": {
+            "name": { "cel": "'variable' + string(lowestFreeVariableNumber())" },
+            "label": { "cel": "'Variable ' + string(lowestFreeVariableNumber())" }
+          } },
+        { "id": "link", "kind": "operation", "operation": "addLink", "mode": "drop", "icon": "mdi-arrow-right-thin", "label": "Causal link",
+          "doc": "Drop on a variable to state that it affects another. It arrives stating the same direction; change it to the opposite from the link's own menu.",
+          "drop": {
+            "targets": [ { "on": ["Variable"], "kind": "operation", "operation": "addLink" } ],
+            "elsewhere": "refuse",
+            "refusal": "Drop a link or a loop onto a variable."
+          } },
+        { "id": "loop", "kind": "operation", "operation": "claimLoop", "mode": "drop", "icon": "mdi-sync", "label": "Feedback loop",
+          "doc": "Drop on a variable to claim the loop that runs through it. Whether it reinforces or balances is counted from the links rather than taken from the label.",
+          "drop": {
+            "targets": [ { "on": ["Variable"], "kind": "operation", "operation": "claimLoop" } ],
+            "elsewhere": "refuse",
+            "refusal": "Drop a link or a loop onto a variable."
+          } }
+      ] }
+    ],
+    "contextMenus": [
+      { "for": ["Variable"], "placement": "menu", "standardEntries": false, "tools": [
+        { "kind": "operation", "operation": "addLink", "label": "Add link from here…", "icon": "mdi-arrow-right-thin" },
+        { "kind": "operation", "operation": "claimLoop", "label": "Claim a loop from here…", "icon": "mdi-sync" },
+        { "kind": "editLabel", "label": "Rename…", "icon": "mdi-rename-outline" },
+        { "kind": "delete", "icon": "mdi-delete-outline", "shortcut": "Delete",
+          "label": { "cel": "cel.bind(n, removalCount(self), n > 0 ? 'Remove variable (with ' + string(n) + ' references)' : 'Remove variable')" } }
+      ] },
+      { "for": ["CausalLink"], "placement": "menu", "standardEntries": false, "tools": [
+        { "kind": "operation", "operation": "makePositive", "label": "Same direction (+)", "icon": "mdi-plus" },
+        { "kind": "operation", "operation": "makeNegative", "label": "Opposite direction (−)", "icon": "mdi-minus" },
+        { "kind": "operation", "operation": "toggleDelay", "icon": "mdi-timer-sand" },
+        { "kind": "operation", "operation": "flipCurve", "icon": "mdi-vector-curve" },
+        { "kind": "delete", "label": "Remove link", "icon": "mdi-delete-outline", "shortcut": "Delete" }
+      ] },
+      { "for": ["Loop"], "placement": "menu", "standardEntries": false, "tools": [
+        { "kind": "operation", "operation": "renameLoop", "label": "Rename loop…", "icon": "mdi-rename-outline" },
+        { "kind": "delete", "label": "Remove loop", "icon": "mdi-delete-outline", "shortcut": "Delete" }
+      ] },
+      { "for": ["diagram"], "placement": "menu", "standardEntries": false, "tools": [
+        { "kind": "operation", "operation": "addVariableHere", "label": "Add variable", "icon": "mdi-plus-circle-outline" },
+        { "kind": "operation", "operation": "arrange", "label": "Arrange diagram", "icon": "mdi-graph-outline" }
+      ], "doc": "The menu of a point on the canvas." },
+      { "for": ["connection"], "placement": "menu", "standardEntries": false, "runSingle": true, "tools": [
+        { "kind": "operation", "operation": "connectLink", "label": "Add link", "icon": "mdi-arrow-right-thin", "args": { "from": "source", "to": "target" } }
+      ], "doc": "A link drawn between two variables states it, with no dialog." }
+    ],
+    "starters": ["starter"],
+    "templates": {
+      "starter": {
+        "label": "Births beget births",
+        "doc": "The document a new causal loop diagram is created as: two variables that feed each other positively, claimed as R1. The binding's template holds the same statements as text.",
+        "fragment": {
+          "nodes": [
+            { "ref": "population", "type": "Variable", "attributes": { "name": "'population'", "label": "'Population'" } },
+            { "ref": "births", "type": "Variable", "attributes": { "name": "'births'", "label": "'Births'" } },
+            { "ref": "r1", "type": "Loop", "attributes": { "identifier": "'R1'", "title": "'Births beget births'", "members": "[refs.population, refs.births]" } }
+          ],
+          "relations": [
+            { "type": "CausalLink", "source": "population", "target": "births", "attributes": { "causeName": "'population'", "effectName": "'births'", "polarity": "'positive'" } },
+            { "type": "CausalLink", "source": "births", "target": "population", "attributes": { "causeName": "'births'", "effectName": "'population'", "polarity": "'positive'" } }
+          ]
+        }
+      }
+    }
+  },
+
+  "constraints": {
+    "doc": "The seven findings of the standalone tool, with its codes, severities and sentences, and nothing else: the built-ins that would add a finding the tool does not give are switched off (requirements Q4), and their refusals are declared gesture rules with the tool's sentences.",
+    "groups": {
+      "feedback": { "label": "Feedback", "doc": "The check this diagram type exists for: loop labels against the arrows, and loops nobody named." }
+    },
+    "order": ["causal-loop.unreadable-line", "causal-loop.dangling-link", "causal-loop.cycle-bound-reached"],
+    "builtIn": {
+      "std.unreadableEntry": {
+        "code": "causal-loop.unreadable-line",
+        "message": { "cel": "detail.reason" },
+        "doc": "A statement no rule of the binding reads, or one whose value does not convert. The standalone tool says why in one of four sentences of its own; FBL cannot (companion, gap 1)."
+      },
+      "std.references": {
+        "severity": "warning",
+        "code": { "cel": "self.isA('Loop') ? 'causal-loop.loop-is-not-a-cycle' : 'causal-loop.dangling-link'" },
+        "message": { "cel": "self.isA('Loop') ? 'Loop ' + self.identifier + ' names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances.' : 'The link from \\'' + self.causeName + '\\' to \\'' + self.effectName + '\\' names \\'' + detail.missingId + '\\', which this document does not declare as a variable, so the link is not drawn.'" },
+        "doc": "A link whose end names no variable is kept, not drawn, and reported once per missing end. A loop naming an undeclared variable is reported as a path that is not a cycle; no fixture shows that case yet."
+      },
+      "std.duplicateId": {
+        "enabled": false,
+        "doc": "Two variables of one name are both read and nothing is reported, as today (requirements A7, Q4). The first is the one an edit finds."
+      },
+      "std.unique": {
+        "enabled": false,
+        "doc": "No finding for two variables or loops of one name (Q4); a rename to a taken name is refused by `variableNameFree` and `loopIdentifierFree` instead."
+      },
+      "std.endpoints": {
+        "enabled": false,
+        "doc": "A repeated link in the file is not reported (Q4); drawing one, or drawing to something that is not a variable, is refused by `noRepeatedLink` and `betweenVariables`."
+      },
+      "std.facets": {
+        "refusal": { "cel": "violation.attribute == 'identifier' ? 'A name needs at least one character and no whitespace, because a statement is read as words on one line.' : 'A label or loop name cannot hold a double quote, because it is written between double quotes.'" },
+        "doc": "The patterns of a label, a note, a loop name and a loop identifier refuse an edit with the tool's sentences. No value the binding reads can break them, so they raise no finding."
+      }
+    },
+    "rules": [
+      {
+        "id": "cycleBoundReached",
+        "code": "causal-loop.cycle-bound-reached",
+        "label": "Every cycle was examined",
+        "group": "feedback",
+        "scope": "diagram",
+        "rule": "!diagram.cyclesTruncated('CausalLink', 1000)",
+        "severity": "info",
+        "cost": "expensive",
+        "message": { "cel": "'This diagram contains more feedback loops than are examined; ' + string(feedbackCycles().size()) + ' were read and the rest were not, so any claim below about unlabelled loops covers only those.'" },
+        "doc": { "summary": "The cycle search is bounded, and says so when the bound stops it.", "rationale": "A check that silently examined fewer cycles than the document contains would report no unlabelled loops about a diagram it had not finished reading." }
+      },
+      {
+        "id": "loopIsNotACycle",
+        "code": "causal-loop.loop-is-not-a-cycle",
+        "label": "Loop is a cycle",
+        "group": "feedback",
+        "scope": "Loop",
+        "rule": "closesCycle(self.members)",
+        "severity": "warning",
+        "message": { "cel": "'Loop ' + self.identifier + ' names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances.'" },
+        "doc": { "summary": "A loop statement must name a path the arrows actually close." }
+      },
+      {
+        "id": "undecidableLoop",
+        "code": "causal-loop.undecidable-loop",
+        "label": "Loop polarity is decidable",
+        "group": "feedback",
+        "scope": "Loop",
+        "when": "closesCycle(self.members)",
+        "rule": "decidable(self.members)",
+        "severity": "warning",
+        "message": { "cel": "'Loop ' + self.identifier + ' runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it.'" },
+        "doc": { "summary": "A loop through a link with no stated polarity is undecidable rather than assumed positive.", "rationale": "Unknown is not none: defaulting an unmarked link to positive would fabricate the count." }
+      },
+      {
+        "id": "labelDisagrees",
+        "code": "causal-loop.label-disagrees",
+        "label": "Loop label agrees with its arrows",
+        "group": "feedback",
+        "scope": "Loop",
+        "when": "decidable(self.members) && self.stated != 'unclaimed'",
+        "rule": "self.stated == string(self.computed)",
+        "severity": "warning",
+        "attribute": "identifier",
+        "message": { "cel": "'Loop ' + self.identifier + ' is labelled ' + self.stated + ' but its links make it ' + string(self.computed) + ': it runs through ' + string(negativeCount(self.members)) + ' negative ' + (negativeCount(self.members) == 1 ? 'link' : 'links') + ', and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which.'" },
+        "doc": {
+          "summary": "A loop's R or B must agree with the parity of the negative links around it.",
+          "rationale": "The label may be the intent and an arrow the typo, or the arrows right and the label stale. Silently rewriting either would destroy the only evidence that anything was wrong, so this rule has no quick fix that picks a side."
+        }
+      },
+      {
+        "id": "unlabelledLoop",
+        "code": "causal-loop.unlabelled-loop",
+        "label": "Every feedback loop is named",
+        "group": "feedback",
+        "scope": "diagram",
+        "forEach": "feedbackCycles().filter(c, !claimed(c))",
+        "target": "self",
+        "severity": "info",
+        "cost": "expensive",
+        "message": { "cel": "'The links form a feedback loop through ' + item.map(v, v.name).join(' → ') + ' that no loop statement names. It is ' + (cyclePolarity(item) == 'undecidable' ? 'of a polarity that cannot be counted, because a link in it states none' : cyclePolarity(item)) + '.'" },
+        "doc": {
+          "summary": "One finding per cycle the arrows form that no loop statement claims, naming its path and its polarity. It has no line, so it is listed last.",
+          "rationale": "An unlabelled feedback loop is the thing this notation most exists to make visible."
+        }
+      },
+      {
+        "id": "variableNameUsable",
+        "kind": "change",
+        "scope": "Variable",
+        "enforcement": "prevent",
+        "rule": "attribute != 'name' || usableName(string(newValue))",
+        "message": "A name needs at least one character and no whitespace, because a statement is read as words on one line."
+      },
+      {
+        "id": "variableNameFree",
+        "kind": "change",
+        "scope": "Variable",
+        "enforcement": "prevent",
+        "rule": "attribute != 'name' || newValue == oldValue || !diagram.nodesOfType('Variable').exists(v, v.name == newValue)",
+        "message": "A variable of that name is already declared in this diagram."
+      },
+      {
+        "id": "loopIdentifierFree",
+        "kind": "change",
+        "scope": "Loop",
+        "enforcement": "prevent",
+        "rule": "attribute != 'identifier' || newValue == oldValue || !diagram.nodesOfType('Loop').exists(l, l.identifier == newValue)",
+        "message": "A loop of that identifier is already stated in this diagram."
+      },
+      {
+        "id": "betweenVariables",
+        "kind": "connect",
+        "enforcement": "prevent",
+        "when": "relationType == 'CausalLink'",
+        "rule": "source.isA('Variable') && target.isA('Variable')",
+        "message": "Draw a link between two variables.",
+        "doc": "The client's sentence for a link drawn from or to something that is not a variable (`CausalLoopCanvas.tsx`)."
+      },
+      {
+        "id": "noRepeatedLink",
+        "kind": "connect",
+        "enforcement": "prevent",
+        "when": "relationType == 'CausalLink'",
+        "rule": "!diagram.relationsOfType('CausalLink').exists(l, l.causeName == source.name && l.effectName == target.name)",
+        "message": "That link is already stated in this diagram."
+      }
+    ]
+  },
+
+  "behavior": {
+    "messages": {
+      "std.readOnly": "This causal loop diagram could not be read, so nothing can be edited until it is fixed.",
+      "std.notApplicable": "That action does not apply to this selection."
+    },
+    "hooks": [
+      {
+        "id": "claimClosedLoops",
+        "on": "connect",
+        "for": "CausalLink",
+        "phase": "after",
+        "doc": {
+          "summary": "A new link claims, in the same undoable edit, every feedback loop it closes that no statement already names.",
+          "description": "Only loops whose polarity the arrows decide are claimed, each named for that polarity (R for reinforcing, B for balancing), with no name, so an auto-claimed loop never lands disagreeing with itself. A cycle through an unstated link is left for the author to claim. The cycle list is evaluated once; each iteration sees the loops the ones before it created (DISL 9.4)."
+        },
+        "actions": [
+          {
+            "forEach": "feedbackCycles().filter(c, lists.range(c.size()).exists(i, c[i].id == self.source.id && c[(i + 1) % c.size()].id == self.target.id) && decidable(c))",
+            "as": "cycle",
+            "do": [
+              {
+                "when": "!claimed(cycle)",
+                "create": {
+                  "type": "'Loop'",
+                  "attributes": {
+                    "identifier": "nextLoopIdentifier(cyclePolarity(cycle) == 'reinforcing' ? 'R' : 'B')",
+                    "title": "''",
+                    "members": "cycle"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "operations": {
+      "addVariableHere": {
+        "label": "Add variable",
+        "for": "diagram",
+        "icon": "mdi-plus-circle-outline",
+        "doc": "Declares a new variable at the point, with the next free name and no dialog; its position is stored in the registration in the same undo step, which the standalone module does in code (companion, What stays code).",
+        "actions": [ { "create": { "type": "'Variable'", "at": "position", "attributes": {
+          "name": "'variable' + string(lowestFreeVariableNumber())",
+          "label": "'Variable ' + string(lowestFreeVariableNumber())"
+        } } } ]
+      },
+      "addLink": {
+        "label": "Add link from here…",
+        "for": ["Variable"],
+        "icon": "mdi-arrow-right-thin",
+        "params": { "to": { "type": "string", "required": true, "label": "To variable" } },
+        "paramsForm": "addLink",
+        "doc": "States a link from this variable to the one named, same direction, and claims the loops it closes.",
+        "actions": [
+          { "abort": { "message": "'No variable of that name is in this diagram, so there is nothing to change.'" },
+            "when": "!diagram.nodesOfType('Variable').exists(v, v.name == p.to)" },
+          { "abort": { "message": "'That link is already stated in this diagram.'" },
+            "when": "diagram.relationsOfType('CausalLink').exists(l, l.causeName == self.name && l.effectName == p.to)" },
+          { "connect": { "type": "'CausalLink'", "source": "self", "target": "diagram.nodesOfType('Variable').filter(v, v.name == p.to)[0]",
+            "attributes": { "causeName": "self.name", "effectName": "p.to", "polarity": "'positive'" } } }
+        ]
+      },
+      "connectLink": {
+        "label": "Add link",
+        "for": "diagram",
+        "icon": "mdi-arrow-right-thin",
+        "params": {
+          "from": { "type": "Variable", "required": true },
+          "to": { "type": "Variable", "required": true }
+        },
+        "doc": "States the link a connect gesture drew, same direction, and claims the loops it closes.",
+        "actions": [
+          { "abort": { "message": "'That link is already stated in this diagram.'" },
+            "when": "diagram.relationsOfType('CausalLink').exists(l, l.causeName == p.from.name && l.effectName == p.to.name)" },
+          { "connect": { "type": "'CausalLink'", "source": "p.from", "target": "p.to",
+            "attributes": { "causeName": "p.from.name", "effectName": "p.to.name", "polarity": "'positive'" } } }
+        ]
+      },
+      "claimLoop": {
+        "label": "Claim a loop from here…",
+        "for": ["Variable"],
+        "icon": "mdi-sync",
+        "params": { "identifier": { "type": "string", "required": true, "label": "Identifier" } },
+        "paramsForm": "claimLoop",
+        "doc": "Claims the shortest cycle through this variable, or the variable alone where it lies on none, under the identifier given, which is also the loop's first name. The lowest R number no loop uses is proposed.",
+        "actions": [
+          { "abort": { "message": "'A name needs at least one character and no whitespace, because a statement is read as words on one line.'" },
+            "when": "!usableName(p.identifier)" },
+          { "abort": { "message": "'A loop of that identifier is already stated in this diagram.'" },
+            "when": "diagram.nodesOfType('Loop').exists(l, l.identifier == p.identifier)" },
+          { "let": { "through": "feedbackCycles().filter(c, c.exists(v, v.id == self.id)).sortBy(c, c.size()).first().orValue([self])" } },
+          { "create": { "type": "'Loop'", "attributes": { "identifier": "p.identifier", "title": "p.identifier", "members": "through" } } }
+        ]
+      },
+      "renameLoop": {
+        "label": "Rename loop…",
+        "for": ["Loop"],
+        "icon": "mdi-rename-outline",
+        "params": { "title": { "type": "string", "label": "Name" } },
+        "paramsForm": "renameLoop",
+        "doc": "Renames a loop without touching what it runs through.",
+        "actions": [ { "set": { "title": "p.title" } } ]
+      },
+      "makePositive": {
+        "label": "Same direction (+)", "for": ["CausalLink"], "icon": "mdi-plus",
+        "unavailable": [ { "when": "self.polarity == 'positive'", "message": "This link already states +." } ],
+        "doc": "Say the effect runs the same way.",
+        "actions": [ { "set": { "polarity": "'positive'" } } ]
+      },
+      "makeNegative": {
+        "label": "Opposite direction (−)", "for": ["CausalLink"], "icon": "mdi-minus",
+        "unavailable": [ { "when": "self.polarity == 'negative'", "message": "This link already states −." } ],
+        "doc": "Say the effect runs the opposite way.",
+        "actions": [ { "set": { "polarity": "'negative'" } } ]
+      },
+      "toggleDelay": {
+        "label": { "cel": "self.delayed ? 'Not delayed' : 'Delayed'" }, "for": ["CausalLink"], "icon": "mdi-timer-sand",
+        "doc": "Mark or unmark the link's effect as delayed.",
+        "actions": [ { "set": { "delayed": "!self.delayed" } } ]
+      },
+      "flipCurve": {
+        "label": { "cel": "self.flipped ? 'Curve back the other way' : 'Flip the curve'" }, "for": ["CausalLink"], "icon": "mdi-vector-curve",
+        "doc": "Bow the link's curve to the other side of its chord, or back. Stated in the document, so it survives a reopen.",
+        "actions": [ { "set": { "flipped": "!self.flipped" } } ]
+      },
+      "arrange": {
+        "label": "Arrange diagram", "for": "diagram", "icon": "mdi-graph-outline",
+        "unavailable": [ { "when": "diagram.nodesOfType('Variable').size() < 2", "message": "There is nothing to arrange until this diagram has two variables." } ],
+        "doc": "Arranges the whole diagram with the deterministic self-organizing layout and stores the result as authored positions, one undo away. Invoked, never automatic.",
+        "actions": [ { "layout": { "scope": "diagram.nodes", "algorithm": "selfOrganizing",
+          "refusals": { "nothingDrawn": "This diagram has no variables to arrange." } } } ]
+      }
+    },
+    "deletion": {
+      "Variable": {
+        "relations": "delete",
+        "references": "delete-referencing",
+        "confirm": {
+          "count": "removalCount(self)",
+          "threshold": 0,
+          "title": "Remove variable",
+          "message": { "cel": "count > 0 ? 'Removing \\'' + self.name + '\\' also removes the ' + string(count) + ' links and loops that name it.' : 'Remove \\'' + self.name + '\\'?'" },
+          "confirmLabel": "Remove",
+          "danger": true,
+          "doc": "Asked every time, with the count of links and loops that go with the variable."
+        }
+      },
+      "CausalLink": { "references": "unset" },
+      "Loop": { "relations": "delete" }
+    },
+    "clipboard": { "relations": "internal", "ids": "regenerate" }
+  },
+
+  "layout": {
+    "algorithms": {
+      "ring": {
+        "algorithm": "circular",
+        "options": {
+          "adp.ring.order": "link-walk",
+          "adp.ring.start": "top",
+          "adp.ring.direction": "clockwise",
+          "adp.ring.separation": 40
+        },
+        "doc": "What a document opens with: variables evenly around a ring, seated by a deterministic depth-first walk of the links, starting at the top and running clockwise; the radius grows with the widest variable and the count, so no two overlap. DISL defines neither the order nor the radius of `circular`, so the `adp.ring.*` options say what the standalone module does in code (companion, gap 5)."
+      },
+      "selfOrganizing": {
+        "algorithm": "plugin:net.etalii.adp.systems.cld",
+        "scope": "all",
+        "options": { "iterations": 2000, "separationRounds": 200, "budget": 1000 },
+        "doc": "Meyer's self-organizing graphs with every source of randomness replaced by a function of the document and the iteration index."
+      }
+    },
+    "default": "ring",
+    "trigger": "onLoadIfMissing",
+    "respect": "all",
+    "animate": false,
+    "doc": "A document opens on the ring and stays where the author left it; the self-organizing layout runs only when Arrange diagram is invoked."
+  },
+
+  "persistence": {
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/causal-loop-diagram/backend/EtAlii.Adp.Diagram.CausalLoopDiagram/causal-loop-diagram.fbl#cld",
+    "ids": {
+      "strategy": "natural",
+      "stable": false,
+      "prefix": { "Variable": "variable:", "CausalLink": "link:", "Loop": "loop:" },
+      "pattern": "^(variable|link|loop):.+$",
+      "doc": "A variable is `variable:<name>`, a link `link:<from>|<to>` and a loop `loop:<identifier>`: the prefix and the key attributes joined by `|` (11.5.1). These are the ids the standalone client sends and the keys of a registration's `layout:` block. Not `stable`: renaming a variable renames its id and the ids of its links, as the standalone tool does."
+    },
+    "view": { "store": ["bounds"] },
+    "typeMap": {
+      "Header": { "as": "header", "doc": "Every `causal-loop` statement, wherever it stands; a missing or repeated one raises nothing." },
+      "Variable": { "as": "Variable" },
+      "Link": { "as": "CausalLink", "attributes": { "from": "source", "to": "target" }, "doc": "Read as an entry with reference attributes, so a link whose end names no variable is kept and reported by `std.references`." },
+      "Loop": { "as": "Loop" },
+      "Unreadable": { "as": "unreadable", "doc": "Every statement no earlier rule reads; reported by `std.unreadableEntry`." }
+    },
+    "doc": "The FBL binding's types and attributes, mapped onto this metamodel. Positions are kept in the registration beside the body."
+  },
+
+  "plugins": {
+    "net.etalii.adp.systems.cld": {
+      "version": "^1.0.0",
+      "provides": ["layout"],
+      "required": false,
+      "doc": "The deterministic self-organizing layout of Arrange diagram. Without it everything but Arrange diagram works."
+    },
+    "net.etalii.adp.systems.cldCycles": {
+      "version": "^1.0.0",
+      "provides": ["celFunctions"],
+      "required": false,
+      "doc": "The tool's cycle finder (`CycleFinder.cs` in the standalone module), whose order DISL 12.4's `diagram.cycles` does not give. Without the plugin the cycles are DISL's: the same cycles, in DISL's order.",
+      "celFunctions": [
+        {
+          "name": "causalCycles",
+          "params": [
+            { "name": "variables", "type": "list(Element)", "doc": "The variables, in model order: the order the search starts from each." },
+            { "name": "links", "type": "list(Element)", "doc": "The causal links, in model order: the order each variable's successors are walked in." },
+            { "name": "max", "type": "int", "doc": "How many cycles are returned at most." }
+          ],
+          "returns": "list(list(Element))",
+          "cost": 100,
+          "uses": ["diagram"],
+          "fallback": "diagram.cycles('CausalLink', max)",
+          "doc": "The elementary cycles the links form between the variables, each in loop order, in the order Johnson's algorithm finds them: by start variable in model order, and for each start as a depth-first walk of the links in model order finds them, through variables at or after the start only. A link's ends are its `causeName` and `effectName` and a variable is the first of that `name`; a link whose end names no variable is not walked, and two links between the same variables are one step. At most `max` cycles; `diagram.cyclesTruncated` says whether there are more, which does not depend on the order."
+        }
+      ]
+    }
+  },
+
+  "x-cld": {
+    "doc": "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-ghg does for the hype cycle. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type>. A property is keyed by its form item's row id: its id, else its attribute, else a computed item's label.",
+    "tools": {
+      "variable": { "id": "causal-loop.toolbox.variable", "drop": "causal-loop.add-variable" },
+      "link": { "id": "causal-loop.toolbox.link", "drop": "causal-loop.add-link" },
+      "loop": { "id": "causal-loop.toolbox.loop", "drop": "causal-loop.add-loop" }
+    },
+    "actions": {
+      "addVariableHere": "causal-loop.add-variable",
+      "arrange": "causal-loop.arrange",
+      "connectLink": "causal-loop.connect",
+      "addLink": "causal-loop.add-link",
+      "claimLoop": "causal-loop.add-loop",
+      "Variable/editLabel": "causal-loop.rename-variable",
+      "Variable/delete": "causal-loop.remove-variable",
+      "makePositive": "causal-loop.make-positive",
+      "makeNegative": "causal-loop.make-negative",
+      "toggleDelay": "causal-loop.toggle-delay",
+      "flipCurve": "causal-loop.flip-curvature",
+      "CausalLink/delete": "causal-loop.remove-link",
+      "renameLoop": "causal-loop.rename-loop",
+      "Loop/delete": "causal-loop.remove-loop"
+    },
+    "properties": {
+      "label": "causal-loop.variable-label",
+      "name": "causal-loop.variable-id",
+      "Cause (from)": "causal-loop.link-from",
+      "Effect (to)": "causal-loop.link-to",
+      "note": "causal-loop.link-label",
+      "polarity": "causal-loop.link-polarity",
+      "delayed": "causal-loop.link-delayed",
+      "weight": "causal-loop.link-weight",
+      "identifier": "causal-loop.loop-identifier",
+      "title": "causal-loop.loop-name",
+      "Computed polarity": "causal-loop.loop-computed",
+      "Stated polarity": "causal-loop.loop-stated",
+      "members": "causal-loop.loop-variables"
+    }
+  }
+}

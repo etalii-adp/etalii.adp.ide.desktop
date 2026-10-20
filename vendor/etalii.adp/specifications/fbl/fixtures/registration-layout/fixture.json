@@ -1,0 +1,116 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An .adp registration is written by the same rules: the first placement creates the layout block, positions are kept sorted by id, and undo removes the block again.",
+  "binding": "../../timeline.fbl#timeline",
+  "input": "roadmap.adp",
+  "steps": [
+    {
+      "doc": "The first placement creates layout: with the registration's CRLF.",
+      "edit": {
+        "place": {
+          "element": "launch",
+          "x": 640,
+          "y": 120
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 37,
+          "end": 37,
+          "text": "layout:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 37,
+          "end": 37,
+          "text": "  launch: 640 120\r\n"
+        }
+      ],
+      "expect": "generic/timeline\r\nbody: roadmap.tml\r\nlayout:\r\n  launch: 640 120\r\n"
+    },
+    {
+      "doc": "Entries are sorted by id, so discovery goes before launch; numbers are written in 0.### form.",
+      "edit": {
+        "place": {
+          "element": "discovery",
+          "x": 120.5,
+          "y": 60
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 46,
+          "end": 46,
+          "text": "  discovery: 120.5 60\r\n"
+        }
+      ],
+      "expect": "generic/timeline\r\nbody: roadmap.tml\r\nlayout:\r\n  discovery: 120.5 60\r\n  launch: 640 120\r\n"
+    },
+    {
+      "doc": "Moving a placed element replaces its x.",
+      "edit": {
+        "place": {
+          "element": "launch",
+          "x": 660,
+          "y": 120
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 79,
+          "end": 82,
+          "text": "660"
+        }
+      ],
+      "expect": "generic/timeline\r\nbody: roadmap.tml\r\nlayout:\r\n  discovery: 120.5 60\r\n  launch: 660 120\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 79,
+          "end": 82,
+          "text": "640"
+        }
+      ],
+      "expect": "generic/timeline\r\nbody: roadmap.tml\r\nlayout:\r\n  discovery: 120.5 60\r\n  launch: 640 120\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 46,
+          "end": 69,
+          "text": ""
+        }
+      ],
+      "expect": "generic/timeline\r\nbody: roadmap.tml\r\nlayout:\r\n  launch: 640 120\r\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 37,
+          "end": 46,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 46,
+          "end": 65,
+          "text": ""
+        }
+      ],
+      "expect": "generic/timeline\r\nbody: roadmap.tml\r\n"
+    }
+  ]
+}

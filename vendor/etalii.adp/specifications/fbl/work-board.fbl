@@ -1,0 +1,313 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.3",
+  "doc": "The board file of DISL 0.4's worked example (specifications/disl/work-board.dis). The view data the example keeps in the file (placements, groups, showArchived) is bound here as ordinary entries and keys; the specification's persistence.view.bind says what they are.",
+  "bindings": {
+    "board": {
+      "title": "Work board",
+      "claims": {
+        "extensions": [
+          ".board"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "yaml"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "header": {
+        "key": "work-board",
+        "value": 1
+      },
+      "elements": [
+        {
+          "name": "root",
+          "type": "Root",
+          "at": "/",
+          "attributes": {
+            "version": {
+              "key": "work-board",
+              "readOnly": true
+            },
+            "showArchived": {
+              "key": "showArchived",
+              "default": false
+            }
+          }
+        },
+        {
+          "name": "board",
+          "type": "Board",
+          "at": "/boards/*",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "link": {
+              "key": "link",
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/boards",
+            "create": {
+              "at": "end-of-document"
+            },
+            "keys": [
+              "id",
+              "name",
+              "link"
+            ]
+          },
+          "remove": {
+            "cascade": [
+              "placement"
+            ],
+            "container": "remove-when-empty"
+          }
+        },
+        {
+          "name": "item",
+          "type": "Item",
+          "at": "/items/*",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "board": {
+              "key": "board",
+              "empty": "remove",
+              "reference": {
+                "to": [
+                  "board"
+                ],
+                "by": "id"
+              }
+            },
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "link": {
+              "key": "link",
+              "empty": "remove"
+            },
+            "status": {
+              "key": "status"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/items",
+            "create": {
+              "at": "end-of-document"
+            },
+            "keys": [
+              "id",
+              "board",
+              "name",
+              "link",
+              "status"
+            ]
+          },
+          "remove": {
+            "cascade": [
+              "placement",
+              "group"
+            ],
+            "container": "remove-when-empty"
+          }
+        },
+        {
+          "name": "task",
+          "type": "Task",
+          "at": "/items/*/tasks/*",
+          "parent": {
+            "rules": [
+              "item"
+            ],
+            "slot": "tasks"
+          },
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "title": {
+              "key": "title",
+              "empty": "refuse"
+            },
+            "status": {
+              "key": "status"
+            },
+            "updated": {
+              "key": "updated",
+              "empty": "remove"
+            },
+            "link": {
+              "key": "link",
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "tasks",
+            "create": {
+              "at": {
+                "after": "status"
+              }
+            },
+            "keys": [
+              "id",
+              "title",
+              "status",
+              "updated",
+              "link"
+            ]
+          },
+          "remove": {
+            "container": "remove-when-empty"
+          }
+        },
+        {
+          "name": "person",
+          "type": "Person",
+          "at": "/people/*",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "assignedTo": {
+              "key": "item",
+              "empty": "remove",
+              "reference": {
+                "to": [
+                  "item"
+                ],
+                "by": "id"
+              }
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/people",
+            "create": {
+              "at": "end-of-document"
+            },
+            "keys": [
+              "id",
+              "name",
+              "item"
+            ]
+          },
+          "remove": {
+            "cascade": [
+              "placement"
+            ],
+            "container": "remove-when-empty"
+          }
+        },
+        {
+          "name": "placement",
+          "type": "Placement",
+          "at": "/placements/*",
+          "attributes": {
+            "element": {
+              "key": "element",
+              "reference": {
+                "to": [
+                  "board",
+                  "item",
+                  "person"
+                ],
+                "by": "id"
+              }
+            },
+            "x": {
+              "key": "x"
+            },
+            "y": {
+              "key": "y"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/placements",
+            "create": {
+              "at": "end-of-document"
+            },
+            "keys": [
+              "element",
+              "x",
+              "y"
+            ]
+          },
+          "remove": {
+            "container": "remove-when-empty"
+          }
+        },
+        {
+          "name": "group",
+          "type": "GroupState",
+          "at": "/groups/*",
+          "attributes": {
+            "element": {
+              "key": "element",
+              "reference": {
+                "to": [
+                  "item"
+                ],
+                "by": "id"
+              }
+            },
+            "group": {
+              "key": "group"
+            },
+            "collapsed": {
+              "key": "collapsed"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/groups",
+            "create": {
+              "at": "end-of-document"
+            },
+            "keys": [
+              "element",
+              "group",
+              "collapsed"
+            ]
+          },
+          "remove": {
+            "container": "remove-when-empty"
+          }
+        }
+      ],
+      "template": {
+        "text": "work-board: 1\n"
+      }
+    }
+  }
+}

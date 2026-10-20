@@ -1,0 +1,30 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.6",
+  "doc": "The binding of this fixture alone (FBL 0.6, section 6.2): one element type, Card, whose four string attributes differ only in their empty rule: kept has empty keep, removed has empty remove, refused has empty refuse and undeclared has none. The binding in ../insert-empty-yaml/ is the same in the yaml family.",
+  "bindings": {
+    "cards": {
+      "title": "Cards, JSON",
+      "claims": { "registrationOnly": true },
+      "body": { "kind": "file", "family": "json" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "finalNewline": true },
+      "elements": [
+        {
+          "name": "card",
+          "type": "Card",
+          "at": "/cards/*",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "kept": { "key": "kept", "empty": "keep" },
+            "removed": { "key": "removed", "empty": "remove" },
+            "refused": { "key": "refused", "empty": "refuse" },
+            "undeclared": { "key": "undeclared" }
+          },
+          "insert": { "place": "after-last", "container": "/cards", "keys": ["id", "kept", "removed", "refused", "undeclared"] },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

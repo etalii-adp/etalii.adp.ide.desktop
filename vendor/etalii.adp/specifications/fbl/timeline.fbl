@@ -1,0 +1,71 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.5",
+  "doc": "The timeline's .tml body (definitions/diagrams/timeline.dis, timeline.md): ADP's own YAML, owned outright by the timeline. The simplest complete binding, and the one the timeline specification would name as persistence.binding. A timeline keeps every value as the text it was written with (FBL 0.5, section 5.2): label is a string and reads its written text unasked, begin and end are date-times read as text so that the tool reports a time it cannot read in its own words, and a row that is not a number is row 0.",
+  "bindings": {
+    "timeline": {
+      "title": "Timeline Markup Language",
+      "claims": {
+        "extensions": [".tml"],
+        "origins": ["generic/timeline"]
+      },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "sequenceIndent": "indented", "finalNewline": true, "quote": "double" },
+      "header": { "key": "timeline", "value": 1 },
+      "elements": [
+        {
+          "name": "period",
+          "type": "Period",
+          "at": "/elements/*",
+          "when": "has(entry.end)",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "label": { "key": "label", "empty": "keep" },
+            "begin": { "key": "begin", "read": "text", "time": "keep-precision" },
+            "end": { "key": "end", "read": "text", "time": "keep-precision", "empty": "remove" },
+            "row": { "key": "row", "default": 0, "quoted": "convert", "fallback": { "value": 0, "report": false } }
+          },
+          "insert": { "place": "after-last", "container": "/elements", "keys": ["id", "label", "begin", "end", "row"] },
+          "remove": { "cascade": ["connection"] }
+        },
+        {
+          "name": "moment",
+          "type": "Moment",
+          "at": "/elements/*",
+          "when": "!has(entry.end)",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "label": { "key": "label", "empty": "keep" },
+            "begin": { "key": "begin", "read": "text", "time": "keep-precision" },
+            "row": { "key": "row", "default": 0, "quoted": "convert", "fallback": { "value": 0, "report": false } }
+          },
+          "insert": { "place": "after-last", "container": "/elements", "keys": ["id", "label", "begin", "row"] },
+          "remove": { "cascade": ["connection"] }
+        }
+      ],
+      "relations": [
+        {
+          "name": "connection",
+          "type": "Connection",
+          "at": "/connections/*",
+          "id": { "from": { "key": "id" } },
+          "source": { "key": "from" },
+          "target": { "key": "to" },
+          "attributes": {
+            "label": { "key": "label", "empty": "remove" }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/connections",
+            "create": { "at": "end-of-document" },
+            "keys": ["id", "from", "to", "label"]
+          },
+          "remove": { "container": "keep" }
+        }
+      ],
+      "registration": { "createOnFirstPlacement": false },
+      "template": { "text": "timeline: 1\r\nelements: []\r\n" }
+    }
+  }
+}

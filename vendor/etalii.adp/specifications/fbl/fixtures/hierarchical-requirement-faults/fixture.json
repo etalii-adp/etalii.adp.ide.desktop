@@ -1,0 +1,265 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A requirement document as an agent may leave it, with CRLF endings: every fault of the table What reading reports that a readable body can hold, each once.md of spec 028, and hierarchical-requirement.md) once, each read with its one finding, and every other entry read as usual. Line 14: REQ-0003 is nested under the requirement REQ-0002, and Requirement has no children (DESL 4.6), so std.containment. Line 15: a second REQ-0002, so std.duplicateId; the first holder, line 12, keeps the id, and the second is listed under the same id, ephemeral (DESL 5.3.4). Line 16: REQ-NEW has no usable id, so std.missingId, and it is read with the id missing: assign gives it in memory and never writes on opening (DESL 5.3.4, 5.3.5, 10.2): REQ-0009, one more than the higher of the mark REQ-0008 and the highest requirement number read, REQ-0007; line 22: ITEM-NEW likewise reads as ITEM-0005, after the mark ITEM-0004. Line 17: REQ-0004 with nothing after it reads the title as the empty text (the group title takes part, empty), which is no value of the required attribute title, so std.required: the reading taken is DISL's, a required attribute must have a non-empty value, since DESL 6.5 says only that it has no value. Line 18: a bullet under Requirements that is neither an item nor a requirement is taken by the rule unreadable-requirement, whose type Unreadable the specification maps as unreadable, so std.unreadableEntry at it (DESL 5.2), and it is not looked into: REQ-0005 and ITEM-0002 nested in it are unbound with it, read as no element and reported by nothing (FBL 4.8, Unbound), so their numbers count for nothing. Line 21: a requirement at the top level; metamodel.document.children does not allow Requirement, so std.containment (DESL 4.6, 6.5). Line 28: Concern is no kind of assessment, so the rule unreadable-assessment takes it: std.unreadableEntry. The assessments' ids are derived from their place among the elements of type Assessment, zero-based (DESL 9.4 positionIn), so the unreadable bullet takes no place. Line 29: an assessment about ITEM-0009, which names no element of Item or Requirement through the mentions facet of about, so std.mentions (DESL 4.3). Line 13: [REQ-0099] in REQ-0002's description names no element, so std.mentions; located at the mention itself (DESL 4.3), line 13. Line 2, the mark line, gives the document's attributes lastItem ITEM-0004 and lastRequirement REQ-0008 and no element (DESL 5.2); a fixture's read has no place for a document attribute, so they are only named here. The findings are listed in DESL 6.3's order: the reader's (std.unreadableEntry, std.missingId, std.duplicateId) in reading order, then the other built-ins in the order of DESL 6.5's table, each in document order. The elements are those of the body; the categories and states the registration's settings start with, and the implicit tags (DESL 5.5, 7.7.2), are not listed; tags, an attribute with many, are a JSON array of the words' values, as hierarchical-requirement-read states them. A kind is read through the map of the binding to its stored form and then to its key, which is what the model holds (DESL 4.4). A file without its envelope is the fixture no-envelope/ beside this one, since a fixture has one input. A file without its envelope is in no-envelope/, and a file that is not UTF-8 in not-utf8/; a block the binding does not declare is a registration's, in hierarchical-requirement-collapsed/unknown-block/. An envelope that names another designer type or a later DED version is DED's to report (DED section 4), not the binding's.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "web-shop.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Storefront",
+          "tags": [
+            "customer"
+          ],
+          "description": "What a customer sees and does in the shop."
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A customer finds a product by its name.",
+          "tags": [
+            "search"
+          ],
+          "category": "functional",
+          "state": "accepted",
+          "description": ""
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Every page loads within two seconds.",
+          "category": "non-functional",
+          "description": "Measured as [REQ-0099] says."
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "REQ-0002",
+        "attributes": {
+          "title": "Images are sent compressed.",
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A customer compares two products side by side."
+        }
+      },
+      {
+        "id": "REQ-0009",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A customer saves a basket for later."
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": ""
+        }
+      },
+      {
+        "id": "REQ-0006",
+        "type": "Requirement",
+        "parent": null,
+        "attributes": {
+          "title": "A requirement that stands in no item.",
+          "tags": [
+            "orphan"
+          ]
+        }
+      },
+      {
+        "id": "ITEM-0005",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Backend"
+        }
+      },
+      {
+        "id": "REQ-0007",
+        "type": "Requirement",
+        "parent": "ITEM-0005",
+        "attributes": {
+          "title": "A session ends after 30 minutes without activity.",
+          "tags": [
+            "security"
+          ],
+          "category": "functional"
+        }
+      },
+      {
+        "id": "assessment/0",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "question",
+          "about": "REQ-0001",
+          "text": "Is the name enough, or the description too?",
+          "resolved": false
+        }
+      },
+      {
+        "id": "assessment/1",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "warning",
+          "about": "ITEM-0009",
+          "text": "Names an item the document does not have.",
+          "resolved": false
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "std.duplicateId",
+        "line": 15
+      },
+      {
+        "rule": "std.missingId",
+        "line": 16
+      },
+      {
+        "rule": "std.unreadableEntry",
+        "line": 18
+      },
+      {
+        "rule": "std.missingId",
+        "line": 22
+      },
+      {
+        "rule": "std.unreadableEntry",
+        "line": 28
+      },
+      {
+        "rule": "std.required",
+        "line": 17
+      },
+      {
+        "rule": "std.containment",
+        "line": 14
+      },
+      {
+        "rule": "std.containment",
+        "line": 21
+      },
+      {
+        "rule": "std.mentions",
+        "line": 13
+      },
+      {
+        "rule": "std.mentions",
+        "line": 29
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read: no finding changes a byte, and REQ-NEW and ITEM-NEW are not numbered when the document is only opened and saved (DESL 5.3.4).",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0004 REQ-0008 -->\r\n# Web shop\r\n\r\nThe requirements as an agent left them, with each fault reading can meet once.\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Storefront #customer\r\n  What a customer sees and does in the shop.\r\n  - REQ-0001 A customer finds a product by its name. #search category:functional state:accepted\r\n  - REQ-0002 Every page loads within two seconds. category:non-functional\r\n    Measured as [REQ-0099] says.\r\n    - REQ-0003 Images are sent compressed. state:proposed\r\n  - REQ-0002 A customer compares two products side by side.\r\n  - REQ-NEW A customer saves a basket for later.\r\n  - REQ-0004\r\n- Open points from the workshop\r\n  - REQ-0005 Read nowhere, since it stands in a bullet in no known form.\r\n  - ITEM-0002 Nor this one.\r\n- REQ-0006 A requirement that stands in no item. #orphan\r\n- ITEM-NEW Backend\r\n  - REQ-0007 A session ends after 30 minutes without activity. #security category:functional\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is the name enough, or the description too?\r\n- Concern REQ-0002: Not a kind of assessment.\r\n- [ ] Warning ITEM-0009: Names an item the document does not have.\r\n"
+    },
+    {
+      "doc": "Every entry beside the faults stays editable: a change of REQ-0007's title. The edit is the next one that writes the document, so it also writes the ids reading gave the two placeholders, in reading order, REQ-0009 for REQ-NEW and ITEM-0005 for ITEM-NEW, each a replace-value of its group id (FBL 5.3, DESL 5.3.4), and sets the two marks to them in the same transaction (DESL 5.3.5), each a replace-value of its group on the mark line (FBL 6.3, lines: a changed value). The title is a replace-value of the group title, and its trailing words stay (FBL 6.3). The unreadable bullets, what is nested in them, the duplicate, the top-level requirement and the empty title are not touched: no rule writes them.",
+      "edit": {
+        "set": {
+          "element": "REQ-0007",
+          "attributes": {
+            "title": "A session ends after 15 minutes without activity."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 72,
+          "end": 81,
+          "text": "ITEM-0005"
+        },
+        {
+          "operation": "replace-value",
+          "start": 82,
+          "end": 90,
+          "text": "REQ-0009"
+        },
+        {
+          "operation": "replace-value",
+          "start": 621,
+          "end": 628,
+          "text": "REQ-0009"
+        },
+        {
+          "operation": "replace-value",
+          "start": 877,
+          "end": 885,
+          "text": "ITEM-0005"
+        },
+        {
+          "operation": "replace-value",
+          "start": 908,
+          "end": 957,
+          "text": "A session ends after 15 minutes without activity."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0005 REQ-0009 -->\r\n# Web shop\r\n\r\nThe requirements as an agent left them, with each fault reading can meet once.\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Storefront #customer\r\n  What a customer sees and does in the shop.\r\n  - REQ-0001 A customer finds a product by its name. #search category:functional state:accepted\r\n  - REQ-0002 Every page loads within two seconds. category:non-functional\r\n    Measured as [REQ-0099] says.\r\n    - REQ-0003 Images are sent compressed. state:proposed\r\n  - REQ-0002 A customer compares two products side by side.\r\n  - REQ-0009 A customer saves a basket for later.\r\n  - REQ-0004\r\n- Open points from the workshop\r\n  - REQ-0005 Read nowhere, since it stands in a bullet in no known form.\r\n  - ITEM-0002 Nor this one.\r\n- REQ-0006 A requirement that stands in no item. #orphan\r\n- ITEM-0005 Backend\r\n  - REQ-0007 A session ends after 15 minutes without activity. #security category:functional\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is the name enough, or the description too?\r\n- Concern REQ-0002: Not a kind of assessment.\r\n- [ ] Warning ITEM-0009: Names an item the document does not have.\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced: the placeholders and the marks are as they were, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 72,
+          "end": 81,
+          "text": "ITEM-0004"
+        },
+        {
+          "operation": "replace-value",
+          "start": 82,
+          "end": 90,
+          "text": "REQ-0008"
+        },
+        {
+          "operation": "replace-value",
+          "start": 621,
+          "end": 629,
+          "text": "REQ-NEW"
+        },
+        {
+          "operation": "replace-value",
+          "start": 878,
+          "end": 887,
+          "text": "ITEM-NEW"
+        },
+        {
+          "operation": "replace-value",
+          "start": 910,
+          "end": 959,
+          "text": "A session ends after 30 minutes without activity."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0004 REQ-0008 -->\r\n# Web shop\r\n\r\nThe requirements as an agent left them, with each fault reading can meet once.\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Storefront #customer\r\n  What a customer sees and does in the shop.\r\n  - REQ-0001 A customer finds a product by its name. #search category:functional state:accepted\r\n  - REQ-0002 Every page loads within two seconds. category:non-functional\r\n    Measured as [REQ-0099] says.\r\n    - REQ-0003 Images are sent compressed. state:proposed\r\n  - REQ-0002 A customer compares two products side by side.\r\n  - REQ-NEW A customer saves a basket for later.\r\n  - REQ-0004\r\n- Open points from the workshop\r\n  - REQ-0005 Read nowhere, since it stands in a bullet in no known form.\r\n  - ITEM-0002 Nor this one.\r\n- REQ-0006 A requirement that stands in no item. #orphan\r\n- ITEM-NEW Backend\r\n  - REQ-0007 A session ends after 30 minutes without activity. #security category:functional\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0001: Is the name enough, or the description too?\r\n- Concern REQ-0002: Not a kind of assessment.\r\n- [ ] Warning ITEM-0009: Names an item the document does not have.\r\n"
+    }
+  ]
+}

@@ -1,0 +1,589 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.1/disl.schema.json#/$defs/Specification",
+  "disl": "0.1",
+  "language": {
+    "id": "net.etalii.adp.w3c.sparql",
+    "version": "1.0.0",
+    "label": "SPARQL query",
+    "doc": {
+      "summary": "What a query asks: its graph pattern as nodes and edges, its variables as the joins they are, and its form and modifiers as the frame around them.",
+      "description": "A read-only diagram of one SPARQL 1.1 query file (`.rq`). Triple patterns are directed, labelled edges between term nodes; every occurrence of a variable name is one node, so a variable's degree on the canvas is its join count. Group-shaped constructs (`OPTIONAL`, `UNION`, `MINUS`, `GRAPH`, `SERVICE`, a braced group, the `CONSTRUCT` template) are labelled containment regions; expression-shaped constructs (`FILTER`, `BIND`, `VALUES`) are annotations showing their text as written; the form and solution modifiers are the frame above the canvas.\n\nThe query text is the model and is never written: it is edited in a text editor and the diagram follows. The one thing a user changes here is where an element sits, and that is stored beside the query, never in it. Everything this specification cannot say is in `sparql-query.md` beside it.",
+      "rationale": "A query shows *asking*, not modelling. The query-builder tradition (NITELIGHT, QueryVOWL, Gruff, RDF Explorer) keeps failing by drowning the pattern in boxes for the non-graph machinery; this type draws only what is a graph as structure and keeps the rest as annotation and frame.",
+      "tags": ["sparql", "rdf", "query", "semantic web", "read-only"],
+      "seeAlso": [
+        { "title": "SPARQL 1.1 Query Language", "href": "https://www.w3.org/TR/sparql11-query/" },
+        { "title": "QueryVOWL: a visual query notation for Linked Data", "href": "https://link.springer.com/chapter/10.1007/978-3-319-25639-9_51" }
+      ]
+    },
+    "authors": [{ "name": "Peter Vrenken" }],
+    "license": "Apache-2.0",
+    "homepage": "https://etalii.net/adp/",
+    "icon": "mdi-help-network-outline",
+    "fileExtension": "rq",
+    "limits": { "maxElements": 500 },
+    "requires": { "conformance": "standard" }
+  },
+
+  "metamodel": {
+    "doc": "The query as drawn: terms and variables as nodes, triple patterns as relations, scopes as containers, and constraints as annotations. Every attribute is read from the query text and is read-only, because the text editor is where a query is edited.",
+    "diagram": {
+      "doc": "The query's frame: prologue, form and solution modifiers. Shown as the header band above the canvas and as the property rows of the diagram itself, never as canvas structure.",
+      "attributes": {
+        "form": { "type": "QueryForm", "readOnly": true, "label": "Form", "group": "Query", "order": 1,
+                  "doc": "Which of the four SPARQL query forms the file is." },
+        "distinct": { "type": "bool", "readOnly": true, "group": "Query", "order": 2, "doc": "The form writes `DISTINCT`." },
+        "reduced": { "type": "bool", "readOnly": true, "group": "Query", "order": 3, "doc": "The form writes `REDUCED`." },
+        "projectsAll": { "type": "bool", "readOnly": true, "label": "SELECT *", "group": "Query", "order": 4,
+                         "doc": "The projection is `SELECT *`; every in-scope variable is then projected." },
+        "describeTargets": { "type": "string", "many": true, "readOnly": true, "label": "DESCRIBE targets", "group": "Query", "order": 5,
+                             "doc": "A `DESCRIBE` query's targets as written (`*` included); empty for the other forms." },
+        "datasetClauses": { "type": "string", "many": true, "readOnly": true, "label": "Dataset", "group": "Query", "order": 6,
+                            "doc": "The `FROM` and `FROM NAMED` clauses, as written." },
+        "modifiers": { "type": "string", "many": true, "readOnly": true, "label": "Modifiers", "group": "Query", "order": 7,
+                       "doc": "The solution modifiers as written rows: `GROUP BY ?x`, `HAVING (...)`, `ORDER BY DESC(?d)`, `LIMIT 100`, `OFFSET 10`." },
+        "headerForm": { "type": "string", "label": "Form line", "group": "Query", "order": 0,
+                        "derived": "(self.form == 'select' ? 'SELECT' : self.form == 'construct' ? 'CONSTRUCT' : self.form == 'ask' ? 'ASK' : 'DESCRIBE ' + self.describeTargets.join(' ')) + (self.distinct ? ' DISTINCT' : '') + (self.reduced ? ' REDUCED' : '')",
+                        "doc": "The first thing the header band says: the form, its `DESCRIBE` targets, then `DISTINCT` or `REDUCED`." },
+        "baseIri": { "type": "uri", "readOnly": true, "label": "BASE", "group": "Prologue", "doc": "The `BASE` IRI, when one is declared." },
+        "prefixes": { "type": "PrefixDeclaration", "many": true, "readOnly": true, "label": "Prefixes", "group": "Prologue",
+                      "doc": "The prologue's `PREFIX` declarations, in source order." }
+      }
+    },
+    "dataTypes": {
+      "PrefixDeclaration": {
+        "doc": "One `PREFIX` declaration of the prologue.",
+        "fields": {
+          "prefix": { "type": "string", "doc": "The prefix without its colon; empty for the default prefix." },
+          "iri": { "type": "uri", "doc": "The namespace IRI it expands to." },
+          "line": { "type": "int", "min": 1, "doc": "The 1-based line of the declaration, where an unused-prefix finding points." },
+          "used": { "type": "bool", "doc": "Whether `prefix:` occurs anywhere in the text outside a line that starts with `PREFIX`, expressions and modifiers included." }
+        },
+        "display": { "cel": "(value.prefix == '' ? ':' : value.prefix + ':') + ' <' + value.iri + '>'" }
+      }
+    },
+    "enums": {
+      "QueryForm": {
+        "doc": "The four query forms of SPARQL 1.1.",
+        "values": {
+          "select": { "label": "SELECT", "doc": "A table of bindings." },
+          "construct": { "label": "CONSTRUCT", "doc": "A graph built from a template." },
+          "ask": { "label": "ASK", "doc": "A yes or no." },
+          "describe": { "label": "DESCRIBE", "doc": "Whatever the endpoint says describes the targets." }
+        }
+      }
+    },
+    "types": {
+      "Term": {
+        "abstract": true,
+        "doc": "Anything a triple pattern can have as subject or object, drawn as one node.",
+        "attributes": {
+          "display": { "type": "string", "readOnly": true, "label": "Shown as", "group": "Identity", "order": 1,
+                       "doc": "What the node shows: `?name`, a prefixed name, a literal's lexical form, or a subquery's projection." }
+        },
+        "labelAttribute": "display"
+      },
+      "Variable": {
+        "extends": "Term",
+        "label": "Variable",
+        "doc": {
+          "summary": "A named variable: what the query asks for. One node per name, however many patterns mention it.",
+          "description": "Every occurrence of `?name` (or `$name`) in the whole query is this one node, subqueries excepted, so the edges meeting it are the joins it takes part in. A variable mentioned only in predicate position, only in a `FILTER`, or only by a subquery's projection still gets its node."
+        },
+        "attributes": {
+          "name": { "type": "string", "required": true, "key": true, "unique": "diagram", "readOnly": true, "label": "Variable", "group": "Identity", "order": 0, "doc": "The variable's name without its sigil." },
+          "projected": { "type": "bool", "readOnly": true, "label": "Projected", "group": "Identity", "order": 2,
+                         "doc": "The query's own projection carries this variable outward: named in `SELECT`, included by `SELECT *`, or aliased by `(expr AS ?name)`." },
+          "joinCount": { "type": "int", "min": 0, "readOnly": true, "label": "Joins", "group": "Structure", "order": 3,
+                         "doc": "How many triple-pattern positions (subject, predicate or object) mention this variable, template included." },
+          "definingExpression": { "type": "text", "readOnly": true, "label": "Defined by", "group": "Structure", "order": 4,
+                                  "doc": "The `BIND (...)` or `(expr AS ?name)` that defines the variable, as written; empty for an ordinary variable." }
+        }
+      },
+      "AnonymousVariable": {
+        "extends": "Term",
+        "label": "Anonymous variable",
+        "doc": {
+          "summary": "A blank node in a pattern, which in a query means a variable nobody named.",
+          "description": "Written as `_:label`, `[]`, a blank-node property list `[ ... ]` or a collection `( ... )`, whose cells expand to one anonymous variable each. A labelled blank node is one node wherever its label recurs. It has no name to key a stored position by, so it always takes its computed place."
+        },
+        "attributes": {
+          "ordinal": { "type": "int", "min": 0, "readOnly": true, "doc": "Its expansion ordinal in document order; the source of its id." }
+        }
+      },
+      "Iri": {
+        "extends": "Term",
+        "label": "IRI",
+        "doc": "A concrete IRI the query pins down, shown by its prefixed name with the full IRI one selection away. One node per distinct full IRI.",
+        "attributes": {
+          "iri": { "type": "uri", "required": true, "key": true, "unique": "diagram", "readOnly": true, "label": "IRI", "group": "Identity", "order": 2,
+                   "doc": "The full IRI, resolved against the prologue." }
+        }
+      },
+      "Literal": {
+        "extends": "Term",
+        "label": "Literal",
+        "doc": "A concrete value the query pins down, shown by its lexical form and annotated with its language tag or short datatype. One node per distinct lexical form, language and datatype.",
+        "attributes": {
+          "asWritten": { "type": "string", "readOnly": true, "label": "As written", "group": "Identity", "order": 2,
+                         "doc": "The literal exactly as the query writes it, quotes and suffix included." },
+          "language": { "type": "string", "readOnly": true, "doc": "The language tag, without `@`; empty when none." },
+          "datatype": { "type": "uri", "readOnly": true, "doc": "The datatype IRI, including the implicit `xsd:integer`, `xsd:decimal`, `xsd:double` and `xsd:boolean` of bare numbers and booleans." },
+          "annotation": { "type": "string", "label": "Type", "group": "Identity", "order": 3,
+                          "derived": "self.language != '' ? '@' + self.language : (self.datatype.contains('#') ? self.datatype.substring(self.datatype.lastIndexOf('#') + 1) : (self.datatype.contains('/') ? self.datatype.substring(self.datatype.lastIndexOf('/') + 1) : self.datatype))",
+                          "doc": "`@lang`, or the datatype IRI's last segment after `#` or `/`." }
+        }
+      },
+      "SubQuery": {
+        "extends": "Term",
+        "label": "Subquery",
+        "doc": {
+          "summary": "A nested `SELECT`, collapsed to one node that states its projection.",
+          "description": "Its internals are never drawn; the node shows the projection (`SELECT ?x (COUNT(?y) AS ?n)`) and the property rows carry the whole text. Each name it projects joins the outer query through a labelled edge to that variable's node."
+        },
+        "attributes": {
+          "text": { "type": "text", "readOnly": true, "label": "Subquery", "group": "Query", "order": 2, "doc": "The whole subquery, as written." },
+          "projectedNames": { "type": "string", "many": true, "readOnly": true, "doc": "The names the subquery projects; for `SELECT *`, every variable its text mentions." }
+        }
+      },
+
+      "Scope": {
+        "abstract": true,
+        "doc": "A group of graph patterns other than the root where clause, drawn as a labelled containment region. Nodes live at the shallowest scope that mentions them, so an edge stated inside a region may cross its border to reach a node outside; that crossing is the join being shown.",
+        "attributes": {
+          "ordinal": { "type": "int", "min": 0, "readOnly": true, "doc": "Its position among same-kind siblings, from source order; part of its id." },
+          "label": { "type": "string", "readOnly": true, "label": "Constraint", "group": "Structure", "order": 2,
+                     "doc": "The frame's label: the construct keyword, with its graph term or endpoint where it has one." }
+        },
+        "children": {
+          "allowed": ["Term", "Scope", "Annotation"],
+          "ordered": true
+        },
+        "labelAttribute": "label"
+      },
+      "Group": { "extends": "Scope", "label": "Group", "doc": "A braced group `{ ... }` nested in another group; its frame carries no label." },
+      "Optional": { "extends": "Scope", "label": "OPTIONAL", "doc": "An `OPTIONAL` group: patterns that may fail to match without failing the query. Drawn dashed." },
+      "Union": {
+        "extends": "Scope",
+        "label": "UNION",
+        "doc": "A `UNION`: its branches are alternatives feeding the same solution variables. It holds branches only; a name shared by branches is drawn once at the union's parent scope.",
+        "children": { "allowed": ["UnionBranch"], "min": 2, "ordered": true }
+      },
+      "UnionBranch": { "extends": "Scope", "label": "UNION branch", "doc": "One alternative of a `UNION`; its frame carries no label of its own." },
+      "Minus": { "extends": "Scope", "label": "MINUS", "doc": "A `MINUS` group: solutions matching it are removed. Drawn dashed and labelled as the exclusion." },
+      "Graph": {
+        "extends": "Scope",
+        "label": "GRAPH",
+        "doc": "A `GRAPH ?g` or `GRAPH <iri>` group, labelled with its graph term.",
+        "attributes": { "graphTerm": { "type": "string", "readOnly": true, "doc": "The graph variable or IRI, as written." } }
+      },
+      "Service": {
+        "extends": "Scope",
+        "label": "SERVICE",
+        "doc": {
+          "summary": "A `SERVICE` group, labelled with its endpoint: drawn, never contacted.",
+          "rationale": "Nothing in this type executes a query or opens a network connection; a `SERVICE` clause is structure to read, not an address to call."
+        },
+        "attributes": {
+          "endpoint": { "type": "string", "readOnly": true, "doc": "The endpoint variable or IRI, as written." },
+          "silent": { "type": "bool", "readOnly": true, "doc": "The clause writes `SERVICE SILENT`." }
+        }
+      },
+      "ConstructTemplate": {
+        "extends": "Scope",
+        "label": "CONSTRUCT template",
+        "doc": "A `CONSTRUCT` query's template: the shape being built, framed beside the where clause being matched. `CONSTRUCT WHERE { ... }` uses the pattern itself as the template.",
+        "multiplicity": { "min": 0, "max": 1 },
+        "children": { "allowed": ["Term", "Annotation"], "ordered": true }
+      },
+
+      "Annotation": {
+        "abstract": true,
+        "doc": "An expression-shaped construct, shown as its text exactly as written beside what it constrains, defines or feeds; never as an expression tree.",
+        "attributes": {
+          "text": { "type": "text", "required": true, "readOnly": true, "group": "Structure",
+                    "doc": "The construct exactly as written." },
+          "ordinal": { "type": "int", "min": 0, "readOnly": true, "doc": "Its position among same-kind annotations in its scope." }
+        },
+        "labelAttribute": "text"
+      },
+      "Filter": {
+        "extends": "Annotation",
+        "label": "FILTER",
+        "doc": "A `FILTER`, as a badge on the region it constrains; a root-scope filter floats above the patterns, because it constrains the whole query.",
+        "attributes": {
+          "constrains": { "type": "Scope", "readOnly": true, "doc": "The region the filter sits in; null for the root where clause." },
+          "references": { "type": "Variable", "many": true, "readOnly": true, "doc": "The variables its expression mentions." }
+        }
+      },
+      "Bind": {
+        "extends": "Annotation",
+        "label": "BIND",
+        "doc": "A `BIND (expr AS ?x)`, as an annotation on the variable it defines.",
+        "attributes": {
+          "defines": { "type": "Variable", "required": true, "readOnly": true, "doc": "The variable the `AS` names." },
+          "references": { "type": "Variable", "many": true, "readOnly": true }
+        }
+      },
+      "Values": {
+        "extends": "Annotation",
+        "label": "VALUES",
+        "doc": "A `VALUES` block, as an annotation on the first variable it feeds.",
+        "attributes": {
+          "feeds": { "type": "Variable", "many": true, "readOnly": true, "doc": "The variables the block binds, in the order it writes them; the annotation anchors to the first." }
+        }
+      }
+    },
+    "relations": {
+      "TriplePattern": {
+        "label": "Triple pattern",
+        "doc": "One triple pattern: an edge from its subject to its object, labelled with the predicate or the property path as written (`foaf:knows+`). A pattern stated inside a region may reach a node outside it.",
+        "source": { "types": ["Variable", "AnonymousVariable", "Iri", "Literal"], "role": "subject" },
+        "target": { "types": ["Variable", "AnonymousVariable", "Iri", "Literal"], "role": "object" },
+        "directed": true,
+        "allowSelfLoops": true,
+        "allowParallel": true,
+        "attributes": {
+          "predicate": { "type": "string", "required": true, "readOnly": true, "label": "Predicate", "group": "Structure",
+                         "doc": "The verb as written: a prefixed name, `a`, `<iri>`, `?variable` or a property path." },
+          "isPath": { "type": "bool", "readOnly": true, "label": "Property path", "doc": "The verb is a property path rather than one predicate." },
+          "scope": { "type": "Scope", "readOnly": true, "doc": "The scope whose group states the pattern; null for the root where clause. It may differ from where the endpoints live." },
+          "ordinal": { "type": "int", "min": 0, "readOnly": true, "doc": "Counts repeats of the same subject, predicate and object, so a pattern written twice is two edges." }
+        }
+      },
+      "ProjectedJoin": {
+        "label": "Subquery join",
+        "doc": "One name a subquery projects, joining the outer query at that variable's node.",
+        "source": { "types": ["SubQuery"] },
+        "target": { "types": ["Variable"] },
+        "directed": true,
+        "allowParallel": false,
+        "attributes": {
+          "name": { "type": "string", "required": true, "readOnly": true, "doc": "The projected name, shown as `?name`." }
+        }
+      }
+    }
+  },
+
+  "coordinates": {
+    "systems": {
+      "canvas": {
+        "kind": "cartesian",
+        "x": { "kind": "linear" },
+        "y": { "kind": "linear" },
+        "doc": "Free canvas units; nothing snaps. The computed layout starts at (40, 90), below the header band."
+      }
+    }
+  },
+
+  "notation": {
+    "doc": "Variables dashed, because they are what the query asks for; concrete terms solid, because they are pinned down; OPTIONAL and MINUS frames dashed, GRAPH and SERVICE frames dotted, the rest solid; FILTER, BIND and VALUES as plain text.",
+    "theme": {
+      "tokens": {
+        "color.surface": "#ffffff",
+        "color.border": "#e2e8f0",
+        "color.node.border": "#8892a6",
+        "color.text": "#0f172a",
+        "color.text.muted": "#64748b",
+        "color.primary": "limegreen",
+        "color.warning": "#b45309",
+        "font.size.node": 12,
+        "font.size.hint": 11,
+        "font.size.small": 10
+      },
+      "modes": {
+        "dark": {
+          "color.surface": "#1e293b",
+          "color.border": "#334155",
+          "color.text": "#f1f5f9",
+          "color.text.muted": "#94a3b8",
+          "color.warning": "#fbbf24"
+        }
+      },
+      "defaultMode": "light",
+      "followSystem": true
+    },
+    "styles": {
+      "node": {
+        "fill": { "token": "color.surface" },
+        "stroke": { "color": { "token": "color.node.border" }, "width": 1.5 },
+        "font": { "size": { "token": "font.size.node" }, "color": { "token": "color.text" } },
+        "textAlign": "center"
+      },
+      "variable": { "extends": "node", "stroke": { "dash": [5, 3] } },
+      "hint": { "font": { "size": { "token": "font.size.hint" }, "color": { "token": "color.text.muted" } } },
+      "frame": { "fill": "transparent", "stroke": { "color": { "token": "color.border" }, "width": 1 } }
+    },
+    "nodes": {
+      "Term": {
+        "shape": "rect",
+        "style": "node",
+        "size": { "fixed": [170, 64] },
+        "labels": [
+          { "id": "display", "text": { "attribute": "display" }, "position": "center", "editable": false,
+            "wrap": "none", "overflow": "ellipsis", "maxWidth": "parent" }
+        ],
+        "anchors": { "mode": "outline" },
+        "deletable": false,
+        "copyable": false,
+        "connectable": false,
+        "doubleClick": "none",
+        "tooltip": { "cel": "self.display" }
+      },
+      "Variable": {
+        "shape": "rect",
+        "style": "variable",
+        "size": { "fixed": [170, 64] },
+        "labels": [
+          { "id": "display", "text": { "cel": "'?' + self.name" }, "position": "center", "editable": false,
+            "wrap": "none", "overflow": "ellipsis", "maxWidth": "parent" },
+          { "id": "definition", "text": { "attribute": "definingExpression" }, "editable": false,
+            "position": { "anchor": [0, 1], "offset": [8, -10], "align": "start" },
+            "style": { "font": { "size": { "token": "font.size.small" }, "color": { "token": "color.text.muted" } } },
+            "visible": { "cel": "self.definingExpression != ''" }, "wrap": "none", "overflow": "ellipsis" }
+        ],
+        "badges": [
+          { "id": "projected", "position": "top-left", "offset": [8, 16], "text": "→",
+            "style": { "font": { "size": 12, "color": { "token": "color.primary" } } },
+            "visible": { "cel": "self.projected" },
+            "tooltip": "Projected: this variable leaves the query." }
+        ],
+        "deletable": false,
+        "copyable": false,
+        "connectable": false,
+        "doubleClick": "none",
+        "tooltip": { "cel": "'?' + self.name + (self.projected ? ' (projected)' : '') + ', ' + string(self.joinCount) + ' join(s)'" },
+        "doc": "Dashed, because a variable is what the query asks for; the arrow marks what leaves the query without consulting the header."
+      },
+      "AnonymousVariable": {
+        "shape": "rect",
+        "style": { "extends": "variable", "opacity": 0.7 },
+        "size": { "fixed": [170, 64] },
+        "deletable": false,
+        "copyable": false,
+        "connectable": false,
+        "doubleClick": "none",
+        "doc": "A variable nobody named: present, and visibly provisional."
+      },
+      "Literal": {
+        "shape": "rect",
+        "style": "node",
+        "size": { "fixed": [170, 64] },
+        "labels": [
+          { "id": "display", "text": { "attribute": "display" }, "position": "center", "editable": false,
+            "wrap": "none", "overflow": "ellipsis", "maxWidth": "parent" },
+          { "id": "annotation", "text": { "attribute": "annotation" }, "editable": false,
+            "position": { "anchor": [0, 1], "offset": [8, -10], "align": "start" },
+            "style": { "font": { "size": { "token": "font.size.small" }, "color": { "token": "color.text.muted" } } },
+            "visible": { "cel": "self.annotation != ''" } }
+        ],
+        "deletable": false,
+        "copyable": false,
+        "connectable": false,
+        "doubleClick": "none",
+        "tooltip": { "cel": "self.asWritten" },
+        "doc": "Square corners, to read as a value rather than a thing; the datatype or language tag sits in the lower left."
+      },
+      "SubQuery": {
+        "shape": "rect",
+        "style": { "extends": "node", "stroke": { "width": 2 } },
+        "size": { "fixed": [170, 64] },
+        "labels": [
+          { "id": "display", "text": { "attribute": "display" }, "position": "center", "editable": false,
+            "wrap": "none", "overflow": "ellipsis", "maxWidth": "parent" },
+          { "id": "marker", "text": "subquery", "editable": false,
+            "position": { "anchor": [0, 1], "offset": [8, -10], "align": "start" },
+            "style": { "font": { "size": { "token": "font.size.small" }, "color": { "token": "color.text.muted" } } } }
+        ],
+        "deletable": false,
+        "copyable": false,
+        "connectable": false,
+        "doubleClick": "none",
+        "tooltip": { "cel": "self.text" },
+        "doc": "A heavier outline marks a collapsed subquery: one level of honesty beats nested unreadability."
+      },
+      "Scope": {
+        "shape": "rect",
+        "style": "frame",
+        "labels": [
+          { "id": "label", "text": { "attribute": "label" }, "position": "outside-top", "editable": false,
+            "style": "hint", "visible": { "cel": "self.label != ''" } }
+        ],
+        "container": {
+          "layout": "grid",
+          "columns": 3,
+          "gap": 60,
+          "padding": 36,
+          "header": { "size": 30, "side": "top" },
+          "clip": false
+        },
+        "size": { "min": [170, 94], "autoSize": "fitContent", "resizable": false },
+        "layer": "background",
+        "deletable": false,
+        "copyable": false,
+        "connectable": false,
+        "doubleClick": "none"
+      },
+      "Optional": { "shape": "rect", "style": { "extends": "frame", "stroke": { "dash": [4, 4] } } },
+      "Minus": { "shape": "rect", "style": { "extends": "frame", "stroke": { "dash": [4, 4] } } },
+      "Graph": { "shape": "rect", "style": { "extends": "frame", "stroke": { "dash": [2, 3] } } },
+      "Service": { "shape": "rect", "style": { "extends": "frame", "stroke": { "dash": [2, 3] } } },
+      "Annotation": {
+        "shape": "text",
+        "style": "hint",
+        "size": { "default": [120, 14], "resizable": false },
+        "labels": [
+          { "id": "text", "text": { "attribute": "text" }, "position": "center", "editable": false, "wrap": "none" }
+        ],
+        "layer": "foreground",
+        "deletable": false,
+        "copyable": false,
+        "connectable": false,
+        "doubleClick": "none"
+      }
+    },
+    "edges": {
+      "TriplePattern": {
+        "line": {
+          "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 },
+          "routing": "straight",
+          "bendpoints": { "editable": false }
+        },
+        "sourceMarker": "none",
+        "targetMarker": "arrow",
+        "labels": [
+          { "id": "predicate", "text": { "attribute": "predicate" }, "at": "middle", "side": "above", "distance": 6,
+            "editable": false, "draggable": false, "style": "hint" }
+        ],
+        "variants": [
+          { "when": "self.isPath", "doc": "A property path is a multi-step ask, and says so.",
+            "line": { "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5, "dash": [6, 2] }, "routing": "straight" } }
+        ],
+        "deletable": false,
+        "reconnectable": false,
+        "layer": "belowNodes"
+      },
+      "ProjectedJoin": {
+        "line": {
+          "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 },
+          "routing": "straight",
+          "bendpoints": { "editable": false }
+        },
+        "sourceMarker": "none",
+        "targetMarker": "arrow",
+        "labels": [
+          { "id": "name", "text": { "cel": "'?' + self.name" }, "at": "middle", "side": "above", "distance": 6,
+            "editable": false, "draggable": false, "style": "hint" }
+        ],
+        "deletable": false,
+        "reconnectable": false
+      }
+    },
+    "canvas": {
+      "background": { "token": "color.surface" }
+    }
+  },
+
+  "toolbox": {
+    "doc": "Empty on purpose: a read-only diagram that offered a palette would be promising an edit it cannot make.",
+    "groups": [],
+    "searchable": false,
+    "generic": { "select": true, "pan": true, "lasso": false, "text": false, "note": false, "image": false, "freehand": false }
+  },
+
+  "constraints": {
+    "doc": "The findings over a query that parses. A file that does not parse yields exactly one finding instead, which the reader reports (see sparql-query.md).",
+    "rules": [
+      {
+        "id": "unboundProjection",
+        "label": "Projected variable never bound",
+        "scope": "Variable",
+        "rule": "!self.projected || self.joinCount > 0 || self.definingExpression != ''",
+        "severity": "warning",
+        "message": { "cel": "'?' + self.name + ' is selected but never appears in the where clause, so its column will always be unbound.'" },
+        "doc": {
+          "summary": "A variable the query projects but no triple pattern mentions and no expression defines.",
+          "rationale": "The query is legal SPARQL and the column is silently empty: exactly the kind of lie a reader wants caught."
+        },
+        "suppressible": true
+      },
+      {
+        "id": "unusedPrefix",
+        "label": "Prefix declared but never used",
+        "scope": "diagram",
+        "rule": "diagram.prefixes.all(p, p.used)",
+        "severity": "info",
+        "message": { "cel": "diagram.prefixes.filter(p, !p.used).map(p, \"The prefix '\" + p.prefix + \":' is declared but never used.\").join(' ')" },
+        "doc": {
+          "summary": "A `PREFIX` declaration nothing in the query uses.",
+          "rationale": "Harmless but misleading. A prefix used but never declared is a parse error, reported as the unparseable finding."
+        }
+      }
+    ]
+  },
+
+  "behavior": {
+    "doc": "Nothing edits the query. The one gesture is moving a node or a region frame, which stores a position beside the query as one undo step.",
+    "deletion": {
+      "Term": { "children": "forbid", "relations": "forbid", "references": "forbid" },
+      "Scope": { "children": "forbid", "relations": "forbid", "references": "forbid" },
+      "Annotation": { "children": "forbid", "relations": "forbid", "references": "forbid" }
+    },
+    "clipboard": { "relations": "none", "crossDocument": false }
+  },
+
+  "layout": {
+    "doc": "Deterministic and bottom-up over the scope tree, with no physics: same file, same picture. Authored positions override computed ones.",
+    "algorithms": {
+      "scopeGrid": {
+        "algorithm": "plugin:net.etalii.adp.w3c.sparqlScopeGrid",
+        "spacing": { "node": 60, "layer": 48 },
+        "options": { "columns": 3, "nodeSize": [170, 64], "regionPadding": 36, "regionLabelBand": 30, "origin": [40, 90] },
+        "doc": "Each scope places its own nodes, then its child regions, in rows of three, each row as tall as its tallest member; a child region is one block the size of its own grid. The CONSTRUCT template sits on the root row beside the where clause's items."
+      }
+    },
+    "default": "scopeGrid",
+    "trigger": "always",
+    "respect": "all",
+    "animate": false
+  },
+
+  "persistence": {
+    "doc": "The `.rq` query text is the model and is never written. Positions a user authors go to the `layout:` block of the `.adp` registration beside it.",
+    "format": "plugin:net.etalii.adp.w3c.sparqlQuery",
+    "files": { "mode": "split", "model": "{name}.rq", "view": "{name}.adp" },
+    "ids": {
+      "strategy": "natural",
+      "prefix": {
+        "Variable": "var:",
+        "AnonymousVariable": "anon:",
+        "Iri": "iri:",
+        "Literal": "lit:",
+        "SubQuery": "sub:",
+        "Scope": "region:",
+        "Annotation": "note:",
+        "TriplePattern": "edge:",
+        "ProjectedJoin": "edge:"
+      },
+      "stable": true,
+      "pattern": "^(var|anon|iri|lit|sub|region|note|edge):\\S+$"
+    },
+    "view": { "store": ["bounds"], "styleOverrides": "none" },
+    "metadata": []
+  },
+
+  "plugins": {
+    "net.etalii.adp.w3c.sparqlQuery": {
+      "version": "^1.0.0",
+      "provides": ["persistenceFormat", "import"],
+      "required": true,
+      "doc": "Reads a SPARQL 1.1 Query file into the metamodel above and never writes it: the prologue, the four forms, the group-pattern tree, triple patterns with blank-node and collection syntax, solution modifiers and VALUES are parsed; expressions and property paths are kept as written; a SPARQL Update document is refused by name. The element ids, placement at the shallowest scope and the 500-element bound are its work. See sparql-query.md."
+    },
+    "net.etalii.adp.w3c.sparqlScopeGrid": {
+      "version": "^1.0.0",
+      "provides": ["layout"],
+      "required": false,
+      "fallback": { "layout": "grid" },
+      "doc": "The recursive scope grid of the standalone implementation, with authored region anchors moving a frame and its computed contents together."
+    }
+  }
+}

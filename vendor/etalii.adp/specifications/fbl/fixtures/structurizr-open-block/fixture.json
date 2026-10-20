@@ -1,0 +1,114 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The blocks family: adding the first container to a one-line software system gives it a block; a quoted argument is replaced in place; the !include directive is kept and never followed.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "shop.dsl",
+  "steps": [
+    {
+      "doc": "The software system gains ' {' and a closing brace indented like it; the container sits one indentation step deeper.",
+      "edit": {
+        "add": {
+          "type": "Container",
+          "id": "web",
+          "parent": "shop",
+          "attributes": {
+            "name": "Web",
+            "description": "Serves pages.",
+            "technology": "ASP.NET"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "open-block",
+          "start": 135,
+          "end": 135,
+          "text": " {"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 136,
+          "end": 136,
+          "text": "            web = container \"Web\" \"Serves pages.\" \"ASP.NET\"\n"
+        },
+        {
+          "operation": "open-block",
+          "start": 136,
+          "end": 136,
+          "text": "        }\n"
+        }
+      ],
+      "expect": "workspace \"Shop\" {\n    model {\n        customer = person \"Customer\" \"Buys things.\"\n        shop = softwareSystem \"Shop\" \"Sells things.\" {\n            web = container \"Web\" \"Serves pages.\" \"ASP.NET\"\n        }\n        customer -> shop \"Buys from\"\n        !include extras.dsl\n    }\n    views {\n        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Only the quoted argument's text changes.",
+      "edit": {
+        "set": {
+          "element": "customer",
+          "attributes": {
+            "description": "Buys and returns things."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 69,
+          "end": 81,
+          "text": "Buys and returns things."
+        }
+      ],
+      "expect": "workspace \"Shop\" {\n    model {\n        customer = person \"Customer\" \"Buys and returns things.\"\n        shop = softwareSystem \"Shop\" \"Sells things.\" {\n            web = container \"Web\" \"Serves pages.\" \"ASP.NET\"\n        }\n        customer -> shop \"Buys from\"\n        !include extras.dsl\n    }\n    views {\n        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 69,
+          "end": 93,
+          "text": "Buys things."
+        }
+      ],
+      "expect": "workspace \"Shop\" {\n    model {\n        customer = person \"Customer\" \"Buys things.\"\n        shop = softwareSystem \"Shop\" \"Sells things.\" {\n            web = container \"Web\" \"Serves pages.\" \"ASP.NET\"\n        }\n        customer -> shop \"Buys from\"\n        !include extras.dsl\n    }\n    views {\n        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "open-block",
+          "start": 135,
+          "end": 137,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 138,
+          "end": 198,
+          "text": ""
+        },
+        {
+          "operation": "open-block",
+          "start": 198,
+          "end": 208,
+          "text": ""
+        }
+      ],
+      "expect": "workspace \"Shop\" {\n    model {\n        customer = person \"Customer\" \"Buys things.\"\n        shop = softwareSystem \"Shop\" \"Sells things.\"\n        customer -> shop \"Buys from\"\n        !include extras.dsl\n    }\n    views {\n        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
+    }
+  ],
+  "read": {
+    "elements": [
+      {
+        "id": "customer",
+        "type": "Person"
+      },
+      {
+        "id": "shop",
+        "type": "SoftwareSystem"
+      }
+    ]
+  }
+}

@@ -1,0 +1,344 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.1/disl.schema.json#/$defs/Specification",
+  "disl": "0.1",
+  "language": {
+    "id": "org.example.timeline",
+    "version": "0.4.0",
+    "label": "Project timeline",
+    "doc": {
+      "summary": "Plan tasks and milestones over calendar time, one lane per resource.",
+      "description": "The horizontal axis is **calendar time** (working days only). Each lane is a **resource**. Tasks snap to whole working days; dragging a task vertically reassigns it."
+    },
+    "requires": { "conformance": "standard", "features": ["axis.time", "axis.ordinal", "placement.bound"] }
+  },
+
+  "metamodel": {
+    "diagram": {
+      "attributes": {
+        "title": { "type": "string" },
+        "projectStart": { "type": "date", "required": true },
+        "projectEnd": { "type": "date" },
+        "timezone": { "type": "string", "default": "Europe/Berlin", "doc": "IANA time zone of the plan." },
+        "holidays": { "type": "date", "many": true, "doc": "Non-working days in addition to weekends." }
+      }
+    },
+    "enums": {
+      "DependencyKind": {
+        "values": {
+          "FS": { "label": "Finish → start", "doc": "Successor starts after predecessor finishes." },
+          "SS": { "label": "Start → start" },
+          "FF": { "label": "Finish → finish" }
+        }
+      },
+      "Status": {
+        "ordered": true,
+        "values": {
+          "planned": { "color": "#B4B2A9" },
+          "active": { "color": "#378ADD" },
+          "done": { "color": "#639922" },
+          "blocked": { "color": "#E24B4A" }
+        }
+      }
+    },
+    "types": {
+      "Resource": {
+        "doc": "A person or team; each resource is one lane.",
+        "attributes": {
+          "name": { "type": "string", "required": true },
+          "position": { "type": "int", "default": 0, "doc": "Lane order." },
+          "capacity": { "type": "number", "default": 1, "min": 0, "unit": "FTE" }
+        }
+      },
+      "Schedulable": {
+        "abstract": true,
+        "attributes": {
+          "title": { "type": "string", "required": true },
+          "start": { "type": "date", "required": true },
+          "assignee": { "type": "Resource", "required": true },
+          "status": { "type": "Status", "default": "planned" }
+        },
+        "labelAttribute": "title"
+      },
+      "Task": {
+        "extends": "Schedulable",
+        "attributes": {
+          "end": { "type": "date", "required": true },
+          "progress": { "type": "number", "min": 0, "max": 1, "default": 0, "step": 0.05 }
+        }
+      },
+      "Milestone": { "extends": "Schedulable", "doc": "A zero-duration event." }
+    },
+    "relations": {
+      "Dependency": {
+        "source": "Schedulable",
+        "target": "Schedulable",
+        "acyclic": true,
+        "allowParallel": false,
+        "attributes": {
+          "linkType": { "type": "DependencyKind", "default": "FS" },
+          "lag": { "type": "int", "default": 0, "unit": "working days" }
+        }
+      }
+    }
+  },
+
+  "coordinates": {
+    "axes": {
+      "time": {
+        "kind": "time",
+        "label": "Calendar",
+        "doc": "Working days of the project calendar. Weekends and holidays are collapsed.",
+        "valueType": "date",
+        "timezone": { "attribute": "timezone" },
+        "scale": { "unit": "day", "size": 36 },
+        "calendar": { "id": "project", "workingDays": [1, 2, 3, 4, 5], "holidays": { "attribute": "holidays" } },
+        "collapse": "non-working",
+        "min": { "cel": "diagram.projectStart" },
+        "zoomLevels": [
+          { "label": "Days", "scale": { "unit": "day", "size": 36 } },
+          { "label": "Weeks", "scale": { "unit": "day", "size": 12 } },
+          { "label": "Months", "scale": { "unit": "day", "size": 4 } }
+        ],
+        "ruler": {
+          "position": "top",
+          "levels": [
+            { "unit": "month", "format": "MMMM yyyy" },
+            { "unit": "week", "format": "'W'w", "minZoom": 0.3 },
+            { "unit": "day", "format": "EEE d", "minZoom": 0.9 }
+          ]
+        },
+        "today": { "visible": true, "label": "Today", "style": { "stroke": { "color": "#E24B4A", "dash": "dashed" } } }
+      },
+      "lanes": {
+        "kind": "ordinal",
+        "label": "Resources",
+        "categories": { "nodes": "Resource", "orderBy": "self.position" },
+        "bandSize": "auto",
+        "minBandSize": 40,
+        "gap": 2,
+        "reorderable": true,
+        "header": { "size": 140, "side": "left" }
+      }
+    },
+    "systems": {
+      "schedule": {
+        "kind": "cartesian",
+        "x": "time",
+        "y": "lanes",
+        "grid": {
+          "visible": true,
+          "spacing": { "unit": "day" },
+          "bands": { "alternate": true, "fill": ["#FFFFFF", "#F1EFE8"] }
+        },
+        "snapping": {
+          "x": { "calendar": { "unit": "day", "align": "nearest", "workingTime": true } },
+          "y": { "bands": { "align": "center" } },
+          "size": { "x": { "calendar": { "unit": "day" }, "min": "P1D" } },
+          "feedback": { "showGhost": true, "showValue": true, "highlightBand": true },
+          "doc": {
+            "summary": "Tasks snap to whole working days and into resource lanes.",
+            "rationale": "Plans are made in days; finer precision would suggest accuracy the plan does not have."
+          }
+        }
+      }
+    },
+    "default": "schedule"
+  },
+
+  "notation": {
+    "styles": {
+      "bar": {
+        "fill": { "cel": "enumColor('Status', self.status)" },
+        "fillOpacity": 0.25,
+        "stroke": { "color": { "cel": "enumColor('Status', self.status)" }, "width": 1 },
+        "cornerRadius": 4,
+        "font": { "size": 12 }
+      }
+    },
+    "shapes": {
+      "progressBar": {
+        "doc": "A bar whose darker part shows progress.",
+        "params": { "progress": { "type": "number", "unit": "fraction", "default": 0, "min": 0, "max": 1 } },
+        "parts": [
+          { "id": "track", "shape": { "type": "roundedRect", "params": { "radius": 4 } },
+            "box": { "x": 0, "y": 0, "w": "w", "h": "h" }, "outline": true },
+          { "id": "done", "shape": { "type": "roundedRect", "params": { "radius": 4 } },
+            "box": { "x": 0, "y": 0, "w": "w * p.progress", "h": "h" }, "when": "p.progress > 0.0",
+            "style": { "fillOpacity": 0.8, "stroke": { "width": 0 } } }
+        ],
+        "handles": [
+          { "param": "progress", "axis": "x", "x": "w * p.progress", "y": "h", "value": "px / w",
+            "snap": { "values": [0, 0.25, 0.5, 0.75, 1] }, "label": "Progress" }
+        ]
+      }
+    },
+    "nodes": {
+      "Resource": {
+        "shape": "rect",
+        "style": { "fill": "none", "stroke": { "width": 0 }, "font": { "weight": 600 } },
+        "labels": [ { "id": "name", "text": { "attribute": "name" }, "position": "left", "editable": "inline" } ]
+      },
+      "Task": {
+        "shape": { "type": "progressBar", "params": { "progress": { "attribute": "progress" } } },
+        "style": "bar",
+        "size": { "default": [null, 24], "resizable": "horizontal" },
+        "placement": {
+          "system": "schedule",
+          "x": { "attribute": "start" },
+          "x2": { "attribute": "end" },
+          "y": { "attribute": "assignee" },
+          "anchor": "left",
+          "movable": { "x": true, "y": true },
+          "resizable": { "x": true, "y": false },
+          "stack": { "mode": "pack", "order": "self.start", "rowSize": 28, "growBand": true },
+          "doc": "Drag to reschedule or reassign; drag the right edge to change the end date."
+        },
+        "labels": [
+          { "id": "title", "text": { "attribute": "title" }, "position": "left", "editable": "inline",
+            "overflow": "ellipsis", "style": { "padding": [0, 6] } },
+          { "id": "dates", "text": { "cel": "formatDate(self.start, 'd MMM') + ' – ' + formatDate(self.end, 'd MMM')" },
+            "position": "outside-right", "style": { "font": { "size": 10, "color": "#888780" } },
+            "visible": { "cel": "env.zoom >= 0.8" } }
+        ],
+        "tooltip": { "cel": "self.title + ': ' + string(workingDays(self.start, self.end, 'project')) + ' working days'" },
+        "states": { "selected": { "stroke": { "width": 2 } } }
+      },
+      "Milestone": {
+        "shape": "diamond",
+        "style": { "fill": "#2C2C2A", "stroke": { "width": 0 } },
+        "size": { "fixed": [16, 16] },
+        "placement": {
+          "system": "schedule",
+          "x": { "attribute": "start" },
+          "y": { "attribute": "assignee" },
+          "anchor": "center",
+          "doc": "Milestones sit at the start of their day."
+        },
+        "labels": [ { "id": "title", "text": { "attribute": "title" }, "position": "outside-right", "editable": "inline" } ]
+      }
+    },
+    "edges": {
+      "Dependency": {
+        "line": {
+          "stroke": { "color": "#5F5E5A", "width": 1 },
+          "routing": "rounded",
+          "cornerRadius": 4,
+          "startDirection": "right",
+          "endDirection": "left",
+          "minSegmentLength": 8
+        },
+        "anchoring": {
+          "source": { "mode": "fixed", "points": [ { "id": "finish", "x": 1, "y": 0.5 } ] },
+          "target": { "mode": "fixed", "points": [ { "id": "start", "x": 0, "y": 0.5 } ] }
+        },
+        "targetMarker": { "type": "arrowFilled", "params": { "length": 7, "width": 6 } },
+        "labels": [
+          { "id": "linkType", "text": { "cel": "self.linkType == 'FS' ? '' : self.linkType" }, "at": "start", "offset": 6, "side": "above",
+            "style": { "font": { "size": 10 } } },
+          { "id": "lag", "text": { "cel": "self.lag != 0 ? (self.lag > 0 ? '+' : '') + string(self.lag) + 'd' : ''" },
+            "at": "middle", "side": "on", "background": { "fill": "#FFFFFF", "padding": 1 }, "style": { "font": { "size": 10 } } }
+        ],
+        "variants": [
+          { "when": "self.linkType == 'SS'",
+            "anchoring": { "source": { "mode": "fixed", "points": [ { "id": "start", "x": 0, "y": 0.5 } ] } } },
+          { "when": "self.linkType == 'FF'",
+            "anchoring": { "target": { "mode": "fixed", "points": [ { "id": "finish", "x": 1, "y": 0.5 } ] } } }
+        ],
+        "conditions": [
+          { "when": "self.target.start < addWorkingDays(self.source.start, self.lag, 'project')",
+            "style": { "stroke": { "color": "#E24B4A", "width": 1.5 } },
+            "doc": "Red when the dependency is violated." }
+        ]
+      }
+    }
+  },
+
+  "toolbox": {
+    "groups": [
+      { "id": "plan", "label": "Plan", "tools": [
+        { "id": "task", "creates": "Task", "mode": "drag", "shortcut": "T",
+          "doc": "Drag horizontally in a lane to create a task over those days.",
+          "initial": { "progress": 0 } },
+        { "id": "milestone", "creates": "Milestone", "mode": "click", "shortcut": "M" },
+        { "id": "dependency", "creates": "Dependency", "shortcut": "D" }
+      ] },
+      { "id": "people", "label": "Resources", "tools": [ { "id": "resource", "creates": "Resource" } ] }
+    ]
+  },
+
+  "forms": {
+    "task": {
+      "for": "Task",
+      "usage": ["inspector", "create"],
+      "layout": { "columns": 2 },
+      "items": [
+        { "attribute": "title", "colSpan": 2 },
+        { "attribute": "assignee", "widget": "reference", "options": { "cel": "diagram.nodesOfType('Resource')" } },
+        { "attribute": "status", "widget": "segmented" },
+        { "attribute": "start", "widget": "daterange", "widgetOptions": { "endAttribute": "end" }, "colSpan": 2 },
+        { "kind": "computed", "label": "Duration",
+          "value": { "cel": "string(workingDays(self.start, self.end, 'project')) + ' working days'" } },
+        { "attribute": "progress", "widget": "slider", "widgetOptions": { "min": 0, "max": 1, "step": 0.05 },
+          "format": "#0%" }
+      ]
+    }
+  },
+
+  "constraints": {
+    "rules": [
+      { "id": "endAfterStart", "scope": "Task", "rule": "self.end >= self.start", "attribute": "end",
+        "message": "A task cannot end before it starts.",
+        "fixes": [ { "label": "Make it one day long", "actions": [ { "set": { "end": "self.start" } } ] } ] },
+      { "id": "dependencyRespected", "scope": "Dependency",
+        "rule": "self.linkType != 'FS' || self.target.start >= addWorkingDays(has(self.source.end) ? self.source.end : self.source.start, self.lag + 1, 'project')",
+        "severity": "warning",
+        "message": { "cel": "'\"' + self.target.title + '\" starts before \"' + self.source.title + '\" is finished.'" },
+        "target": "[self, self.target]",
+        "fixes": [ { "label": "Move successor after predecessor", "preferred": true, "when": "has(self.source.end)",
+                     "actions": [
+                       { "let": { "shift": "workingDays(self.target.start, addWorkingDays(self.source.end, self.lag + 1, 'project'), 'project')" } },
+                       { "set": { "start": "addWorkingDays(self.target.start, shift, 'project')",
+                                  "end": "addWorkingDays(self.target.end, shift, 'project')" },
+                         "target": "self.target" } ] } ] },
+      { "id": "noOverbooking", "kind": "placement", "scope": "Task", "enforcement": "report", "severity": "info",
+        "rule": "diagram.nodesOfType('Task').filter(t, t.id != self.id && t.assignee == self.assignee && t.start <= newBounds.x2 && newBounds.x <= t.end).size() < int(self.assignee.capacity)",
+        "message": "This resource is already fully booked in that period." },
+      { "id": "withinProject", "scope": "Schedulable",
+        "when": "has(diagram.projectEnd)",
+        "rule": "self.start >= diagram.projectStart && self.start <= diagram.projectEnd",
+        "severity": "warning", "message": "Scheduled outside the project period." }
+    ]
+  },
+
+  "behavior": {
+    "hooks": [
+      { "id": "keepDuration", "on": "change", "for": "Task", "attribute": "start", "phase": "after",
+        "when": "event.source == 'user' && old != null",
+        "actions": [ { "set": { "end": "addWorkingDays(self.start, workingDays(old.start, old.end, 'project'), 'project')" } } ],
+        "doc": "Changing the start date in the form keeps the task's duration." },
+      { "id": "autoDone", "on": "change", "for": "Task", "attribute": "progress",
+        "when": "self.progress >= 1.0 && self.status != 'done'",
+        "actions": [ { "set": { "status": "'done'" } },
+                     { "notify": { "message": "'\"' + self.title + '\" marked as done.'", "severity": "success" } } ] }
+    ],
+    "deletion": { "Resource": { "references": "forbid", "confirm": "Remove this resource?" } }
+  },
+
+  "layout": {
+    "algorithms": {
+      "lanes": { "algorithm": "lanes", "doc": "Packs tasks into sub-rows within their resource lane; dates never change." }
+    },
+    "default": "lanes",
+    "trigger": "always"
+  },
+
+  "persistence": {
+    "format": "json",
+    "ids": { "strategy": "ulid", "prefix": { "Task": "task_", "Milestone": "ms_", "Resource": "res_", "Dependency": "dep_" } },
+    "ordering": { "elements": "type-then-id" },
+    "timestamps": { "format": "rfc3339", "timezone": "preserve" },
+    "view": { "store": ["viewport", "labelOffsets"] },
+    "collaboration": { "mode": "crdt", "engine": "yjs", "granularity": "attribute", "presence": true },
+    "export": [ { "format": "pdf", "options": { "fitTo": "page" } } ]
+  }
+}

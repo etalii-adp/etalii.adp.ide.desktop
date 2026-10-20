@@ -1,0 +1,125 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A stale entry of the block collapsed (FBL 0.7, sections 8.1 and 8.5; DESL 0.2, section 5.5). lending.adp keeps ITEM-0002, ITEM-0003 and REQ-0001 collapsed, and its body, lending.md beside it (the same bytes as the body of the fixture one folder up), has no ITEM-0003: an agent deleted that item from the file while the designer was closed, and its number stays given, since the mark on line 2 names ITEM-0004. collapsed is declared with keys ids, so the entry whose key is no id of the model is stale: it is applied to no element, reported as fbl.stale-view-data, an information finding, at its line of the registration, line 4 (FBL 8.5, 15.3), and removed at the next write. The read shows what is collapsed when the document is opened again (FR-020): ITEM-0002 and REQ-0001, read from the registration as true, every other entry false.",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "lending.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Loans",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A member borrows at most ten books at once.",
+          "collapsed": true
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A loan lasts three weeks.",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Renewals",
+          "collapsed": true
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A loan is renewed twice at most.",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0004",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Reservations",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "A reserved book is kept for a week.",
+          "collapsed": false
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.stale-view-data",
+        "line": 4
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "The next write of the registration is a fold: the person collapses REQ-0003. Its entry goes where the ordinal order puts it among the entries that remain once the stale one is taken out, after REQ-0001 at the end of the block (FBL 8.4), and the stale ITEM-0003 is removed as part of the same edit, one remove-entry of its line (FBL 8.5). The block has history false, so the edit is no step of the history, and the removal of the stale entry is none either: no undo puts it back (FBL 8.5). The reading taken for the order of the two splices is the one fixtures/registration-blocks takes, the setting's own splice first, then the pruning; FBL 8.5 says only that the removal is part of the edit.",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "REQ-0003",
+          "value": "yes"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 98,
+          "end": 98,
+          "text": "  REQ-0003: yes\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 63,
+          "end": 81,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0002: yes\r\n  REQ-0001: yes\r\n  REQ-0003: yes\r\n"
+    },
+    {
+      "doc": "The person expands REQ-0001: its entry is removed (DESL 5.5; FBL 8.4). The pruned ITEM-0003 stays gone, and with no step in the history there is nothing for an undo to take back.",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "REQ-0001",
+          "remove": true
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 63,
+          "end": 80,
+          "text": ""
+        }
+      ],
+      "expect": "etalii/hierarchical-requirement\r\ncollapsed:\r\n  ITEM-0002: yes\r\n  REQ-0003: yes\r\n"
+    }
+  ]
+}

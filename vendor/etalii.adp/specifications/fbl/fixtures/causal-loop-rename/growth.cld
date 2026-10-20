@@ -1,0 +1,10 @@
+causal-loop 1
+
+variable population "Population"
+variable births "Births"
+
+# Reinforcing.
+link population -> births s
+link births -> population + delayed
+
+loop R1 "Births beget births" population births

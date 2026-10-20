@@ -1,0 +1,1935 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json",
+  "title": "DESL 0.2 — Designer Specification Language",
+  "description": "Specifications ($defs/Specification): one designer type each, written by a tool engineer. DESL defines every construct it uses; storage is FBL's, through $defs/Persistence. See DESL-specification.md.",
+  "$ref": "#/$defs/Specification",
+  "$defs": {
+    "Specification": {
+      "description": "The root of a DESL document: one designer type, with the DESL version, the type's identity, its metamodel, how its documents are stored, its constraints, its surface, its operations and its functions. See section 3.1.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "desl": {
+          "description": "The DESL version the specification is written in: 0.1, or 0.2, which adds the hierarchy surface, counted ids, mentions, move and persistence.settings. See section 2.7.",
+          "enum": [
+            "0.1",
+            "0.2"
+          ]
+        },
+        "language": {
+          "$ref": "#/$defs/Language"
+        },
+        "metamodel": {
+          "$ref": "#/$defs/Metamodel"
+        },
+        "persistence": {
+          "$ref": "#/$defs/Persistence"
+        },
+        "constraints": {
+          "$ref": "#/$defs/Constraints"
+        },
+        "surface": {
+          "$ref": "#/$defs/Surface"
+        },
+        "operations": {
+          "description": "The designer's operations, by id. See section 8.1.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Operation"
+          }
+        },
+        "functions": {
+          "description": "Reusable CEL functions, by name. See section 3.3.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Function"
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "desl",
+        "language",
+        "metamodel",
+        "persistence",
+        "surface"
+      ]
+    },
+    "Language": {
+      "description": "The identity of the designer type: a globally unique id, a SemVer version, the origin <vendor>/<type> that every registration of its documents and every DED definition names, and its label, documentation, locales, authors, licence, homepage, icon and limits. See section 3.2.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/QualifiedId"
+        },
+        "version": {
+          "$ref": "#/$defs/SemVer"
+        },
+        "origin": {
+          "description": "The designer type's origin, <vendor>/<type>, such as etalii/knowledge. See section 3.2.",
+          "type": "string",
+          "pattern": "^[a-z0-9-]+/[a-z0-9-]+$"
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "defaultLocale": {
+          "type": "string"
+        },
+        "locales": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "description": "A maintainer of the specification.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "license": {
+          "type": "string"
+        },
+        "homepage": {
+          "type": "string"
+        },
+        "icon": {
+          "description": "The designer type's icon, by name. See section 3.2.",
+          "type": "string"
+        },
+        "limits": {
+          "description": "Limits a host applies. See section 2.5.",
+          "type": "object",
+          "properties": {
+            "celCost": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxElements": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "id",
+        "version",
+        "origin"
+      ]
+    },
+    "Function": {
+      "description": "A reusable CEL function, called by its name: its positional parameters, its result type and its body, which sees only its parameters and, when listed in uses, document. A function may call functions declared before it, never itself. See section 3.3.",
+      "type": "object",
+      "properties": {
+        "params": {
+          "type": "array",
+          "items": {
+            "description": "One parameter.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/SimpleId"
+              },
+              "type": {
+                "type": "string"
+              },
+              "doc": {
+                "$ref": "#/$defs/Doc"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            },
+            "required": [
+              "name",
+              "type"
+            ]
+          }
+        },
+        "returns": {
+          "type": "string"
+        },
+        "cel": {
+          "$ref": "#/$defs/CelSource"
+        },
+        "uses": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "document"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "returns",
+        "cel"
+      ]
+    },
+    "Metamodel": {
+      "description": "What a document of the designer type can hold: the attributes of the document itself, enumerations, and element types by name. Nothing in it is drawn connected: a link between elements is a reference attribute. See section 4.1.",
+      "type": "object",
+      "properties": {
+        "document": {
+          "description": "The attributes of the document as a whole, and (DESL 0.2) the types its own elements may be. See section 4.1.",
+          "type": "object",
+          "properties": {
+            "attributes": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/SimpleId"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/Attribute"
+              }
+            },
+            "children": {
+              "description": "(DESL 0.2) The types the document's own elements may be, checked by std.containment. See section 4.6.",
+              "$ref": "#/$defs/Containment"
+            },
+            "doc": {
+              "$ref": "#/$defs/Doc"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "enums": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Enum"
+          }
+        },
+        "types": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/ElementType"
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "types"
+      ]
+    },
+    "ElementType": {
+      "description": "A kind of element a document holds: its label, icon, attributes, the element types it contains, and the attribute that names one of its elements. See section 4.5.",
+      "type": "object",
+      "properties": {
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Attribute"
+          }
+        },
+        "children": {
+          "$ref": "#/$defs/Containment"
+        },
+        "labelAttribute": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "Containment": {
+      "description": "Which element types an element contains, whether their order is kept, and the named slots its children are kept in. A contained element has one parent and is deleted with it. See section 4.6.",
+      "type": "object",
+      "properties": {
+        "allowed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TypeRef"
+          }
+        },
+        "ordered": {
+          "type": "boolean"
+        },
+        "slots": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "description": "A named slot: the element types it holds.",
+            "type": "object",
+            "properties": {
+              "allowed": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/TypeRef"
+                }
+              },
+              "max": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "doc": {
+                "$ref": "#/$defs/Doc"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            },
+            "required": [
+              "allowed"
+            ]
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "Attribute": {
+      "description": "One named value of an element, of the document or of an operation's parameters: a primitive type, an enumeration or an element type (a reference, section 4.7), with a default, whether it is required or a list, and its facets. See section 4.3.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "A primitive type of section 4.2, an enumeration or an element type. See section 4.3.",
+          "anyOf": [
+            {
+              "enum": [
+                "string",
+                "text",
+                "int",
+                "number",
+                "bool",
+                "date",
+                "datetime",
+                "time"
+              ]
+            },
+            {
+              "$ref": "#/$defs/SimpleId"
+            }
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "default": true,
+        "many": {
+          "type": "boolean"
+        },
+        "readOnly": {
+          "type": "boolean"
+        },
+        "min": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "max": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "timezone": {
+          "description": "How a datetime value's zone is kept: utc, or preserve, which keeps the offset it was written with. See section 4.2.",
+          "enum": [
+            "utc",
+            "preserve"
+          ]
+        },
+        "mentions": {
+          "$ref": "#/$defs/Mentions"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "Mentions": {
+      "description": "(DESL 0.2) A string or text attribute whose value names elements by id: the matches of pattern in which its group id takes part, naming elements of types. See section 4.3.",
+      "type": "object",
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "types": {
+          "$ref": "#/$defs/TypeRefs"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "pattern",
+        "types"
+      ]
+    },
+    "Enum": {
+      "description": "An enumeration: its values in display order, by key. See section 4.4.",
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/EnumValue"
+          }
+        },
+        "ordered": {
+          "type": "boolean"
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "values"
+      ]
+    },
+    "EnumValue": {
+      "description": "One value of an enumeration: its stored form when that differs from its key, its label and its icon. See section 4.4.",
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "Persistence": {
+      "description": "How the designer's documents are stored: through FBL, one binding per format family, with the type map, the ids and (DESL 0.2) what the registration keeps. See section 5.",
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "fbl"
+        },
+        "bindings": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/BindingRef"
+          }
+        },
+        "ids": {
+          "$ref": "#/$defs/IdStrategy"
+        },
+        "typeMap": {
+          "description": "The bindings' types mapped onto the metamodel, by the binding's type name. See section 5.2.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TypeMapEntry"
+          }
+        },
+        "settings": {
+          "description": "(DESL 0.2) The part of the model a document's registration keeps, by the name of the registration block each part is kept in. See section 5.5.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Setting"
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "format",
+        "bindings"
+      ]
+    },
+    "Setting": {
+      "description": "(DESL 0.2) What one registration block keeps: a list, whose entries are the elements of a type, or a state, one attribute of the elements of some types keyed by their ids. See section 5.5.",
+      "oneOf": [
+        {
+          "description": "A list: the elements of type are the block's entries, key and value naming the attributes of an entry's key and value; initial, the elements a document has while the block is absent, by their attribute values.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "$ref": "#/$defs/TypeRef"
+            },
+            "key": {
+              "$ref": "#/$defs/SimpleId"
+            },
+            "value": {
+              "$ref": "#/$defs/SimpleId"
+            },
+            "initial": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "doc": {
+              "$ref": "#/$defs/Doc"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "type",
+            "key",
+            "value"
+          ]
+        },
+        {
+          "description": "A state: the attribute of the elements of the types of, keyed by their ids; only a value that differs from the default is kept.",
+          "type": "object",
+          "properties": {
+            "attribute": {
+              "$ref": "#/$defs/SimpleId"
+            },
+            "of": {
+              "$ref": "#/$defs/TypeRefs"
+            },
+            "doc": {
+              "$ref": "#/$defs/Doc"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "attribute",
+            "of"
+          ]
+        }
+      ]
+    },
+    "TypeMapEntry": {
+      "description": "How one type of the bindings maps onto the metamodel: what its entries become (the document, a header, an unreadable entry or an element type), its attributes by their model names, and the attributes the binding keeps that are not the model's. See section 5.2.",
+      "type": "object",
+      "properties": {
+        "as": {
+          "anyOf": [
+            {
+              "enum": [
+                "document",
+                "header",
+                "unreadable"
+              ]
+            },
+            {
+              "$ref": "#/$defs/TypeRef"
+            }
+          ]
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "hostAttributes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "as"
+      ]
+    },
+    "IdStrategy": {
+      "description": "How elements get their ids: the strategy for every type, the text form of generated ids, whether they are kept once made, what happens to an element read without one, and per-type rules. See section 5.3.",
+      "type": "object",
+      "properties": {
+        "strategy": {
+          "enum": [
+            "uuid-v4",
+            "uuid-v7",
+            "derived"
+          ]
+        },
+        "encoding": {
+          "enum": [
+            "hex",
+            "base36"
+          ]
+        },
+        "stable": {
+          "type": "boolean"
+        },
+        "missing": {
+          "enum": [
+            "assign",
+            "ephemeral"
+          ]
+        },
+        "types": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/TypeRef"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/IdRule"
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "IdRule": {
+      "description": "The id rule of one element type: its strategy, the expression of a derived id, (DESL 0.2) the prefix, digits, mark and placeholder of a counted id, whether the id is ephemeral, and the refusal shown when a gesture would store one. See sections 5.3.2 and 5.3.5.",
+      "type": "object",
+      "properties": {
+        "strategy": {
+          "enum": [
+            "uuid-v4",
+            "uuid-v7",
+            "derived",
+            "counter"
+          ]
+        },
+        "expression": {
+          "$ref": "#/$defs/Expression"
+        },
+        "prefix": {
+          "description": "(DESL 0.2) counter: what every id of the type starts with.",
+          "type": "string",
+          "minLength": 1
+        },
+        "digits": {
+          "description": "(DESL 0.2) counter: the least number of digits of a new number. Default 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "mark": {
+          "description": "(DESL 0.2) counter: the string attribute of the document that holds the last id given.",
+          "$ref": "#/$defs/SimpleId"
+        },
+        "placeholder": {
+          "description": "(DESL 0.2) counter: what a writer puts after the prefix in place of a number.",
+          "type": "string",
+          "minLength": 1
+        },
+        "ephemeral": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/Expression"
+            }
+          ]
+        },
+        "reason": {
+          "$ref": "#/$defs/Reason"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "strategy": {
+                "const": "counter"
+              }
+            },
+            "required": [
+              "strategy"
+            ]
+          },
+          "then": {
+            "required": [
+              "prefix",
+              "mark"
+            ]
+          }
+        }
+      ]
+    },
+    "Constraints": {
+      "description": "The designer's validity rules, in order, with their default severity and whether a document with errors may be saved. See section 6.1.",
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Constraint"
+          }
+        },
+        "defaults": {
+          "description": "Defaults for every rule: its severity and when it is evaluated.",
+          "type": "object",
+          "properties": {
+            "severity": {
+              "enum": [
+                "error",
+                "warning",
+                "info",
+                "hint"
+              ]
+            },
+            "timing": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "live",
+                  "save",
+                  "explicit"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "blockSaveOn": {
+          "enum": [
+            "never",
+            "error"
+          ]
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "Constraint": {
+      "description": "One validity rule in CEL: what it is evaluated for, when, the condition that must hold, and the severity, code and message of each finding it reports. See section 6.2.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "code": {
+          "$ref": "#/$defs/QualifiedId"
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "const": "document"
+            },
+            {
+              "$ref": "#/$defs/TypeRefs"
+            }
+          ]
+        },
+        "when": {
+          "$ref": "#/$defs/Expression"
+        },
+        "rule": {
+          "$ref": "#/$defs/Expression"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "enum": [
+                "error",
+                "warning",
+                "info",
+                "hint"
+              ]
+            },
+            {
+              "$ref": "#/$defs/CelValue"
+            }
+          ]
+        },
+        "message": {
+          "$ref": "#/$defs/Message"
+        },
+        "target": {
+          "$ref": "#/$defs/Expression"
+        },
+        "enforcement": {
+          "enum": [
+            "report",
+            "prevent",
+            "prevent-and-report"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "id",
+        "rule"
+      ]
+    },
+    "Operation": {
+      "description": "A named command that one gesture of the surface runs: what it applies to, its parameters, why it may be unavailable, the confirmation it asks for and its actions, run as one transaction. See section 8.1.",
+      "type": "object",
+      "properties": {
+        "label": {
+          "$ref": "#/$defs/Message"
+        },
+        "for": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TypeRefs"
+            },
+            {
+              "enum": [
+                "selection",
+                "document"
+              ]
+            }
+          ]
+        },
+        "params": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Attribute"
+          }
+        },
+        "unavailable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Reason"
+          }
+        },
+        "confirm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Message"
+            },
+            {
+              "$ref": "#/$defs/Confirmation"
+            }
+          ]
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "minItems": 1
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "label",
+        "for",
+        "actions"
+      ]
+    },
+    "Confirmation": {
+      "description": "The question asked before an operation runs, and when: only while when holds and, with count, when count is at least threshold. See section 8.3.",
+      "type": "object",
+      "properties": {
+        "message": {
+          "$ref": "#/$defs/Message"
+        },
+        "when": {
+          "$ref": "#/$defs/Expression"
+        },
+        "count": {
+          "$ref": "#/$defs/Expression"
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "message"
+      ]
+    },
+    "Action": {
+      "description": "One step of an operation, from a closed set: set, unset, create, delete, reorder, (DESL 0.2) move, let, if and forEach. Every value is an Expression, and every action may carry when. See section 8.2.",
+      "type": "object",
+      "properties": {
+        "set": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/Expression"
+          }
+        },
+        "unset": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "minItems": 1
+        },
+        "target": {
+          "$ref": "#/$defs/Expression"
+        },
+        "create": {
+          "description": "The element to create.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "$ref": "#/$defs/Expression"
+            },
+            "attributes": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/Expression"
+              }
+            },
+            "parent": {
+              "$ref": "#/$defs/Expression"
+            },
+            "slot": {
+              "$ref": "#/$defs/Expression"
+            },
+            "after": {
+              "$ref": "#/$defs/Expression"
+            },
+            "before": {
+              "$ref": "#/$defs/Expression"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "as": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "delete": {
+          "$ref": "#/$defs/Expression"
+        },
+        "reorder": {
+          "description": "The element's new place among its siblings.",
+          "type": "object",
+          "properties": {
+            "target": {
+              "$ref": "#/$defs/Expression"
+            },
+            "by": {
+              "$ref": "#/$defs/Expression"
+            },
+            "after": {
+              "$ref": "#/$defs/Expression"
+            },
+            "before": {
+              "$ref": "#/$defs/Expression"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "move": {
+          "description": "(DESL 0.2) The element's new parent, slot and place: after or before a sibling there, else last. See section 8.2.",
+          "type": "object",
+          "properties": {
+            "target": {
+              "$ref": "#/$defs/Expression"
+            },
+            "parent": {
+              "$ref": "#/$defs/Expression"
+            },
+            "slot": {
+              "$ref": "#/$defs/Expression"
+            },
+            "after": {
+              "$ref": "#/$defs/Expression"
+            },
+            "before": {
+              "$ref": "#/$defs/Expression"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "let": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Expression"
+          },
+          "minProperties": 1
+        },
+        "if": {
+          "$ref": "#/$defs/Expression"
+        },
+        "then": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          }
+        },
+        "else": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          }
+        },
+        "forEach": {
+          "$ref": "#/$defs/Expression"
+        },
+        "do": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          }
+        },
+        "when": {
+          "$ref": "#/$defs/Expression"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "Surface": {
+      "description": "How the model is laid out for the user: one shape per kind, a table (sections 7.2 to 7.6) or (DESL 0.2) a hierarchy (section 7.7). See section 7.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "table",
+            "hierarchy"
+          ]
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "table"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/Table"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "hierarchy"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/Hierarchy"
+          }
+        }
+      ]
+    },
+    "Table": {
+      "description": "The table kind of surface: rows and columns, with a cell at each crossing, and views that store how it is shown. See sections 7.2 to 7.6.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "table"
+        },
+        "columns": {
+          "$ref": "#/$defs/Columns"
+        },
+        "rows": {
+          "description": "The rows' element type.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "$ref": "#/$defs/TypeRef"
+            },
+            "doc": {
+              "$ref": "#/$defs/Doc"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "cells": {
+          "$ref": "#/$defs/Cells"
+        },
+        "views": {
+          "$ref": "#/$defs/Views"
+        },
+        "valueTypes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/ValueType"
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "kind",
+        "columns",
+        "rows",
+        "cells",
+        "views",
+        "valueTypes"
+      ]
+    },
+    "Hierarchy": {
+      "description": "(DESL 0.2) The hierarchy kind of surface: levels drawn as boxes that contain boxes, entries, labels, notes, what is collapsed, stored filters and whether ids are shown. See section 7.7.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "hierarchy"
+        },
+        "levels": {
+          "$ref": "#/$defs/HierarchyMembers"
+        },
+        "entries": {
+          "$ref": "#/$defs/HierarchyMembers"
+        },
+        "labels": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Labels"
+          }
+        },
+        "notes": {
+          "$ref": "#/$defs/Notes"
+        },
+        "collapsed": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "filters": {
+          "$ref": "#/$defs/Filters"
+        },
+        "ids": {
+          "enum": [
+            "shown",
+            "hidden"
+          ]
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "kind",
+        "levels",
+        "entries"
+      ]
+    },
+    "HierarchyMembers": {
+      "description": "(DESL 0.2) The levels or the entries of a hierarchy: their element type, and its title and description attributes. See section 7.7.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "title": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "description": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "type",
+        "title"
+      ]
+    },
+    "Labels": {
+      "description": "(DESL 0.2) A label attribute of a hierarchy: the types it is on, the element type of its list's members with their name and colour attributes, and the prefix of a filter's word for a member. See sections 7.7.2 and 7.7.3.",
+      "type": "object",
+      "properties": {
+        "on": {
+          "$ref": "#/$defs/TypeRefs"
+        },
+        "options": {
+          "description": "The list's members.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "$ref": "#/$defs/TypeRef"
+            },
+            "name": {
+              "$ref": "#/$defs/SimpleId"
+            },
+            "colour": {
+              "$ref": "#/$defs/SimpleId"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "type",
+            "name"
+          ]
+        },
+        "prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "on",
+        "options"
+      ]
+    },
+    "Notes": {
+      "description": "(DESL 0.2) The notes of a hierarchy: their element type, and the attributes of what a note is about, its kind, text, detail and whether it is resolved. See section 7.7.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "about": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "kind": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "text": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "detail": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "resolved": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "type",
+        "about",
+        "kind",
+        "text"
+      ]
+    },
+    "Filters": {
+      "description": "(DESL 0.2) The stored filters of a hierarchy: their element type, and the attributes of a filter's name and query. See section 7.7.3.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "name": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "query": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "type",
+        "name",
+        "query"
+      ]
+    },
+    "Columns": {
+      "description": "The columns of a table: their element type and the attributes that name them, type them, mark the title column and the parent column, and the options a choice may take. See section 7.3.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "name": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "valueType": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "title": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "parent": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "options": {
+          "description": "The element type of a column's options, and the attributes that name and colour one.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "$ref": "#/$defs/TypeRef"
+            },
+            "name": {
+              "$ref": "#/$defs/SimpleId"
+            },
+            "colour": {
+              "$ref": "#/$defs/SimpleId"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "type",
+            "name"
+          ]
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "type",
+        "name",
+        "valueType"
+      ]
+    },
+    "Cells": {
+      "description": "The cells of a table: their element type, the reference attribute naming the column, and the element type of one of several values. See section 7.3.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "column": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "items": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "type",
+        "column"
+      ]
+    },
+    "Views": {
+      "description": "The views of a table: their element type, the attribute naming one, the document attribute naming the active one, and the element types of their settings by role. See section 7.4.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "name": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "active": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "settings": {
+          "type": "object",
+          "propertyNames": {
+            "enum": [
+              "columns",
+              "sorts",
+              "conditions",
+              "filterGroups",
+              "groups"
+            ]
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/TypeRef"
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "type",
+        "name"
+      ]
+    },
+    "ValueType": {
+      "description": "What a column's cells hold: the key of the value, whether there are several, the editor, the filter comparisons, the sort order and the conversions to other value types. See section 7.5.",
+      "type": "object",
+      "properties": {
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "key": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "many": {
+          "type": "boolean"
+        },
+        "editor": {
+          "enum": [
+            "text",
+            "number",
+            "checkbox",
+            "date",
+            "dateTime",
+            "time",
+            "choice",
+            "choices",
+            "rows"
+          ]
+        },
+        "comparisons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "not": {
+              "enum": [
+                "is-empty",
+                "is-not-empty"
+              ]
+            }
+          }
+        },
+        "sort": {
+          "enum": [
+            "text",
+            "number",
+            "false-first",
+            "chronological",
+            "option-order",
+            "title"
+          ]
+        },
+        "converts": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/SimpleId"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Conversion"
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "label",
+        "key",
+        "editor",
+        "comparisons",
+        "sort"
+      ]
+    },
+    "Conversion": {
+      "description": "What a value becomes when its column's value type changes. See section 7.6.",
+      "enum": [
+        "written-form",
+        "parse",
+        "match-option",
+        "wrap",
+        "unwrap"
+      ]
+    },
+    "SimpleId": {
+      "description": "A name that is a valid CEL identifier: types, attributes, parameters, operations, functions. See section 2.2.",
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+    },
+    "QualifiedId": {
+      "description": "Dot-separated names, hyphens allowed after the first character: language ids and finding codes. See section 2.2.",
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_-]*(\\.[A-Za-z_][A-Za-z0-9_-]*)*$"
+    },
+    "TypeRef": {
+      "description": "The name of an element type of the metamodel. See section 2.2.",
+      "$ref": "#/$defs/SimpleId"
+    },
+    "TypeRefs": {
+      "description": "One element type or a list of them. See section 2.2.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TypeRef"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TypeRef"
+          },
+          "minItems": 1
+        }
+      ]
+    },
+    "SemVer": {
+      "description": "A semantic version, SemVer 2.0.0.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "LocalizedText": {
+      "description": "A human-facing text: a string, or a map from BCP 47 language tag to string. See section 2.3.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$",
+            "not": {
+              "const": "cel"
+            }
+          },
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1
+        }
+      ]
+    },
+    "Message": {
+      "description": "A sentence or label shown to the user: a LocalizedText, or CEL returning one. See section 2.3.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        {
+          "$ref": "#/$defs/CelValue"
+        }
+      ]
+    },
+    "Reason": {
+      "description": "Why something is refused or unavailable: a Message that always applies, or one that applies while when holds. See section 2.3.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Message"
+        },
+        {
+          "description": "A reason that applies while when holds.",
+          "type": "object",
+          "properties": {
+            "when": {
+              "$ref": "#/$defs/Expression"
+            },
+            "message": {
+              "$ref": "#/$defs/Message"
+            },
+            "doc": {
+              "$ref": "#/$defs/Doc"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "message"
+          ]
+        }
+      ]
+    },
+    "Doc": {
+      "description": "Documentation of any object: a LocalizedText (its summary) or an object with a summary, a description, a rationale, examples, links and tags. See section 2.4.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        {
+          "description": "A documentation object.",
+          "type": "object",
+          "properties": {
+            "summary": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "description": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "rationale": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "examples": {
+              "type": "array",
+              "items": {
+                "description": "An example.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "$ref": "#/$defs/LocalizedText"
+                  },
+                  "description": {
+                    "$ref": "#/$defs/LocalizedText"
+                  },
+                  "value": true
+                },
+                "additionalProperties": false,
+                "patternProperties": {
+                  "^x-": true
+                }
+              }
+            },
+            "seeAlso": {
+              "type": "array",
+              "items": {
+                "description": "A link.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "$ref": "#/$defs/LocalizedText"
+                  },
+                  "href": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "patternProperties": {
+                  "^x-": true
+                },
+                "required": [
+                  "href"
+                ]
+              }
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "audience": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "user",
+                  "author",
+                  "developer"
+                ]
+              }
+            },
+            "since": {
+              "type": "string"
+            },
+            "deprecated": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "description": "A deprecation.",
+                  "type": "object",
+                  "properties": {
+                    "since": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "$ref": "#/$defs/LocalizedText"
+                    },
+                    "replacedBy": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^x-": true
+                  }
+                }
+              ]
+            },
+            "helpUrl": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        }
+      ]
+    },
+    "Expression": {
+      "description": "CEL: a string of CEL source, or an object with it, an expected result type and documentation. See section 2.5.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CelSource"
+        },
+        {
+          "$ref": "#/$defs/CelValue"
+        }
+      ]
+    },
+    "CelValue": {
+      "description": "CEL source with an expected result type and documentation. See section 2.5.",
+      "type": "object",
+      "properties": {
+        "cel": {
+          "$ref": "#/$defs/CelSource"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "cel"
+      ]
+    },
+    "CelSource": {
+      "description": "CEL source text. See section 2.5.",
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

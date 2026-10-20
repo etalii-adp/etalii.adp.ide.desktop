@@ -1,0 +1,530 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.4",
+  "language": {
+    "id": "org.example.work-board",
+    "version": "1.0.0",
+    "label": "Work board",
+    "fileExtension": "board",
+    "doc": {
+      "summary": "The worked example of DISL 0.4: boards, the items on them with their tasks, and the people working on the items, arranged in rings by a tiered force layout.",
+      "description": "Each construct DISL 0.4 adds is used once: tasks grouped by status inside an item with a collapse default per group, ordered by when they were updated and ending in a link symbol (6.9); a kept switch that shows archived items (6.13.1); pin, unpin and unpin all (7.3); the open action (9.4); force with tiers (10.4); and the pinned positions, group states and switch kept in the board's own file (11.6)."
+    }
+  },
+  "metamodel": {
+    "enums": {
+      "ItemStatus": {
+        "values": {
+          "active": {
+            "label": "Active"
+          },
+          "waiting": {
+            "label": "Waiting"
+          },
+          "done": {
+            "label": "Done"
+          },
+          "archived": {
+            "label": "Archived"
+          }
+        }
+      },
+      "TaskState": {
+        "ordered": true,
+        "values": {
+          "doing": {
+            "label": "Doing"
+          },
+          "todo": {
+            "label": "To do",
+            "value": "to-do"
+          },
+          "done": {
+            "label": "Done"
+          }
+        }
+      }
+    },
+    "types": {
+      "Board": {
+        "labelAttribute": "name",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "required": true
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "doc": "A web address, or a path absolute or relative to the board's file (DISL 0.4, 4.2)."
+          }
+        }
+      },
+      "Item": {
+        "labelAttribute": "name",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "required": true
+          },
+          "status": {
+            "type": "ItemStatus",
+            "default": "active"
+          },
+          "board": {
+            "type": "Board"
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "doc": "A web address, or a path absolute or relative to the board's file (DISL 0.4, 4.2)."
+          }
+        },
+        "children": {
+          "allowed": [
+            "Task"
+          ],
+          "slots": {
+            "tasks": {
+              "allowed": [
+                "Task"
+              ]
+            }
+          }
+        }
+      },
+      "Task": {
+        "labelAttribute": "title",
+        "attributes": {
+          "title": {
+            "type": "string",
+            "required": true
+          },
+          "status": {
+            "type": "TaskState",
+            "default": "todo"
+          },
+          "updated": {
+            "type": "datetime",
+            "timezone": "preserve"
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "doc": "A web address, or a path absolute or relative to the board's file (DISL 0.4, 4.2)."
+          }
+        }
+      },
+      "Person": {
+        "labelAttribute": "name",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "required": true
+          },
+          "assignedTo": {
+            "type": "Item"
+          }
+        }
+      }
+    },
+    "relations": {
+      "OnBoard": {
+        "source": "Board",
+        "target": "Item",
+        "allowParallel": false,
+        "derived": {
+          "from": "diagram.nodesOfType('Item').filter(i, i.board != null)",
+          "id": "'board:' + item.id",
+          "source": "item.board",
+          "target": "item",
+          "sources": "[item]",
+          "edits": {
+            "connect": "putOnBoard",
+            "delete": "takeOffBoard"
+          }
+        }
+      },
+      "WorksOn": {
+        "source": "Item",
+        "target": "Person",
+        "allowParallel": false,
+        "derived": {
+          "from": "diagram.nodesOfType('Person').filter(p, p.assignedTo != null)",
+          "id": "'works:' + item.id",
+          "source": "item.assignedTo",
+          "target": "item",
+          "sources": "[item]",
+          "edits": {
+            "connect": "assign",
+            "delete": "unassign"
+          }
+        }
+      }
+    }
+  },
+  "notation": {
+    "nodes": {
+      "Board": {
+        "shape": "roundedRect",
+        "size": {
+          "default": [
+            160,
+            48
+          ]
+        },
+        "badges": [
+          {
+            "id": "link",
+            "icon": "mdi-link-variant",
+            "position": "top-right",
+            "visible": {
+              "cel": "self.link != ''"
+            },
+            "tooltip": {
+              "cel": "self.link"
+            },
+            "onClick": "openLink"
+          },
+          {
+            "id": "pinned",
+            "icon": "mdi-lock-outline",
+            "position": "top-left",
+            "visible": {
+              "cel": "self.view.pinned"
+            },
+            "tooltip": "Its position is locked."
+          }
+        ]
+      },
+      "Item": {
+        "shape": "rect",
+        "size": {
+          "default": [
+            200,
+            64
+          ],
+          "autoSize": "fitHeight"
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "top",
+            "editable": "inline",
+            "overflow": "ellipsis"
+          }
+        ],
+        "compartments": [
+          {
+            "id": "tasks",
+            "items": {
+              "children": [
+                "Task"
+              ],
+              "slot": "tasks"
+            },
+            "itemText": {
+              "cel": "item.title"
+            },
+            "itemLink": {
+              "cel": "item.link"
+            },
+            "itemOrder": {
+              "by": "item.updated",
+              "direction": "descending"
+            },
+            "groupBy": {
+              "attribute": "status",
+              "collapsed": {
+                "todo": true,
+                "done": true
+              }
+            },
+            "overflow": "ellipsis",
+            "doc": "Doing, To do and Done, in TaskState's order, each with its count; To do and Done start collapsed."
+          }
+        ],
+        "badges": [
+          {
+            "id": "link",
+            "icon": "mdi-link-variant",
+            "position": "top-right",
+            "visible": {
+              "cel": "self.link != ''"
+            },
+            "tooltip": {
+              "cel": "self.link"
+            },
+            "onClick": "openLink"
+          },
+          {
+            "id": "pinned",
+            "icon": "mdi-lock-outline",
+            "position": "top-left",
+            "visible": {
+              "cel": "self.view.pinned"
+            },
+            "tooltip": "Its position is locked."
+          }
+        ]
+      },
+      "Person": {
+        "shape": "ellipse",
+        "size": {
+          "default": [
+            96,
+            40
+          ]
+        },
+        "badges": [
+          {
+            "id": "pinned",
+            "icon": "mdi-lock-outline",
+            "position": "top-left",
+            "visible": {
+              "cel": "self.view.pinned"
+            },
+            "tooltip": "Its position is locked."
+          }
+        ]
+      }
+    },
+    "canvas": {
+      "filters": {
+        "archived": {
+          "label": "Show archived",
+          "control": "switch",
+          "persist": true,
+          "appliesTo": [
+            "Item"
+          ],
+          "keep": "value || self.status != 'archived'",
+          "doc": "Kept in the file as showArchived (persistence.view.bind)."
+        }
+      }
+    }
+  },
+  "toolbox": {
+    "groups": [
+      {
+        "id": "board",
+        "label": "Board",
+        "tools": [
+          {
+            "id": "board",
+            "creates": "Board"
+          },
+          {
+            "id": "item",
+            "creates": "Item"
+          },
+          {
+            "id": "person",
+            "creates": "Person"
+          }
+        ]
+      }
+    ],
+    "contextMenus": [
+      {
+        "for": [
+          "Board",
+          "Item",
+          "Person"
+        ],
+        "placement": "menu",
+        "tools": [
+          {
+            "kind": "pin",
+            "group": "position"
+          },
+          {
+            "kind": "unpin",
+            "group": "position"
+          }
+        ]
+      },
+      {
+        "for": [
+          "diagram"
+        ],
+        "placement": "menu",
+        "tools": [
+          {
+            "kind": "unpinAll"
+          }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "operations": {
+      "openLink": {
+        "label": "Open link",
+        "for": [
+          "Board",
+          "Item"
+        ],
+        "enabled": "self.link != ''",
+        "actions": [
+          {
+            "open": "self.link"
+          }
+        ]
+      },
+      "putOnBoard": {
+        "label": "Put on board",
+        "for": [
+          "OnBoard"
+        ],
+        "actions": [
+          {
+            "set": {
+              "board": "self.source"
+            },
+            "target": "self.target"
+          }
+        ]
+      },
+      "takeOffBoard": {
+        "label": "Take off the board",
+        "for": [
+          "OnBoard"
+        ],
+        "actions": [
+          {
+            "unset": [
+              "board"
+            ],
+            "target": "self.target"
+          }
+        ]
+      },
+      "assign": {
+        "label": "Assign",
+        "for": [
+          "WorksOn"
+        ],
+        "actions": [
+          {
+            "set": {
+              "assignedTo": "self.source"
+            },
+            "target": "self.target"
+          }
+        ]
+      },
+      "unassign": {
+        "label": "Unassign",
+        "for": [
+          "WorksOn"
+        ],
+        "actions": [
+          {
+            "unset": [
+              "assignedTo"
+            ],
+            "target": "self.target"
+          }
+        ]
+      },
+      "expandAll": {
+        "label": "Expand every group",
+        "for": [
+          "Item"
+        ],
+        "actions": [
+          {
+            "view": {
+              "groups": {
+                "doing": "false",
+                "to-do": "false",
+                "done": "false"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "layout": {
+    "algorithms": {
+      "rings": {
+        "algorithm": "force",
+        "force": {
+          "tiers": [
+            "Board",
+            "Item",
+            "Person"
+          ],
+          "gap": 32
+        }
+      }
+    },
+    "default": "rings",
+    "trigger": "onChange",
+    "respect": "pinned",
+    "animate": {
+      "durationMs": 250
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "binding": "../fbl/work-board.fbl#board",
+    "ids": {
+      "strategy": "uuid-v4",
+      "encoding": "base36"
+    },
+    "typeMap": {
+      "Root": {
+        "as": "diagram",
+        "attributes": {
+          "version": null,
+          "showArchived": null
+        }
+      }
+    },
+    "view": {
+      "store": [
+        "pinned",
+        "groups",
+        "filters"
+      ],
+      "bind": {
+        "pinned": {
+          "type": "Placement",
+          "element": "element",
+          "x": "x",
+          "y": "y"
+        },
+        "groups": {
+          "type": "GroupState",
+          "element": "element",
+          "group": "group",
+          "collapsed": "collapsed"
+        },
+        "filters": {
+          "type": "Root",
+          "values": {
+            "archived": "showArchived"
+          }
+        }
+      }
+    }
+  }
+}

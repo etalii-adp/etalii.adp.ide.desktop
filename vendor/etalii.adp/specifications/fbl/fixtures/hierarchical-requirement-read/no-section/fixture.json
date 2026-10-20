@@ -1,0 +1,20 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A requirement document with no Requirements heading, LF endings, read through the designer's binding as an empty document with no finding (FBL 0.7, section 4.8; contracts/requirement-document.md, What reading reports; FR-008, FR-055). Line 1, the envelope, is the binding's required header (FBL 5.6), so the body is readable. It has no mark line, which reads as no mark (DESL 5.3.5) and is no finding. None of the lines that look like the heading is one, so the section requirements does not exist and every item stands in no section a rule names, unbound with everything nested in it (4.8, Unbound): 'Requirements' underlined with '=' is two statements, since a line underlined is not a heading in this family (rule 6); '## Requirements and risks' is a heading whose text does not match ^Requirements$; '    ## Requirements' has four columns of indentation, more than a heading may (rule 6), and is a statement; '####### Requirements' has seven #, more than six, and is a statement; the '## Requirements' in the fence is a fence line (rules 1 and 8). The statements match no rule (the rule marks matches the mark line alone), and the binding's unmatched is not report, so nothing is reported: text outside the bullets is never reported (FR-055). The first item added to such a file appends the section; that edit is hierarchical-requirement-structure/no-section/.",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "opening-hours.md",
+  "read": {
+    "elements": [],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expectFile": "opening-hours.md"
+    }
+  ]
+}

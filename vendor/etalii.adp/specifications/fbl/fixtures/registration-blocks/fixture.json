@@ -1,0 +1,344 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Declared blocks of a registration (FBL 0.7, sections 6.1, 7.1, 8.1, 8.4, 8.5 and 15.3), through the binding beside it, tasks.fbl: tags kept, collapsed ordinal, keyed by ids and outside the history, filters kept. The input is plan.adp, whose body week.tasks holds the tasks t1, t2 and t3, and whose collapsed: block holds a stale entry for t9. The steps: the stale entry pruned with the first write, an ordinal insert, the first setting of a block creating it after the headers and another after the block before it, an insert after the last entry and at an index, and a move in a kept block, writes outside the history passed by an undo and a redo whose offsets they move, a refused value with ': ', and the undo of every step in the history. The registration keeps CRLF.",
+  "binding": "tasks.fbl#tasks",
+  "input": "plan.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "t1",
+        "type": "Task"
+      },
+      {
+        "id": "t2",
+        "type": "Task"
+      },
+      {
+        "id": "t3",
+        "type": "Task"
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.stale-view-data",
+        "line": 4
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "The first write of the registration is a setting outside the history: the user folds task t3, so collapsed gets t3: yes. The input's entry t9: yes is stale (FBL 8.5, for a block with keys ids): week.tasks has the tasks t1, t2 and t3 only, t9 having been deleted from it outside the tool after an earlier session folded it, so reading reports fbl.stale-view-data on line 4 and the write removes the entry as part of its edit (remove-entry of its line). The new entry goes where the ordinal order of the keys puts it, before t9's line, the stale entry having no say in it. collapsed has history false, so this step is no step of the history (FBL 7.1): the reading taken is that the pruning is part of the write that makes it, outside the history with it.",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "t3",
+          "value": "yes"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 45,
+          "end": 45,
+          "text": "  t3: yes\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 45,
+          "end": 56,
+          "text": ""
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ncollapsed:\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "The first setting the user changes in tags. The registration has no tags: block, so the edit creates it (ensure-container) and its entry (insert-entry) at the same offset, in that order (FBL 6.2, 8.4): tags is the first block the binding declares, so it goes after layout: and identities:, which are missing, right after the headers, before collapsed:. The input stands for the registration the first setting creates under createOnFirstPlacement (FBL 8.4), origin then body: week.tasks with the body's CRLF; a fixture starts from an input that exists, so the creation of the file itself is not one of its steps.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "security",
+          "value": "red"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 33,
+          "text": "tags:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "  security: red\r\n"
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  security: red\r\ncollapsed:\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "A new entry in a kept block, without a position, goes after the last entry of the block (FBL 8.4).",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "core",
+          "value": "default"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 57,
+          "end": 57,
+          "text": "  core: default\r\n"
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  security: red\r\n  core: default\r\ncollapsed:\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "A new entry at a position in a kept block (FBL 8.4): index 1 puts ux directly before the entry at index 1, core, so after security.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "ux",
+          "value": "green",
+          "position": {
+            "index": 1
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 57,
+          "end": 57,
+          "text": "  ux: green\r\n"
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  security: red\r\n  ux: green\r\n  core: default\r\ncollapsed:\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "A move in a kept block is a remove-entry and an insert-entry of the entry's own bytes (FBL 6.1, 8.4), the place of the insertion taken in the document before the edit: core goes before security, so tags reads core, security, ux.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "core",
+          "position": {
+            "before": "security"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 40,
+          "text": "  core: default\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 70,
+          "end": 87,
+          "text": ""
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  core: default\r\n  security: red\r\n  ux: green\r\ncollapsed:\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "The first saved filter creates filters: (ensure-container) with its entry (insert-entry) at one offset. filters is declared after collapsed, which exists, so it goes right after collapsed's last line, here the end of the registration (FBL 8.4). The value holds ':' but not ': ', so it is one value; the key holds a space, which a key may.",
+      "edit": {
+        "setting": {
+          "block": "filters",
+          "key": "Open security",
+          "value": "#security state:proposed"
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 110,
+          "end": 110,
+          "text": "filters:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 110,
+          "end": 110,
+          "text": "  Open security: #security state:proposed\r\n"
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  core: default\r\n  security: red\r\n  ux: green\r\ncollapsed:\r\n  t3: yes\r\nfilters:\r\n  Open security: #security state:proposed\r\n"
+    },
+    {
+      "doc": "The user folds task t1: collapsed is ordinal, so t1 goes before t3 (FBL 8.4). The write is outside the history (FBL 7.1): it is applied at once and is no step of the history, so the undo that follows passes it by.",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "t1",
+          "value": "yes"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 99,
+          "end": 99,
+          "text": "  t1: yes\r\n"
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  core: default\r\n  security: red\r\n  ux: green\r\ncollapsed:\r\n  t1: yes\r\n  t3: yes\r\nfilters:\r\n  Open security: #security state:proposed\r\n"
+    },
+    {
+      "doc": "Undo undoes the edit before the fold, the first saved filter, not the fold (FBL 7.1, 15.3): its inverse splices remove filters: and its entry, at offsets moved by the 11 bytes the fold of t1 added before them, and t1: yes stays.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 121,
+          "end": 131,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 131,
+          "end": 174,
+          "text": ""
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  core: default\r\n  security: red\r\n  ux: green\r\ncollapsed:\r\n  t1: yes\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "The user folds task t2: collapsed is ordinal, so t2 goes between t1 and t3. A write outside the history leaves the redo stack as it is (FBL 7.1), so the undone filter can still be redone.",
+      "edit": {
+        "setting": {
+          "block": "collapsed",
+          "key": "t2",
+          "value": "yes"
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 110,
+          "end": 110,
+          "text": "  t2: yes\r\n"
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  core: default\r\n  security: red\r\n  ux: green\r\ncollapsed:\r\n  t1: yes\r\n  t2: yes\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "Redo makes the undone filters edit again: filters: and its entry, at the end of the registration, at offsets moved by the 22 bytes the two folds added before them.",
+      "redo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 132,
+          "end": 132,
+          "text": "filters:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 132,
+          "end": 132,
+          "text": "  Open security: #security state:proposed\r\n"
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  core: default\r\n  security: red\r\n  ux: green\r\ncollapsed:\r\n  t1: yes\r\n  t2: yes\r\n  t3: yes\r\nfilters:\r\n  Open security: #security state:proposed\r\n"
+    },
+    {
+      "doc": "A value that holds ': ' is refused and nothing is written (FBL 8.1, 8.4): the key of an entry is everything before the last ': ' of its line, so legal: see: policy would read as the key 'legal: see' with the value 'policy'.",
+      "edit": {
+        "setting": {
+          "block": "tags",
+          "key": "legal",
+          "value": "see: policy"
+        }
+      },
+      "refused": "A setting's value cannot hold ': '.",
+      "splices": []
+    },
+    {
+      "doc": "Undo the redone filters edit: filters: and its entry go again. Each inverse splice is listed under the operation of the splice it inverts (FBL 15.3).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 132,
+          "end": 142,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 142,
+          "end": 185,
+          "text": ""
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  core: default\r\n  security: red\r\n  ux: green\r\ncollapsed:\r\n  t1: yes\r\n  t2: yes\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "Undo the move: core goes back after ux, its copy before security is removed.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 57,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 87,
+          "end": 87,
+          "text": "  core: default\r\n"
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  security: red\r\n  ux: green\r\n  core: default\r\ncollapsed:\r\n  t1: yes\r\n  t2: yes\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "Undo the insert at index 1: ux goes.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 57,
+          "end": 70,
+          "text": ""
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  security: red\r\n  core: default\r\ncollapsed:\r\n  t1: yes\r\n  t2: yes\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "Undo the insert after the last entry: core goes.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 57,
+          "end": 74,
+          "text": ""
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ntags:\r\n  security: red\r\ncollapsed:\r\n  t1: yes\r\n  t2: yes\r\n  t3: yes\r\n"
+    },
+    {
+      "doc": "Undo the first tags setting: tags: goes with its entry. The folds of t1, t2 and t3 stay, since they were never steps of the history, and so does the pruning of t9: the registration ends as the input with collapsed: holding t1, t2 and t3.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 33,
+          "end": 40,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 40,
+          "end": 57,
+          "text": ""
+        }
+      ],
+      "expect": "example/tasks\r\nbody: week.tasks\r\ncollapsed:\r\n  t1: yes\r\n  t2: yes\r\n  t3: yes\r\n"
+    }
+  ]
+}

@@ -1,0 +1,512 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.5",
+  "language": {
+    "id": "org.example.c4.container",
+    "version": "0.1.0",
+    "origin": "c4/container",
+    "label": "C4 container diagram",
+    "doc": {
+      "summary": "A trimmed excerpt of the C4 container diagram definition (definitions/diagrams/c4-container.dis), used to show DISL 0.2 constructs.",
+      "description": "The containers of one software system, the people who use it and the systems around it. The excerpt keeps the element hierarchy, the stored relationship, their card notation, a small toolbox, the property grid and some of the C4 rules; components, deployment, the Structurizr workspace format and the plugins of the full definition are left out. It shows view membership, relationships lifted to what is drawn and merged, a legend computed from what is drawn, a header band, read-only reasons, drops onto the parent kind, whole-model and per-view rules, and natural, case-insensitive and ephemeral ids."
+    }
+  },
+
+  "functions": {
+    "inView": {
+      "params": [{ "name": "e", "type": "Element" }],
+      "returns": "bool",
+      "uses": ["diagram"],
+      "cel": "diagram.includes.exists(i, i == '*' || matchesGlob(e.id, i)) && !diagram.excludes.exists(x, matchesGlob(e.id, x))",
+      "doc": "Whether the view's include and exclude lists select `e`; `*` selects every element of a permitted kind."
+    },
+    "liftTo": {
+      "params": [{ "name": "e", "type": "Element" }],
+      "returns": "Element",
+      "uses": ["diagram"],
+      "cel": "([e] + e.ancestors()).filter(a, inView(a)).first().orValue(null)",
+      "doc": "The element `e` is drawn as on this view: itself when the view selects it, else its nearest selected ancestor (`ancestors()` lists the parent first), else null."
+    }
+  },
+
+  "metamodel": {
+    "diagram": {
+      "attributes": {
+        "viewKey": { "type": "string", "label": "View key", "required": true, "readOnly": true, "default": "container", "order": 1 },
+        "title": { "type": "string", "order": 2, "doc": "The title the view declares with a `title` line." },
+        "heading": {
+          "type": "string",
+          "order": 3,
+          "derived": "self.title != '' ? self.title : 'Container diagram for ' + (self.scope != null ? self.scope.name : '')",
+          "doc": "The title drawn above the diagram: the declared title, or one derived from the diagram type and its scope."
+        },
+        "scope": { "type": "SoftwareSystem", "required": true, "order": 4, "doc": "The software system whose containers the diagram shows." },
+        "includes": { "type": "string", "many": true, "readOnly": true, "order": 10, "group": "View", "doc": "The view's `include` expressions: element identifiers, or `*`." },
+        "excludes": { "type": "string", "many": true, "readOnly": true, "order": 11, "group": "View", "doc": "The view's `exclude` identifiers." }
+      }
+    },
+    "types": {
+      "Element": {
+        "abstract": true,
+        "attributes": {
+          "tags": {
+            "type": "string",
+            "many": true,
+            "readOnly": true,
+            "order": 4,
+            "readOnlyReasons": [ "Tags are edited in the DSL document until an action exists for them." ],
+            "emptyText": "No tags"
+          },
+          "external": {
+            "type": "bool",
+            "label": "External",
+            "derived": "self.tags.exists(t, t.lowerAscii() == 'external' || t.lowerAscii() == 'existing system')"
+          },
+          "kindTag": {
+            "type": "string",
+            "derived": "self.isA('Person') ? 'Person' : (self.isA('SoftwareSystem') ? 'Software System' : 'Container')",
+            "doc": "The kind a legend entry names."
+          },
+          "identified": {
+            "type": "bool",
+            "readOnly": true,
+            "default": true,
+            "doc": "Whether the DSL declares the element as `identifier = ...`. An element declared without one gets `<kind>_<name>_<n>`, counted in document order."
+          }
+        }
+      },
+      "NamedElement": {
+        "abstract": true,
+        "extends": "Element",
+        "attributes": {
+          "name": { "type": "string", "required": true, "key": true, "order": 1 },
+          "description": {
+            "type": "text",
+            "order": 2,
+            "absentText": "No description yet. C4 asks for a short description on every element.",
+            "emptyText": "The description is empty."
+          }
+        },
+        "labelAttribute": "name"
+      },
+      "Person": {
+        "extends": "NamedElement",
+        "doc": "A user of the software system."
+      },
+      "SoftwareSystem": {
+        "extends": "NamedElement",
+        "label": "Software system",
+        "children": { "allowed": ["Container"] }
+      },
+      "Container": {
+        "extends": "NamedElement",
+        "doc": "A separately runnable or deployable unit: an application, a service or a data store.",
+        "attributes": {
+          "technology": { "type": "string", "order": 3, "absentText": "No technology named" }
+        }
+      }
+    },
+    "relations": {
+      "Relationship": {
+        "doc": "A relationship as the DSL states it, between any two elements. Excluded from the viewpoint: the line drawn is the derived DrawnRelationship.",
+        "source": "Element",
+        "target": "Element",
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": true,
+        "attributes": {
+          "description": { "type": "string", "order": 1 },
+          "technology": { "type": "string", "order": 2 }
+        }
+      },
+      "DrawnRelationship": {
+        "label": "Relationship",
+        "source": "Element",
+        "target": "Element",
+        "directed": true,
+        "allowSelfLoops": false,
+        "attributes": {
+          "description": { "type": "string" },
+          "technology": { "type": "string" },
+          "merged": { "type": "int", "doc": "How many stated relationships this line stands for." }
+        },
+        "derived": {
+          "from": "diagram.relationsOfType('Relationship').filter(r, liftTo(r.source) != null && liftTo(r.target) != null && liftTo(r.source) != liftTo(r.target))",
+          "key": "[liftTo(item.source).id, liftTo(item.target).id]",
+          "id": "'rel:' + liftTo(item.source).id + '->' + liftTo(item.target).id",
+          "source": "liftTo(item.source)",
+          "target": "liftTo(item.target)",
+          "owner": "liftTo(item.source).parent != null && liftTo(item.source).parent == liftTo(item.target).parent ? liftTo(item.source).parent : null",
+          "attributes": {
+            "description": "group[0].description",
+            "technology": "group[0].technology",
+            "merged": "group.size()"
+          },
+          "sources": "group",
+          "reason": "This line is drawn from the relationships the DSL states between these elements or what they contain. Edit its description here, or the relationships in the DSL.",
+          "edits": { "attribute:description": "describeRelationship" },
+          "doc": "Relationships lifted to the nearest drawn ancestor of each end and merged: several relationships collapsing onto one pair draw one line, carrying the first one's label (c4-container.md, Drawing). A line between two containers of one system belongs to that system (`owner`), a stand-in for sparql-query's edges owned by a scope."
+        }
+      }
+    }
+  },
+
+  "notation": {
+    "theme": {
+      "tokens": {
+        "color.person": "#08427b",
+        "color.softwareSystem": "#1168bd",
+        "color.container": "#438dd5",
+        "color.external": "#999999",
+        "color.onDark": "#ffffff",
+        "color.line": "#8A8880",
+        "color.muted": "#6B6A65",
+        "color.canvas": "#FFFFFF",
+        "font.body": "system-ui, sans-serif"
+      },
+      "modes": {
+        "dark": {
+          "color.line": "#B4B2A9",
+          "color.muted": "#A9A79E",
+          "color.canvas": "#1F1E1C"
+        }
+      },
+      "defaultMode": "light",
+      "followSystem": true
+    },
+    "styles": {
+      "card": {
+        "stroke": { "color": "none", "width": 0 },
+        "font": { "family": { "token": "font.body" }, "size": 14, "lineHeight": 1.4, "color": { "token": "color.onDark" } },
+        "padding": [10, 12],
+        "textAlign": "center"
+      },
+      "person": { "extends": "card", "fill": { "token": "color.person" } },
+      "softwareSystem": { "extends": "card", "fill": { "token": "color.softwareSystem" } },
+      "container": { "extends": "card", "fill": { "token": "color.container" } },
+      "external": { "fill": { "token": "color.external" } },
+      "cardName": { "font": { "size": 13, "weight": 600 } },
+      "cardType": { "font": { "size": 10 }, "opacity": 0.9 },
+      "relationshipLabel": { "font": { "size": 10, "color": { "token": "color.muted" } } },
+      "diagramTitle": { "font": { "family": { "token": "font.body" }, "size": 18, "weight": 600 } },
+      "headerMuted": { "font": { "family": { "token": "font.body" }, "size": 11, "color": { "token": "color.muted" } } }
+    },
+    "nodes": {
+      "Person": {
+        "shape": "person",
+        "style": "person",
+        "size": { "min": [160, 39.6], "max": [240, null], "autoSize": "fitContent", "resizable": false },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "position": "center", "style": "cardName" },
+          { "id": "type", "text": { "cel": "'[Person]'" }, "position": "bottom", "style": "cardType" }
+        ],
+        "conditions": [ { "when": "self.external", "style": "external" } ]
+      },
+      "SoftwareSystem": {
+        "shape": { "type": "roundedRect", "params": { "radius": 8 } },
+        "style": "softwareSystem",
+        "size": { "min": [160, 39.6], "max": [240, null], "autoSize": "fitContent", "resizable": false },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "position": "center", "style": "cardName" },
+          { "id": "type", "text": { "cel": "'[Software System]'" }, "position": "bottom", "style": "cardType" }
+        ],
+        "conditions": [ { "when": "self.external", "style": "external" } ]
+      },
+      "Container": {
+        "shape": { "type": "roundedRect", "params": { "radius": 8 } },
+        "style": "container",
+        "size": { "min": [160, 39.6], "max": [240, null], "autoSize": "fitContent", "resizable": false },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "position": "center", "style": "cardName" },
+          { "id": "type", "text": { "cel": "has(self.technology) && self.technology != '' ? '[Container: ' + self.technology + ']' : '[Container]'" }, "position": "bottom", "style": "cardType" }
+        ],
+        "tooltip": { "cel": "self.parent != null && !self.parent.drawn() ? self.description + ' (part of ' + self.parent.name + ', which this view does not draw)' : self.description" },
+        "conditions": [ { "when": "self.external", "style": "external" } ]
+      }
+    },
+    "edges": {
+      "DrawnRelationship": {
+        "line": {
+          "stroke": { "color": { "token": "color.line" }, "width": 1.5, "dash": [6, 4], "dashScale": "absolute" },
+          "routing": "straight"
+        },
+        "sourceMarker": "none",
+        "targetMarker": "arrowFilled",
+        "labels": [
+          {
+            "id": "label",
+            "at": "middle",
+            "text": { "cel": "self.description + (self.technology != '' ? ' [' + self.technology + ']' : '') + (self.merged > 1 ? ' (+' + string(self.merged - 1) + ')' : '')" },
+            "style": "relationshipLabel",
+            "wrap": "none"
+          }
+        ],
+        "conditions": [
+          { "when": "self.owner.kind != 'diagram'", "style": { "stroke": { "color": { "token": "color.muted" } } } }
+        ],
+        "deletable": false,
+        "reconnectable": false
+      }
+    },
+    "canvas": {
+      "background": { "token": "color.canvas" },
+      "title": { "id": "heading", "text": { "attribute": "heading" }, "style": "diagramTitle", "editable": false },
+      "header": {
+        "rows": [
+          { "id": "summary", "text": { "cel": "'Scope: ' + (diagram.scope != null ? diagram.scope.name : '') + ' · ' + string(diagram.drawn.size()) + ' elements drawn'" }, "style": "headerMuted" }
+        ],
+        "doc": "A band above the drawing surface: the heading C4 asks every diagram to have, under the title: the scope and how much is drawn. A stand-in for sparql-query's header band of form line and modifiers."
+      },
+      "legend": {
+        "visible": true,
+        "position": "outside-bottom",
+        "title": "Key",
+        "from": "drawn",
+        "computed": {
+          "key": "self.kindTag + (self.external ? ' (external)' : '')",
+          "label": { "cel": "self.kindTag + (self.external ? ' (external)' : '')" },
+          "swatch": {
+            "shape": { "type": "roundedRect", "params": { "radius": 4 } },
+            "fill": { "cel": "cel.bind(bg, self.isA('Person') ? token('color.person') : (self.isA('SoftwareSystem') ? token('color.softwareSystem') : token('color.container')), self.external ? color(token('color.external')).mix(bg, 0.15) : bg)" }
+          },
+          "doc": "One entry per distinct kind tag drawn, `(external)` appended where it applies, each with a swatch in its background colour (c4-container.md, Legend). An external swatch mixes 15 % of the kind's colour into grey, CSS `color-mix` in sRGB (a stand-in for ansible-structure's and helm-chart's mixed fills)."
+        }
+      }
+    }
+  },
+
+  "toolbox": {
+    "generic": { "select": true, "pan": true },
+    "groups": [
+      {
+        "id": "elements",
+        "label": "C4 container diagram",
+        "tools": [
+          { "id": "person", "creates": "Person", "label": "Person" },
+          { "id": "softwareSystem", "creates": "SoftwareSystem", "label": "Software System" },
+          {
+            "id": "container",
+            "creates": "Container",
+            "label": "Container",
+            "mode": "drop",
+            "initial": { "technology": "'Technology'" },
+            "drop": {
+              "targets": [ { "on": ["SoftwareSystem"], "kind": "create-child", "creates": "Container" } ],
+              "elsewhere": "refuse",
+              "refusal": { "cel": "dropTarget == null ? 'A container lives inside a software system. Drop it on one.' : 'A container lives inside a software system, not inside a ' + dropTarget.type + '.'" }
+            },
+            "doc": "An application or a data store - not a Docker container. Dropped on the software system it belongs to."
+          },
+          { "id": "relationship", "creates": "Relationship", "label": "Relationship" }
+        ]
+      }
+    ],
+    "contextTools": [
+      {
+        "for": ["NamedElement"],
+        "placement": "menu",
+        "tools": [
+          { "kind": "editLabel", "label": "Rename…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
+          { "kind": "operation", "operation": "editDescription", "icon": "mdi:text-box-outline" }
+        ]
+      },
+      {
+        "for": ["SoftwareSystem"],
+        "placement": "menu",
+        "tools": [
+          { "kind": "create-child", "creates": "Container", "label": "Add Container" }
+        ]
+      }
+    ]
+  },
+
+  "forms": {
+    "elementInspector": {
+      "for": ["NamedElement"],
+      "usage": ["inspector"],
+      "commit": "onBlur",
+      "items": [
+        { "attribute": "name", "widget": "text" },
+        { "attribute": "description", "widget": "textarea", "rows": 3, "emptyText": "Empty - C4 asks for a short description." },
+        { "attribute": "technology", "widget": "text", "visible": "self.isA('Container')", "showAbsent": true, "absentText": "No technology named - add one to show where the boundary really is." },
+        { "attribute": "tags", "widget": "tags", "readOnly": true, "readOnlyReasons": [ "Tags are edited in the DSL document until an action exists for them." ], "emptyText": "No tags" },
+        {
+          "kind": "section",
+          "title": "Model",
+          "items": [
+            {
+              "kind": "computed",
+              "label": "Kind",
+              "value": { "cel": "self.type" },
+              "readOnly": true,
+              "readOnlyReasons": [ "Changing this changes the shape of the model rather than a value, so it is done from the diagram rather than here." ]
+            },
+            {
+              "kind": "computed",
+              "label": "Identifier",
+              "value": { "cel": "self.id" },
+              "readOnly": true,
+              "readOnlyReasons": [
+                { "when": "!self.identified", "message": "The DSL declares this element without an identifier, so its id is counted from the elements above it. Write `identifier = ...` in the DSL to give it one." },
+                "Changing this changes the shape of the model rather than a value, so it is done from the diagram rather than here."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "constraints": {
+    "defaults": { "severity": "warning", "timing": ["live", "save"] },
+    "blockSaveOn": "never",
+    "rules": [
+      {
+        "id": "missingDescription",
+        "code": "c4.missing-description",
+        "label": "Missing description",
+        "scope": ["Person", "SoftwareSystem", "Container"],
+        "rule": "self.description.trim() != ''",
+        "severity": "warning",
+        "message": { "cel": "\"'\" + (self.name != '' ? self.name : self.id) + \"' has no description. C4 asks for a short description on every element, so a reader can tell at a glance what it is responsible for.\"" },
+        "tags": ["structurizr:model.person.description", "structurizr:model.softwaresystem.description", "structurizr:model.container.description"],
+        "attribute": "description"
+      },
+      {
+        "id": "disconnectedElement",
+        "code": "c4.disconnected-element",
+        "label": "Disconnected element",
+        "over": "model",
+        "scope": ["Person", "SoftwareSystem", "Container"],
+        "when": "diagram.views.size() > 0",
+        "rule": "diagram.relationsOfType('Relationship').exists(r, (r.source.id == self.id || r.source.ancestors().exists(a, a.id == self.id)) != (r.target.id == self.id || r.target.ancestors().exists(a, a.id == self.id)))",
+        "severity": "warning",
+        "message": { "cel": "\"'\" + (self.name != '' ? self.name : self.id) + \"' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over.\"" },
+        "tags": ["structurizr:model.element.disconnected"],
+        "doc": "A whole-model rule: evaluated once however many views or readings of the workspace are open, and silent while the model declares no views."
+      },
+      {
+        "id": "elementNotOnAnyView",
+        "code": "c4.element-not-on-any-view",
+        "label": "Element not on any view",
+        "over": "model",
+        "scope": ["Person", "SoftwareSystem", "Container"],
+        "when": "diagram.views.size() > 0",
+        "rule": "diagram.views.exists(v, v.members.exists(m, m.id == self.id))",
+        "severity": "warning",
+        "message": { "cel": "\"'\" + self.name + \"' is on no view.\"" },
+        "tags": ["structurizr:model.element.noview"],
+        "doc": "Needs every view's membership, which c4-container.md says 0.1 could not state."
+      },
+      {
+        "id": "emptyView",
+        "code": "c4.empty-view",
+        "label": "Empty view",
+        "over": "view",
+        "scope": "diagram",
+        "rule": "view.members.exists(m, m.isA('Person') || m.isA('SoftwareSystem') || m.isA('Container'))",
+        "severity": "warning",
+        "message": { "cel": "\"The '\" + view.name + \"' view is empty.\"" },
+        "doc": "Evaluated once per view; each finding carries that view's id."
+      },
+      {
+        "id": "misplacedContainer",
+        "code": "c4.misplaced-element",
+        "label": "Misplaced container",
+        "scope": ["Container"],
+        "rule": "self.parent != null && self.parent.isA('SoftwareSystem')",
+        "severity": "warning",
+        "message": { "cel": "self.parent == null ? \"'\" + (self.name != '' ? self.name : self.id) + \"' is a container declared outside any software system. In C4 a container is part of a software system.\" : \"'\" + (self.name != '' ? self.name : self.id) + \"' is a container inside a \" + self.parent.type + \". In C4 a container is part of a software system.\"" }
+      },
+      {
+        "id": "unlabelledRelationship",
+        "code": "c4.unlabelled-relationship",
+        "label": "Unlabelled relationship",
+        "scope": "Relationship",
+        "rule": "self.description.trim() != ''",
+        "severity": "warning",
+        "message": { "cel": "\"The relationship from '\" + (self.source.name != '' ? self.source.name : self.source.id) + \"' to '\" + (self.target.name != '' ? self.target.name : self.target.id) + \"' has no label. C4 asks what the relationship is for, in the direction of the arrow.\"" },
+        "location": "self.location('description').orValue(self.location().orValue(null))",
+        "attribute": "description"
+      },
+      {
+        "id": "containerNeedsSystem",
+        "code": "c4.placement",
+        "kind": "create",
+        "label": "A container lives inside a software system",
+        "when": "elementType == 'Container' && tool == 'container'",
+        "rule": "parent != null && parent.isA('SoftwareSystem')",
+        "message": { "cel": "dropTarget == null ? 'A container lives inside a software system. Drop it on one.' : 'A container lives inside a software system, not inside a ' + dropTarget.type + '.'" },
+        "enforcement": "prevent",
+        "severity": "error",
+        "doc": "The refusal names the kind under the drop (`dropTarget`), which may differ from `parent` when what lies under the pointer is not a container."
+      },
+      {
+        "id": "dragDoesNotReparent",
+        "code": "c4.placement",
+        "kind": "placement",
+        "label": "Dragging does not change containment",
+        "when": "gesture == 'move'",
+        "rule": "newParent == self.parent",
+        "message": "Dragging changes where an element is drawn, not what contains it.",
+        "enforcement": "prevent",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "behavior": {
+    "operations": {
+      "editDescription": {
+        "label": { "cel": "has(self.description) && self.description != '' ? 'Edit description…' : 'Add description…'" },
+        "for": ["NamedElement"],
+        "params": { "description": { "type": "text", "label": "Description" } },
+        "actions": [ { "set": { "description": "p.description" } } ]
+      },
+      "describeRelationship": {
+        "label": "Edit description…",
+        "for": ["DrawnRelationship"],
+        "params": { "description": { "type": "string", "label": "Description" } },
+        "actions": [ { "set": { "description": "p.description" }, "target": "self.sources[0]" } ],
+        "doc": "Writes the description of the first stated relationship a drawn line stands for; the line then follows from recomputation."
+      }
+    }
+  },
+
+  "persistence": {
+    "ids": {
+      "strategy": "natural",
+      "stable": true,
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "suffix": "{n}",
+      "compare": "ignore-case",
+      "types": {
+        "NamedElement": {
+          "strategy": "natural",
+          "ephemeral": { "cel": "!self.identified" },
+          "reason": "This element has no identifier in the DSL, so its id is counted from the elements above it and would not survive an edit there. Give it an identifier in the DSL to position it."
+        },
+        "Relationship": {
+          "strategy": "derived",
+          "expression": "self.source.id + '->' + self.target.id + '@' + string(self.location().orValue({'line': 0}).line)",
+          "ephemeral": true,
+          "pattern": "^.+$",
+          "doc": "A relationship has no DSL identifier; its id is `source->destination@line`, which changes whenever lines above it are inserted or removed."
+        }
+      },
+      "doc": "Structurizr DSL identifiers, compared case-insensitively. A new element's identifier is its name's letters and digits with the first letter lowered, numbered `web`, `web2`, `web3` against clashes."
+    },
+    "view": { "store": ["bounds"], "styleOverrides": "none" }
+  },
+
+  "viewpoints": {
+    "container": {
+      "label": "Container view",
+      "include": ["Person", "SoftwareSystem", "Container", "DrawnRelationship"],
+      "exclude": ["Relationship"],
+      "members": "inView(self)",
+      "default": true,
+      "doc": "A Container view shows people, software systems and containers the view's include and exclude lists select; every line drawn is a lifted DrawnRelationship."
+    }
+  }
+}

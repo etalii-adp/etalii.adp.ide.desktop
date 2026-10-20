@@ -1,0 +1,111 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.1",
+  "doc": "A Structurizr DSL workspace (definitions/diagrams/c4-*.dis, c4-container.md): the blocks family, and one binding shared by six readings. Every C4 specification names 'structurizr.fbl#workspace' as its binding, so a host opens one model and one history per .dsl file however many C4 views of it are open (section 9). Which elements a view shows, and relationships lifted to the nearest drawn ancestor, are the viewpoint's and DISL's; this binding says only how the model is read and written. !include, !script and other directives are unbound statements: kept byte for byte, never followed.",
+  "bindings": {
+    "workspace": {
+      "title": "Structurizr DSL workspace",
+      "claims": {
+        "extensions": [".dsl"],
+        "origins": ["c4/context", "c4/container", "c4/component", "c4/deployment", "c4/dynamic", "c4/system-landscape"]
+      },
+      "body": { "kind": "file", "family": "blocks" },
+      "comment": "^\\s*(#|//)",
+      "reader": "declared",
+      "text": { "newline": "lf", "indent": 4, "finalNewline": true },
+      "registration": {
+        "legacyLayout": "{base}.layout.json",
+        "createOnFirstPlacement": true
+      },
+      "blocks": [
+        { "name": "workspace", "line": "^workspace(?:\\s+\"[^\"]*\")*\\s*\\{\\s*$", "within": ["^"], "caseInsensitive": true },
+        { "name": "model", "line": "^model\\s*\\{\\s*$", "within": ["workspace"], "caseInsensitive": true },
+        { "name": "group", "line": "^group\\s+\"[^\"]*\"\\s*\\{\\s*$", "within": ["model", "group", "softwareSystem", "container"], "caseInsensitive": true },
+        { "name": "views", "line": "^views\\s*\\{\\s*$", "within": ["workspace"], "caseInsensitive": true },
+        {
+          "name": "view",
+          "line": "^(?:systemContext|container|component|deployment|dynamic|systemLandscape)(?:\\s+(?:\\*|[A-Za-z_][A-Za-z0-9_]*))*(?:\\s+\"(?<environment>[^\"]*)\")?\\s+\"(?<key>[^\"]*)\"\\s*\\{\\s*$",
+          "within": ["views"],
+          "caseInsensitive": true,
+          "view": "key"
+        }
+      ],
+      "elements": [
+        {
+          "name": "person",
+          "type": "Person",
+          "line": "^(?:(?<id>[A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*)?person\\s+\"(?<name>[^\"]*)\"(?:\\s+\"(?<description>[^\"]*)\")?(?:\\s+\"(?<tags>[^\"]*)\")?\\s*(?:\\{\\s*)?$",
+          "within": ["model", "group"],
+          "opens": true,
+          "caseInsensitive": true,
+          "id": { "from": { "group": "id" } },
+          "attributes": {
+            "name": { "group": "name", "empty": "refuse" },
+            "description": { "group": "description", "empty": "keep" },
+            "tags": { "group": "tags", "empty": "keep" }
+          },
+          "insert": { "place": "after-last", "container": "model", "emit": "{id} = person \"{name}\" \"{description}\"" },
+          "remove": { "cascade": ["relationship"] }
+        },
+        {
+          "name": "softwareSystem",
+          "type": "SoftwareSystem",
+          "line": "^(?:(?<id>[A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*)?softwareSystem\\s+\"(?<name>[^\"]*)\"(?:\\s+\"(?<description>[^\"]*)\")?(?:\\s+\"(?<tags>[^\"]*)\")?\\s*(?:\\{\\s*)?$",
+          "within": ["model", "group"],
+          "opens": true,
+          "caseInsensitive": true,
+          "id": { "from": { "group": "id" } },
+          "attributes": {
+            "name": { "group": "name", "empty": "refuse" },
+            "description": { "group": "description", "empty": "keep" },
+            "tags": { "group": "tags", "empty": "keep" }
+          },
+          "insert": { "place": "after-last", "container": "model", "emit": "{id} = softwareSystem \"{name}\" \"{description}\"" },
+          "remove": { "cascade": ["container", "relationship"] }
+        },
+        {
+          "name": "container",
+          "type": "Container",
+          "line": "^(?:(?<id>[A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*)?container\\s+\"(?<name>[^\"]*)\"(?:\\s+\"(?<description>[^\"]*)\")?(?:\\s+\"(?<technology>[^\"]*)\")?(?:\\s+\"(?<tags>[^\"]*)\")?\\s*(?:\\{\\s*)?$",
+          "within": ["softwareSystem", "group"],
+          "opens": true,
+          "caseInsensitive": true,
+          "parent": { "rules": ["softwareSystem"], "slot": "containers" },
+          "id": { "from": { "group": "id" } },
+          "attributes": {
+            "name": { "group": "name", "empty": "refuse" },
+            "description": { "group": "description", "empty": "keep" },
+            "technology": { "group": "technology", "empty": "keep" },
+            "tags": { "group": "tags", "empty": "keep" }
+          },
+          "insert": { "place": "last-child", "emit": "{id} = container \"{name}\" \"{description}\" \"{technology}\"" },
+          "remove": { "cascade": ["relationship"] }
+        }
+      ],
+      "relations": [
+        {
+          "name": "relationship",
+          "type": "Relationship",
+          "line": "^(?<source>[A-Za-z_][A-Za-z0-9_]*)\\s*->\\s*(?<destination>[A-Za-z_][A-Za-z0-9_]*)(?:\\s+\"(?<description>[^\"]*)\")?(?:\\s+\"(?<technology>[^\"]*)\")?(?:\\s+\"(?<tags>[^\"]*)\")?\\s*$",
+          "within": ["model", "group", "softwareSystem", "container"],
+          "source": { "group": "source" },
+          "target": { "group": "destination" },
+          "attributes": {
+            "description": { "group": "description", "empty": "keep" },
+            "technology": { "group": "technology", "empty": "keep" },
+            "tags": { "group": "tags", "empty": "keep" }
+          },
+          "insert": { "place": "end", "container": "model", "emit": "{source} -> {target} \"{description}\"[ \"{technology}\"]" },
+          "remove": {}
+        }
+      ],
+      "template": {
+        "text": "workspace \"{base}\" {\n    model {\n        {key} = softwareSystem \"{base}\" \"Describe {base}.\"\n    }\n    views {\n        container {key} \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n",
+        "byOrigin": {
+          "c4/context": "workspace \"{base}\" {\n    model {\n        {key} = softwareSystem \"{base}\" \"Describe {base}.\"\n    }\n    views {\n        systemContext {key} \"context\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n",
+          "c4/system-landscape": "workspace \"{base}\" {\n    model {\n        {key} = softwareSystem \"{base}\" \"Describe {base}.\"\n    }\n    views {\n        systemLandscape \"landscape\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
+        }
+      }
+    }
+  }
+}

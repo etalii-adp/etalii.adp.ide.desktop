@@ -1,0 +1,2656 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json",
+  "title": "FBL 0.2 (draft) — Format Binding Language",
+  "description": "FBL documents ($defs/Document), written by tool engineers, declare how a format maps to a language's model in both directions. The schema also describes the parsed form of an .adp registration ($defs/Registration) and round-trip fixtures ($defs/Fixture). It references DISL's Doc, LocalizedText, Expression and TypeRef.",
+  "$ref": "#/$defs/Document",
+  "$defs": {
+    "Name": {
+      "description": "The name of a binding or of a rule: a letter or underscore, then letters, digits, underscores, dots or hyphens. Rule names are unique within their binding. See section 2.2.",
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$"
+    },
+    "BindingRef": {
+      "description": "A reference to a binding: a URI reference to an FBL document followed by '#' and the binding's name, such as 'structurizr.fbl#workspace', or '#name' for a binding in the same document. See section 2.3.",
+      "type": "string",
+      "pattern": "^[^#]*#[A-Za-z_][A-Za-z0-9_.-]*$"
+    },
+    "Regex": {
+      "description": "A regular expression in the subset of RE2 syntax that RE2, .NET, Java and JavaScript read alike: no backreferences and no lookaround; named groups are written (?<name>...). See section 2.5.",
+      "type": "string"
+    },
+    "Selector": {
+      "description": "A path to entries in a tree family's lossless reading: segments separated by '/', each a key, '*' (any member or item), '**' (any depth) or '{capture}' (any key, bound to the capture's name in CEL as path.capture). An absolute selector starts with '/'; a relative one is resolved against the enclosing entry. In the xml family a segment is an element name, optionally with one attribute test [@NAME='value']. See section 4.2.",
+      "type": "string",
+      "minLength": 1
+    },
+    "Document": {
+      "description": "An FBL document: one or more named bindings, each describing how one format maps to a language's model in both directions. The root of every *.fbl file. See section 2.1.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "fbl": {
+          "description": "The FBL version the document is written in: 0.1, 0.2, 0.3, 0.4, 0.5, or 0.6 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. See FBL 0.7, section 2.7.",
+          "enum": [
+            "0.1",
+            "0.2",
+            "0.3",
+            "0.4",
+            "0.5",
+            "0.6",
+            "0.7"
+          ]
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "bindings": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/Name"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Binding"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "fbl",
+        "bindings"
+      ]
+    },
+    "Binding": {
+      "description": "How one format maps to a language's model: the files it claims, its body (a file of one family, or a folder), its reader (declared rules or a persistence plugin), the rules for elements and relations, registration settings and the template of a new body. See section 3.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "claims": {
+          "$ref": "#/$defs/Claims"
+        },
+        "body": {
+          "$ref": "#/$defs/Body"
+        },
+        "reader": {
+          "description": "'declared' when the rules of this binding read and write the body, or the persistence plugin that does (section 11).",
+          "anyOf": [
+            {
+              "const": "declared"
+            },
+            {
+              "$ref": "#/$defs/PluginReader"
+            }
+          ]
+        },
+        "readOnly": {
+          "description": "true, or the sentence a host shows as the reason.",
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/LocalizedText"
+            }
+          ]
+        },
+        "text": {
+          "$ref": "#/$defs/TextDefaults"
+        },
+        "header": {
+          "$ref": "#/$defs/Header"
+        },
+        "comment": {
+          "description": "lines, blocks: a line that matches is a comment, owned by the statement right below it.",
+          "$ref": "#/$defs/Regex"
+        },
+        "unmatched": {
+          "description": "lines, blocks, bullets: a statement no rule matches is kept ('keep', the default) or also reported as fbl.unbound-statement ('report').",
+          "enum": [
+            "keep",
+            "report"
+          ]
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BlockRule"
+          }
+        },
+        "sections": {
+          "description": "(FBL 0.7) bullets: the headings whose list items the rules read (section 4.8).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SectionRule"
+          }
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ElementRule"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RelationRule"
+          }
+        },
+        "registration": {
+          "$ref": "#/$defs/RegistrationSettings"
+        },
+        "template": {
+          "$ref": "#/$defs/Template"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "claims",
+        "body",
+        "reader"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "reader": {
+                "const": "declared"
+              }
+            }
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "elements"
+                ]
+              },
+              {
+                "required": [
+                  "relations"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Claims": {
+      "description": "Which files a binding claims: by extension or name, whether the extension is shared with other formats, the opt-in marker a shared extension requires, what makes a host suggest this reading, and whether a bare file is ever claimed. See section 12.",
+      "type": "object",
+      "properties": {
+        "extensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\.[a-z0-9.+-]+$"
+          }
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "shared": {
+          "type": "boolean"
+        },
+        "registrationOnly": {
+          "type": "boolean"
+        },
+        "marker": {
+          "$ref": "#/$defs/Marker"
+        },
+        "suggest": {
+          "description": "Substrings of a body's first 64 KiB that make a host propose this reading.",
+          "type": "object",
+          "properties": {
+            "contains": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "contains"
+          ]
+        },
+        "origins": {
+          "description": "The origins of the tool types that read bodies through this binding; a registration's first line names one of them.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "readings": {
+          "description": "For a binding several tool types share: per origin, whether a bare body opens as that reading ('bare', at most one) and what makes a host suggest it.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "One reading's routing.",
+            "type": "object",
+            "properties": {
+              "bare": {
+                "type": "boolean"
+              },
+              "suggest": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "contains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "patternProperties": {
+                  "^x-": true
+                },
+                "required": [
+                  "contains"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "shared": {
+                "const": true
+              }
+            },
+            "required": [
+              "shared"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "marker"
+                ]
+              },
+              {
+                "properties": {
+                  "registrationOnly": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "registrationOnly"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Marker": {
+      "description": "The opt-in marker that makes a file with a shared extension a body of this binding: a root key of a yaml or json body, a prefix of the first line, or a regular expression matched against the first lines. See section 12.2.",
+      "oneOf": [
+        {
+          "description": "A root key that must be present.",
+          "type": "object",
+          "properties": {
+            "rootKey": {
+              "type": "string"
+            },
+            "value": {}
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "rootKey"
+          ]
+        },
+        {
+          "description": "A prefix the first line (after a byte-order mark) must start with.",
+          "type": "object",
+          "properties": {
+            "firstLine": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "firstLine"
+          ]
+        },
+        {
+          "description": "A regular expression that must match one of the first lines.",
+          "type": "object",
+          "properties": {
+            "pattern": {
+              "$ref": "#/$defs/Regex"
+            },
+            "lines": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "pattern"
+          ]
+        }
+      ]
+    },
+    "Body": {
+      "description": "Where the model is stored: one file of a format family, or a folder. A folder is recognised by the files in it, read file by file, and watched. See sections 4 and 10.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "file",
+            "folder"
+          ]
+        },
+        "family": {
+          "$ref": "#/$defs/Family"
+        },
+        "alsoRead": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Family"
+          }
+        },
+        "recognise": {
+          "description": "Globs, relative to the folder, that must all, any or none be present.",
+          "type": "object",
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "any": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "none": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FileRule"
+          }
+        },
+        "ignore": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "settle": {
+          "description": "Milliseconds a watched folder must be quiet before it is read again. Default 400.",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "kind"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "folder"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "recognise"
+            ]
+          }
+        }
+      ]
+    },
+    "Family": {
+      "description": "A format family, each with a lossless reading FBL defines: yaml (YAML 1.2), json (RFC 8259), xml (XML 1.0), lines (one statement per line), blocks (statements nested in braces) and (FBL 0.7) bullets (list items nested by indentation under named headings). See section 4.",
+      "enum": [
+        "yaml",
+        "json",
+        "xml",
+        "lines",
+        "blocks",
+        "bullets"
+      ]
+    },
+    "FileRule": {
+      "description": "Which files of a folder subject are read, and by which family. Their entries are matched by the binding's rules whose 'files' name this rule, or handed to the plugin reader. See section 10.2.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "glob": {
+          "type": "string"
+        },
+        "family": {
+          "$ref": "#/$defs/Family"
+        },
+        "readOnly": {
+          "description": "true, or the sentence a host shows as the reason.",
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/LocalizedText"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "glob"
+      ]
+    },
+    "PluginReader": {
+      "description": "A persistence plugin that reads the body and plans splices for changes, under the contract of section 11. The plugin is declared in the DISL specification's plugins with provides persistenceFormat.",
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "args": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "plugin"
+      ]
+    },
+    "TextDefaults": {
+      "description": "Conventions for new text where the body offers no evidence: an empty or new body, or an insertion with no neighbour to copy. See section 6.3.",
+      "type": "object",
+      "properties": {
+        "newline": {
+          "enum": [
+            "lf",
+            "crlf"
+          ]
+        },
+        "indent": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "const": "tab"
+            }
+          ]
+        },
+        "sequenceIndent": {
+          "description": "yaml: whether a block sequence under a key is indented ('indented') or starts in the key's column ('flush').",
+          "enum": [
+            "indented",
+            "flush"
+          ]
+        },
+        "finalNewline": {
+          "type": "boolean"
+        },
+        "quote": {
+          "description": "yaml: the quoting used when a new scalar cannot be plain.",
+          "enum": [
+            "double",
+            "single"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "Header": {
+      "description": "A version or identity line or key the body starts with, such as 'timeline: 1' or 'causal-loop 1'. A body without it, or with another value, is read and the difference reported, unless 'required' makes it unreadable. See section 5.6.",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "line": {
+          "$ref": "#/$defs/Regex"
+        },
+        "value": {},
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "BlockRule": {
+      "description": "blocks: a statement that opens a { } block and produces no element, such as 'model {' or 'views {', so that element rules can say which blocks they may appear in. A block rule with 'view' names a view of the body by the value of that group, which a registration's view header selects. See section 4.7.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "line": {
+          "$ref": "#/$defs/Regex"
+        },
+        "within": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "caseInsensitive": {
+          "type": "boolean"
+        },
+        "view": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "name",
+        "line"
+      ]
+    },
+    "SectionRule": {
+      "description": "(FBL 0.7) bullets: a section of the body, the lines after the first heading whose text matches 'heading', up to the next heading with as many '#' or fewer. A rule's 'within' and an insert's 'container' name it. See section 4.8.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "heading": {
+          "$ref": "#/$defs/Regex"
+        },
+        "caseInsensitive": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "name",
+        "heading"
+      ]
+    },
+    "ElementRule": {
+      "description": "How entries of the body become elements of one node type, and how new, changed and removed elements are written back. A tree or xml rule selects entries with 'at'; a lines or blocks rule matches statements with 'line', and a bullets rule statements, or with 'within' the text of list items. See section 5.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "at": {
+          "$ref": "#/$defs/Selector"
+        },
+        "line": {
+          "$ref": "#/$defs/Regex"
+        },
+        "within": {
+          "description": "blocks: the rules whose block encloses the statement; '^' is the top level. (FBL 0.7) bullets: the sections whose list items the rule matches.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "opens": {
+          "description": "blocks: the statement may open a { } block.",
+          "type": "boolean"
+        },
+        "caseInsensitive": {
+          "description": "lines, blocks, bullets: match 'line' ignoring the case of ASCII letters.",
+          "type": "boolean"
+        },
+        "files": {
+          "description": "Folder subjects: the file rules whose files this rule reads.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "when": {
+          "$ref": "#/$defs/Expression"
+        },
+        "id": {
+          "$ref": "#/$defs/IdBinding"
+        },
+        "parent": {
+          "description": "Containment: the nearest enclosing entry matched by one of 'rules' is the parent, in DISL slot 'slot'.",
+          "type": "object",
+          "properties": {
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "slot": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "rules"
+          ]
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/AttributeBinding"
+          }
+        },
+        "insert": {
+          "$ref": "#/$defs/Insert"
+        },
+        "remove": {
+          "$ref": "#/$defs/Remove"
+        },
+        "undo": {
+          "enum": [
+            "inverse",
+            "snapshot"
+          ]
+        },
+        "readOnly": {
+          "description": "true, or the sentence a host shows as the reason.",
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/LocalizedText"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "at"
+          ]
+        },
+        {
+          "required": [
+            "line"
+          ]
+        }
+      ]
+    },
+    "RelationRule": {
+      "description": "How entries of the body become relations of one relation type: where the source and target references are, and how relations are written back. See section 5.4.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "at": {
+          "$ref": "#/$defs/Selector"
+        },
+        "line": {
+          "$ref": "#/$defs/Regex"
+        },
+        "within": {
+          "description": "blocks: the rules whose block encloses the statement; '^' is the top level. (FBL 0.7) bullets: the sections whose list items the rule matches.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "opens": {
+          "description": "blocks: the statement may open a { } block.",
+          "type": "boolean"
+        },
+        "caseInsensitive": {
+          "description": "lines, blocks, bullets: match 'line' ignoring the case of ASCII letters.",
+          "type": "boolean"
+        },
+        "files": {
+          "description": "Folder subjects: the file rules whose files this rule reads.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "when": {
+          "$ref": "#/$defs/Expression"
+        },
+        "id": {
+          "$ref": "#/$defs/IdBinding"
+        },
+        "parent": {
+          "description": "Containment: the nearest enclosing entry matched by one of 'rules' is the parent, in DISL slot 'slot'.",
+          "type": "object",
+          "properties": {
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "slot": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "rules"
+          ]
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/AttributeBinding"
+          }
+        },
+        "insert": {
+          "$ref": "#/$defs/Insert"
+        },
+        "remove": {
+          "$ref": "#/$defs/Remove"
+        },
+        "undo": {
+          "enum": [
+            "inverse",
+            "snapshot"
+          ]
+        },
+        "readOnly": {
+          "description": "true, or the sentence a host shows as the reason.",
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/LocalizedText"
+            }
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/Slot"
+        },
+        "target": {
+          "$ref": "#/$defs/Slot"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "name",
+        "type",
+        "source",
+        "target"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "at"
+          ]
+        },
+        {
+          "required": [
+            "line"
+          ]
+        }
+      ]
+    },
+    "IdBinding": {
+      "description": "Where an element's id is stored, when it is stored: in a slot of the body ('from'), read from it and written to it when the element is created, or in the registration's identities block keyed by a natural key ('sidecar', section 8.6). How ids are made, derived and whether they are ephemeral is the language's (DISL persistence.ids); without an id binding the id is the one DISL derives. See section 5.3.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/Slot"
+        },
+        "sidecar": {
+          "description": "Ids kept in the registration's identities block, keyed by the value of 'key'.",
+          "type": "object",
+          "properties": {
+            "key": {
+              "$ref": "#/$defs/Expression"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "key"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "oneOf": [
+        {
+          "required": [
+            "from"
+          ]
+        },
+        {
+          "required": [
+            "sidecar"
+          ]
+        }
+      ]
+    },
+    "Slot": {
+      "description": "Exactly one place in the body a value is read from and written to: a key of a tree entry, an attribute or the text of an xml element (or of its child selected by 'child'), a named group of a lines, blocks or bullets rule, a list item's continuation (bullets), or the matching slot of the enclosing entry. A slot given by 'value' is computed by CEL and read-only. See section 5.2.",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "attribute": {
+          "type": "string"
+        },
+        "text": {
+          "type": "boolean"
+        },
+        "continuation": {
+          "description": "(FBL 0.7) bullets: the item's continuation, its continuation lines before its first nested item, blank lines between them included, read with their indentation taken off (section 4.8).",
+          "const": true
+        },
+        "child": {
+          "$ref": "#/$defs/Selector"
+        },
+        "group": {
+          "type": "string"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "capture": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/Expression"
+        },
+        "word": {
+          "description": "lines, blocks, bullets: the value is the first word of the group (words split on whitespace, a double-quoted run being one word) that matches this expression; its named group 'value', if any, is the value.",
+          "$ref": "#/$defs/Regex"
+        },
+        "flag": {
+          "description": "With word: the value is true when such a word is present, and writing false removes it.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "oneOf": [
+        {
+          "required": [
+            "key"
+          ]
+        },
+        {
+          "required": [
+            "attribute"
+          ]
+        },
+        {
+          "required": [
+            "text"
+          ]
+        },
+        {
+          "required": [
+            "continuation"
+          ]
+        },
+        {
+          "required": [
+            "group"
+          ]
+        },
+        {
+          "required": [
+            "parent"
+          ]
+        },
+        {
+          "required": [
+            "capture"
+          ]
+        },
+        {
+          "required": [
+            "value"
+          ]
+        }
+      ]
+    },
+    "AttributeBinding": {
+      "description": "A slot bound to one DISL attribute, with what it reads from a scalar and how empty values, numbers, times, scalar style, references and wire values are written. See section 5.2.",
+      "type": "object",
+      "oneOf": [
+        {
+          "required": [
+            "key"
+          ]
+        },
+        {
+          "required": [
+            "attribute"
+          ]
+        },
+        {
+          "required": [
+            "text"
+          ]
+        },
+        {
+          "required": [
+            "continuation"
+          ]
+        },
+        {
+          "required": [
+            "group"
+          ]
+        },
+        {
+          "required": [
+            "parent"
+          ]
+        },
+        {
+          "required": [
+            "capture"
+          ]
+        },
+        {
+          "required": [
+            "value"
+          ]
+        }
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "attribute": {
+          "type": "string"
+        },
+        "text": {
+          "type": "boolean"
+        },
+        "continuation": {
+          "description": "(FBL 0.7) bullets: the item's continuation, its continuation lines before its first nested item, blank lines between them included, read with their indentation taken off (section 4.8).",
+          "const": true
+        },
+        "child": {
+          "$ref": "#/$defs/Selector"
+        },
+        "group": {
+          "type": "string"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "capture": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/Expression"
+        },
+        "word": {
+          "description": "lines, blocks, bullets: the value is the first word of the group (words split on whitespace, a double-quoted run being one word) that matches this expression; its named group 'value', if any, is the value.",
+          "$ref": "#/$defs/Regex"
+        },
+        "flag": {
+          "description": "With word: the value is true when such a word is present, and writing false removes it.",
+          "type": "boolean"
+        },
+        "empty": {
+          "enum": [
+            "remove",
+            "keep",
+            "refuse"
+          ]
+        },
+        "default": {},
+        "read": {
+          "description": "(FBL 0.5) yaml, json: what the slot reads from a scalar: 'text', its written text (section 4.1.5), or 'typed', its typed value converted to the attribute's type. Absent: text for a string attribute, typed for every other. See section 5.2.",
+          "enum": [
+            "text",
+            "typed"
+          ]
+        },
+        "quoted": {
+          "description": "(FBL 0.5) yaml, read as typed: whether a quoted scalar converts from its written text ('convert') or stays a text that does not convert ('text', the default).",
+          "enum": [
+            "text",
+            "convert"
+          ]
+        },
+        "fallback": {
+          "description": "(FBL 0.5) What the attribute is when its slot is present and its value does not convert to the attribute's type; the entry stays readable and the slot's bytes are kept. See sections 5.2 and 7.4.",
+          "type": "object",
+          "properties": {
+            "value": {},
+            "report": {
+              "description": "Whether fbl.unconverted-value is reported; default true.",
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "value"
+          ]
+        },
+        "number": {
+          "anyOf": [
+            {
+              "const": "shortest"
+            },
+            {
+              "description": "Fixed decimals, trailing zeros dropped.",
+              "type": "object",
+              "properties": {
+                "decimals": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "decimals"
+              ]
+            }
+          ]
+        },
+        "time": {
+          "const": "keep-precision"
+        },
+        "style": {
+          "enum": [
+            "plain",
+            "double",
+            "single",
+            "literal",
+            "flow"
+          ]
+        },
+        "reference": {
+          "description": "The value names another entry of the rules 'to', by the value of their attribute 'by', or by their stored id when 'by' is \"id\"; renaming that entry rewrites it, and removing it cascades where the removed rule says so. See sections 5.2 and 5.7.",
+          "type": "object",
+          "properties": {
+            "to": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "by": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "to"
+          ]
+        },
+        "map": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "absent": {
+          "description": "What setting a value does when its slot is absent from the entry, per family: 'insert' (the default, an insert-key splice) or 'refuse'.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/Family"
+          },
+          "additionalProperties": {
+            "enum": [
+              "insert",
+              "refuse"
+            ]
+          }
+        },
+        "override": {
+          "description": "A second slot that wins on read when present and is removed when the value is written (a formatted text beside a plain one).",
+          "$ref": "#/$defs/Slot"
+        },
+        "content": {
+          "description": "xml text slots: 'text' (escaped character data) or 'html-paragraphs' (an HTML body read as plain text, one line per <p>).",
+          "enum": [
+            "text",
+            "html-paragraphs"
+          ]
+        },
+        "create": {
+          "description": "How a missing child that holds the value is written when a value is set (section 5.2).",
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "emit": {
+                  "type": "string"
+                },
+                "place": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "first",
+                        "last"
+                      ]
+                    },
+                    {
+                      "description": "Before the first child with this name.",
+                      "type": "object",
+                      "properties": {
+                        "before": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "patternProperties": {
+                        "^x-": true
+                      },
+                      "required": [
+                        "before"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "emit"
+              ],
+              "description": "xml: how a missing child element that holds the value is written when a value is set, and where."
+            },
+            {
+              "description": "(FBL 0.4) yaml, json: on a slot with child, each missing level of the mapping child reaches is created at the end of the level above it, then the key is inserted into the innermost.",
+              "type": "object",
+              "properties": {
+                "at": {
+                  "const": "end"
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "at"
+              ]
+            }
+          ]
+        },
+        "readOnly": {
+          "description": "true, or the sentence a host shows as the reason.",
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/LocalizedText"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "Insert": {
+      "description": "How a new entry is written: where it goes, where a missing container is created, the order of its keys, and, for text families, the template it is emitted from. Without insert, adding is refused. See section 6.2.",
+      "type": "object",
+      "properties": {
+        "place": {
+          "anyOf": [
+            {
+              "enum": [
+                "after-last",
+                "end",
+                "start",
+                "last-child",
+                "next-sibling",
+                "end-of-document",
+                "after-header"
+              ]
+            },
+            {
+              "description": "Before the named key of the container.",
+              "type": "object",
+              "properties": {
+                "before": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "before"
+              ]
+            }
+          ]
+        },
+        "container": {
+          "$ref": "#/$defs/Selector"
+        },
+        "create": {
+          "description": "Where a missing container is created, and its text.",
+          "type": "object",
+          "properties": {
+            "at": {
+              "anyOf": [
+                {
+                  "const": "end-of-document"
+                },
+                {
+                  "description": "(FBL 0.4) After the last member of the container's parent, creating every missing level above the container first (section 6.2).",
+                  "const": "end"
+                },
+                {
+                  "description": "Before the named key of the parent.",
+                  "type": "object",
+                  "properties": {
+                    "before": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^x-": true
+                  },
+                  "required": [
+                    "before"
+                  ]
+                },
+                {
+                  "description": "Right after the named key of the entry.",
+                  "type": "object",
+                  "properties": {
+                    "after": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^x-": true
+                  },
+                  "required": [
+                    "after"
+                  ]
+                },
+                {
+                  "description": "At the end of the container the selector names.",
+                  "type": "object",
+                  "properties": {
+                    "under": {
+                      "$ref": "#/$defs/Selector"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^x-": true
+                  },
+                  "required": [
+                    "under"
+                  ]
+                }
+              ]
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "at"
+          ]
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emit": {
+          "type": "string"
+        },
+        "skeleton": {
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/Expression"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "place"
+      ]
+    },
+    "Remove": {
+      "description": "How an element is removed: which other rules' entries go with it, and whether a container left empty is removed. Without remove, removing is refused. See section 6.2.",
+      "type": "object",
+      "properties": {
+        "cascade": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "container": {
+          "enum": [
+            "keep",
+            "remove-when-empty",
+            "remove-empty-levels"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "RegistrationSettings": {
+      "description": "What a binding adds to the registration: headers it reads, (FBL 0.7) further blocks it declares, whether a bare body may be positioned without a registration, and legacy sidecars it reads. See section 8.",
+      "type": "object",
+      "properties": {
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "A header this binding declares.",
+            "type": "object",
+            "properties": {
+              "doc": {
+                "$ref": "#/$defs/Doc"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "blocks": {
+          "description": "(FBL 0.7) Further blocks of the registration, by name, in the order they are written after layout: and identities: (sections 8.1, 8.4).",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/Name",
+            "not": {
+              "enum": [
+                "layout",
+                "identities"
+              ]
+            }
+          },
+          "additionalProperties": {
+            "description": "A block this binding declares.",
+            "type": "object",
+            "properties": {
+              "doc": {
+                "$ref": "#/$defs/Doc"
+              },
+              "order": {
+                "description": "ordinal (default): entries in the ordinal order of their keys; kept: an entry stands where the edit put it.",
+                "enum": [
+                  "ordinal",
+                  "kept"
+                ]
+              },
+              "keys": {
+                "description": "names (default), or ids: an entry's key is an element's id, pruned when stale and never ephemeral (section 8.5).",
+                "enum": [
+                  "names",
+                  "ids"
+                ]
+              },
+              "history": {
+                "description": "Whether writes to the block are steps of the history (default true, section 7.1).",
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "createOnFirstPlacement": {
+          "type": "boolean",
+          "description": "The first placement creates the registration beside a bare body, and (FBL 0.7) so does the first change to a setting a declared block keeps (section 8.4)."
+        },
+        "resource": {
+          "description": "The selector capture a registration's resource header selects, so one body can hold several diagrams (a bundle file with several jobs). Without the header, the first entry in document order is used.",
+          "type": "object",
+          "properties": {
+            "capture": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "capture"
+          ]
+        },
+        "legacyLayout": {
+          "description": "A sidecar of positions read, and written back where it was read from: '{base}.layout.json' keyed by view, then id.",
+          "type": "string"
+        },
+        "legacyIdentities": {
+          "description": "A sidecar of ids read, keyed by natural key: '{base}.identities.json'.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "Template": {
+      "description": "The bytes of a new body. Placeholders {name}, {base} and {key} are replaced by the new file's name, its base name, and the base name folded to a key, and {newid:<rule>} by a new id made by that rule's id strategy; nothing else is interpreted. See section 13.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "byOrigin": {
+          "description": "A different template per reading, keyed by the tool type's origin, for a binding several tool types share.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "Registration": {
+      "description": "The parsed form of an .adp registration file (section 8): its origin line, the headers, the positions the user placed, and (FBL 0.7) every further block, declared or not. The file itself is lines, not JSON; this is what it means.",
+      "type": "object",
+      "properties": {
+        "origin": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "string"
+        },
+        "view": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "A placed element's top-left corner.",
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            },
+            "required": [
+              "x",
+              "y"
+            ]
+          }
+        },
+        "identities": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "blocks": {
+          "description": "(FBL 0.7) Every block besides layout: and identities:, by name, in the order of the file: its entries, key to value, in their order.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "origin"
+      ]
+    },
+    "Splice": {
+      "description": "One replacement of a byte range: the operation from the catalogue of section 6.1, the file for folder subjects, the UTF-8 byte offsets in the document before the step (start inclusive, end exclusive), and the new text.",
+      "type": "object",
+      "properties": {
+        "operation": {
+          "enum": [
+            "replace-value",
+            "insert-key",
+            "remove-key",
+            "insert-entry",
+            "remove-entry",
+            "ensure-container",
+            "remove-container",
+            "rewrite-reference",
+            "re-emit-line",
+            "open-block",
+            "self-close"
+          ]
+        },
+        "file": {
+          "type": "string"
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "operation",
+        "start",
+        "end",
+        "text"
+      ]
+    },
+    "Fixture": {
+      "description": "A round-trip fixture: an input body, what reading it yields, and a sequence of edits, each with the splices it must produce and the document after it. Hosts run fixtures against their implementation; CI checks that each step's splices turn the document before it into 'expect' and back. See section 15.3.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        },
+        "binding": {
+          "$ref": "#/$defs/BindingRef"
+        },
+        "input": {
+          "type": "string"
+        },
+        "read": {
+          "description": "What reading the input yields.",
+          "type": "object",
+          "properties": {
+            "elements": {
+              "type": "array",
+              "items": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "parent": {
+                    "description": "(FBL 0.7) The id of the element this one is contained in (section 5.5), or null at the top level. Absent: not compared.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "attributes": {
+                    "description": "(FBL 0.5) The values read for the attributes named: a JSON string for a text, a JSON number, bool or null otherwise. Attributes not named are not compared.",
+                    "type": "object"
+                  }
+                },
+                "additionalProperties": false,
+                "patternProperties": {
+                  "^x-": true
+                },
+                "required": [
+                  "id",
+                  "type"
+                ]
+              }
+            },
+            "findings": {
+              "type": "array",
+              "items": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "rule": {
+                    "type": "string"
+                  },
+                  "line": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false,
+                "patternProperties": {
+                  "^x-": true
+                },
+                "required": [
+                  "rule"
+                ]
+              }
+            },
+            "unreadable": {
+              "type": "boolean"
+            },
+            "document": {
+              "description": "(FBL 0.7) The attributes of the document read, as an element's attributes are stated.",
+              "type": "object",
+              "properties": {
+                "attributes": {
+                  "type": "object"
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              }
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "description": "One edit, undo or redo.",
+            "type": "object",
+            "properties": {
+              "doc": {
+                "$ref": "#/$defs/Doc"
+              },
+              "edit": {
+                "description": "One change, or (FBL 0.7) the list of changes one transaction makes, planned as one edit (section 15.3).",
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Edit"
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "$ref": "#/$defs/Edit"
+                    }
+                  }
+                ]
+              },
+              "undo": {
+                "type": "boolean"
+              },
+              "redo": {
+                "type": "boolean"
+              },
+              "refused": {
+                "type": "string"
+              },
+              "splices": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Splice"
+                }
+              },
+              "expect": {
+                "type": "string"
+              },
+              "expectFile": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            },
+            "required": [
+              "splices"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "binding",
+        "input",
+        "steps"
+      ]
+    },
+    "Edit": {
+      "description": "A model change in a fixture: add an element or relation (at a position, FBL 0.3), set attributes, remove, move (FBL 0.3), place, change a setting of a declared block (FBL 0.7), or save without change.",
+      "oneOf": [
+        {
+          "description": "Add an element or relation.",
+          "type": "object",
+          "properties": {
+            "add": {
+              "description": "",
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "parent": {
+                  "type": "string"
+                },
+                "slot": {
+                  "description": "(FBL 0.5) The parent's slot the element fills, as an add of section 11.2 names it.",
+                  "type": "string"
+                },
+                "after": {
+                  "type": "string"
+                },
+                "attributes": {
+                  "type": "object"
+                },
+                "position": {
+                  "$ref": "#/$defs/ChangePosition"
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "add"
+          ]
+        },
+        {
+          "description": "Set attributes of an element or relation.",
+          "type": "object",
+          "properties": {
+            "set": {
+              "description": "",
+              "type": "object",
+              "properties": {
+                "element": {
+                  "type": "string"
+                },
+                "attributes": {
+                  "type": "object"
+                },
+                "occurrence": {
+                  "description": "(FBL 0.7) Which holder of a duplicated id, by its place in reading order: 2 for the second.",
+                  "type": "integer",
+                  "minimum": 2
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "element",
+                "attributes"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "set"
+          ]
+        },
+        {
+          "description": "Remove an element or relation.",
+          "type": "object",
+          "properties": {
+            "remove": {
+              "description": "",
+              "type": "object",
+              "properties": {
+                "element": {
+                  "type": "string"
+                },
+                "occurrence": {
+                  "description": "(FBL 0.7) Which holder of a duplicated id, by its place in reading order: 2 for the second.",
+                  "type": "integer",
+                  "minimum": 2
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "element"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "remove"
+          ]
+        },
+        {
+          "description": "Move an element, with everything under it, to a parent (null for the top level) at a position (FBL 0.3; the change of section 11.2).",
+          "type": "object",
+          "properties": {
+            "move": {
+              "description": "",
+              "type": "object",
+              "properties": {
+                "element": {
+                  "type": "string"
+                },
+                "parent": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "position": {
+                  "$ref": "#/$defs/ChangePosition"
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "element",
+                "parent",
+                "position"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "move"
+          ]
+        },
+        {
+          "description": "Place an element in a registration's layout.",
+          "type": "object",
+          "properties": {
+            "place": {
+              "description": "",
+              "type": "object",
+              "properties": {
+                "element": {
+                  "type": "string"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "element",
+                "x",
+                "y"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "place"
+          ]
+        },
+        {
+          "description": "(FBL 0.7) Change an entry of a declared block of the registration (section 15.3).",
+          "type": "object",
+          "properties": {
+            "setting": {
+              "description": "",
+              "type": "object",
+              "properties": {
+                "block": {
+                  "$ref": "#/$defs/Name"
+                },
+                "key": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": "string"
+                },
+                "position": {
+                  "description": "Where the entry goes in a kept block: at an index, or after or before the entry with that key.",
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "index": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "index"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "after": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "after"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "before": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "before"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "rename": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "remove": {
+                  "const": true
+                }
+              },
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              },
+              "required": [
+                "block",
+                "key"
+              ],
+              "anyOf": [
+                {
+                  "required": [
+                    "value"
+                  ]
+                },
+                {
+                  "required": [
+                    "position"
+                  ]
+                },
+                {
+                  "required": [
+                    "rename"
+                  ]
+                },
+                {
+                  "required": [
+                    "remove"
+                  ]
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "setting"
+          ]
+        },
+        {
+          "description": "Save without change.",
+          "type": "object",
+          "properties": {
+            "save": {
+              "const": true
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "save"
+          ]
+        }
+      ]
+    },
+    "ModelChange": {
+      "description": "One model change a persistence plugin's plan operation receives (and the shapes a declared binding plans, section 6.4): an object whose one key, add, set, remove, move or retype, holds the change's fields. See FBL 0.2, section 11.2.",
+      "oneOf": [
+        {
+          "description": "Add an element or relation.",
+          "type": "object",
+          "properties": {
+            "add": {
+              "description": "The fields of an add.",
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "attributes": {
+                  "type": "object"
+                },
+                "parent": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "slot": {
+                  "type": "string"
+                },
+                "position": {
+                  "$ref": "#/$defs/ChangePosition"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "attributes"
+              ],
+              "patternProperties": {
+                "^x-": true
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "add"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        {
+          "description": "Set attributes of an element or relation.",
+          "type": "object",
+          "properties": {
+            "set": {
+              "description": "The fields of a set.",
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "attributes": {
+                  "type": "object"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "attributes"
+              ],
+              "patternProperties": {
+                "^x-": true
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "set"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        {
+          "description": "Remove an element or relation.",
+          "type": "object",
+          "properties": {
+            "remove": {
+              "description": "The fields of a remove.",
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "id"
+              ],
+              "patternProperties": {
+                "^x-": true
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "remove"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        {
+          "description": "Move an element, with everything under it, to a parent (null for the top level) at a position.",
+          "type": "object",
+          "properties": {
+            "move": {
+              "description": "The fields of a move.",
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "parent": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "slot": {
+                  "type": "string"
+                },
+                "position": {
+                  "$ref": "#/$defs/ChangePosition"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "parent",
+                "position"
+              ],
+              "patternProperties": {
+                "^x-": true
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "move"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        {
+          "description": "Change the type of an element; attributes are the values after the type's attributeMapping (DISL 9.5).",
+          "type": "object",
+          "properties": {
+            "retype": {
+              "description": "The fields of a retype.",
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string"
+                },
+                "attributes": {
+                  "type": "object"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "type",
+                "attributes"
+              ],
+              "patternProperties": {
+                "^x-": true
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "retype"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        }
+      ]
+    },
+    "ChangePosition": {
+      "description": "Where an added or moved element goes among its parent's children in the slot: at an index counted after the element left its old place, or directly after or before a sibling. See FBL 0.2, section 11.2.",
+      "oneOf": [
+        {
+          "description": "At an index.",
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "index"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        {
+          "description": "Directly after a sibling.",
+          "type": "object",
+          "properties": {
+            "after": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "after"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        {
+          "description": "Directly before a sibling.",
+          "type": "object",
+          "properties": {
+            "before": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "before"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        }
+      ]
+    },
+    "TypeRef": {
+      "description": "The name of a type of the tool type's metamodel, as its specification language defines it (section 1.3).",
+      "$ref": "#/$defs/QualifiedId"
+    },
+    "QualifiedId": {
+      "description": "Dot-separated names, hyphens allowed after the first character.",
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_-]*(\\.[A-Za-z_][A-Za-z0-9_-]*)*$"
+    },
+    "Expression": {
+      "description": "CEL: a string of CEL source, or an object with it, an expected result type and documentation (section 2.4).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CelSource"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "cel": {
+              "$ref": "#/$defs/CelSource"
+            },
+            "resultType": {
+              "type": "string"
+            },
+            "doc": {
+              "$ref": "#/$defs/Doc"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "cel"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        }
+      ]
+    },
+    "Doc": {
+      "description": "Documentation: a LocalizedText (its summary) or an object with a summary, a description, a rationale, examples, links and tags, as the specification languages define it (section 1.3).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "summary": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "description": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "rationale": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "examples": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "$ref": "#/$defs/LocalizedText"
+                  },
+                  "description": {
+                    "$ref": "#/$defs/LocalizedText"
+                  },
+                  "value": true
+                },
+                "additionalProperties": false,
+                "patternProperties": {
+                  "^x-": true
+                }
+              }
+            },
+            "seeAlso": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "$ref": "#/$defs/LocalizedText"
+                  },
+                  "href": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "href"
+                ],
+                "patternProperties": {
+                  "^x-": true
+                }
+              }
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "audience": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "user",
+                  "author",
+                  "developer"
+                ]
+              }
+            },
+            "since": {
+              "type": "string"
+            },
+            "deprecated": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "since": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "$ref": "#/$defs/LocalizedText"
+                    },
+                    "replacedBy": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^x-": true
+                  }
+                }
+              ]
+            },
+            "image": {
+              "type": "string"
+            },
+            "helpUrl": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        }
+      ]
+    },
+    "LocalizedText": {
+      "description": "A human-facing text: a string, or a map from BCP 47 language tag to string.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$",
+            "not": {
+              "const": "cel"
+            }
+          },
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1
+        }
+      ]
+    },
+    "CelSource": {
+      "description": "CEL source text.",
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

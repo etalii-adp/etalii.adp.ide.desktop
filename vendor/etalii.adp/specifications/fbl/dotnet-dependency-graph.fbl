@@ -1,0 +1,26 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.2",
+  "doc": "A .NET solution (definitions/diagrams/dotnet-dependency-graph.dis, dotnet-dependency-graph.md): a .slnx or .sln file body, named by the registration's body: header, read by a persistence plugin and never written. Recognition, the two extensions, the read-only binding and the new document's bytes are declared; reading the solution, the project files it names, the Directory.Packages.props files above them and the local NuGet cache stays in the plugin (FBL 11.5). Three properties are not FBL 0.2 as written: settle, which FBL gives to folder bodies only (dotnet-dependency-graph.md, gap 1), and x-follows and x-environment, extension properties a host ignores, which mark where the constructs of gaps 1 and 2 are needed. The refusal's sentence is the definition's behavior.messages std.readOnly and is not repeated here.",
+  "bindings": {
+    "solution": {
+      "title": ".NET solution",
+      "claims": {
+        "extensions": [".slnx", ".sln"],
+        "origins": ["dotnet/dependency-graph"],
+        "shared": true,
+        "registrationOnly": true
+      },
+      "body": {
+        "kind": "file",
+        "settle": 250,
+        "x-follows": ["the project files the solution names", "Directory.Packages.props above each project"],
+        "x-environment": ["NUGET_PACKAGES"]
+      },
+      "reader": { "plugin": "net.etalii.adp.dotnet.solution", "version": "^0.1.0" },
+      "readOnly": true,
+      "registration": { "createOnFirstPlacement": false },
+      "template": { "text": "<Solution>\r\n</Solution>\r\n" }
+    }
+  }
+}

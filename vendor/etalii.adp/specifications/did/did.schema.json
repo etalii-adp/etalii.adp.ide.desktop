@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/did/schema/0.2/did.schema.json",
+  "title": "DID 0.2 — Diagram Definition Language",
+  "description": "Definitions ($defs/Definition): the diagrams users create of a diagram type specified in DISL. The root validates definitions. Shared primitives are referenced from disl.schema.json by absolute $id.",
+  "$ref": "#/$defs/Definition",
+  "$defs": {
+    "Definition": {
+      "description": "A complete DID definition: one diagram model as a user created it, stored with the DISL specification it was made with. It carries the DID version, the required language object naming the specification by id and version (plus its URI and hash when referenced), metadata, the diagram root's attributes, flat lists of element and relation records, view records, suppressions of findings and extensions. Its structure is the same whatever the format and file split. See section 3.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "did": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$",
+          "description": "The DID version the definition targets, as major.minor. Writers of DID 0.2 write \"0.2\"; readers accept \"0.1\" and \"0.2\", because every valid 0.1 definition is a valid 0.2 definition (DID specification, section 2)."
+        },
+        "dedlDocument": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$",
+          "deprecated": true,
+          "description": "Deprecated alias of \"did\": read, never written (DID specification, deprecated aliases)."
+        },
+        "language": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/QualifiedId"
+            },
+            "version": {
+              "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/SemVer"
+            },
+            "definition": {
+              "type": "string",
+              "description": "URI of the DISL specification (.dis) the diagram was made with."
+            },
+            "integrity": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "version"
+          ],
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "meta": {
+          "type": "object"
+        },
+        "diagram": {
+          "type": "object",
+          "properties": {
+            "attributes": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ElementRecord"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RelationRecord"
+          }
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ViewRecord"
+          }
+        },
+        "suppressions": {
+          "type": "array",
+          "items": {
+            "description": "A suppressed finding: the constraint it came from and exactly one of the element it targets or its subject, with why, by whom and when it was suppressed. See section 3.",
+            "type": "object",
+            "properties": {
+              "constraint": {
+                "type": "string"
+              },
+              "element": {
+                "type": "string",
+                "description": "The id of the element or relation the finding targets. Never an ephemeral id."
+              },
+              "subject": {
+                "type": "string",
+                "description": "The subject of a finding that names no element, for a finding about something that is not drawn (DISL 8.6)."
+              },
+              "reason": {
+                "type": "string"
+              },
+              "by": {
+                "type": "string"
+              },
+              "at": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "constraint"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "element"
+                ]
+              },
+              {
+                "required": [
+                  "subject"
+                ]
+              }
+            ],
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "extensions": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "language"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "did"
+          ]
+        },
+        {
+          "required": [
+            "dedlDocument"
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "ElementRecord": {
+      "description": "One stored element of a DID definition, listed in its elements, and also used for view-only elements of a view. It has a required id, unique within the definition, and a concrete node type, plus stored attribute values in which references are ids. Nesting is expressed by the parent id and slot rather than by physical nesting, so moving an element changes one line; order positions it among ordered siblings, and ports lists its port instances. See section 3. Records of derived types are never written.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "slot": {
+          "type": "string"
+        },
+        "order": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "attributes": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type"
+            ],
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type"
+      ],
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "RelationRecord": {
+      "description": "One stored relation of a DID definition, listed in its relations. It has a required id, a relation type, and a source and target given as element or port ids; a port id is written as the element id and port id joined by a hash sign when port ids are only unique per element. The target is absent only for a relation without a target yet, when its relation type declares the target end optional. Its attributes hold the relation's stored attribute values. See section 3.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "source"
+      ],
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "ViewRecord": {
+      "description": "One diagram over the model, listed in a definition's views; a definition can hold several diagrams of the same model, one per viewpoint or several of one viewpoint. It has a required id, a viewpoint, a name shown in tabs and the last viewport. Its nodes and edges maps hold placement and routing keyed by element id, and elements not listed are hidden in that view. It can also carry view-only elements, user guides and per-view settings. See section 3.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "viewpoint": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "viewport": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "zoom": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "nodes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/NodeView"
+          }
+        },
+        "edges": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/EdgeView"
+          }
+        },
+        "viewOnly": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ElementRecord"
+          }
+        },
+        "guides": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "axis": {
+                "enum": [
+                  "x",
+                  "y"
+                ]
+              },
+              "value": true
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "settings": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "NodeView": {
+      "description": "The stored placement of one node in a view, the value in a view record's nodes map keyed by element id. It holds position and size in domain values of the placement's coordinate system, polar values, rotation, z-order, collapsed and pinned flags, shape parameters, label offsets, port and compartment state, style overrides and a hidden flag. Coordinates bound to model attributes are omitted, because bound values live only in the model. See section 3.",
+      "type": "object",
+      "properties": {
+        "x": true,
+        "y": true,
+        "w": true,
+        "h": true,
+        "x2": true,
+        "y2": true,
+        "angle": true,
+        "radius": true,
+        "rotation": {
+          "type": "number"
+        },
+        "z": {
+          "type": "integer"
+        },
+        "collapsed": {
+          "type": "boolean"
+        },
+        "pinned": {
+          "type": "boolean"
+        },
+        "params": {
+          "type": "object"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "dx": {
+                "type": "number"
+              },
+              "dy": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "ports": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "side": {
+                "type": "string"
+              },
+              "position": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "compartments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "collapsed": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "style": {
+          "type": "object"
+        },
+        "hidden": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "EdgeView": {
+      "description": "The stored routing and label data of one relation in a view, the value in a view record's edges map keyed by relation id. It holds waypoints in domain values, fixed source and target anchors, bezier control points, label positions and offsets, a per-edge routing override where allowed, style overrides, z-order and a hidden flag. See section 3.",
+      "type": "object",
+      "properties": {
+        "waypoints": {
+          "type": "array",
+          "items": {
+            "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Point"
+          }
+        },
+        "sourceAnchor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "targetAnchor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "controlPoints": {
+          "type": "array",
+          "items": {
+            "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Point"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "at": true,
+              "dx": {
+                "type": "number"
+              },
+              "dy": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "patternProperties": {
+              "^x-": true
+            }
+          }
+        },
+        "routing": {
+          "type": "string"
+        },
+        "style": {
+          "type": "object"
+        },
+        "z": {
+          "type": "integer"
+        },
+        "hidden": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      }
+    }
+  }
+}

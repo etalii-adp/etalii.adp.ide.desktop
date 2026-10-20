@@ -1,0 +1,238 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "References over the Hierarchical Requirement Designer's binding, hierarchical-requirement.fbl#markdown (User Story 6; FR-041, FR-043, FR-044, SC-003). A reference is a mention (DESL 0.2 section 4.3): the facet mentions of an item's and a requirement's description and of an assessment's about, text and detail in hierarchical-requirement.des, whose pattern \\[(?:ITEM|REQ)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:ITEM|REQ)-\\d+)\\] reads [REQ-0002] as a mention and a link with a target as none. The binding gives no slot a reference (FBL section 5.7), so FBL reads and writes every one of them as text. Reading the input: the mentions on line 8 (ITEM-0001's description), line 12 (REQ-0002's description), line 20 (an assessment about REQ-0002, whose text mentions REQ-0003) and lines 21 and 22 (an assessment about ITEM-0002, whose detail mentions REQ-0002 and ITEM-0003) all name an entry, while REQ-0001's title (line 9) and the link on line 10 both write [REQ-0099], which no entry has: a title carries no mentions facet and the link is no mention, so read lists no finding. The document attributes lastItem ITEM-0003 and lastRequirement REQ-0004 come from line 2 and are not elements. The steps, each followed by its undo so that each starts from the input: a description set with [REQ-0002] in it on an entry without one and on one with one, the referred requirement REQ-0002 moved to another depth with every reference to it, and the one in its own description, left as written, and REQ-0002 deleted with every reference to it kept; deleted/ reads the document after the delete, with its three std.mentions findings. The file has CRLF endings.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "requirements.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Checkout",
+          "description": "How a customer pays. The card rules are in [REQ-0002]."
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A customer pays by card or by bank transfer, as [REQ-0099] says.",
+          "description": "The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference."
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A card payment is confirmed within ten seconds.",
+          "description": "Measured from the moment [REQ-0001] hands over to the provider."
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Refunds",
+          "description": ""
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A refund goes back to the card it came from.",
+          "description": ""
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Reporting",
+          "description": ""
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "Every payment is listed in the daily report.",
+          "description": ""
+        }
+      },
+      {
+        "id": "assessment/0",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "about": "REQ-0002",
+          "text": "Is ten seconds right when [REQ-0003] applies?",
+          "detail": ""
+        }
+      },
+      {
+        "id": "assessment/1",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "about": "ITEM-0002",
+          "text": "Partial refunds come later.",
+          "detail": "They wait for [REQ-0002] and for [ITEM-0003]."
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "setDescription on REQ-0003, which has no continuation, with a reference that the lookup wrote when the person typed # and picked REQ-0002 (FR-040, FR-041): an insert-key at the end of its item line, the value's line written after the line ending of that line, CRLF, and indented with spaces to REQ-0003's content column 6 (FBL 0.7 section 6.3, bullets, the continuation). The reference is written as the text [REQ-0002] and nothing else: FBL writes the value as it is given.",
+      "edit": {
+        "set": {
+          "element": "REQ-0003",
+          "attributes": {
+            "description": "Only once [REQ-0002] has confirmed the payment."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 636,
+          "end": 636,
+          "text": "\r\n      Only once [REQ-0002] has confirmed the payment."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0004 -->\r\n# Payments\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Checkout\r\n  How a customer pays. The card rules are in [REQ-0002].\r\n  - REQ-0001 A customer pays by card or by bank transfer, as [REQ-0099] says. #payment category:functional\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\r\n  - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n    Measured from the moment [REQ-0001] hands over to the provider.\r\n  - ITEM-0002 Refunds\r\n    - REQ-0003 A refund goes back to the card it came from.\r\n      Only once [REQ-0002] has confirmed the payment.\r\n- ITEM-0003 Reporting\r\n  - REQ-0004 Every payment is listed in the daily report.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0002: Is ten seconds right when [REQ-0003] applies?\r\n- [ ] Remark ITEM-0002: Partial refunds come later.\r\n  They wait for [REQ-0002] and for [ITEM-0003].\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 636,
+          "end": 691,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0004 -->\r\n# Payments\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Checkout\r\n  How a customer pays. The card rules are in [REQ-0002].\r\n  - REQ-0001 A customer pays by card or by bank transfer, as [REQ-0099] says. #payment category:functional\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\r\n  - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n    Measured from the moment [REQ-0001] hands over to the provider.\r\n  - ITEM-0002 Refunds\r\n    - REQ-0003 A refund goes back to the card it came from.\r\n- ITEM-0003 Reporting\r\n  - REQ-0004 Every payment is listed in the daily report.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0002: Is ten seconds right when [REQ-0003] applies?\r\n- [ ] Remark ITEM-0002: Partial refunds come later.\r\n  They wait for [REQ-0002] and for [ITEM-0003].\r\n"
+    },
+    {
+      "doc": "setDescription on REQ-0001, which has a continuation: a replace-value of its value span, from the end of the item line before its line ending to the end of the continuation's last line before its line ending, every line of the new value written after a line ending and indented to REQ-0001's content column 4 (FBL 0.7 section 6.3, bullets, the continuation). The new value keeps the link [REQ-0099](https://example.com/terms), which is still no mention, and adds the mention [REQ-0002].",
+      "edit": {
+        "set": {
+          "element": "REQ-0001",
+          "attributes": {
+            "description": "The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\nThe card rules are in [REQ-0002]."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 315,
+          "end": 412,
+          "text": "\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\r\n    The card rules are in [REQ-0002]."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0004 -->\r\n# Payments\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Checkout\r\n  How a customer pays. The card rules are in [REQ-0002].\r\n  - REQ-0001 A customer pays by card or by bank transfer, as [REQ-0099] says. #payment category:functional\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\r\n    The card rules are in [REQ-0002].\r\n  - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n    Measured from the moment [REQ-0001] hands over to the provider.\r\n  - ITEM-0002 Refunds\r\n    - REQ-0003 A refund goes back to the card it came from.\r\n- ITEM-0003 Reporting\r\n  - REQ-0004 Every payment is listed in the daily report.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0002: Is ten seconds right when [REQ-0003] applies?\r\n- [ ] Remark ITEM-0002: Partial refunds come later.\r\n  They wait for [REQ-0002] and for [ITEM-0003].\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 315,
+          "end": 451,
+          "text": "\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0004 -->\r\n# Payments\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Checkout\r\n  How a customer pays. The card rules are in [REQ-0002].\r\n  - REQ-0001 A customer pays by card or by bank transfer, as [REQ-0099] says. #payment category:functional\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\r\n  - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n    Measured from the moment [REQ-0001] hands over to the provider.\r\n  - ITEM-0002 Refunds\r\n    - REQ-0003 A refund goes back to the card it came from.\r\n- ITEM-0003 Reporting\r\n  - REQ-0004 Every payment is listed in the daily report.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0002: Is ten seconds right when [REQ-0003] applies?\r\n- [ ] Remark ITEM-0002: Partial refunds come later.\r\n  They wait for [REQ-0002] and for [ITEM-0003].\r\n"
+    },
+    {
+      "doc": "moveRequirement on REQ-0002 into ITEM-0002, which holds REQ-0003 only, so after REQ-0003 (hierarchical-requirement.des, moveRequirement: a move to another item after its last requirement), planned as FBL's move (DESL 0.2 section 8.2): a remove-entry of REQ-0002's line span, its item line and its continuation, and an insert-entry after the line span of REQ-0003, its previous sibling there, of the same bytes with every line that is not blank shifted right by 2, the difference between the column 4 a new item's marker has there (REQ-0003's) and the column 2 its marker had (FBL 0.7 sections 5.5 and 6.3, a move to another depth). Its number does not change (FR-011), and no reference is rewritten: the mentions on lines 8, 20 and 22 that name REQ-0002 and the one in its own description that names REQ-0001 are text, and the binding has no reference to rewrite (FBL section 5.7), so each names the same entry as before (SC-003). The edit has no rewrite-reference splice.",
+      "edit": {
+        "move": {
+          "element": "REQ-0002",
+          "parent": "ITEM-0002",
+          "position": {
+            "after": "REQ-0003"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 414,
+          "end": 554,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 638,
+          "end": 638,
+          "text": "    - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n      Measured from the moment [REQ-0001] hands over to the provider.\r\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0004 -->\r\n# Payments\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Checkout\r\n  How a customer pays. The card rules are in [REQ-0002].\r\n  - REQ-0001 A customer pays by card or by bank transfer, as [REQ-0099] says. #payment category:functional\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\r\n  - ITEM-0002 Refunds\r\n    - REQ-0003 A refund goes back to the card it came from.\r\n    - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n      Measured from the moment [REQ-0001] hands over to the provider.\r\n- ITEM-0003 Reporting\r\n  - REQ-0004 Every payment is listed in the daily report.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0002: Is ten seconds right when [REQ-0003] applies?\r\n- [ ] Remark ITEM-0002: Partial refunds come later.\r\n  They wait for [REQ-0002] and for [ITEM-0003].\r\n"
+    },
+    {
+      "doc": "Undo of the move: the copy after REQ-0003 is removed and REQ-0002's bytes go back where they stood, at their old indentation. Each inverse splice is listed under the operation of the splice it inverts (FBL section 15.3).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 414,
+          "end": 414,
+          "text": "  - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n    Measured from the moment [REQ-0001] hands over to the provider.\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 498,
+          "end": 642,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0004 -->\r\n# Payments\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Checkout\r\n  How a customer pays. The card rules are in [REQ-0002].\r\n  - REQ-0001 A customer pays by card or by bank transfer, as [REQ-0099] says. #payment category:functional\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\r\n  - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n    Measured from the moment [REQ-0001] hands over to the provider.\r\n  - ITEM-0002 Refunds\r\n    - REQ-0003 A refund goes back to the card it came from.\r\n- ITEM-0003 Reporting\r\n  - REQ-0004 Every payment is listed in the daily report.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0002: Is ten seconds right when [REQ-0003] applies?\r\n- [ ] Remark ITEM-0002: Partial refunds come later.\r\n  They wait for [REQ-0002] and for [ITEM-0003].\r\n"
+    },
+    {
+      "doc": "Its confirmation's count is 3: the assessment about REQ-0002, ITEM-0001's description and the detail that mentions it (hierarchical-requirement.des, deleteEntry), so the person is asked first. The delete is one remove-entry of REQ-0002's line span, which takes its continuation with it (FBL 0.7 sections 4.8 and 6.2); the rule's remove has no cascade. Nothing else is written: a mention is text, which no runtime changes when the element it names is deleted (DESL 0.2 section 4.3), so [REQ-0002] on line 8, the assessment about REQ-0002 and [REQ-0002] in the other assessment's detail are kept as written (FR-044), and the mark line keeps REQ-0004, so the number is not given again. deleted/ reads the result and lists the three std.mentions findings.",
+      "edit": {
+        "remove": {
+          "element": "REQ-0002"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 414,
+          "end": 554,
+          "text": ""
+        }
+      ],
+      "expectFile": "deleted/requirements.md"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced: REQ-0002 and its description stand where they stood, and every mention of it names it again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 414,
+          "end": 414,
+          "text": "  - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n    Measured from the moment [REQ-0001] hands over to the provider.\r\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0004 -->\r\n# Payments\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Checkout\r\n  How a customer pays. The card rules are in [REQ-0002].\r\n  - REQ-0001 A customer pays by card or by bank transfer, as [REQ-0099] says. #payment category:functional\r\n    The provider's terms are on [REQ-0099](https://example.com/terms), a link and no reference.\r\n  - REQ-0002 A card payment is confirmed within ten seconds. #payment\r\n    Measured from the moment [REQ-0001] hands over to the provider.\r\n  - ITEM-0002 Refunds\r\n    - REQ-0003 A refund goes back to the card it came from.\r\n- ITEM-0003 Reporting\r\n  - REQ-0004 Every payment is listed in the daily report.\r\n\r\n## Assessments\r\n\r\n- [ ] Question REQ-0002: Is ten seconds right when [REQ-0003] applies?\r\n- [ ] Remark ITEM-0002: Partial refunds come later.\r\n  They wait for [REQ-0002] and for [ITEM-0003].\r\n"
+    }
+  ]
+}

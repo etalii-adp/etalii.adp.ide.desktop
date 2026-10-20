@@ -1,0 +1,15 @@
+[package]
+name = "adp-shell"
+description = "The desktop host's window: the only crate that knows the UI toolkit (spec 030, research R2)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "adp-desktop"
+path = "src/main.rs"
+
+[lints]
+workspace = true

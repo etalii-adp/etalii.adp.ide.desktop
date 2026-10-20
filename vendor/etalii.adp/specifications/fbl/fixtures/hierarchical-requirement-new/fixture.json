@@ -1,0 +1,227 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A new requirement document: the binding's template (hierarchical-requirement.fbl#markdown, template.text) with {base} replaced by the new file's base name, lending for lending.md, and nothing else replaced, since the template holds no other placeholder and no other brace (FBL 13, step 2). It is written with CRLF, as the template is. A template MUST read through its binding with no finding of severity warning or above (FBL 13), and this one reads with no finding at all: line 1 is the envelope the required header matches (FBL 5.6); line 2 is the mark line, the document's lastItem ITEM-0007 and lastRequirement REQ-0009 (DESL 5.3.5), which a fixture's read has no place to state; the legend's bullets under How to read this file stand in no section a rule names and its examples in a fenced block are fence lines, so neither is read nor reported (FBL 4.8); every entry under Requirements is an item or a requirement with a number, so there is no std.missingId and no std.duplicateId; no requirement stands at the top level and nothing is nested in a requirement, so there is no std.containment; there is no reference and the section Assessments is empty, so there is no std.mentions. Counted against FR-007 (at most two levels deep, at most three requirements in an item): seven items in two levels, the five top items ITEM-0001 User interface, ITEM-0003 Integration, ITEM-0004 Backend, ITEM-0006 Data and ITEM-0007 Processes, and the two sub-items ITEM-0002 Accessibility in ITEM-0001 and ITEM-0005 Security in ITEM-0004; nine requirements, REQ-0001 to REQ-0009, two in ITEM-0001, one in ITEM-0002, one in ITEM-0003, two in ITEM-0004, one in ITEM-0005, one in ITEM-0006 and one in ITEM-0007, so no item holds more than two. The mark names the last number of each kind, so the first numbering continues past them (FR-006, FR-007). The user's first edits are splices into the template's bytes like any others (FBL 13): the steps show a save without an edit and the first item added.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "lending.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "User interface",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Every page can be used on a phone, a tablet and a desktop screen.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Every action can be taken with the keyboard alone.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Accessibility",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "Text and controls meet WCAG 2.2 at level AA.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Integration",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "Every external service is reached through one documented interface.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "ITEM-0004",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Backend",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "Every request is answered within two seconds.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0006",
+        "type": "Requirement",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "A failed request is logged with what is needed to repeat it.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "ITEM-0005",
+        "type": "Item",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "Security",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0007",
+        "type": "Requirement",
+        "parent": "ITEM-0005",
+        "attributes": {
+          "title": "A user signs in before seeing or changing their own data.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "ITEM-0006",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Data",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0008",
+        "type": "Requirement",
+        "parent": "ITEM-0006",
+        "attributes": {
+          "title": "Personal data is kept no longer than it is needed.",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "ITEM-0007",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Processes",
+          "description": "",
+          "tags": []
+        }
+      },
+      {
+        "id": "REQ-0009",
+        "type": "Requirement",
+        "parent": "ITEM-0007",
+        "attributes": {
+          "title": "A release can be rolled back within one hour.",
+          "description": "",
+          "tags": []
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening the new document and saving it without an edit writes the bytes that were read (FBL 6.6).",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expectFile": "lending.md"
+    },
+    {
+      "doc": "The first item added to the new document, by addTopItem: an item at the top level, after the last one. The rule item's insert has place last-child, and without a parent its siblings are the section's top-level items, so it goes after the last of them, ITEM-0007, at the end of its line span, which ends with REQ-0009's line (FBL 6.2; 6.3, where it goes), with the marker '-' and the column 0 of that previous sibling (6.3, a new item) and the emit '{id} {title}'. Its number is one more than the higher of the mark, ITEM-0007, and the highest item number read, ITEM-0007: ITEM-0008, and the mark is set to it in the same transaction (DESL 5.3.5), a replace-value of the group lastItem on line 2 (FBL 6.3, lines: a changed value). The line endings are the body's CRLF (6.3, line endings). The splices are listed with the mark's first: its id is made, and the mark set to it, when the transaction is first applied, before the element it is given to is created (DESL 5.3.1, 5.3.5), which is also the order of their offsets and the order the other fixtures of this designer list them in; FBL 6.4 orders an edit's splices as the transaction made its changes, and DESL 5.3.5 says only that both are in one transaction.",
+      "edit": {
+        "add": {
+          "type": "Item",
+          "id": "ITEM-0008",
+          "attributes": {
+            "title": "New item"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 72,
+          "end": 81,
+          "text": "ITEM-0008"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 2590,
+          "end": 2590,
+          "text": "- ITEM-0008 New item\r\n"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0008 REQ-0009 -->\r\n# lending\r\n\r\n## How to read this file\r\n\r\nThis file holds the requirements of one subject, kept by people and agents together. Leave its first two lines as they are.\r\n\r\n- Under `Requirements` each bullet is an item (`ITEM-`), a part of the subject, or a requirement (`REQ-`), which states one requirement. An item holds requirements and further items, indented under it. A requirement stands in an item and holds nothing.\r\n- A number is never changed and never used again. Add an entry with `ITEM-NEW` or `REQ-NEW` in place of a number: the designer numbers it.\r\n- Lines indented under a bullet that are not bullets describe it. A description holds no bullets.\r\n- A bullet's first line ends with its tags (`#name`), and a requirement's with one category (`category:name`) and one state (`state:name`) after them. A name has no spaces. A title does not end in a word that starts with `#`, `category:` or `state:`.\r\n- The categories are functional, non-functional and technical, and the states proposed, accepted, rejected and done; others can be added.\r\n- Refer to an entry by its number in square brackets: `[REQ-0001]`.\r\n- Under `Assessments` each bullet is a question, remark, warning or idea about one entry, named by its number: `- [ ] Question REQ-0001: text`. Write `[x]` to resolve one. Lines indented under it are its detail.\r\n\r\n```markdown\r\n- ITEM-NEW Checkout #core\r\n  What a customer does between the basket and the receipt.\r\n  - REQ-NEW An order is confirmed by e-mail. #mail category:functional state:proposed\r\n    Sent once the payment of [REQ-0001] succeeds.\r\n\r\n- [ ] Question REQ-0001: Which payment methods count?\r\n- [x] Idea ITEM-0001: Offer a guest checkout.\r\n```\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 User interface\r\n  - REQ-0001 Every page can be used on a phone, a tablet and a desktop screen.\r\n  - REQ-0002 Every action can be taken with the keyboard alone.\r\n  - ITEM-0002 Accessibility\r\n    - REQ-0003 Text and controls meet WCAG 2.2 at level AA.\r\n- ITEM-0003 Integration\r\n  - REQ-0004 Every external service is reached through one documented interface.\r\n- ITEM-0004 Backend\r\n  - REQ-0005 Every request is answered within two seconds.\r\n  - REQ-0006 A failed request is logged with what is needed to repeat it.\r\n  - ITEM-0005 Security\r\n    - REQ-0007 A user signs in before seeing or changing their own data.\r\n- ITEM-0006 Data\r\n  - REQ-0008 Personal data is kept no longer than it is needed.\r\n- ITEM-0007 Processes\r\n  - REQ-0009 A release can be rolled back within one hour.\r\n- ITEM-0008 New item\r\n\r\n## Assessments\r\n"
+    },
+    {
+      "doc": "Undo removes the item and gives line 2 back its ITEM-0007, so the number ITEM-0008 is free again and the file is the template's bytes (DESL 5.3.5, FBL 7.1).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 72,
+          "end": 81,
+          "text": "ITEM-0007"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 2590,
+          "end": 2612,
+          "text": ""
+        }
+      ],
+      "expectFile": "lending.md"
+    }
+  ]
+}

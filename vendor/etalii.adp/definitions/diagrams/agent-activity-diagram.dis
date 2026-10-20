@@ -1,0 +1,1903 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.4",
+  "language": {
+    "id": "net.etalii.adp.etalii.agent-activity-diagram",
+    "version": "0.1.0",
+    "origin": "etalii/agent-activity-diagram",
+    "label": "Agent activity diagram",
+    "fileExtension": "aad",
+    "license": "Apache-2.0",
+    "authors": [
+      {
+        "name": "Peter Vrenken"
+      }
+    ],
+    "icon": "mdi-account-hard-hat-outline",
+    "doc": {
+      "summary": "Which agents work on which specification of which project, where (a branch and a folder) and on what system, in one picture that agents keep current.",
+      "description": "An agent activity diagram is one plain YAML file that agents write as they work and a person reads as a picture. Projects sit in the middle, their specifications around them with their tasks listed inside, then the agents working on them, the locations (a branch and a folder) where that work is, and the environments those locations are on, outermost. A relation is a key on the element at its 'one' end. The person's own part is where elements are locked, which groups are folded and whether archived specifications are shown, kept in the same file. What DISL cannot state, the file format for agents and the reference layout are in agent-activity-diagram.md."
+    }
+  },
+  "metamodel": {
+    "doc": "Five element types, each stored as an entry of its own list; tasks are children of a specification and pull requests children of a location. A relation is a key on the element at its 'one' end, a reference attribute, and is drawn as a derived relation, one per reference that names an element.",
+    "enums": {
+      "SpecificationStatus": {
+        "values": {
+          "pending": {
+            "label": "Pending",
+            "color": {
+              "token": "aad.pending"
+            },
+            "doc": "Specified, and nobody is working on it yet."
+          },
+          "progressing": {
+            "label": "Progressing",
+            "color": {
+              "token": "aad.progressing"
+            },
+            "doc": "An agent is working on it."
+          },
+          "inputRequired": {
+            "label": "Input Required",
+            "value": "input-required",
+            "color": {
+              "token": "aad.inputRequired"
+            },
+            "doc": "The work waits on a person."
+          },
+          "finished": {
+            "label": "Finished",
+            "color": {
+              "token": "aad.finished"
+            },
+            "doc": "The work is done."
+          },
+          "archived": {
+            "label": "Archived",
+            "color": {
+              "token": "aad.archived"
+            },
+            "doc": "Kept for the record and hidden unless the canvas switch shows archived specifications."
+          }
+        },
+        "doc": "Where a specification stands. The order is the order of the property grid's choices."
+      },
+      "TaskStatus": {
+        "ordered": true,
+        "values": {
+          "progressing": {
+            "label": "Progressing",
+            "color": {
+              "token": "aad.progressing"
+            },
+            "doc": "An agent is working on it."
+          },
+          "pending": {
+            "label": "Pending",
+            "color": {
+              "token": "aad.pending"
+            },
+            "doc": "Specified, and nobody is working on it yet."
+          },
+          "inputRequired": {
+            "label": "Input Required",
+            "value": "input-required",
+            "color": {
+              "token": "aad.inputRequired"
+            },
+            "doc": "The work waits on a person."
+          },
+          "finished": {
+            "label": "Finished",
+            "color": {
+              "token": "aad.finished"
+            },
+            "doc": "The work is done."
+          }
+        },
+        "doc": "Where a task stands. The declared order is the order of a specification's task groups: Progressing, Pending, Input Required, Finished."
+      },
+      "EnvironmentKind": {
+        "values": {
+          "localMachine": {
+            "label": "Local machine",
+            "value": "local-machine"
+          },
+          "cloud": {
+            "label": "Cloud"
+          },
+          "container": {
+            "label": "Container"
+          },
+          "wsl": {
+            "label": "WSL"
+          },
+          "other": {
+            "label": "Other"
+          }
+        },
+        "doc": "What kind of system an environment is."
+      }
+    },
+    "types": {
+      "Project": {
+        "label": "Project",
+        "icon": "mdi-folder-outline",
+        "labelAttribute": "name",
+        "doc": "One body of work, such as a repository or a product.",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "required": true,
+            "group": "Identity",
+            "order": 1
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "group": "Link",
+            "order": 9,
+            "doc": "Where the project is: a web address or a path."
+          }
+        }
+      },
+      "Specification": {
+        "label": "Specification",
+        "icon": "mdi-file-document-outline",
+        "labelAttribute": "name",
+        "doc": "One piece of specified work in a project, with a status and its tasks.",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "required": true,
+            "group": "Identity",
+            "order": 1
+          },
+          "status": {
+            "type": "SpecificationStatus",
+            "required": true,
+            "default": "pending",
+            "group": "Identity",
+            "order": 2
+          },
+          "project": {
+            "type": "Project",
+            "group": "Relations",
+            "order": 1,
+            "doc": "The project the specification belongs to: at most one (R1). Drawn as the relation `ProjectSpecification`."
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "group": "Link",
+            "order": 9,
+            "doc": "Where the specification is written: a web address or a path, typically its requirements document."
+          }
+        },
+        "children": {
+          "allowed": [
+            "Task"
+          ],
+          "slots": {
+            "tasks": {
+              "allowed": [
+                "Task"
+              ]
+            }
+          }
+        }
+      },
+      "Task": {
+        "label": "Task",
+        "icon": "mdi-checkbox-blank-outline",
+        "labelAttribute": "title",
+        "doc": "A task of a specification, listed inside it. Not drawn as an element: it has no position, no relation and no toolbox entry.",
+        "attributes": {
+          "title": {
+            "type": "string",
+            "required": true,
+            "group": "Identity",
+            "order": 1
+          },
+          "status": {
+            "type": "TaskStatus",
+            "required": true,
+            "default": "pending",
+            "group": "Identity",
+            "order": 2
+          },
+          "updated": {
+            "type": "datetime",
+            "timezone": "preserve",
+            "writtenPrecision": "preserve",
+            "newPrecision": "second",
+            "group": "Identity",
+            "order": 3,
+            "doc": "When the task was last changed, with its offset. Tasks are listed most recent first within their group; one without it comes after those that have one, in file order.",
+            "default": {
+              "cel": "env.now"
+            }
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "group": "Link",
+            "order": 9,
+            "doc": "Where the task's work can be seen: a web address or a path."
+          }
+        }
+      },
+      "Agent": {
+        "label": "Agent",
+        "icon": "mdi-robot-outline",
+        "labelAttribute": "name",
+        "doc": "One worker on a specification. A thread of a project chat is an agent.",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "required": true,
+            "group": "Identity",
+            "order": 1
+          },
+          "specification": {
+            "type": "Specification",
+            "group": "Relations",
+            "order": 1,
+            "doc": "The specification the agent works on: at most one. Drawn as the relation `SpecificationAgent`."
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "group": "Link",
+            "order": 9,
+            "doc": "Where the agent can be reached: a web address or a path."
+          }
+        }
+      },
+      "Location": {
+        "label": "Location",
+        "icon": "mdi-source-branch",
+        "labelAttribute": "branch",
+        "doc": "Where an agent's work is: a branch, and a folder, the worktree's or `Default` for the repository's main checkout.",
+        "attributes": {
+          "branch": {
+            "type": "string",
+            "required": true,
+            "group": "Identity",
+            "order": 1
+          },
+          "folder": {
+            "type": "string",
+            "default": "Default",
+            "group": "Identity",
+            "order": 2,
+            "doc": "The worktree's folder; `Default` when the work is in the main checkout, which is also what an absent key reads as."
+          },
+          "agent": {
+            "type": "Agent",
+            "group": "Relations",
+            "order": 1,
+            "doc": "The agent whose work this is: at most one. Drawn as the relation `AgentLocation`."
+          },
+          "environment": {
+            "type": "Environment",
+            "group": "Relations",
+            "order": 2,
+            "doc": "The system the location is on: at most one. Drawn as the relation `LocationEnvironment`."
+          },
+          "branchLink": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "group": "Link",
+            "order": 10,
+            "doc": "Where the branch can be seen, such as its page on a forge."
+          },
+          "folderLink": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "group": "Link",
+            "order": 11,
+            "doc": "Where the folder is: a path, absolute or relative to the activity file."
+          }
+        },
+        "children": {
+          "allowed": [
+            "PullRequest"
+          ],
+          "slots": {
+            "pullRequests": {
+              "allowed": [
+                "PullRequest"
+              ]
+            }
+          }
+        }
+      },
+      "PullRequest": {
+        "label": "Pull request",
+        "icon": "mdi-source-pull",
+        "labelAttribute": "title",
+        "doc": "A pull request opened from a location, listed inside it. Not drawn as an element.",
+        "attributes": {
+          "title": {
+            "type": "string",
+            "required": true,
+            "group": "Identity",
+            "order": 1
+          },
+          "updated": {
+            "type": "datetime",
+            "timezone": "preserve",
+            "writtenPrecision": "preserve",
+            "newPrecision": "second",
+            "group": "Identity",
+            "order": 2,
+            "doc": "When the pull request was last changed, with its offset. Pull requests are listed most recent first.",
+            "default": {
+              "cel": "env.now"
+            }
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "group": "Link",
+            "order": 9,
+            "doc": "The pull request's page."
+          }
+        }
+      },
+      "Environment": {
+        "label": "Environment",
+        "icon": "mdi-server-outline",
+        "labelAttribute": "name",
+        "doc": "A system the work happens on: a local machine, a cloud environment, a container, a WSL system or another kind.",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "required": true,
+            "group": "Identity",
+            "order": 1
+          },
+          "environmentKind": {
+            "type": "EnvironmentKind",
+            "required": true,
+            "default": "other",
+            "group": "Identity",
+            "order": 2,
+            "doc": "What kind of system the environment is. Stored as the entry's `kind` key; the attribute is named otherwise because `kind` is reserved (DISL 2.2)."
+          },
+          "link": {
+            "type": "uri",
+            "schemes": [
+              "http",
+              "https"
+            ],
+            "paths": true,
+            "group": "Link",
+            "order": 9,
+            "doc": "Where the environment can be reached or read about."
+          }
+        }
+      }
+    },
+    "relations": {
+      "ProjectSpecification": {
+        "label": "Project to specification",
+        "doc": "Drawn from Specification's `project` key: one line per specification whose `project` names a project. Drawing a line sets the key and removing a line clears it (operations `setProject` and `clearProject`).",
+        "source": "Project",
+        "target": "Specification",
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": false,
+        "derived": {
+          "from": "diagram.nodesOfType('Specification').filter(e, e.project != null)",
+          "id": "'project:' + item.id",
+          "source": "item.project",
+          "target": "item",
+          "sources": "[item]",
+          "edits": {
+            "connect": "setProject",
+            "delete": "clearProject"
+          }
+        }
+      },
+      "SpecificationAgent": {
+        "label": "Specification to agent",
+        "doc": "Drawn from Agent's `specification` key: one line per agent whose `specification` names a specification. Drawing a line sets the key and removing a line clears it (operations `setSpecification` and `clearSpecification`).",
+        "source": "Specification",
+        "target": "Agent",
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": false,
+        "derived": {
+          "from": "diagram.nodesOfType('Agent').filter(e, e.specification != null)",
+          "id": "'specification:' + item.id",
+          "source": "item.specification",
+          "target": "item",
+          "sources": "[item]",
+          "edits": {
+            "connect": "setSpecification",
+            "delete": "clearSpecification"
+          }
+        }
+      },
+      "AgentLocation": {
+        "label": "Agent to location",
+        "doc": "Drawn from Location's `agent` key: one line per location whose `agent` names an agent. Drawing a line sets the key and removing a line clears it (operations `setAgent` and `clearAgent`).",
+        "source": "Agent",
+        "target": "Location",
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": false,
+        "derived": {
+          "from": "diagram.nodesOfType('Location').filter(e, e.agent != null)",
+          "id": "'agent:' + item.id",
+          "source": "item.agent",
+          "target": "item",
+          "sources": "[item]",
+          "edits": {
+            "connect": "setAgent",
+            "delete": "clearAgent"
+          }
+        }
+      },
+      "LocationEnvironment": {
+        "label": "Location to environment",
+        "doc": "Drawn from Location's `environment` key: one line per location whose `environment` names an environment. Drawing a line sets the key and removing a line clears it (operations `setEnvironment` and `clearEnvironment`).",
+        "source": "Location",
+        "target": "Environment",
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": false,
+        "derived": {
+          "from": "diagram.nodesOfType('Location').filter(e, e.environment != null)",
+          "id": "'environment:' + item.id",
+          "source": "item",
+          "target": "item.environment",
+          "sources": "[item]",
+          "edits": {
+            "connect": "setEnvironment",
+            "delete": "clearEnvironment"
+          }
+        }
+      }
+    }
+  },
+  "notation": {
+    "doc": "Each element type has its own shape and its own fill in both themes, so a type is recognisable without its label and without colour (Requirement 7.2): a project is a folder, a specification a rounded rectangle, an agent a pill, a location a rectangle split by a line, an environment a hexagon. Relations are plain lines without a label.",
+    "theme": {
+      "tokens": {
+        "color.text": "#0f172a",
+        "color.text.muted": "#475569",
+        "color.border": "#94a3b8",
+        "color.relation": "#64748b",
+        "aad.project": "#dbeafe",
+        "aad.specification": "#ffffff",
+        "aad.agent": "#ede9fe",
+        "aad.location": "#fef3c7",
+        "aad.environment": "#dcfce7",
+        "aad.pending": "#64748b",
+        "aad.progressing": "#2563eb",
+        "aad.inputRequired": "#c2410c",
+        "aad.finished": "#15803d",
+        "aad.archived": "#94a3b8"
+      },
+      "modes": {
+        "dark": {
+          "color.text": "#f1f5f9",
+          "color.text.muted": "#cbd5e1",
+          "color.border": "#64748b",
+          "color.relation": "#94a3b8",
+          "aad.project": "#1e3a8a",
+          "aad.specification": "#1e293b",
+          "aad.agent": "#4c1d95",
+          "aad.location": "#78350f",
+          "aad.environment": "#14532d",
+          "aad.pending": "#94a3b8",
+          "aad.progressing": "#60a5fa",
+          "aad.inputRequired": "#fb923c",
+          "aad.finished": "#4ade80",
+          "aad.archived": "#64748b"
+        }
+      },
+      "defaultMode": "light",
+      "followSystem": true,
+      "doc": "The status colours are the enums' (`aad.pending` and so on); a status is always written in words beside its colour (Requirement 4.10)."
+    },
+    "styles": {
+      "node": {
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1.5
+        },
+        "font": {
+          "size": 12,
+          "color": {
+            "token": "color.text"
+          }
+        },
+        "textAlign": "center",
+        "verticalAlign": "middle"
+      },
+      "project": {
+        "extends": "node",
+        "fill": {
+          "token": "aad.project"
+        }
+      },
+      "specification": {
+        "extends": "node",
+        "fill": {
+          "token": "aad.specification"
+        },
+        "stroke": {
+          "color": {
+            "token": "aad.pending"
+          },
+          "width": 2
+        }
+      },
+      "agent": {
+        "extends": "node",
+        "fill": {
+          "token": "aad.agent"
+        }
+      },
+      "location": {
+        "extends": "node",
+        "fill": {
+          "token": "aad.location"
+        }
+      },
+      "environment": {
+        "extends": "node",
+        "fill": {
+          "token": "aad.environment"
+        }
+      },
+      "label": {
+        "font": {
+          "size": 12,
+          "weight": 600,
+          "color": {
+            "token": "color.text"
+          }
+        }
+      },
+      "muted": {
+        "font": {
+          "size": 11,
+          "color": {
+            "token": "color.text.muted"
+          }
+        }
+      },
+      "status": {
+        "font": {
+          "size": 11,
+          "weight": 600,
+          "color": {
+            "token": "aad.pending"
+          }
+        }
+      },
+      "statusProgressing": {
+        "stroke": {
+          "color": {
+            "token": "aad.progressing"
+          }
+        },
+        "font": {
+          "color": {
+            "token": "aad.progressing"
+          }
+        }
+      },
+      "statusInputRequired": {
+        "stroke": {
+          "color": {
+            "token": "aad.inputRequired"
+          }
+        },
+        "font": {
+          "color": {
+            "token": "aad.inputRequired"
+          }
+        }
+      },
+      "statusFinished": {
+        "stroke": {
+          "color": {
+            "token": "aad.finished"
+          }
+        },
+        "font": {
+          "color": {
+            "token": "aad.finished"
+          }
+        }
+      },
+      "statusArchived": {
+        "stroke": {
+          "color": {
+            "token": "aad.archived"
+          },
+          "dash": [
+            4,
+            3
+          ]
+        },
+        "font": {
+          "color": {
+            "token": "aad.archived"
+          }
+        }
+      },
+      "relation": {
+        "stroke": {
+          "color": {
+            "token": "color.relation"
+          },
+          "width": 1.5
+        }
+      }
+    },
+    "nodes": {
+      "Project": {
+        "shape": "folder",
+        "style": "project",
+        "size": {
+          "default": [
+            180,
+            56
+          ],
+          "min": [
+            120,
+            48
+          ],
+          "max": [
+            320,
+            56
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "center",
+            "editable": "inline",
+            "overflow": "ellipsis",
+            "maxLines": 1,
+            "style": "label",
+            "tooltip": {
+              "cel": "self.name"
+            }
+          }
+        ],
+        "badges": [
+          {
+            "id": "link",
+            "icon": "mdi-link-variant",
+            "position": "top-right",
+            "visible": {
+              "cel": "self.link != ''"
+            },
+            "tooltip": {
+              "cel": "self.link"
+            },
+            "onClick": "openLink",
+            "doc": "Drawn where the element has a link; hovering or focusing it shows the link, activating it opens it (Requirement 5.2, 5.7)."
+          },
+          {
+            "id": "pinned",
+            "icon": "mdi-lock-outline",
+            "position": "top-left",
+            "visible": {
+              "cel": "self.view.pinned"
+            },
+            "tooltip": "Its position is locked. Unlock it from its menu to let the layout place it.",
+            "doc": "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+          }
+        ]
+      },
+      "Specification": {
+        "shape": {
+          "type": "roundedRect",
+          "params": {
+            "radius": 8
+          }
+        },
+        "style": "specification",
+        "size": {
+          "default": [
+            240,
+            64
+          ],
+          "min": [
+            180,
+            64
+          ],
+          "max": [
+            320,
+            640
+          ],
+          "autoSize": "fitHeight"
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "top",
+            "editable": "inline",
+            "overflow": "ellipsis",
+            "maxLines": 1,
+            "style": "label",
+            "tooltip": {
+              "cel": "self.name"
+            }
+          },
+          {
+            "id": "status",
+            "text": {
+              "cel": "self.status == 'inputRequired' ? 'Input Required' : self.status == 'progressing' ? 'Progressing' : self.status == 'finished' ? 'Finished' : self.status == 'archived' ? 'Archived' : 'Pending'"
+            },
+            "position": {
+              "anchor": [
+                0.5,
+                0
+              ],
+              "offset": [
+                0,
+                36
+              ]
+            },
+            "editable": false,
+            "style": "status",
+            "doc": "The status in words, in the status colour (Requirement 4.10)."
+          }
+        ],
+        "compartments": [
+          {
+            "id": "tasks",
+            "items": {
+              "children": [
+                "Task"
+              ],
+              "slot": "tasks"
+            },
+            "itemText": {
+              "cel": "item.title"
+            },
+            "itemLink": {
+              "cel": "item.link"
+            },
+            "itemOrder": {
+              "by": "item.updated",
+              "direction": "descending"
+            },
+            "groupBy": {
+              "attribute": "status",
+              "collapsed": {
+                "pending": true,
+                "finished": true
+              },
+              "doc": "Progressing, Pending, Input Required and Finished, in TaskStatus's order, each heading with its count; a group with no task has no heading. Progressing and Input Required start expanded, Pending and Finished collapsed (Requirement 4.2, 4.4)."
+            },
+            "separator": {
+              "color": {
+                "token": "color.border"
+              },
+              "width": 1
+            },
+            "overflow": "ellipsis",
+            "doc": "The specification's tasks, most recently updated first within their group (Requirement 4.2)."
+          }
+        ],
+        "badges": [
+          {
+            "id": "link",
+            "icon": "mdi-link-variant",
+            "position": "top-right",
+            "visible": {
+              "cel": "self.link != ''"
+            },
+            "tooltip": {
+              "cel": "self.link"
+            },
+            "onClick": "openLink",
+            "doc": "Drawn where the element has a link; hovering or focusing it shows the link, activating it opens it (Requirement 5.2, 5.7)."
+          },
+          {
+            "id": "pinned",
+            "icon": "mdi-lock-outline",
+            "position": "top-left",
+            "visible": {
+              "cel": "self.view.pinned"
+            },
+            "tooltip": "Its position is locked. Unlock it from its menu to let the layout place it.",
+            "doc": "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+          }
+        ],
+        "conditions": [
+          {
+            "when": "self.status == 'progressing'",
+            "style": "statusProgressing"
+          },
+          {
+            "when": "self.status == 'inputRequired'",
+            "style": "statusInputRequired"
+          },
+          {
+            "when": "self.status == 'finished'",
+            "style": "statusFinished"
+          },
+          {
+            "when": "self.status == 'archived'",
+            "style": "statusArchived"
+          }
+        ]
+      },
+      "Agent": {
+        "shape": "pill",
+        "style": "agent",
+        "size": {
+          "default": [
+            160,
+            44
+          ],
+          "min": [
+            100,
+            44
+          ],
+          "max": [
+            280,
+            44
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "center",
+            "editable": "inline",
+            "overflow": "ellipsis",
+            "maxLines": 1,
+            "style": "label",
+            "tooltip": {
+              "cel": "self.name"
+            }
+          }
+        ],
+        "badges": [
+          {
+            "id": "link",
+            "icon": "mdi-link-variant",
+            "position": "top-right",
+            "visible": {
+              "cel": "self.link != ''"
+            },
+            "tooltip": {
+              "cel": "self.link"
+            },
+            "onClick": "openLink",
+            "doc": "Drawn where the element has a link; hovering or focusing it shows the link, activating it opens it (Requirement 5.2, 5.7)."
+          },
+          {
+            "id": "pinned",
+            "icon": "mdi-lock-outline",
+            "position": "top-left",
+            "visible": {
+              "cel": "self.view.pinned"
+            },
+            "tooltip": "Its position is locked. Unlock it from its menu to let the layout place it.",
+            "doc": "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+          }
+        ]
+      },
+      "Location": {
+        "shape": "rect",
+        "style": "location",
+        "size": {
+          "default": [
+            240,
+            64
+          ],
+          "min": [
+            180,
+            64
+          ],
+          "max": [
+            360,
+            480
+          ],
+          "autoSize": "fitHeight"
+        },
+        "labels": [
+          {
+            "id": "branch",
+            "text": {
+              "attribute": "branch"
+            },
+            "position": "top",
+            "editable": "inline",
+            "overflow": "ellipsis",
+            "maxLines": 1,
+            "style": "label",
+            "tooltip": {
+              "cel": "self.branch"
+            },
+            "link": {
+              "cel": "self.branchLink"
+            },
+            "doc": "The branch, above the line."
+          }
+        ],
+        "compartments": [
+          {
+            "id": "folder",
+            "items": {
+              "cel": "[self.folder]"
+            },
+            "itemText": {
+              "cel": "item"
+            },
+            "itemLink": {
+              "cel": "self.folderLink"
+            },
+            "separator": {
+              "color": {
+                "token": "color.border"
+              },
+              "width": 1
+            },
+            "overflow": "ellipsis",
+            "doc": "The folder, below the line that splits the location's two fields (Requirement 7.1); `Default` when the work is in the main checkout. Its link symbol opens `folderLink`."
+          },
+          {
+            "id": "pullRequests",
+            "title": "Pull requests",
+            "items": {
+              "children": [
+                "PullRequest"
+              ],
+              "slot": "pullRequests"
+            },
+            "itemText": {
+              "cel": "item.title"
+            },
+            "itemLink": {
+              "cel": "item.link"
+            },
+            "itemOrder": {
+              "by": "item.updated",
+              "direction": "descending"
+            },
+            "collapsible": true,
+            "collapsed": true,
+            "separator": {
+              "color": {
+                "token": "color.border"
+              },
+              "width": 1
+            },
+            "overflow": "ellipsis",
+            "doc": "One collapsible group, collapsed by default, whose group key is `pullRequests`; most recently updated first (Requirement 4.5)."
+          }
+        ],
+        "badges": [
+          {
+            "id": "link",
+            "icon": "mdi-link-variant",
+            "position": "top-right",
+            "visible": {
+              "cel": "self.branchLink != ''"
+            },
+            "tooltip": {
+              "cel": "self.branchLink"
+            },
+            "onClick": "openBranchLink",
+            "doc": "The branch's link (Requirement 5.1)."
+          },
+          {
+            "id": "pinned",
+            "icon": "mdi-lock-outline",
+            "position": "top-left",
+            "visible": {
+              "cel": "self.view.pinned"
+            },
+            "tooltip": "Its position is locked. Unlock it from its menu to let the layout place it.",
+            "doc": "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+          }
+        ]
+      },
+      "Environment": {
+        "shape": {
+          "type": "hexagon",
+          "params": {
+            "orientation": "flat"
+          }
+        },
+        "style": "environment",
+        "size": {
+          "default": [
+            170,
+            56
+          ],
+          "min": [
+            120,
+            56
+          ],
+          "max": [
+            300,
+            56
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "center",
+            "editable": "inline",
+            "overflow": "ellipsis",
+            "maxLines": 1,
+            "style": "label",
+            "tooltip": {
+              "cel": "self.name"
+            }
+          },
+          {
+            "id": "environmentKind",
+            "text": {
+              "cel": "self.environmentKind == 'localMachine' ? 'Local machine' : self.environmentKind == 'wsl' ? 'WSL' : self.environmentKind == 'cloud' ? 'Cloud' : self.environmentKind == 'container' ? 'Container' : 'Other'"
+            },
+            "position": "bottom",
+            "editable": false,
+            "style": "muted"
+          }
+        ],
+        "badges": [
+          {
+            "id": "link",
+            "icon": "mdi-link-variant",
+            "position": "top-right",
+            "visible": {
+              "cel": "self.link != ''"
+            },
+            "tooltip": {
+              "cel": "self.link"
+            },
+            "onClick": "openLink",
+            "doc": "Drawn where the element has a link; hovering or focusing it shows the link, activating it opens it (Requirement 5.2, 5.7)."
+          },
+          {
+            "id": "pinned",
+            "icon": "mdi-lock-outline",
+            "position": "top-left",
+            "visible": {
+              "cel": "self.view.pinned"
+            },
+            "tooltip": "Its position is locked. Unlock it from its menu to let the layout place it.",
+            "doc": "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+          }
+        ]
+      }
+    },
+    "edges": {
+      "ProjectSpecification": {
+        "style": "relation",
+        "line": {
+          "routing": "straight"
+        },
+        "sourceMarker": "none",
+        "targetMarker": "none",
+        "labels": [],
+        "doc": "A plain line without a label: its ends say what it means (Requirement 7.4)."
+      },
+      "SpecificationAgent": {
+        "style": "relation",
+        "line": {
+          "routing": "straight"
+        },
+        "sourceMarker": "none",
+        "targetMarker": "none",
+        "labels": [],
+        "doc": "A plain line without a label: its ends say what it means (Requirement 7.4)."
+      },
+      "AgentLocation": {
+        "style": "relation",
+        "line": {
+          "routing": "straight"
+        },
+        "sourceMarker": "none",
+        "targetMarker": "none",
+        "labels": [],
+        "doc": "A plain line without a label: its ends say what it means (Requirement 7.4)."
+      },
+      "LocationEnvironment": {
+        "style": "relation",
+        "line": {
+          "routing": "straight"
+        },
+        "sourceMarker": "none",
+        "targetMarker": "none",
+        "labels": [],
+        "doc": "A plain line without a label: its ends say what it means (Requirement 7.4)."
+      }
+    },
+    "canvas": {
+      "filters": {
+        "archived": {
+          "label": "Show archived",
+          "control": "switch",
+          "persist": true,
+          "default": false,
+          "appliesTo": [
+            "Specification"
+          ],
+          "keep": "value || self.status != 'archived'",
+          "doc": "Shows or hides specifications whose status is Archived, with their relations; nothing else is hidden and the model does not change (Requirement 4.6, 4.7). Kept in the file as `view.showArchived` (persistence.view.bind)."
+        }
+      }
+    }
+  },
+  "toolbox": {
+    "doc": "One tool per element type and none for a task or a pull request (Requirement 9.1). An element dropped from the toolbox is locked where it was dropped (Requirement 6.11). A relation is drawn between two elements and is the one the pair allows (Requirement 9.2).",
+    "generic": {
+      "select": true,
+      "pan": true
+    },
+    "groups": [
+      {
+        "id": "elements",
+        "tools": [
+          {
+            "id": "project",
+            "creates": "Project",
+            "mode": "drop",
+            "label": "Project",
+            "icon": "mdi-folder-outline",
+            "doc": "A body of work, such as a repository.",
+            "initial": {
+              "name": "New project"
+            },
+            "after": "editLabel"
+          },
+          {
+            "id": "specification",
+            "creates": "Specification",
+            "mode": "drop",
+            "label": "Specification",
+            "icon": "mdi-file-document-outline",
+            "doc": "A piece of specified work, with its status and tasks.",
+            "initial": {
+              "name": "New specification",
+              "status": "pending"
+            },
+            "after": "editLabel"
+          },
+          {
+            "id": "agent",
+            "creates": "Agent",
+            "mode": "drop",
+            "label": "Agent",
+            "icon": "mdi-robot-outline",
+            "doc": "A worker on a specification.",
+            "initial": {
+              "name": "New agent"
+            },
+            "after": "editLabel"
+          },
+          {
+            "id": "location",
+            "creates": "Location",
+            "mode": "drop",
+            "label": "Location",
+            "icon": "mdi-source-branch",
+            "doc": "Where an agent's work is: a branch and a folder.",
+            "initial": {
+              "branch": "main",
+              "folder": "Default"
+            },
+            "after": "editLabel"
+          },
+          {
+            "id": "environment",
+            "creates": "Environment",
+            "mode": "drop",
+            "label": "Environment",
+            "icon": "mdi-server-outline",
+            "doc": "A system the work happens on.",
+            "initial": {
+              "name": "New environment",
+              "environmentKind": "other"
+            },
+            "after": "editLabel"
+          }
+        ]
+      }
+    ],
+    "contextMenus": [
+      {
+        "for": [
+          "Project",
+          "Specification",
+          "Agent",
+          "Location",
+          "Environment"
+        ],
+        "placement": "menu",
+        "tools": [
+          {
+            "kind": "editLabel",
+            "label": "Rename",
+            "icon": "mdi-rename-outline",
+            "shortcut": "F2",
+            "group": "edit"
+          },
+          {
+            "kind": "create-child",
+            "creates": "Task",
+            "slot": "tasks",
+            "label": "Add task",
+            "icon": "mdi-checkbox-blank-outline",
+            "visible": "self.isA('Specification')",
+            "group": "edit"
+          },
+          {
+            "kind": "create-child",
+            "creates": "PullRequest",
+            "slot": "pullRequests",
+            "label": "Add pull request",
+            "icon": "mdi-source-pull",
+            "visible": "self.isA('Location')",
+            "group": "edit"
+          },
+          {
+            "kind": "operation",
+            "operation": "openLink",
+            "label": "Open link",
+            "icon": "mdi-open-in-new",
+            "visible": "!self.isA('Location')",
+            "group": "edit"
+          },
+          {
+            "kind": "operation",
+            "operation": "openBranchLink",
+            "label": "Open the branch's link",
+            "icon": "mdi-open-in-new",
+            "visible": "self.isA('Location')",
+            "group": "edit"
+          },
+          {
+            "kind": "operation",
+            "operation": "openFolderLink",
+            "label": "Open the folder's link",
+            "icon": "mdi-folder-open-outline",
+            "visible": "self.isA('Location')",
+            "group": "edit"
+          },
+          {
+            "kind": "pin",
+            "label": "Lock position",
+            "icon": "mdi-lock-outline",
+            "group": "position"
+          },
+          {
+            "kind": "unpin",
+            "label": "Unlock position",
+            "icon": "mdi-lock-open-variant-outline",
+            "group": "position"
+          },
+          {
+            "kind": "delete",
+            "label": "Delete",
+            "icon": "mdi-delete-outline",
+            "shortcut": "Delete",
+            "group": "remove"
+          }
+        ]
+      },
+      {
+        "for": [
+          "Task"
+        ],
+        "placement": "menu",
+        "tools": [
+          {
+            "kind": "editLabel",
+            "label": "Rename",
+            "icon": "mdi-rename-outline",
+            "shortcut": "F2",
+            "group": "edit"
+          },
+          {
+            "kind": "operation",
+            "operation": "setTaskStatus",
+            "label": "Set status",
+            "icon": "mdi-list-status",
+            "group": "edit"
+          },
+          {
+            "kind": "operation",
+            "operation": "openLink",
+            "label": "Open link",
+            "icon": "mdi-open-in-new",
+            "group": "edit"
+          },
+          {
+            "kind": "delete",
+            "label": "Delete",
+            "icon": "mdi-delete-outline",
+            "shortcut": "Delete",
+            "group": "remove"
+          }
+        ]
+      },
+      {
+        "for": [
+          "PullRequest"
+        ],
+        "placement": "menu",
+        "tools": [
+          {
+            "kind": "editLabel",
+            "label": "Rename",
+            "icon": "mdi-rename-outline",
+            "shortcut": "F2",
+            "group": "edit"
+          },
+          {
+            "kind": "operation",
+            "operation": "openLink",
+            "label": "Open link",
+            "icon": "mdi-open-in-new",
+            "group": "edit"
+          },
+          {
+            "kind": "delete",
+            "label": "Delete",
+            "icon": "mdi-delete-outline",
+            "shortcut": "Delete",
+            "group": "remove"
+          }
+        ]
+      },
+      {
+        "for": [
+          "diagram"
+        ],
+        "placement": "menu",
+        "tools": [
+          {
+            "kind": "unpinAll",
+            "label": "Unlock all positions",
+            "icon": "mdi-lock-open-variant-outline",
+            "doc": "Offered only while something is locked (Requirement 6.4)."
+          }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "doc": "Every edit is one undoable step. A relation is a key on the element at its 'one' end: drawing it sets the key and removing it clears it. Removing an element clears every key that names it, which removes its relations with it (Requirement 3.9), and removes its locked position and group states (the binding's cascade).",
+    "operations": {
+      "openLink": {
+        "label": "Open link",
+        "for": [
+          "Project",
+          "Specification",
+          "Task",
+          "Agent",
+          "PullRequest",
+          "Environment"
+        ],
+        "enabled": "self.link != ''",
+        "unavailable": [
+          {
+            "when": "self.link == ''",
+            "message": "It has no link. Add one in the property grid."
+          }
+        ],
+        "actions": [
+          {
+            "open": "self.link"
+          }
+        ],
+        "doc": "An http or https address opens in the browser without access to ADP; a path is revealed by the host; anything else is refused, and the link is reported (Requirement 5.3 to 5.6)."
+      },
+      "openBranchLink": {
+        "label": "Open the branch's link",
+        "for": [
+          "Location"
+        ],
+        "enabled": "self.branchLink != ''",
+        "actions": [
+          {
+            "open": "self.branchLink"
+          }
+        ]
+      },
+      "openFolderLink": {
+        "label": "Open the folder's link",
+        "for": [
+          "Location"
+        ],
+        "enabled": "self.folderLink != ''",
+        "actions": [
+          {
+            "open": "self.folderLink"
+          }
+        ]
+      },
+      "setTaskStatus": {
+        "label": "Set status",
+        "for": [
+          "Task"
+        ],
+        "params": {
+          "status": {
+            "type": "TaskStatus",
+            "label": "Status",
+            "required": true
+          }
+        },
+        "actions": [
+          {
+            "set": {
+              "status": "p.status",
+              "updated": "env.now"
+            }
+          }
+        ],
+        "doc": "Sets the task's status and its updated moment; the task moves to its new group, which does not expand (Requirement 4.9, 9.3)."
+      },
+      "setProject": {
+        "label": "Connect",
+        "for": [
+          "ProjectSpecification"
+        ],
+        "actions": [
+          {
+            "set": {
+              "project": "self.source"
+            },
+            "target": "self.target"
+          }
+        ],
+        "doc": "Drawing the line sets the `project` key of its target, so the line is the key."
+      },
+      "clearProject": {
+        "label": "Disconnect",
+        "for": [
+          "ProjectSpecification"
+        ],
+        "actions": [
+          {
+            "unset": [
+              "project"
+            ],
+            "target": "self.target"
+          }
+        ],
+        "doc": "Removing the line clears the `project` key, which is removed from the file."
+      },
+      "setSpecification": {
+        "label": "Connect",
+        "for": [
+          "SpecificationAgent"
+        ],
+        "actions": [
+          {
+            "set": {
+              "specification": "self.source"
+            },
+            "target": "self.target"
+          }
+        ],
+        "doc": "Drawing the line sets the `specification` key of its target, so the line is the key."
+      },
+      "clearSpecification": {
+        "label": "Disconnect",
+        "for": [
+          "SpecificationAgent"
+        ],
+        "actions": [
+          {
+            "unset": [
+              "specification"
+            ],
+            "target": "self.target"
+          }
+        ],
+        "doc": "Removing the line clears the `specification` key, which is removed from the file."
+      },
+      "setAgent": {
+        "label": "Connect",
+        "for": [
+          "AgentLocation"
+        ],
+        "actions": [
+          {
+            "set": {
+              "agent": "self.source"
+            },
+            "target": "self.target"
+          }
+        ],
+        "doc": "Drawing the line sets the `agent` key of its target, so the line is the key."
+      },
+      "clearAgent": {
+        "label": "Disconnect",
+        "for": [
+          "AgentLocation"
+        ],
+        "actions": [
+          {
+            "unset": [
+              "agent"
+            ],
+            "target": "self.target"
+          }
+        ],
+        "doc": "Removing the line clears the `agent` key, which is removed from the file."
+      },
+      "setEnvironment": {
+        "label": "Connect",
+        "for": [
+          "LocationEnvironment"
+        ],
+        "actions": [
+          {
+            "set": {
+              "environment": "self.target"
+            },
+            "target": "self.source"
+          }
+        ],
+        "doc": "Drawing the line sets the `environment` key of its source, so the line is the key."
+      },
+      "clearEnvironment": {
+        "label": "Disconnect",
+        "for": [
+          "LocationEnvironment"
+        ],
+        "actions": [
+          {
+            "unset": [
+              "environment"
+            ],
+            "target": "self.source"
+          }
+        ],
+        "doc": "Removing the line clears the `environment` key, which is removed from the file."
+      }
+    }
+  },
+  "constraints": {
+    "doc": "A file an agent wrote that breaks a rule still opens and draws; each breach is a finding where it is, and nothing is removed (Requirement 3.8). Each relation type joins exactly one pair of types, and std.endpoints refuses every other pair (Requirement 3.1).",
+    "blockSaveOn": "never",
+    "rules": [
+      {
+        "id": "secondSpecification",
+        "code": "aad.second-specification",
+        "label": "Agent already on a specification",
+        "kind": "connect",
+        "when": "relationType == 'SpecificationAgent'",
+        "rule": "target.specification == null",
+        "message": {
+          "cel": "'\"' + target.name + '\" already works on \"' + target.specification.name + '\". Remove that line first: an agent works on one specification at a time.'"
+        },
+        "doc": "Requirement 3.2 (Q6): a second specification is refused, with the reason."
+      },
+      {
+        "id": "idleAgent",
+        "code": "aad.agent-without-specification",
+        "label": "Agent without a specification",
+        "scope": [
+          "Agent"
+        ],
+        "rule": "self.specification != null",
+        "severity": "info",
+        "message": {
+          "cel": "'\"' + self.name + '\" works on no specification.'"
+        },
+        "doc": "Requirement 3.3, 3.7 (R2)."
+      },
+      {
+        "id": "agentWithoutLocation",
+        "code": "aad.agent-without-location",
+        "label": "Agent without a location",
+        "scope": [
+          "Agent"
+        ],
+        "rule": "diagram.nodesOfType('Location').exists(l, l.agent == self)",
+        "severity": "info",
+        "message": {
+          "cel": "'\"' + self.name + '\" has no location.'"
+        },
+        "doc": "Requirement 3.3 (R2)."
+      },
+      {
+        "id": "projectWithoutSpecification",
+        "code": "aad.project-without-specification",
+        "label": "Project without a specification",
+        "scope": [
+          "Project"
+        ],
+        "rule": "diagram.nodesOfType('Specification').exists(s, s.project == self)",
+        "severity": "info",
+        "message": {
+          "cel": "'\"' + self.name + '\" has no specification.'"
+        },
+        "doc": "Requirement 3.7."
+      },
+      {
+        "id": "specificationWithoutProject",
+        "code": "aad.specification-without-project",
+        "label": "Specification without a project",
+        "scope": [
+          "Specification"
+        ],
+        "rule": "self.project != null",
+        "severity": "info",
+        "message": {
+          "cel": "'\"' + self.name + '\" belongs to no project.'"
+        },
+        "doc": "Requirement 3.7."
+      },
+      {
+        "id": "locationWithoutAgent",
+        "code": "aad.location-without-agent",
+        "label": "Location without an agent",
+        "scope": [
+          "Location"
+        ],
+        "rule": "self.agent != null",
+        "severity": "info",
+        "message": {
+          "cel": "'\"' + self.branch + '\" belongs to no agent.'"
+        },
+        "doc": "Requirement 3.7."
+      },
+      {
+        "id": "locationWithoutEnvironment",
+        "code": "aad.location-without-environment",
+        "label": "Location without an environment",
+        "scope": [
+          "Location"
+        ],
+        "rule": "self.environment != null",
+        "severity": "info",
+        "message": {
+          "cel": "'\"' + self.branch + '\" is on no environment.'"
+        },
+        "doc": "Requirement 3.7 (R2)."
+      },
+      {
+        "id": "linkNotOpenable",
+        "code": "aad.link-not-openable",
+        "label": "Link that cannot be opened",
+        "scope": [
+          "Project",
+          "Specification",
+          "Task",
+          "Agent",
+          "PullRequest",
+          "Environment"
+        ],
+        "rule": "self.link == '' || self.link.matches('^(https?://|[^:]*$|[A-Za-z]:[/\\\\\\\\])')",
+        "severity": "warning",
+        "message": {
+          "cel": "'The link \"' + self.link + '\" is neither an http or https address nor a path, so it is kept and not opened.'"
+        },
+        "attribute": "link",
+        "doc": "Requirement 5.6. A Windows path such as C:/git is a path."
+      },
+      {
+        "id": "locationLinkNotOpenable",
+        "code": "aad.link-not-openable",
+        "label": "Link that cannot be opened",
+        "scope": [
+          "Location"
+        ],
+        "forEach": "[self.branchLink, self.folderLink].filter(l, l != '' && !l.matches('^(https?://|[^:]*$|[A-Za-z]:[/\\\\\\\\])'))",
+        "severity": "warning",
+        "message": {
+          "cel": "'The link \"' + item + '\" is neither an http or https address nor a path, so it is kept and not opened.'"
+        },
+        "doc": "Requirement 5.6, for a location's two links."
+      }
+    ]
+  },
+  "layout": {
+    "algorithms": {
+      "rings": {
+        "algorithm": "force",
+        "force": {
+          "tiers": [
+            "Project",
+            "Specification",
+            "Agent",
+            "Location",
+            "Environment"
+          ],
+          "gap": 24
+        },
+        "doc": "Projects in the middle, then specifications, agents and locations, environments outermost; relations pull, all elements push apart, no two overlap, the same file gives the same picture, and a live change moves little (DISL 10.4; Requirement 6.5 to 6.10). agent-activity-diagram.md gives the reference algorithm and its numbers."
+      }
+    },
+    "default": "rings",
+    "trigger": "onChange",
+    "respect": "pinned",
+    "animate": {
+      "durationMs": 250
+    },
+    "doc": "Locked elements stay where they are and act as fixed points; a drag locks the element (DISL 10.4, Requirement 6.1). Computed positions are never written (Requirement 6.6). The animation is left out when the user asked for reduced motion."
+  },
+  "persistence": {
+    "format": "fbl",
+    "binding": "agent-activity-diagram.fbl#aad",
+    "ids": {
+      "strategy": "uuid-v4",
+      "encoding": "base36",
+      "stable": true,
+      "doc": "ADP gives a new element, task or pull request a ShortGuid: a version 4 GUID written as 25 characters of base 36. Ids written by hand, such as `s-knowledge`, are kept as written, and are encouraged in the file an agent writes, since the agent finds its entries again by them (Requirement 2.6)."
+    },
+    "typeMap": {
+      "Diagram": {
+        "as": "diagram",
+        "attributes": {
+          "version": null,
+          "showArchived": null
+        },
+        "hostAttributes": [
+          "unknownKeys"
+        ],
+        "doc": "The file's root: the header is the binding's, and view.showArchived is the kept filter's value (view.bind)."
+      },
+      "Project": {
+        "as": "Project",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Specification": {
+        "as": "Specification",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Task": {
+        "as": "Task",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Agent": {
+        "as": "Agent",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Location": {
+        "as": "Location",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "PullRequest": {
+        "as": "PullRequest",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Environment": {
+        "as": "Environment",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Unreadable": {
+        "as": "unreadable"
+      }
+    },
+    "view": {
+      "store": [
+        "pinned",
+        "groups",
+        "filters"
+      ],
+      "viewer": [
+        "selection",
+        "viewport"
+      ],
+      "bind": {
+        "pinned": {
+          "type": "Placement",
+          "element": "element",
+          "x": "x",
+          "y": "y",
+          "doc": "A locked position is an entry of `view.placements`."
+        },
+        "groups": {
+          "type": "GroupState",
+          "element": "element",
+          "group": "group",
+          "collapsed": "collapsed",
+          "doc": "A group whose state differs from its default is an entry of `view.groups`."
+        },
+        "filters": {
+          "type": "Diagram",
+          "values": {
+            "archived": "showArchived"
+          },
+          "doc": "The switch is the key `view.showArchived`."
+        }
+      },
+      "doc": "The user's part of the file, the top-level `view` mapping: locked positions, folded groups and the switch, kept in the activity file itself so that one file tells everything (standalone Q3). Agents leave it alone."
+    },
+    "doc": "One YAML file, `.aad`, read and written through the FBL binding `agent-activity-diagram.fbl#aad` with byte-preserving splices; its `.adp` registration beside it identifies it. The file's format, written for agents, is in agent-activity-diagram.md, and its JSON Schema is agent-activity-diagram.schema.json."
+  },
+  "x-aad": {
+    "tools": {
+      "project": {
+        "drop": "add-project"
+      },
+      "specification": {
+        "drop": "add-specification"
+      },
+      "agent": {
+        "drop": "add-agent"
+      },
+      "location": {
+        "drop": "add-location"
+      },
+      "environment": {
+        "drop": "add-environment"
+      }
+    }
+  },
+  "x-adp": {
+    "kind": "Diagram",
+    "companion": "agent-activity-diagram.md"
+  }
+}

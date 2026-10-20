@@ -1,0 +1,511 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.2",
+  "language": {
+    "id": "org.example.statemachine",
+    "version": "1.2.0",
+    "label": { "en": "State machine", "de": "Zustandsautomat" },
+    "doc": {
+      "summary": "Finite state machines with triggers, guards and effects.",
+      "description": "Draw **states** and connect them with **transitions**. Every machine has exactly one initial state. Guards are CEL expressions over the machine's variables."
+    },
+    "defaultLocale": "en",
+    "locales": ["en", "de"],
+    "fileExtension": "sm.json",
+    "requires": { "conformance": "standard" }
+  },
+
+  "functions": {
+    "displayName": {
+      "params": [{ "name": "e", "type": "Element" }],
+      "returns": "string",
+      "cel": "has(e.name) && e.name != '' ? e.name : e.type",
+      "doc": "Name of a state, or its type when unnamed."
+    },
+    "transitionText": {
+      "params": [{ "name": "t", "type": "Element" }],
+      "returns": "string",
+      "cel": "t.trigger + (t.guard != '' ? ' [' + t.guard + ']' : '') + (t.effect != '' ? ' / ' + t.effect : '')",
+      "doc": "UML-style transition label: trigger [guard] / effect."
+    }
+  },
+
+  "metamodel": {
+    "diagram": {
+      "attributes": {
+        "title": { "type": "string", "label": "Title" },
+        "variables": { "type": "Variable", "many": true, "doc": "Variables that guards may read." }
+      }
+    },
+    "dataTypes": {
+      "Variable": {
+        "fields": {
+          "name": { "type": "string", "required": true, "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "dataType": { "type": "VarKind", "default": "int" }
+        },
+        "display": { "cel": "value.name + ': ' + value.dataType" }
+      }
+    },
+    "enums": {
+      "VarKind": { "values": { "int": {}, "bool": {}, "string": {} } }
+    },
+    "types": {
+      "Vertex": {
+        "abstract": true,
+        "doc": "Anything a transition can connect."
+      },
+      "State": {
+        "extends": "Vertex",
+        "doc": { "summary": "A condition the system can be in.", "tags": ["core"] },
+        "attributes": {
+          "name": { "type": "string", "required": true, "maxLength": 60, "unique": "parent",
+                    "doc": "Unique within the enclosing region." },
+          "entry": { "type": "string", "label": "Entry action", "doc": "Runs every time the state is entered." },
+          "exit": { "type": "string", "label": "Exit action" },
+          "color": { "type": "color", "palette": ["#EEEDFE", "#E1F5EE", "#FAEEDA", "#FAECE7"] }
+        },
+        "children": { "allowed": ["Vertex"] },
+        "labelAttribute": "name"
+      },
+      "InitialState": { "extends": "Vertex", "multiplicity": { "min": 1, "max": 1 },
+                        "doc": "Where execution starts. Exactly one per machine." },
+      "FinalState": { "extends": "Vertex", "doc": "Execution ends when a final state is reached." },
+      "Choice": { "extends": "Vertex", "doc": "Dynamic branch; outgoing guards are evaluated in order." },
+      "Comment": {
+        "viewOnly": true,
+        "attributes": { "text": { "type": "text", "markup": "markdown" } },
+        "doc": "A note on the diagram. Comments have no meaning for execution."
+      }
+    },
+    "relations": {
+      "Transition": {
+        "doc": "A change from one vertex to another, fired by a trigger when the guard holds.",
+        "source": { "types": ["Vertex"], "exclude": ["FinalState"] },
+        "target": { "types": ["Vertex"], "exclude": ["InitialState"] },
+        "allowSelfLoops": true,
+        "attributes": {
+          "trigger": { "type": "string" },
+          "guard": { "type": "expression", "context": "x-guard", "resultType": "bool" },
+          "effect": { "type": "string" },
+          "priority": { "type": "int", "default": 0, "min": 0 }
+        }
+      },
+      "Anchor": {
+        "viewOnly": true,
+        "source": "Comment",
+        "target": ["Vertex", "Transition"],
+        "connectsRelations": true,
+        "doc": "Attaches a comment to an element."
+      }
+    }
+  },
+
+  "coordinates": {
+    "axes": { "px": { "kind": "linear", "unit": "px" } },
+    "systems": {
+      "canvas": {
+        "kind": "cartesian",
+        "x": "px",
+        "y": "px",
+        "grid": { "visible": true, "style": "dots", "spacing": 10, "majorEvery": 5 },
+        "snapping": "grid10",
+        "guides": { "smart": true, "distribution": true }
+      }
+    },
+    "snapProfiles": {
+      "grid10": {
+        "both": { "grid": { "spacing": 10 } },
+        "size": { "both": { "grid": { "spacing": 10 }, "min": 20 } },
+        "targets": ["objects", "rule"],
+        "rotation": { "step": 15 },
+        "doc": { "summary": "Everything aligns to a 10 px grid.", "rationale": "Aligned diagrams are easier to read and diff." }
+      }
+    },
+    "default": "canvas"
+  },
+
+  "notation": {
+    "theme": {
+      "tokens": {
+        "color.surface": "#FFFFFF",
+        "color.text": "#2C2C2A",
+        "color.border": "#5F5E5A",
+        "color.accent": "#534AB7",
+        "color.accent.soft": "#EEEDFE",
+        "color.note": "#FAEEDA",
+        "font.body": "Inter, system-ui, sans-serif",
+        "font.mono": "JetBrains Mono, monospace"
+      },
+      "modes": {
+        "dark": {
+          "color.surface": "#2C2C2A",
+          "color.text": "#F1EFE8",
+          "color.border": "#B4B2A9",
+          "color.accent.soft": "#3C3489",
+          "color.note": "#633806"
+        }
+      },
+      "followSystem": true
+    },
+    "styles": {
+      "base": {
+        "fill": { "token": "color.surface" },
+        "stroke": { "color": { "token": "color.border" }, "width": 1.25 },
+        "font": { "family": { "token": "font.body" }, "size": 13, "color": { "token": "color.text" } }
+      },
+      "stateBody": {
+        "extends": "base",
+        "fill": { "attribute": "color" },
+        "cornerRadius": 10
+      },
+      "pseudo": { "fill": { "token": "color.text" }, "stroke": { "width": 0 } }
+    },
+    "shapes": {
+      "bullseye": {
+        "label": "Final state",
+        "doc": "A filled circle inside a ring.",
+        "params": { "gap": { "type": "number", "unit": "length", "default": 4, "min": 2, "max": "min(w, h) / 3" } },
+        "parts": [
+          { "id": "ring", "shape": "ellipse", "box": { "x": 0, "y": 0, "w": "w", "h": "h" }, "outline": true,
+            "style": { "fill": "none" } },
+          { "id": "dot", "shape": "ellipse", "box": { "x": "p.gap", "y": "p.gap", "w": "w - 2.0 * p.gap", "h": "h - 2.0 * p.gap" },
+            "style": { "fill": { "token": "color.text" }, "stroke": { "width": 0 } } }
+        ],
+        "handles": [
+          { "param": "gap", "axis": "x", "x": "p.gap", "y": "h / 2.0", "value": "px", "label": "Ring gap",
+            "snap": { "grid": { "spacing": 1 } } }
+        ],
+        "aspectRatio": 1
+      },
+      "speech": {
+        "label": "Speech bubble",
+        "doc": "Drag the round handle to point the tail, the square handle to change the corner radius.",
+        "params": {
+          "tipX": { "type": "number", "unit": "fraction", "default": 0.2, "min": -0.5, "max": 1.5 },
+          "tipY": { "type": "number", "unit": "fraction", "default": 1.4, "min": -0.8, "max": 1.8 },
+          "base": { "type": "number", "unit": "fraction", "default": 0.3, "min": 0.1, "max": 0.8 },
+          "radius": { "type": "number", "unit": "length", "default": 8, "min": 0, "max": "min(w, h) / 2.0" }
+        },
+        "parts": [
+          { "id": "body", "shape": { "type": "roundedRect", "params": { "radius": { "param": "radius" } } },
+            "box": { "x": 0, "y": 0, "w": "w", "h": "h" }, "outline": true },
+          { "id": "tail",
+            "shape": { "path": { "segments": [
+              { "op": "M", "x": "w * p.base", "y": "h - 1.0" },
+              { "op": "L", "x": "w * p.tipX", "y": "h * p.tipY" },
+              { "op": "L", "x": "w * (p.base + 0.15)", "y": "h - 1.0" },
+              { "op": "Z" } ] } },
+            "box": { "x": 0, "y": 0, "w": "w", "h": "h" } }
+        ],
+        "textArea": { "x": 10, "y": 8, "w": "w - 20.0", "h": "h - 16.0" },
+        "handles": [
+          { "param": "tipX", "yParam": "tipY", "axis": "both", "x": "w * p.tipX", "y": "h * p.tipY",
+            "value": "px / w", "yValue": "py / h", "label": "Tail tip" },
+          { "param": "radius", "axis": "x", "x": "p.radius", "y": 0, "value": "px",
+            "snap": { "grid": { "spacing": 2 } }, "label": "Corner radius" }
+        ]
+      }
+    },
+    "nodes": {
+      "State": {
+        "shape": { "type": "roundedRect", "params": { "radius": 10 } },
+        "style": "stateBody",
+        "size": { "default": [140, 70], "min": [80, 40], "autoSize": "grow" },
+        "labels": [
+          { "id": "name", "text": { "attribute": "name" }, "position": "top", "editable": "inline",
+            "style": { "font": { "weight": 600 } }, "placeholder": "Unnamed state" }
+        ],
+        "compartments": [
+          { "id": "actions",
+            "items": { "cel": "(self.entry != '' ? ['entry / ' + self.entry] : []) + (self.exit != '' ? ['exit / ' + self.exit] : [])" },
+            "itemText": { "cel": "item" },
+            "style": { "font": { "family": { "token": "font.mono" }, "size": 11 } },
+            "separator": { "color": { "token": "color.border" }, "width": 0.5 },
+            "visible": { "cel": "self.entry != '' || self.exit != ''" } }
+        ],
+        "container": { "layout": "free", "padding": [36, 12, 12, 12], "autoGrow": true, "highlightOnDrop": true },
+        "badges": [
+          { "id": "hidden", "position": "bottom-right", "shape": "pill", "size": 16,
+            "text": { "cel": "'+' + string(self.children.size())" },
+            "visible": { "cel": "self.view != null && self.view.collapsed && self.children.size() > 0" },
+            "tooltip": "Collapsed composite state: number of hidden sub-states" }
+        ],
+        "conditions": [
+          { "when": "self.children.size() > 0", "style": { "stroke": { "width": 2 } },
+            "doc": "Composite states have a heavier border." }
+        ],
+        "states": {
+          "selected": { "stroke": { "color": { "token": "color.accent" }, "width": 2 } },
+          "dropTarget": { "fill": { "token": "color.accent.soft" } }
+        },
+        "tooltip": { "cel": "displayName(self) + ' — ' + string(self.outgoing.size()) + ' outgoing transitions'" },
+        "lod": [ { "maxZoom": 0.35, "hide": ["compartments", "badges"] } ]
+      },
+      "InitialState": {
+        "shape": "circle",
+        "style": "pseudo",
+        "size": { "fixed": [20, 20] },
+        "placement": { "anchor": "center" },
+        "labels": [],
+        "tooltip": "Initial state"
+      },
+      "FinalState": {
+        "shape": "bullseye",
+        "style": "base",
+        "size": { "fixed": [24, 24] },
+        "placement": { "anchor": "center" },
+        "labels": []
+      },
+      "Choice": {
+        "shape": "diamond",
+        "style": "base",
+        "size": { "fixed": [28, 28] },
+        "placement": { "anchor": "center" },
+        "labels": []
+      },
+      "Comment": {
+        "shape": "speech",
+        "style": { "fill": { "token": "color.note" }, "stroke": { "color": "#BA7517", "width": 0.75 } },
+        "size": { "default": [180, 70] },
+        "labels": [ { "id": "text", "text": { "attribute": "text" }, "format": "markdown", "editable": "multiline",
+                      "position": "top-left", "overflow": "ellipsis" } ],
+        "layer": "foreground"
+      }
+    },
+    "edges": {
+      "Transition": {
+        "line": {
+          "stroke": { "color": { "token": "color.border" }, "width": 1.25,
+                      "casing": { "color": { "token": "color.surface" }, "width": 5 } },
+          "routing": "curved",
+          "curvature": 0.2,
+          "bendpoints": { "editable": true, "removeOnStraighten": true }
+        },
+        "targetMarker": { "type": "arrowFilled", "params": { "length": 10, "width": 8 } },
+        "labels": [
+          { "id": "text", "text": { "cel": "transitionText(self)" }, "at": "middle", "side": "above",
+            "background": { "fill": { "token": "color.surface" }, "padding": 2, "cornerRadius": 3 },
+            "editable": "inline",
+            "parse": { "cel": "value", "write": [
+              { "set": {
+                  "trigger": "value.split('[')[0].split('/')[0].trim()",
+                  "guard": "value.contains('[') ? value.split('[')[1].split(']')[0].trim() : ''",
+                  "effect": "value.contains('/') ? value.split('/')[1].trim() : ''" } } ] } },
+          { "id": "prio", "text": { "cel": "self.priority > 0 ? string(self.priority) : ''" }, "at": "start", "offset": 10,
+            "side": "below", "style": { "font": { "size": 10 } } }
+        ],
+        "selfLoop": { "shape": "arc", "size": 36, "side": "top" },
+        "parallel": { "spread": 14, "mode": "curve" },
+        "states": { "selected": { "stroke": { "color": { "token": "color.accent" }, "width": 2 } } },
+        "conditions": [ { "when": "self.guard != ''", "style": { "stroke": { "dash": "dashed" } },
+                          "doc": "Guarded transitions are dashed." } ]
+      },
+      "Anchor": {
+        "line": { "stroke": { "dash": "dotted", "cap": "round", "color": "#BA7517", "width": 1 } },
+        "targetMarker": "none"
+      }
+    }
+  },
+
+  "toolbox": {
+    "layout": "list",
+    "searchable": true,
+    "groups": [
+      { "id": "vertices", "label": { "en": "States", "de": "Zustände" }, "tools": [
+        { "id": "state", "creates": "State", "shortcut": "S", "icon": "square-rounded" },
+        { "id": "initial", "creates": "InitialState", "shortcut": "I", "icon": "circle-dot",
+          "enabled": "diagram.nodesOfType('InitialState').size() == 0" },
+        { "id": "final", "creates": "FinalState", "icon": "circle-dot" },
+        { "id": "choice", "creates": "Choice", "icon": "diamond" }
+      ] },
+      { "id": "connections", "label": { "en": "Connections", "de": "Verbindungen" }, "tools": [
+        { "id": "transition", "creates": "Transition", "mode": "drag", "shortcut": "T", "createTarget": "State" }
+      ] },
+      { "id": "annotations", "label": "Annotations", "collapsed": true, "tools": [
+        { "id": "comment", "creates": "Comment", "icon": "message" },
+        { "id": "anchor", "creates": "Anchor" },
+        { "id": "retry", "kind": "template", "template": "retryLoop", "label": "Retry loop" }
+      ] }
+    ],
+    "contextTools": [
+      { "for": ["State", "Choice", "InitialState"], "placement": "around", "tools": [
+        { "kind": "create-connected", "creates": "State", "via": "Transition", "direction": "outgoing",
+          "label": "Add next state", "icon": "arrow-right", "position": "right" },
+        { "kind": "connect", "via": "Transition", "icon": "link", "position": "bottom" },
+        { "kind": "delete", "position": "top-right" }
+      ] }
+    ],
+    "templates": {
+      "retryLoop": {
+        "label": "Retry loop",
+        "doc": "A state that retries a number of times before failing.",
+        "params": { "attempts": { "type": "int", "default": 3, "min": 1, "label": "Attempts" } },
+        "fragment": {
+          "nodes": [
+            { "ref": "try", "type": "State", "attributes": { "name": "'Trying'" }, "at": [0, 0] },
+            { "ref": "fail", "type": "FinalState", "at": [220, 20] }
+          ],
+          "relations": [
+            { "type": "Transition", "source": "try", "target": "try",
+              "attributes": { "trigger": "'error'", "guard": "'retries < ' + string(p.attempts)" } },
+            { "type": "Transition", "source": "try", "target": "fail",
+              "attributes": { "trigger": "'error'", "guard": "'retries >= ' + string(p.attempts)" } }
+          ]
+        }
+      }
+    }
+  },
+
+  "forms": {
+    "stateInspector": {
+      "for": "State",
+      "usage": ["inspector"],
+      "items": [
+        { "attribute": "name" },
+        { "attribute": "color", "widget": "color" },
+        { "kind": "section", "title": "Actions", "items": [
+          { "attribute": "entry", "widget": "code", "widgetOptions": { "language": "text" } },
+          { "attribute": "exit", "widget": "code", "widgetOptions": { "language": "text" } }
+        ] },
+        { "kind": "findings" }
+      ]
+    },
+    "transitionInspector": {
+      "for": "Transition",
+      "items": [
+        { "attribute": "trigger", "placeholder": "e.g. open" },
+        { "attribute": "guard", "widget": "code", "widgetOptions": { "language": "cel" },
+          "doc": "Boolean CEL expression over the machine's variables." },
+        { "attribute": "effect" },
+        { "attribute": "priority", "widget": "spinner",
+          "visible": "self.source.outgoingOf('Transition').size() > 1" }
+      ]
+    }
+  },
+
+  "constraints": {
+    "groups": {
+      "structure": { "label": "Structure", "doc": "Rules without which the machine cannot run." },
+      "style": { "label": "Style guide", "enabledByDefault": true }
+    },
+    "rules": [
+      {
+        "id": "singleInitial", "group": "structure", "scope": "diagram",
+        "rule": "diagram.nodesOfType('InitialState').size() == 1",
+        "severity": "error",
+        "message": "A state machine needs exactly one initial state.",
+        "doc": { "rationale": "Execution must start somewhere, and in only one place." },
+        "fixes": [
+          { "label": "Add an initial state", "when": "diagram.nodesOfType('InitialState').size() == 0",
+            "actions": [ { "create": { "type": "'InitialState'", "at": "[40.0, 40.0]" } } ] }
+        ]
+      },
+      {
+        "id": "initialHasOneExit", "group": "structure", "scope": "InitialState",
+        "rule": "self.outgoing.size() == 1",
+        "message": "The initial state must have exactly one outgoing transition."
+      },
+      {
+        "id": "noEntryIntoInitial", "kind": "connect",
+        "when": "relationType == 'Transition'",
+        "rule": "!target.isA('InitialState')",
+        "message": "Transitions cannot enter the initial state."
+      },
+      {
+        "id": "reachable", "group": "structure", "scope": "Vertex",
+        "when": "!self.isA('InitialState')",
+        "rule": "diagram.nodesOfType('InitialState').exists(i, self in i.reachable('Transition'))",
+        "severity": "warning", "cost": "expensive",
+        "message": { "cel": "'\"' + displayName(self) + '\" can never be reached.'" }
+      },
+      {
+        "id": "deterministic", "group": "structure", "scope": "State",
+        "rule": "self.outgoingOf('Transition').filter(t, t.guard == '').map(t, t.trigger).isUnique()",
+        "message": "Two unguarded transitions leave this state on the same trigger.",
+        "doc": { "rationale": "The machine would not know which transition to take." }
+      },
+      {
+        "id": "choiceNeedsElse", "group": "structure", "scope": "Choice",
+        "rule": "self.outgoingOf('Transition').exists(t, t.guard == 'else')",
+        "severity": "warning",
+        "message": "A choice should have an 'else' branch.",
+        "fixes": [ { "label": "Mark the last branch as else", "when": "self.outgoing.size() > 0",
+                     "actions": [ { "set": { "guard": "'else'" }, "target": "self.outgoing[self.outgoing.size() - 1]" } ] } ]
+      },
+      {
+        "id": "nameCase", "group": "style", "scope": "State",
+        "rule": "self.name == '' || self.name.substring(0, 1) == self.name.substring(0, 1).upperAscii()",
+        "severity": "hint", "attribute": "name",
+        "message": "State names start with a capital letter.",
+        "fixes": [ { "label": "Capitalise", "preferred": true, "applyToAll": true,
+                     "actions": [ { "set": { "name": "self.name.substring(0, 1).upperAscii() + self.name.substring(1)" } } ] } ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "hooks": [
+      { "id": "nameNewState", "on": "create", "for": "State", "when": "!has(self.name) || self.name == ''",
+        "actions": [ { "set": { "name": "'State ' + string(diagram.nodesOfType('State').size())" } } ],
+        "doc": "New states are numbered automatically." }
+    ],
+    "operations": {
+      "makeFinal": {
+        "label": "Convert to final state", "for": "State", "icon": "flag",
+        "enabled": "self.outgoing.size() == 0",
+        "actions": [ { "retype": { "to": "'FinalState'" } } ]
+      },
+      "extractComposite": {
+        "label": "Group into composite state", "for": "selection",
+        "enabled": "selection.all(e, e.isA('Vertex'))",
+        "actions": [
+          { "create": { "type": "'State'", "attributes": { "name": "'Composite'" } }, "as": "group" },
+          { "forEach": "selection", "as": "v", "do": [ { "reparent": { "target": "v", "parent": "group" } } ] },
+          { "layout": { "scope": "[group]" } }
+        ]
+      }
+    },
+    "deletion": { "State": { "children": "reparent", "relations": "delete" } },
+    "clipboard": { "relations": "internal", "ids": "regenerate", "names": "suffix", "offset": [20, 20] },
+    "undo": { "mergeWindowMs": 500 }
+  },
+
+  "layout": {
+    "algorithms": {
+      "flow": { "algorithm": "layered", "direction": "right",
+                "spacing": { "node": 40, "layer": 90, "edge": 12 }, "edgeRouting": "curved",
+                "doc": "Left-to-right flow." }
+    },
+    "default": "flow",
+    "trigger": "onLoadIfMissing",
+    "respect": "pinned"
+  },
+
+  "persistence": {
+    "format": "json",
+    "files": { "mode": "split", "model": "{name}.sm.json", "view": "{name}.sm.view.json" },
+    "ids": { "strategy": "uuid-v7", "prefix": { "State": "st_", "Transition": "tr_", "Comment": "cm_" } },
+    "ordering": { "elements": "tree", "keys": "canonical" },
+    "omitDefaults": true,
+    "precision": { "canvas": 1 },
+    "view": { "store": ["bounds", "waypoints", "labelOffsets", "params", "viewport", "pinned"],
+              "styleOverrides": ["fill"] },
+    "metadata": ["languageVersion", "createdAt", "modifiedAt", "generator"],
+    "migrations": [
+      { "from": ">=1.0.0 <1.1.0", "to": "1.1.0",
+        "doc": "Renamed 'label' to 'name'.",
+        "steps": [ { "renameAttribute": { "type": "State", "from": "label", "to": "name" } } ] },
+      { "from": ">=1.1.0 <1.2.0", "to": "1.2.0",
+        "doc": "EndState became FinalState; transitions got a priority.",
+        "steps": [
+          { "renameType": { "from": "EndState", "to": "FinalState" } },
+          { "setAttribute": { "type": "Transition", "attribute": "priority", "value": "0",
+                              "when": "!has(element.attributes.priority)" } },
+          { "transform": { "type": "State",
+                           "cel": "element.attributes.with({'entry': element.attributes.?onEntry.orValue('')})" } },
+          { "deleteAttribute": { "type": "State", "attribute": "onEntry" } }
+        ] }
+    ],
+    "export": [ { "format": "svg" }, { "format": "png", "options": { "scale": 2 } } ]
+  }
+}

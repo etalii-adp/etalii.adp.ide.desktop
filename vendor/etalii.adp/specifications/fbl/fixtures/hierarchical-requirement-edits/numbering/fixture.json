@@ -1,0 +1,184 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A requirement document, CRLF endings, to which an agent added three entries as text, written REQ-NEW, ITEM-NEW and REQ-NEW in place of a number. Each has no usable id and is reported by std.missingId (DESL 5.3.5); under missing: assign it is read with a new id held in memory, in reading order (DESL 5.3.4, 10.2): REQ-0004 for line 9 and REQ-0005 for line 11, each one more than the higher of the mark REQ-0003 and the highest requirement number in the document, which the first new id raises for the second; ITEM-0003 for line 10, after the mark ITEM-0002. ITEM-NEW holds REQ-NEW, so the parent of REQ-0005 is ITEM-0003. The mark line gives the document's attributes lastItem ITEM-0002 and lastRequirement REQ-0003, named here since a fixture's read has no place for them.",
+  "binding": "../../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "web-shop.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Backend"
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A session ends after 30 minutes without activity."
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Tokens are refreshed without the user noticing."
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Payments"
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A customer pays by card or by bank transfer.",
+          "category": "functional"
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Data"
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "Personal data is kept no longer than it is needed."
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "std.missingId",
+        "line": 9
+      },
+      {
+        "rule": "std.missingId",
+        "line": 10
+      },
+      {
+        "rule": "std.missingId",
+        "line": 11
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A save without an edit writes the bytes that were read: the placeholders are numbered with the next edit that writes the document, never when it is only opened (DESL 5.3.4, FR-013).",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0003 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security\r\n  - REQ-NEW Tokens are refreshed without the user noticing.\r\n  - ITEM-NEW Payments\r\n    - REQ-NEW A customer pays by card or by bank transfer. category:functional\r\n- ITEM-0002 Data\r\n  - REQ-0002 Personal data is kept no longer than it is needed.\r\n"
+    },
+    {
+      "doc": "An edit while entries are REQ-NEW and ITEM-NEW numbers them in the same edit (FR-013): a change of REQ-0002's title is the next edit that writes the document, so it writes the id reading gave each placeholder, a replace-value of its group id each (FBL 5.3), and sets the marks to the last of each kind, ITEM-0003 and REQ-0005, in the same transaction, a replace-value of the groups lastItem and lastRequirement on the mark line (DESL 5.3.5, FBL 6.3). The title is a replace-value of its group. Nothing else is touched (FR-025).",
+      "edit": {
+        "set": {
+          "element": "REQ-0002",
+          "attributes": {
+            "title": "Personal data is removed once it is no longer needed."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 72,
+          "end": 81,
+          "text": "ITEM-0003"
+        },
+        {
+          "operation": "replace-value",
+          "start": 82,
+          "end": 90,
+          "text": "REQ-0005"
+        },
+        {
+          "operation": "replace-value",
+          "start": 234,
+          "end": 241,
+          "text": "REQ-0004"
+        },
+        {
+          "operation": "replace-value",
+          "start": 295,
+          "end": 303,
+          "text": "ITEM-0003"
+        },
+        {
+          "operation": "replace-value",
+          "start": 320,
+          "end": 327,
+          "text": "REQ-0005"
+        },
+        {
+          "operation": "replace-value",
+          "start": 425,
+          "end": 475,
+          "text": "Personal data is removed once it is no longer needed."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0003 REQ-0005 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security\r\n  - REQ-0004 Tokens are refreshed without the user noticing.\r\n  - ITEM-0003 Payments\r\n    - REQ-0005 A customer pays by card or by bank transfer. category:functional\r\n- ITEM-0002 Data\r\n  - REQ-0002 Personal data is removed once it is no longer needed.\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced: the placeholders and the marks are as they were, so the numbers are given back, and the document is the input again (DESL 5.3.5).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 72,
+          "end": 81,
+          "text": "ITEM-0002"
+        },
+        {
+          "operation": "replace-value",
+          "start": 82,
+          "end": 90,
+          "text": "REQ-0003"
+        },
+        {
+          "operation": "replace-value",
+          "start": 234,
+          "end": 242,
+          "text": "REQ-NEW"
+        },
+        {
+          "operation": "replace-value",
+          "start": 296,
+          "end": 305,
+          "text": "ITEM-NEW"
+        },
+        {
+          "operation": "replace-value",
+          "start": 322,
+          "end": 330,
+          "text": "REQ-NEW"
+        },
+        {
+          "operation": "replace-value",
+          "start": 428,
+          "end": 481,
+          "text": "Personal data is kept no longer than it is needed."
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0003 -->\r\n# Web shop\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Backend #core\r\n  - REQ-0001 A session ends after 30 minutes without activity. #security\r\n  - REQ-NEW Tokens are refreshed without the user noticing.\r\n  - ITEM-NEW Payments\r\n    - REQ-NEW A customer pays by card or by bank transfer. category:functional\r\n- ITEM-0002 Data\r\n  - REQ-0002 Personal data is kept no longer than it is needed.\r\n"
+    }
+  ]
+}

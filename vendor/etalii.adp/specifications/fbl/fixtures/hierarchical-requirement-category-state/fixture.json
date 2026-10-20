@@ -1,0 +1,388 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Categories and states over the Hierarchical Requirement Designer's binding, hierarchical-requirement.fbl#markdown, in the Markdown file (User Story 8; FR-030, FR-031). category and state are word slots of a requirement's group words, after tags in the rule's attributes, each holding the first word of the group its word expression matches (FBL 0.7 section 4.6), so a second category: or state: word does not count and stays in the group as written: REQ-0004's category is legal, and its category:technical counts for nothing. REQ-0005 writes category:Technical, which names the member technical, ignoring case (DESL 0.2 section 7.7.2); legal names no member and is an implicit member of the category list. read lists the body's elements; the lists' members are stated in list/, which reads the same body through a registration. Each step is one operation of hierarchical-requirement.des, given as the model changes it makes, followed by its undo, except that the two removals on REQ-0003 are made one after the other and undone in reverse. An unset (clearCategory, clearState) is given as a set to null, since FBL's model changes have no unset (FBL section 11.2). A rename over several carriers is one transaction of several changes, of which the fixture's edit holds the first and x-transaction all (FBL section 15.3 gives an edit one change). The file has CRLF endings.",
+  "binding": "../../../../definitions/designers/hierarchical-requirement.fbl#markdown",
+  "input": "requirements.md",
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Ordering",
+          "tags": [
+            "shop"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A customer orders without signing in.",
+          "tags": [
+            "guest",
+            "checkout"
+          ]
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "An order is confirmed by e-mail.",
+          "tags": [
+            "mail"
+          ],
+          "state": "proposed"
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "An order can be cancelled within an hour.",
+          "category": "technical",
+          "state": "accepted"
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Orders are kept for seven years.",
+          "tags": [
+            "archive"
+          ],
+          "category": "legal"
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Delivery"
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A parcel is tracked from the warehouse to the door.",
+          "category": "Technical"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "setCategory on REQ-0002 with functional: category holds no word, so the new word is an insert-key of one space and category:functional right after the last word of the group held by category or by a slot listed before it in the rule's attributes on the same group, which is tags' #mail (FBL 0.7 section 6.3, a word a set adds). So the category stands after the tags and before state:proposed.",
+      "edit": {
+        "set": {
+          "element": "REQ-0002",
+          "attributes": {
+            "category": "functional"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 275,
+          "end": 275,
+          "text": " category:functional"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail category:functional state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 275,
+          "end": 295,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "setState on REQ-0001 with proposed: REQ-0001 has the tags #guest and #checkout and no category, so the insert-key of one space and state:proposed goes right after #checkout, the last word held by the slots before state (tags and category), and the state stands after the tags (FBL 0.7 section 6.3).",
+      "edit": {
+        "set": {
+          "element": "REQ-0001",
+          "attributes": {
+            "state": "proposed"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 222,
+          "end": 222,
+          "text": " state:proposed"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout state:proposed\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 222,
+          "end": 237,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "setCategory on REQ-0004 with functional: the slot's value is the first matching word, category:legal, so the change is a replace-value of that word's group value, legal (FBL 0.7 section 6.3, a changed word). The second word, category:technical, is no value of the slot and is kept as written, in its place; it still counts for nothing (the companion, Items and requirements: of several the first counts).",
+      "edit": {
+        "set": {
+          "element": "REQ-0004",
+          "attributes": {
+            "category": "functional"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 437,
+          "end": 442,
+          "text": "functional"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:functional category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 437,
+          "end": 447,
+          "text": "legal"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "setState on REQ-0003 with rejected: a replace-value of the word's group value, accepted, and nothing else of the line (FBL 0.7 section 6.3).",
+      "edit": {
+        "set": {
+          "element": "REQ-0003",
+          "attributes": {
+            "state": "rejected"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 372,
+          "end": 380,
+          "text": "rejected"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:rejected\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 372,
+          "end": 380,
+          "text": "accepted"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "clearCategory on REQ-0003 (unset of category): a removed word is a remove-key of the word and the whitespace before it, here category:technical and the space after the title (FBL 0.7 section 6.3, a removed word). The binding gives category no empty option, whose default for a string is keep (FBL section 5.2), which would write an empty value; the reading taken is that a word slot has no empty value to write, since category: alone is no word the slot reads, so the removal is the remove-key that section 6.3 gives a removed word.",
+      "edit": {
+        "set": {
+          "element": "REQ-0003",
+          "attributes": {
+            "category": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 346,
+          "end": 365,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "clearState on REQ-0003, after the category's removal: a remove-key of state:accepted and the space before it. REQ-0003 now carries no trailing word, and its title is as before.",
+      "edit": {
+        "set": {
+          "element": "REQ-0003",
+          "attributes": {
+            "state": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 346,
+          "end": 361,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour.\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "Undo of the state's removal: state:accepted comes back after the title.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 346,
+          "end": 346,
+          "text": " state:accepted"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "Undo of the category's removal: category:technical comes back before state:accepted, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 346,
+          "end": 346,
+          "text": " category:technical"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "clearCategory on REQ-0004: a remove-key of category:legal, the word that counts, and the space before it. The second word, category:technical, is kept as written (FR-030) and is now the first category: word of the group, so the document reads REQ-0004's category as technical after this edit: clearing a requirement that carries two categories leaves it with the other one, by the rule that the first counts (FBL 0.7 section 4.6).",
+      "edit": {
+        "set": {
+          "element": "REQ-0004",
+          "attributes": {
+            "category": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 427,
+          "end": 442,
+          "text": ""
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "Undo puts back exactly the bytes the edit replaced, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 427,
+          "end": 427,
+          "text": " category:legal"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    },
+    {
+      "doc": "renameCategory on technical with engineering: the operation sets the category of every requirement whose category is technical in any case, then the member's name, in one transaction (hierarchical-requirement.des, renameCategory; DESL 0.2 section 7.7.2). The carriers are REQ-0003 and REQ-0005, whose category:Technical names the member too; each is a replace-value of its word's group value (FBL 0.7 section 6.3). REQ-0004 is no carrier: its category is legal, and its second word category:technical is no value and stays as written. The member's new name writes the registration in the same edit: list/ shows those splices, which write the whole category list since it is absent (DESL 0.2 section 5.5).",
+      "edit": [
+        {
+          "set": {
+            "element": "REQ-0003",
+            "attributes": {
+              "category": "engineering"
+            }
+          }
+        },
+        {
+          "set": {
+            "element": "REQ-0005",
+            "attributes": {
+              "category": "engineering"
+            }
+          }
+        },
+        {
+          "set": {
+            "element": "category/technical",
+            "attributes": {
+              "name": "engineering"
+            }
+          }
+        }
+      ],
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 356,
+          "end": 365,
+          "text": "engineering"
+        },
+        {
+          "operation": "replace-value",
+          "start": 568,
+          "end": 577,
+          "text": "engineering"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:engineering state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:engineering\r\n",
+      "x-operation": {
+        "operation": "renameCategory",
+        "self": "category/technical",
+        "params": {
+          "name": "engineering"
+        }
+      }
+    },
+    {
+      "doc": "Undo of the rename: both carriers get their old spelling back, Technical on REQ-0005 included, in one step.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 356,
+          "end": 367,
+          "text": "technical"
+        },
+        {
+          "operation": "replace-value",
+          "start": 570,
+          "end": 581,
+          "text": "Technical"
+        }
+      ],
+      "expect": "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0002 REQ-0005 -->\r\n# Orders\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Ordering #shop\r\n  - REQ-0001 A customer orders without signing in. #guest #checkout\r\n  - REQ-0002 An order is confirmed by e-mail. #mail state:proposed\r\n  - REQ-0003 An order can be cancelled within an hour. category:technical state:accepted\r\n  - REQ-0004 Orders are kept for seven years. category:legal category:technical #archive\r\n- ITEM-0002 Delivery\r\n  - REQ-0005 A parcel is tracked from the warehouse to the door. category:Technical\r\n"
+    }
+  ]
+}

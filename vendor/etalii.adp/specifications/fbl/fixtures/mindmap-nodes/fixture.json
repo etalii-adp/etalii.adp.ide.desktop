@@ -1,0 +1,218 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A Freeplane map: an attribute set, notes added to a self-closed node (which opens it) and removed again (which closes it), and a child node appended; FOLDED, POSITION and the hook are never touched.",
+  "binding": "../../mindmap.fbl#freeplane",
+  "input": "plan.mm",
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope\" ID=\"ID_2\" POSITION=\"right\"/>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n</node>\n</node>\n</map>\n"
+    },
+    {
+      "doc": "An attribute value is escaped as Freeplane escapes it.",
+      "edit": {
+        "set": {
+          "element": "ID_2",
+          "attributes": {
+            "text": "Scope & goals"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 202,
+          "end": 207,
+          "text": "Scope &amp; goals"
+        }
+      ],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope &amp; goals\" ID=\"ID_2\" POSITION=\"right\"/>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n</node>\n</node>\n</map>\n"
+    },
+    {
+      "doc": "Notes on a self-closed node open it, then the notes child is written before any child node, with the map's structural newline.",
+      "edit": {
+        "set": {
+          "element": "ID_2",
+          "attributes": {
+            "notes": "Agree by Friday"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "self-close",
+          "start": 247,
+          "end": 249,
+          "text": ">"
+        },
+        {
+          "operation": "insert-key",
+          "start": 249,
+          "end": 249,
+          "text": "\n<richcontent TYPE=\"NOTE\"><html><head/><body><p>Agree by Friday</p></body></html></richcontent>"
+        },
+        {
+          "operation": "self-close",
+          "start": 249,
+          "end": 249,
+          "text": "\n</node>"
+        }
+      ],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope &amp; goals\" ID=\"ID_2\" POSITION=\"right\">\n<richcontent TYPE=\"NOTE\"><html><head/><body><p>Agree by Friday</p></body></html></richcontent>\n</node>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n</node>\n</node>\n</map>\n"
+    },
+    {
+      "doc": "Emptying the notes removes the child and the newline before it, and a node left with only whitespace closes itself again.",
+      "edit": {
+        "set": {
+          "element": "ID_2",
+          "attributes": {
+            "notes": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "self-close",
+          "start": 247,
+          "end": 248,
+          "text": "/>"
+        },
+        {
+          "operation": "remove-key",
+          "start": 248,
+          "end": 343,
+          "text": ""
+        },
+        {
+          "operation": "self-close",
+          "start": 343,
+          "end": 351,
+          "text": ""
+        }
+      ],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope &amp; goals\" ID=\"ID_2\" POSITION=\"right\"/>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n</node>\n</node>\n</map>\n"
+    },
+    {
+      "doc": "A new node is the parent's last child, attributes in the order TEXT, ID.",
+      "edit": {
+        "add": {
+          "type": "Node",
+          "id": "ID_5",
+          "parent": "ID_3",
+          "attributes": {
+            "text": "Staffing"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 342,
+          "end": 342,
+          "text": "<node TEXT=\"Staffing\" ID=\"ID_5\"/>\n"
+        }
+      ],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope &amp; goals\" ID=\"ID_2\" POSITION=\"right\"/>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n<node TEXT=\"Staffing\" ID=\"ID_5\"/>\n</node>\n</node>\n</map>\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 342,
+          "end": 376,
+          "text": ""
+        }
+      ],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope &amp; goals\" ID=\"ID_2\" POSITION=\"right\"/>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n</node>\n</node>\n</map>\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "self-close",
+          "start": 247,
+          "end": 249,
+          "text": ">"
+        },
+        {
+          "operation": "remove-key",
+          "start": 249,
+          "end": 249,
+          "text": "\n<richcontent TYPE=\"NOTE\"><html><head/><body><p>Agree by Friday</p></body></html></richcontent>"
+        },
+        {
+          "operation": "self-close",
+          "start": 249,
+          "end": 249,
+          "text": "\n</node>"
+        }
+      ],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope &amp; goals\" ID=\"ID_2\" POSITION=\"right\">\n<richcontent TYPE=\"NOTE\"><html><head/><body><p>Agree by Friday</p></body></html></richcontent>\n</node>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n</node>\n</node>\n</map>\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "self-close",
+          "start": 247,
+          "end": 248,
+          "text": "/>"
+        },
+        {
+          "operation": "insert-key",
+          "start": 248,
+          "end": 343,
+          "text": ""
+        },
+        {
+          "operation": "self-close",
+          "start": 343,
+          "end": 351,
+          "text": ""
+        }
+      ],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope &amp; goals\" ID=\"ID_2\" POSITION=\"right\"/>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n</node>\n</node>\n</map>\n"
+    },
+    {
+      "doc": "Undo restores the bytes before the edit.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 202,
+          "end": 219,
+          "text": "Scope"
+        }
+      ],
+      "expect": "<map version=\"freeplane 1.11.5\">\n<!--To view this file, download free mind mapping software Freeplane from https://www.freeplane.org -->\n<node TEXT=\"Plan\" ID=\"ID_1\">\n<hook NAME=\"MapStyle\"/>\n<node TEXT=\"Scope\" ID=\"ID_2\" POSITION=\"right\"/>\n<node TEXT=\"Risks\" ID=\"ID_3\" POSITION=\"left\" FOLDED=\"true\">\n<node TEXT=\"Budget\" ID=\"ID_4\"/>\n</node>\n</node>\n</map>\n"
+    }
+  ],
+  "read": {
+    "elements": [
+      {
+        "id": "ID_1",
+        "type": "Node"
+      },
+      {
+        "id": "ID_2",
+        "type": "Node"
+      },
+      {
+        "id": "ID_3",
+        "type": "Node"
+      },
+      {
+        "id": "ID_4",
+        "type": "Node"
+      }
+    ]
+  }
+}

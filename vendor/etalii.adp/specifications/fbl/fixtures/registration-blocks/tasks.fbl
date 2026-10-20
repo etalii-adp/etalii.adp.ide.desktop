@@ -1,0 +1,68 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.7",
+  "doc": "The binding of this fixture alone (FBL 0.7, sections 8.1 and 8.4): a list of tasks, one statement per line in the lines family, opened through a registration only, that keeps three settings beside its body in declared blocks of the registration. tags is a kept block of names (the order the user gave), collapsed an ordinal block keyed by task ids and outside the history (folding a task is no edit), filters a kept block of names. createOnFirstPlacement is true, so the first setting would create the registration beside a bare body.",
+  "bindings": {
+    "tasks": {
+      "title": "Tasks, one per line",
+      "claims": {
+        "registrationOnly": true,
+        "origins": [
+          "example/tasks"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "lines"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "crlf",
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "task",
+          "type": "Task",
+          "line": "^\\s*task\\s+(?<id>[^\\s]+)(?:\\s+(?<title>.*))?$",
+          "id": {
+            "from": {
+              "group": "id"
+            }
+          },
+          "attributes": {
+            "title": {
+              "group": "title",
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "emit": "task {id}[ {title}]"
+          },
+          "remove": {}
+        }
+      ],
+      "registration": {
+        "createOnFirstPlacement": true,
+        "blocks": {
+          "tags": {
+            "order": "kept",
+            "keys": "names",
+            "doc": "A colour per tag, in the order the user arranged them."
+          },
+          "collapsed": {
+            "order": "ordinal",
+            "keys": "ids",
+            "history": false,
+            "doc": "The tasks the user folded, by id."
+          },
+          "filters": {
+            "order": "kept",
+            "doc": "Saved filters, by name, in the order the user arranged them."
+          }
+        }
+      }
+    }
+  }
+}
