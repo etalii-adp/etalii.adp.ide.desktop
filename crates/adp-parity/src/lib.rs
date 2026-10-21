@@ -437,6 +437,7 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
     let tools = adp_diagram_azure_devops_pipeline::register(tools);
     let tools = adp_diagram_sankey::register(tools);
     let tools = adp_diagram_functional_decomposition_graph::register(tools);
+    let tools = adp_diagram_helm_chart::register(tools);
     let tools = adp_diagram_ansible_structure::register(tools);
     let tools = adp_diagram_agent_activity::register(tools);
     let mut tools = adp_diagram_c4::register(tools);

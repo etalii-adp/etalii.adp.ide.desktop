@@ -1,0 +1,11 @@
+# ADP-authored override file for the helm/chart example (not part of the upstream
+# bitnami/nginx chart - see provenance.md). Demonstrates the values layering the
+# diagram draws: this file overrides values.yaml for a production environment.
+replicaCount: 3
+service:
+  type: LoadBalancer
+resourcesPreset: small
+pdb:
+  create: true
+metrics:
+  enabled: true
