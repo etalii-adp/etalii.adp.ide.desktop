@@ -1,0 +1,8 @@
+---
+- name: Configure the database tier
+  hosts: db
+  become: true
+  roles:
+    - common
+    - role: postgres
+      when: postgres_enabled | default(true)

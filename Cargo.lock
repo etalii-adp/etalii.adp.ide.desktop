@@ -235,6 +235,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-ansible-structure"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "adp-layout",
+ "saphyr-parser",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-c4"
 version = "0.1.0"
 dependencies = [
@@ -482,6 +500,7 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-agent-activity",
+ "adp-diagram-ansible-structure",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
@@ -540,6 +559,7 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-agent-activity",
+ "adp-diagram-ansible-structure",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
