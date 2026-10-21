@@ -101,6 +101,16 @@ fn wardley_map_strategy_vocabulary() {
     check("wardley/map/strategy-vocabulary");
 }
 
+#[test]
+fn w3c_sparql_groups() {
+    check("w3c/sparql/groups");
+}
+
+#[test]
+fn w3c_sparql_proteome_location_of_gene() {
+    check("w3c/sparql/proteome-location-of-gene");
+}
+
 /// Every script has its test here and its row in `parity/README.md`, so none is skipped silently.
 #[test]
 fn every_script_is_checked_and_listed() {

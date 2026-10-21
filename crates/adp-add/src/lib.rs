@@ -488,6 +488,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_agent_activity::ORIGIN,
         adp_diagram_agent_activity::TEMPLATE,
     )));
+    // `ServiceCollection.AddSparql.cs`: the starter query, a `SELECT` that parses and validates clean, in CRLF.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_sparql::ORIGIN,
+        adp_diagram_sparql::EMPTY_DOCUMENT,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 

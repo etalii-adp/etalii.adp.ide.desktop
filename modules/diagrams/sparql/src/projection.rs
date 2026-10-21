@@ -420,9 +420,12 @@ impl Builder<'_> {
             SparqlTerm::Variable { name, .. } => {
                 SparqlNode::new(&id, SparqlNodeKind::Variable, &format!("?{name}"), "where")
             }
-            SparqlTerm::Anonymous { .. } => {
-                SparqlNode::new(&id, SparqlNodeKind::Anonymous, &term.as_written(), &self.place_for_term(&id))
-            }
+            SparqlTerm::Anonymous { .. } => SparqlNode::new(
+                &id,
+                SparqlNodeKind::Anonymous,
+                &term.as_written(),
+                &self.place_for_term(&id),
+            ),
             SparqlTerm::Iri { iri, written } => {
                 let mut node = SparqlNode::new(&id, SparqlNodeKind::Iri, written, &self.place_for_term(&id));
                 node.full = iri.clone();
@@ -528,8 +531,14 @@ mod tests {
     fn a_name_used_in_scopes_apart_lands_on_their_common_ancestor() {
         let paths = |p: &[&str]| p.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
         assert_eq!(place_at(&[]), "where");
-        assert_eq!(place_at(&paths(&["where/optional.0", "where/optional.0/minus.0"])), "where/optional.0");
-        assert_eq!(place_at(&paths(&["where/union.0/branch.0", "where/union.0/branch.1"])), "where");
+        assert_eq!(
+            place_at(&paths(&["where/optional.0", "where/optional.0/minus.0"])),
+            "where/optional.0"
+        );
+        assert_eq!(
+            place_at(&paths(&["where/union.0/branch.0", "where/union.0/branch.1"])),
+            "where"
+        );
         assert_eq!(place_at(&paths(&["where", "template"])), "where");
     }
 

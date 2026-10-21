@@ -23,6 +23,7 @@ pub mod module_scene;
 pub mod paint;
 pub mod placement;
 pub mod sankey_scene;
+pub mod sparql_scene;
 pub mod supply_chain_scene;
 pub mod toolbox;
 pub mod viewpoint;
@@ -112,6 +113,7 @@ impl DiagramHost {
                         .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
                         .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
                         .with_module(adp_diagram_helm_chart::ORIGIN, adp_diagram_helm_chart::module())
+                        .with_module(adp_diagram_sparql::ORIGIN, adp_diagram_sparql::module())
                         .with_module(
                             adp_diagram_functional_decomposition_graph::ORIGIN,
                             adp_diagram_functional_decomposition_graph::module(),
@@ -761,6 +763,12 @@ impl DiagramTab {
             // A Helm chart's boxes are moved by the top-left the registration stores (`onElementMoved`).
             (
                 helm_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                HashMap::new(),
+            )
+        } else if self.opened.origin == adp_diagram_sparql::ORIGIN {
+            // A query's nodes and frames are moved by the top-left the registration stores (`onElementMoved`).
+            (
+                sparql_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_ansible_structure::ORIGIN {

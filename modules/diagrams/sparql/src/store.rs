@@ -114,12 +114,22 @@ fn read_text(path: &Path) -> String {
     read(path).unwrap_or_default()
 }
 
+/// Whether `a` and `b` name one file: compared by their parts, so a `/` and a `\` name the same folder on Windows,
+/// case folded where the platform ignores case.
 fn same(a: &Path, b: &Path) -> bool {
-    if cfg!(any(windows, target_os = "macos")) {
-        a.to_string_lossy().to_lowercase() == b.to_string_lossy().to_lowercase()
-    } else {
-        a == b
-    }
+    let key = |path: &Path| {
+        let parts: Vec<String> = path
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy().into_owned())
+            .collect();
+        let text = parts.join("/");
+        if cfg!(any(windows, target_os = "macos")) {
+            text.to_lowercase()
+        } else {
+            text
+        }
+    };
+    key(a) == key(b)
 }
 
 /// The open queries of one project, and their registrations.

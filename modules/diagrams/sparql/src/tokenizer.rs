@@ -166,7 +166,8 @@ impl<'a> Tokenizer<'a> {
                 self.position = position + 1;
                 return Some(self.slice(TokenKind::Iri, start));
             }
-            if matches!(character, '<' | '"' | '\'' | '{' | '}' | '|' | '^' | '`') || terminals::is_white_space(character)
+            if matches!(character, '<' | '"' | '\'' | '{' | '}' | '|' | '^' | '`')
+                || terminals::is_white_space(character)
             {
                 break;
             }
@@ -180,7 +181,9 @@ impl<'a> Tokenizer<'a> {
         self.position = end;
         match problem {
             TerminalProblem::None => Ok(self.slice(TokenKind::String, start)),
-            TerminalProblem::LineEnded => Err(self.error("The string that starts here is not closed on its line.", start)),
+            TerminalProblem::LineEnded => {
+                Err(self.error("The string that starts here is not closed on its line.", start))
+            }
             TerminalProblem::FileEnded => Err(self.error("The string that starts here is never closed.", start)),
         }
     }

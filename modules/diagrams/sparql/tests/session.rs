@@ -15,9 +15,7 @@ use adp_diagram::{
     DiagramDelta, DiagramElement, DiagramProblemLocation, DiagramProblemSeverity, DiagramSession, DiagramTools,
     DiagramViewport, DiagramWorkspace, DiskChange,
 };
-use adp_diagram_sparql::mapper::{
-    ANNOTATION_TYPE, EDGE_TYPE, HEADER_ID, REGION_TYPE, TRUNCATION_ID, VARIABLE_TYPE,
-};
+use adp_diagram_sparql::mapper::{ANNOTATION_TYPE, EDGE_TYPE, HEADER_ID, REGION_TYPE, TRUNCATION_ID, VARIABLE_TYPE};
 use adp_diagram_sparql::rows::{self, READ_ONLY_REASON};
 use adp_diagram_sparql::view::{NO_REGISTRATION, PARENT_REFUSAL};
 use adp_diagram_sparql::{findings, parser, projection, registration_layout};
@@ -116,9 +114,11 @@ fn a_changed_viewport_removes_what_left_then_adds_what_appeared() {
         .session
         .update_view(opened.workspace.documents(), around(&leftmost))
         .unwrap();
-    assert!(narrowed
-        .iter()
-        .any(|d| matches!(d, DiagramDelta::Remove(ids) if ids.contains(&rightmost.id))));
+    assert!(
+        narrowed
+            .iter()
+            .any(|d| matches!(d, DiagramDelta::Remove(ids) if ids.contains(&rightmost.id)))
+    );
 
     let moved = opened
         .session
@@ -153,7 +153,11 @@ fn repositioning_writes_the_registration_and_leaves_the_query_byte_identical() {
     let original = fs::read(&opened.body).unwrap();
     opened.move_to("var:x", 320.0, 200.0).unwrap();
     assert_eq!(fs::read(&opened.body).unwrap(), original);
-    assert!(fs::read_to_string(&opened.registration).unwrap().contains("var:x: 320 200"));
+    assert!(
+        fs::read_to_string(&opened.registration)
+            .unwrap()
+            .contains("var:x: 320 200")
+    );
     // And the next rendering draws it there.
     let rendered = opened.session.render(opened.workspace.documents()).unwrap();
     let x = rendered.iter().find(|e| e.id == "var:x").unwrap();
@@ -175,7 +179,11 @@ fn repositioning_is_one_undo_away_and_undo_also_leaves_the_query_alone() {
 fn moving_a_region_moves_its_frame_with_its_contents_following() {
     let mut opened = open("groups.rq", true);
     let elements = opened.delivered();
-    let frame = elements.iter().find(|e| e.id == "region:where/optional.1").unwrap().clone();
+    let frame = elements
+        .iter()
+        .find(|e| e.id == "region:where/optional.1")
+        .unwrap()
+        .clone();
     let y = elements.iter().find(|e| e.id == "var:y").unwrap().clone();
     opened.move_to(&frame.id, frame.x + 100.0, frame.y + 50.0).unwrap();
     let stored = registration_layout::read(&fs::read_to_string(&opened.registration).unwrap());
@@ -254,7 +262,11 @@ fn a_query_that_does_not_parse_opens_with_only_its_header() {
     assert_eq!(problems[0].location, Some(DiagramProblemLocation::Line(4)));
     // Its header reads as a plain "Query", not the SELECT its empty model would be called.
     assert_eq!(
-        opened.session.select(opened.workspace.documents(), HEADER_ID).unwrap().text,
+        opened
+            .session
+            .select(opened.workspace.documents(), HEADER_ID)
+            .unwrap()
+            .text,
         "Query"
     );
 }
@@ -304,7 +316,11 @@ fn the_header_selection_states_the_form_and_modifiers() {
     let modifiers = rows.iter().find(|r| r.id == rows::QUERY_MODIFIERS_PROPERTY).unwrap();
     assert!(modifiers.value.contains("LIMIT 10"));
     assert_eq!(
-        opened.session.select(opened.workspace.documents(), HEADER_ID).unwrap().text,
+        opened
+            .session
+            .select(opened.workspace.documents(), HEADER_ID)
+            .unwrap()
+            .text,
         "SELECT DISTINCT query"
     );
 }
@@ -324,22 +340,22 @@ fn a_set_arriving_anyway_is_refused_with_the_reason() {
 #[test]
 fn nothing_is_offered_and_every_action_is_refused() {
     let mut opened = open("groups.rq", true);
-    let target = ActionTarget::Elements(vec!["var:x".to_owned()]);
+    let target = ActionTarget::Element("var:x".to_owned());
     assert!(opened.session.actions(opened.workspace.documents(), &target).is_empty());
     assert!(opened.session.toolbox(opened.workspace.documents()).is_empty());
-    let outcome = opened.session.execute(&mut opened.workspace, &target, "anything");
+    let outcome = opened.session.execute(
+        &mut opened.workspace,
+        &target,
+        "anything",
+        &adp_disl::behavior::ids::fixed(&[]),
+    );
     assert!(format!("{outcome:?}").contains(rows::NO_ACTIONS_REASON), "{outcome:?}");
 }
 
 #[test]
 fn a_selection_reads_as_what_it_names() {
     let opened = open("groups.rq", true);
-    let text = |id: &str| {
-        opened
-            .session
-            .select(opened.workspace.documents(), id)
-            .map(|s| s.text)
-    };
+    let text = |id: &str| opened.session.select(opened.workspace.documents(), id).map(|s| s.text);
     assert_eq!(text("var:x").as_deref(), Some("?x"));
     assert_eq!(text("sub:where.0").as_deref(), Some("Subquery"));
     assert_eq!(text("region:where/optional.0").as_deref(), Some("OPTIONAL"));
@@ -396,7 +412,9 @@ fn an_unused_prefix_declaration_is_info_at_its_line() {
 
 #[test]
 fn a_clean_query_and_a_service_clause_report_nothing() {
-    assert!(findings::validate("PREFIX ex: <http://example.org/>\nSELECT ?s WHERE { ?s ex:p ?o }\nLIMIT 10\n").is_empty());
+    assert!(
+        findings::validate("PREFIX ex: <http://example.org/>\nSELECT ?s WHERE { ?s ex:p ?o }\nLIMIT 10\n").is_empty()
+    );
     assert!(findings::validate(
         "PREFIX ex: <http://example.org/>\nSELECT ?s WHERE { SERVICE <http://example.invalid/sparql> { ?s ex:p ?o } }\n"
     )

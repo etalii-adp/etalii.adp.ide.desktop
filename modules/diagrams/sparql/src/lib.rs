@@ -45,8 +45,7 @@ pub const DOCUMENT_EXTENSION: &str = ".rq";
 
 /// The query a new SPARQL diagram starts as (`ServiceCollectionAddSparqlExtension.EmptyQuery`): a `SELECT` that
 /// parses and validates clean, in CRLF.
-pub const EMPTY_DOCUMENT: &str =
-    "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\r\n\r\nSELECT ?subject ?label\r\nWHERE {\r\n  ?subject rdfs:label ?label .\r\n}\r\nLIMIT 100\r\n";
+pub const EMPTY_DOCUMENT: &str = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\r\n\r\nSELECT ?subject ?label\r\nWHERE {\r\n  ?subject rdfs:label ?label .\r\n}\r\nLIMIT 100\r\n";
 
 /// How many lines after the first a registration's headers are looked for in (`DiagramFilePair.HeaderScanLimit`).
 const HEADER_SCAN_LIMIT: usize = 16;
@@ -59,9 +58,14 @@ pub const OUTSIDE: &str =
 #[derive(Debug, Clone, Copy, Default)]
 pub struct SparqlModule;
 
+/// The SPARQL query module, as a tool type's module.
+pub fn module() -> Rc<dyn DiagramModule> {
+    Rc::new(SparqlModule)
+}
+
 /// `tools` with the SPARQL query module added to its tool type.
 pub fn register(tools: DiagramTools) -> DiagramTools {
-    tools.with_module(ORIGIN, Rc::new(SparqlModule))
+    tools.with_module(ORIGIN, module())
 }
 
 fn file_name(path: &Path) -> String {

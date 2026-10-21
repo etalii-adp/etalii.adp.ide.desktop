@@ -233,7 +233,10 @@ pub fn escape_refusal(raw: &[char]) -> Option<(usize, String)> {
             continue;
         }
         if letter != 'u' && letter != 'U' {
-            return Some((i, format!("'\\{letter}' is not a string escape; a backslash is written '\\\\'.")));
+            return Some((
+                i,
+                format!("'\\{letter}' is not a string escape; a backslash is written '\\\\'."),
+            ));
         }
         let digits = if letter == 'u' { 4 } else { 8 };
         let written: String = raw[i..end.min(i + 2 + digits)].iter().collect();
@@ -340,7 +343,12 @@ mod tests {
         assert_eq!(decode_string(&chars("\"a\\nb\\u0041\"")), "a\nbA");
         assert_eq!(decode_string(&chars("'''x'''")), "x");
         assert_eq!(escape_refusal(&chars("\"a\\qb\"")).unwrap().0, 2);
-        assert!(escape_refusal(&chars("\"\\u12zz\"")).unwrap().1.starts_with("'\\u12zz' is not an escape"));
+        assert!(
+            escape_refusal(&chars("\"\\u12zz\""))
+                .unwrap()
+                .1
+                .starts_with("'\\u12zz' is not an escape")
+        );
         assert_eq!(escape_refusal(&chars("\"\\t\"")), None);
         assert_eq!(decode_local("a\\.b"), "a.b");
     }

@@ -25,7 +25,11 @@ fn one_variable_one_node_however_many_patterns_and_regions_mention_it() {
     assert_eq!(x.kind, SparqlNodeKind::Variable);
     assert_eq!(x.display, "?x");
     assert_eq!(
-        result.edges.iter().filter(|e| e.from_id == "var:x" || e.to_id == "var:x").count(),
+        result
+            .edges
+            .iter()
+            .filter(|e| e.from_id == "var:x" || e.to_id == "var:x")
+            .count(),
         5
     );
     assert_eq!(x.join_count, 5);
@@ -37,7 +41,11 @@ fn the_placement_rule_shallowest_scope_with_region_edges_reaching_out() {
     let result = project_fixture("groups.rq");
     assert_eq!(node(&result, "var:x").scope_path, "where");
     assert_eq!(node(&result, "var:y").scope_path, "where/optional.1");
-    let optional: Vec<_> = result.edges.iter().filter(|e| e.scope_path == "where/optional.0").collect();
+    let optional: Vec<_> = result
+        .edges
+        .iter()
+        .filter(|e| e.scope_path == "where/optional.0")
+        .collect();
     assert_eq!(optional.len(), 1);
     assert_eq!(optional[0].to_id, "var:x");
 }
@@ -69,9 +77,14 @@ fn a_minus_region_follows_textual_identity() {
 
 #[test]
 fn regions_nest_as_the_tree_nests_each_element_claimed_by_exactly_one_region() {
-    let result =
-        project("PREFIX ex: <http://example.org/> SELECT * WHERE { OPTIONAL { ?a ex:p ?b . OPTIONAL { ?b ex:q ?c } } }");
-    let outer = result.regions.iter().find(|r| r.scope_path == "where/optional.0").unwrap();
+    let result = project(
+        "PREFIX ex: <http://example.org/> SELECT * WHERE { OPTIONAL { ?a ex:p ?b . OPTIONAL { ?b ex:q ?c } } }",
+    );
+    let outer = result
+        .regions
+        .iter()
+        .find(|r| r.scope_path == "where/optional.0")
+        .unwrap();
     let inner = result
         .regions
         .iter()
@@ -86,14 +99,22 @@ fn regions_nest_as_the_tree_nests_each_element_claimed_by_exactly_one_region() {
 #[test]
 fn a_subquery_collapses_to_one_node_with_a_join_edge_per_projected_name() {
     let result = project_fixture("groups.rq");
-    let collapsed: Vec<_> = result.nodes.iter().filter(|n| n.kind == SparqlNodeKind::SubSelect).collect();
+    let collapsed: Vec<_> = result
+        .nodes
+        .iter()
+        .filter(|n| n.kind == SparqlNodeKind::SubSelect)
+        .collect();
     assert_eq!(collapsed.len(), 1);
     assert_eq!(collapsed[0].display, "SELECT ?s (MAX(?v) AS ?best)");
     assert_eq!(collapsed[0].id, "sub:where.0");
     assert!(!result.nodes.iter().any(|n| n.id == "var:v"));
     for to in ["var:s", "var:best"] {
         assert_eq!(
-            result.edges.iter().filter(|e| e.from_id == collapsed[0].id && e.to_id == to).count(),
+            result
+                .edges
+                .iter()
+                .filter(|e| e.from_id == collapsed[0].id && e.to_id == to)
+                .count(),
             1
         );
     }
@@ -106,10 +127,18 @@ fn concrete_terms_merge_by_form_which_asserts_same_term_and_never_a_join() {
     );
     node(&result, "iri:http://example.org/carol");
     assert_eq!(
-        result.edges.iter().filter(|e| e.to_id == "iri:http://example.org/carol").count(),
+        result
+            .edges
+            .iter()
+            .filter(|e| e.to_id == "iri:http://example.org/carol")
+            .count(),
         2
     );
-    let literals: Vec<_> = result.nodes.iter().filter(|n| n.kind == SparqlNodeKind::Literal).collect();
+    let literals: Vec<_> = result
+        .nodes
+        .iter()
+        .filter(|n| n.kind == SparqlNodeKind::Literal)
+        .collect();
     assert_eq!(literals.len(), 1);
     assert_eq!(literals[0].display, "42");
     assert_eq!(literals[0].id, "lit:42^integer");
@@ -141,11 +170,21 @@ fn annotations_anchor_to_what_they_constrain_define_or_feed() {
         .unwrap();
     assert_eq!(root_filter.attached_to_id, "");
     assert_eq!(
-        result.annotations.iter().find(|a| a.kind == "bind").unwrap().attached_to_id,
+        result
+            .annotations
+            .iter()
+            .find(|a| a.kind == "bind")
+            .unwrap()
+            .attached_to_id,
         "var:doubled"
     );
     assert_eq!(
-        result.annotations.iter().find(|a| a.kind == "values").unwrap().attached_to_id,
+        result
+            .annotations
+            .iter()
+            .find(|a| a.kind == "values")
+            .unwrap()
+            .attached_to_id,
         "var:x"
     );
 }
@@ -195,7 +234,10 @@ fn a_bare_describe_draws_its_target() {
     assert_eq!(result.nodes.len(), 1);
     assert_eq!(result.nodes[0].kind, SparqlNodeKind::Iri);
     assert_eq!(result.nodes[0].full, "http://purl.uniprot.org/embl-cds/AAO89367.1");
-    assert_eq!(result.header_form, "DESCRIBE <http://purl.uniprot.org/embl-cds/AAO89367.1>");
+    assert_eq!(
+        result.header_form,
+        "DESCRIBE <http://purl.uniprot.org/embl-cds/AAO89367.1>"
+    );
 }
 
 #[test]
@@ -228,16 +270,17 @@ fn a_degenerately_large_query_is_cut_honestly() {
     assert_eq!(result.shown, SANITY_BOUND);
     assert_eq!(result.total, 1200);
     let kept: HashSet<&str> = result.nodes.iter().map(|n| n.id.as_str()).collect();
-    assert!(result
-        .edges
-        .iter()
-        .all(|e| kept.contains(e.from_id.as_str()) && kept.contains(e.to_id.as_str())));
+    assert!(
+        result
+            .edges
+            .iter()
+            .all(|e| kept.contains(e.from_id.as_str()) && kept.contains(e.to_id.as_str()))
+    );
 }
 
 // -- Layout ------------------------------------------------------------------------------------------------------------
 
-const NESTED_QUERY: &str =
-    "PREFIX ex: <http://example.org/> SELECT * WHERE { ?a ex:p ?b . OPTIONAL { ?b ex:q ?c . OPTIONAL { ?c ex:r ?d } } }";
+const NESTED_QUERY: &str = "PREFIX ex: <http://example.org/> SELECT * WHERE { ?a ex:p ?b . OPTIONAL { ?b ex:q ?c . OPTIONAL { ?c ex:r ?d } } }";
 
 fn contains(frame: &adp_layout::Rect, x: f64, y: f64, width: f64, height: f64) -> bool {
     x >= frame.x && y >= frame.y && x + width <= frame.x + frame.width && y + height <= frame.y + frame.height
@@ -286,15 +329,29 @@ fn the_group_corpus_holds_containment_across_every_region_kind() {
     let projection = project_fixture("groups.rq");
     let laid_out = layout::compute(&projection, &BTreeMap::new());
     assert_containment(&projection, &laid_out);
-    assert!(projection.nodes.iter().all(|n| laid_out.node_positions.contains_key(&n.id)));
-    assert!(projection.regions.iter().all(|r| laid_out.region_bounds.contains_key(&r.id)));
+    assert!(
+        projection
+            .nodes
+            .iter()
+            .all(|n| laid_out.node_positions.contains_key(&n.id))
+    );
+    assert!(
+        projection
+            .regions
+            .iter()
+            .all(|r| laid_out.region_bounds.contains_key(&r.id))
+    );
 }
 
 #[test]
 fn an_authored_region_anchor_moves_the_frame_with_its_contents_following() {
     let projection = project(NESTED_QUERY);
     let computed = layout::compute(&projection, &BTreeMap::new());
-    let outer = projection.regions.iter().find(|r| r.scope_path == "where/optional.0").unwrap();
+    let outer = projection
+        .regions
+        .iter()
+        .find(|r| r.scope_path == "where/optional.0")
+        .unwrap();
     let laid_out = layout::compute(&projection, &BTreeMap::from([(outer.id.clone(), (900.0, 700.0))]));
     let frame = laid_out.region_bounds[&outer.id];
     assert_eq!((frame.x, frame.y), (900.0, 700.0));
@@ -308,13 +365,14 @@ fn an_authored_region_anchor_moves_the_frame_with_its_contents_following() {
 #[test]
 fn an_authored_node_position_overrides_its_computed_place_and_beats_a_region_anchor() {
     let projection = project(NESTED_QUERY);
-    let outer = projection.regions.iter().find(|r| r.scope_path == "where/optional.0").unwrap();
+    let outer = projection
+        .regions
+        .iter()
+        .find(|r| r.scope_path == "where/optional.0")
+        .unwrap();
     let laid_out = layout::compute(
         &projection,
-        &BTreeMap::from([
-            ("var:c".to_owned(), (1500.0, 40.0)),
-            (outer.id.clone(), (900.0, 700.0)),
-        ]),
+        &BTreeMap::from([("var:c".to_owned(), (1500.0, 40.0)), (outer.id.clone(), (900.0, 700.0))]),
     );
     assert_eq!(laid_out.node_positions["var:c"], (1500.0, 40.0));
 }

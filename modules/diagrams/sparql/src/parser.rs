@@ -10,9 +10,8 @@
 use std::collections::HashMap;
 
 use crate::model::{
-    GroupScope, GroupScopeKind, SparqlConstraint, SparqlConstraintKind, SparqlPrefixDeclaration,
-    SparqlProjectionItem, SparqlQueryForm, SparqlQueryModel, SparqlSubSelect, SparqlTerm, SparqlVariableUsage,
-    TriplePattern,
+    GroupScope, GroupScopeKind, SparqlConstraint, SparqlConstraintKind, SparqlPrefixDeclaration, SparqlProjectionItem,
+    SparqlQueryForm, SparqlQueryModel, SparqlSubSelect, SparqlTerm, SparqlVariableUsage, TriplePattern,
 };
 use crate::terminals;
 use crate::tokenizer::{Token, TokenKind, Tokenizer};
@@ -883,10 +882,7 @@ impl Parser<'_> {
             return self.parse_collection(scope);
         }
         let position = if subject_position { "subject" } else { "object" };
-        Err(self.error(
-            &format!("Expected a {position} term, found '{}'.", token.value),
-            &token,
-        ))
+        Err(self.error(&format!("Expected a {position} term, found '{}'.", token.value), &token))
     }
 
     fn next_anonymous(&mut self) -> usize {
@@ -1189,10 +1185,7 @@ impl Parser<'_> {
     fn expect(&mut self, kind: TokenKind, described: &str) -> Parsed<Token> {
         let token = self.current().clone();
         if token.kind != kind {
-            return Err(self.error(
-                &format!("Expected {described}, found '{}'.", shown(&token)),
-                &token,
-            ));
+            return Err(self.error(&format!("Expected {described}, found '{}'.", shown(&token)), &token));
         }
         self.advance();
         Ok(token)
@@ -1201,10 +1194,7 @@ impl Parser<'_> {
     fn expect_punct(&mut self, punctuation: &str) -> Parsed<()> {
         let token = self.current().clone();
         if !token.is_punct(punctuation) {
-            return Err(self.error(
-                &format!("Expected '{punctuation}', found '{}'.", shown(&token)),
-                &token,
-            ));
+            return Err(self.error(&format!("Expected '{punctuation}', found '{}'.", shown(&token)), &token));
         }
         self.advance();
         Ok(())
@@ -1223,10 +1213,7 @@ impl Parser<'_> {
                 }
             }
         }
-        Err(self.error(
-            "The bracket that opens here is never closed.",
-            &self.tokens[open_index],
-        ))
+        Err(self.error("The bracket that opens here is never closed.", &self.tokens[open_index]))
     }
 
     /// Consumes from the current opening bracket through its balanced close.

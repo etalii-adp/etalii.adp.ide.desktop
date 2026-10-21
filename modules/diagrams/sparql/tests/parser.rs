@@ -53,11 +53,16 @@ fn the_construct_corpus_parses_with_every_structural_construct_accounted_for() {
     let knows: Vec<_> = patterns
         .iter()
         .filter(|p| {
-            p.subject == person && matches!(&p.predicate, SparqlTerm::Iri { iri, .. } if iri == "http://xmlns.com/foaf/0.1/knows")
+            p.subject == person
+                && matches!(&p.predicate, SparqlTerm::Iri { iri, .. } if iri == "http://xmlns.com/foaf/0.1/knows")
         })
         .collect();
     assert_eq!(knows.len(), 2);
-    assert!(knows.iter().any(|p| matches!(&p.object, SparqlTerm::Iri { iri, .. } if iri == "http://example.org/carol")));
+    assert!(
+        knows
+            .iter()
+            .any(|p| matches!(&p.object, SparqlTerm::Iri { iri, .. } if iri == "http://example.org/carol"))
+    );
 
     // Bare numbers, booleans and typed or tagged strings carry their datatypes.
     let literal = |lexical: &str, datatype: &str, language: &str| {
@@ -73,9 +78,11 @@ fn the_construct_corpus_parses_with_every_structural_construct_accounted_for() {
     assert!(literal("80", "http://www.w3.org/2001/XMLSchema#int", ""));
 
     // The relative IRI resolved against the base.
-    assert!(patterns
-        .iter()
-        .any(|p| matches!(&p.object, SparqlTerm::Iri { iri, .. } if iri == "http://example.org/base/relative/place")));
+    assert!(
+        patterns.iter().any(
+            |p| matches!(&p.object, SparqlTerm::Iri { iri, .. } if iri == "http://example.org/base/relative/place")
+        )
+    );
 
     // The labeled blank node is one anonymous term across its uses.
     let labeled: Vec<_> = patterns
@@ -96,9 +103,11 @@ fn the_construct_corpus_parses_with_every_structural_construct_accounted_for() {
     assert!(anonymous_with("http://example.org/size"));
 
     // The collection expanded to its cons cells, ending at nil.
-    assert!(patterns
-        .iter()
-        .any(|p| matches!(&p.predicate, SparqlTerm::Iri { iri, .. } if iri == RDF_FIRST)));
+    assert!(
+        patterns
+            .iter()
+            .any(|p| matches!(&p.predicate, SparqlTerm::Iri { iri, .. } if iri == RDF_FIRST))
+    );
     assert!(patterns.iter().any(|p| {
         matches!(&p.predicate, SparqlTerm::Iri { iri, .. } if iri == RDF_REST)
             && matches!(&p.object, SparqlTerm::Iri { iri, .. } if iri == RDF_NIL)
@@ -123,21 +132,36 @@ fn the_group_corpus_builds_the_scope_tree_with_stable_ordinals_and_paths() {
     let root = &model.where_clause;
     assert_eq!(root.path, "where");
 
-    let optionals: Vec<_> = root.children.iter().filter(|c| c.kind == GroupScopeKind::Optional).collect();
+    let optionals: Vec<_> = root
+        .children
+        .iter()
+        .filter(|c| c.kind == GroupScopeKind::Optional)
+        .collect();
     assert_eq!(optionals.len(), 2);
     assert_eq!(optionals[0].path, "where/optional.0");
     assert_eq!(optionals[1].path, "where/optional.1");
 
-    let unions: Vec<_> = root.children.iter().filter(|c| c.kind == GroupScopeKind::Union).collect();
+    let unions: Vec<_> = root
+        .children
+        .iter()
+        .filter(|c| c.kind == GroupScopeKind::Union)
+        .collect();
     assert_eq!(unions.len(), 1);
     assert_eq!(unions[0].children.len(), 3);
     assert!(unions[0].children.iter().all(|b| b.kind == GroupScopeKind::Branch));
     assert_eq!(unions[0].children[2].path, "where/union.0/branch.2");
 
-    assert_eq!(root.children.iter().filter(|c| c.kind == GroupScopeKind::Minus).count(), 1);
+    assert_eq!(
+        root.children.iter().filter(|c| c.kind == GroupScopeKind::Minus).count(),
+        1
+    );
     let graph = root.children.iter().find(|c| c.kind == GroupScopeKind::Graph).unwrap();
     assert_eq!(graph.label, "?g");
-    let service = root.children.iter().find(|c| c.kind == GroupScopeKind::Service).unwrap();
+    let service = root
+        .children
+        .iter()
+        .find(|c| c.kind == GroupScopeKind::Service)
+        .unwrap();
     assert_eq!(service.label, "SILENT <http://example.org/sparql>");
 }
 
@@ -185,7 +209,11 @@ fn expressions_arrive_as_source_text_with_their_variable_references_never_as_tre
     let model = parse_fixture("groups.rq");
     let root = &model.where_clause;
 
-    let optional = root.children.iter().find(|c| c.kind == GroupScopeKind::Optional).unwrap();
+    let optional = root
+        .children
+        .iter()
+        .find(|c| c.kind == GroupScopeKind::Optional)
+        .unwrap();
     assert_eq!(optional.constraints.len(), 1);
     let filter = &optional.constraints[0];
     assert_eq!(filter.kind, SparqlConstraintKind::Filter);
@@ -270,7 +298,10 @@ fn line_ending_variants_parse_to_the_same_query() {
         let model = parse_fixture(name);
         assert_eq!(model.form, SparqlQueryForm::Select);
         assert_eq!(model.where_clause.patterns.len(), 1, "{name}");
-        assert_eq!(iri_of(&model.where_clause.patterns[0].predicate), "http://example.org/p");
+        assert_eq!(
+            iri_of(&model.where_clause.patterns[0].predicate),
+            "http://example.org/p"
+        );
         assert_eq!(names(model.projection.iter().map(|i| i.name.clone())), ["s"]);
     }
 }

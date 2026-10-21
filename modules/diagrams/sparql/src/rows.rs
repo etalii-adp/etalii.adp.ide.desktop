@@ -137,11 +137,7 @@ pub fn rows(projection: &SparqlProjectionResult, element_id: &str) -> Vec<Proper
     if let Some(edge) = projection.edges.iter().find(|e| e.id == element_id) {
         return vec![row(
             EDGE_LABEL_PROPERTY,
-            if edge.is_path {
-                "Property path"
-            } else {
-                "Predicate"
-            },
+            if edge.is_path { "Property path" } else { "Predicate" },
             &edge.label,
             STRUCTURE_GROUP,
         )];

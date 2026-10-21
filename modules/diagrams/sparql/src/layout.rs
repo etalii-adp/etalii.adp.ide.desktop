@@ -63,7 +63,10 @@ pub fn compute(projection: &SparqlProjectionResult, stored: &BTreeMap<String, (f
     }
     let mut regions_by_parent: HashMap<String, Vec<&SparqlRegion>> = HashMap::new();
     for region in &projection.regions {
-        regions_by_parent.entry(parent_path_of(region)).or_default().push(region);
+        regions_by_parent
+            .entry(parent_path_of(region))
+            .or_default()
+            .push(region);
     }
     let scopes = Scopes {
         nodes_by_scope,
@@ -176,7 +179,13 @@ impl<'a> Scopes<'a> {
 }
 
 /// Shifts a scope's frame and every computed position inside it.
-fn shift_scope(scope_path: &str, dx: f64, dy: f64, projection: &SparqlProjectionResult, result: &mut SparqlLayoutResult) {
+fn shift_scope(
+    scope_path: &str,
+    dx: f64,
+    dy: f64,
+    projection: &SparqlProjectionResult,
+    result: &mut SparqlLayoutResult,
+) {
     let prefix = format!("{scope_path}/");
     for node in &projection.nodes {
         if (node.scope_path == scope_path || node.scope_path.starts_with(&prefix))
