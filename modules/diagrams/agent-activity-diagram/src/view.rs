@@ -198,6 +198,13 @@ impl ModuleView for AgentActivityView {
         }
     }
 
+    /// A right drag from one element's body to another draws a relation (`aadDefinition.ts`, `extras`:
+    /// `connectOnRightDrag: true`): the vendored `agent-activity-diagram.dis` declares no pointer binding, so the
+    /// module says it.
+    fn connects_on_right_drag(&self) -> bool {
+        true
+    }
+
     /// A line drawn from one element to another is the relation the pair allows, whichever way it was drawn.
     fn connect_action(
         &self,

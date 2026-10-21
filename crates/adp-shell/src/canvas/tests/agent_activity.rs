@@ -8,6 +8,7 @@ use std::fs;
 use std::path::Path;
 
 use adp_diagram::ActionTarget;
+use eframe::egui::PointerButton;
 
 use super::{Harness, texts_of};
 
@@ -140,4 +141,60 @@ fn an_agent_activity_diagram_opens_on_its_rings_and_is_dragged_dropped_connected
 
     harness
         .screenshot(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/screenshots/agent-activity-diagram.png"));
+}
+
+#[test]
+fn a_right_drag_from_one_card_to_another_draws_the_relation_the_pair_allows() {
+    let mut harness = two_projects();
+    harness.settle();
+    let conversion = harness.screen_of("s-conversion");
+    let agent = harness.screen_of("a-definitions");
+    // a-definitions works on s-fbl: the line is refused with the rule, and nothing is written.
+    harness.drag(conversion, agent, PointerButton::Secondary, true);
+    assert!(
+        harness.tab.arbiter.connects_on_right_drag,
+        "the module connects on a right drag (`aadDefinition.ts`, `connectOnRightDrag: true`)"
+    );
+    assert!(harness.tab.menu.is_none(), "the drag opens no menu");
+    assert_eq!(harness.written(), harness.original);
+    assert!(
+        harness
+            .tab
+            .notice
+            .as_deref()
+            .is_some_and(|n| n.contains("already joined")),
+        "{:?}",
+        harness.tab.notice
+    );
+    // An agent dropped from the palette, and a right drag from it to a specification sets its key.
+    let (host, tab, root) = (&mut harness.host, &mut harness.tab, &harness.root);
+    tab.run_action(
+        host.workspace(root),
+        ActionTarget::Canvas { x: 0.0, y: -700.0 },
+        "add-agent",
+    );
+    let id = harness
+        .written()
+        .lines()
+        .skip_while(|l| *l != "agents:")
+        .take_while(|l| *l != "locations:")
+        .filter_map(|l| l.strip_prefix("  - id: "))
+        .last()
+        .unwrap()
+        .to_owned();
+    harness.tab.notice = None;
+    harness.tab.changed();
+    harness.tab.fit();
+    harness.settle();
+    let dropped = harness.screen_of(&id);
+    let conversion = harness.screen_of("s-conversion");
+    harness.drag(dropped, conversion, PointerButton::Secondary, true);
+    assert!(
+        harness.written().contains(&format!(
+            "  - id: {id}\r\n    name: New agent\r\n    specification: s-conversion\r\n"
+        )),
+        "{:?}\n{}",
+        harness.tab.notice,
+        harness.written()
+    );
 }
