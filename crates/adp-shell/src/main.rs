@@ -1,24 +1,39 @@
-//! The desktop host's window (spec 030). Until task T021 starts the shell, it states what it is and exits.
+//! The desktop host's window (etalii.adp spec 030, research R2, task T021): one native window per workspace, drawn
+//! with egui on wgpu, exposed to screen readers through AccessKit, in VS Code's default theme following the system.
 
-fn main() {
-    println!("{}", banner());
+#![cfg_attr(not(test), windows_subsystem = "windows")]
+
+mod shell;
+mod theme;
+
+use eframe::egui;
+
+struct App {
+    shell: shell::Shell,
 }
 
-fn banner() -> String {
-    format!(
-        "ADP desktop host {}: no window yet (etalii.adp spec 030, task T021).",
-        env!("CARGO_PKG_VERSION")
-    )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::banner;
-
-    #[test]
-    fn banner_names_the_host_and_its_version() {
-        let text = banner();
-        assert!(text.starts_with("ADP desktop host "));
-        assert!(text.contains(env!("CARGO_PKG_VERSION")));
+impl eframe::App for App {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        self.shell.show(ui);
     }
+}
+
+fn main() -> eframe::Result {
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_title("ADP")
+            .with_inner_size([1280.0, 800.0])
+            .with_min_inner_size([640.0, 400.0]),
+        ..Default::default()
+    };
+    eframe::run_native(
+        "ADP",
+        options,
+        Box::new(|cc| {
+            theme::install(&cc.egui_ctx);
+            Ok(Box::new(App {
+                shell: shell::Shell::default(),
+            }))
+        }),
+    )
 }
