@@ -88,7 +88,7 @@ fn decimal_text(value: f64) -> String {
 
 /// .NET's `double.ToString()`: the shortest round-tripping digits, in `E` notation from an exponent of 15 up and
 /// below -5.
-pub(crate) fn dotnet_double(value: f64) -> String {
+pub fn dotnet_double(value: f64) -> String {
     if value.is_nan() {
         return "NaN".into();
     }
@@ -130,6 +130,7 @@ pub(crate) fn dotnet_string(value: &Value) -> String {
         Value::List(_) => "System.Collections.Generic.List`1[System.Object]".into(),
         Value::Map(_) => "EtAlii.Adp.Specification.Cel.CelMap".into(),
         Value::Type(name) => (*name).to_owned(),
+        Value::Optional(_) | Value::Object(_) => value.to_string(),
     }
 }
 

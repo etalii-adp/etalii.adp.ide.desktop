@@ -2,8 +2,11 @@
 //! and a comprehension to one of its macros while parsing, so anything the environment does not offer is refused
 //! here, naming it.
 
+use std::rc::Rc;
+
 use crate::Environment;
-use crate::eval::{Node, arity, is_macro};
+use crate::eval::Node;
+use crate::function::{Function, Style};
 use crate::value::Value;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -139,61 +142,64 @@ impl Parser<'_> {
 
     fn postfix(&mut self, mut node: Node) -> Result<Node, String> {
         loop {
-            if self.peek(".?") || self.peek("[?") {
-                return Err(format!(
-                    "Optional values are not supported by this CEL evaluator, in '{}'.",
-                    self.source
-                ));
+            if self.peek(".?") {
+                self.position += 1;
+                let name = self.expect_ident()?;
+                node = Node::Member(Box::new(node), name, true);
+                continue;
             }
             if self.peek(".") {
                 self.position += 1;
                 let name = self.expect_ident()?;
                 if self.peek("(") {
                     self.position += 1;
-                    if is_macro(&name) {
+                    if let Some(kind) = self.environment.macro_named(&name) {
                         let variable = self.expect_ident()?;
                         self.expect(",")?;
                         let body = self.expression()?;
                         self.expect(")")?;
-                        node = Node::Comprehension(name, Box::new(node), variable, Box::new(body));
+                        node = Node::Comprehension(kind, Box::new(node), variable, Box::new(body));
                         continue;
                     }
                     let arguments = self.arguments()?;
-                    node = self.resolve(&name, Some(node), arguments)?;
+                    node = self.resolve(&name, Style::Receiver, Some(node), arguments)?;
                     continue;
                 }
-                node = Node::Member(Box::new(node), name);
+                node = Node::Member(Box::new(node), name, false);
                 continue;
             }
-            if self.peek("[") {
+            if self.peek("[") || self.peek("[?") {
+                let optional = self.peek("[?");
                 self.position += 1;
                 let key = self.expression()?;
                 self.expect("]")?;
-                node = Node::Index(Box::new(node), Box::new(key));
+                node = Node::Index(Box::new(node), Box::new(key), optional);
                 continue;
             }
             return Ok(node);
         }
     }
 
-    fn resolve(&self, name: &str, receiver: Option<Node>, arguments: Vec<Node>) -> Result<Node, String> {
-        let Some((min, max)) = arity(name, receiver.is_some()) else {
+    fn resolve(&self, name: &str, style: Style, receiver: Option<Node>, arguments: Vec<Node>) -> Result<Node, String> {
+        let Some(function) = self.environment.function(name, style) else {
             return Err(format!("The function '{name}' is not supported by this CEL evaluator."));
         };
-        if arguments.len() < min || arguments.len() > max {
-            let range = if min == max {
-                min.to_string()
+        if arguments.len() < function.min_arguments || arguments.len() > function.max_arguments {
+            let plural = if function.min_arguments == 1
+                && (function.max_arguments == 1 || function.max_arguments == Function::VARIADIC)
+            {
+                ""
             } else {
-                format!("{min} to {max}")
+                "s"
             };
-            let plural = if min == 1 && max == 1 { "" } else { "s" };
             return Err(format!(
-                "The function '{name}' takes {range} argument{plural}, not {}, in '{}'.",
+                "The function '{name}' takes {} argument{plural}, not {}, in '{}'.",
+                function.arity(),
                 arguments.len(),
                 self.source
             ));
         }
-        Ok(Node::Call(name.to_owned(), receiver.map(Box::new), arguments))
+        Ok(Node::Call(Rc::clone(function), receiver.map(Box::new), arguments))
     }
 
     fn arguments(&mut self) -> Result<Vec<Node>, String> {
@@ -232,7 +238,7 @@ impl Parser<'_> {
                         let target = self.postfix(primary)?;
                         self.expect(")")?;
                         return match target {
-                            Node::Member(target, name) => Ok(Node::Has(target, name)),
+                            Node::Member(target, name, false) => Ok(Node::Has(target, name)),
                             _ => Err("has() needs a field selection such as has(entry.end).".into()),
                         };
                     }
@@ -241,7 +247,7 @@ impl Parser<'_> {
                 if self.peek("(") {
                     self.position += 1;
                     let arguments = self.arguments()?;
-                    return self.resolve(&text, None, arguments);
+                    return self.resolve(&text, Style::Global, None, arguments);
                 }
                 if let Some(qualified) = self.qualified_call(&text)? {
                     return Ok(qualified);
@@ -320,12 +326,12 @@ impl Parser<'_> {
             self.expect(")")?;
             return Ok(Some(Node::Bind(variable, Box::new(init), Box::new(body))));
         }
-        if arity(&name, false).is_none() {
+        if self.environment.function(&name, Style::Global).is_none() {
             return Ok(None);
         }
         self.position += 3;
         let arguments = self.arguments()?;
-        self.resolve(&name, None, arguments).map(Some)
+        self.resolve(&name, Style::Global, None, arguments).map(Some)
     }
 
     fn peek(&self, text: &str) -> bool {

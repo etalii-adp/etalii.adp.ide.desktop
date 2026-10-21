@@ -1,19 +1,14 @@
-//! Evaluating a compiled expression (the standalone host's `CelNode`, `CelScope`, `CelProgram` and the core and
-//! strings libraries): every node with its value, an evaluation error as a sentence, and a budget of steps so that
-//! an expression cannot run without end.
+//! Evaluating a compiled expression (the standalone host's `CelNode`, `CelScope`, `CelProgram`, `CelValues` and
+//! `CelInt`): every node with its value, an evaluation error as a sentence, and a budget so that an expression
+//! cannot run without end.
 
-use std::cell::Cell;
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::Environment;
-use crate::regex_subset;
+use crate::function::{BUDGET_EXCEEDED, Budget, Call, Function, Macro};
 use crate::value::{Map, TYPE_NAMES, Value};
-
-/// The steps one evaluation may take.
-const BUDGET: u64 = 100_000;
-
-const BUDGET_EXCEEDED: &str = "The expression exceeded its evaluation budget.";
 
 #[derive(Debug, Clone)]
 pub(crate) enum Node {
@@ -21,44 +16,20 @@ pub(crate) enum Node {
     Ident(String),
     List(Vec<Node>),
     MapLiteral(Vec<(Node, Node)>),
-    Member(Box<Node>, String),
-    Index(Box<Node>, Box<Node>),
+    /// `x.name`, and `x.?name` when optional.
+    Member(Box<Node>, String, bool),
+    /// `x[key]`, and `x[?key]` when optional.
+    Index(Box<Node>, Box<Node>, bool),
     Has(Box<Node>, String),
     Unary(&'static str, Box<Node>),
     Binary(&'static str, Box<Node>, Box<Node>),
     Conditional(Box<Node>, Box<Node>, Box<Node>),
     /// `target.macro(variable, body)`: a comprehension over a list, or over a map's keys.
-    Comprehension(String, Box<Node>, String, Box<Node>),
+    Comprehension(Macro, Box<Node>, String, Box<Node>),
     /// `cel.bind(variable, init, body)`.
     Bind(String, Box<Node>, Box<Node>),
-    /// A call; for a receiver call, the receiver is the first argument the function sees.
-    Call(String, Option<Box<Node>>, Vec<Node>),
-}
-
-/// The comprehension macros of the standard environment.
-pub(crate) fn is_macro(name: &str) -> bool {
-    matches!(name, "all" | "exists" | "exists_one" | "filter" | "map")
-}
-
-/// The number of arguments a function of the standard environment takes, the receiver not counted; none when there
-/// is no such function in that call style.
-pub(crate) fn arity(name: &str, receiver: bool) -> Option<(usize, usize)> {
-    if receiver {
-        match name {
-            "size" | "lowerAscii" | "upperAscii" | "trim" | "reverse" => Some((0, 0)),
-            "matches" | "startsWith" | "endsWith" | "contains" | "charAt" => Some((1, 1)),
-            "replace" => Some((2, 3)),
-            "indexOf" | "lastIndexOf" | "substring" | "split" => Some((1, 2)),
-            "join" => Some((0, 1)),
-            _ => None,
-        }
-    } else {
-        match name {
-            "size" | "int" | "double" | "string" | "type" | "lower" | "upper" | "lists.range" => Some((1, 1)),
-            "matches" => Some((2, 2)),
-            _ => None,
-        }
-    }
+    /// A call; for a receiver call, the receiver is the first argument the function's body sees.
+    Call(Rc<Function>, Option<Box<Node>>, Vec<Node>),
 }
 
 /// Refuses an identifier that names no variable, no variable a comprehension binds and no type.
@@ -73,15 +44,8 @@ pub(crate) fn check_variables(node: &Node, environment: &Environment, bound: &mu
             }
             Ok(())
         }
-        Node::Comprehension(_, target, variable, body) => {
+        Node::Comprehension(_, target, variable, body) | Node::Bind(variable, target, body) => {
             check_variables(target, environment, bound)?;
-            bound.push(variable.clone());
-            let result = check_variables(body, environment, bound);
-            bound.pop();
-            result
-        }
-        Node::Bind(variable, init, body) => {
-            check_variables(init, environment, bound)?;
             bound.push(variable.clone());
             let result = check_variables(body, environment, bound);
             bound.pop();
@@ -93,10 +57,10 @@ pub(crate) fn check_variables(node: &Node, environment: &Environment, bound: &mu
             check_variables(k, environment, bound)?;
             check_variables(v, environment, bound)
         }),
-        Node::Member(target, _) | Node::Has(target, _) | Node::Unary(_, target) => {
+        Node::Member(target, _, _) | Node::Has(target, _) | Node::Unary(_, target) => {
             check_variables(target, environment, bound)
         }
-        Node::Index(a, b) | Node::Binary(_, a, b) => {
+        Node::Index(a, b, _) | Node::Binary(_, a, b) => {
             check_variables(a, environment, bound)?;
             check_variables(b, environment, bound)
         }
@@ -127,26 +91,28 @@ impl Variables for HashMap<String, Value> {
     }
 }
 
+impl Variables for Map {
+    fn get(&self, name: &str) -> Option<Value> {
+        Map::get(self, name).cloned()
+    }
+}
+
 /// A compiled CEL expression.
 #[derive(Debug, Clone)]
 pub struct Program {
     root: Rc<Node>,
+    budget: i64,
 }
 
 struct Scope<'a> {
     variables: &'a dyn Variables,
     bound: Vec<(String, Value)>,
-    steps: Cell<u64>,
+    budget: &'a Budget,
 }
 
 impl Scope<'_> {
     fn step(&self) -> Result<(), String> {
-        let steps = self.steps.get() + 1;
-        self.steps.set(steps);
-        if steps > BUDGET {
-            return Err(BUDGET_EXCEEDED.into());
-        }
-        Ok(())
+        self.budget.charge(1)
     }
 
     fn lookup(&self, name: &str) -> Result<Value, String> {
@@ -165,16 +131,31 @@ impl Scope<'_> {
 }
 
 impl Program {
-    pub(crate) fn new(root: Node) -> Self {
-        Program { root: Rc::new(root) }
+    pub(crate) fn new(root: Node, budget: i64) -> Self {
+        Program {
+            root: Rc::new(root),
+            budget,
+        }
+    }
+
+    /// The cost one evaluation may spend.
+    pub fn budget(&self) -> i64 {
+        self.budget
     }
 
     /// Evaluates with `variables`: the value, or the sentence saying why the evaluation failed.
     pub fn evaluate(&self, variables: &dyn Variables) -> Result<Value, String> {
+        let budget = Budget::new(self.budget);
+        self.evaluate_within(variables, &budget)
+    }
+
+    /// Evaluates with `variables`, charging `budget`: how a function that evaluates another expression keeps the
+    /// whole evaluation within one limit.
+    pub fn evaluate_within(&self, variables: &dyn Variables, budget: &Budget) -> Result<Value, String> {
         let mut scope = Scope {
             variables,
             bound: Vec::new(),
-            steps: Cell::new(0),
+            budget,
         };
         evaluate(&self.root, &mut scope)
     }
@@ -185,22 +166,22 @@ impl Program {
     }
 }
 
-fn as_string(value: &Value) -> Result<&str, String> {
+pub(crate) fn as_string(value: &Value) -> Result<&str, String> {
     value.as_str().ok_or_else(|| "A string was expected.".to_owned())
 }
 
-fn as_int(value: &Value) -> Result<i64, String> {
+pub(crate) fn as_int(value: &Value) -> Result<i64, String> {
     match value {
         Value::Int(i) => Ok(*i),
         _ => Err("An int was expected.".into()),
     }
 }
 
-fn as_double(value: &Value) -> Result<f64, String> {
+pub(crate) fn as_double(value: &Value) -> Result<f64, String> {
     value.as_number().ok_or_else(|| "A number was expected.".to_owned())
 }
 
-fn as_list(value: &Value) -> Result<&[Value], String> {
+pub(crate) fn as_list(value: &Value) -> Result<&[Value], String> {
     value.as_list().ok_or_else(|| "A list was expected.".to_owned())
 }
 
@@ -232,38 +213,31 @@ fn evaluate(node: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
             }
             Ok(Value::map(map))
         }
-        Node::Member(target, name) => {
+        Node::Member(target, name, optional) => {
             scope.step()?;
             let target = evaluate(target, scope)?;
             match &target {
-                Value::Map(map) => map.get(name).cloned().ok_or_else(|| format!("No such key: '{name}'.")),
-                _ => Err(format!("'{name}' is selected from a value that is not a map.")),
+                // Selection on an optional chains: none stays none, a value is selected from.
+                Value::Optional(Some(value)) => select(value, name, true),
+                Value::Optional(None) => Ok(Value::none()),
+                _ => select(&target, name, *optional),
             }
         }
-        Node::Index(target, key) => {
+        Node::Index(target, key, optional) => {
             scope.step()?;
             let target = evaluate(target, scope)?;
             let key = evaluate(key, scope)?;
             match &target {
-                Value::List(list) => {
-                    let i = as_int(&key)?;
-                    if i >= 0 && (i as usize) < list.len() {
-                        Ok(list[i as usize].clone())
-                    } else {
-                        Err(format!("Index {i} is out of range."))
-                    }
-                }
-                Value::Map(map) => {
-                    let k = as_string(&key)?;
-                    map.get(k).cloned().ok_or_else(|| format!("No such key: '{k}'."))
-                }
-                _ => Err("Only a list or a map can be indexed.".into()),
+                Value::Optional(Some(value)) => index(value, &key, true),
+                Value::Optional(None) => Ok(Value::none()),
+                _ => index(&target, &key, *optional),
             }
         }
         Node::Has(target, name) => {
             scope.step()?;
             match evaluate(target, scope)? {
                 Value::Map(map) => Ok(Value::Bool(map.contains_key(name))),
+                Value::Object(object) if object.is_selectable() => Ok(Value::Bool(object.has_member(name))),
                 _ => Err("has() needs a map.".into()),
             }
         }
@@ -291,15 +265,15 @@ fn evaluate(node: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
                 _ => Err("A conditional needs a bool.".into()),
             }
         }
-        Node::Comprehension(name, target, variable, body) => {
+        Node::Comprehension(kind, target, variable, body) => {
             scope.step()?;
             let target = evaluate(target, scope)?;
             let items: Vec<Value> = match &target {
                 Value::List(list) => list.iter().cloned().collect(),
                 Value::Map(map) => map.keys().map(|k| Value::String(k.clone())).collect(),
-                _ => return Err(format!("'{name}' needs a list or a map.")),
+                _ => return Err(format!("'{}' needs a list or a map.", kind.name())),
             };
-            comprehension(name, items, variable, body, scope)
+            comprehension(*kind, items, variable, body, scope)
         }
         Node::Bind(variable, init, body) => {
             scope.step()?;
@@ -309,22 +283,93 @@ fn evaluate(node: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
             scope.bound.pop();
             result
         }
-        Node::Call(name, receiver, arguments) => {
+        Node::Call(function, receiver, arguments) => {
             scope.step()?;
+            let receiver = match receiver {
+                Some(r) => Some(evaluate(r, scope)?),
+                None => None,
+            };
             let mut args = Vec::with_capacity(arguments.len() + 1);
-            if let Some(receiver) = receiver {
-                args.push(evaluate(receiver, scope)?);
-            }
             for argument in arguments {
                 args.push(evaluate(argument, scope)?);
             }
-            call(name, receiver.is_some(), &args)
+            if let Some(receiver) = receiver {
+                if let Value::Object(object) = &receiver
+                    && object.is_selectable()
+                    && let Some(result) = object.invoke(&function.name, &args)
+                {
+                    let value = result?;
+                    scope.budget.charge(function.cost_of(&args))?;
+                    return Ok(value);
+                }
+                if function.body.is_none() {
+                    return Err(format!("'{}()' is not a method of this value.", function.name));
+                }
+                args.insert(0, receiver);
+            }
+            scope.budget.charge(function.cost_of(&args))?;
+            let Some(body) = function.body.as_ref() else {
+                return Err(format!("'{}()' is not a method of this value.", function.name));
+            };
+            body(&Call {
+                arguments: &args,
+                budget: scope.budget,
+                variables: scope.variables,
+            })
         }
     }
 }
 
+fn select(target: &Value, name: &str, optional: bool) -> Result<Value, String> {
+    match target {
+        Value::Map(map) => match map.get(name) {
+            Some(value) if optional => Ok(Value::some(value.clone())),
+            Some(value) => Ok(value.clone()),
+            None if optional => Ok(Value::none()),
+            None => Err(format!("No such key: '{name}'.")),
+        },
+        Value::Object(object) if object.is_selectable() => {
+            if optional {
+                return Ok(if object.has_member(name) {
+                    object.member(name).map(Value::some).unwrap_or_else(Value::none)
+                } else {
+                    Value::none()
+                });
+            }
+            object.member(name).ok_or_else(|| format!("No such field: '{name}'."))
+        }
+        _ => Err(format!("'{name}' is selected from a value that is not a map.")),
+    }
+}
+
+fn index(target: &Value, key: &Value, optional: bool) -> Result<Value, String> {
+    match target {
+        Value::List(list) => {
+            let i = as_int(key)?;
+            if i >= 0 && (i as usize) < list.len() {
+                let value = list[i as usize].clone();
+                Ok(if optional { Value::some(value) } else { value })
+            } else if optional {
+                Ok(Value::none())
+            } else {
+                Err(format!("Index {i} is out of range."))
+            }
+        }
+        Value::Map(map) => {
+            let k = as_string(key)?;
+            match map.get(k) {
+                Some(value) if optional => Ok(Value::some(value.clone())),
+                Some(value) => Ok(value.clone()),
+                None if optional => Ok(Value::none()),
+                None => Err(format!("No such key: '{k}'.")),
+            }
+        }
+        _ => Err("Only a list or a map can be indexed.".into()),
+    }
+}
+
 fn comprehension(
-    name: &str,
+    kind: Macro,
     items: Vec<Value>,
     variable: &str,
     body: &Node,
@@ -336,8 +381,8 @@ fn comprehension(
         scope.bound.pop();
         result
     };
-    match name {
-        "all" => {
+    match kind {
+        Macro::All => {
             for item in items {
                 if matches!(run(item, scope)?, Value::Bool(false)) {
                     return Ok(Value::Bool(false));
@@ -345,7 +390,7 @@ fn comprehension(
             }
             Ok(Value::Bool(true))
         }
-        "exists" => {
+        Macro::Exists => {
             for item in items {
                 if matches!(run(item, scope)?, Value::Bool(true)) {
                     return Ok(Value::Bool(true));
@@ -353,7 +398,7 @@ fn comprehension(
             }
             Ok(Value::Bool(false))
         }
-        "exists_one" => {
+        Macro::ExistsOne => {
             let mut count = 0;
             for item in items {
                 if matches!(run(item, scope)?, Value::Bool(true)) {
@@ -362,7 +407,7 @@ fn comprehension(
             }
             Ok(Value::Bool(count == 1))
         }
-        "filter" => {
+        Macro::Filter => {
             let mut kept = Vec::new();
             for item in items {
                 if matches!(run(item.clone(), scope)?, Value::Bool(true)) {
@@ -371,14 +416,43 @@ fn comprehension(
             }
             Ok(Value::list(kept))
         }
-        _ => {
+        Macro::Map => {
             let mut mapped = Vec::with_capacity(items.len());
             for item in items {
                 mapped.push(run(item, scope)?);
             }
             Ok(Value::list(mapped))
         }
+        Macro::SortBy => {
+            let mut keyed = Vec::with_capacity(items.len());
+            for item in items {
+                let key = run(item.clone(), scope)?;
+                keyed.push((item, key));
+            }
+            sort(keyed).map(Value::list)
+        }
     }
+}
+
+/// A stable sort by key; the keys must be all strings, all numbers or all bools (DISL section 12.1).
+pub(crate) fn sort(mut keyed: Vec<(Value, Value)>) -> Result<Vec<Value>, String> {
+    let mut kinds: Vec<&str> = Vec::new();
+    for (_, key) in &keyed {
+        let kind = match key {
+            Value::String(_) => "string",
+            Value::Int(_) | Value::Double(_) => "number",
+            Value::Bool(_) => "bool",
+            _ => return Err("sort() needs strings, numbers or bools.".into()),
+        };
+        if !kinds.contains(&kind) {
+            kinds.push(kind);
+        }
+    }
+    if kinds.len() > 1 {
+        return Err("sort() needs values of one type.".into());
+    }
+    keyed.sort_by(|a, b| compare(&a.1, &b.1).unwrap_or(Ordering::Equal));
+    Ok(keyed.into_iter().map(|(item, _)| item).collect())
 }
 
 fn binary(op: &str, left: &Node, right: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
@@ -456,160 +530,19 @@ fn absorb(result: Result<Value, String>) -> Result<Result<Value, String>, String
     }
 }
 
-fn compare(a: &Value, b: &Value) -> Result<std::cmp::Ordering, String> {
+/// CEL's order (`CelValues.Compare`): strings by code point, bools, and numbers as .NET orders doubles, NaN first.
+pub(crate) fn compare(a: &Value, b: &Value) -> Result<Ordering, String> {
     Ok(match (a, b) {
         (Value::String(x), Value::String(y)) => x.cmp(y),
         (Value::Bool(x), Value::Bool(y)) => x.cmp(y),
-        _ => as_double(a)?
-            .partial_cmp(&as_double(b)?)
-            .unwrap_or(std::cmp::Ordering::Less),
-    })
-}
-
-fn size(value: &Value) -> Result<Value, String> {
-    Ok(Value::Int(match value {
-        Value::String(s) => s.chars().count() as i64,
-        Value::List(l) => l.len() as i64,
-        Value::Map(m) => m.len() as i64,
-        _ => return Err("size() needs a string, a list or a map.".into()),
-    }))
-}
-
-fn call(name: &str, receiver: bool, a: &[Value]) -> Result<Value, String> {
-    let text = |i: usize| as_string(&a[i]);
-    Ok(match (name, receiver) {
-        ("size", _) => size(&a[0])?,
-        ("matches", _) => {
-            let expression = regex_subset::to_rust(text(1)?, false);
-            let regex = regex::Regex::new(&expression).map_err(|e| format!("matches() cannot use its pattern: {e}"))?;
-            Value::Bool(regex.is_match(text(0)?))
-        }
-        ("int", false) => Value::Int(match &a[0] {
-            Value::Int(i) => *i,
-            Value::Double(d) if d.is_finite() && *d > i64::MIN as f64 && *d < i64::MAX as f64 => d.trunc() as i64,
-            Value::String(s) => s.parse().map_err(|_| "int() cannot convert this value.".to_owned())?,
-            _ => return Err("int() cannot convert this value.".into()),
-        }),
-        ("double", false) => Value::Double(match &a[0] {
-            Value::String(s) => s.parse().map_err(|_| format!("double() cannot convert '{s}'."))?,
-            other => as_double(other)?,
-        }),
-        ("string", false) => Value::String(a[0].to_string()),
-        ("type", false) => Value::Type(a[0].type_name()),
-        ("lower", false) => Value::String(text(0)?.to_lowercase()),
-        ("upper", false) => Value::String(text(0)?.to_uppercase()),
-        ("lists.range", false) => Value::list((0..as_int(&a[0])?.max(0)).map(Value::Int).collect()),
-        ("startsWith", true) => Value::Bool(text(0)?.starts_with(text(1)?)),
-        ("endsWith", true) => Value::Bool(text(0)?.ends_with(text(1)?)),
-        ("contains", true) => Value::Bool(text(0)?.contains(text(1)?)),
-        ("replace", true) => {
-            let limit = if a.len() > 3 { as_int(&a[3])? } else { -1 };
-            if limit < 0 {
-                Value::String(text(0)?.replace(text(1)?, text(2)?))
-            } else {
-                Value::String(text(0)?.replacen(text(1)?, text(2)?, limit as usize))
+        _ => {
+            let (x, y) = (as_double(a)?, as_double(b)?);
+            match x.partial_cmp(&y) {
+                Some(order) => order,
+                None if x.is_nan() && y.is_nan() => Ordering::Equal,
+                None if x.is_nan() => Ordering::Less,
+                None => Ordering::Greater,
             }
         }
-        ("lowerAscii", true) => Value::String(text(0)?.to_ascii_lowercase()),
-        ("upperAscii", true) => Value::String(text(0)?.to_ascii_uppercase()),
-        ("trim", true) => Value::String(text(0)?.trim().to_owned()),
-        ("charAt", true) => {
-            let points: Vec<char> = text(0)?.chars().collect();
-            let index = as_int(&a[1])?;
-            if index < 0 || index as usize > points.len() {
-                return Err(format!(
-                    "charAt({index}) is out of range for a string of {}.",
-                    points.len()
-                ));
-            }
-            Value::String(points.get(index as usize).map(|c| c.to_string()).unwrap_or_default())
-        }
-        ("indexOf", true) | ("lastIndexOf", true) => {
-            let last = name == "lastIndexOf";
-            if let Value::List(list) = &a[0] {
-                let found = if last {
-                    list.iter().rposition(|v| v.cel_equals(&a[1]))
-                } else {
-                    list.iter().position(|v| v.cel_equals(&a[1]))
-                };
-                return Ok(Value::Int(found.map(|i| i as i64).unwrap_or(-1)));
-            }
-            let points: Vec<char> = text(0)?.chars().collect();
-            let sought: Vec<char> = text(1)?.chars().collect();
-            let start = if a.len() > 2 {
-                as_int(&a[2])?
-            } else if last {
-                points.len() as i64
-            } else {
-                0
-            };
-            if start < 0 || start as usize > points.len() {
-                return Err(format!(
-                    "{name}() start {start} is out of range for a string of {}.",
-                    points.len()
-                ));
-            }
-            let at = |i: usize| i + sought.len() <= points.len() && points[i..i + sought.len()] == sought[..];
-            let found = if last {
-                (0..=(start as usize).min(points.len().saturating_sub(sought.len())))
-                    .rev()
-                    .find(|i| at(*i))
-            } else {
-                (start as usize..=points.len()).find(|i| at(*i))
-            };
-            Value::Int(found.map(|i| i as i64).unwrap_or(-1))
-        }
-        ("substring", true) => {
-            let points: Vec<char> = text(0)?.chars().collect();
-            let start = as_int(&a[1])?;
-            let end = if a.len() > 2 {
-                as_int(&a[2])?
-            } else {
-                points.len() as i64
-            };
-            if start < 0 || start as usize > points.len() || end < start || end as usize > points.len() {
-                return Err(format!(
-                    "substring({start}, {end}) is out of range for a string of {}.",
-                    points.len()
-                ));
-            }
-            Value::String(points[start as usize..end as usize].iter().collect())
-        }
-        ("split", true) => {
-            let limit = if a.len() > 2 { as_int(&a[2])? } else { -1 };
-            let (t, separator) = (text(0)?, text(1)?);
-            if limit == 0 {
-                Value::list(Vec::new())
-            } else if separator.is_empty() {
-                let points: Vec<char> = t.chars().collect();
-                let mut parts = Vec::new();
-                for (i, c) in points.iter().enumerate() {
-                    if limit > 0 && parts.len() as i64 == limit - 1 {
-                        parts.push(Value::String(points[i..].iter().collect()));
-                        return Ok(Value::list(parts));
-                    }
-                    parts.push(Value::String(c.to_string()));
-                }
-                Value::list(parts)
-            } else if limit < 0 {
-                Value::list(t.split(separator).map(Value::from).collect())
-            } else {
-                Value::list(t.splitn(limit as usize, separator).map(Value::from).collect())
-            }
-        }
-        ("join", true) => {
-            let list = as_list(&a[0])?;
-            let separator = if a.len() > 1 { text(1)? } else { "" };
-            let mut parts = Vec::with_capacity(list.len());
-            for item in list {
-                parts.push(item.as_str().ok_or("join() needs a list of strings.")?);
-            }
-            Value::String(parts.join(separator))
-        }
-        ("reverse", true) => match &a[0] {
-            Value::List(list) => Value::list(list.iter().rev().cloned().collect()),
-            other => Value::String(as_string(other)?.chars().rev().collect()),
-        },
-        _ => return Err(format!("'{name}()' is not a method of this value.")),
     })
 }
