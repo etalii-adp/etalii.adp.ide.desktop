@@ -176,9 +176,22 @@ pub fn empty_shacl_document(base_name: &str) -> String {
     )
 }
 
-/// A base name as a Turtle local name (`RdfLocalName.Of`). STUB: ported with the family's remaining parts.
+/// `base_name` with anything a prefixed name cannot carry folded to underscores, so "My Graph.data" becomes
+/// `My_Graph_data`; `untitled` when nothing is left (`RdfLocalName.Of`).
 pub fn local_name(base_name: &str) -> String {
-    base_name.to_owned()
+    let folded: String = base_name
+        .encode_utf16()
+        .map(|unit| match char::from_u32(u32::from(unit)) {
+            Some(c) if c.is_ascii_alphanumeric() || c == '-' || c == '_' => c,
+            _ => '_',
+        })
+        .collect();
+    let local = folded.trim_matches('_');
+    if local.is_empty() {
+        "untitled".to_owned()
+    } else {
+        local.to_owned()
+    }
 }
 
 fn first_line(text: &str) -> String {

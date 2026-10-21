@@ -110,7 +110,6 @@ fn corpus_model() -> RdfModel {
 }
 
 #[test]
-#[ignore = "needs the family providers"]
 fn the_subclass_gesture_splices_one_triple_one_undo_away() {
     let mut project = Project::new(CORPUS);
     let before = project.body();
@@ -137,7 +136,6 @@ fn the_subclass_gesture_splices_one_triple_one_undo_away() {
 }
 
 #[test]
-#[ignore = "needs the family providers"]
 fn a_duplicate_subclass_gesture_is_refused_before_any_splice() {
     let mut project = Project::new(CORPUS);
     let before = project.body();
@@ -151,7 +149,6 @@ fn a_duplicate_subclass_gesture_is_refused_before_any_splice() {
 }
 
 #[test]
-#[ignore = "needs the family providers"]
 fn the_palette_adds_appear_on_marked_documents_and_write_declarations() {
     let mut project = Project::new(CORPUS);
     let placement = ActionTarget::Canvas { x: 10.0, y: 20.0 };
@@ -186,7 +183,6 @@ fn the_palette_adds_appear_on_marked_documents_and_write_declarations() {
 }
 
 #[test]
-#[ignore = "needs the family providers"]
 fn a_punned_individual_role_edits_like_a_resource() {
     let mut project = Project::new(CORPUS);
     let id = format!("ind:{NS}Pizza");
@@ -215,7 +211,6 @@ fn the_punned_individual_role_names_its_iri() {
 }
 
 #[test]
-#[ignore = "needs the family providers"]
 fn an_expression_selection_shows_the_uncapped_form_read_only_with_the_boundary_sentence() {
     let project = Project::new(CORPUS);
     let id = format!("expr:{NS}Vegetarian|{}|1", owl::SUB_CLASS_OF);
@@ -240,7 +235,6 @@ fn an_expression_id_renders_its_uncapped_form() {
 }
 
 #[test]
-#[ignore = "needs the family providers"]
 fn a_class_selection_carries_its_axiom_rows() {
     let project = Project::new(CORPUS);
     let rows = project
@@ -253,7 +247,6 @@ fn a_class_selection_carries_its_axiom_rows() {
 }
 
 #[test]
-#[ignore = "needs the family providers"]
 fn a_derived_property_edge_shows_the_propertys_axioms() {
     let project = Project::new(CORPUS);
     let edge_id = format!("edge:res:{NS}Pizza|{NS}hasTopping|res:{NS}Topping");

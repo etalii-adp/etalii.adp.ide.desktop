@@ -91,14 +91,34 @@ pub fn placement_id(x: f64, y: f64) -> String {
     format!("new:{x},{y}")
 }
 
-/// Whether `element_id` is a placement gesture.
-pub fn is_placement(element_id: &str) -> bool {
-    element_id.starts_with("new:")
+/// The point a placement gesture `new:{x},{y}` names: exactly two numbers after the prefix (`GestureIds.TryParsePlacement`).
+pub fn placement_of(element_id: &str) -> Option<(f64, f64)> {
+    let rest = element_id.strip_prefix("new:")?;
+    let parts: Vec<&str> = rest.split(',').collect();
+    let [x, y] = parts.as_slice() else {
+        return None;
+    };
+    Some((number(x)?, number(y)?))
 }
 
-/// The ends of a relation gesture `rel:{from}->{to}`.
+/// A number as .NET's `double.TryParse` with `NumberStyles.Float` reads it, in the invariant culture.
+fn number(text: &str) -> Option<f64> {
+    let trimmed = text.trim();
+    let lower = trimmed.to_ascii_lowercase();
+    if trimmed.is_empty() || lower.contains("inf") || lower.contains("nan") {
+        return None;
+    }
+    trimmed.parse().ok()
+}
+
+/// Whether `element_id` is a placement gesture (`RdfNewPlacement.IsPlacement`).
+pub fn is_placement(element_id: &str) -> bool {
+    placement_of(element_id).is_some()
+}
+
+/// The ends of a relation gesture `rel:{from}->{to}`, neither empty (`GestureIds.TryParseRelation`).
 pub fn relation_of(element_id: &str) -> Option<(String, String)> {
     let rest = element_id.strip_prefix("rel:")?;
     let (from, to) = rest.split_once("->")?;
-    Some((from.to_owned(), to.to_owned()))
+    (!from.is_empty() && !to.is_empty()).then(|| (from.to_owned(), to.to_owned()))
 }

@@ -242,7 +242,6 @@ fn every_reading_of_the_family_reloads_through_the_one_store() {
 }
 
 #[test]
-#[ignore = "needs RdfLocalName (a base name with a space), ported with the family providers"]
 fn a_new_document_parses_and_validates_clean() {
     let text = adp_diagram_rdf::empty_rdf_document("My Graph");
     let model = parser::parse(&LineDocument::parse(&text)).unwrap();
@@ -258,7 +257,6 @@ fn a_new_document_parses_and_validates_clean() {
 }
 
 #[test]
-#[ignore = "needs RdfLocalName, ported with the family providers"]
 fn a_hostile_base_name_folds_to_a_clean_local_name() {
     let text = adp_diagram_rdf::empty_rdf_document("weird / name?!");
     let model = parser::parse(&LineDocument::parse(&text)).unwrap();
