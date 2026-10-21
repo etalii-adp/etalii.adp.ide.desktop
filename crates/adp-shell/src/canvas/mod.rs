@@ -98,7 +98,8 @@ impl DiagramHost {
                 adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                     DislPluginFunctions::none()
                 }))
-                .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module()),
+                .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
+                .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module()),
             )),
             workspaces: HashMap::new(),
         }

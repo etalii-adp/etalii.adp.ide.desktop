@@ -24,7 +24,7 @@ use std::rc::Rc;
 
 use adp_cel::{Map, Value};
 use adp_context::{ActionGroup, Prompt, PropertyRow};
-use adp_disl::behavior::{deletion, operations};
+use adp_disl::behavior::{deletion, hooks, operations};
 use adp_disl::derivation::{constraints, form_commit, gestures};
 use adp_disl::model::builder;
 use adp_disl::{
@@ -263,13 +263,16 @@ impl DiagramSession {
         };
         // What the reader could not read: a body that does not parse is the specification's `std.unparseable`, and a
         // body whose reader plugin the host lacks is a problem of its own.
-        let reader_findings = document
+        let mut reader_findings: Vec<DislReaderFinding> = document
             .fbl()
             .findings
             .iter()
             .filter(|f| f.code == codes::UNPARSEABLE)
             .map(|f| DislReaderFinding::not_parsed(&f.message, f.location.as_ref().map(|l| l.line as i32), None))
             .collect();
+        if let Some(module) = &document.tool().module {
+            reader_findings.extend(module.reader_findings(document));
+        }
         let missing = document
             .fbl()
             .findings
@@ -877,7 +880,11 @@ impl DiagramSession {
                 .iter()
                 .find(|r| r.id == property_id)
             {
-                shown.validate(value)?;
+                // A row with a `parse` also takes a value as the document writes it, which its `accepts` judges
+                // below rather than its options (DISL 0.3, 6.12), as the standalone host's form commit did.
+                if !form_commit::parses(specification, &element, &row, "inspector") {
+                    shown.validate(value)?;
+                }
             }
             let transaction = form_commit::row(specification, &element, &row, value, &self.env, "inspector");
             if let Some(refusal) = transaction.refusal {
@@ -1028,6 +1035,22 @@ impl DiagramSession {
                 };
                 let parameters =
                     operations::parameters(specification, &operation, &working, element.as_ref(), Some(&self.env));
+                // A pending connection's entry hands its ends to the operation through `args` (DISL section 7.3:
+                // `"args": {"from": "source", "to": "target"}`); only what they leave is asked.
+                let given: Map = match target {
+                    ActionTarget::Connection { .. } => parameters
+                        .iter()
+                        .filter_map(|p| Some((p.name.clone(), entry.arguments.get(&p.name)?.clone())))
+                        .collect(),
+                    _ => Map::default(),
+                };
+                let asked: Vec<_> = parameters.iter().filter(|p| !given.contains_key(&p.name)).collect();
+                if !given.is_empty() && asked.is_empty() {
+                    return match self.run_operation(workspace, target, &entry, &operation, Some(given), ids) {
+                        Ok(()) => ActionOutcome::Done,
+                        Err(refusal) => ActionOutcome::Refused(refusal),
+                    };
+                }
                 match parameters.as_slice() {
                     [] => {}
                     [parameter] => {
@@ -1096,9 +1119,17 @@ impl DiagramSession {
                     return ActionOutcome::Refused(format!("'{value}' is not a value of {}.", parameter.label));
                 };
                 let parameters: Map = [(parameter.name.clone(), answered)].into_iter().collect();
-                // An answer carries no ids: an operation that asks first creates nothing it would need one for.
-                let ids = adp_disl::behavior::ids::fixed(&[]);
-                match self.run_operation(workspace, target, &entry, &operation, Some(parameters), &ids) {
+                // An answer carries no ids: what an operation that asks first creates takes the specification's
+                // own strategy, else, for a `natural` one whose ids the binding reads back from the keys written, a
+                // stand-in (the causal loop's link and the loops its hook claims; the standalone host's
+                // `ClaimedLoopIds`).
+                let minted = adp_disl::behavior::ids::of(specification);
+                let stand_ins = StandInIds::default();
+                let ids: &dyn adp_disl::IdSource = match &minted {
+                    Ok(minted) => minted,
+                    Err(_) => &stand_ins,
+                };
+                match self.run_operation(workspace, target, &entry, &operation, Some(parameters), ids) {
                     Ok(()) => ActionOutcome::Done,
                     Err(refusal) => ActionOutcome::Refused(refusal),
                 }
@@ -1329,6 +1360,19 @@ impl DiagramSession {
             ActionTarget::Element(id) => working.element_by_id(id),
             _ => None,
         };
+        // An element a parameter holds is the working diagram's, which the operation's changes are made on.
+        let parameters = parameters.map(|given| {
+            given
+                .iter()
+                .map(|(name, value)| {
+                    let value = match DislElement::from_value(value).and_then(|e| working.element_by_id(&e.id())) {
+                        Some(element) => element.to_value(),
+                        None => value.clone(),
+                    };
+                    (name.clone(), value)
+                })
+                .collect::<Map>()
+        });
         let invocation = DislInvocation {
             position: match target {
                 ActionTarget::Canvas { x, y } => Some(position_at(document, *x, *y)),
@@ -1346,6 +1390,29 @@ impl DiagramSession {
             Some(&invocation),
             Some(&self.env),
         );
+        // The `on: connect` hooks of every relation the operation drew run in the same edit (DISL section 9.2), each
+        // on the working diagram the operation left (the standalone host's `HookRunner.AfterConnect`, run by its
+        // causal loop module for the loops a new link closes).
+        if transaction.refusal.is_none() {
+            let drawn: Vec<String> = transaction
+                .changes
+                .iter()
+                .filter_map(|change| match change {
+                    DislChange::Connect { id, .. } => Some(id.clone()),
+                    _ => None,
+                })
+                .collect();
+            for id in drawn {
+                let Some(relation) = working.element_by_id(&id) else {
+                    continue;
+                };
+                let hooked = hooks::after_connect(specification, &relation, ids, Some(&self.env), "user")?;
+                if let Some(refusal) = hooked.refusal {
+                    return Err(refusal);
+                }
+                transaction.changes.extend(hooked.changes);
+            }
+        }
         if transaction.refusal.is_none()
             && let Some(module) = &document.tool().module
         {
@@ -1364,6 +1431,20 @@ impl DiagramSession {
             }
         }
         self.write(workspace, &entry.label, transaction)
+    }
+}
+
+/// Ids that stand in for those of a `natural` strategy while an answered operation runs: unique, and never written,
+/// since such an element's id is read back from the keys its binding writes.
+#[derive(Default)]
+struct StandInIds {
+    issued: std::cell::Cell<usize>,
+}
+
+impl adp_disl::IdSource for StandInIds {
+    fn next(&self, type_name: &str) -> Result<String, String> {
+        self.issued.set(self.issued.get() + 1);
+        Ok(format!("{type_name}:answered-{}", self.issued.get()))
     }
 }
 

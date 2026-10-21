@@ -1,0 +1,16 @@
+{
+  "tool": "systems/causal-loop-diagram",
+  "fixture": "systems/causal-loop-diagram/on-call/on-call.cld",
+  "registration": "systems/causal-loop-diagram/on-call/on-call.adp",
+  "steps": [
+    { "action": "causal-loop.arrange", "args": { "target": "new:0,0" } },
+    { "undo": 1 },
+    { "redo": 1 },
+    { "move": { "refs": ["variable:toil"], "to": { "x": 10, "y": 20 } } },
+    { "action": "causal-loop.add-variable", "args": { "target": "new:-400,250" } },
+    { "select": ["variable:variable1"] },
+    { "action": "causal-loop.add-link", "args": { "value": "teamSize" } },
+    { "action": "causal-loop.arrange", "args": { "target": "new:0,0" } },
+    { "save": true }
+  ]
+}

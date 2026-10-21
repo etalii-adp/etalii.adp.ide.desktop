@@ -51,6 +51,16 @@ fn generic_timeline_roadmap() {
     check("generic/timeline/roadmap");
 }
 
+#[test]
+fn systems_causal_loop_diagram_on_call() {
+    check("systems/causal-loop-diagram/on-call");
+}
+
+#[test]
+fn systems_causal_loop_diagram_reference() {
+    check("systems/causal-loop-diagram/reference");
+}
+
 /// Every script has its test here and its row in `parity/README.md`, so none is skipped silently.
 #[test]
 fn every_script_is_checked_and_listed() {

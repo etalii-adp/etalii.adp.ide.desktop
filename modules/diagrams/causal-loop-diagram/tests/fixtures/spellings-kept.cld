@@ -1,0 +1,13 @@
+causal-loop 1
+
+# Findings B5 and B6: an edit to a statement written in a spelling of its own,
+# and a link drawn that closes a loop.
+
+variable a "A"
+variable b "B"
+variable c "C"
+
+link   a  ->  b   s   delayed   unknownWord   "kept note"
+link b -> c o
+
+loop B1 "Not a cycle yet" a b c

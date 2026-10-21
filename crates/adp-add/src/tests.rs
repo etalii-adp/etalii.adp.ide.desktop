@@ -295,3 +295,19 @@ fn a_file_a_tool_type_reads_is_registered_beside_itself() {
         Err("That diagram type is not available for this file.".into())
     );
 }
+
+#[test]
+fn a_causal_loop_diagram_is_written_with_its_bindings_template() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "systems/causal-loop-diagram", "feedback")
+        .unwrap();
+    assert_eq!(created, folder.path().join("feedback.adp"));
+    assert_eq!(read(&created), "systems/causal-loop-diagram\r\n");
+    // The standalone host's `CausalLoopBody.Template`: the starter `causal-loop-diagram.fbl#cld` writes.
+    assert_eq!(
+        read(&folder.path().join("feedback.cld")),
+        "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\nlink population -> births +\r\nlink births -> population +\r\n\r\nloop R1 \"Births beget births\" population births\r\n"
+    );
+}

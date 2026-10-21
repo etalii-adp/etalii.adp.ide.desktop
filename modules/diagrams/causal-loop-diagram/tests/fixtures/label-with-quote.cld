@@ -1,0 +1,10 @@
+causal-loop 1
+
+# Finding B13: the statement the property grid's label row writes for the
+# label  Say "hi"  - and how it reads back.
+
+variable a "Say "hi""
+variable b "B"
+
+link a -> b +
+link b -> a +

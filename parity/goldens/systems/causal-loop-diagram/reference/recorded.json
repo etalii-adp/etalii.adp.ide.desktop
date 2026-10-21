@@ -1,0 +1,273 @@
+{
+  "script": "parity/scripts/systems/causal-loop-diagram/reference.json",
+  "tool": "systems/causal-loop-diagram",
+  "fixture": "systems/causal-loop-diagram/reference/reference.cld",
+  "registration": "systems/causal-loop-diagram/reference/reference.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T09:05:35Z",
+  "edits": 23,
+  "changed": [
+    "reference.adp",
+    "reference.cld"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 11,
+      "id": "variable:variable1",
+      "type": "systems/causal-loop+variable",
+      "connection": false
+    },
+    {
+      "step": 15,
+      "id": "link:variable1|population",
+      "type": "systems/causal-loop+link",
+      "connection": false
+    },
+    {
+      "step": 17,
+      "id": "link:population|variable1",
+      "type": "systems/causal-loop+link",
+      "connection": false
+    },
+    {
+      "step": 17,
+      "id": "loop:R4",
+      "type": "systems/causal-loop+loop",
+      "connection": false
+    },
+    {
+      "step": 20,
+      "id": "loop:B3",
+      "type": "systems/causal-loop+loop",
+      "connection": false
+    },
+    {
+      "step": 28,
+      "id": "loop:B9",
+      "type": "systems/causal-loop+loop",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "variable:population"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename variable' answered 'People'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.variable-label = 'Births per year'"
+    },
+    {
+      "step": 3,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "link:population|births"
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 7,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.link-weight = '2.5'"
+    },
+    {
+      "step": 8,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.link-label = 'fewer births'"
+    },
+    {
+      "step": 9,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 10,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:300,-200"
+    },
+    {
+      "step": 12,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.variable-label = 'Migration'"
+    },
+    {
+      "step": 13,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "variable:crowding to (120, -60)"
+    },
+    {
+      "step": 14,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "variable:variable1"
+    },
+    {
+      "step": 15,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Add link' answered 'population'"
+    },
+    {
+      "step": 16,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "variable:population"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Add link' answered 'variable1'"
+    },
+    {
+      "step": 18,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "loop:R3"
+    },
+    {
+      "step": 19,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename loop' answered 'Mortality loop'"
+    },
+    {
+      "step": 20,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.loop-identifier = 'B3'"
+    },
+    {
+      "step": 21,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "link:sanitation|deaths"
+    },
+    {
+      "step": 22,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 23,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.link-polarity = '+'"
+    },
+    {
+      "step": 24,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on variable:deaths; confirmation 'Remove variable' answered ''"
+    },
+    {
+      "step": 25,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 26,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on loop:B2"
+    },
+    {
+      "step": 27,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "variable:sanitation"
+    },
+    {
+      "step": 28,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Claim a loop' answered 'B9'"
+    },
+    {
+      "step": 29,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "variable:variable1 to (320, -180)"
+    },
+    {
+      "step": 30,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

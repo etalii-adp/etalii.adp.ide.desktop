@@ -1,0 +1,9 @@
+# Finding B8: no causal-loop header at all.
+
+variable a "A"
+variable b "B"
+
+link a -> b +
+link b -> a -
+
+loop B1 "No header" a b
