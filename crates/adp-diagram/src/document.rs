@@ -575,7 +575,7 @@ impl DiagramDocuments {
 
     fn write(&mut self, path: &Path, bytes: &[u8]) -> io::Result<()> {
         self.guard.begin(path, bytes);
-        let written = fs::write(path, bytes);
+        let written = adp_documents::text::write_atomically(path, bytes);
         self.guard.end(path);
         written
     }
