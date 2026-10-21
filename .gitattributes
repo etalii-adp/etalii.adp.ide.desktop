@@ -4,7 +4,8 @@
 # Shell scripts must stay LF everywhere, or bash fails on the carriage returns.
 *.sh text eol=lf
 
-# Byte-compared files: the vendored specifications and fixtures, and the parity goldens, are kept exactly as written.
+# Byte-compared files: the vendored specifications and fixtures, and the parity fixtures and goldens, are kept exactly as written.
 vendor/** -text
 parity/goldens/** -text
+parity/fixtures/** -text
 modules/editors/*/tests/examples/** -text

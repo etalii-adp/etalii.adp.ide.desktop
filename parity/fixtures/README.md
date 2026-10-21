@@ -1,0 +1,9 @@
+# Parity fixtures
+
+The documents the edit scripts under `parity/scripts/` open, copied from the standalone host at the reference commit [`8b6ccfc`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e) as git holds them (`git show 8b6ccfc:<path>`, so a fixture is the committed bytes, whatever a checkout's line-ending settings make of them; `roadmap.tml` is committed with CRLF line endings). Each folder is copied whole into the project a script runs in, so it holds every file its document reads. `.gitattributes` keeps them byte for byte. Never edit them: copy them again from the standalone host.
+
+| Folder | Copied from (in `etalii.adp.ide.standalone` at `8b6ccfc`) | Script |
+|---|---|---|
+| `freeplane/mindmap/example-1/` | `src/diagrams/mindmap/examples/example 1/` (`mindmap.adp`, `mindmap.mm`, `design.mm`) | `parity/scripts/freeplane/mindmap/example-1.json` |
+| `generic/timeline/roadmap/` | `src/diagrams/timeline/examples/example-2/` (`roadmap.adp`, `roadmap.tml`) | `parity/scripts/generic/timeline/roadmap.json` |
+| `c4/container/courier/` | `src/diagrams/c4/examples/reference/architecture/` (the Courier Tracking model `courier.dsl`, its layout `courier.layout.json`, its seven registrations, and the `docs/` and `decisions/` folders it names) | `parity/scripts/c4/container/courier.json` |
