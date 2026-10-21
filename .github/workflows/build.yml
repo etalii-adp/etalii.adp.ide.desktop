@@ -46,6 +46,88 @@ jobs:
       - name: Test
         run: cargo test --workspace
 
+  # The desktop host for each platform, built from every change to develop (spec 030, FR-040, task T036). Unsigned
+  # until signing is set up (T092): the release says so.
+  package:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    needs: [vendor, rust]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows-x64
+          - os: macos-latest
+            platform: macos-arm64
+          - os: ubuntu-latest
+            platform: linux-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the toolchain rust-toolchain.toml names
+        run: rustup show
+      - name: Reuse the build of earlier runs
+        uses: Swatinem/rust-cache@v2
+      - name: Build the release
+        run: cargo build --release -p adp-shell
+      - name: Pack it
+        shell: bash
+        run: |
+          mkdir -p package
+          cp LICENSE README.md package/
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp target/release/adp-desktop.exe package/
+            7z a "adp-desktop-${{ matrix.platform }}.zip" ./package/*
+          else
+            cp target/release/adp-desktop package/
+            tar -czf "adp-desktop-${{ matrix.platform }}.tar.gz" -C package .
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: adp-desktop-${{ matrix.platform }}
+          path: adp-desktop-${{ matrix.platform }}.*
+          if-no-files-found: error
+
+  # Publishes the packages as a pre-release on GitHub, once per commit, only from the tip of develop.
+  release:
+    needs: package
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compute the version
+        id: version
+        run: |
+          base=$(grep -m1 '^version = ' Cargo.toml | cut -d '"' -f2)
+          echo "version=$base-dev.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+      - name: Skip a superseded or already released commit
+        id: tip
+        run: |
+          tip=$(git ls-remote origin refs/heads/develop | cut -f1)
+          released=$(git ls-remote --tags origin | grep "^${{ github.sha }}" || true)
+          if [ "$tip" != "${{ github.sha }}" ] || [ -n "$released" ]; then
+            echo "::notice::${{ github.sha }} is not the tip of develop, or is already released; not publishing."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/download-artifact@v7
+        if: steps.tip.outputs.publish == 'true'
+        with:
+          path: packages
+          merge-multiple: true
+      - name: Publish the pre-release
+        if: steps.tip.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          gh release create "v$version" packages/* --target "${{ github.sha }}" --prerelease             --title "ADP desktop host $version"             --notes "A development build of ${{ github.sha }}, unpacked and run as it is: the programs are not signed yet, so Windows SmartScreen and macOS Gatekeeper warn before they start. Built from etalii.adp spec 030."
+
   # Flags a retired use of the ADP vocabulary (etalii.adp spec 002, FR-017). The runner and its list of retired
   # patterns and allowances live in etalii.adp and are read from its develop branch, so every repository is checked
   # against the same list.

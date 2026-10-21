@@ -1,0 +1,209 @@
+//! The explorer (etalii.adp spec 030, Story 1, FR-013, task T034): the workspace tree in VS Code's look, folders
+//! first, each registration under the file it registers, kept in step with the disk. A click selects, a double
+//! click or Enter opens, the arrows move, F2 renames and Delete deletes; the context menu offers the standalone
+//! host's actions. The explorer only says what was asked; the shell does it.
+
+use std::collections::HashSet;
+
+use adp_hierarchy::{Hierarchy, Kind, Node};
+use adp_theme::Theme;
+use eframe::egui::{self, Color32, Key, RichText, Sense};
+
+use crate::theme::color;
+
+/// What the person asked of the explorer.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Request {
+    Open(String),
+    OpenAsText(String),
+    NewFolder(String),
+    Rename(String),
+    Delete(String),
+    Validate(String),
+    ValidateAll,
+}
+
+#[derive(Default)]
+pub struct Explorer {
+    pub expanded: HashSet<String>,
+    pub selected: Option<String>,
+    id: Option<egui::Id>,
+}
+
+impl Explorer {
+    pub fn show(&mut self, ui: &mut egui::Ui, tree: &Hierarchy, theme: &Theme) -> Vec<Request> {
+        let id = *self.id.get_or_insert_with(|| egui::Id::unique("explorer"));
+        let mut requests = Vec::new();
+        let mut rows = Vec::new();
+        flatten(&tree.children, 0, &self.expanded, &mut rows);
+        let focused = ui.memory(|m| m.has_focus(id));
+        if focused {
+            self.keyboard(ui, &rows, &mut requests);
+        }
+        let row_height = theme.sizes.row_height;
+        let selection = color(theme, &["list.activeSelectionBackground"], Color32::DARK_BLUE);
+        let inactive_selection = color(theme, &["list.inactiveSelectionBackground"], selection);
+        let hover = color(theme, &["list.hoverBackground"], Color32::from_gray(40));
+        let foreground = color(theme, &["sideBar.foreground", "foreground"], Color32::GRAY);
+        let muted = color(theme, &["descriptionForeground"], foreground);
+        let focus = color(theme, &["list.focusOutline", "focusBorder"], Color32::LIGHT_BLUE);
+        let error = color(theme, &["errorForeground"], Color32::RED);
+
+        egui::ScrollArea::vertical()
+            .id_salt(id)
+            .auto_shrink([false, false])
+            .show_rows(ui, row_height, rows.len(), |ui, range| {
+                for row in &rows[range] {
+                    let width = ui.available_width();
+                    let (rect, response) = ui.allocate_exact_size(egui::vec2(width, row_height), Sense::click());
+                    let response = response.on_hover_text(&row.node.path);
+                    let selected = self.selected.as_deref() == Some(row.node.path.as_str());
+                    if selected {
+                        ui.painter()
+                            .rect_filled(rect, 0.0, if focused { selection } else { inactive_selection });
+                        if focused {
+                            ui.painter().rect_stroke(
+                                rect.shrink(0.5),
+                                0.0,
+                                egui::Stroke::new(theme.sizes.focus_outline_width, focus),
+                                egui::StrokeKind::Inside,
+                            );
+                        }
+                    } else if response.hovered() {
+                        ui.painter().rect_filled(rect, 0.0, hover);
+                    }
+                    let indent = 8.0 + row.depth as f32 * 8.0;
+                    let has_children = !row.node.children.is_empty();
+                    let open = self.expanded.contains(&row.node.path);
+                    let text_colour = match (row.node.kind, row.node.orphan) {
+                        (_, true) => error,
+                        (Kind::Registration, false) => muted,
+                        _ => foreground,
+                    };
+                    // VS Code's chevron: pointing right when closed, down when open, drawn rather than taken from a font.
+                    if row.node.kind == Kind::Folder || has_children {
+                        let centre = egui::pos2(rect.left() + indent + 4.0, rect.center().y);
+                        let points = if open {
+                            vec![
+                                centre + egui::vec2(-4.0, -2.0),
+                                centre + egui::vec2(4.0, -2.0),
+                                centre + egui::vec2(0.0, 3.0),
+                            ]
+                        } else {
+                            vec![
+                                centre + egui::vec2(-2.0, -4.0),
+                                centre + egui::vec2(3.0, 0.0),
+                                centre + egui::vec2(-2.0, 4.0),
+                            ]
+                        };
+                        ui.painter()
+                            .add(egui::Shape::convex_polygon(points, foreground, egui::Stroke::NONE));
+                    }
+                    ui.painter().text(
+                        egui::pos2(rect.left() + indent + 14.0, rect.center().y),
+                        egui::Align2::LEFT_CENTER,
+                        &row.node.name,
+                        egui::FontId::proportional(theme.sizes.workbench_font),
+                        text_colour,
+                    );
+                    if response.clicked() {
+                        ui.memory_mut(|m| m.request_focus(id));
+                        self.selected = Some(row.node.path.clone());
+                        if row.node.kind == Kind::Folder || has_children {
+                            self.toggle(&row.node.path);
+                        }
+                        if row.node.kind != Kind::Folder {
+                            requests.push(Request::Open(row.node.path.clone()));
+                        }
+                    }
+                    response.context_menu(|ui| {
+                        self.selected = Some(row.node.path.clone());
+                        let path = row.node.path.clone();
+                        let folder = if row.node.kind == Kind::Folder {
+                            path.clone()
+                        } else {
+                            path.rsplit_once('/').map(|(p, _)| p.to_owned()).unwrap_or_default()
+                        };
+                        let mut item = |ui: &mut egui::Ui, label: &str, shortcut: &str, request: Request| {
+                            let button = egui::Button::new(RichText::new(label)).shortcut_text(shortcut);
+                            if ui.add(button).clicked() {
+                                requests.push(request);
+                                ui.close();
+                            }
+                        };
+                        item(ui, "New Folder…", "", Request::NewFolder(folder));
+                        if row.node.kind != Kind::Folder {
+                            item(ui, "Open as Text", "", Request::OpenAsText(path.clone()));
+                        }
+                        ui.separator();
+                        item(ui, "Rename…", "F2", Request::Rename(path.clone()));
+                        item(ui, "Delete", "Delete", Request::Delete(path.clone()));
+                        ui.separator();
+                        item(ui, "Validate", "", Request::Validate(path.clone()));
+                        item(ui, "Validate All", "", Request::ValidateAll);
+                    });
+                }
+            });
+        requests
+    }
+
+    fn toggle(&mut self, path: &str) {
+        if !self.expanded.remove(path) {
+            self.expanded.insert(path.to_owned());
+        }
+    }
+
+    fn keyboard(&mut self, ui: &egui::Ui, rows: &[Row], requests: &mut Vec<Request>) {
+        let index = self
+            .selected
+            .as_ref()
+            .and_then(|s| rows.iter().position(|r| &r.node.path == s));
+        let pressed = |key: Key| ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, key));
+        if pressed(Key::ArrowDown) {
+            let next = index.map_or(0, |i| (i + 1).min(rows.len().saturating_sub(1)));
+            self.selected = rows.get(next).map(|r| r.node.path.clone());
+        }
+        if pressed(Key::ArrowUp) {
+            let next = index.map_or(0, |i| i.saturating_sub(1));
+            self.selected = rows.get(next).map(|r| r.node.path.clone());
+        }
+        let Some(row) = index.and_then(|i| rows.get(i)) else {
+            return;
+        };
+        let path = row.node.path.clone();
+        let expandable = row.node.kind == Kind::Folder || !row.node.children.is_empty();
+        if pressed(Key::ArrowRight) && expandable {
+            self.expanded.insert(path.clone());
+        }
+        if pressed(Key::ArrowLeft) && expandable {
+            self.expanded.remove(&path);
+        }
+        if pressed(Key::Enter) {
+            if row.node.kind == Kind::Folder {
+                self.toggle(&path);
+            } else {
+                requests.push(Request::Open(path.clone()));
+            }
+        }
+        if pressed(Key::F2) {
+            requests.push(Request::Rename(path.clone()));
+        }
+        if pressed(Key::Delete) {
+            requests.push(Request::Delete(path));
+        }
+    }
+}
+
+struct Row<'n> {
+    node: &'n Node,
+    depth: usize,
+}
+
+fn flatten<'n>(nodes: &'n [Node], depth: usize, expanded: &HashSet<String>, rows: &mut Vec<Row<'n>>) {
+    for node in nodes {
+        rows.push(Row { node, depth });
+        if expanded.contains(&node.path) {
+            flatten(&node.children, depth + 1, expanded, rows);
+        }
+    }
+}
