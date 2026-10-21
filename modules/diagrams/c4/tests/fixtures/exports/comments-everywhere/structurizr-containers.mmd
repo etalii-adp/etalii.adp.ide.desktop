@@ -1,0 +1,22 @@
+graph TB
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Container View: System"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>User</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>A user.</div>"]
+    style 1 fill:#ffffff,stroke:#444444,color:#444444
+
+    subgraph 2 ["System"]
+      style 2 fill:#ffffff,stroke:#444444,color:#444444
+
+      3["<div style='font-weight: bold'>Web App</div><div style='font-size: 70%; margin-top: 0px'>[Container: React]</div><div style='font-size: 80%; margin-top:10px'>Serves pages.</div>"]
+      style 3 fill:#ffffff,stroke:#444444,color:#444444
+      4["<div style='font-weight: bold'>Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Stores things.</div>"]
+      style 4 fill:#ffffff,stroke:#444444,color:#444444
+    end
+
+    3-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->4
+    1-. "<div>Visits</div><div style='font-size: 70%'>[HTTPS]</div>" .->3
+
+  end

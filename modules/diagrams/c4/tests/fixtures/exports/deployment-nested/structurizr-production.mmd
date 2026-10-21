@@ -1,0 +1,51 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Deployment View: System - Production"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 5 ["eu-west-1"]
+      style 5 fill:#ffffff,stroke:#444444,color:#444444
+
+      subgraph 12 ["Data Tier"]
+        style 12 fill:#ffffff,stroke:#444444,color:#444444
+
+        subgraph 13 ["Primary"]
+          style 13 fill:#ffffff,stroke:#444444,color:#444444
+
+          14["<div style='font-weight: bold'>Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div>"]
+          style 14 fill:#ffffff,stroke:#444444,color:#444444
+        end
+
+        subgraph 15 ["Replica"]
+          style 15 fill:#ffffff,stroke:#444444,color:#444444
+
+          16["<div style='font-weight: bold'>Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div>"]
+          style 16 fill:#ffffff,stroke:#444444,color:#444444
+        end
+
+      end
+
+      6["<div style='font-weight: bold'>Route 53</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: DNS]</div>"]
+      style 6 fill:#ffffff,stroke:#444444,color:#444444
+      7["<div style='font-weight: bold'>Load Balancer</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: ELB]</div>"]
+      style 7 fill:#ffffff,stroke:#444444,color:#444444
+      subgraph 8 ["Cluster"]
+        style 8 fill:#ffffff,stroke:#444444,color:#444444
+
+        subgraph 9 ["Service"]
+          style 9 fill:#ffffff,stroke:#444444,color:#444444
+
+          10["<div style='font-weight: bold'>Web App</div><div style='font-size: 70%; margin-top: 0px'>[Container: React]</div>"]
+          style 10 fill:#ffffff,stroke:#444444,color:#444444
+          11["<div style='font-weight: bold'>API</div><div style='font-size: 70%; margin-top: 0px'>[Container: Kotlin]</div>"]
+          style 11 fill:#ffffff,stroke:#444444,color:#444444
+        end
+
+      end
+
+    end
+
+    6-. "<div>Forwards to</div><div style='font-size: 70%'>[HTTPS]</div>" .->7
+
+  end

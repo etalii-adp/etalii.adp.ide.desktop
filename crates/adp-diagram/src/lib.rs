@@ -45,7 +45,7 @@ pub mod workspace;
 pub use change_handler::{DiagramDocumentChangeHandler, DocumentChange};
 pub use definition::{DiagramDefinition, ToolboxItem};
 pub use disl_definition::DislDiagramDefinition;
-pub use document::{DiagramChange, DiagramDocument, DiagramDocuments, DiskChange, DocumentEdit};
+pub use document::{DiagramChange, DiagramDocument, DiagramDocuments, DiskChange, DocumentEdit, ModuleDocuments};
 pub use element::{DiagramDelta, DiagramElement, DiagramViewport, ElementKind};
 pub use module::{DiagramModule, ModulePlacement, ModuleView};
 pub use problems::{DiagramProblem, DiagramProblemLocation, DiagramProblemSeverity};

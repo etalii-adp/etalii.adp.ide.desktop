@@ -504,7 +504,24 @@ pub struct DiagramDocuments {
     changed: Vec<PathBuf>,
     /// What the modules that read their documents themselves keep of them, by the key each names
     /// ([`crate::DiagramModule::opens_documents`]).
-    modules: HashMap<String, Box<dyn Any>>,
+    modules: HashMap<String, Box<dyn ModuleDocuments>>,
+}
+
+/// What a module that reads its documents itself keeps of them in the project's documents
+/// ([`DiagramDocuments::module_state`]): a change on disk and a close reach it as they reach every other document.
+pub trait ModuleDocuments: Any {
+    /// Reconciles the file at `path`, reported changed on disk, with the module's document of it: the module's own
+    /// write ignored, a body that holds what the document has needing nothing, any other change read again and a
+    /// deleted body ended; [`DiskChange::NotTracked`] when no document of the module has that file.
+    fn reconcile(&mut self, path: &Path) -> DiskChange {
+        let _ = path;
+        DiskChange::NotTracked
+    }
+
+    /// Forgets the document of the body at `body_path`, once no view shows it.
+    fn close(&mut self, body_path: &Path) {
+        let _ = body_path;
+    }
 }
 
 impl DiagramDocuments {
@@ -535,6 +552,9 @@ impl DiagramDocuments {
 
     /// Closes the document of the body at `body_path`.
     pub fn close(&mut self, body_path: &Path) {
+        for state in self.modules.values_mut() {
+            state.close(body_path);
+        }
         if let Some(index) = self.index_of(body_path) {
             let document = self.documents.remove(index);
             self.guard.forget(&document.body_path);
@@ -568,20 +588,22 @@ impl DiagramDocuments {
     }
 
     /// What the module keyed `key` keeps of its documents, made empty the first time it is asked for.
-    pub fn module_state<T: Default + 'static>(&mut self, key: &str) -> &mut T {
+    pub fn module_state<T: ModuleDocuments + Default>(&mut self, key: &str) -> &mut T {
         let entry = self
             .modules
             .entry(key.to_owned())
             .or_insert_with(|| Box::new(T::default()));
-        if !entry.is::<T>() {
+        if !(entry.as_ref() as &dyn Any).is::<T>() {
             *entry = Box::new(T::default());
         }
-        entry.downcast_mut::<T>().expect("just made of this type")
+        (entry.as_mut() as &mut dyn Any)
+            .downcast_mut::<T>()
+            .expect("just made of this type")
     }
 
     /// What the module keyed `key` keeps of its documents, or none before it kept anything.
-    pub fn module_state_ref<T: 'static>(&self, key: &str) -> Option<&T> {
-        self.modules.get(key)?.downcast_ref::<T>()
+    pub fn module_state_ref<T: ModuleDocuments>(&self, key: &str) -> Option<&T> {
+        (self.modules.get(key)?.as_ref() as &dyn Any).downcast_ref::<T>()
     }
 
     fn index_of(&self, body_path: &Path) -> Option<usize> {
@@ -710,7 +732,19 @@ impl DiagramDocuments {
                 None
             }
         }) else {
-            return DiskChange::NotTracked;
+            // Not a document drawn from a specification: perhaps one a module reads itself.
+            let mut change = DiskChange::NotTracked;
+            for state in self.modules.values_mut() {
+                change = state.reconcile(path);
+                if change != DiskChange::NotTracked {
+                    break;
+                }
+            }
+            if let DiskChange::Reloaded(body) | DiskChange::Deleted(body) = &change {
+                let body = body.clone();
+                self.mark_changed(&body);
+            }
+            return change;
         };
         let disk = fs::read(path).ok();
         if self.guard.is_own_write(path, disk.as_deref()) {

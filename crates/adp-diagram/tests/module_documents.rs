@@ -5,7 +5,8 @@
 //! question and gesture; the module's edits are commands on the project's history, so undo puts the bytes back.
 //!
 //! The probe stands in for any such module: its body is one line of text, its one element `text` has one property,
-//! `probe.value`, which rewrites the line.
+//! `probe.value`, which rewrites the line. A change of its body on disk reaches it through the project's
+//! reconciliation like any other document's, and ends the history there.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -17,7 +18,7 @@ use adp_diagram::session::NOT_OFFERED;
 use adp_diagram::workspace::OpenedDiagram;
 use adp_diagram::{
     ActionOutcome, ActionTarget, DiagramDocuments, DiagramElement, DiagramModule, DiagramProblem, DiagramTools,
-    DiagramViewport, DiagramWorkspace, ModuleView, ToolboxItem,
+    DiagramViewport, DiagramWorkspace, DiskChange, ModuleDocuments, ModuleView, ToolboxItem,
 };
 use adp_disl::DislPluginFunctions;
 use adp_disl::behavior::ids;
@@ -29,6 +30,26 @@ const KEY: &str = "probe";
 /// What the probe keeps of its documents: each body's text, by path.
 #[derive(Default)]
 struct Texts(Vec<(PathBuf, String)>);
+
+impl ModuleDocuments for Texts {
+    fn reconcile(&mut self, path: &Path) -> DiskChange {
+        let Some(entry) = self.0.iter_mut().find(|(p, _)| p == path) else {
+            return DiskChange::NotTracked;
+        };
+        match fs::read_to_string(path) {
+            Ok(text) if text == entry.1 => DiskChange::Unchanged,
+            Ok(text) => {
+                entry.1 = text;
+                DiskChange::Reloaded(path.to_path_buf())
+            }
+            Err(_) => DiskChange::Deleted(path.to_path_buf()),
+        }
+    }
+
+    fn close(&mut self, body_path: &Path) {
+        self.0.retain(|(p, _)| p != body_path);
+    }
+}
 
 fn text_of(documents: &DiagramDocuments, body: &Path) -> Option<String> {
     let texts = documents.module_state_ref::<Texts>(KEY)?;
@@ -245,4 +266,35 @@ fn a_body_the_module_claims_opens_through_it_without_a_registration() {
     let (opened, session) = workspace.open(&mut tools, Path::new("bare.probe")).unwrap();
     assert_eq!(opened.registration_path, None);
     assert_eq!(session.properties(workspace.documents(), &["text"])[0].value, "bare");
+}
+
+#[test]
+fn a_change_on_disk_reaches_the_modules_document_and_ends_the_history_there() {
+    let folder = tempfile::tempdir().unwrap();
+    let root = folder.path().to_path_buf();
+    let body = root.join("note.probe");
+    fs::write(&body, "first").unwrap();
+    let mut tools = tools();
+    let mut workspace = DiagramWorkspace::new(&root);
+    let (_, session) = workspace.open(&mut tools, Path::new("note.probe")).unwrap();
+    session
+        .set_property(&mut workspace, &["text"], "probe.value", "second")
+        .unwrap();
+    workspace.take_changed();
+    assert_eq!(workspace.reconcile(&body), DiskChange::Unchanged, "its own write");
+
+    fs::write(&body, "from outside").unwrap();
+    assert_eq!(workspace.reconcile(&body), DiskChange::Reloaded(body.clone()));
+    assert_eq!(workspace.take_changed(), vec![body.clone()]);
+    assert_eq!(
+        session.properties(workspace.documents(), &["text"])[0].value,
+        "from outside"
+    );
+    assert!(!workspace.undo().is_done(), "undo stops at the change from outside");
+
+    workspace.close(&body);
+    assert!(
+        session.render(workspace.documents()).is_err(),
+        "a closed document is forgotten"
+    );
 }

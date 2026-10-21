@@ -27,6 +27,7 @@ pub mod layout;
 pub mod lines;
 pub mod mapper;
 pub mod metrics;
+pub mod mirror;
 pub mod model;
 pub mod parser;
 pub mod placement;
@@ -55,16 +56,29 @@ pub const EXTENSION: &str = ".dsl";
 const HEADER_SCAN_LIMIT: usize = 8;
 
 /// The C4 module, registered for every C4 origin.
-#[derive(Debug, Default, Clone, Copy)]
-pub struct C4Module;
+#[derive(Debug, Clone, Copy)]
+pub struct C4Module {
+    /// Whether its tool type claims a `.dsl` opened without a registration: every C4 type but `c4/code`, which keeps
+    /// no document and so never competes for a bare `.dsl` (the standalone host's `Diagram.Code` declares no
+    /// extension).
+    claims_bodies: bool,
+}
+
+impl Default for C4Module {
+    fn default() -> Self {
+        C4Module { claims_bodies: true }
+    }
+}
 
 /// `tools` with the C4 module added to every C4 tool type, `c4/code` included, so that its registration is refused
 /// with the sentence that says why.
 pub fn register(tools: DiagramTools) -> DiagramTools {
-    let module: Rc<dyn DiagramModule> = Rc::new(C4Module);
-    toolbox::TYPES
-        .iter()
-        .fold(tools, |tools, (origin, _)| tools.with_module(origin, module.clone()))
+    let module: Rc<dyn DiagramModule> = Rc::new(C4Module::default());
+    let code: Rc<dyn DiagramModule> = Rc::new(C4Module { claims_bodies: false });
+    toolbox::TYPES.iter().fold(tools, |tools, (origin, kind)| {
+        let module = if kind.is_some() { module.clone() } else { code.clone() };
+        tools.with_module(origin, module)
+    })
 }
 
 impl DiagramModule for C4Module {
@@ -73,7 +87,11 @@ impl DiagramModule for C4Module {
     }
 
     fn extensions(&self) -> Vec<String> {
-        vec![EXTENSION.to_owned()]
+        if self.claims_bodies {
+            vec![EXTENSION.to_owned()]
+        } else {
+            Vec::new()
+        }
     }
 
     fn open(
@@ -101,7 +119,18 @@ impl DiagramModule for C4Module {
                     let (body, view) = route_registration(root, &registration)?;
                     (registered, body, Some(registration), view)
                 }
-                None => (origin.to_owned(), path.to_path_buf(), None, None),
+                // A bare body opens as the family's first type, as the standalone host's router routed it; the code
+                // level claims no extension, so it is never that type.
+                None => (
+                    toolbox::TYPES
+                        .iter()
+                        .find(|(_, kind)| kind.is_some())
+                        .map_or(origin, |(first, _)| first)
+                        .to_owned(),
+                    path.to_path_buf(),
+                    None,
+                    None,
+                ),
             }
         };
         if origin == "c4/code" {
