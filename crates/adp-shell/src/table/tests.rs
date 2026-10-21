@@ -629,6 +629,10 @@ fn k2_a_view_is_renamed_in_its_tab_by_enter_or_a_press_elsewhere() {
     shapes(&ctx, &mut tab, vec![key(egui::Key::Enter)]);
     shapes(&ctx, &mut tab, Vec::new());
     assert!(tab.renaming.is_none(), "Enter closes the field");
+    assert!(
+        tab.editing.is_none(),
+        "the Enter was the field's: it opens no cell's editor"
+    );
     assert!(tab.views.iter().any(|v| v.name == "Recent"), "{:?}", tab.views);
     shapes(&ctx, &mut tab, Vec::new());
     assert!(std::fs::read_to_string(&path).unwrap().contains("name: Recent"));

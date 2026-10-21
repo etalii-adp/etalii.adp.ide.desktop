@@ -322,7 +322,12 @@ fn view_tabs(ui: &mut egui::Ui, tab: &mut TableTab, colours: &Colours, font: &Fo
     ui.painter()
         .hline(ui.max_rect().x_range(), line, Stroke::new(1.0, colours.border));
     if give_back {
-        // The field that was left holds the keyboard no more: undo and the arrows are the table's again.
+        // The field that was left holds the keyboard no more: undo and the arrows are the table's again. The key that
+        // left it was the field's, and opens no cell's editor.
+        ui.input_mut(|i| {
+            i.consume_key(egui::Modifiers::NONE, egui::Key::Enter);
+            i.consume_key(egui::Modifiers::NONE, egui::Key::Escape);
+        });
         ui.memory_mut(|m| m.request_focus(tab.grid_id()));
     }
     if let Some(view) = chosen {
