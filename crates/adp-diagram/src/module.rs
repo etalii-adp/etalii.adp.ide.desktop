@@ -116,6 +116,13 @@ pub trait DiagramModule {
         None
     }
 
+    /// The viewer's state of `element` in `document`, which `self.view` reads in a menu, a label or a condition
+    /// (DISL section 12.2; the mind map's folds, `persistence.view.viewer`): none for a tool type that keeps none.
+    fn view_of(&self, document: &DiagramDocument, element: &DislElement) -> Option<Map> {
+        let _ = (document, element);
+        None
+    }
+
     /// The host's implementations of the CEL functions the specification's plugins declare.
     fn plugin_functions(&self) -> DislPluginFunctions {
         DislPluginFunctions::none()

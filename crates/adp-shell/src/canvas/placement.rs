@@ -247,7 +247,8 @@ pub struct Placed {
 
 /// Places every node of `diagram` that `definition` draws: at its authored position where it has one, by the tree
 /// layout when no node of the diagram has one, and in a row under the rest otherwise. A node drawn at the centre of
-/// its members is the scene's to place.
+/// its members is the scene's to place. Where a module's layout gave the `positions` (`laid_out`), a node it left
+/// out, under a collapsed branch, is not drawn at all.
 pub fn place(
     definition: &DiagramDefinition,
     evaluator: &Evaluator,
@@ -255,6 +256,7 @@ pub fn place(
     positions: &HashMap<String, (f64, f64)>,
     extents: &HashMap<String, Extent>,
     metrics: &dyn TextMetrics,
+    laid_out: bool,
 ) -> Placed {
     let specification = &definition.specification;
     let mut placed = Placed::default();
@@ -280,7 +282,7 @@ pub fn place(
             None => unplaced.push((element, size)),
         }
     }
-    if unplaced.is_empty() {
+    if unplaced.is_empty() || laid_out {
         return placed;
     }
     if placed.rects.is_empty() {

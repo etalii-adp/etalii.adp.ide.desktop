@@ -61,6 +61,8 @@ const FIT_PADDING: f64 = 40.0;
 const SCROLL_BAR: f32 = 10.0;
 /// The smallest share of its track a thumb takes (`thumbOf`).
 const MIN_THUMB: f64 = 0.05;
+/// What the action id of the question a deletion of the whole selection asks starts with, before the deletion's own.
+const DELETE_SELECTION: &str = "canvas.delete-selection:";
 /// What stands in for the notation of a diagram its module draws itself: its scene is built from the module's view
 /// ([`module_scene`]) rather than compiled from a specification.
 pub const MODULE_CANVAS: &str = "This diagram is drawn by its module.";
@@ -204,9 +206,11 @@ pub enum Commit {
 #[derive(Debug, Clone, PartialEq)]
 pub struct InlineEditor {
     pub element: String,
+    /// The label it edits, its element's first editable one when none is named.
+    pub label: Option<String>,
     pub commit: Commit,
     pub text: String,
-    /// Where it is drawn, in canvas units.
+    /// Where it is drawn, in canvas units: over the label as the scene last drew it.
     pub area: Rect,
     opened: bool,
 }
@@ -445,13 +449,19 @@ impl DiagramTab {
             .and_then(|c| paint::parse_colour(&c));
         let evaluator = Evaluator::new(specification, notation_theme, DislEnv::default());
         let diagram = &document.model().diagram;
+        // The viewer's folds, which the corner glyphs read; a layout that places the diagram leaves out what is folded
+        // away, which is then not drawn.
+        document.bind_views();
+        let laid_out = document.laid_out();
+        let positions = laid_out.clone().unwrap_or_else(|| document.positions());
         let placed = placement::place(
             definition,
             &evaluator,
             diagram,
-            &document.positions(),
+            &positions,
             &document.extents(),
             metrics,
+            laid_out.is_some(),
         );
         let mut rects = placed.rects.clone();
         if let Some((ids, (dx, dy))) = self.arbiter.moving() {
@@ -865,8 +875,16 @@ impl DiagramTab {
         }
     }
 
-    /// Moves elements by `delta` canvas units, each landing where its placement puts it, as one edit.
+    /// Moves elements by `delta` canvas units, each landing where its placement puts it, as one edit; where a drag
+    /// proposes a parent instead, each becomes the last child of the node its box is dropped on.
     pub fn move_by(&mut self, workspace: &mut DiagramWorkspace, ids: &[String], delta: (f64, f64)) {
+        if ids
+            .iter()
+            .any(|id| self.session.drag_reparents(workspace.documents(), id))
+        {
+            self.reparent_by(workspace, ids, delta);
+            return;
+        }
         let Some(cache) = &self.cache else { return };
         let moves: Vec<(String, f64, f64)> = ids
             .iter()
@@ -882,6 +900,33 @@ impl DiagramTab {
             return;
         }
         let result = self.session.move_elements(workspace, &moves);
+        self.report(result);
+    }
+
+    /// A drag that re-parents (`MindmapCanvas.tsx`, `onElementMoved` and `dropTargetAt`): each node dropped with its
+    /// centre on another becomes that node's last child, as one edit; dropped on itself, on a node of its own branch
+    /// or on empty canvas, the drag simply ends. Nothing is placed: the layout puts it where it now belongs.
+    fn reparent_by(&mut self, workspace: &mut DiagramWorkspace, ids: &[String], delta: (f64, f64)) {
+        let Some(cache) = &self.cache else { return };
+        let documents = workspace.documents();
+        let Some(document) = documents.get(&self.opened.body_path) else {
+            return;
+        };
+        let moves: Vec<(String, String)> = ids
+            .iter()
+            .filter_map(|id| {
+                let rect = cache.placed.rects.get(id)?;
+                let dropped = Point::new(rect.centre().x + delta.0, rect.centre().y + delta.1);
+                // The topmost node under the drop, where the model has it; the dragged one and its branch are no target.
+                let (target, _) = cache.boxes.iter().rev().find(|(_, b)| b.contains(dropped))?;
+                let branch = document.element(id)?.descendants();
+                (target != id && !branch.iter().any(|d| d.id() == *target)).then(|| (id.clone(), target.clone()))
+            })
+            .collect();
+        if moves.is_empty() {
+            return;
+        }
+        let result = self.session.reparent_elements(workspace, &moves);
         self.report(result);
     }
 
@@ -992,6 +1037,18 @@ impl DiagramTab {
             }
             return;
         }
+        if self.session.tool_operation(workspace.documents(), tool_id).is_some() {
+            // A tool that runs an operation runs it on the node it lands on, as that node's menu runs it; over empty
+            // canvas there is no node and nothing happens (`MindmapCanvas.tsx`, `onElementDropped`).
+            let Hit::Element(id) = self.hit(at) else { return };
+            let before = self.node_ids(workspace.documents());
+            self.ensure_ids(workspace.documents());
+            let ids = self.ids.as_deref().expect("made");
+            if let Some((action_id, outcome)) = self.session.drop_tool_on(workspace, tool_id, &id, ids) {
+                self.outcome(workspace, ActionTarget::Element(id), &action_id, outcome, &before);
+            }
+            return;
+        }
         let (x, y) = self
             .cache
             .as_ref()
@@ -1015,8 +1072,8 @@ impl DiagramTab {
             .unwrap_or_default()
     }
 
-    /// Selects the one node an edit added, when it added one.
-    fn select_new(&mut self, documents: &DiagramDocuments, before: &HashSet<String>) {
+    /// Selects the one node an edit added, when it added one; that node.
+    fn select_new(&mut self, documents: &DiagramDocuments, before: &HashSet<String>) -> Option<String> {
         let added: Vec<String> = self
             .node_ids(documents)
             .into_iter()
@@ -1024,7 +1081,9 @@ impl DiagramTab {
             .collect();
         if let [one] = added.as_slice() {
             self.select(vec![one.clone()], SelectMode::Replace);
+            return Some(one.clone());
         }
+        None
     }
 
     /// Runs action `action_id` of `target`'s menu: done, refused with its sentence, or a prompt to answer.
@@ -1032,10 +1091,26 @@ impl DiagramTab {
         let before = self.node_ids(workspace.documents());
         self.ensure_ids(workspace.documents());
         let ids = self.ids.as_deref().expect("made");
-        match self.session.execute(workspace, &target, action_id, ids) {
+        let outcome = self.session.execute(workspace, &target, action_id, ids);
+        self.outcome(workspace, target, action_id, outcome, &before);
+    }
+
+    /// Carries out what action `action_id` of `target` answered, the nodes before it ran being `before`: an edit
+    /// drawn and what it added selected, a refusal said, a question asked. A name asked of an element is asked in place,
+    /// over the node the action added when it added one (`addChild`: `select: added`, then `editLabel` of it), else
+    /// over the element itself.
+    fn outcome(
+        &mut self,
+        workspace: &mut DiagramWorkspace,
+        target: ActionTarget,
+        action_id: &str,
+        outcome: ActionOutcome,
+        before: &HashSet<String>,
+    ) {
+        match outcome {
             ActionOutcome::Done => {
                 self.succeeded();
-                self.select_new(workspace.documents(), &before);
+                self.select_new(workspace.documents(), before);
             }
             ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
             ActionOutcome::Prompt(Prompt::Input { initial_value, .. })
@@ -1044,9 +1119,16 @@ impl DiagramTab {
                 let ActionTarget::Element(element) = &target else {
                     unreachable!()
                 };
-                let area = self.label_area(element, None).unwrap_or_default();
+                // A node made before its name is asked is drawn, and selected, at once.
+                let added = self.select_new(workspace.documents(), before);
+                if added.is_some() {
+                    self.succeeded();
+                }
+                let element = added.unwrap_or_else(|| element.clone());
+                let area = self.label_area(&element, None).unwrap_or_default();
                 self.editor = Some(InlineEditor {
-                    element: element.clone(),
+                    element,
+                    label: None,
                     commit: Commit::Answer {
                         target: target.clone(),
                         action_id: action_id.to_owned(),
@@ -1071,6 +1153,10 @@ impl DiagramTab {
     pub fn answer(&mut self, workspace: &mut DiagramWorkspace, value: Option<&str>) {
         let Some(pending) = self.prompt.take() else { return };
         let Some(value) = value else { return };
+        if let Some(action_id) = pending.action_id.strip_prefix(DELETE_SELECTION) {
+            self.delete_selection(workspace, action_id, true);
+            return;
+        }
         match self
             .session
             .answer(workspace, &pending.target, &pending.action_id, value)
@@ -1114,6 +1200,7 @@ impl DiagramTab {
         let area = self.label_area(element, Some(&label)).unwrap_or_default();
         self.editor = Some(InlineEditor {
             element: element.to_owned(),
+            label: Some(label.clone()),
             commit: Commit::Label(label),
             text,
             area,
@@ -1150,7 +1237,9 @@ impl DiagramTab {
         self.arbiter.cancel()
     }
 
-    /// A declared shortcut of the selected element: Tab, Enter, Delete and the rest, by the specification's menus.
+    /// A declared shortcut of the selected element: Tab, Enter, Delete, Space, F2 and the rest, by the menus. With
+    /// several selected, a deletion deletes all of them as one edit, or none (the multi-select specification's
+    /// Requirement 7.3).
     pub fn shortcut(&mut self, workspace: &mut DiagramWorkspace, pressed: &Shortcut) -> bool {
         let Some(primary) = self.selection.last().cloned() else {
             return false;
@@ -1161,8 +1250,33 @@ impl DiagramTab {
             return false;
         };
         let id = action.id.clone();
+        if self.selection.len() > 1 && self.session.is_deletion(workspace.documents(), &target, &id) {
+            self.delete_selection(workspace, &id, false);
+            return true;
+        }
         self.run_action(workspace, target, &id);
         true
+    }
+
+    /// Deletes every selected element by its deletion `action_id`, as one edit, asking first where the specification
+    /// asks before deleting any of them.
+    fn delete_selection(&mut self, workspace: &mut DiagramWorkspace, action_id: &str, confirmed: bool) {
+        let selection = self.selection.clone();
+        match self
+            .session
+            .delete_elements(workspace, &selection, action_id, confirmed)
+        {
+            ActionOutcome::Done => self.succeeded(),
+            ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+            ActionOutcome::Prompt(prompt) => {
+                self.prompt = Some(PendingPrompt {
+                    target: ActionTarget::Element(selection.last().cloned().unwrap_or_default()),
+                    action_id: format!("{DELETE_SELECTION}{action_id}"),
+                    prompt,
+                    value: String::new(),
+                })
+            }
+        }
     }
 
     // ---- drawing and input -------------------------------------------------------------------------------------------
@@ -1405,7 +1519,11 @@ impl DiagramTab {
             self.fit();
         }
         if pressed(ui, M::NONE, Key::F2) {
-            if let Some(id) = self.selection.last().cloned() {
+            // F2 is the rename the menu declares on it, where it declares one (C4's Rename…), else the label's own
+            // editor.
+            if !self.shortcut(workspace, &Shortcut::key("F2"))
+                && let Some(id) = self.selection.last().cloned()
+            {
                 self.open_editor(workspace.documents(), &id, None);
             }
             return;
@@ -1416,6 +1534,8 @@ impl DiagramTab {
             (Key::Delete, "Delete"),
             (Key::Backspace, "Backspace"),
             (Key::Insert, "Insert"),
+            // A browser's `key` for the space bar, which `Space` in a specification is spelled as.
+            (Key::Space, " "),
         ] {
             for shift in [false, true] {
                 let modifiers = if shift { M::SHIFT } else { M::NONE };
@@ -1569,6 +1689,12 @@ impl DiagramTab {
     }
 
     fn show_editor(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace) {
+        if let Some((element, label)) = self.editor.as_ref().map(|e| (e.element.clone(), e.label.clone()))
+            && let Some(area) = self.label_area(&element, label.as_deref())
+            && let Some(editor) = &mut self.editor
+        {
+            editor.area = area;
+        }
         let Some(editor) = &mut self.editor else { return };
         let mut screen = self.view.rect_to_screen(self.surface, editor.area);
         if screen.height() < 22.0 {

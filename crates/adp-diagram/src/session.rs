@@ -575,6 +575,214 @@ impl DiagramSession {
         workspace.execute(edit)
     }
 
+    /// Whether a drag of `element_id` proposes a new parent for it rather than a place
+    /// ([`DiagramDocument::drag_reparents`]).
+    pub fn drag_reparents(&self, documents: &DiagramDocuments, element_id: &str) -> bool {
+        self.view.is_none()
+            && self
+                .document(documents)
+                .ok()
+                .and_then(|d| Some((d, d.element(element_id)?)))
+                .is_some_and(|(document, element)| document.drag_reparents(&element))
+    }
+
+    /// Makes each element of `moves` the last child of the parent it names, as one command and one undo; the first
+    /// refusal of the specification's containment constraints moves none of them (`moveElement`, a drag dropped on a
+    /// node).
+    pub fn reparent_elements(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        moves: &[(String, String)],
+    ) -> Result<(), String> {
+        if let Some(view) = &self.view {
+            for (id, parent) in moves {
+                view.move_element(workspace, id, Some(parent), -1)?;
+            }
+            return Ok(());
+        }
+        let document = self.document(workspace.documents())?;
+        let specification = document.tool().definition.specification();
+        let mut changes = Vec::with_capacity(moves.len());
+        for (id, parent_id) in moves {
+            let element = document.element(id).ok_or_else(|| GONE.to_owned())?;
+            let parent = document.element(parent_id).ok_or_else(|| GONE.to_owned())?;
+            let refusals = gestures::placement(
+                specification,
+                &element,
+                "reparent",
+                Map::default(),
+                Map::default(),
+                Some(&parent),
+                Some(&self.env),
+            );
+            if let Some(refusal) = refusals.into_iter().next() {
+                return Err(refusal.message);
+            }
+            changes.push(DiagramChange::Disl(DislChange::Reparent {
+                element_id: id.clone(),
+                parent_id: Some(parent_id.clone()),
+                index: -1,
+            }));
+        }
+        if changes.is_empty() {
+            return Ok(());
+        }
+        let label = if changes.len() == 1 {
+            "Move".to_owned()
+        } else {
+            format!("Move {} elements", changes.len())
+        };
+        let edit = document.plan(&label, &changes)?;
+        workspace.execute(edit)
+    }
+
+    /// Whether action `action_id` of `target`'s menu is its deletion (an entry of kind `delete`).
+    pub fn is_deletion(&self, documents: &DiagramDocuments, target: &ActionTarget, action_id: &str) -> bool {
+        self.view.is_none()
+            && self
+                .document(documents)
+                .ok()
+                .and_then(|document| self.entry(document, target, action_id))
+                .is_some_and(|entry| entry.kind == "delete")
+    }
+
+    /// Deletes every element of `element_ids` as one command and one undo, or none of them (the multi-select
+    /// specification's Requirements 6.1, 6.3 and 7.3): each must offer its deletion `action_id`, and one inside
+    /// another that goes goes with it. Unless `confirmed`, it asks first when the specification would ask before
+    /// deleting any of them.
+    pub fn delete_elements(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        element_ids: &[String],
+        action_id: &str,
+        confirmed: bool,
+    ) -> ActionOutcome {
+        if self.view.is_some() {
+            return ActionOutcome::Refused(NOT_OFFERED.to_owned());
+        }
+        let document = match self.document(workspace.documents()) {
+            Ok(document) => document,
+            Err(refusal) => return ActionOutcome::Refused(refusal),
+        };
+        if let Some(refusal) = document.refusal() {
+            return ActionOutcome::Refused(refusal);
+        }
+        let specification = document.tool().definition.specification();
+        let mut elements = Vec::with_capacity(element_ids.len());
+        for id in element_ids {
+            let Some(element) = document.element(id) else {
+                return ActionOutcome::Refused(GONE.to_owned());
+            };
+            match self.entry(document, &ActionTarget::Element(id.clone()), action_id) {
+                Some(entry) if entry.kind == "delete" && entry.available => {}
+                Some(entry) if !entry.available => return ActionOutcome::Refused(entry.unavailable_reason),
+                _ => {
+                    let name = self
+                        .select(workspace.documents(), id)
+                        .map(|s| s.text)
+                        .unwrap_or_else(|| id.clone());
+                    return ActionOutcome::Refused(format!("'{name}' cannot be deleted, so none of the selection is."));
+                }
+            }
+            elements.push(element);
+        }
+        // What goes with an ancestor that goes is not removed a second time.
+        let removed: Vec<&DislElement> = elements
+            .iter()
+            .filter(|element| {
+                !element
+                    .ancestors()
+                    .iter()
+                    .any(|ancestor| element_ids.contains(&ancestor.id()))
+            })
+            .collect();
+        if !confirmed
+            && removed
+                .iter()
+                .any(|element| deletion::confirmation(specification, element, None, Some(&self.env)).is_some())
+        {
+            let count = removed.len();
+            return ActionOutcome::Prompt(Prompt::Confirm {
+                title: format!("Delete {count} elements?"),
+                icon: "mdi-delete-outline".into(),
+                message: format!("Delete the {count} selected elements and everything under them? You can undo this."),
+                confirm_label: "Delete".into(),
+                danger: true,
+            });
+        }
+        let changes: Vec<DiagramChange> = removed
+            .iter()
+            .map(|element| {
+                DiagramChange::Disl(DislChange::Remove {
+                    element_id: element.id(),
+                })
+            })
+            .collect();
+        let label = if changes.len() == 1 {
+            "Delete".to_owned()
+        } else {
+            format!("Delete {} elements", changes.len())
+        };
+        match document.plan(&label, &changes).and_then(|edit| workspace.execute(edit)) {
+            Ok(()) => ActionOutcome::Done,
+            Err(refusal) => ActionOutcome::Refused(refusal),
+        }
+    }
+
+    /// Drops toolbox tool `tool_id` on the element `element_id`: a tool that runs an operation runs it on the element
+    /// it lands on, as the entry of the element's menu that runs that operation (`onElementDropped`: the mind map's
+    /// Node adds a child under the node it is dropped on). The action run and its outcome; none for a tool that
+    /// creates what it drops, or a view its module draws.
+    pub fn drop_tool_on(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        tool_id: &str,
+        element_id: &str,
+        ids: &dyn IdSource,
+    ) -> Option<(String, ActionOutcome)> {
+        let operation = self.tool_operation(workspace.documents(), tool_id)?;
+        let document = self.document(workspace.documents()).ok()?;
+        let target = ActionTarget::Element(element_id.to_owned());
+        document.bind_views();
+        let menu = Self::menu_target(document, &target)?;
+        let Some(entry) = document
+            .tool()
+            .definition
+            .menu_entries(&menu, &self.env)
+            .into_iter()
+            .flatten()
+            .find(|e| e.operation.as_deref() == Some(operation.as_str()))
+        else {
+            return Some((
+                String::new(),
+                ActionOutcome::Refused(format!("'{tool_id}' does not apply there.")),
+            ));
+        };
+        let outcome = self.execute(workspace, &target, &entry.id, ids);
+        Some((entry.id, outcome))
+    }
+
+    /// The operation toolbox tool `tool_id` runs, for a tool of kind `operation`; none for any other.
+    pub fn tool_operation(&self, documents: &DiagramDocuments, tool_id: &str) -> Option<String> {
+        if self.view.is_some() {
+            return None;
+        }
+        let document = self.document(documents).ok()?;
+        let name = tool_name(document, tool_id).unwrap_or_else(|| tool_id.to_owned());
+        let toolbox = document.tool().definition.specification().root().get("toolbox")?;
+        let tool = toolbox
+            .get("groups")?
+            .as_array()?
+            .iter()
+            .filter_map(|g| g.get("tools")?.as_array())
+            .flatten()
+            .find(|t| t.get("id").and_then(|i| i.as_str()) == Some(name.as_str()))?;
+        if tool.get("kind").and_then(|k| k.as_str()) != Some("operation") {
+            return None;
+        }
+        Some(tool.get("operation")?.as_str()?.to_owned())
+    }
+
     /// Drops toolbox tool `tool_id` on the canvas at a point: what the specification's tool creates there, its point
     /// stored in the registration in the same step.
     pub fn drop_tool(
@@ -705,6 +913,8 @@ impl DiagramSession {
         let Ok(document) = self.document(documents) else {
             return Vec::new();
         };
+        // What `self.view` reads is the viewer's: a fold's Collapse or Expand follows it.
+        document.bind_views();
         match Self::menu_target(document, target) {
             Some(menu) => document.tool().definition.menus(&menu, &self.env),
             None => Vec::new(),
@@ -712,6 +922,7 @@ impl DiagramSession {
     }
 
     fn entry(&self, document: &DiagramDocument, target: &ActionTarget, action_id: &str) -> Option<DerivedMenuEntry> {
+        document.bind_views();
         let menu = Self::menu_target(document, target)?;
         document
             .tool()

@@ -211,7 +211,7 @@ impl DiagramDocument {
     /// where the registration's `layout:` puts it; for a tool type whose module lays it out, where that layout puts
     /// it.
     pub fn positions(&self) -> HashMap<String, (f64, f64)> {
-        if let Some(positions) = self.tool.module.as_ref().and_then(|module| module.positions(self)) {
+        if let Some(positions) = self.laid_out() {
             return positions;
         }
         let mut positions = HashMap::new();
@@ -233,6 +233,40 @@ impl DiagramDocument {
             }
         }
         positions
+    }
+
+    /// Where the tool type's module lays every node out, by id, when its layout places the diagram; a node it leaves
+    /// out, under a collapsed branch, is not drawn. None when the positions are authored.
+    pub fn laid_out(&self) -> Option<HashMap<String, (f64, f64)>> {
+        self.tool.module.as_ref().and_then(|module| module.positions(self))
+    }
+
+    /// Binds every node's `self.view` to the viewer's state the tool type's module keeps of it (DISL section 12.2),
+    /// so a menu and a label read the viewer's folds; nothing for a tool type that keeps none.
+    pub fn bind_views(&self) {
+        let Some(module) = &self.tool.module else { return };
+        for node in self.reading.model.diagram.nodes() {
+            if let Some(view) = module.view_of(self, &node) {
+                node.set_view(Some(view));
+            }
+        }
+    }
+
+    /// Whether a drag of `element` proposes a new parent rather than a place: its notation's placement leaves both
+    /// axes to the layout (`placement.x.layout` and `placement.y.layout`), and its type may hold children (the mind
+    /// map: "dropping it on another node makes it that node's last child … The drag never writes a position").
+    pub fn drag_reparents(&self, element: &DislElement) -> bool {
+        let Some(placement) = self.notation_of(element).and_then(|n| n.get("placement")) else {
+            return false;
+        };
+        let laid_out = |axis: &str| {
+            placement
+                .get(axis)
+                .and_then(|a| a.get("layout"))
+                .and_then(serde_json::Value::as_bool)
+                == Some(true)
+        };
+        laid_out("x") && laid_out("y") && !element.element_type().child_types.is_empty()
     }
 
     /// The two attributes the notation places a node by (`placement.x.attribute` and `placement.y.attribute` of the
