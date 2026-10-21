@@ -130,6 +130,7 @@ pub(crate) fn dotnet_string(value: &Value) -> String {
         Value::List(_) => "System.Collections.Generic.List`1[System.Object]".into(),
         Value::Map(_) => "EtAlii.Adp.Specification.Cel.CelMap".into(),
         Value::Type(name) => (*name).to_owned(),
+        Value::Optional(_) | Value::Object(_) => value.to_string(),
     }
 }
 

@@ -1,8 +1,52 @@
-//! CEL's values (the standalone host's `CelValues`, `CelMap` and `CelType`): null, bool, int, double, string,
-//! list, map and type. A list and a map are shared, so handing a large value to many evaluations copies nothing.
+//! CEL's values (the standalone host's `CelValues`, `CelMap`, `CelType`, `CelOptional` and `ICelObject`): null,
+//! bool, int, double, string, list, map, type, optional and a host object. A list and a map are shared, so handing a
+//! large value to many evaluations copies nothing.
 
+use std::any::Any;
 use std::fmt;
 use std::rc::Rc;
+
+/// A host value an expression can work with as it does with a map (the standalone host's `ICelObject`): select a
+/// member (`e.name`, `e.?name`), test one with `has(e.name)`, and call a method on it (`e.isA('Trend')`). A method
+/// is called on the object first; a function the environment registers under the same name for receivers is the
+/// fallback. An opaque host value, such as DISL's colour, answers false from [`Object::is_selectable`]: it has no
+/// members and no methods, only the functions that take it.
+pub trait Object: Any + fmt::Debug {
+    /// The object as `Any`, for [`Value::downcast`].
+    fn into_any(self: Rc<Self>) -> Rc<dyn Any>;
+
+    /// The object as `Any`, by reference.
+    fn as_any(&self) -> &dyn Any;
+
+    /// Whether members are selected from it, `has()` tested on it and methods called on it.
+    fn is_selectable(&self) -> bool {
+        true
+    }
+
+    /// The member's value, none when the object has no such member.
+    fn member(&self, _name: &str) -> Option<Value> {
+        None
+    }
+
+    /// Whether `has()` holds for the member: present, as a map key is present.
+    fn has_member(&self, _name: &str) -> bool {
+        false
+    }
+
+    /// The result of the method, none when the object does not implement it; `arguments` exclude the object itself.
+    /// An error is a call it implements but cannot complete.
+    fn invoke(&self, _name: &str, _arguments: &[Value]) -> Option<Result<Value, String>> {
+        None
+    }
+
+    /// CEL's equality with another object: identity unless the object says otherwise.
+    fn equals(&self, other: &dyn Object) -> bool {
+        std::ptr::addr_eq(self as *const Self, other as *const dyn Object)
+    }
+
+    /// The object as `string()` writes it.
+    fn text(&self) -> String;
+}
 
 /// A CEL value. FBL hands its readings to CEL in these, and reads attribute values back in them.
 #[derive(Debug, Clone, Default)]
@@ -17,6 +61,10 @@ pub enum Value {
     Map(Rc<Map>),
     /// What `type(x)` returns, and what `map`, `list`, `string`, `int`, `double`, `bool`, `null_type` and `type` denote.
     Type(&'static str),
+    /// CEL's optional value: what `x.?f`, `m[?k]`, `optional.of(v)` and `optional.none()` give.
+    Optional(Option<Rc<Value>>),
+    /// A host object (the standalone host's `ICelObject`), or an opaque host value.
+    Object(Rc<dyn Object>),
 }
 
 /// The tolerance the standalone host shares as `double.Tolerance` (`0.000001f`), within which an int equals a double.
@@ -32,6 +80,43 @@ impl Value {
 
     pub fn map(map: Map) -> Value {
         Value::Map(Rc::new(map))
+    }
+
+    /// `optional.of(value)`.
+    pub fn some(value: Value) -> Value {
+        Value::Optional(Some(Rc::new(value)))
+    }
+
+    /// `optional.none()`.
+    pub fn none() -> Value {
+        Value::Optional(None)
+    }
+
+    /// A host object as a value.
+    pub fn object<T: Object>(object: T) -> Value {
+        Value::Object(Rc::new(object))
+    }
+
+    /// The host object of type `T` this value holds, if it holds one.
+    pub fn downcast<T: Object>(&self) -> Option<Rc<T>> {
+        match self {
+            Value::Object(object) => Rc::clone(object).into_any().downcast::<T>().ok(),
+            _ => None,
+        }
+    }
+
+    pub fn as_int(&self) -> Option<i64> {
+        match self {
+            Value::Int(i) => Some(*i),
+            _ => None,
+        }
+    }
+
+    pub fn as_bool(&self) -> Option<bool> {
+        match self {
+            Value::Bool(b) => Some(*b),
+            _ => None,
+        }
     }
 
     pub fn is_null(&self) -> bool {
@@ -79,6 +164,8 @@ impl Value {
             Value::List(_) => "list",
             Value::Map(_) => "map",
             Value::Type(_) => "type",
+            Value::Optional(_) => "optional_type",
+            Value::Object(_) => "object",
         }
     }
 
@@ -100,6 +187,12 @@ impl Value {
                 x.len() == y.len() && x.iter().all(|(k, v)| y.get(k).is_some_and(|o| v.cel_equals(o)))
             }
             (Value::Type(x), Value::Type(y)) => x == y,
+            (Value::Optional(x), Value::Optional(y)) => match (x, y) {
+                (None, None) => true,
+                (Some(x), Some(y)) => x.cel_equals(y),
+                _ => false,
+            },
+            (Value::Object(x), Value::Object(y)) => x.equals(y.as_ref()),
             _ => false,
         }
     }
@@ -162,6 +255,9 @@ impl fmt::Display for Value {
             }
             Value::Map(_) => f.write_str("map"),
             Value::Type(name) => f.write_str(name),
+            Value::Optional(Some(value)) => write!(f, "optional.of({value})"),
+            Value::Optional(None) => f.write_str("optional.none()"),
+            Value::Object(object) => f.write_str(&object.text()),
         }
     }
 }
@@ -191,6 +287,12 @@ impl Map {
         }
     }
 
+    /// Takes `key` out, giving its value when it was there.
+    pub fn remove(&mut self, key: &str) -> Option<Value> {
+        let index = self.entries.iter().position(|(k, _)| k == key)?;
+        Some(self.entries.remove(index).1)
+    }
+
     pub fn len(&self) -> usize {
         self.entries.len()
     }
@@ -206,15 +308,44 @@ impl Map {
     pub fn keys(&self) -> impl Iterator<Item = &String> {
         self.entries.iter().map(|(k, _)| k)
     }
+
+    pub fn values(&self) -> impl Iterator<Item = &Value> {
+        self.entries.iter().map(|(_, v)| v)
+    }
 }
 
-impl FromIterator<(String, Value)> for Map {
-    fn from_iter<T: IntoIterator<Item = (String, Value)>>(iter: T) -> Self {
+impl PartialEq for Map {
+    /// CEL's equality of two maps: the same keys, each with an equal value.
+    fn eq(&self, other: &Self) -> bool {
+        self.len() == other.len() && self.iter().all(|(k, v)| other.get(k).is_some_and(|o| v.cel_equals(o)))
+    }
+}
+
+impl<K: Into<String>> FromIterator<(K, Value)> for Map {
+    fn from_iter<T: IntoIterator<Item = (K, Value)>>(iter: T) -> Self {
         let mut map = Map::default();
         for (k, v) in iter {
             map.insert(k, v);
         }
         map
+    }
+}
+
+impl From<Map> for Value {
+    fn from(value: Map) -> Self {
+        Value::map(value)
+    }
+}
+
+impl From<Vec<Value>> for Value {
+    fn from(value: Vec<Value>) -> Self {
+        Value::list(value)
+    }
+}
+
+impl<T: Into<Value>> From<Option<T>> for Value {
+    fn from(value: Option<T>) -> Self {
+        value.map(Into::into).unwrap_or(Value::Null)
     }
 }
 
