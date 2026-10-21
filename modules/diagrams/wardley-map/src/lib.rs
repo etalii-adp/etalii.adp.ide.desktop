@@ -76,7 +76,9 @@ impl WardleyModule {
     }
 
     /// The module whose new elements take their ids from `ids` rather than fresh ShortGuids: a replay hands it the
-    /// ids the standalone host generated.
+    /// ids the standalone host generated. Held by the module rather than taken from `ModuleView::execute_with_ids`,
+    /// because a map mints ids whenever its identities are reconciled: after a move, a row's edit, an undo or a redo
+    /// as well as after an action, none of which is handed an id source.
     pub fn with_ids(ids: Rc<dyn IdSource>) -> Self {
         WardleyModule { ids: Some(ids) }
     }

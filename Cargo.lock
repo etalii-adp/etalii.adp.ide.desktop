@@ -126,7 +126,11 @@ dependencies = [
  "adp-diagram",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
+ "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-sankey",
+ "adp-diagram-supply-chain",
  "adp-diagram-timeline",
  "adp-diagram-wardley-map",
  "adp-fbl",
@@ -255,6 +259,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-functional-decomposition-graph"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "saphyr-parser",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
+name = "adp-diagram-hype-cycle"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-layout",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-mindmap"
 version = "0.1.0"
 dependencies = [
@@ -270,6 +304,38 @@ dependencies = [
  "serde_json",
  "tempfile",
  "uuid",
+]
+
+[[package]]
+name = "adp-diagram-sankey"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "saphyr-parser",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
+name = "adp-diagram-supply-chain"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "indexmap",
+ "saphyr-parser",
+ "tempfile",
 ]
 
 [[package]]
@@ -399,7 +465,11 @@ dependencies = [
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
+ "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-sankey",
+ "adp-diagram-supply-chain",
  "adp-diagram-timeline",
  "adp-diagram-wardley-map",
  "adp-disl",
@@ -452,7 +522,11 @@ dependencies = [
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
+ "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-sankey",
+ "adp-diagram-supply-chain",
  "adp-diagram-timeline",
  "adp-diagram-wardley-map",
  "adp-disl",
@@ -477,6 +551,7 @@ dependencies = [
  "stats_alloc",
  "syntect",
  "tempfile",
+ "uuid",
 ]
 
 [[package]]

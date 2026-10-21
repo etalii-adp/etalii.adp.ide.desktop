@@ -27,6 +27,8 @@ use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, Sh
 use adp_scene::style::{Colour, Font, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
 
+use super::fdg_scene;
+
 /// The element types the C4 module puts on the wire (`adp_diagram_c4::mapper`).
 const NODE_TYPE: &str = "c4/model+node";
 const RELATIONSHIP_TYPE: &str = "c4/model+relationship";
@@ -34,11 +36,11 @@ const BOUNDARY_TYPE: &str = "c4/model+boundary";
 const VIEW_TYPE: &str = "c4/model+view";
 
 /// The selected outline, as the scene builder paints it (`HIGHLIGHT_STROKE`).
-const SELECTED: &str = "#7c3aed";
-const SELECTED_WIDTH: f64 = 3.0;
+pub(super) const SELECTED: &str = "#7c3aed";
+pub(super) const SELECTED_WIDTH: f64 = 3.0;
 
 /// The average advance of a character, as a fraction of the font size (`textMetrics.ts`).
-const AVERAGE_ADVANCE: f64 = 0.55;
+pub(super) const AVERAGE_ADVANCE: f64 = 0.55;
 
 /// A module's view as the canvas draws and hit-tests it.
 pub struct ModuleScene {
@@ -53,12 +55,15 @@ pub struct ModuleScene {
     pub labels: Vec<(String, String, Rect)>,
     /// Each card's anchors on the middle of its four edges: element, anchor, area (`anchors: { kind: "edge" }`).
     pub anchors: Vec<(String, String, Rect)>,
+    /// The elements whose module writes a move as their top-left rather than their centre (the functional
+    /// decomposition graph's, `FdgCanvas.tsx`'s `onElementMoved`).
+    pub top_left: Vec<String>,
 }
 
 /// The radius of an anchor's dot, in canvas units (the scene builder's `ANCHOR_RADIUS`).
-const ANCHOR_RADIUS: f64 = 5.0;
+pub(super) const ANCHOR_RADIUS: f64 = 5.0;
 
-fn number(element: &DiagramElement, name: &str) -> f64 {
+pub(super) fn number(element: &DiagramElement, name: &str) -> f64 {
     element.attribute(name).parse().unwrap_or_default()
 }
 
@@ -114,7 +119,7 @@ pub fn description_lines(description: &str, width: f64) -> Vec<String> {
     lines
 }
 
-fn font(size: f64, weight: u16, colour: Option<&str>) -> Font {
+pub(super) fn font(size: f64, weight: u16, colour: Option<&str>) -> Font {
     Font {
         family: None,
         size,
@@ -125,7 +130,14 @@ fn font(size: f64, weight: u16, colour: Option<&str>) -> Font {
     }
 }
 
-fn text(owner: &Owner, role: Role, text: String, position: Point, anchor: TextAnchor, font: Font) -> Primitive {
+pub(super) fn text(
+    owner: &Owner,
+    role: Role,
+    text: String,
+    position: Point,
+    anchor: TextAnchor,
+    font: Font,
+) -> Primitive {
     Primitive::Text(TextRun {
         owner: owner.clone(),
         role,
@@ -139,7 +151,7 @@ fn text(owner: &Owner, role: Role, text: String, position: Point, anchor: TextAn
     })
 }
 
-fn stroke(colour: Option<&str>, width: f64, dash: &[f64]) -> Stroke {
+pub(super) fn stroke(colour: Option<&str>, width: f64, dash: &[f64]) -> Stroke {
     Stroke {
         colour: colour.map(Colour::value),
         width,
@@ -195,11 +207,12 @@ fn edge_point(rect: Rect, towards: Point) -> Point {
 }
 
 /// The scene of `elements`, a module view's rendering, with `selection` outlined and the elements `moving` carried
-/// by the drag in flight.
+/// by the drag in flight; a module whose notation has a dark palette draws in it when `dark`.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
+    dark: bool,
 ) -> ModuleScene {
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let mut rects: HashMap<String, Rect> = HashMap::new();
@@ -209,6 +222,13 @@ pub fn build(
             element.id.clone(),
             Rect::centred(Point::new(element.x, element.y), width, height),
         );
+    }
+    let fdg_nodes: Vec<&DiagramElement> = elements
+        .iter()
+        .filter(|e| fdg_scene::is_fdg(e) && e.kind == ElementKind::Node)
+        .collect();
+    for element in &fdg_nodes {
+        rects.insert(element.id.clone(), fdg_scene::rect_of(element));
     }
     let mut drawn = rects.clone();
     if let Some((ids, (dx, dy))) = moving {
@@ -507,9 +527,20 @@ pub fn build(
         }
     }
 
+    // The functional decomposition graph's elements and connections, over everything else.
+    let moving_ids: HashSet<&str> = moving
+        .map(|(ids, _)| ids.iter().map(String::as_str).collect())
+        .unwrap_or_default();
+    let graph = fdg_scene::draw(elements, &drawn, &selected, &moving_ids, dark);
+    primitives.extend(graph.primitives);
+    boxes.extend(graph.boxes);
+    lines.extend(graph.lines);
+    labels.extend(graph.labels);
+    anchors.extend(graph.anchors);
+
     let empty_text = (!elements
         .iter()
-        .any(|e| e.kind == ElementKind::Node && e.element_type == NODE_TYPE))
+        .any(|e| e.kind == ElementKind::Node && (e.element_type == NODE_TYPE || fdg_scene::is_fdg(e))))
     .then(|| "This view shows nothing yet.".to_owned());
     ModuleScene {
         scene: Scene { primitives, empty_text },
@@ -518,6 +549,7 @@ pub fn build(
         lines,
         labels,
         anchors,
+        top_left: fdg_nodes.iter().map(|e| e.id.clone()).collect(),
     }
 }
 

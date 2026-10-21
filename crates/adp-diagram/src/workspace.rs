@@ -67,9 +67,10 @@ impl DiagramWorkspace {
         }
         let opened = self.resolve(tools, path)?;
         let tool = tools.get(&opened.origin)?;
+        let session =
+            DiagramSession::new(opened.body_path.clone()).in_default_viewpoint(tool.definition.specification());
         self.documents
             .open(tool, &opened.body_path, opened.registration_path.as_deref())?;
-        let session = DiagramSession::new(opened.body_path.clone());
         Ok((opened, session))
     }
 

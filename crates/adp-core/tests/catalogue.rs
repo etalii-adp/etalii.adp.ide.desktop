@@ -90,20 +90,17 @@ fn a_tool_type_claims_the_extensions_of_its_specification_and_bindings() {
 /// The vendored diagram specifications that do not load here yet, each for a DISL library function or a variable the CEL
 /// evaluator ported from the standalone host at 8b6ccfc does not have. The standalone host reads these tool types with
 /// its modules' own code; their modules are ported in phase 7. A specification that starts or stops loading changes
-/// this list.
-const NOT_LOADING: [&str; 15] = [
-    "azure-devops/pipeline",
+/// this list: the Azure DevOps pipeline, the Databricks job, the functional decomposition graph and the OWL ontology
+/// load since the graph functions `successors`, `predecessors`, `reachable` and `inCycle` (DISL section 12.4) are
+/// `adp-disl`'s.
+const NOT_LOADING: [&str; 10] = [
     "c4/component",
     "c4/container",
     "c4/context",
     "c4/deployment",
     "c4/dynamic",
     "c4/system-landscape",
-    "databricks/job",
-    "etalii/functional-decomposition-graph",
     "etalii/sankey",
-    "etalii/supply-chain",
-    "w3c/owl",
     "w3c/rdf",
     "w3c/skos",
     "wardley/map",

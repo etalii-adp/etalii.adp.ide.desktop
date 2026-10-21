@@ -190,3 +190,75 @@ fn an_enumeration_the_specification_lacks_is_an_error() {
         evaluate("enumLabel('Colour', 'red')")
     );
 }
+
+/// `l.sum()` (section 12.4): an int while every item is an int, a double once one is a double.
+#[test]
+fn a_list_of_numbers_sums_to_an_int_or_a_double() {
+    for (expression, expected) in [
+        ("[1, 2, 3].sum()", Value::Int(6)),
+        ("[].sum()", Value::Int(0)),
+        ("[1, 2.5].sum()", Value::Double(3.5)),
+        ("[0.5, 0.25].sum()", Value::Double(0.75)),
+        ("[10, 20].map(n, n * 2).sum()", Value::Int(60)),
+    ] {
+        assert_eq!(Ok(expected), evaluate(expression), "{expression}");
+    }
+    assert_eq!(
+        Err("sum() takes a list of numbers.".to_owned()),
+        evaluate("['a'].sum()")
+    );
+    assert_eq!(
+        Err("sum() overflowed an int.".to_owned()),
+        evaluate("[9223372036854775807, 1].sum()")
+    );
+}
+
+/// `formatNumber(n, pattern)` (section 12.4): ICU number formatting, in the root locale's symbols.
+#[test]
+fn a_number_is_formatted_with_an_icu_pattern() {
+    for (expression, expected) in [
+        ("formatNumber(1840, '#,##0.##')", "1,840"),
+        ("formatNumber(1234567.891, '#,##0.##')", "1,234,567.89"),
+        ("formatNumber(3.3, '#,##0.##')", "3.3"),
+        ("formatNumber(0.5, '#,##0.##')", "0.5"),
+        ("formatNumber(0, '#,##0.##')", "0"),
+        ("formatNumber(-1500.5, '#,##0.##')", "-1,500.5"),
+        ("formatNumber(2.675, '0.00')", "2.68"),
+        ("formatNumber(0.125, '0.00')", "0.12"),
+        ("formatNumber(7, '000')", "007"),
+        ("formatNumber(0.25, '#.##')", ".25"),
+        ("formatNumber(12.5, '0')", "12"),
+        ("formatNumber(13.5, '0')", "14"),
+        ("formatNumber(0.256, '0.#%')", "25.6%"),
+        ("formatNumber(42, \"'#'0\")", "#42"),
+        ("formatNumber(-3, '0;(0)')", "(3)"),
+        ("formatNumber(-0.001, '0.##')", "0"),
+        ("formatNumber(1000000, '#,##,##0')", "10,00,000"),
+    ] {
+        assert_eq!(Ok(Value::from(expected)), evaluate(expression), "{expression}");
+    }
+    assert_eq!(
+        Err("formatNumber() takes an ICU number pattern such as '#,##0.##', not 'abc'.".to_owned()),
+        evaluate("formatNumber(1, 'abc')")
+    );
+}
+
+/// `l.min()` and `l.max()` (section 12.4): the smallest or largest item itself; an empty list has none.
+#[test]
+fn a_lists_smallest_and_largest_are_its_own_items() {
+    for (expression, expected) in [
+        ("[3, 1, 2].min()", Value::Int(1)),
+        ("[3.5, 1, 7].max()", Value::Int(7)),
+        ("[0.25, 0.5].max()", Value::Double(0.5)),
+    ] {
+        assert_eq!(Ok(expected), evaluate(expression), "{expression}");
+    }
+    assert_eq!(
+        Err("max() of an empty list has no value.".to_owned()),
+        evaluate("[].max()")
+    );
+    assert_eq!(
+        Err("min() takes a list of numbers.".to_owned()),
+        evaluate("['a'].min()")
+    );
+}

@@ -533,6 +533,7 @@ pub fn build(
             lines: Vec::new(),
             labels,
             anchors: Vec::new(),
+            top_left: Vec::new(),
         },
         mappings,
     )

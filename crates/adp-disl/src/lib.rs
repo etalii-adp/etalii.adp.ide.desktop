@@ -27,6 +27,7 @@ pub use derivation::forms::DerivedRow;
 pub use derivation::toolbox::DerivedTool;
 pub use derivation::wire_ids::WireIdMap;
 pub use expressions::contexts;
+pub use expressions::number_format::format_number;
 pub use expressions::plugins::DislPluginFunctions;
 pub use loading::diagnostic::{DislDiagnostic, DislSeverity};
 pub use loading::loader::{DislLoadResult, DislLoader};

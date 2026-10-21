@@ -1,0 +1,27 @@
+[package]
+name = "adp-diagram-functional-decomposition-graph"
+description = "The functional decomposition graph's residue: the .fdg reader and line-splicing writer, its rules, menus, rows and palette (spec 030, T072)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+adp-history = { path = "../../../crates/adp-history" }
+# The reader: YAML events with their spans, as the YAML editor reads them; nothing is ever written through it.
+saphyr-parser = "0.0.6"
+# A new element's or connection's id: a ShortGuid, a version 4 GUID as 25 characters of base 36.
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+tempfile = "3"
+
+[lints]
+workspace = true

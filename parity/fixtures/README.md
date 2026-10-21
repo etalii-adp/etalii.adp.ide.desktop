@@ -4,11 +4,15 @@ The documents the edit scripts under `parity/scripts/` open, copied from the sta
 
 | Folder | Copied from (in `etalii.adp.ide.standalone` at `8b6ccfc`) | Script |
 |---|---|---|
+| `etalii/functional-decomposition-graph/field-service/` | `src/diagrams/functional-decomposition-graph/examples/field-service/` (`field-service.adp`, `field-service.fdg`) | `parity/scripts/etalii/functional-decomposition-graph/field-service.json` |
 | `freeplane/mindmap/example-1/` | `src/diagrams/mindmap/examples/example 1/` (`mindmap.adp`, `mindmap.mm`, `design.mm`) | `parity/scripts/freeplane/mindmap/example-1.json` |
+| `gartner/hypecycle-graph/coal-technologies/` | `src/diagrams/gartner-hype-cycle-graph/examples/coal-technologies/` (`coal-technologies.adp`, `coal-technologies.ghg`) | `parity/scripts/gartner/hypecycle-graph/coal-technologies.json` |
 | `generic/dependencies/services/` | `src/diagrams/dependency-graph/examples/example-1/` (`services.adp`, `services.dgr`, committed with CRLF line endings) | `parity/scripts/generic/dependencies/services.json` |
 | `generic/timeline/roadmap/` | `src/diagrams/timeline/examples/example-2/` (`roadmap.adp`, `roadmap.tml`) | `parity/scripts/generic/timeline/roadmap.json` |
 | `etalii/knowledge/cities-yaml/`, `cities-json/`, `cities-xml/` | `src/designers/knowledge/examples/` (`cities.yaml`, `cities.json` or `cities.xml`, and `provinces.yaml`, the table their relation names), each with the registration `cities.adp` (`etalii/knowledge` and `body: cities.<format>`, CRLF), written as the standalone host's `KnowledgeDesignerTests` writes it | `parity/scripts/etalii/knowledge/cities-yaml.json`, `cities-json.json`, `cities-xml.json` |
+| `etalii/sankey/brightwater-coffee/` | `src/diagrams/sankey/examples/brightwater-coffee/` (`brightwater-coffee.adp`, `brightwater-coffee.skv`, committed with CRLF line endings) | `parity/scripts/etalii/sankey/brightwater-coffee.json` |
 | `c4/container/courier/` | `src/diagrams/c4/examples/reference/architecture/` (the Courier Tracking model `courier.dsl`, its layout `courier.layout.json`, its seven registrations, and the `docs/` and `decisions/` folders it names) | `parity/scripts/c4/container/courier.json` |
 | `systems/causal-loop-diagram/reference/` | `src/diagrams/causal-loop-diagram/examples/reference/` (`reference.adp`, `reference.cld`) | `parity/scripts/systems/causal-loop-diagram/reference.json` |
 | `systems/causal-loop-diagram/on-call/` | `src/diagrams/causal-loop-diagram/examples/on-call/` (`on-call.adp`, `on-call.cld`) | `parity/scripts/systems/causal-loop-diagram/on-call.json` |
+| `etalii/supply-chain/automotive/` | `src/diagrams/supply-chain/examples/automotive/` (`automotive.adp`, `automotive.supply`) | `parity/scripts/etalii/supply-chain/automotive.json` |
 | `wardley/map/strategy-vocabulary/` | `src/diagrams/wardley-map/examples/example 2/` (`strategy-vocabulary.adp`, `strategy-vocabulary.owm` and its identity sidecar `strategy-vocabulary.identities.json`, which names every element of the map, so no id is minted on opening) | `parity/scripts/wardley/map/strategy-vocabulary.json` |

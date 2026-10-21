@@ -118,6 +118,32 @@ impl DiagramSession {
         }
     }
 
+    /// The view in `specification`'s default viewpoint, which `env.viewpoint` reads (DISL section 12.4): the one it
+    /// marks `default`, else its first; empty for a specification without viewpoints.
+    pub fn in_default_viewpoint(mut self, specification: &adp_disl::DislSpecification) -> Self {
+        let viewpoints = specification.root().get("viewpoints").and_then(|v| v.as_object());
+        self.env.viewpoint = viewpoints
+            .and_then(|all| {
+                all.iter()
+                    .find(|(_, v)| v.get("default").and_then(|d| d.as_bool()) == Some(true))
+                    .or_else(|| all.iter().next())
+            })
+            .map(|(id, _)| id.clone())
+            .unwrap_or_default();
+        self
+    }
+
+    /// Shows the view in viewpoint `viewpoint` (DISL section 11), which `env.viewpoint` reads: a menu or a form that
+    /// asks for one viewpoint is offered in it alone.
+    pub fn set_viewpoint(&mut self, viewpoint: &str) {
+        self.env.viewpoint = viewpoint.to_owned();
+    }
+
+    /// The viewpoint the view is in; empty for a specification without viewpoints.
+    pub fn viewpoint(&self) -> &str {
+        &self.env.viewpoint
+    }
+
     /// A view of the document whose body is at `body_path`, read, drawn and edited by its module's `view`.
     pub fn of_module(body_path: impl Into<PathBuf>, view: Rc<dyn ModuleView>) -> Self {
         DiagramSession {
@@ -960,7 +986,7 @@ impl DiagramSession {
         ids: &dyn IdSource,
     ) -> ActionOutcome {
         if let Some(view) = &self.view {
-            return view.execute(workspace, target, action_id);
+            return view.execute_with_ids(workspace, target, action_id, ids);
         }
         if let Some(module) = self.module(workspace.documents())
             && let Some(outcome) = module.execute(self, workspace, target, action_id, ids)
@@ -1076,6 +1102,22 @@ impl DiagramSession {
                 }
             }
             _ => ActionOutcome::Refused(format!("'{}' cannot be run here yet.", entry.label)),
+        }
+    }
+
+    /// Answers the prompt as [`DiagramSession::answer`] does, where what a module's own view creates in answer takes
+    /// the ids `ids` hands out (a supply chain's group put around a node); the specification's answers take their own.
+    pub fn answer_with_ids(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        value: &str,
+        ids: &dyn IdSource,
+    ) -> ActionOutcome {
+        match &self.view {
+            Some(view) => view.answer_with_ids(workspace, target, action_id, value, ids),
+            None => self.answer(workspace, target, action_id, value),
         }
     }
 
@@ -1483,12 +1525,12 @@ fn position_at(document: &DiagramDocument, x: f64, y: f64) -> Map {
         .tool()
         .module
         .as_ref()
-        .and_then(|m| m.position_at(x, y))
+        .and_then(|m| m.position_in(&document.model().diagram, x, y))
         .unwrap_or_else(|| bounds(x, y))
 }
 
-/// The plugin a layout algorithm runs (`layout.algorithms.<name>.algorithm` of `plugin:<plugin>`), or none for one
-/// the runtime implements.
+/// The plugin a layout algorithm runs (`layout.algorithms.<name>.algorithm` of `plugin:<plugin>`), else the algorithm
+/// it names (`rows`, the hype cycle graph's arrangement), which the operation leaves to the tool type's module.
 fn plugin_layout(specification: &adp_disl::DislSpecification, algorithm: &str) -> Option<String> {
     let declared = specification
         .root()
@@ -1497,7 +1539,7 @@ fn plugin_layout(specification: &adp_disl::DislSpecification, algorithm: &str) -
         .get(algorithm)?
         .get("algorithm")?
         .as_str()?;
-    declared.strip_prefix("plugin:").map(str::to_owned)
+    Some(declared.strip_prefix("plugin:").unwrap_or(declared).to_owned())
 }
 
 /// The relation type a finished connect gesture's menu entry draws: the `via` of the `connect` entry of the menu

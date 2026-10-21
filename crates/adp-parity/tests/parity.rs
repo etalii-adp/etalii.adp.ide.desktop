@@ -32,8 +32,23 @@ fn etalii_knowledge_cities_yaml() {
 }
 
 #[test]
+fn etalii_supply_chain_automotive() {
+    check("etalii/supply-chain/automotive");
+}
+
+#[test]
+fn etalii_sankey_brightwater_coffee() {
+    check("etalii/sankey/brightwater-coffee");
+}
+
+#[test]
 fn freeplane_mindmap_example_1() {
     check("freeplane/mindmap/example-1");
+}
+
+#[test]
+fn gartner_hypecycle_graph_coal_technologies() {
+    check("gartner/hypecycle-graph/coal-technologies");
 }
 
 #[test]
@@ -49,6 +64,11 @@ fn generic_dependencies_services() {
 #[test]
 fn generic_timeline_roadmap() {
     check("generic/timeline/roadmap");
+}
+
+#[test]
+fn etalii_functional_decomposition_graph_field_service() {
+    check("etalii/functional-decomposition-graph/field-service");
 }
 
 #[test]

@@ -239,7 +239,7 @@ fn what_the_standalone_host_refuses_is_refused_with_its_words() {
         adds.commit(&target, "generic/timeline", "map"),
         Err("An item named 'map.adp' already exists in this folder.".into())
     );
-    assert_eq!(adds.commit(&target, "etalii/sankey", "flows"), Err(INCOMPLETE.into()));
+    assert_eq!(adds.commit(&target, "w3c/sparql", "query"), Err(INCOMPLETE.into()));
     assert_eq!(
         adds.commit(&target, "nobody/nothing", "x"),
         Err("That diagram type is not available.".into())
@@ -326,5 +326,69 @@ fn a_wardley_map_is_written_titled_with_its_name() {
     assert!(
         !folder.path().join("strategy.identities.json").exists(),
         "a map nobody edited has no identities to keep"
+    );
+}
+
+#[test]
+fn a_supply_chain_diagram_is_written_with_its_empty_document() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/supply-chain", "chain")
+        .unwrap();
+    assert_eq!(created, folder.path().join("chain.adp"));
+    assert_eq!(read(&created), "etalii/supply-chain\r\n");
+    // The standalone host's `SupplyChainParser.EmptyDocument`: the header and the three sections, flow-empty, CRLF.
+    assert_eq!(
+        read(&folder.path().join("chain.supply")),
+        "supply-chain: 1\r\ngroups: []\r\nnodes: []\r\nflows: []\r\n"
+    );
+}
+
+#[test]
+fn a_sankey_diagram_is_written_with_its_empty_document() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/sankey", "flows")
+        .unwrap();
+    assert_eq!(created, folder.path().join("flows.adp"));
+    assert_eq!(read(&created), "etalii/sankey\r\n");
+    // The standalone host's `SankeyParser.EmptyDocument`: the header and both sections written flow-empty, in CRLF.
+    assert_eq!(
+        read(&folder.path().join("flows.skv")),
+        "sankey: 1\r\nnodes: []\r\nflows: []\r\n"
+    );
+}
+
+#[test]
+fn a_functional_decomposition_graph_is_written_as_its_empty_document() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/functional-decomposition-graph", "screens")
+        .unwrap();
+    assert_eq!(created, folder.path().join("screens.adp"));
+    assert_eq!(read(&created), "etalii/functional-decomposition-graph\r\n");
+    // The standalone host's `FdgParser.EmptyDocument("\r\n")`: the header and two empty sections, in CRLF.
+    assert_eq!(
+        read(&folder.path().join("screens.fdg")),
+        "functional-decomposition-graph: 1\r\nelements: []\r\nconnections: []\r\n"
+    );
+}
+
+#[test]
+fn a_hype_cycle_graph_is_written_as_the_standalone_host_writes_an_empty_one() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "gartner/hypecycle-graph", "trends")
+        .unwrap();
+    assert_eq!(created, folder.path().join("trends.adp"));
+    assert_eq!(read(&created), "gartner/hypecycle-graph\r\n");
+    // The standalone host's `GhgParser.EmptyDocument("\r\n")`: the header and both sections flow-empty.
+    assert_eq!(
+        read(&folder.path().join("trends.ghg")),
+        "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n"
     );
 }

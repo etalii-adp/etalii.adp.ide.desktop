@@ -1,0 +1,15 @@
+supply-chain: 1
+nodes:
+  - id: mine
+    type: quarry
+    name: Mine
+    colour: red
+  - id: plant
+    type: manufacturer
+    name: Plant
+    quantity: lots
+  - just a string
+flows:
+  - id: ore
+    from: mine
+    to: plant
