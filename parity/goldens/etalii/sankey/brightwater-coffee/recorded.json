@@ -1,0 +1,290 @@
+{
+  "script": "parity/scripts/etalii/sankey/brightwater-coffee.json",
+  "tool": "etalii/sankey",
+  "fixture": "etalii/sankey/brightwater-coffee/brightwater-coffee.skv",
+  "registration": "etalii/sankey/brightwater-coffee/brightwater-coffee.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T10:47:52Z",
+  "edits": 35,
+  "changed": [
+    "brightwater-coffee.skv"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 17,
+      "id": "4qy5135gxh6e47yl06j4itbqi",
+      "type": "etalii/sankey+node",
+      "connection": false
+    },
+    {
+      "step": 19,
+      "id": "net-profit->4qy5135gxh6e47yl06j4itbqi",
+      "type": "etalii/sankey+flow",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "cafes"
+    },
+    {
+      "step": 1,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.note = '+10% Y/Y'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.color = 'teal'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.custom-color = '#AA5500'"
+    },
+    {
+      "step": 4,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.format = '€{value}M total'"
+    },
+    {
+      "step": 5,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.column = '1'"
+    },
+    {
+      "step": 6,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.description = 'Corporate income tax: 25%'"
+    },
+    {
+      "step": 7,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "'lots' is not an amount this diagram can hold: a number of zero or more."
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on cafes->revenue"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on packaged->revenue"
+    },
+    {
+      "step": 10,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.step = '5'"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on wholesale->revenue"
+    },
+    {
+      "step": 12,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.value = '200'"
+    },
+    {
+      "step": 13,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.color = 'green'"
+    },
+    {
+      "step": 14,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 15,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:1300,100"
+    },
+    {
+      "step": 18,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on 4qy5135gxh6e47yl06j4itbqi; input 'Rename' answered 'Dividends'"
+    },
+    {
+      "step": 19,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:net-profit->4qy5135gxh6e47yl06j4itbqi"
+    },
+    {
+      "step": 20,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "These two are already joined by a flow in this direction; change its value instead."
+    },
+    {
+      "step": 21,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on net-profit->4qy5135gxh6e47yl06j4itbqi"
+    },
+    {
+      "step": 22,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "tax to (1292, -100)"
+    },
+    {
+      "step": 23,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "marketing by (0, -400) to (1292, 54.91500000000002)"
+    },
+    {
+      "step": 24,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on general; confirmation 'Remove' answered ''"
+    },
+    {
+      "step": 25,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 26,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 27,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on operating-expenses->research"
+    },
+    {
+      "step": 28,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 29,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 30,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 31,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.name = 'Marketing & sales'"
+    },
+    {
+      "step": 32,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on research; input 'Rename' answered 'R&D'"
+    },
+    {
+      "step": 33,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "A node needs a name."
+    },
+    {
+      "step": 34,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.column = 'auto'"
+    },
+    {
+      "step": 35,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "sankey.color = '(default)'"
+    },
+    {
+      "step": 36,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

@@ -19,6 +19,7 @@ pub mod metrics;
 pub mod module_scene;
 pub mod paint;
 pub mod placement;
+pub mod sankey_scene;
 pub mod toolbox;
 pub mod viewpoint;
 
@@ -96,7 +97,7 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_c4::register(adp_diagram_dependency_graph::register(
+            tools: adp_diagram_sankey::register(adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                 adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                     DislPluginFunctions::none()
                 }))
@@ -107,7 +108,7 @@ impl DiagramHost {
                     adp_diagram_functional_decomposition_graph::ORIGIN,
                     adp_diagram_functional_decomposition_graph::module(),
                 ),
-            )),
+            ))),
             workspaces: HashMap::new(),
         }
     }
@@ -737,7 +738,11 @@ impl DiagramTab {
         // A selected element that is gone is no longer selected.
         let known: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
         self.selection.retain(|id| known.contains(id.as_str()));
-        let built = module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark);
+        let built = if self.opened.origin == adp_diagram_sankey::ORIGIN {
+            sankey_scene::build(&elements, &self.selection, self.arbiter.moving())
+        } else {
+            module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark)
+        };
         let bounds = built.scene.bounds(metrics);
         // Where a module writes a move as the element's top-left, the drag hands it the top-left.
         let top_left = Mapping {

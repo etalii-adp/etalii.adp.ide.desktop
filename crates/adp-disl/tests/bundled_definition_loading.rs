@@ -257,17 +257,40 @@ fn a_call_of_a_function_the_runtime_lacks_refuses_the_definition() {
     }
 }
 
+/// The standalone host's diagnostics this runtime does not give, because its library has a function DISL section 12.4
+/// defines and the standalone host's `DislCelLibrary` at `8b6ccfc` lacks: `formatNumber(n, pattern)` and `l.sum()`.
+/// Each is the refusal of a call to one of them, or of a call to a function that called one.
+const BEYOND_THE_STANDALONE_LIBRARY: [&str; 15] = [
+    "error at /functions/formatNumber2/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /functions/formatValue/cel: 'formatValue' calls 'formatNumber2', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/nodeDisplay/cel: 'nodeDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/flowDisplay/cel: 'flowDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/remainder/cel: The function 'sum' is not supported by this CEL evaluator.",
+    "error at /metamodel/types/Node/attributes/quantity/derived: The function 'sum' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/labels/1/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/labels/4/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/tooltip/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/tooltip/cel: The function 'flowDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /behavior/hooks/1/actions/0/set/quantity: The function 'remainder' is not supported by this CEL evaluator. (context hook)",
+    "error at /functions/formatAmount/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /notation/nodes/Stage/labels/2/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Stage/tooltip/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/labels/1/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+];
+
 /// The library functions of DISL section 12.4 this runtime implements and the standalone host's evaluator did not:
 /// where the standalone host's loader refused a call of one of them, this one loads it.
 const BEYOND_THE_STANDALONE_HOST: [&str; 4] = ["inCycle", "reachable", "successors", "predecessors"];
 
 /// The recorded diagnostics of the standalone host's loader, less its refusals of a call to a function of
-/// [`BEYOND_THE_STANDALONE_HOST`]; a definition those were the only errors of loads here.
+/// [`BEYOND_THE_STANDALONE_HOST`] and the refusals [`BEYOND_THE_STANDALONE_LIBRARY`] names; a definition those were
+/// the only errors of loads here.
 fn expected_here(recorded: &str) -> String {
     let refused = |line: &str| {
         BEYOND_THE_STANDALONE_HOST
             .iter()
             .any(|f| line.contains(&format!("The function '{f}' is not supported by this CEL evaluator.")))
+            || BEYOND_THE_STANDALONE_LIBRARY.contains(&line)
     };
     let mut out = String::new();
     let mut lines = recorded.lines().peekable();
@@ -295,7 +318,8 @@ fn expected_here(recorded: &str) -> String {
 
 /// Every `.dis` the desktop host vendors - the tool types' definitions and the DISL examples - loads with the very
 /// diagnostics the standalone host's loader gives it, and the two the standalone host bundles with none; less the
-/// refusals of the graph functions this runtime implements beyond it ([`BEYOND_THE_STANDALONE_HOST`]).
+/// refusals of the library functions this runtime implements beyond it ([`BEYOND_THE_STANDALONE_HOST`],
+/// [`BEYOND_THE_STANDALONE_LIBRARY`]).
 #[test]
 fn every_vendored_definition_has_the_standalone_loaders_diagnostics() {
     let expected = expected_here(&include_str!("fixtures/standalone-diagnostics.txt").replace('\r', ""));

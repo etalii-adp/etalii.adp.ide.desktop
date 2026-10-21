@@ -9,6 +9,7 @@ use adp_cel::{Environment, Function, Value};
 use indexmap::IndexMap;
 
 use super::color::DislColor;
+use super::number_format;
 use super::year_month;
 use crate::loading::metamodel::DislEnum;
 use crate::model::diagram::DiagramData;
@@ -88,6 +89,18 @@ pub(crate) fn register(environment: &mut Environment, enums: Rc<IndexMap<String,
             _ => 1,
         }),
     );
+    environment.add_function(
+        Function::receiver("sum", 0, |a| sum(&a[0])).with_cost(|a| match a.first() {
+            Some(Value::List(l)) => l.len() as i64,
+            _ => 1,
+        }),
+    );
+    environment.add_function(Function::global("formatNumber", 2, |a| {
+        Ok(Value::String(number_format::format_number(
+            number(&a[0])?,
+            text(&a[1])?,
+        )?))
+    }));
     environment.add_function(Function::receiver("center", 0, |a| center(&a[0])));
     environment.add_function(Function::global("token", 1, |a| {
         Err(format!(
@@ -191,6 +204,23 @@ fn average(value: &Value) -> Result<Value, String> {
         };
     }
     Ok(Value::Double(sum / list.len() as f64))
+}
+
+/// `l.sum()` (section 12.4): the sum of a list of ints and doubles; an int while every item is one, a double once one
+/// is a double, and 0 for an empty list.
+fn sum(value: &Value) -> Result<Value, String> {
+    let list = value.as_list().ok_or("sum() takes a list of numbers.")?;
+    let mut total = Value::Int(0);
+    for item in list {
+        total = match (&total, item) {
+            (Value::Int(a), Value::Int(b)) => Value::Int(a.checked_add(*b).ok_or("sum() overflowed an int.")?),
+            (Value::Int(a), Value::Double(b)) => Value::Double(*a as f64 + b),
+            (Value::Double(a), Value::Int(b)) => Value::Double(a + *b as f64),
+            (Value::Double(a), Value::Double(b)) => Value::Double(a + b),
+            _ => return Err("sum() takes a list of numbers.".into()),
+        };
+    }
+    Ok(total)
 }
 
 /// `b.center()` on a Bounds (section 12.2): `[x + width / 2, y + height / 2]`, as doubles.

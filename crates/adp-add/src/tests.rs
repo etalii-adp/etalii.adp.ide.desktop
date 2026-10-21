@@ -313,6 +313,22 @@ fn a_causal_loop_diagram_is_written_with_its_bindings_template() {
 }
 
 #[test]
+fn a_sankey_diagram_is_written_with_its_empty_document() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/sankey", "flows")
+        .unwrap();
+    assert_eq!(created, folder.path().join("flows.adp"));
+    assert_eq!(read(&created), "etalii/sankey\r\n");
+    // The standalone host's `SankeyParser.EmptyDocument`: the header and both sections written flow-empty, in CRLF.
+    assert_eq!(
+        read(&folder.path().join("flows.skv")),
+        "sankey: 1\r\nnodes: []\r\nflows: []\r\n"
+    );
+}
+
+#[test]
 fn a_functional_decomposition_graph_is_written_as_its_empty_document() {
     let folder = tempfile::tempdir().unwrap();
     let target = AddTarget::Folder(folder.path().to_path_buf());

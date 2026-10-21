@@ -458,6 +458,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_causal_loop::ORIGIN,
         adp_diagram_causal_loop::TEMPLATE,
     )));
+    // `ServiceCollection.AddSankey.cs`: `SankeyParser.EmptyDocument`.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_sankey::ORIGIN,
+        adp_diagram_sankey::EMPTY_DOCUMENT,
+    )));
     // `ServiceCollection.AddFunctionalDecompositionGraph.cs`: the header and two empty sections, in CRLF.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_functional_decomposition_graph::ORIGIN,

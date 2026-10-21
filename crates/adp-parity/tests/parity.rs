@@ -32,6 +32,11 @@ fn etalii_knowledge_cities_yaml() {
 }
 
 #[test]
+fn etalii_sankey_brightwater_coffee() {
+    check("etalii/sankey/brightwater-coffee");
+}
+
+#[test]
 fn freeplane_mindmap_example_1() {
     check("freeplane/mindmap/example-1");
 }

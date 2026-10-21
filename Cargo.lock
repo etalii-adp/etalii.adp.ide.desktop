@@ -129,6 +129,7 @@ dependencies = [
  "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-sankey",
  "adp-diagram-timeline",
  "adp-fbl",
  "adp-hierarchy",
@@ -304,6 +305,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-sankey"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "saphyr-parser",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
 name = "adp-diagram-timeline"
 version = "0.1.0"
 dependencies = [
@@ -416,6 +433,7 @@ dependencies = [
  "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-sankey",
  "adp-diagram-timeline",
  "adp-disl",
  "adp-history",
@@ -470,6 +488,7 @@ dependencies = [
  "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-sankey",
  "adp-diagram-timeline",
  "adp-disl",
  "adp-documents",
