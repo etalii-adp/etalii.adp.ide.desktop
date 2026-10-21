@@ -1,0 +1,24 @@
+[package]
+name = "adp-designer-knowledge"
+description = "The Knowledge designer: a table of rows and typed properties, with views of it, in a YAML, JSON or XML file (spec 030, FR-022)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-desl = { path = "../../../crates/adp-desl" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+regex = "1"
+serde_json = "1"
+# An id is a ShortGuid: a version 4 GUID in 25 characters of base 36 (knowledge.des, persistence.ids).
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

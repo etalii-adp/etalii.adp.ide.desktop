@@ -9,3 +9,14 @@ publish = false
 
 [lints]
 workspace = true
+
+[dependencies]
+adp-cel = { path = "../adp-cel" }
+adp-fbl = { path = "../adp-fbl" }
+indexmap = "2"
+# A specification and an envelope are checked against the vendored DESL, FBL and DED schemas (DESL section 10.1).
+jsonschema = { version = "0.59", default-features = false }
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+# A specification's members are read in the order it writes them (DESL section 2.1).
+serde_json = { version = "1", features = ["preserve_order"] }
