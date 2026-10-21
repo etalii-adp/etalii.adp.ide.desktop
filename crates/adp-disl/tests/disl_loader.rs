@@ -83,7 +83,7 @@ fn the_deprecated_dedl_key_is_read_and_warned_about() {
 
     let result = DislLoader::load(json);
 
-    assert_eq!("0.1", result.specification.as_ref().unwrap().disl());
+    assert_eq!("0.1", result.specification.as_ref().unwrap().disl_version());
     assert_eq!(
         vec!["warning at /dedl: 'dedl' is the deprecated alias of 'disl' (DISL §18).".to_owned()],
         result.diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>()

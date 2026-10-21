@@ -20,7 +20,7 @@ fn the_bundled_definition_loads_without_a_diagnostic() {
 
         assert!(bundled.diagnostics.is_empty(), "{:?}", bundled.diagnostics);
         assert_eq!(language, bundled.specification.language_id());
-        assert_eq!("0.3", bundled.specification.disl());
+        assert_eq!("0.3", bundled.specification.disl_version());
         let compiled = bundled.specification.expressions().len() + bundled.specification.functions().len();
         assert!(
             compiled >= at_least,

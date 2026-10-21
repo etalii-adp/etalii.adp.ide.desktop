@@ -102,7 +102,7 @@ impl DislSpecification {
     }
 
     /// The DISL version it targets (section 2.9): `0.1`, `0.2` or `0.3`.
-    pub fn disl(&self) -> &str {
+    pub fn disl_version(&self) -> &str {
         json::string_of(&self.0.root, "disl")
             .or_else(|| json::string_of(&self.0.root, "dedl"))
             .unwrap_or("")
