@@ -129,15 +129,28 @@ pub fn row(
     let Some(declared) = declared.filter(|_| json::string_of(item, "kind") != Some("computed")) else {
         return DislTransaction::refused(format!("'{row}' cannot be edited here."));
     };
-    let written = match &chosen {
-        Value::String(typed) => {
-            match values::from_read(&Value::String(typed.clone()), declared, specification.metamodel()) {
+    set(specification, element, declared, &chosen, value)
+}
+
+/// The transaction that sets attribute `declared` of `element` to `chosen`, a text typed as the attribute is; refused
+/// when the text is not a value of it.
+fn set(
+    specification: &DislSpecification,
+    element: &DislElement,
+    declared: &crate::DislAttribute,
+    chosen: &Value,
+    typed: &str,
+) -> DislTransaction {
+    let written = match chosen {
+        Value::String(text) => {
+            match values::from_read(&Value::String(text.clone()), declared, specification.metamodel()) {
                 Some(value) => value,
-                None => return DislTransaction::refused(format!("'{value}' is not a value of {}.", declared.name)),
+                None => return DislTransaction::refused(format!("'{typed}' is not a value of {}.", declared.name)),
             }
         }
         other => other.clone(),
     };
+    let element_type = element.element_type();
     let mut attributes = Map::default();
     attributes.insert(
         declared.name.clone(),
@@ -152,6 +165,31 @@ pub fn row(
         host_actions: Vec::new(),
         refusal: None,
     }
+}
+
+/// What writing `text` to attribute `attribute` of `element` does, as an inline edit of a label bound to it does
+/// (section 6.12): on a read-only diagram `std.readOnly`, else the attribute set to the text, typed as it is.
+pub fn attribute(
+    specification: &DislSpecification,
+    element: &DislElement,
+    attribute: &str,
+    text: &str,
+    env: &DislEnv,
+) -> DislTransaction {
+    if env.read_only {
+        let variables = variables(Some(element), Value::from(text), &env.to_cel(), None);
+        return DislTransaction::refused(evaluation::standard_message(
+            specification,
+            "std.readOnly",
+            &variables,
+            "This diagram is read-only.",
+        ));
+    }
+    let element_type = element.element_type();
+    let Some(declared) = element_type.attributes.get(attribute) else {
+        return DislTransaction::refused(format!("'{attribute}' cannot be edited here."));
+    };
+    set(specification, element, declared, &Value::from(text), text)
 }
 
 /// The refusal of a parse's `accepts` that does not hold, when it does not.
@@ -286,8 +324,10 @@ pub fn refusal(
 
 /// What committing the inline edit `text` of `element`'s label `label` does (DISL 0.3 section 6.12): on a read-only
 /// diagram `std.readOnly`; then the label's `parse`, whose `accepts` refuses with its `refusal` and whose `write`
-/// makes the transaction. A label without a `parse`, or with none of that id, cannot be edited. The refusal is the
-/// label's editor's alone: a form item on the same attribute keeps its own validation.
+/// makes the transaction; without a `parse`, the text written to the attribute its `editText` binds, else to the one
+/// its `text` binds, since an attribute binding makes a label editable. A label that has none of these, or no label
+/// of that id, cannot be edited. The refusal is the label's editor's alone: a form item on the same attribute keeps
+/// its own validation.
 pub fn label(
     specification: &DislSpecification,
     element: &DislElement,
@@ -308,7 +348,13 @@ pub fn label(
         return DislTransaction::refused(format!("'{label}' cannot be edited here."));
     };
     let Some(parse) = json::get(found, "parse") else {
-        return DislTransaction::refused(format!("'{label}' cannot be edited here."));
+        let bound = ["editText", "text"]
+            .iter()
+            .find_map(|key| json::string_of(json::get(found, key)?, "attribute"));
+        return match bound {
+            Some(bound) => attribute(specification, element, bound, text, env),
+            None => DislTransaction::refused(format!("'{label}' cannot be edited here.")),
+        };
     };
     let parse_pointer = json::pointer(&pointer, "parse");
     if let Some(refused) = refused_by(
@@ -330,8 +376,9 @@ pub fn label(
     runner.transaction()
 }
 
-/// The text the inline editor of `element`'s label `label` opens on (section 6.12): its `editText`, else its `text`;
-/// none when there is no such label or it does not evaluate to text.
+/// The text the inline editor of `element`'s label `label` opens on (section 6.12): its `editText`, else its `text`,
+/// the value of the attribute it binds or the text its expression gives; none when there is no such label or it does
+/// not evaluate to text.
 pub fn edit_text(
     specification: &DislSpecification,
     element: &DislElement,
@@ -345,6 +392,12 @@ pub fn edit_text(
         "text"
     };
     let json = json::get(found, key)?;
+    if let Some(attribute) = json::string_of(json, "attribute") {
+        return match element.value_of(attribute) {
+            Value::Null => Some(String::new()),
+            value => Some(evaluation::text_of(&value)),
+        };
+    }
     match evaluation::expression(
         specification,
         json,

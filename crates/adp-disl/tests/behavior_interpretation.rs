@@ -391,3 +391,51 @@ fn the_hype_cycle_graphs_trend_removal_is_confirmed_with_its_influence_count() {
     // Assert.
     assert_eq!(Some(3), confirmation.unwrap().count);
 }
+
+#[test]
+fn an_operations_parameters_are_its_params_in_order_each_with_its_default_on_the_target() {
+    let specification = loaded(&with(
+        r#""metamodel": { "types": { "Box": { "attributes": { "name": { "type": "string" }, "count": { "type": "int" } } } } },
+        "behavior": { "operations": {
+          "recount": { "label": "Recount", "for": ["Box"],
+            "params": {
+              "count": { "type": "int", "label": "Count", "default": { "cel": "self.count + 1" } },
+              "note": { "type": "string" },
+              "sure": { "type": "bool", "label": "Sure", "default": true } },
+            "actions": [ { "set": { "count": "p.count", "name": "p.note" } } ] },
+          "plain": { "label": "Plain", "for": ["Box"], "actions": [] } } }"#,
+    ));
+    let diagram = DislDiagram::new(&specification);
+    let b = diagram.add_node("Box", "b", attrs([("count", Value::Int(4))])).unwrap();
+
+    let parameters = operations::parameters(&specification, "recount", &diagram, Some(&b), None);
+
+    let shown: Vec<String> = parameters
+        .iter()
+        .map(|p| format!("{} {} {} {}", p.name, p.label, p.type_name, p.default))
+        .collect();
+    assert_eq!(
+        vec!["count Count int 5", "note note string null", "sure Sure bool true"],
+        shown
+    );
+    assert!(operations::parameters(&specification, "plain", &diagram, Some(&b), None).is_empty());
+    assert_eq!(Some(Value::Int(7)), parameters[0].value_of(" 7 "));
+    assert_eq!(None, parameters[0].value_of("seven"));
+    assert_eq!(Some(Value::from(" as typed ")), parameters[1].value_of(" as typed "));
+    assert_eq!(Some(Value::Bool(false)), parameters[2].value_of("False"));
+
+    let answered = DislInvocation {
+        parameters: Some(attrs([("count", Value::Int(7)), ("note", "seven".into())])),
+        ..Default::default()
+    };
+    let transaction = operations::run(
+        &specification,
+        "recount",
+        &diagram,
+        Some(&b),
+        &ids::fixed(&[]),
+        Some(&answered),
+        None,
+    );
+    assert_eq!("set b count=7 name=seven", text(&transaction));
+}

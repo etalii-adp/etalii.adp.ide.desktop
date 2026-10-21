@@ -12,8 +12,8 @@
 //!
 //! How the parts fit:
 //!
-//! - [`tool::DiagramTools`] loads a tool type of the catalogue: its specification ([`disl_definition`]) and its
-//!   binding.
+//! - [`tool::DiagramTools`] loads a tool type of the catalogue: its specification ([`disl_definition`]), its
+//!   binding, and the [`module::DiagramModule`] registered for its origin, the tool type's own code.
 //! - [`workspace::DiagramWorkspace`] is one project: it opens a diagram from a registration or a body, keeps the open
 //!   [`document::DiagramDocuments`] (one per body, shared by every view) and the project's history, and reconciles a
 //!   change on disk, ending the history there.
@@ -46,7 +46,7 @@ pub use definition::{DiagramDefinition, ToolboxItem};
 pub use disl_definition::DislDiagramDefinition;
 pub use document::{DiagramChange, DiagramDocument, DiagramDocuments, DiskChange, DocumentEdit};
 pub use element::{DiagramDelta, DiagramElement, DiagramViewport, ElementKind};
-pub use module::DiagramModule;
+pub use module::{DiagramModule, ModulePlacement};
 pub use problems::{DiagramProblem, DiagramProblemLocation, DiagramProblemSeverity};
 pub use reload::{DiagramDocumentReloadBridge, FileEvent, Reload};
 pub use session::{ActionOutcome, ActionTarget, DiagramSession};

@@ -33,6 +33,7 @@ pub fn change(
         specification,
         "change",
         element,
+        None,
         evaluation::vars([
             ("attribute", Value::from(attribute)),
             ("oldValue", old_value),
@@ -57,6 +58,7 @@ pub fn placement(
         specification,
         "placement",
         element,
+        None,
         evaluation::vars([
             ("gesture", Value::from(gesture)),
             ("oldBounds", Value::map(old_bounds)),
@@ -70,11 +72,40 @@ pub fn placement(
     )
 }
 
-/// The refusals of a gesture of `kind` on `element`, its own variables in `gesture`.
+/// A connect gesture drawing a relation of `relation_type` from `source` to `target`, before the relation exists:
+/// `self` is the source, and a rule's `scope` names the relation type or one it inherits from.
+pub fn connect(
+    specification: &DislSpecification,
+    relation_type: &str,
+    source: &DislElement,
+    target: &DislElement,
+    env: Option<&DislEnv>,
+) -> Vec<DislFinding> {
+    let declared = specification.metamodel().type_of(relation_type);
+    let in_scope = |name: &str| declared.is_some_and(|t| t.is_a(name));
+    refusals(
+        specification,
+        "connect",
+        source,
+        Some(&in_scope),
+        evaluation::vars([
+            ("relationType", Value::from(relation_type)),
+            ("source", source.to_value()),
+            ("target", target.to_value()),
+            ("sourcePort", Value::Null),
+            ("targetPort", Value::Null),
+        ]),
+        env,
+    )
+}
+
+/// The refusals of a gesture of `kind` on `element`, its own variables in `gesture`; a rule's `scope` is judged by
+/// `in_scope` where given, else by the element's type.
 fn refusals(
     specification: &DislSpecification,
     kind: &str,
     element: &DislElement,
+    in_scope: Option<&dyn Fn(&str) -> bool>,
     gesture: Vars,
     env: Option<&DislEnv>,
 ) -> Vec<DislFinding> {
@@ -105,7 +136,11 @@ fn refusals(
             continue;
         }
         let scope = json::strings_of(rule, "scope");
-        if !scope.is_empty() && !scope.iter().any(|s| element.is_a(s)) && !scope.iter().any(|s| s == "*") {
+        let applies = |s: &String| match in_scope {
+            Some(in_scope) => in_scope(s),
+            None => element.is_a(s),
+        };
+        if !scope.is_empty() && !scope.iter().any(applies) && !scope.iter().any(|s| s == "*") {
             continue;
         }
         if let Some(when) = json::get(rule, "when")

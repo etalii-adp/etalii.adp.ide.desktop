@@ -86,7 +86,8 @@ impl DiagramHost {
         DiagramHost {
             tools: adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                 DislPluginFunctions::none()
-            })),
+            }))
+            .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module()),
             workspaces: HashMap::new(),
         }
     }

@@ -155,7 +155,8 @@ impl DiagramTools {
         }
     }
 
-    /// These tool types with `module` added to the tool type of `origin`.
+    /// These tool types with `module` added to the tool type of `origin`: its plugin functions take the place of
+    /// what `plugins` gives for that origin, and its session asks it what the specification cannot state.
     pub fn with_module(mut self, origin: &str, module: Rc<dyn DiagramModule>) -> Self {
         self.loaded.remove(origin);
         self.modules.insert(origin.to_owned(), module);
@@ -171,10 +172,17 @@ impl DiagramTools {
         if !self.loaded.contains_key(origin) {
             let loaded = match self.catalogue.by_origin(origin) {
                 None => Err(format!("No tool type '{origin}' is known.")),
-                Some(tool_type) => DiagramTool::load(tool_type, &(self.plugins)(origin)).map(|mut tool| {
-                    tool.module = self.modules.get(origin).cloned();
-                    Rc::new(tool)
-                }),
+                Some(tool_type) => {
+                    let module = self.modules.get(origin).cloned();
+                    let plugins = match &module {
+                        Some(module) => module.plugin_functions(),
+                        None => (self.plugins)(origin),
+                    };
+                    DiagramTool::load(tool_type, &plugins).map(|mut tool| {
+                        tool.module = module;
+                        Rc::new(tool)
+                    })
+                }
             };
             self.loaded.insert(origin.to_owned(), loaded);
         }

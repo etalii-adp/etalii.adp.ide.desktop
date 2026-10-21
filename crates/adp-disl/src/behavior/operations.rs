@@ -50,6 +50,91 @@ fn operation_of<'a>(specification: &'a DislSpecification, id: &str) -> Option<&'
     )
 }
 
+/// One parameter an operation asks for before it runs (section 9.3, `params`): its name, the label its dialog shows,
+/// its type, and the value the dialog opens with (its `default`, evaluated on the target).
+#[derive(Debug, Clone)]
+pub struct DislOperationParameter {
+    pub name: String,
+    pub label: String,
+    pub type_name: String,
+    pub default: Value,
+}
+
+impl DislOperationParameter {
+    /// The text typed for the parameter as the value `p` binds: a number for an `int` or a `double`, a truth value
+    /// for a `bool`, else the text itself; none when it does not read as its type.
+    pub fn value_of(&self, text: &str) -> Option<Value> {
+        let trimmed = text.trim();
+        match self.type_name.as_str() {
+            "int" | "integer" | "long" => trimmed.parse().ok().map(Value::Int),
+            "double" | "number" | "float" => trimmed.parse().ok().map(Value::Double),
+            "bool" | "boolean" => match trimmed.to_ascii_lowercase().as_str() {
+                "true" => Some(Value::Bool(true)),
+                "false" => Some(Value::Bool(false)),
+                _ => None,
+            },
+            _ => Some(Value::from(text)),
+        }
+    }
+}
+
+/// The parameters operation `operation_id` asks for on `element` (none for one `for: "diagram"`), in the order they
+/// are declared; empty for an operation that asks for none.
+pub fn parameters(
+    specification: &DislSpecification,
+    operation_id: &str,
+    diagram: &DislDiagram,
+    element: Option<&DislElement>,
+    env: Option<&DislEnv>,
+) -> Vec<DislOperationParameter> {
+    let Some(operation) = operation_of(specification, operation_id) else {
+        return Vec::new();
+    };
+    let pointer = json::pointer(&json::pointer("/behavior/operations", operation_id), "params");
+    let mut variables = variables_of(contexts::OPERATION, diagram, env);
+    variables.insert("self".into(), element.map(DislElement::to_value).unwrap_or(Value::Null));
+    variables.insert(
+        "selection".into(),
+        Value::list(element.map(DislElement::to_value).into_iter().collect()),
+    );
+    variables.insert("position".into(), Value::map(Map::default()));
+    variables.insert("p".into(), Value::map(Map::default()));
+    json::members(operation, "params")
+        .map(|(name, declared)| {
+            let at = json::pointer(&pointer, name);
+            let default = match json::get(declared, "default") {
+                Some(value) if value.is_object() => evaluation::expression(
+                    specification,
+                    value,
+                    &json::pointer(&at, "default"),
+                    contexts::OPERATION,
+                    &variables,
+                )
+                .unwrap_or(Value::Null),
+                Some(value) => values::to_value(value),
+                None => Value::Null,
+            };
+            let label = match json::get(declared, "label") {
+                Some(label) => evaluation::message(
+                    specification,
+                    label,
+                    &json::pointer(&at, "label"),
+                    contexts::OPERATION,
+                    &variables,
+                    name,
+                ),
+                None => name.clone(),
+            };
+            DislOperationParameter {
+                name: name.clone(),
+                label,
+                type_name: json::string_of(declared, "type").unwrap_or("string").to_owned(),
+                default,
+            }
+        })
+        .collect()
+}
+
 /// Runs operation `operation_id` on `element` (none for one `for: "diagram"`).
 pub fn run(
     specification: &DislSpecification,
