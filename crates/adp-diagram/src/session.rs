@@ -1223,7 +1223,7 @@ impl DiagramSession {
             &working,
             &existing,
             "target",
-            &bounds(x, y),
+            &position_at(document, x, y),
             ids,
             Some(&self.env),
         );

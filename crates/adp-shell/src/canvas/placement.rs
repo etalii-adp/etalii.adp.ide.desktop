@@ -10,6 +10,13 @@
 //! is the number of canvas units one unit of the axis takes, and its `snapping` says which axis lands on a grid. A
 //! position the registration's `layout:` holds is already the element's centre in canvas units.
 //!
+//! A time axis (`kind: "time"`) is scaled as the standalone host's timeline canvas scaled it (`timelineScaleOf` in
+//! `src/diagrams/timeline/client/TimelineCanvas.tsx`): once, when the diagram is first drawn with something on it, so
+//! that the span of all its elements, a tenth to spare on either side, takes 1200 canvas units, and never again under
+//! the person; an empty diagram by the axis's own `scale` (the timeline's 20 units a day). Where the tool type's module
+//! places a node in coordinates of its own (the timeline's seconds across and 60 units a row down), its x is scaled by
+//! the time axis and its y is already in canvas units; the module snaps what a gesture writes.
+//!
 //! An element's size is its type's (`default_size` in `adp-scene`), widened to its first label where the type sizes
 //! by its content, as `elementBounds` widens it: the label's width at the label font plus 16; where the document keeps
 //! a node's size (its notation binds it, `adp_diagram::sizing`), that size, within the notation's limits. A resize
@@ -17,7 +24,7 @@
 
 use std::collections::HashMap;
 
-use adp_diagram::{Extent, Length, ResizedEdge};
+use adp_diagram::{DiagramModule, Extent, Length, ResizedEdge};
 use adp_disl::{DislDiagram, DislElement, DislSpecification, DislType};
 use adp_layout::{LayoutAlgorithm, LayoutDefinition, LayoutElement, LayoutInput, LayoutMode, TreeLayout};
 use adp_scene::definition::{ElementType, SizeRule, Sizing};
@@ -31,6 +38,80 @@ const CONTENT_PADDING: f64 = 16.0;
 
 /// The gap between elements laid out in a row because nothing places them.
 const UNPLACED_GAP: f64 = 40.0;
+
+/// The canvas units a time axis's span, with its tenth to spare either side, is fitted across (`FALLBACK_WIDTH_PX`).
+const TIME_FIT_WIDTH: f64 = 1200.0;
+
+/// The shortest span a time axis is fitted to: a day (`timelineScaleOf`).
+const DAY: f64 = 86_400.0;
+
+/// What the canvas reads a node's coordinates with beside the specification.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct Scales {
+    /// Canvas units per second of a time axis, as it was frozen; none for the axis's own scale.
+    pub time: Option<f64>,
+    /// Whether the tool type's module places the node in coordinates of its own.
+    pub module: bool,
+}
+
+/// The time axis across the specification's default coordinate system: canvas units per second by its own `scale`,
+/// and the height of its ruler when it shows one.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TimeAxis {
+    pub units_per_second: f64,
+    pub ruler: Option<f64>,
+}
+
+/// The time axis across the specification's default system, when its x axis is one (`coordinates.axes.<x>.kind`).
+pub fn time_axis(specification: &DislSpecification) -> Option<TimeAxis> {
+    let coordinates = specification.root().get("coordinates")?;
+    let system = coordinates
+        .get("default")
+        .and_then(Json::as_str)
+        .and_then(|name| coordinates.get("systems")?.get(name))?;
+    let axis = coordinates.get("axes")?.get(system.get("x")?.as_str()?)?;
+    time_axis_of(axis)
+}
+
+/// A time axis whose values are instants (`valueType: datetime`), held as seconds since the epoch; a month index
+/// (the hype cycle's `yearMonth`) is an axis of plain numbers.
+fn time_axis_of(axis: &Json) -> Option<TimeAxis> {
+    if axis.get("kind").and_then(Json::as_str) != Some("time")
+        || axis.get("valueType").and_then(Json::as_str) != Some("datetime")
+    {
+        return None;
+    }
+    let scale = axis.get("scale");
+    let size = scale.and_then(|s| s.get("size")).and_then(Json::as_f64).unwrap_or(20.0);
+    let unit = match scale.and_then(|s| s.get("unit")).and_then(Json::as_str) {
+        Some("second") => 1.0,
+        Some("minute") => 60.0,
+        Some("hour") => 3_600.0,
+        Some("week") => 7.0 * DAY,
+        _ => DAY,
+    };
+    let ruler = axis
+        .get("ruler")
+        .filter(|r| r.get("visible").and_then(Json::as_bool) == Some(true))
+        .map(|r| r.get("size").and_then(Json::as_f64).unwrap_or(24.0));
+    Some(TimeAxis {
+        units_per_second: size / unit,
+        ruler,
+    })
+}
+
+/// The scale `timelineScaleOf` freezes for elements spanning `spans` (each a begin and an end, in seconds): their
+/// whole span, at least a day, a tenth to spare either side, across 1200 canvas units; none for no element.
+pub fn fitted_time_scale(spans: impl IntoIterator<Item = (f64, f64)>) -> Option<f64> {
+    let (begin, end) = spans.into_iter().fold(None, |known: Option<(f64, f64)>, (b, e)| {
+        Some(match known {
+            Some((low, high)) => (low.min(b), high.max(e.max(b))),
+            None => (b, e.max(b)),
+        })
+    })?;
+    let span = (end - begin).max(DAY);
+    Some(TIME_FIT_WIDTH / (span * 1.2))
+}
 
 /// How one element's position in the diagram's units maps onto the canvas.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -55,13 +136,13 @@ impl Default for Mapping {
 }
 
 impl Mapping {
-    /// The mapping of `element`, read from the specification's notation and coordinates.
-    pub fn of(specification: &DislSpecification, element: &DislElement) -> Mapping {
-        Self::of_type(specification, &element.element_type())
+    /// The mapping of `element`, read from the specification's notation and coordinates and `scales`.
+    pub fn of(specification: &DislSpecification, element: &DislElement, scales: Scales) -> Mapping {
+        Self::of_type(specification, &element.element_type(), scales)
     }
 
     /// The mapping of a node of `node_type`.
-    pub fn of_type(specification: &DislSpecification, node_type: &DislType) -> Mapping {
+    pub fn of_type(specification: &DislSpecification, node_type: &DislType, scales: Scales) -> Mapping {
         let root = specification.root();
         let Some(nodes) = root
             .get("notation")
@@ -85,17 +166,32 @@ impl Mapping {
             .get("system")
             .and_then(Json::as_str)
             .and_then(|name| root.get("coordinates")?.get("systems")?.get(name));
-        let axis_scale = |axis: &str| -> f64 {
+        let axis_of = |axis: &str| {
             system
                 .and_then(|s| s.get(axis))
                 .and_then(Json::as_str)
                 .and_then(|name| root.get("coordinates")?.get("axes")?.get(name))
+        };
+        let axis_scale = |axis: &str| -> f64 {
+            let declared = axis_of(axis);
+            if let Some(time) = declared.and_then(time_axis_of) {
+                return scales.time.unwrap_or(time.units_per_second);
+            }
+            if scales.module {
+                // The module's own coordinates are canvas units already, but for time.
+                return 1.0;
+            }
+            declared
                 .and_then(|a| a.get("scale"))
                 .and_then(Json::as_f64)
                 .filter(|s| *s > 0.0)
                 .unwrap_or(1.0)
         };
         let snap = |axis: &str| -> Option<f64> {
+            if scales.module {
+                // The module lands what a gesture writes on its own lattice: a day, a row.
+                return None;
+            }
             let snapping = system?.get("snapping")?;
             if snapping.get("mode").and_then(Json::as_str) == Some("never") {
                 return None;
@@ -153,15 +249,15 @@ impl Mapping {
 
 /// The mapping a drop on the empty canvas uses: that of the first node type placed by its attributes, else the
 /// registration's.
-pub fn drop_mapping(specification: &DislSpecification, diagram: &DislDiagram) -> Mapping {
+pub fn drop_mapping(specification: &DislSpecification, diagram: &DislDiagram, scales: Scales) -> Mapping {
     let metamodel = specification.metamodel();
     metamodel
         .types
         .values()
         .filter(|t| !t.is_abstract())
-        .map(|t| Mapping::of_type(specification, t))
+        .map(|t| Mapping::of_type(specification, t, scales))
         .find(|m| *m != Mapping::default())
-        .or_else(|| diagram.nodes().first().map(|n| Mapping::of(specification, n)))
+        .or_else(|| diagram.nodes().first().map(|n| Mapping::of(specification, n, scales)))
         .unwrap_or_default()
 }
 
@@ -248,7 +344,9 @@ pub struct Placed {
 /// Places every node of `diagram` that `definition` draws: at its authored position where it has one, by the tree
 /// layout when no node of the diagram has one, and in a row under the rest otherwise. A node drawn at the centre of
 /// its members is the scene's to place. Where a module's layout gave the `positions` (`laid_out`), a node it left
-/// out, under a collapsed branch, is not drawn at all.
+/// out, under a collapsed branch, is not drawn at all. A node the tool type's `module` places is read in its
+/// coordinates, a time axis at `time_scale` canvas units a second.
+#[allow(clippy::too_many_arguments)]
 pub fn place(
     definition: &DiagramDefinition,
     evaluator: &Evaluator,
@@ -257,6 +355,8 @@ pub fn place(
     extents: &HashMap<String, Extent>,
     metrics: &dyn TextMetrics,
     laid_out: bool,
+    module: Option<&dyn DiagramModule>,
+    time_scale: Option<f64>,
 ) -> Placed {
     let specification = &definition.specification;
     let mut placed = Placed::default();
@@ -269,7 +369,11 @@ pub fn place(
             continue;
         }
         placed.types.insert(element.id(), element.type_name());
-        let mapping = Mapping::of(specification, &element);
+        let scales = Scales {
+            time: time_scale,
+            module: module.is_some_and(|m| m.position(&element).is_some()),
+        };
+        let mapping = Mapping::of(specification, &element, scales);
         let mut size = size_of(element_type, evaluator, &element, metrics);
         if let Some(extent) = extents.get(&element.id()) {
             size = stored_size(size, extent, mapping, &element_type.size);
@@ -358,6 +462,29 @@ mod tests {
             Rect::new(-45.0, -20.0, 90.0, 40.0)
         );
         assert_eq!(centred.to_domain(Rect::new(-45.0, -20.0, 90.0, 40.0)), (0.0, 0.0));
+    }
+
+    #[test]
+    fn a_time_axis_is_fitted_once_to_its_span_and_an_empty_one_takes_its_own_scale() {
+        let declared = time_axis_of(&serde_json::json!({
+            "kind": "time",
+            "valueType": "datetime",
+            "scale": { "unit": "day", "size": 20 },
+            "ruler": { "visible": true, "position": "bottom", "size": 24 }
+        }))
+        .unwrap();
+        assert_eq!(declared.units_per_second, 20.0 / 86_400.0, "20 units a day");
+        assert_eq!(declared.ruler, Some(24.0));
+        assert_eq!(
+            time_axis_of(&serde_json::json!({ "kind": "linear", "scale": 60 })),
+            None
+        );
+        // A hundred days, a tenth either side, across 1200 units: ten units a day.
+        let fitted = fitted_time_scale([(0.0, 50.0 * DAY), (20.0 * DAY, 100.0 * DAY)]).unwrap();
+        assert!((fitted * DAY - 10.0).abs() < 1e-9, "{}", fitted * DAY);
+        // A single moment spans a day.
+        assert!((fitted_time_scale([(5.0, 5.0)]).unwrap() * DAY - 1000.0).abs() < 1e-9);
+        assert_eq!(fitted_time_scale([]), None);
     }
 
     #[test]

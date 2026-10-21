@@ -10,7 +10,9 @@
 //!   `compareTimes`, `dateAfter`, `today`, `writtenEnd`), over the reading of a time in [`instants`];
 //! - [`scale`] and [`placement`]: the canvas coordinates, seconds since 1970 across and 60 units per row down, and
 //!   what a gesture to a point writes (a begin in the element's own precision, a period's end that keeps its
-//!   duration, the nearest row);
+//!   duration, the nearest row); a period as long as it lasts, in seconds, and what a drag of its edge writes (its
+//!   begin or its end);
+//! - [`ruler`]: the labels of the time ruler under the canvas (`timelineTicks.ts`);
 //! - [`arrangement`]: the plugin layout `net.etalii.adp.generic.timelineRowArrange` behind Arrange diagram;
 //! - an element's computed label renamed through its `label` attribute, as the module's own rename wrote it;
 //! - giving a moment an end and removing a period's end written as the change of `end` alone: the binding tells a
@@ -21,13 +23,14 @@ pub mod arrangement;
 pub mod instants;
 pub mod placement;
 pub mod reading;
+pub mod ruler;
 pub mod scale;
 pub mod times;
 
 use std::rc::Rc;
 
 use adp_cel::{Map, Value};
-use adp_diagram::{DiagramModule, ModulePlacement};
+use adp_diagram::{DiagramModule, Extent, Length, ModulePlacement, Resize, ResizedEdge};
 use adp_disl::{DislChange, DislDiagram, DislElement, DislPluginFunctions, DislSpecification};
 
 use crate::instants::Precision;
@@ -56,6 +59,28 @@ impl DiagramModule for TimelineModule {
 
     fn placement(&self, element: &DislElement, x: f64, y: f64) -> Option<Result<ModulePlacement, String>> {
         (!element.is_relation()).then(|| placement::placement(&TimelineElement::of(element), x, y))
+    }
+
+    /// A period is as wide as it lasts, in seconds on the time axis; a moment is the notation's size.
+    fn extent(&self, element: &DislElement) -> Option<Extent> {
+        let width = placement::duration(&TimelineElement::of(element))?;
+        Some(Extent {
+            width: Some(Length::Domain(width)),
+            height: None,
+        })
+    }
+
+    /// A drag of a period's left edge writes its begin, of its right edge its end.
+    fn resize(&self, element: &DislElement, resize: &Resize) -> Option<Result<ModulePlacement, String>> {
+        if element.is_relation() {
+            return None;
+        }
+        let read = TimelineElement::of(element);
+        Some(match resize.edge {
+            ResizedEdge::Left => placement::resized(&read, true, resize.x),
+            ResizedEdge::Right => placement::resized(&read, false, resize.right),
+            ResizedEdge::Top | ResizedEdge::Bottom => Err(placement::NOT_RESIZED.to_owned()),
+        })
     }
 
     /// A point on the canvas as an addition there reads it: the date under it, its begin at the start of the day,

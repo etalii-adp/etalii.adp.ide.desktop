@@ -458,3 +458,141 @@ fn f6_a_c4_card_has_an_anchor_on_each_edge_and_a_drag_from_one_writes_nothing_an
         "and it says so"
     );
 }
+
+// ---- the timeline ----------------------------------------------------------------------------------------------------
+
+const DAY: f64 = 86_400.0;
+
+impl Harness {
+    /// The parity corpus's roadmap, through its registration, as the walk opened it.
+    fn roadmap() -> Harness {
+        let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/generic/timeline/roadmap");
+        Harness::open_from(&folder, &["roadmap.adp", "roadmap.tml"], "roadmap.adp", "roadmap.tml")
+    }
+
+    /// Screen points a day takes across, at the view's zoom.
+    fn day(&self) -> f32 {
+        (self.tab.time_scale.expect("the time axis is scaled") * DAY * self.tab.view.zoom) as f32
+    }
+
+    /// The lines of the body that differ from the original's.
+    fn changed_lines(&self) -> Vec<(String, String)> {
+        self.original
+            .lines()
+            .zip(self.written().lines().map(str::to_owned).collect::<Vec<_>>())
+            .filter(|(a, b)| a != b)
+            .map(|(a, b)| (a.to_owned(), b))
+            .collect()
+    }
+}
+
+#[test]
+fn f5_a_timeline_opens_fitted_in_readable_units_with_its_ruler_and_its_periods_as_long_as_they_last() {
+    let mut harness = Harness::roadmap();
+    harness.settle();
+    let surface = harness.tab.surface;
+    // Every element is in view, at a zoom at which a row and a label can be read.
+    for id in ["discovery", "build", "launch", "elvtk68a6tc7nniqgonud96zx"] {
+        assert!(surface.contains(harness.screen_of(id)), "{id} is in view");
+    }
+    let row = 60.0 * harness.tab.view.zoom;
+    assert!(row > 20.0, "a row is {row} points high");
+    assert!(
+        harness.texts.iter().any(|(t, _)| t.starts_with("Discov")),
+        "the labels are painted, cut to their period as the notation's ellipsis cuts them"
+    );
+    // The ruler under the canvas labels the years in view, under the instants they name.
+    let year = harness.text("2026").expect("the ruler labels 2026");
+    assert!(year.y > surface.max.y - 24.0, "along the bottom of the canvas");
+    let new_year = harness.tab.time_scale.unwrap() * 1_767_225_600.0;
+    let at = harness.tab.view.to_screen(surface, Point::new(new_year, 0.0)).x;
+    assert!((year.x - at).abs() < 40.0, "over 2026-01-01: {} and {at}", year.x);
+
+    // A period is as long as it lasts: Discovery 75 days, Private beta 45.
+    let discovery = harness.tab.bounds_of("discovery").unwrap();
+    let build = harness.tab.bounds_of("build").unwrap();
+    assert!(
+        (discovery.width / build.width - 75.0 / 45.0).abs() < 1e-6,
+        "{} and {}",
+        discovery.width,
+        build.width
+    );
+
+    // Fit to view gives the same view again; zoom out works.
+    let fitted = harness.tab.view;
+    harness.key(Key::Minus, Modifiers::NONE);
+    assert!(harness.tab.view.zoom < fitted.zoom);
+    harness.key(Key::Num0, Modifiers::NONE);
+    assert_eq!(harness.tab.view, fitted);
+}
+
+#[test]
+fn f5_a_period_dragged_by_days_moves_by_days_and_its_edge_resizes_it() {
+    let mut harness = Harness::roadmap();
+    harness.settle();
+    // Zoomed in about Private beta until a day is two points across.
+    while harness.day() < 2.0 {
+        let at = harness.screen_of("build");
+        harness.frame(wheel(at, true, Modifiers::NONE));
+    }
+    let day = harness.day();
+
+    // Seven days to the right: begin and end both a week later, the duration kept.
+    let from = harness.screen_of("build");
+    harness.drag(from, from + egui::vec2(7.0 * day, 0.0), PointerButton::Primary, true);
+    let changed = harness.changed_lines();
+    assert_eq!(
+        changed,
+        [
+            ("    begin: 2025-09-12".to_owned(), "    begin: 2025-09-19".to_owned()),
+            ("    end: 2025-10-27".to_owned(), "    end: 2025-11-03".to_owned()),
+        ],
+        "{:?}",
+        harness.tab.notice
+    );
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
+    harness.tab.changed();
+    harness.settle();
+
+    // Its right edge ten days further, away from the end anchor in its middle: the end alone.
+    let centre = harness.screen_of("build");
+    harness.click(centre, Modifiers::NONE);
+    let bounds = harness.tab.bounds_of("build").unwrap();
+    let edge = harness.tab.view.to_screen(
+        harness.tab.surface,
+        Point::new(bounds.right(), bounds.y + bounds.height * 0.2),
+    );
+    harness.drag(edge, edge + egui::vec2(10.0 * day, 0.0), PointerButton::Primary, true);
+    assert_eq!(
+        harness.changed_lines(),
+        [("    end: 2025-10-27".to_owned(), "    end: 2025-11-06".to_owned())],
+        "{:?}",
+        harness.tab.notice
+    );
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
+}
+
+#[test]
+fn f5_a_connection_from_a_period_released_on_empty_canvas_makes_its_target_at_the_date_under_it() {
+    let mut harness = Harness::roadmap();
+    harness.tab.ids = Some(Box::new(ids::fixed(&["walked", "walked-link"])));
+    harness.settle();
+    while harness.day() < 2.0 {
+        let at = harness.screen_of("build");
+        harness.frame(wheel(at, true, Modifiers::NONE));
+    }
+    let bounds = harness.tab.bounds_of("build").unwrap();
+    let end = harness
+        .tab
+        .view
+        .to_screen(harness.tab.surface, Point::new(bounds.right(), bounds.centre().y));
+    let below = end + egui::vec2(20.0 * harness.day(), (30.0 * 60.0 * harness.tab.view.zoom) as f32);
+    harness.drag(end, below, PointerButton::Primary, true);
+    let written = harness.written();
+    assert!(harness.tab.notice.is_none(), "{:?}", harness.tab.notice);
+    assert!(written.contains("id: walked"), "{written}");
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
+}

@@ -262,6 +262,8 @@ struct Cached {
     /// The canvas's own fill where the scene draws no background.
     surface: Option<Color32>,
     drop_mapping: Mapping,
+    /// The ruler of a time axis: its height in screen points and the axis's canvas units per second.
+    ruler: Option<(f64, f64)>,
 }
 
 /// A diagram open in a tab.
@@ -284,6 +286,9 @@ pub struct DiagramTab {
     followed_before_pan: bool,
     /// Whether the canvas has had the keyboard handed to it once, when its tab first drew.
     focused_once: bool,
+    /// The scale of a time axis, canvas units per second, frozen when the diagram is first drawn with something on
+    /// it, so an edit never rescales the drawing under the person (`timelineScaleOf`).
+    time_scale: Option<f64>,
     /// The selected elements and relations, the most recent last.
     pub selection: Vec<String>,
     pub arbiter: Arbiter,
@@ -321,6 +326,7 @@ impl DiagramTab {
             follows_fit: true,
             followed_before_pan: false,
             focused_once: false,
+            time_scale: None,
             selection: Vec::new(),
             arbiter: Arbiter::default(),
             editor: None,
@@ -454,14 +460,30 @@ impl DiagramTab {
         document.bind_views();
         let laid_out = document.laid_out();
         let positions = laid_out.clone().unwrap_or_else(|| document.positions());
+        let extents = document.extents();
+        let module = document.tool().module.as_deref();
+        let time_axis = placement::time_axis(specification);
+        if time_axis.is_some() && self.time_scale.is_none() {
+            // Frozen at the first drawing with something on it: each element from its begin to its end.
+            self.time_scale = placement::fitted_time_scale(positions.iter().map(|(id, (x, _))| {
+                let width = match extents.get(id).and_then(|e| e.width) {
+                    Some(adp_diagram::Length::Domain(width)) => width,
+                    _ => 0.0,
+                };
+                (*x, x + width)
+            }));
+        }
+        let time_scale = self.time_scale.or(time_axis.map(|a| a.units_per_second));
         let placed = placement::place(
             definition,
             &evaluator,
             diagram,
             &positions,
-            &document.extents(),
+            &extents,
             metrics,
             laid_out.is_some(),
+            module,
+            time_scale,
         );
         let mut rects = placed.rects.clone();
         if let Some((ids, (dx, dy))) = self.arbiter.moving() {
@@ -545,7 +567,18 @@ impl DiagramTab {
             }
         }
         let bounds = scene.bounds(metrics);
-        let drop_mapping = placement::drop_mapping(specification, diagram);
+        let drop_mapping = placement::drop_mapping(
+            specification,
+            diagram,
+            placement::Scales {
+                time: time_scale,
+                module: module.is_some_and(|m| m.position_at(0.0, 0.0).is_some()),
+            },
+        );
+        let ruler = time_axis
+            .and_then(|axis| axis.ruler)
+            .zip(time_scale)
+            .filter(|(_, scale)| *scale > 0.0);
         self.cache = Some(Cached {
             key,
             scene,
@@ -558,6 +591,7 @@ impl DiagramTab {
             bounds,
             surface,
             drop_mapping,
+            ruler,
         });
     }
 
@@ -591,6 +625,7 @@ impl DiagramTab {
             bounds,
             surface: None,
             drop_mapping: Mapping::default(),
+            ruler: None,
         });
     }
 
@@ -1607,6 +1642,9 @@ impl DiagramTab {
                 palette.foreground.gamma_multiply(0.7),
             );
         }
+        if let Some((height, scale)) = cache.ruler {
+            self.paint_ruler(&painter, palette, height as f32, scale);
+        }
         match &self.arbiter.gesture {
             gestures::Gesture::Boxing { from, to, .. } => {
                 let rect = Rect::around([*from, *to]).unwrap_or_default();
@@ -1621,6 +1659,38 @@ impl DiagramTab {
                 );
             }
             _ => {}
+        }
+    }
+
+    /// The time ruler along the bottom of the canvas (`TimelineRuler.tsx`): fixed to the view, its labels on the
+    /// boundaries `timelineTicks.ts` picks for the time in view, each over the instant it names.
+    fn paint_ruler(&self, painter: &egui::Painter, palette: &Palette, height: f32, units_per_second: f64) {
+        let surface = self.surface;
+        let band = egui::Rect::from_min_max(Pos2::new(surface.min.x, surface.max.y - height), surface.max);
+        painter.rect_filled(band, 0.0, palette.editor_background.gamma_multiply(0.92));
+        painter.line_segment(
+            [band.left_top(), band.right_top()],
+            Stroke::new(1.0, palette.foreground.gamma_multiply(0.3)),
+        );
+        let visible = self.view.visible(surface);
+        let start = visible.x / units_per_second;
+        let end = visible.right() / units_per_second;
+        for tick in adp_diagram_timeline::ruler::ticks(start, end, surface.width() as f64) {
+            let x = self
+                .view
+                .to_screen(surface, Point::new(tick.seconds * units_per_second, 0.0))
+                .x;
+            painter.line_segment(
+                [Pos2::new(x, band.top()), Pos2::new(x, band.top() + 5.0)],
+                Stroke::new(1.0, palette.foreground.gamma_multiply(0.5)),
+            );
+            painter.text(
+                Pos2::new(x + 3.0, band.center().y + 2.0),
+                egui::Align2::LEFT_CENTER,
+                tick.label,
+                egui::FontId::proportional(11.0),
+                palette.foreground.gamma_multiply(0.8),
+            );
         }
     }
 

@@ -80,6 +80,59 @@ pub fn placement(element: &TimelineElement, x: f64, y: f64) -> Result<ModulePlac
     })
 }
 
+/// How long a period lasts, in seconds, when both its times read: the width it is drawn at, on the time axis's
+/// scale (`TimelineCanvas.tsx`: `(endSecondsOf(element) - element.x) / secondsPerUnit`); none for a moment.
+pub fn duration(element: &TimelineElement) -> Option<f64> {
+    let (begin, end) = (element.begin_instant()?, element.end_instant()?);
+    Some(scale::to_seconds(end) - scale::to_seconds(begin))
+}
+
+/// What a drag of a period's left or right edge to the time `edge`, in seconds, writes: its begin or its end, in the
+/// precision it was written with, stopped at the other rather than crossing it (`onElementResized`, which sets
+/// `timeline.begin` or `timeline.end`). A moment has no edge to drag; an edge that does not move writes nothing.
+pub fn resized(element: &TimelineElement, left: bool, edge: f64) -> Result<ModulePlacement, String> {
+    let (Some(begin), Some(end), Some(written_end)) = (element.begin_instant(), element.end_instant(), &element.end)
+    else {
+        return Err(NOT_RESIZED.to_owned());
+    };
+    let mut attributes = Map::default();
+    let (new_begin, new_end) = if left {
+        let precision = element.begin_precision();
+        let at = scale::to_time(edge.min(scale::to_seconds(end)), precision);
+        let text = scale::to_text(at, precision);
+        if text != element.begin {
+            attributes.insert("begin", Value::String(text));
+        }
+        (at, end)
+    } else {
+        let precision = crate::instants::Precision::of(written_end);
+        let at = scale::to_time(edge.max(scale::to_seconds(begin)), precision);
+        let text = scale::to_text(at, precision);
+        if text != *written_end {
+            attributes.insert("end", Value::String(text));
+        }
+        (begin, at)
+    };
+    let bounds = |b: i64, e: i64| -> Map {
+        [
+            ("x", Value::Double(scale::to_seconds(b))),
+            ("y", Value::Double(scale::to_y(element.row))),
+            ("x2", Value::Double(scale::to_seconds(e))),
+        ]
+        .into_iter()
+        .collect()
+    };
+    Ok(ModulePlacement {
+        attributes,
+        old_bounds: bounds(begin, end),
+        new_bounds: bounds(new_begin, new_end),
+    })
+}
+
+/// What a resize of an element with no two times to drag answers.
+pub const NOT_RESIZED: &str =
+    "Only a period whose begin and end read can be resized; give a moment an end from its menu.";
+
 /// Refuses `changes` when one of them gives an element a begin or an end that puts its end before its begin, both
 /// read: judged from what the change writes over what `diagram` holds, so a change that does not touch the times of
 /// an element a hand edit inverted still goes through (the standalone host's placement, add and end commands).
@@ -171,6 +224,30 @@ mod tests {
         assert!(moved.attributes.contains_key("end"));
         assert!(!moved.attributes.contains_key("row"));
         assert!(placement(&build, x, y).unwrap().attributes.is_empty());
+    }
+
+    #[test]
+    fn a_period_is_as_long_as_it_lasts_and_an_edge_drag_writes_that_edge_in_its_precision() {
+        let build = element("2025-09-12", Some("2025-10-27"), 10);
+        assert_eq!(duration(&build), Some(45.0 * 86_400.0));
+        assert_eq!(duration(&element("2026-01-06", None, 11)), None);
+        let (begin, _) = position(&build);
+        let right = begin + 50.0 * 86_400.0 + 3_600.0;
+        let moved = resized(&build, false, right).unwrap();
+        assert_eq!(moved.attributes.get("end"), Some(&Value::String("2025-11-01".into())));
+        assert!(!moved.attributes.contains_key("begin"));
+        let earlier = resized(&build, true, begin - 2.0 * 86_400.0).unwrap();
+        assert_eq!(
+            earlier.attributes.get("begin"),
+            Some(&Value::String("2025-09-10".into()))
+        );
+        // An edge stops at the other one.
+        let crossed = resized(&build, true, begin + 90.0 * 86_400.0).unwrap();
+        assert_eq!(
+            crossed.attributes.get("begin"),
+            Some(&Value::String("2025-10-27".into()))
+        );
+        assert!(resized(&element("2026-01-06", None, 11), false, 0.0).is_err());
     }
 
     #[test]
