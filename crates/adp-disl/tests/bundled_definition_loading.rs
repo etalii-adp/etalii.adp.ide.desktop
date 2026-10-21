@@ -257,11 +257,43 @@ fn a_call_of_a_function_the_runtime_lacks_refuses_the_definition() {
     }
 }
 
+/// The standalone host's diagnostics this runtime does not give, because its library has a function DISL section 12.4
+/// defines and the standalone host's `DislCelLibrary` at `8b6ccfc` lacks: `formatNumber(n, pattern)` and `l.sum()`.
+/// Each is the refusal of a call to one of them, or of a call to a function that called one.
+const BEYOND_THE_STANDALONE_LIBRARY: [&str; 15] = [
+    "error at /functions/formatNumber2/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /functions/formatValue/cel: 'formatValue' calls 'formatNumber2', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/nodeDisplay/cel: 'nodeDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/flowDisplay/cel: 'flowDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/remainder/cel: The function 'sum' is not supported by this CEL evaluator.",
+    "error at /metamodel/types/Node/attributes/quantity/derived: The function 'sum' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/labels/1/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/labels/4/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/tooltip/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/tooltip/cel: The function 'flowDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /behavior/hooks/1/actions/0/set/quantity: The function 'remainder' is not supported by this CEL evaluator. (context hook)",
+    "error at /functions/formatAmount/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /notation/nodes/Stage/labels/2/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Stage/tooltip/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/labels/1/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+];
+
 /// Every `.dis` the desktop host vendors - the tool types' definitions and the DISL examples - loads with the very
-/// diagnostics the standalone host's loader gives it, and the two the standalone host bundles with none.
+/// diagnostics the standalone host's loader gives it, and the two the standalone host bundles with none; less the
+/// refusals of the library functions this runtime has beyond it ([`BEYOND_THE_STANDALONE_LIBRARY`]).
 #[test]
 fn every_vendored_definition_has_the_standalone_loaders_diagnostics() {
-    let expected = include_str!("fixtures/standalone-diagnostics.txt").replace('\r', "");
+    let recorded = include_str!("fixtures/standalone-diagnostics.txt").replace('\r', "");
+    let expected: String = recorded
+        .lines()
+        .filter(|line| !BEYOND_THE_STANDALONE_LIBRARY.contains(line))
+        .map(|line| format!("{line}\n"))
+        .collect();
+    assert_eq!(
+        recorded.lines().count() - expected.lines().count(),
+        BEYOND_THE_STANDALONE_LIBRARY.len(),
+        "every line left out is one the standalone host's loader gave"
+    );
     let mut actual = String::new();
     let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../vendor/etalii.adp");
     for (folder, path) in [("diagrams", "definitions/diagrams"), ("disl", "specifications/disl")] {

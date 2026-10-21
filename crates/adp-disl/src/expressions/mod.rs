@@ -5,6 +5,7 @@
 pub(crate) mod color;
 pub mod contexts;
 pub(crate) mod library;
+pub(crate) mod number_format;
 pub mod plugins;
 pub(crate) mod user_functions;
 pub mod year_month;
