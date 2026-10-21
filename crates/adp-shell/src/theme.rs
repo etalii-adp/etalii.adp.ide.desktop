@@ -30,6 +30,9 @@ pub struct Palette {
     pub status_bar_foreground: Color32,
     pub border: Color32,
     pub focus: Color32,
+    /// A notice over the editor, such as a file changed on disk under unsaved edits.
+    pub notification_background: Color32,
+    pub notification_foreground: Color32,
 }
 
 impl Palette {
@@ -55,6 +58,12 @@ impl Palette {
             status_bar_foreground: color(theme, &["statusBar.foreground", "foreground"], foreground),
             border,
             focus: color(theme, &["focusBorder"], Color32::LIGHT_BLUE),
+            notification_background: color(
+                theme,
+                &["notifications.background", "editorWidget.background"],
+                Color32::DARK_GRAY,
+            ),
+            notification_foreground: color(theme, &["notifications.foreground", "foreground"], foreground),
         }
     }
 }
