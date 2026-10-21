@@ -428,7 +428,32 @@ fn filter_panel(ui: &mut egui::Ui, tab: &mut TableTab, colours: &Colours) -> Opt
                                 }
                             }
                         });
-                    if takes_value(&condition.comparison) {
+                    let options = column.as_ref().map(|c| c.options.clone()).unwrap_or_default();
+                    if takes_value(&condition.comparison) && matches!(kind.as_str(), "selection" | "multipleSelection")
+                    {
+                        // An option is chosen by its name; the filter holds its id.
+                        let shown = condition.values.first().cloned().unwrap_or_default();
+                        let name = options
+                            .iter()
+                            .find(|o| o.id == shown)
+                            .map(|o| o.name.clone())
+                            .unwrap_or_else(|| shown.clone());
+                        egui::ComboBox::from_id_salt(tab.id().with(("filter-option", index)))
+                            .selected_text(name)
+                            .show_ui(ui, |ui| {
+                                for option in &options {
+                                    if ui.selectable_label(option.id == shown, &option.name).clicked()
+                                        && option.id != shown
+                                    {
+                                        gesture = Some(
+                                            TableGesture::new("setFilter")
+                                                .target(index.to_string())
+                                                .values([option.id.clone()]),
+                                        );
+                                    }
+                                }
+                            });
+                    } else if takes_value(&condition.comparison) {
                         let shown = condition.values.first().cloned().unwrap_or_default();
                         let text = tab.filter_text.entry(index).or_insert_with(|| shown.clone());
                         let response = ui.add(egui::TextEdit::singleline(text).desired_width(140.0));
@@ -682,21 +707,23 @@ fn header_row(
         let painter = ui.painter_at(cell.intersect(rect));
         painter.rect_filled(cell, 0.0, colours.surface);
         painter.vline(cell.right() - 0.5, cell.y_range(), Stroke::new(1.0, colours.border));
-        let (kind, mark) = kind_label(&column.kind);
-        let sort = tab
-            .settings
-            .sorts
-            .iter()
-            .find(|s| s.column_id == column.id)
-            .map(|s| if s.descending { " ↓" } else { " ↑" })
-            .unwrap_or_default();
-        painter.text(
-            Pos2::new(cell.left() + CELL_PADDING, cell.center().y),
+        let kind = kind_label(&column.kind);
+        let mark = Rect::from_center_size(
+            Pos2::new(cell.left() + CELL_PADDING + 7.0, cell.center().y),
+            Vec2::splat(14.0),
+        );
+        kind_mark(&painter, mark, &column.kind, colours.muted, font);
+        let name = painter.text(
+            Pos2::new(mark.right() + 6.0, cell.center().y),
             Align2::LEFT_CENTER,
-            format!("{mark}  {}{sort}", column.name),
+            &column.name,
             font.clone(),
             colours.muted,
         );
+        if let Some(sort) = tab.settings.sorts.iter().find(|s| s.column_id == column.id) {
+            let at = Pos2::new(name.right() + 8.0, cell.center().y);
+            arrow(&painter, at, sort.descending, colours.muted);
+        }
         let response = ui
             .interact(
                 cell.intersect(rect),
@@ -739,7 +766,7 @@ fn header_row(
                         if kind == "relation" {
                             continue;
                         }
-                        if ui.button(kind_label(kind).0).clicked() {
+                        if ui.button(kind_label(kind)).clicked() {
                             asked
                                 .gestures
                                 .push(TableGesture::new("addColumn").setting("type", kind));
@@ -793,13 +820,7 @@ fn line(
         painter.hline(rect.x_range(), rect.bottom() - 0.5, border);
         let left = visible.left().max(rect.left()) + CELL_PADDING;
         let toggle = Rect::from_min_size(Pos2::new(left, rect.top()), Vec2::new(16.0, ROW_HEIGHT));
-        painter.text(
-            toggle.center(),
-            Align2::CENTER_CENTER,
-            if row.collapsed { "▸" } else { "▾" },
-            font.clone(),
-            colours.muted,
-        );
+        chevron(&painter, toggle.center(), !row.collapsed, colours.muted);
         let label = painter.text(
             Pos2::new(toggle.right() + 6.0, rect.center().y),
             Align2::LEFT_CENTER,
@@ -905,13 +926,7 @@ fn cell_view(
     }
     if column.is_title && row.has_children {
         let toggle = Rect::from_min_size(Pos2::new(left, cell.top()), Vec2::new(14.0, ROW_HEIGHT));
-        painter.text(
-            toggle.center(),
-            Align2::CENTER_CENTER,
-            if row.collapsed { "▸" } else { "▾" },
-            font.clone(),
-            colours.muted,
-        );
+        chevron(&painter, toggle.center(), !row.collapsed, colours.muted);
         asked.hits.push((
             toggle,
             Hit::RowToggle {
@@ -1155,9 +1170,11 @@ fn editor(
     let reason = editing.reason.clone();
     let area = egui::Area::new(id)
         .order(egui::Order::Foreground)
+        .fade_in(false)
         .fixed_pos(cell.left_top())
         .show(ui.ctx(), |ui| {
-            egui::Frame::popup(ui.style()).show(ui, |ui| {
+            egui::Frame::popup(ui.style()).fill(colours.surface).show(ui, |ui| {
+                ui.spacing_mut().item_spacing = Vec2::new(4.0, 4.0);
                 ui.set_width(cell.width().max(220.0));
                 let field = ui.add(
                     egui::TextEdit::singleline(&mut editing.text)
@@ -1175,8 +1192,8 @@ fn editor(
                             continue;
                         }
                         let on = chosen.contains(option);
-                        let label = if on { format!("✔ {name}") } else { name.clone() };
-                        let mut text = RichText::new(label).color(colours.text);
+                        // What the cell holds is the selected entry: a list of several shows each as selected.
+                        let mut text = RichText::new(name).color(colours.text);
                         if !colour.is_empty() {
                             text = text.background_color(colours.option(colour));
                         }
@@ -1216,6 +1233,7 @@ fn editor(
 fn refusal_popup(ui: &egui::Ui, id: egui::Id, at: Pos2, reason: &str, colours: &Colours) {
     egui::Area::new(id)
         .order(egui::Order::Foreground)
+        .fade_in(false)
         .fixed_pos(at)
         .show(ui.ctx(), |ui| {
             egui::Frame::NONE
@@ -1346,5 +1364,101 @@ fn footer_line(ui: &mut egui::Ui, tab: &mut TableTab, colours: &Colours) {
         Some(true) => tab.confirm(),
         Some(false) => tab.asking = None,
         None => {}
+    }
+}
+
+/// A chevron, pointing down when what it folds is open and right when it is folded, drawn as the explorer draws
+/// its own rather than taken from a font.
+fn chevron(painter: &egui::Painter, centre: Pos2, open: bool, colour: Color32) {
+    let points = if open {
+        vec![
+            centre + Vec2::new(-4.0, -2.0),
+            centre + Vec2::new(4.0, -2.0),
+            centre + Vec2::new(0.0, 3.0),
+        ]
+    } else {
+        vec![
+            centre + Vec2::new(-2.0, -4.0),
+            centre + Vec2::new(3.0, 0.0),
+            centre + Vec2::new(-2.0, 4.0),
+        ]
+    };
+    painter.add(egui::Shape::convex_polygon(points, colour, Stroke::NONE));
+}
+
+/// A sort's direction beside its column's name: an arrow down for descending, up for ascending.
+fn arrow(painter: &egui::Painter, at: Pos2, descending: bool, colour: Color32) {
+    let (tip, tail) = if descending { (5.0, -5.0) } else { (-5.0, 5.0) };
+    let stroke = Stroke::new(1.5, colour);
+    painter.line_segment([at + Vec2::new(0.0, tail), at + Vec2::new(0.0, tip)], stroke);
+    let head = at + Vec2::new(0.0, tip);
+    let back = if descending { -3.5 } else { 3.5 };
+    painter.line_segment([head, head + Vec2::new(-3.5, back)], stroke);
+    painter.line_segment([head, head + Vec2::new(3.5, back)], stroke);
+}
+
+/// A kind's mark in its column's header, in `rect`: the standalone host's Material Design icons
+/// (`knowledgeDefinition.ts`) drawn in lines - a text's letters, a number's sign, a tick, a calendar, a clock, a
+/// selection's circled chevron, a list, and a relation's arrow out.
+fn kind_mark(painter: &egui::Painter, rect: Rect, kind: &str, colour: Color32, font: &FontId) {
+    let stroke = Stroke::new(1.2, colour);
+    let small = FontId::proportional(font.size - 2.0);
+    let c = rect.center();
+    match kind {
+        "text" => {
+            painter.text(c, Align2::CENTER_CENTER, "Aa", small, colour);
+        }
+        "number" => {
+            painter.text(c, Align2::CENTER_CENTER, "#", font.clone(), colour);
+        }
+        "checkbox" => {
+            let r = rect.shrink(2.0);
+            painter.rect_stroke(r, 2.0, stroke, StrokeKind::Inside);
+            painter.line(
+                vec![
+                    r.left_center() + Vec2::new(2.5, 0.0),
+                    r.center_bottom() + Vec2::new(-1.0, -3.0),
+                    r.right_top() + Vec2::new(-2.5, 3.0),
+                ],
+                stroke,
+            );
+        }
+        "date" | "dateTime" => {
+            let r = rect.shrink(2.0);
+            painter.rect_stroke(r, 1.5, stroke, StrokeKind::Inside);
+            painter.hline(r.x_range(), r.top() + 3.5, stroke);
+            if kind == "dateTime" {
+                painter.circle_filled(r.center() + Vec2::new(0.0, 2.0), 1.5, colour);
+            }
+        }
+        "time" => {
+            painter.circle_stroke(c, 5.5, stroke);
+            painter.line(vec![c + Vec2::new(0.0, -3.5), c, c + Vec2::new(2.5, 1.5)], stroke);
+        }
+        "selection" => {
+            painter.circle_stroke(c, 5.5, stroke);
+            painter.line(
+                vec![
+                    c + Vec2::new(-2.5, -1.0),
+                    c + Vec2::new(0.0, 1.5),
+                    c + Vec2::new(2.5, -1.0),
+                ],
+                stroke,
+            );
+        }
+        "multipleSelection" => {
+            for dy in [-3.5, 0.0, 3.5] {
+                painter.circle_filled(Pos2::new(rect.left() + 3.0, c.y + dy), 1.0, colour);
+                painter.hline(rect.left() + 5.5..=rect.right() - 1.5, c.y + dy, stroke);
+            }
+        }
+        "relation" => {
+            let (from, to) = (c + Vec2::new(-4.0, 4.0), c + Vec2::new(4.0, -4.0));
+            painter.line_segment([from, to], stroke);
+            painter.line(vec![to + Vec2::new(-5.0, 0.0), to, to + Vec2::new(0.0, 5.0)], stroke);
+        }
+        _ => {
+            painter.text(c, Align2::CENTER_CENTER, "?", small, colour);
+        }
     }
 }

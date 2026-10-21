@@ -99,20 +99,20 @@ impl EditorKind {
     }
 }
 
-/// The kind's name and the mark its header shows (`knowledgeDefinition.ts`'s labels; the standalone host draws
-/// Material Design icons, which egui has no font for).
-pub fn kind_label(kind: &str) -> (&'static str, &'static str) {
+/// The kind's name (`knowledgeDefinition.ts`'s labels). Its header's mark is drawn ([`view`]): the standalone host
+/// draws Material Design icons, which the shell's font has no glyphs for.
+pub fn kind_label(kind: &str) -> &'static str {
     match kind {
-        "text" => ("Text", "Aa"),
-        "number" => ("Number", "#"),
-        "checkbox" => ("Checkbox", "✔"),
-        "date" => ("Date", "📅"),
-        "dateTime" => ("Date and time", "📅"),
-        "time" => ("Time", "⏰"),
-        "selection" => ("Selection", "⏷"),
-        "multipleSelection" => ("Multiple selection", "☰"),
-        "relation" => ("Relation", "↗"),
-        _ => ("Unknown type", "?"),
+        "text" => "Text",
+        "number" => "Number",
+        "checkbox" => "Checkbox",
+        "date" => "Date",
+        "dateTime" => "Date and time",
+        "time" => "Time",
+        "selection" => "Selection",
+        "multipleSelection" => "Multiple selection",
+        "relation" => "Relation",
+        _ => "Unknown type",
     }
 }
 
@@ -611,6 +611,14 @@ impl TableTab {
             Ok(gesture) => self.raise(gesture),
             Err(reason) => self.refusal = reason,
         }
+    }
+}
+
+impl Drop for TableTab {
+    /// Closing a table does not lose what its author just typed: the edits still waiting are written first, as the
+    /// standalone host's session writes them before it ends.
+    fn drop(&mut self) {
+        self.session.write_pending();
     }
 }
 

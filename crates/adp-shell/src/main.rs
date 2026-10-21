@@ -15,6 +15,8 @@ mod shell;
 mod table;
 // The table's tests sit beside it, declared here so that the benchmark, which includes the table module, leaves them out.
 #[cfg(test)]
+mod screenshot;
+#[cfg(test)]
 #[path = "table/tests.rs"]
 mod table_tests;
 mod theme;

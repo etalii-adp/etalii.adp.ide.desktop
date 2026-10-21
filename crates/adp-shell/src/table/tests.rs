@@ -350,3 +350,98 @@ fn the_selected_rows_values_are_the_property_grids_rows_and_are_edited_there() {
     tab.set_property("p2", "Atlantis");
     assert_eq!(tab.refusal, "'Atlantis' is not one of the options of Country.");
 }
+
+#[test]
+fn closing_the_tab_writes_the_edits_still_waiting() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = example("cities.yaml", folder.path());
+    let mut tab = TableTab::open(&path, folder.path()).expect("opens");
+    tab.raise(TableGesture::new("setCell").row("r1").column("p1").values(["Mokum"]));
+    assert!(tab.session.has_pending_writes(), "shown, and not written yet");
+    drop(tab);
+    assert!(std::fs::read_to_string(&path).unwrap().contains("text: Mokum"));
+}
+
+#[test]
+fn the_table_is_drawn_in_the_standalone_hosts_layout_and_vs_codes_colours() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = example("cities.yaml", folder.path());
+    let mut tab = TableTab::open(&path, folder.path()).expect("opens");
+    let ctx = context();
+    let theme = adp_theme::Theme::dark();
+    let palette = Palette::of(&theme);
+    let mut textures = std::collections::HashMap::new();
+    let mut shapes = Vec::new();
+    for _ in 0..3 {
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0))),
+            ..Default::default()
+        };
+        let mut output = ctx.run_ui(input, |ui| table::show(ui, &mut tab, &theme, &palette));
+        crate::screenshot::take_textures(&mut textures, &mut output);
+        shapes = output.shapes;
+    }
+    // The view's headers and a row's values are among what was painted.
+    let mut texts = Vec::new();
+    for clipped in &shapes {
+        if let egui::Shape::Text(text) = &clipped.shape {
+            texts.push(text.galley.text().to_owned());
+        }
+    }
+    assert!(texts.iter().any(|t| t.contains("Country")), "{texts:?}");
+    assert!(texts.iter().any(|t| t == "Amsterdam"), "{texts:?}");
+    assert!(texts.iter().any(|t| t == "Map"), "the view tabs: {texts:?}");
+    let screenshots = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/screenshots");
+    crate::screenshot::write(
+        &ctx,
+        &shapes,
+        &textures,
+        egui::vec2(1280.0, 800.0),
+        palette.editor_background,
+        &screenshots.join("knowledge-cities.png"),
+    );
+
+    // The other view groups, sorts and filters: its group headings and the line a row is added at under each.
+    tab.show_view("v1");
+    tab.panel = Some(table::ViewPanel::Filter);
+    for _ in 0..3 {
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0))),
+            ..Default::default()
+        };
+        let mut output = ctx.run_ui(input, |ui| table::show(ui, &mut tab, &theme, &palette));
+        crate::screenshot::take_textures(&mut textures, &mut output);
+        shapes = output.shapes;
+    }
+    assert!(tab.held.values().any(|r| r.is_group), "a group heading is in sight");
+    crate::screenshot::write(
+        &ctx,
+        &shapes,
+        &textures,
+        egui::vec2(1280.0, 800.0),
+        palette.editor_background,
+        &screenshots.join("knowledge-cities-grouped.png"),
+    );
+
+    // A selection's list, open over its cell.
+    let line = line_of(&tab, "r1");
+    tab.start_edit(line, column(&tab, "p2"), None);
+    for _ in 0..3 {
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0))),
+            ..Default::default()
+        };
+        let mut output = ctx.run_ui(input, |ui| table::show(ui, &mut tab, &theme, &palette));
+        crate::screenshot::take_textures(&mut textures, &mut output);
+        shapes = output.shapes;
+    }
+    assert!(tab.editing.is_some(), "the list stays open");
+    crate::screenshot::write(
+        &ctx,
+        &shapes,
+        &textures,
+        egui::vec2(1280.0, 800.0),
+        palette.editor_background,
+        &screenshots.join("knowledge-cities-option-list.png"),
+    );
+}
