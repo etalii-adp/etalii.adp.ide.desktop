@@ -405,3 +405,49 @@ fn a_hype_cycle_graph_is_written_as_the_standalone_host_writes_an_empty_one() {
         "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n"
     );
 }
+
+#[test]
+fn every_reading_of_the_rdf_family_is_written_with_its_starter_body() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let adds = AddCatalogue::standalone();
+    // `ServiceCollection.AddRdf.cs`, `AddSkos.cs` and `AddShacl.cs`: each reading's empty document, in CRLF, its terms
+    // named after the file.
+    let cases = [
+        (
+            "w3c/rdf",
+            "people",
+            "@prefix ex: <http://example.org/> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\n\
+             ex:people a ex:Resource ;\r\n    rdfs:label \"people\" .\r\n",
+        ),
+        (
+            "w3c/owl",
+            "terms",
+            "@prefix : <http://example.org/terms#> .\r\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\r\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\n<http://example.org/terms> a owl:Ontology ;\r\n    \
+             rdfs:label \"terms\" .\r\n\r\n:Thing1 a owl:Class ;\r\n    rdfs:label \"First class\" .\r\n",
+        ),
+        (
+            "w3c/skos",
+            "vocabulary",
+            "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\r\n@prefix ex: <http://example.org/> .\r\n\r\n\
+             ex:vocabulary a skos:ConceptScheme ;\r\n    skos:prefLabel \"vocabulary\"@en ;\r\n    \
+             skos:hasTopConcept ex:vocabulary_top .\r\n\r\nex:vocabulary_top a skos:Concept ;\r\n    \
+             skos:prefLabel \"Top concept\"@en ;\r\n    skos:topConceptOf ex:vocabulary .\r\n",
+        ),
+        (
+            "w3c/shacl",
+            "shapes",
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\r\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\r\n\
+             @prefix ex: <http://example.org/> .\r\n\r\nex:shapesShape a sh:NodeShape ;\r\n    sh:targetClass ex:shapes ;\r\n    \
+             sh:name \"shapes\" ;\r\n    sh:property [\r\n        sh:path ex:name ;\r\n        sh:datatype xsd:string ;\r\n        \
+             sh:minCount 1 ;\r\n        sh:maxCount 1 ;\r\n    ] .\r\n",
+        ),
+    ];
+    for (origin, name, body) in cases {
+        let created = adds.commit(&target, origin, name).unwrap();
+        assert_eq!(created, folder.path().join(format!("{name}.adp")));
+        assert_eq!(read(&created), format!("{origin}\r\n"));
+        assert_eq!(read(&folder.path().join(format!("{name}.ttl"))), body, "{origin}");
+    }
+}
