@@ -5,6 +5,7 @@ The documents the edit scripts under `parity/scripts/` open, copied from the sta
 | Folder | Copied from (in `etalii.adp.ide.standalone` at `8b6ccfc`) | Script |
 |---|---|---|
 | `freeplane/mindmap/example-1/` | `src/diagrams/mindmap/examples/example 1/` (`mindmap.adp`, `mindmap.mm`, `design.mm`) | `parity/scripts/freeplane/mindmap/example-1.json` |
+| `gartner/hypecycle-graph/coal-technologies/` | `src/diagrams/gartner-hype-cycle-graph/examples/coal-technologies/` (`coal-technologies.adp`, `coal-technologies.ghg`) | `parity/scripts/gartner/hypecycle-graph/coal-technologies.json` |
 | `generic/timeline/roadmap/` | `src/diagrams/timeline/examples/example-2/` (`roadmap.adp`, `roadmap.tml`) | `parity/scripts/generic/timeline/roadmap.json` |
 | `etalii/knowledge/cities-yaml/`, `cities-json/`, `cities-xml/` | `src/designers/knowledge/examples/` (`cities.yaml`, `cities.json` or `cities.xml`, and `provinces.yaml`, the table their relation names), each with the registration `cities.adp` (`etalii/knowledge` and `body: cities.<format>`, CRLF), written as the standalone host's `KnowledgeDesignerTests` writes it | `parity/scripts/etalii/knowledge/cities-yaml.json`, `cities-json.json`, `cities-xml.json` |
 | `c4/container/courier/` | `src/diagrams/c4/examples/reference/architecture/` (the Courier Tracking model `courier.dsl`, its layout `courier.layout.json`, its seven registrations, and the `docs/` and `decisions/` folders it names) | `parity/scripts/c4/container/courier.json` |

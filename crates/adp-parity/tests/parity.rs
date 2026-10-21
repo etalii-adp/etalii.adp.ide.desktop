@@ -37,6 +37,11 @@ fn freeplane_mindmap_example_1() {
 }
 
 #[test]
+fn gartner_hypecycle_graph_coal_technologies() {
+    check("gartner/hypecycle-graph/coal-technologies");
+}
+
+#[test]
 fn generic_timeline_roadmap() {
     check("generic/timeline/roadmap");
 }

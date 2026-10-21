@@ -57,7 +57,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-051 | Helm chart (`helm/chart`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-052 | .NET dependency graph (`dotnet/dependency-graph`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-053 | Wardley map (`wardley/map`, prototype) | docs/tools.md, 9. Strategy & landscape mapping | 4 |  | planned |
-| P-054 | Gartner hype cycle graph (`gartner/hypecycle-graph`, work-in-progress) | docs/tools.md, 9. Strategy & landscape mapping | 4 |  | planned |
+| P-054 | Gartner hype cycle graph (`gartner/hypecycle-graph`, work-in-progress) | docs/tools.md, 9. Strategy & landscape mapping | 4 | adp-parity::gartner_hypecycle_graph_coal_technologies | checked |
 | P-055 | Mind map (`freeplane/mindmap`, prototype) | docs/tools.md, 10. Knowledge & informal modeling | 4 | adp-parity::freeplane_mindmap_example_1 | checked |
 | P-056 | Causal loop diagram (`systems/causal-loop-diagram`, work-in-progress) | docs/tools.md, 10. Knowledge & informal modeling | 4 |  | planned |
 | P-057 | Databricks bundle (`databricks/bundle`, prototype) | docs/tools.md, 12. Data platforms & pipeline orchestration | 4 |  | planned |
