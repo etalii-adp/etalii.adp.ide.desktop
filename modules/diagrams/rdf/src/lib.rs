@@ -103,6 +103,7 @@ impl DiagramModule for RdfModule {
         origin: &str,
         documents: &mut DiagramDocuments,
     ) -> Result<(OpenedDiagram, Rc<dyn ModuleView>), String> {
+        let mut origin = origin;
         let is_registration = path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp"));
         let (body_path, registration) = if is_registration {
             (route_registration(root, path)?, Some(path.to_path_buf()))
@@ -111,10 +112,11 @@ impl DiagramModule for RdfModule {
             let registered = beside.is_file() && fs::read_to_string(&beside).is_ok_and(|t| first_line(&t) == origin);
             if registered {
                 (path.to_path_buf(), Some(beside))
-            } else if origin == graph::ORIGIN {
-                (path.to_path_buf(), None)
             } else {
-                return Err(NOT_REGISTERED.to_owned());
+                // A bare body is the anchor's, whichever reading the workspace found first for its extension: the
+                // other readings never claim a bare body (`SharedExtension: true`).
+                origin = graph::ORIGIN;
+                (path.to_path_buf(), None)
             }
         };
         if !body_path.is_file() {
