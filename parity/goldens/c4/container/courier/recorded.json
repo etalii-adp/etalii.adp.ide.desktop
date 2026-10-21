@@ -1,0 +1,222 @@
+{
+  "script": "parity/scripts/c4/container/courier.json",
+  "tool": "c4/container",
+  "fixture": "c4/container/courier/courier.dsl",
+  "registration": "c4/container/courier/courier.containers.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T04:49:19Z",
+  "edits": 22,
+  "changed": [
+    "courier.dsl",
+    "courier.layout.json"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "web"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename element' answered 'Web Front End'"
+    },
+    {
+      "step": 2,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Describe element' answered 'Serves the single-page application and its static assets.'"
+    },
+    {
+      "step": 3,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Set technology' answered 'Java 21 and Spring Boot 3'"
+    },
+    {
+      "step": 4,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "web to (200, 250)"
+    },
+    {
+      "step": 5,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "spa by (40, -20) to (880, -20)"
+    },
+    {
+      "step": 6,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "spa->api@88"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Relabel relationship' answered 'Calls the API of'"
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Set technology' answered 'JSON/HTTPS (REST)'"
+    },
+    {
+      "step": 9,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "c4.relationship.technology = 'gRPC'"
+    },
+    {
+      "step": 10,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 11,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "c4.relationship.description = 'Scans parcels with'"
+    },
+    {
+      "step": 12,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "api"
+    },
+    {
+      "step": 13,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "c4.description = 'The booking, tracking and scan API.'"
+    },
+    {
+      "step": 14,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "database"
+    },
+    {
+      "step": 15,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "c4.name = 'Delivery Store'"
+    },
+    {
+      "step": 16,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 17,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 18,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "mobile"
+    },
+    {
+      "step": 19,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Describe element' answered 'Scans parcels at every handover.'"
+    },
+    {
+      "step": 20,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "broker to (1100, -350)"
+    },
+    {
+      "step": 21,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 22,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 23,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "broker"
+    },
+    {
+      "step": 24,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Set technology' answered 'Apache Kafka 3.7'"
+    },
+    {
+      "step": 25,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "api"
+    },
+    {
+      "step": 26,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename element' answered 'Tracking API'"
+    },
+    {
+      "step": 27,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "api by (0, 40) to (1560, 119.2)"
+    },
+    {
+      "step": 28,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

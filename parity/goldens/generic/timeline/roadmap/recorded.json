@@ -1,0 +1,285 @@
+{
+  "script": "parity/scripts/generic/timeline/roadmap.json",
+  "tool": "generic/timeline",
+  "fixture": "generic/timeline/roadmap/roadmap.tml",
+  "registration": "generic/timeline/roadmap/roadmap.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T04:50:24Z",
+  "edits": 24,
+  "changed": [
+    "roadmap.tml"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 11,
+      "id": "5145cgsig0g34e4n2dp4iai45",
+      "type": "generic/timeline+period",
+      "connection": false
+    },
+    {
+      "step": 11,
+      "id": "3dfmzs0d8pwpt928cibdrh7ov",
+      "type": "generic/timeline+connection",
+      "connection": true
+    },
+    {
+      "step": 12,
+      "id": "c4qgp4oqci858y80fhlgerkyu",
+      "type": "generic/timeline+period",
+      "connection": false
+    },
+    {
+      "step": 12,
+      "id": "82a43mdasvimzhe087ojxloaj",
+      "type": "generic/timeline+connection",
+      "connection": true
+    },
+    {
+      "step": 16,
+      "id": "3t7vniw5x9jk4wdchfa0rk3fo",
+      "type": "generic/timeline+connection",
+      "connection": true
+    },
+    {
+      "step": 19,
+      "id": "arbg82ztuqr5xmtlzdhxp60fi",
+      "type": "generic/timeline+period",
+      "connection": false
+    },
+    {
+      "step": 20,
+      "id": "bqhcw98ovn10iazz3hhy3xx6o",
+      "type": "generic/timeline+moment",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "discovery"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename' answered 'Discovery phase'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "timeline.end = '2025-02-28'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "timeline.row = '5'"
+    },
+    {
+      "step": 4,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "build by (604800, 0) to (1758240000, 600)"
+    },
+    {
+      "step": 5,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "launch to (1768262400, 720)"
+    },
+    {
+      "step": 6,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "launch"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Give it an end' answered '2026-02-01'"
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 9,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 10,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "build"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 13,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "timeline.label = 'Hardening'"
+    },
+    {
+      "step": 14,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "c1"
+    },
+    {
+      "step": 15,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Relabel' answered 'informs the beta'"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:discovery->launch"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on 3t7vniw5x9jk4wdchfa0rk3fo"
+    },
+    {
+      "step": 18,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 19,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:1790000000,15"
+    },
+    {
+      "step": 20,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:1795000000,16"
+    },
+    {
+      "step": 21,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "arbg82ztuqr5xmtlzdhxp60fi"
+    },
+    {
+      "step": 22,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 23,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 24,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 25,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "6ez55ypjmbp2zawzfvphb4rbr"
+    },
+    {
+      "step": 26,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; confirmation 'Remove' answered ''"
+    },
+    {
+      "step": 27,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 28,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "launch"
+    },
+    {
+      "step": 29,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "timeline.begin = '2026-01-20'"
+    },
+    {
+      "step": 30,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 31,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

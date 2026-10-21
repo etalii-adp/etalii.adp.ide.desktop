@@ -1,0 +1,246 @@
+{
+  "script": "parity/scripts/freeplane/mindmap/example-1.json",
+  "tool": "freeplane/mindmap",
+  "fixture": "freeplane/mindmap/example-1/mindmap.mm",
+  "registration": "freeplane/mindmap/example-1/mindmap.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T04:49:48Z",
+  "edits": 22,
+  "changed": [
+    "mindmap.mm"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 1,
+      "id": "ID_7w0itn6r5ibqgk8q7ifapvulm",
+      "type": "freeplane/mindmap+node",
+      "connection": false
+    },
+    {
+      "step": 2,
+      "id": "ID_d0e6nrsnd00g33qyexmxh4uim",
+      "type": "freeplane/mindmap+node",
+      "connection": false
+    },
+    {
+      "step": 4,
+      "id": "ID_4pu02b1ii8a19pqau6e674d2t",
+      "type": "freeplane/mindmap+node",
+      "connection": false
+    },
+    {
+      "step": 5,
+      "id": "ID_3xhnier0zm6riius1ipbnndy2",
+      "type": "freeplane/mindmap+node",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "ID_1guw8w5hp34usdnp25phle3s4"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename node' answered 'Culling helpers'"
+    },
+    {
+      "step": 2,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename node' answered 'Physics'"
+    },
+    {
+      "step": 3,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "ID_d0e6nrsnd00g33qyexmxh4uim"
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename node' answered 'Rigid bodies'"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + CancelInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename node' dismissed"
+    },
+    {
+      "step": 6,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "mindmap.text = 'Soft bodies'"
+    },
+    {
+      "step": 7,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "mindmap.notes = 'Cloth and ropes.'"
+    },
+    {
+      "step": 8,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "ID_cqa3pgradk667j4k35pr7kgts"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename node' answered 'Node lifecycle & pooling'"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Notes' answered 'Nodes are pooled, never freed mid-frame.'"
+    },
+    {
+      "step": 11,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "ID_a937863j5r3fjwlgwak0fgiqo under ID_d0e6nrsnd00g33qyexmxh4uim at 0"
+    },
+    {
+      "step": 12,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "ID_f08i7uiwmzgo6z1whb7ye3hrp"
+    },
+    {
+      "step": 13,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 14,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 15,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 16,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "ID_43s3dbv7dz34umql6dwza7lwb"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; confirmation 'Delete branch?' answered ''"
+    },
+    {
+      "step": 18,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 19,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "mindmap.link = 'design.mm'"
+    },
+    {
+      "step": 20,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "ID_5eb2r180uk2p4ys1q0tkiwil6"
+    },
+    {
+      "step": 21,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 22,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 23,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 24,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "ID_3vzd42ia4t4r6unkd5v7vzppa"
+    },
+    {
+      "step": 25,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; choice 'Link to' answered 'design.mm'"
+    },
+    {
+      "step": 26,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "mindmap.text = 'Storage'"
+    },
+    {
+      "step": 27,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "ID_btdpge28u4joa6ni21k7cpe3c under ID_1z8lmh0t5m59d4qdgnded2jtd at -1"
+    },
+    {
+      "step": 28,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

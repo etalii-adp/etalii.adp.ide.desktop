@@ -13,6 +13,7 @@ members = [
     "crates/adp-fbl",
     "crates/adp-disl",
     "crates/adp-scene",
+    "crates/adp-diagram",
     "crates/adp-desl",
     "crates/adp-cel",
     "crates/adp-theme",
@@ -38,3 +39,9 @@ unsafe_code = "deny"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
+
+# The layouts run optimised in debug builds too: a canvas laid out by the unoptimised force layout lags, and its at-size
+# test holds a pass to a multiple of a reference workload timed beside it, which only means something when both are
+# compiled alike (adp-layout `tests/tiered_force_layout.rs`).
+[profile.dev.package.adp-layout]
+opt-level = 3
