@@ -22,6 +22,13 @@ use crate::tool::DiagramTools;
 /// The refusal of a path that names no diagram, as the standalone host words it.
 pub const CANNOT_OPEN: &str = "The diagram cannot be opened.";
 
+/// Whether the file at `path` is a registration: its name ends in `.adp`, a folder's `.adp` alone included
+/// (`DiagramFilePair.IsRegistrationFile`), which is how a folder subject such as `ansible/structure` is registered.
+pub fn is_registration(path: &Path) -> bool {
+    path.file_name()
+        .is_some_and(|n| n.to_string_lossy().to_lowercase().ends_with(".adp"))
+}
+
 /// What an open resolved: the tool type, the body and the registration it was opened through.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OpenedDiagram {
@@ -85,7 +92,7 @@ impl DiagramWorkspace {
         if !full.starts_with(normalise(&self.root)) || !full.is_file() {
             return None;
         }
-        let origin = if full.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
+        let origin = if is_registration(&full) {
             RegistrationDocument::read(fs::read(&full).ok()?).origin
         } else {
             tools
@@ -113,8 +120,7 @@ impl DiagramWorkspace {
         if !full.starts_with(normalise(&self.root)) || !full.is_file() {
             return Err(CANNOT_OPEN.to_owned());
         }
-        let is_registration = full.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp"));
-        if is_registration {
+        if is_registration(&full) {
             let bytes = fs::read(&full).map_err(|_| CANNOT_OPEN.to_owned())?;
             let registration = RegistrationDocument::read(bytes);
             let origin = registration.origin.clone();

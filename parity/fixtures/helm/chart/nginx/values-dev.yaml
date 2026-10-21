@@ -1,0 +1,9 @@
+# ADP-authored override file for the helm/chart example (not part of the upstream
+# bitnami/nginx chart - see provenance.md). Demonstrates the values layering the
+# diagram draws: this file overrides values.yaml for a development environment.
+replicaCount: 1
+service:
+  type: ClusterIP
+resourcesPreset: nano
+metrics:
+  enabled: false
