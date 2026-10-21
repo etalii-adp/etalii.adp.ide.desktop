@@ -1,0 +1,149 @@
+causal-loop 1
+
+# Is a Business Philosophy study applicable at a university of applied sciences?
+#
+# Written for this repository. A university of applied sciences is judged by
+# what its graduates can do in practice, and philosophy is easily heard as the
+# opposite of that. This diagram does not answer the question with a yes or a
+# no. It shows the feedback that decides it: the loops that make such a study
+# more applicable the longer it runs, and the loops that quietly work against
+# it. Nothing here is simulated; the weights are annotations.
+#
+# The study's own stance is in the model too. It does not promise concrete
+# solutions to wicked problems such as polarization, climate change or social
+# and mental wellbeing. It promises more and better insight into them, and the
+# loops below say why that is the more applicable promise, not the less.
+#
+# The arrangement is authored: the positions are in the .adp beside this file,
+# and three links are flipped so that their arcs pass clear of the loop labels.
+
+# ---- variables ---------------------------------------------------------------
+
+variable applicability "Applicability in practice"
+variable fieldEngagement "Engagement of organizations"
+variable expertDiversity "Diversity of expertise"
+variable insight "Depth of shared insight"
+variable practicalTools "Practical tools in use"
+variable practiceGap "Distance from daily practice"
+variable openInquiry "Room for open inquiry"
+variable recipeUse "Tools used as recipes"
+variable coreValues "Curiosity, transparency, ethics"
+variable philosophy "Philosophical depth"
+variable trust "Trust and openness"
+variable latentWisdom "Latent wisdom made explicit"
+variable narratives "Stories and narratives"
+variable polarization "Polarization"
+variable creativeExpression "Art and creative expression"
+variable communicationRange "Communication beyond words"
+variable wickedProblems "Weight of wicked problems"
+variable quickFixPressure "Pressure for quick solutions"
+
+# ---- the field comes to the study --------------------------------------------
+# Organizations notice when graduates make a difference, and they bring their
+# cases, their people and their questions. Experts from different disciplines
+# and practices look at the same case from different sides, which is where
+# insight comes from. The delay is the point: a reputation in the professional
+# field is built over cohorts, not over a semester.
+
+link insight -> applicability + weight=1.2
+link applicability -> fieldEngagement + delayed "a reputation is built over cohorts"
+link fieldEngagement -> expertDiversity + "practitioners, guest lecturers, other disciplines"
+link expertDiversity -> insight + flipped
+
+loop R1 "Relevance draws the field" applicability fieldEngagement expertDiversity insight
+
+# ---- tools: the bridge and the trap ------------------------------------------
+# Organizations ask for something they can use on Monday morning. Practical
+# tools - dialogue formats, value mapping, Socratic conversation, scenario
+# thinking - translate philosophical ideas into work, and so close the distance
+# to daily practice. Two negative links, an even count: this is reinforcing.
+#
+# The same tools, applied mechanically, become recipes, and a recipe replaces
+# the thinking it was meant to support. One negative link: balancing. The
+# more the field asks for tools, the more this loop holds the study back.
+
+link fieldEngagement -> practicalTools +
+link practicalTools -> practiceGap - flipped "tools translate ideas into work"
+link practiceGap -> insight - flipped "insight stays in the classroom"
+
+loop R2 "Tools translate thinking" applicability fieldEngagement practicalTools practiceGap insight
+
+link practicalTools -> recipeUse +
+link recipeUse -> insight - flipped weight=0.8 "a recipe replaces the thinking"
+
+loop B1 "The toolkit trap" applicability fieldEngagement practicalTools recipeUse insight
+
+# ---- values and the philosophers ---------------------------------------------
+# Every insight raises a better question. Curiosity sends students to the
+# philosophers and their streams of thought - virtue ethics, pragmatism,
+# phenomenology, systems thinking - which give them new lenses on a case.
+#
+# Depth has a price: the further a stream of thought is from the shop floor,
+# the harder it is to share what it shows. One negative link, so this is the
+# balancing loop that keeps philosophical depth honest.
+
+link insight -> coreValues + "every answer raises a better question"
+link coreValues -> philosophy +
+link philosophy -> insight + flipped "philosophers lend new lenses"
+
+loop R3 "Questions deepen" insight coreValues philosophy
+
+link philosophy -> practiceGap + delayed
+
+loop B2 "Depth drifts from practice" insight coreValues philosophy practiceGap
+
+# ---- the wisdom organizations already have -----------------------------------
+# Organizations know more than they can say. Transparency and ethics make it
+# safe to say it; latent wisdom surfaces as stories, and stories carry insight
+# that a report cannot.
+
+link coreValues -> trust + flipped
+link trust -> latentWisdom +
+link latentWisdom -> narratives + "wisdom travels as stories"
+link narratives -> insight +
+
+loop R4 "Openness surfaces wisdom" insight coreValues trust latentWisdom narratives
+
+# ---- wicked problems and the divide ------------------------------------------
+# Polarization closes the conversation in which latent wisdom could surface.
+# Shared stories make the other side recognizable again. Two negative links:
+# reinforcing, as a vicious circle when polarization rises and a virtuous one
+# when stories win.
+
+link wickedProblems -> polarization + "climate, wellbeing, identity"
+link polarization -> trust -
+link narratives -> polarization -
+
+loop R5 "Stories soften the divide" trust latentWisdom narratives polarization
+
+# ---- more than text and voice ------------------------------------------------
+# Not everything worth saying fits in words. Images, theatre, music and making
+# things let people express what they cannot yet argue, and are heard across
+# lines where arguments are not.
+
+link trust -> creativeExpression + flipped "safe enough to show, not only tell"
+link creativeExpression -> communicationRange + flipped
+link communicationRange -> polarization - flipped "heard across lines where arguments are not"
+
+loop R6 "Art speaks across divides" trust creativeExpression communicationRange polarization
+
+# ---- insight rather than solutions -------------------------------------------
+# Wicked problems create pressure for a quick, concrete solution. That
+# pressure eats the room for open inquiry, and it is the room for inquiry that
+# produces insight. Insight in turn eases the pressure, slowly, by showing why
+# the quick solution would not have worked. Two negative links: reinforcing.
+#
+# Under pressure, tools also get applied as recipes. Again two negative links,
+# again reinforcing: the hurry that recipes come from is fed by the shallow
+# insight they produce.
+
+link wickedProblems -> quickFixPressure + flipped
+link quickFixPressure -> openInquiry - "no time for questions without answers"
+link openInquiry -> insight + weight=1.5
+link insight -> quickFixPressure - delayed "insight shows why the quick fix fails"
+
+loop R7 "Haste narrows the view" insight quickFixPressure openInquiry
+
+link quickFixPressure -> recipeUse + flipped
+
+loop R8 "Recipes for the impatient" insight quickFixPressure recipeUse
