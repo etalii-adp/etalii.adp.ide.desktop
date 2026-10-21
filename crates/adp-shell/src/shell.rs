@@ -9,6 +9,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
 
+use adp_add::AddTarget;
 use adp_context::{Reference, SelectMode, SelectionSource};
 use adp_core::state::StateFolder;
 use adp_core::{Event, Outcome, Workspace};
@@ -19,6 +20,7 @@ use adp_problems::{ProblemSet, ProblemStore, Scope};
 use adp_projects::{Project, ProjectList};
 use eframe::egui::{self, Frame, Margin, RichText};
 
+use crate::add_dialog::{AddDialog, DialogOutcome};
 use crate::canvas::{DiagramHost, DiagramTab};
 use crate::documents::OpenText;
 use crate::explorer::{Explorer, Request};
@@ -156,6 +158,8 @@ enum Pending {
         text: String,
         error: Option<String>,
     },
+    /// The add dialog (T068): a document added to a folder, or a file registered.
+    Add(Box<AddDialog>),
 }
 
 /// The window's state.
@@ -491,7 +495,55 @@ impl Shell {
             }),
             Request::ValidateAll => self.validate(Scope::Project),
             Request::Relate(path) => self.start_relate(&root, &root.join(&path)),
+            Request::Add(path) => self.start_add(&root, &path),
         }
+    }
+
+    /// Opens the add dialog on the entry at `path`: a folder to add a document to, or a file to register.
+    fn start_add(&mut self, root: &Path, path: &str) {
+        let Some(project) = &mut self.project else { return };
+        let adds = project.explorer.adds();
+        let full = root.join(path);
+        let target = if full.is_dir() {
+            AddTarget::Folder(full)
+        } else {
+            AddTarget::File(full)
+        };
+        match adds.execute(&target) {
+            Ok(prompt) => self.pending = Some(Pending::Add(Box::new(AddDialog::new(target, prompt)))),
+            Err(reason) => self.notice = Some(reason),
+        }
+    }
+
+    /// Creates what the add dialog chose; then the explorer selects the registration, its folder and its file opened
+    /// on the way, and it is opened as a double click opens it.
+    #[allow(clippy::result_large_err)]
+    fn add(&mut self, root: &Path, dialog: Box<AddDialog>) -> Result<(), (Pending, String)> {
+        let Some(project) = &mut self.project else {
+            return Ok(());
+        };
+        let adds = project.explorer.adds();
+        let Some(DialogOutcome::Submit { value, text }) = dialog.submission() else {
+            return Err((Pending::Add(dialog), "Choose one first.".to_owned()));
+        };
+        let created = match adds.commit(&dialog.target, &value, text.as_deref().unwrap_or_default()) {
+            Ok(created) => created,
+            Err(reason) => return Err((Pending::Add(dialog), reason)),
+        };
+        if let Ok(tree) = Hierarchy::scan(&project.project.path) {
+            project.tree = tree;
+        }
+        let relative = created
+            .strip_prefix(root)
+            .map(|p| p.to_string_lossy().replace('\\', "/"))
+            .unwrap_or_default();
+        let mut chain = Vec::new();
+        if ancestors_of(&project.tree.children, &relative, &mut chain) {
+            project.explorer.expanded.extend(chain);
+        }
+        project.explorer.selected = Some(relative);
+        self.open_document(&created, root);
+        Ok(())
     }
 
     /// The standalone host's question before a delete, which says that it cannot be undone.
@@ -634,6 +686,7 @@ impl Shell {
                 }
             }
             relate @ Pending::Relate { .. } => return self.relate(&root, relate),
+            Pending::Add(dialog) => return self.add(&root, dialog),
         }
         if let Some(project) = &mut self.project
             && let Ok(tree) = Hierarchy::scan(&project.project.path)
@@ -1380,7 +1433,10 @@ impl Shell {
             Pending::Delete { .. } => "Delete",
             Pending::CloseUnsaved { .. } => "Unsaved changes",
             Pending::Relate { .. } => "Add relation",
+            Pending::Add(_) => "Add",
         };
+        let theme = theme::current(ctx);
+        let adds = self.project.as_mut().map(|p| p.explorer.adds());
         egui::Modal::new(egui::Id::unique("prompt")).show(ctx, |ui| {
             ui.set_width(420.0);
             let enter = ui.input(|i| i.key_pressed(egui::Key::Enter));
@@ -1422,6 +1478,15 @@ impl Shell {
                         cancelled |= ui.button("Cancel").clicked();
                     });
                 }
+                Pending::Add(dialog) => {
+                    let target = dialog.target.clone();
+                    let validate = |name: &str| adds.as_ref().map_or(Ok(()), |a| a.validate(&target, name));
+                    match dialog.show(ui, &theme, validate) {
+                        Some(DialogOutcome::Submit { .. }) => answered = true,
+                        Some(DialogOutcome::Cancel) => cancelled = true,
+                        None => {}
+                    }
+                }
                 Pending::CloseUnsaved { index } => {
                     let name = self.tabs.get(*index).map(Tab::name).unwrap_or_default();
                     ui.heading("Unsaved changes");
@@ -1443,14 +1508,32 @@ impl Shell {
             return;
         }
         if let Err((mut back, reason)) = self.answer(pending) {
-            if let Pending::NewFolder { error, .. } | Pending::Rename { error, .. } | Pending::Relate { error, .. } =
-                &mut back
-            {
-                *error = Some(reason);
+            match &mut back {
+                Pending::NewFolder { error, .. } | Pending::Rename { error, .. } | Pending::Relate { error, .. } => {
+                    *error = Some(reason)
+                }
+                Pending::Add(dialog) => dialog.submit_error = Some(reason),
+                _ => {}
             }
             self.pending = Some(back);
         }
     }
+}
+
+/// Collects the paths of the entries above `path` in `nodes`, its folders and the file it is registered on; whether
+/// it was found.
+fn ancestors_of(nodes: &[adp_hierarchy::Node], path: &str, chain: &mut Vec<String>) -> bool {
+    for node in nodes {
+        if node.path == path {
+            return true;
+        }
+        chain.push(node.path.clone());
+        if ancestors_of(&node.children, path, chain) {
+            return true;
+        }
+        chain.pop();
+    }
+    false
 }
 
 /// The body of one question of the entry that adds a relation: the files or the options to choose from, and the
@@ -1938,6 +2021,54 @@ mod tests {
         table.undo().expect("undone");
         let provinces = std::fs::read_to_string(folder.path().join("provinces.yaml")).unwrap();
         assert!(!provinces.contains("Cities nearby"), "one undo takes both sides back");
+    }
+
+    #[test]
+    fn the_explorers_add_writes_the_document_selects_its_registration_and_opens_it() {
+        let folder = tempfile::tempdir().unwrap();
+        std::fs::create_dir(folder.path().join("plans")).unwrap();
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+
+        shell.handle(Request::Add("plans".into()));
+        frame(&ctx, &mut shell);
+        let Some(Pending::Add(mut dialog)) = shell.pending.take() else {
+            panic!("the add dialog is asked")
+        };
+        assert_eq!(dialog.prompt.title, "Add diagram");
+        dialog.choose("generic/timeline");
+        assert_eq!(dialog.name, "timeline");
+        dialog.type_name("roadmap", |_| Ok(()));
+        assert!(shell.answer(Pending::Add(dialog)).is_ok());
+
+        let plans = folder.path().join("plans");
+        assert_eq!(
+            std::fs::read(plans.join("roadmap.adp")).unwrap(),
+            b"generic/timeline\r\n"
+        );
+        assert_eq!(
+            std::fs::read(plans.join("roadmap.tml")).unwrap(),
+            b"timeline: 1\r\nelements: []\r\n"
+        );
+        let explorer = &shell.project.as_ref().unwrap().explorer;
+        assert_eq!(explorer.selected.as_deref(), Some("plans/roadmap.adp"));
+        assert!(explorer.expanded.contains("plans"));
+        assert_eq!(shell.tabs[shell.active].path(), plans.join("roadmap.adp"));
+        assert!(shell.tabs[shell.active].diagram().is_some(), "it opens on its canvas");
+
+        // The same name again is refused, and the dialog stays open with the reason.
+        shell.handle(Request::Add("plans".into()));
+        let Some(Pending::Add(mut dialog)) = shell.pending.take() else {
+            panic!("the add dialog is asked")
+        };
+        dialog.choose("generic/timeline");
+        dialog.type_name("roadmap", |_| Ok(()));
+        let Err((Pending::Add(_), reason)) = shell.answer(Pending::Add(dialog)) else {
+            panic!("refused")
+        };
+        assert_eq!(reason, "An item named 'roadmap.adp' already exists in this folder.");
     }
 
     #[test]

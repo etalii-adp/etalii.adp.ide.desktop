@@ -27,7 +27,9 @@ use std::rc::Rc;
 
 use adp_cel::Map;
 use adp_context::{ActionGroup, PropertyRow};
-use adp_disl::{DislChange, DislDiagram, DislElement, DislPluginFunctions, DislSpecification, IdSource};
+use adp_disl::{
+    DislChange, DislConstraintOptions, DislDiagram, DislElement, DislPluginFunctions, DislSpecification, IdSource,
+};
 use adp_fbl::plugins::PersistencePlugin;
 
 use crate::definition::ToolboxItem;
@@ -181,6 +183,13 @@ pub trait DiagramModule {
     /// gesture, form or operation made it. The changes as they are by default.
     fn written(&self, _diagram: &DislDiagram, changes: Vec<DislChange>) -> Result<Vec<DislChange>, String> {
         Ok(changes)
+    }
+
+    /// The findings of `document`'s constraints (DISL section 8) as the module reports them, evaluated from the
+    /// session's `options`: in the module's order, each where the module locates it, with the ids the file writes
+    /// rather than the model's. None for the specification's findings as the session reports them.
+    fn problems(&self, _document: &DiagramDocument, _options: DislConstraintOptions) -> Option<Vec<DiagramProblem>> {
+        None
     }
 }
 

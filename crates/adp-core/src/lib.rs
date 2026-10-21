@@ -2,6 +2,7 @@
 //! the desktop host's per-user state and its tool-type catalogue.
 
 pub mod catalogue;
+pub mod definitions;
 pub mod state;
 mod workspace;
 

@@ -1,0 +1,126 @@
+{
+  "script": "parity/scripts/generic/timeline/add.json",
+  "tool": "generic/timeline",
+  "fixture": "generic/timeline/add/roadmap.tml",
+  "registration": "generic/timeline/add/roadmap.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T09:20:22Z",
+  "edits": 13,
+  "changed": [
+    "added/.adp",
+    "added/classes.adp",
+    "added/components.adp",
+    "added/components.dsl",
+    "added/containers.adp",
+    "added/containers.dsl",
+    "added/context.adp",
+    "added/context.dsl",
+    "added/deployment.adp",
+    "added/deployment.dsl",
+    "added/domain.adp",
+    "added/landscape.adp",
+    "added/landscape.dsl",
+    "added/people.adp",
+    "added/plan.adp",
+    "added/plan.tml",
+    "added/the good one.adp",
+    "added/the good one.dsl"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'generic/timeline'"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'c4/context'"
+    },
+    {
+      "step": 2,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'c4/container'"
+    },
+    {
+      "step": 3,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'c4/component'"
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'c4/system-landscape'"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'c4/dynamic'"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'c4/deployment'"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'c4/code'"
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'uml/class'"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry added; choice 'Add diagram' answered 'helm/chart'"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry people.ttl; choice 'Open people.ttl as' answered 'w3c/rdf'"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "An item named 'plan.adp' already exists in this folder."
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "This folder is already registered by '.adp'."
+    }
+  ]
+}
