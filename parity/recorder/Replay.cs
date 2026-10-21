@@ -482,6 +482,12 @@ internal sealed partial class Replay : IAsyncDisposable
         {
             request.Source = new ContextSource { ElementId = new ElementId { Value = Resolve(step.Target) }, DiagramEntryId = _entryId };
         }
+        else if (step.Entry is not null)
+        {
+            // An explorer entry by its name - a folder an add creates in, a file an add registers - as its
+            // context menu sends it.
+            request.Source = new ContextSource { EntryId = await EntryIdAsync(step.Entry, cancellationToken) };
+        }
         else if (step.ActionId.StartsWith("history.", StringComparison.Ordinal))
         {
             request.Source = new ContextSource { Project = new Google.Protobuf.WellKnownTypes.Empty() };
@@ -499,7 +505,7 @@ internal sealed partial class Replay : IAsyncDisposable
         }
 
         var prompt = await NextPromptAsync(interactionId, step.Answers.Count > 0 ? PromptTimeout : NoPromptPatience, cancellationToken);
-        var log = new StringBuilder(step.Target is null ? "on the selection" : $"on {request.Source.ElementId.Value}");
+        var log = new StringBuilder(step.Target is not null ? $"on {request.Source.ElementId.Value}" : step.Entry is not null ? $"on the entry {step.Entry}" : "on the selection");
         var rpc = "ContextService.ExecuteAction";
         foreach (var answer in step.Answers)
         {

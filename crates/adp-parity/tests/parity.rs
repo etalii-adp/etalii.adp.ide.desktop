@@ -37,6 +37,11 @@ fn freeplane_mindmap_example_1() {
 }
 
 #[test]
+fn generic_timeline_add() {
+    check("generic/timeline/add");
+}
+
+#[test]
 fn generic_timeline_roadmap() {
     check("generic/timeline/roadmap");
 }

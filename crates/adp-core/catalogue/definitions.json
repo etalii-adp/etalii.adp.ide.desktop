@@ -1,0 +1,814 @@
+{
+  "source": {
+    "repository": "etalii-adp/etalii.adp.ide.standalone",
+    "path": "src/diagrams/*/backend",
+    "commit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e"
+  },
+  "definitions": [
+    {
+      "origin": "etalii/agent-activity-diagram",
+      "title": "Agent activity diagram",
+      "description": "Which agents work on which specification of which project, where (a branch and a folder) and on what system, in one picture that agents keep current.",
+      "icon": "mdi-account-hard-hat-outline",
+      "extension": ".aad",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "etalii/agent-behavior-modelling",
+      "title": "Agent Behavior Modelling",
+      "description": "A chat agent's instructions drawn as a behavior tree - what it checks, does, tries, repeats and asks - stored as the Markdown the agent reads.",
+      "icon": "mdi-robot-outline",
+      "extension": ".md",
+      "sharedExtension": true,
+      "alternateExtension": "",
+      "subject": "document",
+      "suggestsBody": {
+        "heading": [
+          "behavior",
+          "behaviour"
+        ]
+      }
+    },
+    {
+      "origin": "ansible/structure",
+      "title": "Ansible project structure",
+      "description": "What runs what, and where a value comes from: playbooks, roles, inventories and the include, import and dependency edges between them, drawn from the folder as it is.",
+      "icon": "mdi-sitemap",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "folder"
+    },
+    {
+      "origin": "archimate/application",
+      "title": "ArchiMate — Application layer",
+      "description": "How application services, components and their interfaces support the business.",
+      "icon": "mdi-apps",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "archimate/business",
+      "title": "ArchiMate — Business layer",
+      "description": "The business layer: actors, roles, processes and the services they offer each other.",
+      "icon": "mdi-domain",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "archimate/implementation-migration",
+      "title": "ArchiMate — Implementation & Migration layer",
+      "description": "The work packages, deliverables and plateaus that carry an architecture from where it is to where it should be.",
+      "icon": "mdi-transit-connection-variant",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "archimate/motivation",
+      "title": "ArchiMate — Motivation layer",
+      "description": "Why a change is wanted: stakeholders, drivers, goals and the requirements they justify.",
+      "icon": "mdi-target",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "archimate/strategy",
+      "title": "ArchiMate — Strategy layer",
+      "description": "Capabilities, resources and courses of action, above the level of any single system.",
+      "icon": "mdi-chess-knight",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "archimate/technology",
+      "title": "ArchiMate — Technology layer",
+      "description": "The nodes, devices and system software applications actually run on.",
+      "icon": "mdi-server",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "aws/architecture",
+      "title": "AWS architecture diagram",
+      "description": "How a solution is built out of AWS services, drawn with the vendor's own icon set.",
+      "icon": "mdi-aws",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "azure/architecture",
+      "title": "Azure architecture diagram",
+      "description": "How a solution is built out of Azure services, drawn with the vendor's own icon set.",
+      "icon": "mdi-microsoft-azure",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "azure-devops/pipeline",
+      "title": "Azure DevOps pipeline",
+      "description": "A CI/CD pipeline's stages, jobs and steps, and which of them wait for which.",
+      "icon": "mdi-rocket-launch-outline",
+      "extension": ".yml",
+      "sharedExtension": true,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "bpmn/process",
+      "title": "BPMN process diagram",
+      "description": "A business process as an executable flow: events, tasks, gateways and the lanes that own them.",
+      "icon": "mdi-arrow-decision",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "c4/context",
+      "title": "C4 system context diagram",
+      "description": "The system in its world: who uses it, and what it depends on. The map to start with.",
+      "icon": "mdi-earth",
+      "extension": ".dsl",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "c4/container",
+      "title": "C4 container diagram",
+      "description": "The applications and data stores that make up a system, and how they talk to each other.",
+      "icon": "mdi-package-variant",
+      "extension": ".dsl",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "c4/component",
+      "title": "C4 component diagram",
+      "description": "The components inside one container, and how each collaborates with the others.",
+      "icon": "mdi-puzzle-outline",
+      "extension": ".dsl",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "c4/code",
+      "title": "C4 code diagram",
+      "description": "The classes and their relations inside one component, at the level source code is written.",
+      "icon": "mdi-code-braces",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "c4/system-landscape",
+      "title": "C4 system landscape diagram",
+      "description": "Every system in an enterprise and how they relate, above any single one of them.",
+      "icon": "mdi-terrain",
+      "extension": ".dsl",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "c4/dynamic",
+      "title": "C4 dynamic diagram",
+      "description": "How a handful of elements collaborate to serve one scenario, step by numbered step.",
+      "icon": "mdi-motion-play-outline",
+      "extension": ".dsl",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "c4/deployment",
+      "title": "C4 deployment diagram",
+      "description": "Which containers run on which infrastructure, in one environment.",
+      "icon": "mdi-server-network",
+      "extension": ".dsl",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "systems/causal-loop-diagram",
+      "title": "Causal loop diagram",
+      "description": "How the parts of a system feed back on each other: variables joined by polarised causal links, with the loops they form identified as reinforcing or balancing.",
+      "icon": "mdi-sync-circle",
+      "extension": ".cld",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "cmap/concept-map",
+      "title": "Concept map",
+      "description": "Concepts joined by labelled phrases, so each connection states a proposition.",
+      "icon": "mdi-graph-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "contextmapper/context-map",
+      "title": "Context Mapper context map",
+      "description": "Bounded contexts and the strategic relationships between the teams that own them.",
+      "icon": "mdi-map-legend",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "d2/diagram",
+      "title": "D2 diagram",
+      "description": "A general-purpose diagram written as text and laid out automatically by D2.",
+      "icon": "mdi-drawing-box",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "databricks/bundle",
+      "title": "Databricks bundle",
+      "description": "What an asset bundle deploys: its resources, its variables, and the targets each lands on.",
+      "icon": "mdi-package-variant-closed",
+      "extension": ".yml",
+      "sharedExtension": true,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "databricks/job",
+      "title": "Databricks job",
+      "description": "A job's tasks and what each waits for - conditions, outcomes and the compute they run on.",
+      "icon": "mdi-transit-connection-horizontal",
+      "extension": ".yml",
+      "sharedExtension": true,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "databricks/pipeline",
+      "title": "Databricks pipeline",
+      "description": "A declarative pipeline's flow: source libraries through the pipeline into its catalog target.",
+      "icon": "mdi-pipe",
+      "extension": ".json",
+      "sharedExtension": true,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "ddd/context-map",
+      "title": "Context map",
+      "description": "Where each bounded context ends, and which pattern governs each boundary between them.",
+      "icon": "mdi-map-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "ddd/event-storming",
+      "title": "Event Storming",
+      "description": "A domain explored as a timeline of events, commands and the aggregates that react.",
+      "icon": "mdi-lightning-bolt-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "generic/dependencies",
+      "title": "Dependency graph",
+      "description": "What needs what - named nodes on rows, joined by directed depends-on edges, placed wherever the author puts them.",
+      "icon": "mdi-graph-outline",
+      "extension": ".dgr",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "dfd/data-flow",
+      "title": "Data flow diagram",
+      "description": "How data moves between processes, stores and outside parties - and where it crosses a trust boundary.",
+      "icon": "mdi-transfer",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "diagrams-python/cloud-infrastructure",
+      "title": "Cloud infrastructure diagram",
+      "description": "Cloud infrastructure drawn as code with the Diagrams Python library.",
+      "icon": "mdi-cloud-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "dotnet/dependency-graph",
+      "title": ".NET dependency graph",
+      "description": "Which projects a solution builds, which NuGet packages they consume, and every reference between them - read from the project files rather than drawn by hand.",
+      "icon": "mdi-file-tree-outline",
+      "extension": ".sln",
+      "sharedExtension": true,
+      "alternateExtension": ".slnx",
+      "subject": "document"
+    },
+    {
+      "origin": "erd/entity-relationship",
+      "title": "Entity-relationship diagram",
+      "description": "Entities, their attributes and the cardinality of every relationship between them.",
+      "icon": "mdi-relation-many-to-many",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "etalii/functional-decomposition-graph",
+      "title": "Functional decomposition graph",
+      "description": "What an application is made of - its screens, the actions on them, the data it keeps and the functions behind them - each owned by one parent, with Shows for where an action leads.",
+      "icon": "mdi-file-tree-outline",
+      "extension": ".fdg",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "gartner/hypecycle-graph",
+      "title": "Gartner hype cycle graph",
+      "description": "Trends placed on a shared time axis, each showing how far it has travelled through the phases of the Gartner hype cycle, with the influences trends have had on one another.",
+      "icon": "mdi-chart-bell-curve-cumulative",
+      "extension": ".ghg",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "gcp/architecture",
+      "title": "GCP architecture diagram",
+      "description": "How a solution is built out of Google Cloud services, drawn with the vendor's own icon set.",
+      "icon": "mdi-google-cloud",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "generic/swimlane",
+      "title": "Swimlane diagram",
+      "description": "A process split into lanes, so each step is visibly somebody's responsibility.",
+      "icon": "mdi-view-column-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "helm/chart",
+      "title": "Helm chart",
+      "description": "What a chart is made of and how it hangs together: metadata, the values layering, templates and the kinds they render, declared dependencies and whether charts/ actually answers them - drawn from the folder as it is.",
+      "icon": "mdi-ship-wheel",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "folder"
+    },
+    {
+      "origin": "iso/flowchart",
+      "title": "Flowchart",
+      "description": "A procedure as a flow of steps and decisions, in the ISO 5807 shapes everyone recognises.",
+      "icon": "mdi-ray-start-arrow",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "mermaid/architecture",
+      "title": "Architecture diagram",
+      "description": "Services and their connections, in Mermaid's architecture syntax.",
+      "icon": "mdi-office-building-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "mermaid/c4",
+      "title": "C4 diagram",
+      "description": "A C4 model written in Mermaid's C4 syntax rather than a dedicated tool.",
+      "icon": "mdi-earth-box",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "mermaid/class",
+      "title": "Class diagram",
+      "description": "Classes, attributes and relationships, in Mermaid's class syntax.",
+      "icon": "mdi-cube-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "mermaid/er",
+      "title": "Entity-relationship diagram",
+      "description": "Entities and relationships, in Mermaid's ER syntax.",
+      "icon": "mdi-database-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "mermaid/flowchart",
+      "title": "Flowchart",
+      "description": "A flow of steps and decisions, in Mermaid's flowchart syntax.",
+      "icon": "mdi-arrow-decision-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "mermaid/gantt",
+      "title": "Gantt chart",
+      "description": "Tasks over time, with dependencies and milestones, in Mermaid's Gantt syntax.",
+      "icon": "mdi-chart-gantt",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "mermaid/sequence",
+      "title": "Sequence diagram",
+      "description": "Messages exchanged between participants over time, in Mermaid's sequence syntax.",
+      "icon": "mdi-swap-horizontal",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "mermaid/state",
+      "title": "State diagram",
+      "description": "States and the events that move between them, in Mermaid's state syntax.",
+      "icon": "mdi-state-machine",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "freeplane/mindmap",
+      "title": "Mind map",
+      "description": "Ideas branching from one central topic, for thinking a subject through rather than specifying it.",
+      "icon": "mdi-family-tree",
+      "extension": ".mm",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "network/topology",
+      "title": "Network topology diagram",
+      "description": "Hosts, links and segments: what is connected to what, and how.",
+      "icon": "mdi-lan",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "plantuml/c4",
+      "title": "C4-PlantUML diagram",
+      "description": "A C4 model written in PlantUML with the C4-PlantUML macros.",
+      "icon": "mdi-earth-arrow-right",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "plantuml/uml",
+      "title": "UML diagram",
+      "description": "UML written as PlantUML text and rendered from it.",
+      "icon": "mdi-drawing",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "w3c/rdf",
+      "title": "RDF graph",
+      "description": "What an RDF file states: its resources, their relationships and their values, straight from Turtle or N-Triples.",
+      "icon": "mdi-graph-outline",
+      "extension": ".ttl",
+      "sharedExtension": false,
+      "alternateExtension": ".nt",
+      "subject": "document"
+    },
+    {
+      "origin": "w3c/owl",
+      "title": "OWL ontology",
+      "description": "An OWL 2 ontology's classes, hierarchy, properties and restrictions - what the file asserts, not what a reasoner would infer.",
+      "icon": "mdi-shape-outline",
+      "extension": ".ttl",
+      "sharedExtension": true,
+      "alternateExtension": ".nt",
+      "subject": "document",
+      "suggestsBody": {
+        "contains": [
+          "owl:Ontology",
+          "http://www.w3.org/2002/07/owl#Ontology"
+        ]
+      }
+    },
+    {
+      "origin": "w3c/skos",
+      "title": "SKOS concept scheme",
+      "description": "A thesaurus or controlled vocabulary: concepts under their schemes, broader and narrower drawn as a hierarchy, related links across it.",
+      "icon": "mdi-file-tree",
+      "extension": ".ttl",
+      "sharedExtension": true,
+      "alternateExtension": ".nt",
+      "subject": "document",
+      "suggestsBody": {
+        "contains": [
+          "skos:ConceptScheme",
+          "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+        ]
+      }
+    },
+    {
+      "origin": "w3c/shacl",
+      "title": "SHACL shapes",
+      "description": "The constraints a shapes graph states: node shapes as cards, their property constraints as rows, and what each one targets - drawn, never executed.",
+      "icon": "mdi-check-decagram-outline",
+      "extension": ".ttl",
+      "sharedExtension": true,
+      "alternateExtension": ".nt",
+      "subject": "document",
+      "suggestsBody": {
+        "contains": [
+          "sh:NodeShape",
+          "sh:property",
+          "http://www.w3.org/ns/shacl#NodeShape"
+        ]
+      }
+    },
+    {
+      "origin": "etalii/sankey",
+      "title": "Sankey diagram",
+      "description": "How a quantity divides and combines on its way from where it comes from to where it ends up: nodes as bars as tall as what passes through them, and flows as bands as thick as their value.",
+      "icon": "mdi-chart-sankey",
+      "extension": ".skv",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "w3c/sparql",
+      "title": "SPARQL query",
+      "description": "What a query asks: its graph pattern as nodes and edges, its variables as the joins they are, and its form and modifiers as the frame around them.",
+      "icon": "mdi-help-network-outline",
+      "extension": ".rq",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "structurizr/c4",
+      "title": "C4 model",
+      "description": "One C4 model in the Structurizr DSL, with several views generated from it.",
+      "icon": "mdi-city-variant-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "etalii/supply-chain",
+      "title": "Supply chain diagram",
+      "description": "Where goods come from and where they go: mines, suppliers, plants, distributors and consumers in their regions, the flows between them with their volumes, and the whole chain up and down from whatever is selected.",
+      "icon": "mdi-truck-delivery-outline",
+      "extension": ".supply",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "generic/timeline",
+      "title": "Timeline diagram",
+      "description": "When things happen and for how long - periods and moments on rows along a time axis, connected however the author means it.",
+      "icon": "mdi-chart-timeline",
+      "extension": ".tml",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "togaf/adm",
+      "title": "TOGAF ADM cycle diagram",
+      "description": "The TOGAF Architecture Development Method cycle and where a piece of work sits in it.",
+      "icon": "mdi-sync-circle",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/activity",
+      "title": "Activity diagram",
+      "description": "A workflow as actions, decisions and parallel branches - the UML take on a flowchart.",
+      "icon": "mdi-arrow-decision-auto",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/class",
+      "title": "Class diagram",
+      "description": "Classes, their attributes and operations, and the associations between them.",
+      "icon": "mdi-cube-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/communication",
+      "title": "Communication diagram",
+      "description": "The same collaboration as a sequence diagram, arranged by who talks to whom rather than by time.",
+      "icon": "mdi-forum-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/component",
+      "title": "Component diagram",
+      "description": "Components, the interfaces they provide and require, and how they plug together.",
+      "icon": "mdi-toy-brick-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/composite-structure",
+      "title": "Composite structure diagram",
+      "description": "What one class is made of internally: its parts, ports and connectors.",
+      "icon": "mdi-group",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/deployment",
+      "title": "Deployment diagram",
+      "description": "Artifacts placed on nodes: what is installed where, and over which links.",
+      "icon": "mdi-server-network-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/interaction-overview",
+      "title": "Interaction overview diagram",
+      "description": "Several interactions stitched into one flow, so an activity's branches lead into scenarios.",
+      "icon": "mdi-map-marker-path",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/object",
+      "title": "Object diagram",
+      "description": "A snapshot of instances and their links at one moment, to make a class diagram concrete.",
+      "icon": "mdi-shape-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/package",
+      "title": "Package diagram",
+      "description": "How a model is grouped into packages, and which package depends on which.",
+      "icon": "mdi-package-variant-closed",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/profile",
+      "title": "Profile diagram",
+      "description": "A UML extension: the stereotypes and tagged values that adapt UML to a domain.",
+      "icon": "mdi-tag-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/sequence",
+      "title": "Sequence diagram",
+      "description": "Messages between lifelines in time order, for one scenario.",
+      "icon": "mdi-swap-horizontal-bold",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/state-machine",
+      "title": "State machine diagram",
+      "description": "The states an object can be in, and the events and guards that move it between them.",
+      "icon": "mdi-state-machine",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/timing",
+      "title": "Timing diagram",
+      "description": "How states change against an explicit time axis, for timing-sensitive behaviour.",
+      "icon": "mdi-timer-sand",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "uml/use-case",
+      "title": "Use case diagram",
+      "description": "What actors want from a system, as use cases and the relationships between them.",
+      "icon": "mdi-account-group-outline",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "wardley/map",
+      "title": "Wardley map",
+      "description": "A value chain positioned against evolution, so a strategy can be argued about rather than asserted.",
+      "icon": "mdi-chart-line",
+      "extension": ".owm",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    },
+    {
+      "origin": "zachman/matrix",
+      "title": "Zachman Framework matrix",
+      "description": "The Zachman grid: six questions against six perspectives, as a checklist of what is documented.",
+      "icon": "mdi-matrix",
+      "extension": "",
+      "sharedExtension": false,
+      "alternateExtension": "",
+      "subject": "document"
+    }
+  ]
+}

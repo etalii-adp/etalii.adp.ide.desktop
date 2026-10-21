@@ -117,6 +117,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
+name = "adp-add"
+version = "0.1.0"
+dependencies = [
+ "adp-core",
+ "adp-designer-knowledge",
+ "adp-desl",
+ "adp-diagram",
+ "adp-diagram-c4",
+ "adp-diagram-mindmap",
+ "adp-diagram-timeline",
+ "adp-fbl",
+ "adp-hierarchy",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-cel"
 version = "0.1.0"
 dependencies = [
@@ -328,6 +344,7 @@ dependencies = [
 name = "adp-parity"
 version = "0.1.0"
 dependencies = [
+ "adp-add",
  "adp-context",
  "adp-core",
  "adp-designer-knowledge",
@@ -376,6 +393,7 @@ dependencies = [
 name = "adp-shell"
 version = "0.1.0"
 dependencies = [
+ "adp-add",
  "adp-cel",
  "adp-context",
  "adp-core",

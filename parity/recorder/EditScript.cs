@@ -106,6 +106,7 @@ internal abstract record Step(int Index, bool ExpectRefusal)
         {
             var args = step.TryGetProperty("args", out var a) && a.ValueKind == JsonValueKind.Object ? a : default;
             string? target = args.ValueKind == JsonValueKind.Object && args.TryGetProperty("target", out var t) ? t.GetString() : null;
+            string? entry = args.ValueKind == JsonValueKind.Object && args.TryGetProperty("entry", out var e) ? e.GetString() : null;
             var answers = new List<Answer>();
             if (args.ValueKind == JsonValueKind.Object)
             {
@@ -119,7 +120,7 @@ internal abstract record Step(int Index, bool ExpectRefusal)
                 }
             }
 
-            return new ActionStep(index, refused, action.GetString() ?? throw new ScriptException(path, $"step {index} has no action id"), target, answers);
+            return new ActionStep(index, refused, action.GetString() ?? throw new ScriptException(path, $"step {index} has no action id"), target, answers, entry);
         }
 
         if (step.TryGetProperty("property", out var property))
@@ -236,7 +237,7 @@ internal abstract record Step(int Index, bool ExpectRefusal)
 
 internal sealed record SelectStep(int Index, bool ExpectRefusal, IReadOnlyList<string> Ids) : Step(Index, ExpectRefusal);
 
-internal sealed record ActionStep(int Index, bool ExpectRefusal, string ActionId, string? Target, IReadOnlyList<Answer> Answers) : Step(Index, ExpectRefusal);
+internal sealed record ActionStep(int Index, bool ExpectRefusal, string ActionId, string? Target, IReadOnlyList<Answer> Answers, string? Entry = null) : Step(Index, ExpectRefusal);
 
 internal sealed record PropertyStep(int Index, bool ExpectRefusal, string Row, string Value, string? Target) : Step(Index, ExpectRefusal);
 
