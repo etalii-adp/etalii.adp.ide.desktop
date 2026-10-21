@@ -625,7 +625,7 @@ impl Harness {
             };
             let texture = self.textures.get(&mesh.texture_id);
             let clip = clipped.clip_rect;
-            for triangle in mesh.indices.chunks_exact(3) {
+            for triangle in mesh.indices.as_chunks::<3>().0 {
                 let [a, b, c] = [0, 1, 2].map(|i| mesh.vertices[triangle[i] as usize]);
                 let area = (b.pos - a.pos).x * (c.pos - a.pos).y - (b.pos - a.pos).y * (c.pos - a.pos).x;
                 if area.abs() < f32::EPSILON {

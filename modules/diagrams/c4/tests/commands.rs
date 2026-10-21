@@ -4,7 +4,9 @@
 //! Ported from the standalone host's `src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/C4Commands.Tests.cs` at
 //! `8b6ccfc`: a rename, a description, a technology (refused on a person), a relationship's label and protocol, a
 //! refusal for an element already gone, the bytes undo restores, the change every view hears, a write that cannot
-//! land, and a drag whose layout cannot be saved.
+//! land, and a drag whose layout cannot be saved. The last two lock a file, which only Windows refuses to write, so
+//! what only they use is unused elsewhere.
+#![cfg_attr(not(windows), allow(unused_imports, dead_code))]
 
 use std::fs;
 use std::path::{Path, PathBuf};
