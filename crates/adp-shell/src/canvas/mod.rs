@@ -84,7 +84,9 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: DiagramTools::new(Catalogue::load(vendor), |_| DislPluginFunctions::none()),
+            tools: adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
+                DislPluginFunctions::none()
+            })),
             workspaces: HashMap::new(),
         }
     }
