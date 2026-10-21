@@ -525,6 +525,32 @@ struct Asked {
     pick: Option<String>,
     create: bool,
     add_row: Option<String>,
+    /// What lies where on the lines drawn, the later over the earlier: the grid is one widget, and a press is found
+    /// on it by place, so a line makes no widget of its own - egui would keep an id per line ever drawn.
+    hits: Vec<(Rect, Hit)>,
+}
+
+/// What a press on the grid is on.
+#[derive(Debug, Clone)]
+enum Hit {
+    Cell {
+        line: usize,
+        column: usize,
+        row_id: String,
+        /// What the table is told about the cell, said when it is pointed at.
+        told: String,
+    },
+    Group {
+        key: String,
+        collapsed: bool,
+    },
+    NewRow {
+        group: String,
+    },
+    RowToggle {
+        row_id: String,
+        collapsed: bool,
+    },
 }
 
 /// The header and the window of lines: the header stays at the top while the rows scroll under it, and scrolls
@@ -550,13 +576,18 @@ fn grid(ui: &mut egui::Ui, tab: &mut TableTab, colours: &Colours, font: &FontId,
         ui.set_min_width(total);
         let last = range.end.saturating_sub(1).max(range.start);
         tab.want(range.start, last);
-        let body = ui.clip_rect();
-        let focus = ui.interact(body, grid_id, Sense::focusable_noninteractive());
-        let _ = focus;
-        for index in range {
-            let (rect, _) = ui.allocate_exact_size(Vec2::new(total, ROW_HEIGHT), Sense::hover());
+        // The grid is one widget under every line, so what is drawn over it - an editor - takes its own presses.
+        let response = ui.interact(ui.clip_rect(), grid_id, Sense::click());
+        // Each line's place follows from its index; nothing is allocated per line, so a line makes no id.
+        let origin = ui.max_rect().left_top();
+        let lines = range.len();
+        for (offset, index) in range.enumerate() {
+            let top = origin + Vec2::new(0.0, offset as f32 * ROW_HEIGHT);
+            let rect = Rect::from_min_size(top, Vec2::new(total, ROW_HEIGHT));
             line(ui, tab, colours, font, index, rect, &columns, &widths, &mut asked);
         }
+        ui.advance_cursor_after_rect(Rect::from_min_size(origin, Vec2::new(total, lines as f32 * ROW_HEIGHT)));
+        pointer(tab, response, &mut asked);
     });
     let offset = output.state.clamped_offset().x;
     header_row(ui, tab, colours, font, header, offset, &columns, &widths, &mut asked);
@@ -783,14 +814,13 @@ fn line(
             font.clone(),
             colours.muted,
         );
-        let response = ui.interact(toggle, tab.id().with(("group", index)), Sense::click());
-        if tab.editable() && response.clicked() {
-            asked.gestures.push(
-                TableGesture::new("toggleGroup")
-                    .target(&row.id)
-                    .setting("collapsed", if row.collapsed { "false" } else { "true" }),
-            );
-        }
+        asked.hits.push((
+            toggle,
+            Hit::Group {
+                key: row.id.clone(),
+                collapsed: row.collapsed,
+            },
+        ));
         return;
     }
     if row.is_new_row {
@@ -804,12 +834,9 @@ fn line(
                 font.clone(),
                 colours.muted,
             );
-            let response = ui
-                .interact(shown.expand(4.0), tab.id().with(("new", index)), Sense::click())
-                .on_hover_text("Add a row");
-            if response.clicked() {
-                asked.add_row = Some(row.id.clone());
-            }
+            asked
+                .hits
+                .push((shown.expand(4.0), Hit::NewRow { group: row.id.clone() }));
         }
         return;
     }
@@ -858,12 +885,20 @@ fn cell_view(
         painter.hline(cell.x_range(), cell.bottom() - 0.5, Stroke::new(1.0, colours.border));
     }
     painter.vline(cell.right() - 0.5, cell.y_range(), Stroke::new(1.0, colours.border));
-    let id = tab.id().with(("cell", index, c));
     if editing {
         editor(ui, tab, colours, font, cell, row, column, asked);
         return;
     }
-    let response = ui.interact(cell, id, Sense::click());
+    let hit = asked.hits.len();
+    asked.hits.push((
+        cell,
+        Hit::Cell {
+            line: index,
+            column: c,
+            row_id: row.id.clone(),
+            told: String::new(),
+        },
+    ));
     let mut left = cell.left() + CELL_PADDING;
     if column.is_title && row.depth > 0 {
         left += row.depth as f32 * INDENT;
@@ -877,13 +912,13 @@ fn cell_view(
             font.clone(),
             colours.muted,
         );
-        if tab.editable() && ui.interact(toggle, id.with("toggle"), Sense::click()).clicked() {
-            asked.gestures.push(
-                TableGesture::new("toggleRow")
-                    .row(&row.id)
-                    .setting("collapsed", if row.collapsed { "false" } else { "true" }),
-            );
-        }
+        asked.hits.push((
+            toggle,
+            Hit::RowToggle {
+                row_id: row.id.clone(),
+                collapsed: row.collapsed,
+            },
+        ));
         left += 18.0;
     }
     let value = row.cell(&column.id);
@@ -968,7 +1003,7 @@ fn cell_view(
         .iter()
         .filter(|f| f.row_id == row.id && f.column_id == column.id)
         .collect();
-    let response = if let Some(worst) = told.iter().max_by_key(|f| rank(f.severity)) {
+    if let Some(worst) = told.iter().max_by_key(|f| rank(f.severity)) {
         let colour = match worst.severity {
             adp_desl::table::model::TableFindingSeverity::Error => colours.danger,
             adp_desl::table::model::TableFindingSeverity::Warning => colours.warning,
@@ -976,10 +1011,10 @@ fn cell_view(
         };
         painter.hline(cell.x_range(), cell.bottom() - 1.0, Stroke::new(2.0, colour));
         let text = told.iter().map(|f| f.message.as_str()).collect::<Vec<_>>().join("\n");
-        response.on_hover_text(text)
-    } else {
-        response
-    };
+        if let Some((_, Hit::Cell { told, .. })) = asked.hits.get_mut(hit) {
+            *told = text;
+        }
+    }
     if tab.active == Some((index, c)) {
         painter.rect_stroke(
             cell.shrink(1.0),
@@ -988,15 +1023,56 @@ fn cell_view(
             StrokeKind::Inside,
         );
     }
+}
+
+/// What a press on the grid does, by what lies where it was pressed: a cell becomes the active one and its row the
+/// selection, a double press opens its editor, a right press its row's menu; a group's toggle folds it, and the line
+/// a row is added at adds one.
+fn pointer(tab: &mut TableTab, response: egui::Response, asked: &mut Asked) {
+    let at = |hits: &[(Rect, Hit)], place: Option<Pos2>| {
+        place.and_then(|p| hits.iter().rev().find(|(r, _)| r.contains(p)).map(|(_, h)| h.clone()))
+    };
+    let response = match at(&asked.hits, response.hover_pos()) {
+        Some(Hit::Cell { told, .. }) if !told.is_empty() => response.on_hover_text(told),
+        Some(Hit::NewRow { .. }) => response.on_hover_text("Add a row"),
+        _ => response,
+    };
+    let pressed = at(&asked.hits, response.interact_pointer_pos());
+    let editable = tab.editable();
+    let flip = |collapsed: bool| if collapsed { "false" } else { "true" };
     if response.double_clicked() {
-        asked.edit = Some((index, c));
+        if let Some(Hit::Cell { line, column, .. }) = &pressed {
+            asked.edit = Some((*line, *column));
+        }
     } else if response.clicked() {
-        asked.click = Some((index, c, row.id.clone()));
+        match &pressed {
+            Some(Hit::Cell {
+                line, column, row_id, ..
+            }) => asked.click = Some((*line, *column, row_id.clone())),
+            Some(Hit::Group { key, collapsed }) if editable => asked.gestures.push(
+                TableGesture::new("toggleGroup")
+                    .target(key)
+                    .setting("collapsed", flip(*collapsed)),
+            ),
+            Some(Hit::RowToggle { row_id, collapsed }) if editable => asked.gestures.push(
+                TableGesture::new("toggleRow")
+                    .row(row_id)
+                    .setting("collapsed", flip(*collapsed)),
+            ),
+            Some(Hit::NewRow { group }) if editable => asked.add_row = Some(group.clone()),
+            _ => {}
+        }
     }
-    if tab.editable() {
+    if response.secondary_clicked() {
+        tab.menu_row = match &pressed {
+            Some(Hit::Cell { row_id, .. }) => Some(row_id.clone()),
+            _ => None,
+        };
+    }
+    if editable && let Some(row) = tab.menu_row.clone() {
         response.context_menu(|ui| {
             if ui.button("Delete row").clicked() {
-                asked.gestures.push(TableGesture::new("deleteRows").row(&row.id));
+                asked.gestures.push(TableGesture::new("deleteRows").row(&row));
                 ui.close();
             }
         });

@@ -11,6 +11,11 @@ publish = false
 name = "adp-desktop"
 path = "src/main.rs"
 
+# Scrolling a table of 10,000 rows (spec 030, T066): the repository's benches/table.rs, a timed test with its bound.
+[[test]]
+name = "table"
+path = "../../benches/table.rs"
+
 [lints]
 workspace = true
 
@@ -52,4 +57,6 @@ eframe = { version = "0.37", default-features = false, features = ["accesskit", 
 [dev-dependencies]
 # The canvas tests write what a frame painted as a screenshot under target/screenshots.
 png = "0.18"
+# The table benchmark counts the bytes held with an instrumented system allocator.
+stats_alloc = "0.1"
 tempfile = "3"

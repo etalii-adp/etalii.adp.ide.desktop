@@ -183,6 +183,8 @@ pub struct TableTab {
     pub renaming: Option<(String, String)>,
     /// The text of a filter condition's value field being edited, by its place.
     pub filter_text: HashMap<usize, String>,
+    /// The row whose menu a right press opened.
+    pub menu_row: Option<String>,
     /// The text of a property grid field being edited, by property, for the row it was opened on.
     pub grid_editing: HashMap<String, String>,
     pub grid_row: Option<String>,
@@ -225,6 +227,7 @@ impl TableTab {
             panel: None,
             renaming: None,
             filter_text: HashMap::new(),
+            menu_row: None,
             grid_editing: HashMap::new(),
             grid_row: None,
             next_edit: 0,
@@ -621,6 +624,3 @@ impl LimitOf for TableColumn {
         self.settings.get("limit").map(String::as_str).unwrap_or_default()
     }
 }
-
-#[cfg(test)]
-mod tests;

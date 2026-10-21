@@ -37,7 +37,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-031 | Property grid on several elements, one undo for all | multi-select | 4 |  | planned |
 | P-032 | Changes on disk reconciled with unsaved edits in open views | view-delta-adoption | 4 |  | planned |
 | P-033 | Add dialog: tool types grouped by vendor, with names and states | add-diagram-action | 4 |  | planned |
-| P-034 | Windowed tables of 10,000 rows | knowledge-designer | 5 |  | planned |
+| P-034 | Windowed tables of 10,000 rows | knowledge-designer | 5 | adp-shell test `table` (`benches/table.rs`), adp-shell `table_tests` | built |
 | P-035 | Keyboard reach and accessibility names of every interactive element | client-centralization | 6 |  | planned |
 | P-036 | C4 system context diagram (`c4/context`, prototype) | docs/tools.md, 2. The C4 Model | 4 | adp-diagram-c4 tests | built |
 | P-037 | C4 container diagram (`c4/container`, prototype) | docs/tools.md, 2. The C4 Model | 4 | adp-parity::c4_container_courier | checked |
@@ -68,7 +68,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-062 | SKOS concept scheme (`w3c/skos`, prototype) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
 | P-063 | SHACL shapes (`w3c/shacl`, implemented) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
 | P-064 | SPARQL query (`w3c/sparql`, implemented) | docs/tools.md, 14. Database queries & results | 4 |  | planned |
-| P-065 | Knowledge designer (`etalii/knowledge`, prototype) | docs/tools.md, 15. Designers | 5 |  | planned |
+| P-065 | Knowledge designer (`etalii/knowledge`, prototype) | docs/tools.md, 15. Designers | 5 | adp-parity::etalii_knowledge_cities_yaml, adp-parity::etalii_knowledge_cities_json, adp-parity::etalii_knowledge_cities_xml | checked |
 | P-066 | JSON editor (`editor/json`, implemented) | docs/tools.md, 16. Editors | 2 |  | planned |
 | P-067 | Markdown editor (`editor/markdown`, implemented) | docs/tools.md, 16. Editors | 2 |  | planned |
 | P-068 | Plain text editor (`editor/plain`, implemented) | docs/tools.md, 16. Editors | 2 |  | planned |

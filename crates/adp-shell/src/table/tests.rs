@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use adp_desl::table::model::TableGesture;
 use eframe::egui;
 
-use super::{EditorKind, TableTab};
+use crate::table::{self as table, EditorKind, TableTab};
 use crate::theme::{self, Palette};
 
 const EXAMPLES: &str = "../../modules/designers/knowledge/tests/examples";
@@ -29,7 +29,7 @@ fn frame(ctx: &egui::Context, tab: &mut TableTab, events: Vec<egui::Event>) {
     };
     let theme = adp_theme::Theme::dark();
     let palette = Palette::of(&theme);
-    ctx.run_ui(input, |ui| super::show(ui, tab, &theme, &palette))
+    ctx.run_ui(input, |ui| table::show(ui, tab, &theme, &palette))
         .textures_delta
         .clear();
 }
@@ -88,7 +88,7 @@ fn each_of_the_examples_opens_as_its_table_with_its_views_and_rows() {
     for name in ["cities.yaml", "cities.json", "cities.xml"] {
         let folder = tempfile::tempdir().unwrap();
         let path = example(name, folder.path());
-        assert!(super::claims(&path), "{name} is a knowledge file");
+        assert!(table::claims(&path), "{name} is a knowledge file");
         let mut tab = TableTab::open(&path, folder.path()).expect("opens");
         let ctx = context();
         frame(&ctx, &mut tab, Vec::new());
@@ -100,7 +100,7 @@ fn each_of_the_examples_opens_as_its_table_with_its_views_and_rows() {
     }
     let folder = tempfile::tempdir().unwrap();
     std::fs::write(folder.path().join("notes.yaml"), "just: notes\n").unwrap();
-    assert!(!super::claims(&folder.path().join("notes.yaml")));
+    assert!(!table::claims(&folder.path().join("notes.yaml")));
 }
 
 #[test]
@@ -117,7 +117,7 @@ fn the_session_is_asked_only_for_the_lines_in_sight_and_a_margin() {
     assert_eq!(tab.row_count, 2_001, "every row and the line a row is added at");
 
     // Scrolled down: other lines, and still only a window of them.
-    tab.scroll_to = Some(1_000.0 * super::ROW_HEIGHT);
+    tab.scroll_to = Some(1_000.0 * table::ROW_HEIGHT);
     frame(&ctx, &mut tab, Vec::new());
     frame(&ctx, &mut tab, Vec::new());
     let (first, count) = tab.window.expect("a window was asked for");

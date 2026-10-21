@@ -135,6 +135,12 @@ internal sealed partial class Replay : IAsyncDisposable
         }
 
         _projectId = added.Added.Id;
+        if (IsTable)
+        {
+            // A designer's document is a table on the tab's one stream, not a diagram.
+            await OpenTableAsync(cancellationToken);
+            return;
+        }
 
         // The context watch first: prompts are pushed on it, and an action is refused on a
         // connection that is not watching. Its first message is the proof it is registered.
@@ -394,10 +400,16 @@ internal sealed partial class Replay : IAsyncDisposable
             RedoStep redo => await RunHistoryAsync("history.redo", redo.Count, cancellationToken),
             SaveStep => ("none", null, "every command is written by the history as it runs; nothing is sent"),
             SaveTextStep save => await RunSaveTextAsync(save, cancellationToken),
+            TableStep table when IsTable => await RunTableAsync(table, cancellationToken),
+            ViewStep view when IsTable => await RunViewAsync(view, cancellationToken),
             _ => throw new InvalidOperationException($"Step {step.Index} has no replay."),
         };
 
         await WaitUntilQuietAsync(cancellationToken);
+        if (IsTable)
+        {
+            TrackGeneratedInFiles();
+        }
 
         // The standalone host validates a changed file in the background, reading it as it goes. A
         // write that lands while a reader holds the file can fail on Windows (File.Replace,
@@ -715,6 +727,7 @@ internal sealed partial class Replay : IAsyncDisposable
             }
         }
 
+        await DisposeTableAsync();
         _contextCall?.Dispose();
         _diagramCall?.Dispose();
         _channel.Dispose();
