@@ -24,7 +24,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-018 | FBL splices keeping every other byte, the byte order mark and the majority line ending | fbl-implementation, fbl-written-text | 3 |  | planned |
 | P-019 | The registration file (.adp): origin, body, layout, unknown blocks kept | folder-add-registration, adp-file-nesting | 3 |  | planned |
 | P-020 | DISL runtime: findings, toolbox, operations, constraints, notation; later versions refused | backend-centralization | 3 |  | planned |
-| P-021 | DESL and DED runtime | knowledge-designer | 3 |  | planned |
+| P-021 | DESL and DED runtime | knowledge-designer | 3 | walk: 4/1, 4/2, 4/6 (the Knowledge designer read and written in YAML, JSON and XML, byte for byte as the standalone host but for K1) | checked |
 | P-022 | CEL expressions | backend-centralization | 3 |  | planned |
 | P-023 | Canvas: pan with right-drag and scroll bars, zoom, fit to view | canvas-scrollbars, canvas-single-scrollbar, fit-to-view-extent | 4 | walk: 2/3 (re-walked: the wheel zooms about the pointer, a diagram opens and stays fitted, the timeline fits with its ruler; walks.md F1, F3, F5) | checked |
 | P-024 | Canvas gestures: drag, move, resize, connect, Escape to cancel | drag-and-drop-centralization, selection-after-drag | 4 | walk: 2/3 (re-walked: a mind map drag re-parents, a timeline period drags and resizes by days, a C4 connection is refused as the standalone host refuses it; still fails: a left drag on empty canvas boxes rather than pans, waiting for a decision; walks.md F2, F5, F6, F15) | built |
@@ -37,7 +37,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-031 | Property grid on several elements, one undo for all | multi-select | 4 | walk: 2/4 | checked |
 | P-032 | Changes on disk reconciled with unsaved edits in open views | view-delta-adoption | 4 | walk: 2/5 | checked |
 | P-033 | Add dialog: tool types grouped by vendor, with names and states | add-diagram-action | 4 |  | planned |
-| P-034 | Windowed tables of 10,000 rows | knowledge-designer | 5 | adp-shell test `table` (`benches/table.rs`), adp-shell `table_tests` | built |
+| P-034 | Windowed tables of 10,000 rows | knowledge-designer | 5 | adp-shell test `table` (`benches/table.rs`), adp-shell `table_tests`, walk: 4/9 | checked |
 | P-035 | Keyboard reach and accessibility names of every interactive element | client-centralization | 6 |  | planned |
 | P-036 | C4 system context diagram (`c4/context`, prototype) | docs/tools.md, 2. The C4 Model | 4 | adp-diagram-c4 tests | built |
 | P-037 | C4 container diagram (`c4/container`, prototype) | docs/tools.md, 2. The C4 Model | 4 | adp-parity::c4_container_courier | checked |
@@ -68,7 +68,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-062 | SKOS concept scheme (`w3c/skos`, prototype) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
 | P-063 | SHACL shapes (`w3c/shacl`, implemented) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
 | P-064 | SPARQL query (`w3c/sparql`, implemented) | docs/tools.md, 14. Database queries & results | 4 |  | planned |
-| P-065 | Knowledge designer (`etalii/knowledge`, prototype) | docs/tools.md, 15. Designers | 5 | adp-parity::etalii_knowledge_cities_yaml, adp-parity::etalii_knowledge_cities_json, adp-parity::etalii_knowledge_cities_xml | checked |
+| P-065 | Knowledge designer (`etalii/knowledge`, prototype) | docs/tools.md, 15. Designers | 5 | adp-parity::etalii_knowledge_cities_yaml, adp-parity::etalii_knowledge_cities_json, adp-parity::etalii_knowledge_cities_xml; walk: 4/1 to 4/8 (fails: a column cannot be widened or moved, a view cannot be renamed, and the column menu, the view panels and the line of calculations offer less than the standalone host; walks.md K1, K2, K6, K7) | built |
 | P-066 | JSON editor (`editor/json`, implemented) | docs/tools.md, 16. Editors | 2 |  | planned |
 | P-067 | Markdown editor (`editor/markdown`, implemented) | docs/tools.md, 16. Editors | 2 |  | planned |
 | P-068 | Plain text editor (`editor/plain`, implemented) | docs/tools.md, 16. Editors | 2 |  | planned |
