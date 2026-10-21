@@ -202,7 +202,7 @@ fn every_solution_of_the_corpus_reads_as_the_standalone_host_read_it() {
         let relative = recorded["solution"].as_str().unwrap();
         let (path, masked_as, root) = located(relative).unwrap_or_else(|| panic!("{relative} is not here"));
         let model = graph::load(&path, &descriptions);
-        let root = root.to_string_lossy().trim_end_matches('/').to_owned();
+        let root = root.to_string_lossy().trim_end_matches(['/', '\\']).to_owned();
         let mask = |text: &str| text.replace(&root, &masked_as).replace('\\', "/");
         check_graph(relative, recorded, &model, &mask);
         checked += 1;
