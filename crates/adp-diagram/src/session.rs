@@ -37,6 +37,7 @@ use crate::document::{DiagramChange, DiagramDocument, DiagramDocuments, NOT_OPEN
 use crate::element::{DiagramDelta, DiagramElement, DiagramViewport, ElementKind, Rect};
 use crate::module::DiagramModule;
 use crate::problems::{DiagramProblem, DiagramProblemLocation, DiagramProblemSeverity};
+use crate::sizing::{Resize, ResizedEdge, SizeSource};
 use crate::workspace::DiagramWorkspace;
 
 /// What a drag answers when the diagram may not be edited.
@@ -44,6 +45,12 @@ pub const READ_ONLY: &str = "This diagram is read-only.";
 
 /// What a placement of something that has no position of its own answers.
 pub const NOT_MOVABLE: &str = "Only a node can be moved; a relation is drawn between its ends.";
+
+/// What a resize of a relation answers.
+pub const NOT_RESIZABLE: &str = "Only a node can be resized; a relation is drawn between its ends.";
+
+/// What a resize of a node whose notation keeps its size nowhere answers.
+pub const NOT_SIZED: &str = "This diagram keeps no size for it, so it cannot be resized.";
 
 /// What an element that is gone answers.
 pub const GONE: &str = "That is no longer in this diagram.";
@@ -343,6 +350,145 @@ impl DiagramSession {
             format!("Move {} elements", moves.len())
         };
         let edit = document.plan(&label, &changes)?;
+        workspace.execute(edit)
+    }
+
+    /// Resizes a node by one of its edges, as one command and one undo (DISL sections 5.8 and 6.9): the dragged
+    /// axis's size written where its notation keeps it, and, for a left or a top edge, the position the far edge
+    /// keeps the node at, in the same step. The specification's placement constraints judge the gesture `resize`
+    /// first; a node whose size is kept nowhere is refused with [`NOT_SIZED`]. Where the tool type's module has
+    /// coordinates of its own, it says what a resize writes.
+    pub fn resize_element(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        element_id: &str,
+        resize: &Resize,
+    ) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        if let Some(refusal) = document.refusal() {
+            return Err(refusal);
+        }
+        let element = document.element(element_id).ok_or_else(|| GONE.to_owned())?;
+        if element.is_relation() {
+            return Err(NOT_RESIZABLE.to_owned());
+        }
+        let specification = document.tool().definition.specification();
+        let judged = |old_bounds: Map, new_bounds: Map| -> Result<(), String> {
+            match gestures::placement(
+                specification,
+                &element,
+                "resize",
+                old_bounds,
+                new_bounds,
+                None,
+                Some(&self.env),
+            )
+            .into_iter()
+            .next()
+            {
+                Some(refusal) => Err(refusal.message),
+                None => Ok(()),
+            }
+        };
+        if let Some(placed) = document.tool().module.as_ref().and_then(|m| m.resize(&element, resize)) {
+            let placed = placed?;
+            if placed.attributes.is_empty() {
+                return Ok(());
+            }
+            judged(placed.old_bounds, placed.new_bounds)?;
+            let change = DiagramChange::Disl(DislChange::Set {
+                element_id: element.id(),
+                type_name: element.type_name(),
+                attributes: placed.attributes,
+            });
+            let edit = document.plan("Resize", &[change])?;
+            return workspace.execute(edit);
+        }
+
+        // A module that places the node by coordinates of its own and says nothing of its size keeps it nowhere the
+        // session can write as a number.
+        if document
+            .tool()
+            .module
+            .as_ref()
+            .is_some_and(|m| m.position(&element).is_some())
+        {
+            return Err(NOT_SIZED.to_owned());
+        }
+        let sources = document.size_sources(&element);
+        let horizontal = resize.edge.is_horizontal();
+        let Some(source) = (if horizontal { &sources.width } else { &sources.height }) else {
+            return Err(NOT_SIZED.to_owned());
+        };
+        let (near, far, extent) = if horizontal {
+            (resize.x, resize.right, resize.width)
+        } else {
+            (resize.y, resize.bottom, resize.height)
+        };
+        let written = match source {
+            SizeSource::Size(_) => extent,
+            SizeSource::Far(_) => far,
+            SizeSource::Span(_) => far - near,
+        };
+        let attribute = source.attribute();
+        let mut attributes = Map::default();
+        let was = element.value_of(attribute).as_number();
+        let value = document.typed(&element, attribute, written);
+        if was != value.as_number() {
+            attributes.insert(attribute, value);
+        }
+        let positions = document.positions();
+        let (old_x, old_y) = positions.get(element_id).copied().unwrap_or_default();
+        let moved =
+            matches!(resize.edge, ResizedEdge::Left | ResizedEdge::Top) && (old_x, old_y) != (resize.x, resize.y);
+        if attributes.is_empty() && !moved {
+            return Ok(());
+        }
+        // The bounds the constraints judge: the far edge only where the length is in the axis's units.
+        let in_axis_units = !matches!(source, SizeSource::Size(_));
+        let extent_of = |x: f64, y: f64, length: Option<f64>| -> Map {
+            let mut map = bounds(x, y);
+            if let Some(length) = length {
+                let (far, size) = if horizontal { ("x2", "width") } else { ("y2", "height") };
+                let start = if horizontal { x } else { y };
+                if in_axis_units {
+                    map.insert(far, Value::Double(start + length));
+                }
+                map.insert(size, Value::Double(length));
+            }
+            map
+        };
+        let old_length = was.map(|was| match source {
+            SizeSource::Far(_) => was - if horizontal { old_x } else { old_y },
+            _ => was,
+        });
+        judged(
+            extent_of(old_x, old_y, old_length),
+            extent_of(
+                resize.x,
+                resize.y,
+                Some(
+                    written
+                        - if matches!(source, SizeSource::Far(_)) {
+                            near
+                        } else {
+                            0.0
+                        },
+                ),
+            ),
+        )?;
+        let mut changes = Vec::new();
+        if moved {
+            changes.push(document.placement_change(&element, resize.x, resize.y));
+        }
+        if !attributes.is_empty() {
+            changes.push(DiagramChange::Disl(DislChange::Set {
+                element_id: element.id(),
+                type_name: element.type_name(),
+                attributes,
+            }));
+        }
+        let edit = document.plan("Resize", &changes)?;
         workspace.execute(edit)
     }
 

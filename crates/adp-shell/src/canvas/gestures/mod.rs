@@ -8,13 +8,15 @@
 //! What each verdict means is `DiagramCanvas.tsx`'s: a press on an element selects it (Ctrl toggles it), a press on
 //! the empty canvas clears the selection, a drag of an element moves it with the rest of the selection as one edit,
 //! a drag from an anchor, or a right-drag from an element, draws a connection, and a release of one on empty canvas
-//! is handed on with its point. Two gestures follow this host's task list rather than the standalone's left-drag pan:
+//! is handed on with its point, and a drag of a selected element's resize handle carries that one edge, the far edge
+//! staying put, and is one resize at its release (`DiagramCanvas.tsx`, the `resize` gesture). Two gestures follow this host's task list rather than the standalone's left-drag pan:
 //! a left drag on empty canvas draws a selection box, and a right drag on it pans.
 //!
 //! The arbiter knows no toolkit and no diagram: the canvas hit-tests the press and hands it in, and turns the
 //! [`Intent`]s it gives back into edits, so every rule here is tested without a window.
 
 use adp_context::SelectMode;
+use adp_diagram::ResizedEdge;
 use adp_scene::{Point, Rect};
 
 /// The movement, in screen points, a press may make and still be a click (`GESTURE_MOVEMENT_THRESHOLD_PX`).
@@ -46,6 +48,11 @@ pub enum Hit {
         element: String,
         anchor: String,
     },
+    /// One edge of a selected element that may be resized.
+    Resize {
+        element: String,
+        edge: ResizedEdge,
+    },
 }
 
 impl Hit {
@@ -54,7 +61,7 @@ impl Hit {
         match self {
             Hit::Empty => None,
             Hit::Element(id) | Hit::Relation(id) => Some(id),
-            Hit::Anchor { element, .. } => Some(element),
+            Hit::Anchor { element, .. } | Hit::Resize { element, .. } => Some(element),
         }
     }
 }
@@ -80,6 +87,13 @@ pub enum Gesture {
         ids: Vec<String>,
         from: Point,
         delta: (f64, f64),
+    },
+    /// One edge of an element dragged by `delta` canvas units along its own axis.
+    Resizing {
+        element: String,
+        edge: ResizedEdge,
+        from: Point,
+        delta: f64,
     },
     /// A selection box from one corner to the other.
     Boxing {
@@ -107,6 +121,12 @@ pub enum Intent {
     Select { ids: Vec<String>, mode: SelectMode },
     /// Move these elements by `delta` canvas units, as one edit.
     Move { ids: Vec<String>, delta: (f64, f64) },
+    /// Carry one edge of an element by `delta` canvas units along its axis, as one edit.
+    Resize {
+        element: String,
+        edge: ResizedEdge,
+        delta: f64,
+    },
     /// Select what lies wholly inside `rect`, added to the selection when `additive`.
     BoxSelect { rect: Rect, additive: bool },
     /// Connect `source` to `target`, or to something made at `at` when the release is on empty canvas.
@@ -193,6 +213,12 @@ impl Arbiter {
                     from: *from,
                     delta: (0.0, 0.0),
                 },
+                (Button::Primary, Hit::Resize { element, edge }) => Gesture::Resizing {
+                    element: element.clone(),
+                    edge: *edge,
+                    from: *from,
+                    delta: 0.0,
+                },
                 (Button::Primary, Hit::Empty) => Gesture::Boxing {
                     from: *from,
                     to: *from,
@@ -220,6 +246,10 @@ impl Arbiter {
         match &mut self.gesture {
             Gesture::Moving { from, delta, .. } => {
                 *delta = (canvas.x - from.x, canvas.y - from.y);
+                None
+            }
+            Gesture::Resizing { edge, from, delta, .. } => {
+                *delta = along(*edge, *from, canvas);
                 None
             }
             Gesture::Boxing { to, .. } | Gesture::Connecting { to, .. } => {
@@ -287,6 +317,15 @@ impl Arbiter {
                     delta: (canvas.x - from.x, canvas.y - from.y),
                 }]
             }
+            Gesture::Resizing {
+                element, edge, from, ..
+            } => {
+                let delta = along(edge, from, canvas);
+                if delta == 0.0 {
+                    return Vec::new();
+                }
+                vec![Intent::Resize { element, edge, delta }]
+            }
             Gesture::Boxing { from, additive, .. } => vec![Intent::BoxSelect {
                 rect: Rect::around([from, canvas]).unwrap_or_default(),
                 additive,
@@ -322,12 +361,31 @@ impl Arbiter {
         }
     }
 
+    /// The edge being dragged and by how much, for the preview.
+    pub fn resizing(&self) -> Option<(&str, ResizedEdge, f64)> {
+        match &self.gesture {
+            Gesture::Resizing {
+                element, edge, delta, ..
+            } => Some((element, *edge, *delta)),
+            _ => None,
+        }
+    }
+
     /// The pan in flight, so a cancel can put the view back where it was.
     pub fn pan_origin(&self) -> Option<Point> {
         match &self.gesture {
             Gesture::Panning { origin, .. } => Some(*origin),
             _ => None,
         }
+    }
+}
+
+/// How far the pointer went from `from` to `to` along the axis an edge moves on (`alongSide`).
+fn along(edge: ResizedEdge, from: Point, to: Point) -> f64 {
+    if edge.is_horizontal() {
+        to.x - from.x
+    } else {
+        to.y - from.y
     }
 }
 
@@ -506,6 +564,62 @@ mod tests {
                 target: None,
                 at: p(50.0, 50.0)
             }]
+        );
+    }
+
+    #[test]
+    fn a_drag_of_a_resize_handle_carries_its_edge_along_its_axis_and_escape_writes_nothing() {
+        let mut arbiter = Arbiter::default();
+        let handle = Hit::Resize {
+            element: "a".into(),
+            edge: ResizedEdge::Right,
+        };
+        pressed(
+            &mut arbiter,
+            Button::Primary,
+            handle.clone(),
+            Modifiers::default(),
+            &["a"],
+        );
+        arbiter.motion((160.0, 130.0), p(16.0, 13.0), 10.0);
+        assert_eq!(
+            arbiter.resizing(),
+            Some(("a", ResizedEdge::Right, 6.0)),
+            "only the x of the drag counts"
+        );
+        assert_eq!(
+            arbiter.release(p(18.0, 20.0), &Hit::Empty),
+            vec![Intent::Resize {
+                element: "a".into(),
+                edge: ResizedEdge::Right,
+                delta: 8.0
+            }]
+        );
+
+        let bottom = Hit::Resize {
+            element: "a".into(),
+            edge: ResizedEdge::Bottom,
+        };
+        pressed(
+            &mut arbiter,
+            Button::Primary,
+            bottom.clone(),
+            Modifiers::default(),
+            &["a"],
+        );
+        arbiter.motion((100.0, 160.0), p(10.0, 16.0), 10.0);
+        assert_eq!(arbiter.resizing(), Some(("a", ResizedEdge::Bottom, 6.0)));
+        assert!(arbiter.cancel());
+        assert!(arbiter.release(p(10.0, 16.0), &Hit::Empty).is_empty());
+
+        pressed(&mut arbiter, Button::Primary, handle, Modifiers::default(), &["a"]);
+        assert_eq!(
+            arbiter.release(p(10.0, 10.0), &Hit::Empty),
+            vec![Intent::Select {
+                ids: vec!["a".into()],
+                mode: SelectMode::Replace
+            }],
+            "a click on a handle selects its element"
         );
     }
 }
