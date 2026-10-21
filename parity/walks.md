@@ -153,3 +153,106 @@ Seen on the re-walk and not fixed: a double-click on a mind map node still renam
 - [Re-walk: the timeline as it opens, fitted, with its ruler (F5)](walks/story2-rewalk-timeline-open.png)
 - [Re-walk: Insert draws the child and names it in place over itself (F10, F11)](walks/story2-rewalk-mindmap-insert.png)
 - [Re-walk: *Constraints* collapsed from its menu (F12)](walks/story2-rewalk-mindmap-collapsed.png)
+
+## Story 4: work in the Knowledge designer (task T067)
+
+| | |
+|---|---|
+| Date | 2026-10-21 |
+| Platform | Windows 11 Pro 10.0.26300, debug build of `adp-shell` (`target/debug/adp-desktop.exe`) at `fcd85dd` for 4/1 to 4/8, release build (`target/release/adp-desktop.exe`) at the same commit for 4/9, dark theme, window 1600 by 1000 at 125% |
+| Documents | copies of `parity/fixtures/etalii/knowledge/cities-yaml/`, `cities-json/` and `cities-xml/` (each `cities.<format>`, its registration `cities.adp` and `provinces.yaml`, the table its relation names), each opened as a project with `adp-desktop <folder>`; and a generated `places.yaml` of 10,000 rows (1,752,144 bytes), made by the same rule as `benches/table.rs` (a name, a number, one of three sizes, a tick on every other row) |
+| How | The real window, driven with Win32 input and read through its AccessKit tree with UI Automation, screenshots with `PrintWindow`, as for Story 2. The edits of the parity script `parity/scripts/etalii/knowledge/cities-<format>.json` were made by hand in the same order, as far as the window offers them, and every written file was hashed (SHA-256) after every step. The ids the desktop host generated (the new option and the new row) were replaced by the ids `recorded.json` gives for the same steps before the result was compared byte for byte with the golden. The tick, date and time edits were made in the property grid, because the view the script edits in (*Map*) does not show those columns until the table is scrolled sideways (4/2). The memory of 4/9 is the process's private bytes, sampled while the scroll bar was dragged; its frame times are those of the headless benchmark `cargo test -p adp-shell --release --test table`. Nothing was checked headless in this walk. |
+| Standalone behaviour | Read from the standalone host's source at `8b6ccfc` (`src/client/src/table/library/`: `TableSurface.tsx`, `header/ColumnHeader.tsx`, `header/columnActions.ts`, `rows/CalculationRow.tsx`, `views/ViewTabs.tsx`, `views/GroupEditor.tsx`; `src/designers/knowledge/client/knowledgeDefinition.ts`; `src/designers/knowledge/backend/EtAlii.Adp.Designer.Knowledge/KnowledgeRowContext.cs` and `KnowledgeEdits.cs`) and the goldens under `parity/goldens/etalii/knowledge/` |
+
+A walk of Story 2 ran in another window on the same desktop at the same time. Its driver took the foreground now and then, and a few presses of this walk were lost to it (a press on a list entry, a double-click, the first press on a tab); each was made again once the file's hash showed nothing had been written, and nothing below rests on a press that was not checked against the file.
+
+### Steps
+
+| Step | What it covers | Scenario |
+|---|---|---|
+| 4/1 | Open the data file, and the registration, from the explorer, and save with Ctrl+S without edits: every file keeps its bytes | 1 |
+| 4/2 | Edit a cell of every kind: text and number in the table, tick, date and time in the property grid, one option, several options, a new option made from the list, a relation; a number that is refused | 1 |
+| 4/3 | Add a row with *+ New* and fill it in | 1 |
+| 4/4 | Change views: show the other view, add a sort and turn one, add a filter condition and give it a comparison and a value, hide empty groups, fold a group, hide a column, widen a column, add a view and rename it | 1 |
+| 4/5 | Undo and redo with Ctrl+Z and Ctrl+Y: each restores the bytes of the step before | 1 |
+| 4/6 | The written body after the whole sequence, byte for byte against the standalone host's golden | 1, FR-022 |
+| 4/7 | Relations between files: a relation chosen from the other table's rows, a related row renamed in the other table's tab, a related row deleted (the question), the related file changed on disk | FR-022 |
+| 4/8 | The body changed on disk while open: the table shows it, the person's edits are kept, and undo stops at the change from outside | 1 |
+| 4/9 | A table of 10,000 rows scrolled from top to bottom: no visible stall, and memory that does not grow with each screen | 2, SC-006 |
+
+### Results
+
+| Step | YAML (`cities.yaml`) | JSON (`cities.json`) | XML (`cities.xml`) |
+|---|---|---|---|
+| 4/1 | pass | pass | pass |
+| 4/2 | pass | pass | pass |
+| 4/3 | pass | pass | pass |
+| 4/4 | **fail** (K1, K2, K6) | **fail** (K1, K2, K6) | **fail** (K1, K2, K6) |
+| 4/5 | pass, but see K3 | pass | pass |
+| 4/6 | **fail** (K1; one more line explained by the walk's order) | **fail** (K1; the same) | **fail** (K1 only) |
+| 4/7 | pass, but see K5 | not walked | not walked |
+| 4/8 | pass | not walked | not walked |
+| 4/9 | pass (`places.yaml`) | | |
+
+Seen in every format, outside a step: K4 (the first column when the table scrolls sideways), K7 (no line of calculations), K8 (an unticked checkbox has no box), K9 (the wheel's step).
+
+### What was done
+
+#### 4/1 to 4/6, the script's sequence in each format
+
+- **4/1** Opening `cities.<format>` from the explorer opened the table in its *Map* view (the file's `activeView: v2`), with the registration `cities.adp` nested under it; Ctrl+S left `cities.<format>`, `cities.adp` and `provinces.yaml` unchanged. Opening `cities.adp` from the explorer showed the tab of its body and said "Opened cities.adp as etalii/knowledge".
+- **4/2** Double-click on *Amsterdam*, Ctrl+A, "Amsterdam (NH)", Enter: the text written. A press on Antwerp's empty *Population* and typing "530000" opened the editor with the typed digits, and Enter wrote `530000`. With *Amsterdam* selected, the property grid's *Visited* tick written as unticked (the cell removed, as in the golden); with *Antwerp* selected, *Founded* "1291-01-01" and *Opens* "10:30" typed into the grid and written. Double-click on Amsterdam's *Country* opened the searchable list of the six countries; *Belgium* wrote `o2`. Antwerp's *Tags* list, *Capital*, wrote `o3, o4` and the list stayed open for more, as a list of several does. Antwerp's *Country* list, "Luxembourg" typed and Enter, made the option (`colour: gray`) and gave it to the cell. Typing "a great many" into Amsterdam's *Population* and Enter left the editor open with "A number is expected." under it, and nothing was written; Escape closed it.
+- **4/3** *+ New* added an empty row at the foot and wrote its id; *Utrecht* and `361924` were typed into it. The table scrolled sideways to *Province*; F2 on the new row's cell listed the five provinces of `provinces.yaml`, and *Zuid-Holland* wrote `rows: - row: zh` and closed the list (the column's `limit: one`). The relation is one-way: `provinces.yaml` was not written.
+- **4/4** *All cities* showed the other view (Sort (1), Filter (1), Group: Country) and wrote `activeView: v1`. The *Name* header's menu, *Sort descending*, added the sort `p1 descending`; the Sort panel's *Descending* beside *Population* turned it to ascending (the `direction` line removed, as in the golden). The Filter panel's *Add a filter…*, *Population*, added a condition (`operator: equals`), its comparison list *is greater than* changed it to `greater-than`, and "500000" in its field wrote `number: 500000`. The Group panel's *Hide empty groups* wrote `hideEmptyGroups: true` and the table showed no groups, since no Dutch city has more than 500,000 people now. The script then folds the *Belgium* group, which is hidden: to reach it, *Hide empty groups* was unticked (the line removed), *Belgium*'s chevron pressed (`collapsed: - key: o2`), and *Hide empty groups* ticked again. The *Visited* header's menu, *Hide*, wrote `visible: false`. Widening *Population* to 200 could not be done (K1). The view tabs' *+* added a view "View" and showed it; its menu's *Rename*, "Recent", Enter wrote nothing and left the field open (K2).
+- **4/5** Ctrl+Z after the relation took `p5` out of the new row and the file was the bytes of the step before (same SHA-256); Ctrl+Y put it back (same SHA-256 as after the relation). Ctrl+Z after *+* took the view out and the file was the bytes before it, once a cell had been pressed (K3).
+- **4/6** *Map* again (`activeView: v2`), then Antwerp's row menu, *Delete row*: the row was deleted at once, without a question, as the standalone host deletes a row nothing relates to (`KnowledgeEdits.cs`, the question only when rows of other tables relate to it). The body after the sequence, with the two generated ids replaced by the golden's:
+
+| Format | Golden SHA-256 | Desktop SHA-256 (ids replaced) | Differences |
+|---|---|---|---|
+| YAML | `cd7cd200ecd06fc6…` | `ca6d0772330e4a1b…` | `width: 200` is `width: 175` (K1); `hideEmptyGroups: true` stands before `collapsed:` rather than after it |
+| JSON | `db549924deffd8c1…` | `1f877ab6af938882…` | the same two, in the one line of `v1` |
+| XML | `ecf679db8565c3f9…` | `4d5faf8f4c93218d…` | `<column property="p3" width="200"/>` is `width="175"` (K1) |
+
+Every other byte matches, line endings (CRLF, as the fixtures) included; `cities.adp` and `provinces.yaml` keep their bytes in all three. The place of `hideEmptyGroups` follows from the walk's order, not from the host: the script folds the group after hiding empty groups, and both hosts then put `collapsed` before `hideEmptyGroups` (the `adp-parity` replay of the script matches the golden), while the walk ticked *Hide empty groups* again after folding, and a key added later is put straight after `groupBy`. The XML form keeps the two in a fixed place, so it shows the width alone.
+
+#### 4/7 Relations between files (YAML)
+
+With `cities.yaml` and `provinces.yaml` open in two tabs: *Zuid-Holland* renamed to "Zuid-Holland (ZH)" in the provinces tab wrote `provinces.yaml` alone, and the cities tab showed Utrecht's province as "Zuid-Holland (ZH)". *Delete row* on *Noord-Holland*, which Amsterdam relates to, asked "1 row in another table relates to this row. Deleting it leaves that relation pointing at nothing." with *Delete* and *Keep* (K5 for where); *Keep* wrote nothing. `text: Overijssel` changed to `text: Overijssel (OV)` in `provinces.yaml` by another program: within three seconds the cities tab showed Enschede's province as "Overijssel (OV)". The property grid shows a relation by the related rows' ids (`nh`) with "A relation is filled in in the table, where its rows can be chosen.", as the standalone host's `KnowledgeRowPropertyProvider` does.
+
+#### 4/8 Change on disk (YAML)
+
+After *Berlin* was renamed "Berlin (B)" in the table, `text: Koeln` was changed to `text: Cologne` on disk by another program: within three seconds the table showed *Cologne* and still *Berlin (B)*, and the file held both. Ctrl+Z then said "cities.yaml was changed by another program, so the edits made to it before that can no longer be undone." in the status bar and wrote nothing.
+
+#### 4/9 Ten thousand rows (release build)
+
+Opening `places.yaml` from the explorer showed its first rows within two seconds of the press; the process's private bytes went from 471,732 KB to 834,776 KB. The vertical scroll bar's thumb was then dragged from the top to the bottom and back five times, 350 pointer moves a pass over 18 seconds each: every capture taken during a drag showed whole rows (no line waiting to be given), the last pass ended on *Place 9999* and *+ New*, and the private bytes were 837,144 KB after the first fifth of the first pass and 838,624 KB at the end of the fifth, flat over the last two passes and a half. The process used about one second of processor time a pass. 200 wheel notches scrolled 242 rows in 6.3 seconds with 0.8 seconds of processor time, at 840,148 KB. `places.yaml` was never written. The headless benchmark at the same commit, release: opened in 747 ms; 552 screens, mean 6.50 ms, 95th percentile 7.09 ms, slowest 11.17 ms a frame; memory held after the warm-up 126 KiB, at the end 49 KiB, peak 131 KiB, at most 44 lines held. No stall was seen in the window, and the memory does not grow with each screen.
+
+### Failures and differences
+
+| # | Formats | What was done | Expected (standalone host at `8b6ccfc`) | What happened |
+|---|---|---|---|---|
+| K1 | all | Dragged the right border of *Population*'s header to widen it; dragged the header to move it | A header's right border is a separator that resizes the column, sent once on release as `resizeColumn` with the width (never under 60), and dragging the header moves the column (`moveColumn`) (`ColumnHeader.tsx`) | Neither drag does anything: the header has no border to grab and is not dragged. The script's step 24 (`width: 200`) cannot be made, so every format's body differs from its golden there |
+| K2 | all | The active view tab's menu, *Rename*, typed "Recent", pressed Enter; pressed elsewhere | Enter or leaving the field renames the view (`renameView`) | Enter and a press elsewhere leave the field open and write nothing; only Escape closes it. A view cannot be renamed |
+| K3 | YAML | Escaped the rename field of K2, pressed Ctrl+Z | Ctrl+Z undoes the last edit | Ctrl+Z and Ctrl+Y do nothing, and say nothing, until a cell is pressed: the closed field keeps the keyboard focus, and the shell does not undo while anything but the grid has it |
+| K4 | all | Scrolled the table sideways (*Map*, to *Province*) | The first column stays in sight over the cells that scroll under it, its header too (`table-cell-first`, sticky) | The first column is drawn under the scrolled cells: their values and tags are drawn over its tags, and the scrolled headers hide its header |
+| K5 | YAML | *Delete row* on a row another table relates to | The question and its *Delete* and *Keep* stand on the table's own line, after the rows (`TableSurface.tsx`, `table-ask` after the rows) | The question's line is drawn just under the header, over the first row |
+| K6 | all | Pressed a column's header; pressed it with the right button; looked for the view's properties and groups | Pressing a header opens its menu, with the Knowledge designer's `columnActions`: Rename, Change type, Edit options, Edit relation, Filter, Sort ascending, Sort descending, Group, Hide in view, Wrap text, Freeze, Insert left, Insert right, Duplicate, Delete (`columnActions.ts`, `knowledgeDefinition.ts`); a view's panel ticks each property to show or hide it (`showColumn`) and shows or hides each group (`GroupEditor.tsx`); rows have ticks to select several, with actions on them (`TableSurface.tsx`) | A left press does nothing; the right button's menu offers only Sort ascending, Sort descending, Group by this, Hide and Delete. A hidden column cannot be shown again, a column cannot be renamed, retyped, wrapped, frozen, inserted beside or duplicated, its options and its relation cannot be edited, a group cannot be hidden on its own, and only one row can be selected |
+| K7 | all | Opened the *Map* view, whose *Province* says `calculate: count-unique` | A line of calculations under the rows shows the figure and offers the calculations (`CalculationRow.tsx`) | No line of calculations is drawn, and no calculation can be chosen |
+| K8 | all | Looked at the property grid's *Visited* of a row without the tick, and at the Group panel's *Hide empty groups* while it is off | A checkbox that is not ticked shows its box | Only the label shows; the box is drawn when it is ticked. The table's own tick cells draw their boxes |
+| K9 | all | Turned the mouse wheel over the 10,000 rows | A notch scrolls the browser's step, 100 pixels, about three rows | A notch scrolls about 1.2 rows (40 points): 8,000 notches from top to bottom |
+
+Also seen: the opened 10,000-row table takes about 360 MB of private memory more than before it was opened (4/9), for a 1.7 MB file; not compared with the standalone host. Relation values are drawn underlined, like links, but do nothing when pressed; the standalone Knowledge designer draws them as text, as it passes no `onOpenValue`.
+
+### Screenshots
+
+- [The YAML example in its *Map* view](walks/story4-yaml-map-view.png)
+- [The list of a selection cell](walks/story4-option-list.png)
+- [The list of a relation cell, the rows of `provinces.yaml`](walks/story4-relation-list.png)
+- [A refused number, the editor left open](walks/story4-refused-number.png)
+- [Scrolled sideways, the first column drawn under the others (K4)](walks/story4-first-column-overdrawn.png)
+- [The view rename field that cannot be committed (K2)](walks/story4-view-rename-stuck.png)
+- [The delete question drawn over the first row (K5)](walks/story4-delete-question-over-header.png)
+- [A change on disk shown with the person's edit, and undo refused](walks/story4-disk-change-barrier.png)
+- [Related rows renamed in the other file, by hand and on disk](walks/story4-related-file-changed.png)
+- [10,000 rows at the bottom](walks/story4-10000-rows-bottom.png)
+- [10,000 rows during a drag of the scroll bar](walks/story4-10000-rows-mid-drag.png)
