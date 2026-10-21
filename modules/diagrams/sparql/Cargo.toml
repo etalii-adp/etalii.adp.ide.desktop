@@ -1,0 +1,22 @@
+[package]
+name = "adp-diagram-sparql"
+description = "The SPARQL query diagram's residue: the query parser, the variable-as-node projection, its nested grid layout, its findings and read-only rows, and the one edit, a position in the registration (spec 030, T084)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+tempfile = "3"
+
+[lints]
+workspace = true

@@ -1,0 +1,27 @@
+BASE <http://example.org/base/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX ex: <http://example.org/>
+
+SELECT DISTINCT ?person ?name (COUNT(?friend) AS ?friends)
+FROM <http://example.org/graphs/people>
+WHERE {
+  ?person a foaf:Person ;
+          foaf:name ?name ;
+          foaf:knows ?friend, ex:carol .
+  ?person foaf:age 42 .
+  ?person ex:score 3.14 .
+  ?person ex:active true .
+  ?person foaf:based_near <relative/place> .
+  ?person ex:label "hello\nworld"@en .
+  ?person ex:weight "80"^^<http://www.w3.org/2001/XMLSchema#int> .
+  ?person foaf:knows+ ?reachable .
+  _:g ex:member ?person .
+  _:g ex:name "group" .
+  [ ex:leader ?person ] ex:size 3 .
+  ?list ex:items ( 1 2 ) .
+}
+GROUP BY ?person ?name
+HAVING (COUNT(?friend) > 1)
+ORDER BY DESC(?friends) ?name
+LIMIT 10
+OFFSET 5
