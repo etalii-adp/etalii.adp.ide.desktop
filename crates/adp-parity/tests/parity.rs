@@ -12,8 +12,18 @@ use std::fs;
 use adp_parity::{check, repository_root, script_names};
 
 #[test]
+fn ansible_structure_infrastructure() {
+    check("ansible/structure/infrastructure");
+}
+
+#[test]
 fn c4_container_courier() {
     check("c4/container/courier");
+}
+
+#[test]
+fn etalii_agent_activity_diagram_two_projects() {
+    check("etalii/agent-activity-diagram/two-projects");
 }
 
 #[test]

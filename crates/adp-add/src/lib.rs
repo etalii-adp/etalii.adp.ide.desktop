@@ -488,6 +488,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_hype_cycle::ORIGIN,
         adp_diagram_hype_cycle::EMPTY_DOCUMENT,
     )));
+    // `ServiceCollection.AddAgentActivityDiagram.cs`: `AadBody.EmptyDocument("\r\n")`, the header alone.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_agent_activity::ORIGIN,
+        adp_diagram_agent_activity::TEMPLATE,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 

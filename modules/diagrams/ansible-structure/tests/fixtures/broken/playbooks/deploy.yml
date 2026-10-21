@@ -1,0 +1,21 @@
+---
+- name: A play naming a role that has no folder
+  hosts: web
+  roles:
+    # ansible.role-missing: there is no roles/absent-role/ in this tree.
+    - absent-role
+    - web
+
+- name: A play whose hosts pattern no inventory defines
+  # ansible.unmatched-hosts: the inventory defines web only.
+  hosts: cache
+  roles:
+    - web
+
+- name: A play whose role name is an expression
+  hosts: web
+  roles:
+    # NOT a problem: the target is unknowable statically, so the edge is unresolvable
+    # rather than missing. A rule that reported this would fire on every parameterised
+    # role in every real repository.
+    - "{{ role_name }}"

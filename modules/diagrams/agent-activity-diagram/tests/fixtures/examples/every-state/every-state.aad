@@ -1,0 +1,126 @@
+agent-activity-diagram: 1
+# One of everything the notation has, written for ADP as an example. Nothing here happened.
+projects:
+  - id: p-ide
+    name: etalii.adp.ide.standalone
+    link: https://github.com/etalii-adp/etalii.adp.ide.standalone
+specifications:
+  - id: s-pending
+    project: p-ide
+    name: Sequence diagram
+    status: pending
+  - id: s-progressing
+    project: p-ide
+    name: Agent activity diagram
+    link: docs/tools.md
+    status: progressing
+    tasks:
+      - id: t-progressing
+        title: The module's client
+        status: progressing
+        updated: 2026-10-09T16:55:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/159
+      - id: t-pending
+        title: The browser pass
+        status: pending
+      - id: t-input
+        title: Drop the wire task
+        status: input-required
+        updated: 2026-10-09T13:01:00+02:00
+        link: docs/architecture.md
+      - id: t-finished
+        title: The radiating layout
+        status: finished
+        updated: 2026-10-09T15:40:00+02:00
+  - id: s-input
+    project: p-ide
+    name: Knowledge designer
+    status: input-required
+  - id: s-finished
+    project: p-ide
+    name: Rider warnings cleanup
+    status: finished
+  - id: s-archived
+    project: p-ide
+    name: FBL implementation
+    status: archived
+agents:
+  - id: a-first
+    name: Developer 1
+    specification: s-progressing
+    link: https://claude.ai/code
+  - id: a-second
+    name: Developer 2
+    specification: s-progressing
+  - id: a-third
+    name: Architect 1
+    specification: s-input
+locations:
+  - id: l-default
+    agent: a-first
+    environment: e-local
+    branch: develop
+  - id: l-worktree
+    agent: a-first
+    environment: e-local
+    folder: .claude/worktrees/activity
+    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/activity
+    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/activity
+    branch: features/activity
+    pullRequests:
+      - id: pr-open
+        title: "159: Open, draw and edit an activity file"
+        updated: 2026-10-09T18:20:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/159
+      - id: pr-merged
+        title: "156: Locked elements and a radiating layout"
+        updated: 2026-10-09T15:40:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/156
+  - id: l-cloud
+    agent: a-second
+    environment: e-cloud
+    branch: claude/project-thread
+  - id: l-container
+    agent: a-second
+    environment: e-container
+    folder: /workspace
+    branch: features/activity-tests
+  - id: l-wsl
+    agent: a-third
+    environment: e-wsl
+    folder: ~/git/etalii.adp
+    branch: features/knowledge
+  - id: l-other
+    agent: a-third
+    environment: e-other
+    branch: main
+environments:
+  - id: e-local
+    name: Fractal
+    kind: local-machine
+  - id: e-cloud
+    name: Claude Code cloud environment
+    kind: cloud
+    link: https://code.claude.com/docs/en/claude-code-on-the-web
+  - id: e-container
+    name: Build container
+    kind: container
+  - id: e-wsl
+    name: Ubuntu on Fractal
+    kind: wsl
+  - id: e-other
+    name: Review laptop
+    kind: other
+view:
+  showArchived: true
+  placements:
+    - element: p-ide
+      x: 0
+      y: 0
+  groups:
+    - element: s-progressing
+      group: finished
+      collapsed: false
+    - element: s-progressing
+      group: progressing
+      collapsed: true

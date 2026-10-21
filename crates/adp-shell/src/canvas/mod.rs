@@ -13,6 +13,8 @@
 //! scene's [`HookKind::ResizeHandle`] hooks, carry one edge each (`DiagramCanvas.tsx`, the `resize` gesture, and
 //! `gestureFrame.ts`: the preview is the frame's, the edit is written once, at the release, and Escape reverts it).
 
+pub mod aad_scene;
+pub mod ansible_scene;
 pub mod fdg_scene;
 pub mod gestures;
 pub mod metrics;
@@ -100,21 +102,23 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_azure_devops_pipeline::register(adp_diagram_wardley_map::register(
-                adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
-                    adp_diagram_dependency_graph::register(
-                        adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
-                            DislPluginFunctions::none()
-                        }))
-                        .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
-                        .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
-                        .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
-                        .with_module(
-                            adp_diagram_functional_decomposition_graph::ORIGIN,
-                            adp_diagram_functional_decomposition_graph::module(),
+            tools: adp_diagram_azure_devops_pipeline::register(adp_diagram_ansible_structure::register(
+                adp_diagram_agent_activity::register(adp_diagram_wardley_map::register(
+                    adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
+                        adp_diagram_dependency_graph::register(
+                            adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
+                                DislPluginFunctions::none()
+                            }))
+                            .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
+                            .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
+                            .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
+                            .with_module(
+                                adp_diagram_functional_decomposition_graph::ORIGIN,
+                                adp_diagram_functional_decomposition_graph::module(),
+                            ),
                         ),
-                    ),
-                ))),
+                    ))),
+                )),
             )),
             workspaces: HashMap::new(),
         }
@@ -135,7 +139,7 @@ impl DiagramHost {
         let usable = |origin: &str| {
             catalogue.by_origin(origin).is_some_and(|t| t.is_usable()) || self.tools.opened_by_module(origin)
         };
-        if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
+        if adp_diagram::workspace::is_registration(path) {
             return std::fs::read(path).is_ok_and(|bytes| usable(&RegistrationDocument::read(bytes).origin));
         }
         let name = path
@@ -754,6 +758,12 @@ impl DiagramTab {
                 sankey_scene::build(&elements, &self.selection, self.arbiter.moving()),
                 HashMap::new(),
             )
+        } else if self.opened.origin == adp_diagram_ansible_structure::ORIGIN {
+            // An Ansible structure's boxes are moved by the top-left the registration stores (`onElementMoved`).
+            (
+                ansible_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                HashMap::new(),
+            )
         } else if self.opened.origin == adp_diagram_supply_chain::ORIGIN {
             // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
             (
@@ -763,6 +773,12 @@ impl DiagramTab {
         } else if self.opened.origin == adp_diagram_azure_devops_pipeline::ORIGIN {
             // A pipeline arranges itself from its dependencies: nothing on it is dragged.
             (pipeline_scene::build(&elements, &self.selection), HashMap::new())
+        } else if self.opened.origin == adp_diagram_agent_activity::ORIGIN {
+            // An activity file's cards are laid out on their rings by the module, and locked by their centre.
+            (
+                aad_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                HashMap::new(),
+            )
         } else {
             (
                 module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
