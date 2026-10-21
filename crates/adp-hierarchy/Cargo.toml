@@ -9,3 +9,10 @@ publish = false
 
 [lints]
 workspace = true
+
+[dependencies]
+# Live changes on disk (spec 030, research R8, FR-013, FR-023).
+notify = "8"
+
+[dev-dependencies]
+tempfile = "3"
