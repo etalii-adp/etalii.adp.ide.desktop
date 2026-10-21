@@ -99,6 +99,8 @@ pub struct KnowledgeSession {
     /// What the edits undone through this session make again, the latest last.
     undone: Vec<KnowledgeRestore>,
     changes: Vec<TableChange>,
+    /// Where the ids of what an edit makes come from: a fresh ShortGuid each, unless a replay hands them out.
+    new_id: Box<dyn FnMut() -> String>,
 }
 
 impl KnowledgeSession {
@@ -153,6 +155,7 @@ impl KnowledgeSession {
             restores: Vec::new(),
             undone: Vec::new(),
             changes: Vec::new(),
+            new_id: Box::new(definition::new_id),
         };
         session.show(opened.body);
         // The view the file was left in, by name from here on: another connection leaving the file in another view
@@ -163,6 +166,33 @@ impl KnowledgeSession {
             .map(|v| v.id.clone())
             .unwrap_or_default();
         session
+    }
+
+    /// Hands out the ids of what later edits make - a row, a view, an option - from `ids` rather than as fresh
+    /// ShortGuids: the parity check gives each the id the standalone host generated at the same step.
+    pub fn set_id_source(&mut self, ids: Box<dyn FnMut() -> String>) {
+        self.new_id = ids;
+    }
+
+    /// The file this session shows.
+    pub fn body_path(&self) -> &Path {
+        &self.body_path
+    }
+
+    /// How many edits are shown and not written yet.
+    pub fn pending_edits(&self) -> usize {
+        self.pending.len()
+    }
+
+    /// Why the table cannot be edited, or empty when it can: the reason of a file of another version, or of one that
+    /// cannot be read.
+    pub fn read_only(&self) -> String {
+        self.read_only_reason()
+    }
+
+    /// Whether an edit undone through this session can be made again.
+    pub fn can_redo(&self) -> bool {
+        !self.undone.is_empty()
     }
 
     /// Why the file could not be read from disk the last time it was tried, or empty.
@@ -637,6 +667,8 @@ impl DesignerSession for KnowledgeSession {
         if gesture.kind == "addRelation" && gesture.setting_of("target").trim().is_empty() {
             return edits::choose_target(&project::targets(&self.root_path, &self.body_path));
         }
+        // The id source is taken out while the closures below borrow the session, and put back after.
+        let mut ids = std::mem::replace(&mut self.new_id, Box::new(definition::new_id));
         let edit = {
             let target_of = |p: &KnowledgeProperty| self.target_of(p);
             let target_at = |name: &str| self.target_at(name);
@@ -645,16 +677,16 @@ impl DesignerSession for KnowledgeSession {
                 target_of: &target_of,
                 target_at: &target_at,
             };
-            let mut new_id = definition::new_id;
             edits::plan(
                 &self.shown,
                 &self.view_id,
                 gesture,
-                &mut new_id,
+                &mut *ids,
                 self.beside_its_rule,
                 Some(&files),
             )
         };
+        self.new_id = ids;
         if edit.is_refused() {
             return edit.refusal;
         }

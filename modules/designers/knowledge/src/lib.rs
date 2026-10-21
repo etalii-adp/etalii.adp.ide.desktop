@@ -8,11 +8,13 @@
 //! knowledge files it names ([`relations`]), and mapped onto the table model ([`mapper`], [`calculations`]). A
 //! connection holds a [`session`], whose gestures become changes of the file ([`edits`]), shown at once
 //! ([`projection`]) and written behind ([`command`]). A rename of a table that others relate to is followed by
-//! [`target_rename`].
+//! [`target_rename`]. A row selected in a table is answered for in the property grid by [`row_context`], and the
+//! explorer's entry that adds a relation is [`context_actions`].
 
 pub mod body;
 pub mod calculations;
 pub mod command;
+pub mod context_actions;
 pub mod definition;
 pub mod designer;
 pub mod edits;
@@ -21,6 +23,7 @@ pub mod model;
 pub mod project;
 pub mod projection;
 pub mod relations;
+pub mod row_context;
 pub mod session;
 pub mod store;
 pub mod target_rename;

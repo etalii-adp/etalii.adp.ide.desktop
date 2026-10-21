@@ -24,12 +24,16 @@ pub enum Request {
     Delete(String),
     Validate(String),
     ValidateAll,
+    /// The knowledge file's entry that adds a relation to another table (T064).
+    Relate(String),
 }
 
 #[derive(Default)]
 pub struct Explorer {
     pub expanded: HashSet<String>,
     pub selected: Option<String>,
+    /// The project's folder, which the entries' paths are relative to: what a context menu asks a module about.
+    pub root: std::path::PathBuf,
     id: Option<egui::Id>,
 }
 
@@ -142,6 +146,15 @@ impl Explorer {
                         item(ui, "New Folder…", "", Request::NewFolder(folder));
                         if row.node.kind != Kind::Folder {
                             item(ui, "Open as Text", "", Request::OpenAsText(path.clone()));
+                        }
+                        // What a module offers on the entry: a knowledge file adds a relation.
+                        for group in adp_designer_knowledge::context_actions::discover(
+                            &self.root.join(&path),
+                            row.node.kind == Kind::Folder,
+                        ) {
+                            for action in group.actions {
+                                item(ui, &action.label, "", Request::Relate(path.clone()));
+                            }
                         }
                         ui.separator();
                         item(ui, "Rename…", "F2", Request::Rename(path.clone()));

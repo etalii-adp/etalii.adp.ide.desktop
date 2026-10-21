@@ -50,13 +50,21 @@ A script is `parity/scripts/<tool>/<name>.json`, its goldens are `parity/goldens
 | `{ "move": { "refs": [...], "dx", "dy" } }` | The same, at the element's position on the diagram stream plus `dx` and `dy`. |
 | `{ "undo": n }`, `{ "redo": n }` | `ContextService.ExecuteAction` with `history.undo` or `history.redo` against the project, n times. |
 | `{ "save": true }` | Nothing: every command is written by the standalone host's history as it runs, so a diagram has nothing left to save. |
+| `{ "table": { "kind", "row"?, "column"?, "view"?, "values"?, "index"?, "target"?, "settings"? } }` | `DesignerService.Edit` of a table (see "Tables" below): one `TableGesture` with these fields, the gesture kinds being the designer's own (`setCell`, `addRow`, `addSort`, `toggleGroup`, `addView`, ...). Without `view` the gesture names the view the connection shows, as the Knowledge designer's panel sends every gesture. The step waits for the edit's `TableEditOutcome` on the stream and is refused when the call answers with a sentence or the outcome says it was not written. |
+| `{ "view": "<view id>" }` | `DesignerService.SetTableView`: the view the connection shows, which the standalone host writes as the view the file is left in; the step waits for that edit's outcome (three seconds, after which it is taken to have written nothing, as for the view already shown). |
 | `{ "save": { "path"?, "content" } }` | `EditorService.SaveText` of a text editor's content (the document, or `path`). |
 
 Every step may carry `"expect": "refused"`, for an edit the standalone host refuses: the recorder then fails when it is accepted. Without it, a refused step fails the recording, so a script never half-records.
 
+### Tables
+
+A script whose tool is a designer whose document is a table - `etalii/knowledge` - is not opened as a diagram. The connection is the tab's one stream, `WorkspaceService.Watch` (no `ContextService.Watch` and no `DiagramService.Open`), and the registration is opened on it with `DesignerService.OpenTable` under a stream id of the recorder's, then `DesignerService.SetTableWindow` asks for the first 60 lines, as a tab does once it is laid out. The recorder reads the table stream for its baseline, the view the connection shows (from the baseline and every structure change) and the edits' outcomes. `table` and `view` steps are sent as the table above says; `undo` and `redo` run on the project's history as for a diagram, which is where the standalone host's `KnowledgeSessionFactory` writes every edit.
+
 ### Ids the standalone host generates
 
 A mind map node, a timeline element or connection added by a step gets an id the standalone host generates at random (`ShortGuid.NewShortGuid()`), so a later step cannot name it in advance. `$N` in an id names the N-th element (from 1) and `$cN` the N-th connection the standalone host generated so far in the replay, in the order the diagram stream reported them: `{ "select": ["$2"] }`, `"target": "rel:discovery->$1"`. These are an addition to the contract's script format.
+
+A table sends no elements, so after every step of a table the recorder reads the project's files for ids that were never there: a ShortGuid is 25 characters of base 36, and an id in none of the fixture's files and not seen before is generated, in the order it stands in the files, with the type `etalii/knowledge+id`. `$N` in a `table` step's `row`, `column`, `view`, `target`, `values` and `settings` names the N-th of them: a row added, an option made from a cell's list, a view added. A step should make at most one such id, so that the order it stands in the file is the order it was made in.
 
 `recorded.json` lists every generated id with the step that made it, its element type and whether it is a connection. The bytes of a golden hold those ids, so a replay in the desktop host matches a golden only when it generates the same ids at the same steps, or when it compares the two with each generated id put in place of its own.
 

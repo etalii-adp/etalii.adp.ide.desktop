@@ -24,6 +24,11 @@
 //! endings of the platform the golden was recorded on: when the replay runs on another platform, the sidecar's line
 //! endings are turned into the recorded platform's before the comparison ([`in_recorded_line_endings`]). Every other
 //! file is compared as written, and on the recorded platform the sidecar is too.
+//!
+//! A designer's script - the Knowledge designer's, whose document is a table - is replayed through its session rather
+//! than through `adp-diagram` ([`table`]).
+
+pub mod table;
 
 use std::cell::{Cell, RefCell};
 use std::fmt;
@@ -410,6 +415,9 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         .strip_prefix(folder)
         .map_err(|_| format!("{opened} is not in the fixture's folder"))?
         .to_path_buf();
+    if table::is_table(&case.script.tool) {
+        return table::replay(case, project.path(), &document);
+    }
 
     let catalogue = Catalogue::load(&repository_root().join("vendor"));
     let tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
@@ -450,10 +458,17 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         }
     }
 
+    let files = compare_files(case, project.path())?;
+    Ok(Verdict::Replayed { steps, files })
+}
+
+/// Compares each file of the golden's `changed` list with the project's file of that path, and checks that each file
+/// of `removed` is gone.
+fn compare_files(case: &Case, project: &Path) -> Result<Vec<(String, FileResult)>, String> {
     let mut files = Vec::new();
     for path in &case.recorded.changed {
         let golden = fs::read(case.golden.join(path)).map_err(|e| format!("the golden {path}: {e}"))?;
-        let result = match fs::read(project.path().join(path)) {
+        let result = match fs::read(project.join(path)) {
             Err(_) => FileResult::Missing,
             Ok(bytes) => {
                 let bytes = in_recorded_line_endings(path, bytes, &case.recorded.platform, this_platform());
@@ -463,11 +478,11 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         files.push((path.clone(), result));
     }
     for path in &case.recorded.removed {
-        if project.path().join(path).exists() {
+        if project.join(path).exists() {
             files.push((path.clone(), FileResult::NotRemoved));
         }
     }
-    Ok(Verdict::Replayed { steps, files })
+    Ok(files)
 }
 
 impl Replay<'_> {

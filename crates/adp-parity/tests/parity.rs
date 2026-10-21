@@ -17,6 +17,21 @@ fn c4_container_courier() {
 }
 
 #[test]
+fn etalii_knowledge_cities_json() {
+    check("etalii/knowledge/cities-json");
+}
+
+#[test]
+fn etalii_knowledge_cities_xml() {
+    check("etalii/knowledge/cities-xml");
+}
+
+#[test]
+fn etalii_knowledge_cities_yaml() {
+    check("etalii/knowledge/cities-yaml");
+}
+
+#[test]
 fn freeplane_mindmap_example_1() {
     check("freeplane/mindmap/example-1");
 }
