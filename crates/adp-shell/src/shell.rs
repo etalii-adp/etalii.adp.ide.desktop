@@ -6,9 +6,18 @@
 use std::sync::mpsc::Receiver;
 
 use adp_core::{Event, Outcome, Workspace};
+use adp_documents::TextFile;
 use eframe::egui::{self, Frame, Margin, RichText};
 
+use crate::editor::TextEditor;
+use crate::highlight::Highlighter;
 use crate::theme::{self, Palette};
+
+/// A text file open in the editor: the file as read, for saving it back, and the component showing it.
+struct OpenText {
+    file: TextFile,
+    editor: TextEditor,
+}
 
 /// The window's state: its core and what the core last told it.
 pub struct Shell {
@@ -18,6 +27,8 @@ pub struct Shell {
     notice: Option<String>,
     /// Events drained so far; for tests, and a cheap sign of life in the status bar.
     pub drained: usize,
+    open: Option<OpenText>,
+    highlighter: Option<Highlighter>,
 }
 
 impl Default for Shell {
@@ -28,6 +39,8 @@ impl Default for Shell {
             events,
             notice: None,
             drained: 0,
+            open: None,
+            highlighter: None,
         }
     }
 }
@@ -36,6 +49,39 @@ impl Shell {
     #[cfg(test)]
     pub fn workspace(&self) -> &Workspace {
         &self.workspace
+    }
+
+    /// Opens a text file in the editor, or shows why it cannot be opened.
+    pub fn open_text(&mut self, path: &std::path::Path) {
+        match TextFile::open(path) {
+            Ok(file) => {
+                let extension = path
+                    .extension()
+                    .map(|e| e.to_string_lossy().into_owned())
+                    .unwrap_or_default();
+                let editor = TextEditor::new(file.content(), &extension, egui::Id::unique("text-editor"));
+                self.notice = Some(format!("{} · {}", file.encoding_name(), file.line_ending_style()));
+                self.open = Some(OpenText { file, editor });
+            }
+            Err(reason) => self.notice = Some(reason),
+        }
+    }
+
+    /// Saves the open text with Ctrl+S (Cmd+S on macOS), keeping its encoding and line endings.
+    fn save(&mut self, ui: &egui::Ui) {
+        if !ui.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, egui::Key::S)) {
+            return;
+        }
+        if let Some(open) = &mut self.open {
+            let text = open.editor.buffer.text();
+            match open.file.save(&text) {
+                Ok(()) => {
+                    open.editor.buffer.mark_saved();
+                    self.notice = Some(format!("Saved {}", open.file.path().display()));
+                }
+                Err(reason) => self.notice = Some(reason),
+            }
+        }
     }
 
     /// Undo and redo from the keyboard: the platform's Z with and without Shift, and Y, as in the standalone host.
@@ -71,7 +117,14 @@ impl Shell {
     /// Draws one frame.
     pub fn show(&mut self, ui: &mut egui::Ui) {
         self.drain();
-        self.shortcuts(ui);
+        self.save(ui);
+        let editor_focused = self
+            .open
+            .as_ref()
+            .is_some_and(|o| ui.memory(|m| m.has_focus(o.editor.id())));
+        if !editor_focused {
+            self.shortcuts(ui);
+        }
         let theme = theme::current(ui.ctx());
         let palette = Palette::of(&theme);
         let sizes = theme.sizes;
@@ -120,19 +173,60 @@ impl Shell {
                 ui.label(RichText::new("No project open.").color(palette.side_bar_foreground));
             });
 
-        egui::CentralPanel::default()
-            .frame(
-                Frame::NONE
-                    .fill(palette.editor_background)
-                    .inner_margin(Margin::same(24)),
-            )
-            .show(ui, |ui| {
-                ui.vertical_centered(|ui| {
-                    ui.add_space(ui.available_height() / 3.0);
-                    ui.heading("ADP");
-                    ui.label(format!("Desktop host {}", env!("CARGO_PKG_VERSION")));
+        if let Some(open) = &mut self.open {
+            let highlighter = self.highlighter.get_or_insert_with(Highlighter::default);
+            egui::Panel::top("tabs")
+                .exact_size(sizes.tab_height)
+                .resizable(false)
+                .frame(Frame::NONE.fill(theme::color(
+                    &theme,
+                    &["editorGroupHeader.tabsBackground"],
+                    palette.side_bar_background,
+                )))
+                .show(ui, |ui| {
+                    let name = open
+                        .file
+                        .path()
+                        .file_name()
+                        .map(|n| n.to_string_lossy().into_owned())
+                        .unwrap_or_default();
+                    let title = if open.editor.buffer.is_modified() {
+                        format!("● {name}")
+                    } else {
+                        name
+                    };
+                    let tab = theme::color(&theme, &["tab.activeBackground"], palette.editor_background);
+                    Frame::NONE
+                        .fill(tab)
+                        .inner_margin(Margin::symmetric(12, 8))
+                        .show(ui, |ui| {
+                            ui.label(RichText::new(title).color(theme::color(
+                                &theme,
+                                &["tab.activeForeground"],
+                                palette.foreground,
+                            )));
+                        });
                 });
-            });
+            egui::CentralPanel::default()
+                .frame(Frame::NONE.fill(palette.editor_background))
+                .show(ui, |ui| {
+                    open.editor.show(ui, &theme, highlighter);
+                });
+        } else {
+            egui::CentralPanel::default()
+                .frame(
+                    Frame::NONE
+                        .fill(palette.editor_background)
+                        .inner_margin(Margin::same(24)),
+                )
+                .show(ui, |ui| {
+                    ui.vertical_centered(|ui| {
+                        ui.add_space(ui.available_height() / 3.0);
+                        ui.heading("ADP");
+                        ui.label(format!("Desktop host {}", env!("CARGO_PKG_VERSION")));
+                    });
+                });
+        }
     }
 }
 

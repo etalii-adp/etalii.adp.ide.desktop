@@ -50,6 +50,8 @@ pub struct Buffer {
     redo: Vec<Group>,
     next_id: u64,
     saved: u64,
+    /// Counts every change of the text, so a view can tell when to lay it out again.
+    revision: u64,
 }
 
 impl Buffer {
@@ -63,11 +65,17 @@ impl Buffer {
             redo: Vec::new(),
             next_id: 1,
             saved: 0,
+            revision: 0,
         }
     }
 
     pub fn text(&self) -> String {
         self.rope.to_string()
+    }
+
+    /// A number that changes whenever the text changes.
+    pub fn revision(&self) -> u64 {
+        self.revision
     }
 
     pub fn len(&self) -> usize {
@@ -152,6 +160,7 @@ impl Buffer {
             (self.anchor, self.head) = edit.before;
         }
         self.redo.push(Group { typing: false, ..group });
+        self.revision += 1;
         self.goal_column = None;
         true
     }
@@ -166,6 +175,7 @@ impl Buffer {
             (self.anchor, self.head) = edit.after;
         }
         self.undo.push(group);
+        self.revision += 1;
         self.goal_column = None;
         true
     }
@@ -263,6 +273,7 @@ impl Buffer {
     }
 
     fn replace(&mut self, start: usize, end: usize, text: &str, starts_word: bool) {
+        self.revision += 1;
         let removed = self.rope.slice(start..end).to_string();
         let before = (self.anchor, self.head);
         self.rope.remove(start..end);
