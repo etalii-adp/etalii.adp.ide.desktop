@@ -255,6 +255,16 @@ dependencies = [
 [[package]]
 name = "adp-parity"
 version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-history",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
 
 [[package]]
 name = "adp-problems"
