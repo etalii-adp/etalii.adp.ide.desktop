@@ -19,6 +19,7 @@ pub mod module_scene;
 pub mod paint;
 pub mod placement;
 pub mod toolbox;
+pub mod wardley_scene;
 
 #[cfg(test)]
 mod tests;
@@ -94,13 +95,13 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_c4::register(adp_diagram_dependency_graph::register(
+            tools: adp_diagram_wardley_map::register(adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                 adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                     DislPluginFunctions::none()
                 }))
                 .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
                 .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module()),
-            )),
+            ))),
             workspaces: HashMap::new(),
         }
     }
@@ -609,13 +610,23 @@ impl DiagramTab {
         // A selected element that is gone is no longer selected.
         let known: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
         self.selection.retain(|id| known.contains(id.as_str()));
-        let built = module_scene::build(&elements, &self.selection, self.arbiter.moving());
+        // A Wardley map is drawn in its 0..1 space on a square of 1000 canvas units (T070); every other module's view
+        // is drawn as C4's is.
+        let (built, mappings) = if self.opened.origin == adp_diagram_wardley_map::ORIGIN {
+            wardley_scene::build(&elements, &self.selection, self.arbiter.moving())
+        } else {
+            (
+                module_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                HashMap::new(),
+            )
+        };
         let bounds = built.scene.bounds(metrics);
         self.cache = Some(Cached {
             key,
             scene: built.scene,
             placed: Placed {
                 rects: built.rects,
+                mappings,
                 ..Placed::default()
             },
             boxes: built.boxes,

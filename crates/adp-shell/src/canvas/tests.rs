@@ -1077,3 +1077,6 @@ mod walk;
 
 // The causal loop diagram with its module (T069), in a file of its own.
 mod causal_loop;
+
+// The Wardley map with its module (T070), in a file of its own.
+mod wardley_map;

@@ -56,7 +56,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-050 | Ansible project structure (`ansible/structure`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-051 | Helm chart (`helm/chart`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-052 | .NET dependency graph (`dotnet/dependency-graph`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
-| P-053 | Wardley map (`wardley/map`, prototype) | docs/tools.md, 9. Strategy & landscape mapping | 4 |  | planned |
+| P-053 | Wardley map (`wardley/map`, prototype) | docs/tools.md, 9. Strategy & landscape mapping | 4 | adp-parity::wardley_map_strategy_vocabulary | checked |
 | P-054 | Gartner hype cycle graph (`gartner/hypecycle-graph`, work-in-progress) | docs/tools.md, 9. Strategy & landscape mapping | 4 |  | planned |
 | P-055 | Mind map (`freeplane/mindmap`, prototype) | docs/tools.md, 10. Knowledge & informal modeling | 4 | adp-parity::freeplane_mindmap_example_1 | checked |
 | P-056 | Causal loop diagram (`systems/causal-loop-diagram`, work-in-progress) | docs/tools.md, 10. Knowledge & informal modeling | 4 | adp-parity::systems_causal_loop_diagram_reference, adp-parity::systems_causal_loop_diagram_on_call | checked |

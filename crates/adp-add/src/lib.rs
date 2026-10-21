@@ -458,6 +458,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_causal_loop::ORIGIN,
         adp_diagram_causal_loop::TEMPLATE,
     )));
+    // `ServiceCollection.AddWardleyMap.cs`: a `title` line carrying the file's base name.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_wardley_map::ORIGIN,
+        adp_diagram_wardley_map::empty_document,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 

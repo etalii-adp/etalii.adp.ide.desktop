@@ -1,0 +1,33 @@
+title Strategy vocabulary
+size [900,700]
+
+anchor Customer [0.95, 0.63]
+
+component Order Portal [0.85, 0.42]
+component Payment [0.70, 0.72] (buy)
+component Fraud Scoring [0.62, 0.30] (build)
+component Ledger [0.48, 0.55] (outsource)
+component Datacentre [0.15, 0.55] inertia
+component Card Networks [0.66, 0.88] (market)
+component Partner Plugins [0.40, 0.47] (ecosystem)
+
+Customer->Order Portal
+Order Portal->Payment
+Order Portal->Fraud Scoring
+Payment->Card Networks
+Payment->Ledger
+Fraud Scoring+>Ledger
+Ledger->Datacentre
+Order Portal->Partner Plugins; via the plugin SDK
+
+evolve Fraud Scoring 0.72
+evolve Datacentre->Cloud Hosting 0.83
+
+pioneers [0.30, 0.20, 0.55, 0.45]
+settlers [0.55, 0.45, 0.80, 0.70]
+townplanners [0.15, 0.70, 0.45, 0.95]
+
+accelerator Regulatory pressure [0.70, 0.60]
+deaccelerator Legacy contracts [0.45, 0.30]
+
+note Renewal is due in March [0.22, 0.30]
