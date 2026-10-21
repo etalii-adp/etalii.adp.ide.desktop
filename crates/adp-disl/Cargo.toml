@@ -9,3 +9,16 @@ publish = false
 
 [lints]
 workspace = true
+
+[dependencies]
+adp-cel = { path = "../adp-cel" }
+adp-fbl = { path = "../adp-fbl" }
+indexmap = "2"
+regex = "1"
+serde = "1"
+# A specification's members are read in the order it writes them (DISL section 2.1).
+serde_json = { version = "1", features = ["preserve_order"] }
+# A bundled definition's bytes are checked against the sha256 its provenance records.
+sha2 = "0.10"
+# The uuid-v4 and uuid-v7 id strategies (DISL section 11.5.1).
+uuid = { version = "1", features = ["v4", "v7"] }

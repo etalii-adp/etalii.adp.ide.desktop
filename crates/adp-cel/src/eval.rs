@@ -97,12 +97,6 @@ impl Variables for Map {
     }
 }
 
-impl Variables for [(&str, Value)] {
-    fn get(&self, name: &str) -> Option<Value> {
-        self.iter().find(|(n, _)| *n == name).map(|(_, v)| v.clone())
-    }
-}
-
 /// A compiled CEL expression.
 #[derive(Debug, Clone)]
 pub struct Program {

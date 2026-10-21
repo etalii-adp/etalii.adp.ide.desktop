@@ -88,7 +88,7 @@ fn decimal_text(value: f64) -> String {
 
 /// .NET's `double.ToString()`: the shortest round-tripping digits, in `E` notation from an exponent of 15 up and
 /// below -5.
-pub(crate) fn dotnet_double(value: f64) -> String {
+pub fn dotnet_double(value: f64) -> String {
     if value.is_nan() {
         return "NaN".into();
     }

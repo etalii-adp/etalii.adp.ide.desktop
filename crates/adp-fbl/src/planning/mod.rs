@@ -3,6 +3,9 @@
 //! [`crate::history::OpenBody`] applies what it plans.
 
 pub(crate) mod new_text;
+
+/// .NET's invariant text of a double, which DISL reads a binding's numbers through too (DISL section 4.2).
+pub use new_text::dotnet_double;
 pub(crate) mod plan;
 pub(crate) mod planner;
 
