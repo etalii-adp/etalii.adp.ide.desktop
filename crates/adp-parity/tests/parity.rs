@@ -17,6 +17,11 @@ fn c4_container_courier() {
 }
 
 #[test]
+fn etalii_agent_behavior_modelling_research_assistant() {
+    check("etalii/agent-behavior-modelling/research-assistant");
+}
+
+#[test]
 fn etalii_knowledge_cities_json() {
     check("etalii/knowledge/cities-json");
 }

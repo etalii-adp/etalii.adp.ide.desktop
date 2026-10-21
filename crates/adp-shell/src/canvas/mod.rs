@@ -109,6 +109,10 @@ impl DiagramHost {
                     .with_module(
                         adp_diagram_functional_decomposition_graph::ORIGIN,
                         adp_diagram_functional_decomposition_graph::module(),
+                    )
+                    .with_module(
+                        adp_diagram_agent_behavior_modelling::ORIGIN,
+                        adp_diagram_agent_behavior_modelling::module(),
                     ),
                 ),
             ))),

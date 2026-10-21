@@ -124,6 +124,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-agent-behavior-modelling",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-functional-decomposition-graph",
@@ -208,6 +209,21 @@ dependencies = [
  "adp-core",
  "adp-disl",
  "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-agent-behavior-modelling"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
  "adp-fbl",
  "adp-history",
  "serde_json",
@@ -444,6 +460,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-agent-behavior-modelling",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
@@ -500,6 +517,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-agent-behavior-modelling",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",

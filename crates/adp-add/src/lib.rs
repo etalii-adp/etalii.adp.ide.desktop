@@ -478,6 +478,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_hype_cycle::ORIGIN,
         adp_diagram_hype_cycle::EMPTY_DOCUMENT,
     )));
+    // `ServiceCollection.AddAgentBehaviorModelling.cs`: `AbmWriter.EmptyDocument(baseName, "\r\n")`, titled by the name.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_agent_behavior_modelling::ORIGIN,
+        adp_diagram_agent_behavior_modelling::empty_document,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 

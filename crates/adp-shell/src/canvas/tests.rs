@@ -1193,3 +1193,5 @@ mod supply_chain;
 mod sankey;
 // The functional decomposition graph with its module (T072), in a file of its own.
 mod fdg;
+// The agent behavior model with its module (T074), in a file of its own.
+mod abm;
