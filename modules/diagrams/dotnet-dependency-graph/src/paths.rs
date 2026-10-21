@@ -27,9 +27,10 @@ pub fn normalise(path: &Path) -> PathBuf {
     out
 }
 
-/// The key a path is compared by: its text, case folded where the platform ignores case.
+/// The key a path is compared by: its text made whole by [`normalise`], which gives its parts the platform's
+/// separator (a `/` and a `\` name the same folder on Windows), case folded where the platform ignores case.
 pub fn key(path: &Path) -> String {
-    let text = path.to_string_lossy().into_owned();
+    let text = normalise(path).to_string_lossy().into_owned();
     if platform_ignores_case() {
         text.to_lowercase()
     } else {
