@@ -192,6 +192,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-timeline"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-layout",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-disl"
 version = "0.1.0"
 dependencies = [
@@ -282,6 +295,7 @@ dependencies = [
  "adp-context",
  "adp-core",
  "adp-diagram",
+ "adp-diagram-timeline",
  "adp-disl",
  "adp-history",
  "serde",

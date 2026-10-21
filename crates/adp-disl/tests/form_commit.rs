@@ -1,7 +1,7 @@
 //! A form item at commit (DISL 0.3 section 7.5): an inspector row's typed value, refused or made into a transaction,
 //! and a params form's dialog and the refusal its value meets; and a label's inline edit (DISL 0.3 section 6.12): the
 //! text its editor opens on, and its `parse`'s `accepts`, `refusal` and `write` (the standalone host's
-//! `FormCommitTests`).
+//! `FormCommitTests`), or without a `parse` the attribute its `editText` or its `text` binds.
 
 mod common;
 
@@ -25,7 +25,10 @@ static JSON: LazyLock<String> = LazyLock::new(|| {
             "parse": { "accepts": "value != '' && !value.contains('#')", "write": [ { "set": { "note": "value.trim()" } } ],
               "refusal": { "cel": "'\\'' + value + '\\' is no caption.'" } } },
           { "id": "badge", "text": { "cel": "self.code" }, "editable": "inline",
-            "parse": { "write": [ { "set": { "code": "value" } } ] } } ] } } },
+            "parse": { "write": [ { "set": { "code": "value" } } ] } },
+          { "id": "mode", "text": { "attribute": "mode" } },
+          { "id": "summary", "text": { "cel": "self.note + '!'" }, "editable": "inline", "editText": { "attribute": "note" } },
+          { "id": "shown", "text": { "cel": "self.note" }, "editable": "inline" } ] } } },
         "forms": {
           "gauge": {
             "for": "Gauge",
@@ -309,4 +312,78 @@ fn a_labels_editor_opens_on_its_edit_text() {
         Some("first?".to_owned()),
         form_commit::edit_text(&specification, &gauge, "caption", &DislEnv::default())
     );
+}
+
+#[test]
+fn a_labels_edit_without_a_parse_is_written_to_the_attribute_its_text_binds() {
+    let specification = specification();
+    let (_diagram, gauge) = gauge(&specification);
+
+    let transaction = form_commit::label(&specification, &gauge, "mode", "s", &DislEnv::default());
+
+    assert!(transaction.refusal.is_none(), "{transaction:?}");
+    let (id, attributes) = single_set(&transaction);
+    assert_eq!(("g1".to_owned(), Some(&Value::from("s"))), (id, attributes.get("mode")));
+}
+
+#[test]
+fn a_computed_labels_edit_is_written_to_the_attribute_its_edit_text_binds() {
+    let specification = specification();
+    let (_diagram, gauge) = gauge(&specification);
+
+    let (_, attributes) = single_set(&form_commit::label(
+        &specification,
+        &gauge,
+        "summary",
+        "second",
+        &DislEnv::default(),
+    ));
+
+    assert_eq!(Some(&Value::from("second")), attributes.get("note"));
+    assert_eq!(
+        Some("first".to_owned()),
+        form_commit::edit_text(&specification, &gauge, "summary", &DislEnv::default())
+    );
+}
+
+#[test]
+fn a_computed_label_that_binds_no_attribute_cannot_be_edited() {
+    let specification = specification();
+    let (_diagram, gauge) = gauge(&specification);
+
+    let refused = form_commit::label(&specification, &gauge, "shown", "second", &DislEnv::default());
+
+    assert_eq!(Some("'shown' cannot be edited here.".to_owned()), refused.refusal);
+}
+
+#[test]
+fn a_bound_labels_edit_on_a_read_only_diagram_is_refused_with_the_standard_sentence() {
+    let specification = specification();
+    let (_diagram, gauge) = gauge(&specification);
+    let env = DislEnv {
+        read_only: true,
+        ..DislEnv::default()
+    };
+
+    let refused = form_commit::label(&specification, &gauge, "mode", "s", &env);
+
+    assert_eq!(Some("This diagram is read-only.".to_owned()), refused.refusal);
+}
+
+#[test]
+fn an_attribute_is_written_with_the_text_typed_as_it_is() {
+    let specification = specification();
+    let (_diagram, gauge) = gauge(&specification);
+
+    let (_, attributes) = single_set(&form_commit::attribute(
+        &specification,
+        &gauge,
+        "level",
+        "3",
+        &DislEnv::default(),
+    ));
+    let refused = form_commit::attribute(&specification, &gauge, "nothing", "3", &DislEnv::default());
+
+    assert_eq!(Some(&Value::Double(3.0)), attributes.get("level"));
+    assert_eq!(Some("'nothing' cannot be edited here.".to_owned()), refused.refusal);
 }

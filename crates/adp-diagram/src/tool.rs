@@ -18,6 +18,7 @@ use adp_fbl::{FblOptions, RegistrationDocument};
 
 use crate::definition::DiagramDefinition;
 use crate::disl_definition::DislDiagramDefinition;
+use crate::module::DiagramModule;
 
 /// A diagram tool type whose specification and binding are loaded.
 #[derive(Debug)]
@@ -28,6 +29,8 @@ pub struct DiagramTool {
     pub binding: Rc<FblBinding>,
     /// The extensions it opens, lower case with their dot.
     pub extensions: Vec<String>,
+    /// The tool type's own code beside its specification, when it has any.
+    pub module: Option<Rc<dyn DiagramModule>>,
 }
 
 impl DiagramTool {
@@ -61,6 +64,7 @@ impl DiagramTool {
             definition,
             binding: Rc::new(binding),
             extensions: tool_type.extensions.clone(),
+            module: None,
         })
     }
 
@@ -127,6 +131,7 @@ fn load_binding(file: &Path, reference: &str) -> Result<FblBinding, String> {
 pub struct DiagramTools {
     catalogue: Catalogue,
     plugins: Box<dyn Fn(&str) -> DislPluginFunctions>,
+    modules: HashMap<String, Rc<dyn DiagramModule>>,
     loaded: HashMap<String, Result<Rc<DiagramTool>, String>>,
 }
 
@@ -136,8 +141,17 @@ impl DiagramTools {
         DiagramTools {
             catalogue,
             plugins: Box::new(plugins),
+            modules: HashMap::new(),
             loaded: HashMap::new(),
         }
+    }
+
+    /// Registers the tool type `origin`'s own code: its plugin functions take the place of what `plugins` gives for
+    /// that origin, and its session asks it what the specification cannot state.
+    pub fn with_module(mut self, origin: &str, module: Rc<dyn DiagramModule>) -> Self {
+        self.loaded.remove(origin);
+        self.modules.insert(origin.to_owned(), module);
+        self
     }
 
     pub fn catalogue(&self) -> &Catalogue {
@@ -149,7 +163,17 @@ impl DiagramTools {
         if !self.loaded.contains_key(origin) {
             let loaded = match self.catalogue.by_origin(origin) {
                 None => Err(format!("No tool type '{origin}' is known.")),
-                Some(tool_type) => DiagramTool::load(tool_type, &(self.plugins)(origin)).map(Rc::new),
+                Some(tool_type) => {
+                    let module = self.modules.get(origin).cloned();
+                    let plugins = match &module {
+                        Some(module) => module.plugin_functions(),
+                        None => (self.plugins)(origin),
+                    };
+                    DiagramTool::load(tool_type, &plugins).map(|mut tool| {
+                        tool.module = module;
+                        Rc::new(tool)
+                    })
+                }
             };
             self.loaded.insert(origin.to_owned(), loaded);
         }

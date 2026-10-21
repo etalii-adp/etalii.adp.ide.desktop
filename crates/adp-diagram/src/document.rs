@@ -199,8 +199,9 @@ impl DiagramDocument {
         })
     }
 
-    /// The authored positions, by element id, in the diagram's domain units: a node whose notation places it by two
-    /// of its attributes is where they say, any other where the registration's `layout:` puts it.
+    /// The authored positions, by element id, in the diagram's domain units: a node the tool type's module places is
+    /// where its coordinates say, a node whose notation places it by two of its attributes where they say, any other
+    /// where the registration's `layout:` puts it.
     pub fn positions(&self) -> HashMap<String, (f64, f64)> {
         let mut positions = HashMap::new();
         if let Some(layout) = self.registration().and_then(|r| r.layout.as_ref()) {
@@ -211,8 +212,11 @@ impl DiagramDocument {
                 }
             }
         }
+        let module = self.tool.module.as_deref();
         for element in self.reading.model.diagram.nodes() {
-            if let Some((x, y)) = self.placement_attributes(&element) {
+            if let Some(position) = module.and_then(|m| m.position(&element)) {
+                positions.insert(element.id(), position);
+            } else if let Some((x, y)) = self.placement_attributes(&element) {
                 let number = |name: &str| element.value_of(name).as_number().unwrap_or_default();
                 positions.insert(element.id(), (number(&x), number(&y)));
             }

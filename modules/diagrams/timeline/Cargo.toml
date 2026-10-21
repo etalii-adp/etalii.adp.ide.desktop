@@ -1,0 +1,22 @@
+[package]
+name = "adp-diagram-timeline"
+description = "The timeline diagram's residue: its time functions, time-axis coordinates and row arrangement (spec 030, T060)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-layout = { path = "../../../crates/adp-layout" }
+
+[dev-dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-core = { path = "../../../crates/adp-core" }
+tempfile = "3"
+
+[lints]
+workspace = true

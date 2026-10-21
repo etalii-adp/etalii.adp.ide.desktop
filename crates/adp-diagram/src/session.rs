@@ -25,7 +25,7 @@ use adp_disl::derivation::{constraints, form_commit, gestures};
 use adp_disl::model::builder;
 use adp_disl::{
     DerivedMenuEntry, DislChange, DislConstraintOptions, DislElement, DislEnv, DislInvocation, DislMenuTarget,
-    DislTransaction, IdSource,
+    DislTransaction, HostAction, IdSource,
 };
 
 use crate::change_handler::{DiagramDocumentChangeHandler, DocumentChange};
@@ -242,7 +242,8 @@ impl DiagramSession {
     }
 
     /// Moves several elements at once, as one command and one undo. Each move is checked against the
-    /// specification's placement constraints first; the first refusal moves nothing.
+    /// specification's placement constraints first; the first refusal moves nothing. Where the tool type's module
+    /// has coordinates of its own, it says what a move writes.
     pub fn move_elements(&self, workspace: &mut DiagramWorkspace, moves: &[(String, f64, f64)]) -> Result<(), String> {
         let document = self.document(workspace.documents())?;
         let positions = document.positions();
@@ -255,6 +256,35 @@ impl DiagramSession {
             }
             let (old_x, old_y) = positions.get(id).copied().unwrap_or_default();
             if (old_x, old_y) == (*x, *y) && positions.contains_key(id) {
+                continue;
+            }
+            if let Some(placed) = document
+                .tool()
+                .module
+                .as_ref()
+                .and_then(|m| m.placement(&element, *x, *y))
+            {
+                let placed = placed?;
+                if placed.attributes.is_empty() {
+                    continue;
+                }
+                let refusals = gestures::placement(
+                    specification,
+                    &element,
+                    "move",
+                    placed.old_bounds,
+                    placed.new_bounds,
+                    None,
+                    Some(&self.env),
+                );
+                if let Some(refusal) = refusals.into_iter().next() {
+                    return Err(refusal.message);
+                }
+                changes.push(DiagramChange::Disl(DislChange::Set {
+                    element_id: element.id(),
+                    type_name: element.type_name(),
+                    attributes: placed.attributes,
+                }));
                 continue;
             }
             let refusals = gestures::placement(
@@ -330,7 +360,8 @@ impl DiagramSession {
         let specification = document.tool().definition.specification();
         let name = tool_name(document, tool_id).unwrap_or_else(|| tool_id.to_owned());
         let working = builder::from(document.fbl(), specification).diagram;
-        let transaction = operations::drop(specification, &name, &working, &bounds(x, y), ids, Some(&self.env));
+        let position = position_at(document, x, y);
+        let transaction = operations::drop(specification, &name, &working, &position, ids, Some(&self.env));
         self.write(workspace, "Add", transaction)
     }
 
@@ -370,7 +401,8 @@ impl DiagramSession {
     }
 
     /// Sets property `property_id` of every selected element to `value`, as one command and one undo; a value
-    /// every element already holds writes nothing, and the first refusal writes nothing at all.
+    /// every element already holds writes nothing, and the first refusal, the specification's or the tool type's
+    /// module's, writes nothing at all.
     pub fn set_property(
         &self,
         workspace: &mut DiagramWorkspace,
@@ -396,7 +428,11 @@ impl DiagramSession {
             if let Some(refusal) = transaction.refusal {
                 return Err(refusal);
             }
-            changes.extend(transaction.changes.into_iter().map(DiagramChange::Disl));
+            let written = match &document.tool().module {
+                Some(module) => module.written(&document.model().diagram, transaction.changes)?,
+                None => transaction.changes,
+            };
+            changes.extend(written.into_iter().map(DiagramChange::Disl));
         }
         let label = if element_ids.len() == 1 {
             "Change".to_owned()
@@ -499,6 +535,21 @@ impl DiagramSession {
                     confirm_label: entry.label.clone(),
                 })
             }
+            ("connect", ActionTarget::Connection { source, target }) => {
+                let (Some(source), Some(target)) = (source, target) else {
+                    return ActionOutcome::Refused(format!(
+                        "'{}' needs both ends: a relation released on empty canvas has no point here to create its other end at.",
+                        entry.label
+                    ));
+                };
+                let Some(via) = connect_via(specification) else {
+                    return ActionOutcome::Refused(format!("'{}' names no relation type.", entry.label));
+                };
+                match self.connect(workspace, &via, source, target, ids) {
+                    Ok(()) => ActionOutcome::Done,
+                    Err(refusal) => ActionOutcome::Refused(refusal),
+                }
+            }
             (_, _) if entry.operation.is_some() => {
                 let operation = entry.operation.clone().unwrap_or_default();
                 let working = builder::from(document.fbl(), specification).diagram;
@@ -506,23 +557,28 @@ impl DiagramSession {
                     ActionTarget::Element(id) => working.element_by_id(id),
                     _ => None,
                 };
-                let invocation = match target {
-                    ActionTarget::Canvas { x, y } => DislInvocation {
-                        position: Some(bounds(*x, *y)),
-                        ..DislInvocation::default()
-                    },
-                    _ => DislInvocation::default(),
-                };
-                let transaction = operations::run(
-                    specification,
-                    &operation,
-                    &working,
-                    element.as_ref(),
-                    ids,
-                    Some(&invocation),
-                    Some(&self.env),
-                );
-                match self.write(workspace, &entry.label, transaction) {
+                let parameters =
+                    operations::parameters(specification, &operation, &working, element.as_ref(), Some(&self.env));
+                match parameters.as_slice() {
+                    [] => {}
+                    [parameter] => {
+                        let title = entry.label.trim_end_matches(['\u{2026}', '.']).trim_end().to_owned();
+                        return ActionOutcome::Prompt(Prompt::Input {
+                            title: title.clone(),
+                            icon: entry.icon.clone(),
+                            label: parameter.label.clone(),
+                            initial_value: crate::document::text_of(&parameter.default),
+                            confirm_label: title,
+                        });
+                    }
+                    _ => {
+                        return ActionOutcome::Refused(format!(
+                            "'{}' asks for more than one value, which this host cannot ask for yet.",
+                            entry.label
+                        ));
+                    }
+                }
+                match self.run_operation(workspace, target, &entry, &operation, None, ids) {
                     Ok(()) => ActionOutcome::Done,
                     Err(refusal) => ActionOutcome::Refused(refusal),
                 }
@@ -531,8 +587,8 @@ impl DiagramSession {
         }
     }
 
-    /// Answers the prompt action `action_id` of `target` raised: the deletion it asked to confirm, or the label
-    /// typed for an inline rename.
+    /// Answers the prompt action `action_id` of `target` raised: the deletion it asked to confirm, the label typed
+    /// for an inline rename, or the value an operation asked for (its one parameter, DISL section 9.3).
     pub fn answer(
         &self,
         workspace: &mut DiagramWorkspace,
@@ -546,6 +602,30 @@ impl DiagramSession {
         let entry = self.entry(document, target, action_id);
         match (entry, target) {
             (Some(entry), ActionTarget::Element(id)) if entry.kind == "delete" => self.remove(workspace, id),
+            (Some(entry), _) if entry.operation.is_some() => {
+                let operation = entry.operation.clone().unwrap_or_default();
+                let specification = document.tool().definition.specification();
+                let working = builder::from(document.fbl(), specification).diagram;
+                let element = match target {
+                    ActionTarget::Element(id) => working.element_by_id(id),
+                    _ => None,
+                };
+                let parameters =
+                    operations::parameters(specification, &operation, &working, element.as_ref(), Some(&self.env));
+                let [parameter] = parameters.as_slice() else {
+                    return ActionOutcome::Refused(format!("'{action_id}' asks for nothing."));
+                };
+                let Some(answered) = parameter.value_of(value) else {
+                    return ActionOutcome::Refused(format!("'{value}' is not a value of {}.", parameter.label));
+                };
+                let parameters: Map = [(parameter.name.clone(), answered)].into_iter().collect();
+                // An answer carries no ids: an operation that asks first creates nothing it would need one for.
+                let ids = adp_disl::behavior::ids::fixed(&[]);
+                match self.run_operation(workspace, target, &entry, &operation, Some(parameters), &ids) {
+                    Ok(()) => ActionOutcome::Done,
+                    Err(refusal) => ActionOutcome::Refused(refusal),
+                }
+            }
             (Some(entry), ActionTarget::Element(id)) if entry.kind == "editLabel" => {
                 let label = match document.element(id) {
                     Some(element) => label_id(document, &element, &entry),
@@ -567,8 +647,8 @@ impl DiagramSession {
         form_commit::edit_text(document.tool().definition.specification(), &element, label, &self.env)
     }
 
-    /// Commits the inline edit `text` of `element_id`'s label `label`, as the label's `parse` writes it, as one
-    /// command.
+    /// Commits the inline edit `text` of `element_id`'s label `label`, as the label's `parse` writes it, else to the
+    /// attribute it binds, or the one the tool type's module names for a computed label, as one command.
     pub fn edit_label(
         &self,
         workspace: &mut DiagramWorkspace,
@@ -578,18 +658,22 @@ impl DiagramSession {
     ) -> Result<(), String> {
         let document = self.document(workspace.documents())?;
         let element = document.element(element_id).ok_or_else(|| GONE.to_owned())?;
-        let transaction = form_commit::label(
-            document.tool().definition.specification(),
-            &element,
-            label,
-            text,
-            &self.env,
-        );
+        let specification = document.tool().definition.specification();
+        let transaction = match document
+            .tool()
+            .module
+            .as_ref()
+            .and_then(|m| m.label_attribute(&element, label))
+        {
+            Some(attribute) => form_commit::attribute(specification, &element, &attribute, text, &self.env),
+            None => form_commit::label(specification, &element, label, text, &self.env),
+        };
         self.write(workspace, "Rename", transaction)
     }
 
     /// The connect gesture: a relation of `relation_type` from `source` to `target`, under the id `ids` gives; for a
-    /// derived relation type, the operation its `edits.connect` names (DISL section 4.11.4).
+    /// derived relation type, the operation its `edits.connect` names (DISL section 4.11.4). The specification's
+    /// connect constraints are checked first (section 8.4); the first refusal draws nothing.
     pub fn connect(
         &self,
         workspace: &mut DiagramWorkspace,
@@ -609,6 +693,12 @@ impl DiagramSession {
         let (Some(from), Some(to)) = (document.element(source), document.element(target)) else {
             return Err("Both ends of a relation must be elements of this diagram.".to_owned());
         };
+        if let Some(refusal) = gestures::connect(specification, relation_type, &from, &to, Some(&self.env))
+            .into_iter()
+            .next()
+        {
+            return Err(refusal.message);
+        }
         let transaction = if relation.derived().is_some() {
             let working = builder::from(document.fbl(), specification).diagram;
             let (Some(from), Some(to)) = (working.element_by_id(source), working.element_by_id(target)) else {
@@ -652,9 +742,69 @@ impl DiagramSession {
         if let Some(refusal) = transaction.refusal {
             return Err(refusal);
         }
-        let changes: Vec<DiagramChange> = transaction.changes.into_iter().map(DiagramChange::Disl).collect();
-        let edit = self.document(workspace.documents())?.plan(label, &changes)?;
+        let document = self.document(workspace.documents())?;
+        let changes = match &document.tool().module {
+            Some(module) => module.written(&document.model().diagram, transaction.changes)?,
+            None => transaction.changes,
+        };
+        let changes: Vec<DiagramChange> = changes.into_iter().map(DiagramChange::Disl).collect();
+        let edit = document.plan(label, &changes)?;
         workspace.execute(edit)
+    }
+
+    /// Runs operation `operation` of `entry` on `target` with its answered `parameters`, the plugin layouts its
+    /// `layout` actions name run by the tool type's module, and writes it as one command.
+    fn run_operation(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        entry: &DerivedMenuEntry,
+        operation: &str,
+        parameters: Option<Map>,
+        ids: &dyn IdSource,
+    ) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        let specification = document.tool().definition.specification();
+        let working = builder::from(document.fbl(), specification).diagram;
+        let element = match target {
+            ActionTarget::Element(id) => working.element_by_id(id),
+            _ => None,
+        };
+        let invocation = DislInvocation {
+            position: match target {
+                ActionTarget::Canvas { x, y } => Some(position_at(document, *x, *y)),
+                _ => None,
+            },
+            parameters,
+            ..DislInvocation::default()
+        };
+        let mut transaction = operations::run(
+            specification,
+            operation,
+            &working,
+            element.as_ref(),
+            ids,
+            Some(&invocation),
+            Some(&self.env),
+        );
+        if transaction.refusal.is_none()
+            && let Some(module) = &document.tool().module
+        {
+            for action in &transaction.host_actions {
+                let HostAction::Layout { algorithm } = action else {
+                    continue;
+                };
+                let Some(plugin) = plugin_layout(specification, algorithm) else {
+                    continue;
+                };
+                match module.layout(specification, &plugin, &working) {
+                    Some(Ok(changes)) => transaction.changes.extend(changes),
+                    Some(Err(refusal)) => return Err(refusal),
+                    None => {}
+                }
+            }
+        }
+        self.write(workspace, &entry.label, transaction)
     }
 }
 
@@ -685,6 +835,58 @@ fn tool_name(document: &DiagramDocument, tool_id: &str) -> Option<String> {
         .filter_map(|t| t.get("id")?.as_str())
         .find(|name| ids.tool_id(name) == tool_id)
         .map(str::to_owned)
+}
+
+/// The `position` an operation or a tool run at the canvas point (`x`, `y`) reads: the module's, else the point.
+fn position_at(document: &DiagramDocument, x: f64, y: f64) -> Map {
+    document
+        .tool()
+        .module
+        .as_ref()
+        .and_then(|m| m.position_at(x, y))
+        .unwrap_or_else(|| bounds(x, y))
+}
+
+/// The plugin a layout algorithm runs (`layout.algorithms.<name>.algorithm` of `plugin:<plugin>`), or none for one
+/// the runtime implements.
+fn plugin_layout(specification: &adp_disl::DislSpecification, algorithm: &str) -> Option<String> {
+    let declared = specification
+        .root()
+        .get("layout")?
+        .get("algorithms")?
+        .get(algorithm)?
+        .get("algorithm")?
+        .as_str()?;
+    declared.strip_prefix("plugin:").map(str::to_owned)
+}
+
+/// The relation type a finished connect gesture's menu entry draws: the `via` of the `connect` entry of the menu
+/// `for: "connection"`, else the one relation type that is not abstract.
+fn connect_via(specification: &adp_disl::DislSpecification) -> Option<String> {
+    let root = specification.root();
+    let menus = root.get("toolbox")?.get("contextMenus")?.as_array()?;
+    let named = menus
+        .iter()
+        .filter(|menu| {
+            menu.get("for")
+                .and_then(|f| f.as_array())
+                .is_some_and(|f| f.iter().any(|t| t.as_str() == Some("connection")))
+        })
+        .filter_map(|menu| menu.get("tools")?.as_array())
+        .flatten()
+        .filter(|tool| tool.get("kind").and_then(|k| k.as_str()) == Some("connect"))
+        .find_map(|tool| tool.get("via")?.as_str().map(str::to_owned));
+    named.or_else(|| {
+        let mut relations = specification
+            .metamodel()
+            .types
+            .values()
+            .filter(|t| t.is_relation && !t.is_abstract());
+        match (relations.next(), relations.next()) {
+            (Some(only), None) => Some(only.name.clone()),
+            _ => None,
+        }
+    })
 }
 
 fn bounds(x: f64, y: f64) -> Map {

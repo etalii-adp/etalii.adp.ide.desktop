@@ -24,7 +24,6 @@ fn freeplane_mindmap_example_1() {
 }
 
 #[test]
-#[ignore = "differs at byte offset 63: a period's inline rename is refused (its label is computed and has no editText or parse), the timeline's plugin functions (timelineTimes) are absent, a dated position is not a number on the desktop canvas, an operation's input is not asked, and a connect from the menu is not run; parity/README.md lists the steps"]
 fn generic_timeline_roadmap() {
     check("generic/timeline/roadmap");
 }

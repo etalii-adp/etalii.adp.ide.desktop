@@ -302,3 +302,25 @@ fn a_gesture_rule_that_cannot_be_evaluated_refuses() {
     assert_eq!(1, refusals.len());
     assert_eq!("Cannot divide.", refusals[0].message);
 }
+
+#[test]
+fn a_connect_gesture_is_refused_by_the_connect_rules_of_its_relation_type() {
+    let specification = specification(
+        r#""constraints": {
+          "rules": [
+            { "id": "noSelf", "kind": "connect", "when": "relationType == 'Link'", "rule": "source.id != target.id", "message": "A box cannot be linked to itself." },
+            { "id": "lidsOnly", "kind": "connect", "scope": "Lid", "rule": "false", "message": "Not for links." },
+            { "id": "named", "kind": "connect", "scope": "Link", "rule": "target.name != ''", "message": { "cel": "'Link ' + self.name + ' to a named box.'" } }
+          ]
+        }"#,
+    );
+    let diagram = DislDiagram::new(&specification);
+    let a = node(&diagram, "Box", "a", 1, attrs([("name", "Ann".into())]));
+    let b = node(&diagram, "Box", "b", 2, attrs([("name", "".into())]));
+
+    let connect =
+        |source: &DislElement, target: &DislElement| gestures::connect(&specification, "Link", source, target, None);
+    assert_eq!("noSelf: A box cannot be linked to itself.", refused(&connect(&a, &a)));
+    assert_eq!("named: Link Ann to a named box.", refused(&connect(&a, &b)));
+    assert_eq!("", refused(&connect(&b, &a)));
+}
