@@ -311,3 +311,19 @@ fn a_causal_loop_diagram_is_written_with_its_bindings_template() {
         "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\nlink population -> births +\r\nlink births -> population +\r\n\r\nloop R1 \"Births beget births\" population births\r\n"
     );
 }
+
+#[test]
+fn a_hype_cycle_graph_is_written_as_the_standalone_host_writes_an_empty_one() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "gartner/hypecycle-graph", "trends")
+        .unwrap();
+    assert_eq!(created, folder.path().join("trends.adp"));
+    assert_eq!(read(&created), "gartner/hypecycle-graph\r\n");
+    // The standalone host's `GhgParser.EmptyDocument("\r\n")`: the header and both sections flow-empty.
+    assert_eq!(
+        read(&folder.path().join("trends.ghg")),
+        "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n"
+    );
+}

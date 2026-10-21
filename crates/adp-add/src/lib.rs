@@ -458,6 +458,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_causal_loop::ORIGIN,
         adp_diagram_causal_loop::TEMPLATE,
     )));
+    // `ServiceCollection.AddGartnerHypeCycleGraph.cs`: `GhgParser.EmptyDocument("\r\n")`.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_hype_cycle::ORIGIN,
+        adp_diagram_hype_cycle::EMPTY_DOCUMENT,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 

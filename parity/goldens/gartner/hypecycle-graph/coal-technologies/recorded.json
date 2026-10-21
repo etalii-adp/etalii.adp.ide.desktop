@@ -1,0 +1,309 @@
+{
+  "script": "parity/scripts/gartner/hypecycle-graph/coal-technologies.json",
+  "tool": "gartner/hypecycle-graph",
+  "fixture": "gartner/hypecycle-graph/coal-technologies/coal-technologies.ghg",
+  "registration": "gartner/hypecycle-graph/coal-technologies/coal-technologies.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T09:07:05Z",
+  "edits": 33,
+  "changed": [
+    "coal-technologies.ghg"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 17,
+      "id": "32lkzg78n14tzy1chkfn6zd2u",
+      "type": "gartner/hypecycle-graph+trend",
+      "connection": false
+    },
+    {
+      "step": 20,
+      "id": "0qd5kemq533c4fmpfrg7btxdm",
+      "type": "gartner/hypecycle-graph+trigger",
+      "connection": false
+    },
+    {
+      "step": 21,
+      "id": "7ms4dby15gsa7372b9ts16mbe",
+      "type": "gartner/hypecycle-graph+note",
+      "connection": false
+    },
+    {
+      "step": 25,
+      "id": "7lb3a136zpql3tmkh42anpahm",
+      "type": "gartner/hypecycle-graph+influence",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "newcomen-engine"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename' answered 'Newcomen atmospheric engine'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.phases = 'Peak, Trough and Slope'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.peak-end = '1730-01'"
+    },
+    {
+      "step": 4,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.trough-end = '1760-06'"
+    },
+    {
+      "step": 5,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.stop = '1820-01'"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 7,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 8,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.tags = 'mining, steam, pumps, mining'"
+    },
+    {
+      "step": 9,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.description = ''"
+    },
+    {
+      "step": 10,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.description = 'Cutters driven by compressed air, then by electricity.'"
+    },
+    {
+      "step": 11,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.start = '1882-06'"
+    },
+    {
+      "step": 12,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "surface-mining to (1010, 230)"
+    },
+    {
+      "step": 13,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "rainhill-trials"
+    },
+    {
+      "step": 14,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.date = '1829-11'"
+    },
+    {
+      "step": 15,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.name = 'Rainhill locomotive trials'"
+    },
+    {
+      "step": 16,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.tags = ''"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:6960,2520"
+    },
+    {
+      "step": 18,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.name = 'Coal mine methane capture'"
+    },
+    {
+      "step": 19,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.phases = 'Peak and Trough'"
+    },
+    {
+      "step": 20,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:6000,2580"
+    },
+    {
+      "step": 21,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:7100,2650"
+    },
+    {
+      "step": 22,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.text = 'Methane from closed mines\nis a projection too.'"
+    },
+    {
+      "step": 23,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.size = '200 x 90'"
+    },
+    {
+      "step": 24,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "note-projections to (5900, 2300)"
+    },
+    {
+      "step": 25,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:longwall-mining->32lkzg78n14tzy1chkfn6zd2u"
+    },
+    {
+      "step": 26,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.to-attachment = 'trough/bottom/0.25'"
+    },
+    {
+      "step": 27,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "ghg.description = 'Longwall faces released the gas.'"
+    },
+    {
+      "step": 28,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on coke-smelting--newcomen-engine"
+    },
+    {
+      "step": 29,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 30,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "autonomous-mining"
+    },
+    {
+      "step": 31,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; confirmation 'Remove' answered ''"
+    },
+    {
+      "step": 32,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 33,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 34,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "0qd5kemq533c4fmpfrg7btxdm"
+    },
+    {
+      "step": 35,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 36,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 37,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

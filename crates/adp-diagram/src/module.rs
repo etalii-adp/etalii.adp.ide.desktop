@@ -161,8 +161,15 @@ pub trait DiagramModule {
         None
     }
 
-    /// Runs the plugin layout `plugin` (a layout algorithm `plugin:<plugin>`, DISL section 10) over `diagram`: the
-    /// changes it makes, as one step, or why it cannot; none when the module does not implement it.
+    /// The `position` an operation or a tool run at the canvas point (`x`, `y`) of `diagram` reads, where it depends
+    /// on the diagram (the hype cycle graph's time unit): [`DiagramModule::position_at`] by default.
+    fn position_in(&self, _diagram: &DislDiagram, x: f64, y: f64) -> Option<Map> {
+        self.position_at(x, y)
+    }
+
+    /// Runs the plugin layout `plugin` (a layout algorithm `plugin:<plugin>`, DISL section 10), or the algorithm an
+    /// operation's `layout` action names that the runtime leaves to the module (the hype cycle graph's `rows`), over
+    /// `diagram`: the changes it makes, as one step, or why it cannot; none when the module does not implement it.
     fn layout(
         &self,
         _specification: &DislSpecification,
