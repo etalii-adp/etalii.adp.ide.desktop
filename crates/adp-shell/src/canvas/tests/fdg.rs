@@ -157,3 +157,27 @@ fn a_functional_decomposition_graph_opens_draws_and_is_edited_on_the_canvas() {
     assert!(harness.workspace().undo().is_done());
     assert_eq!(harness.written(), harness.original);
 }
+
+#[test]
+fn a_right_drag_from_one_element_body_to_another_draws_the_relation_the_pair_admits() {
+    let mut harness = field_service();
+    harness.settle();
+    let tick = harness.screen_of("tick-step");
+    let step_list = harness.screen_of("step-list");
+    harness.drag(tick, step_list, PointerButton::Secondary, true);
+    assert!(
+        harness.tab.arbiter.connects_on_right_drag,
+        "the module connects on a right drag (`FdgCanvas.tsx`, `connectOnRightDrag: true`)"
+    );
+    assert!(harness.tab.menu.is_none(), "the drag opens no menu");
+    let drawn = model(&harness);
+    let shows: Vec<_> = drawn
+        .connections
+        .iter()
+        .filter(|c| c.from == "tick-step" && c.to == "step-list")
+        .collect();
+    assert_eq!(shows.len(), 1, "{:?}", harness.tab.notice);
+    assert_eq!(shows[0].connection_type, "shows");
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
+}
