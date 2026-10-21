@@ -11,6 +11,8 @@ publish = false
 workspace = true
 
 [dependencies]
+# The explorer's add, which a script runs on an entry (T068).
+adp-add = { path = "../adp-add" }
 adp-core = { path = "../adp-core" }
 adp-context = { path = "../adp-context" }
 adp-diagram = { path = "../adp-diagram" }

@@ -572,6 +572,10 @@ impl Replay<'_> {
         if args.get("answers").is_some() {
             return Err("the runner does not map a prompt that leads to another onto the desktop session".to_owned());
         }
+        // The explorer's add, on the entry the step names (T068).
+        if action == "hierarchy.add" {
+            return self.add(args);
+        }
         // A history action without a target is sent against the project.
         if args.get("target").is_none() {
             match action {
@@ -615,6 +619,26 @@ impl Replay<'_> {
             ActionOutcome::Refused(reason) => Err(reason),
             ActionOutcome::Prompt(_) => Err("the answer asked again".to_owned()),
         }
+    }
+
+    /// The explorer's add on the entry named `args.entry` - a folder to create in, a file to register - answered
+    /// with `value` and `text`, as `adp-add` does it for the shell.
+    fn add(&self, args: &Json) -> Result<(), String> {
+        let entry = args
+            .get("entry")
+            .and_then(Json::as_str)
+            .ok_or("an add names its entry")?;
+        let path = entry_named(self.workspace.root(), entry).ok_or_else(|| format!("no entry '{entry}'"))?;
+        let target = if path.is_dir() {
+            adp_add::AddTarget::Folder(path)
+        } else {
+            adp_add::AddTarget::File(path)
+        };
+        let value = args.get("value").and_then(Json::as_str).unwrap_or_default();
+        let text = args.get("text").and_then(Json::as_str).unwrap_or_default();
+        adp_add::AddCatalogue::standalone()
+            .commit(&target, value, text)
+            .map(|_| ())
     }
 
     /// A connect gesture from `source` released on empty canvas at `point` (`rel:a->new:x,y`), as the canvas runs it:
@@ -717,6 +741,24 @@ impl Replay<'_> {
         }
         Err("the runner does not map a text editor's save onto the desktop session".to_owned())
     }
+}
+
+/// The first entry under `root` named `name`, breadth first in name order, as the recorder looks an entry up.
+fn entry_named(root: &Path, name: &str) -> Option<PathBuf> {
+    let mut pending = std::collections::VecDeque::from([root.to_path_buf()]);
+    while let Some(folder) = pending.pop_front() {
+        let mut entries: Vec<PathBuf> = fs::read_dir(&folder).ok()?.flatten().map(|e| e.path()).collect();
+        entries.sort();
+        for path in entries {
+            if path.file_name().is_some_and(|n| n == name) {
+                return Some(path);
+            }
+            if path.is_dir() {
+                pending.push_back(path);
+            }
+        }
+    }
+    None
 }
 
 fn compact(step: &Json) -> String {
