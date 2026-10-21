@@ -1226,7 +1226,8 @@ mod helm;
 mod fdg;
 // The Azure DevOps pipeline with its module (T078), in a file of its own.
 mod pipeline;
-
+// The agent behavior model with its module (T074), in a file of its own.
+mod abm;
 // The agent activity diagram with its module (T075), in a file of its own.
 mod agent_activity;
 // The Wardley map with its module (T070), in a file of its own.

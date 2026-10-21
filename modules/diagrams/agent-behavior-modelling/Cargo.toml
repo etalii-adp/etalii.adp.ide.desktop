@@ -1,0 +1,24 @@
+[package]
+name = "adp-diagram-agent-behavior-modelling"
+description = "The agent behavior model's residue: the Markdown reader and writer, the tidy tree and its drags, and what a node's menu does (spec 030, T074)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+adp-history = { path = "../../../crates/adp-history" }
+serde_json = "1"
+tempfile = "3"
+
+[lints]
+workspace = true

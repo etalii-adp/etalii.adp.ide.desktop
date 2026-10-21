@@ -8,6 +8,11 @@ because the standalone host bundles those bindings with its modules. This script
 reference commit (default 8b6ccfc) and read with `git show` so the clone's checkout is not touched, to
 vendor/etalii.adp.ide.standalone/<path>, where the catalogue resolves the address. A named file the commit does not
 have is reported and skipped: the standalone host reads that tool type with its module's own reader.
+
+A specification may also name its binding by a file name alone (`agent-behavior-modelling.fbl#abm`), meaning a file
+beside it, which the etalii.adp repository does not have yet because the standalone host keeps it in its module's
+backend folder. Such a file is copied too, from the one place under `src/` the commit has a file of that name, and the
+catalogue finds it there by its name when the specification's own folder lacks it.
 """
 
 import json
@@ -22,18 +27,44 @@ DEFINITIONS = ROOT / "vendor" / "etalii.adp" / "definitions"
 VENDOR = ROOT / "vendor" / "etalii.adp.ide.standalone"
 REFERENCE = "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e"
 ADDRESS = re.compile(r"https://raw\.githubusercontent\.com/etalii-adp/etalii\.adp\.ide\.standalone/develop/([^\"#]+)")
+LOCAL = re.compile(r"\"binding\":\s*\"([^\"/:#]+\.fbl)#")
+
+
+def local_paths(clone: pathlib.Path, commit: str, specifications: list[pathlib.Path]) -> set[str]:
+    """The standalone paths of the bindings a specification names by a file name its own folder lacks."""
+    names = {
+        name
+        for specification in specifications
+        for name in LOCAL.findall(specification.read_text(encoding="utf-8"))
+        if not (specification.parent / name).is_file()
+    }
+    if not names:
+        return set()
+    listed = subprocess.run(
+        ["git", "-C", str(clone), "ls-tree", "-r", "--name-only", commit, "src"], capture_output=True, text=True
+    )
+    found = set()
+    for name in sorted(names):
+        matches = [path for path in listed.stdout.splitlines() if path.rsplit("/", 1)[-1] == name]
+        if len(matches) == 1:
+            found.add(matches[0])
+        else:
+            print(f"Not once at {commit[:7]}, skipped: {name} ({len(matches)} files)")
+    return found
 
 
 def main() -> None:
     if len(sys.argv) not in (2, 3):
         sys.exit(__doc__)
     clone, commit = pathlib.Path(sys.argv[1]), sys.argv[2] if len(sys.argv) == 3 else REFERENCE
+    specifications = sorted(DEFINITIONS.glob("*/*.dis")) + sorted(DEFINITIONS.glob("*/*.des"))
     paths = sorted(
         {
             match
-            for specification in sorted(DEFINITIONS.glob("*/*.dis")) + sorted(DEFINITIONS.glob("*/*.des"))
+            for specification in specifications
             for match in ADDRESS.findall(specification.read_text(encoding="utf-8"))
         }
+        | local_paths(clone, commit, specifications)
     )
     if VENDOR.exists():
         shutil.rmtree(VENDOR)
