@@ -93,6 +93,12 @@ impl DiagramModule for RdfModule {
         true
     }
 
+    /// Both serializations: `.nt` is the family's alternate extension (`AlternateExtension: ".nt"`), which the
+    /// catalogue does not carry, so a bare `.nt` routes here on sight as a bare `.ttl` does.
+    fn extensions(&self) -> Vec<String> {
+        vec![".ttl".to_owned(), ".nt".to_owned()]
+    }
+
     fn open(
         &self,
         root: &Path,
