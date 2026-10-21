@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The parity recorder (etalii.adp spec 030, contracts/parity.md, task T049): replays an edit
+    script through the standalone host's gRPC API and writes what the standalone host wrote as
+    the goldens. The only .NET code in this repository. It is not part of the Cargo workspace,
+    the Build workflow or a release, and runs only when goldens are recorded again.
+
+    It compiles against the standalone host's own sources at the reference commit, checked out as
+    a git worktree beside this repository (README.md says how), and runs that host in process
+    through the host the standalone host's own flow tests use. Debug only: the developer session
+    it signs in with is compiled into a Debug build of the standalone host and nothing else.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>EtAlii.Adp.Parity.Recorder</RootNamespace>
+    <Version>1.0.0</Version>
+    <!-- The standalone host's worktree at the reference commit. Override with -p:StandaloneRoot=... -->
+    <StandaloneRoot Condition="'$(StandaloneRoot)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\standalone-8b6ccfc'))</StandaloneRoot>
+    <StandaloneRoot>$([MSBuild]::EnsureTrailingSlash('$(StandaloneRoot)'))</StandaloneRoot>
+  </PropertyGroup>
+
+  <Target Name="RequireStandaloneWorktree" BeforeTargets="CollectPackageReferences;ResolveProjectReferences">
+    <Error
+      Condition="!Exists('$(StandaloneRoot)src\backend\EtAlii.Adp.TestSupport.Host\EtAlii.Adp.TestSupport.Host.csproj')"
+      Text="The standalone host is not checked out at $(StandaloneRoot). Create the worktree with `git -C ../etalii.adp.ide.standalone worktree add --detach ../standalone-8b6ccfc 8b6ccfc`, or pass -p:StandaloneRoot=&lt;folder&gt;." />
+  </Target>
+
+  <ItemGroup>
+    <!-- The in-process host of the standalone host's flow tests: its Program, in the developer environment. -->
+    <ProjectReference Include="$(StandaloneRoot)src\backend\EtAlii.Adp.TestSupport.Host\EtAlii.Adp.TestSupport.Host.csproj" />
+    <!-- Direct, so its build targets point the host's content root at EtAlii.Adp.Backend.Service and copy its manifest. -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.84.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="StandaloneRoot" Value="$(StandaloneRoot)" />
+  </ItemGroup>
+
+</Project>
