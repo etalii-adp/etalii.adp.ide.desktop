@@ -3,6 +3,7 @@
 
 #![cfg_attr(not(test), windows_subsystem = "windows")]
 
+mod add_dialog;
 mod canvas;
 mod documents;
 mod editor;

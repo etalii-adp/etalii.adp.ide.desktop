@@ -5,6 +5,7 @@
 
 use std::collections::HashSet;
 
+use adp_add::{AddCatalogue, AddTarget, Offer};
 use adp_hierarchy::{Hierarchy, Kind, Node};
 use adp_theme::Theme;
 use eframe::egui::{self, Color32, Key, RichText, Sense};
@@ -26,6 +27,8 @@ pub enum Request {
     ValidateAll,
     /// The knowledge file's entry that adds a relation to another table (T064).
     Relate(String),
+    /// Add… on a folder, or Add as diagram… on a file a tool type reads (T068).
+    Add(String),
 }
 
 #[derive(Default)]
@@ -34,10 +37,30 @@ pub struct Explorer {
     pub selected: Option<String>,
     /// The project's folder, which the entries' paths are relative to: what a context menu asks a module about.
     pub root: std::path::PathBuf,
+    /// What the add dialog offers, loaded when a context menu first asks.
+    adds: Option<std::rc::Rc<AddCatalogue>>,
     id: Option<egui::Id>,
 }
 
 impl Explorer {
+    /// What the add dialog offers.
+    pub fn adds(&mut self) -> std::rc::Rc<AddCatalogue> {
+        self.adds
+            .get_or_insert_with(|| std::rc::Rc::new(AddCatalogue::standalone()))
+            .clone()
+    }
+
+    /// The add on the entry at `path`, a folder or a file, when it has one.
+    fn add_offer(&mut self, path: &str, kind: Kind) -> Option<Offer> {
+        let full = self.root.join(path);
+        let target = match kind {
+            Kind::Folder => AddTarget::Folder(full),
+            Kind::File => AddTarget::File(full),
+            Kind::Registration => return None,
+        };
+        self.adds().offer(&target)
+    }
+
     pub fn show(&mut self, ui: &mut egui::Ui, tree: &Hierarchy, theme: &Theme) -> Vec<Request> {
         let id = *self.id.get_or_insert_with(|| egui::Id::unique("explorer"));
         let mut requests = Vec::new();
@@ -136,6 +159,19 @@ impl Explorer {
                         } else {
                             path.rsplit_once('/').map(|(p, _)| p.to_owned()).unwrap_or_default()
                         };
+                        // The standalone host's Add… (`AddDiagramContextActionProvider`), offered first.
+                        if let Some(offer) = self.add_offer(&path, row.node.kind) {
+                            let button = egui::Button::new(RichText::new(offer.label)).shortcut_text("Insert");
+                            let response = ui.add_enabled(offer.unavailable_reason.is_none(), button);
+                            let response = match offer.unavailable_reason {
+                                Some(reason) => response.on_disabled_hover_text(reason),
+                                None => response,
+                            };
+                            if response.clicked() {
+                                requests.push(Request::Add(path.clone()));
+                                ui.close();
+                            }
+                        }
                         let mut item = |ui: &mut egui::Ui, label: &str, shortcut: &str, request: Request| {
                             let button = egui::Button::new(RichText::new(label)).shortcut_text(shortcut);
                             if ui.add(button).clicked() {
@@ -208,6 +244,13 @@ impl Explorer {
         }
         if pressed(Key::F2) {
             requests.push(Request::Rename(path.clone()));
+        }
+        if pressed(Key::Insert)
+            && self
+                .add_offer(&path, row.node.kind)
+                .is_some_and(|o| o.unavailable_reason.is_none())
+        {
+            requests.push(Request::Add(path.clone()));
         }
         if pressed(Key::Delete) {
             requests.push(Request::Delete(path));
