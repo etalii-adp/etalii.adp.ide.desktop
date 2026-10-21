@@ -986,7 +986,7 @@ impl DiagramSession {
         ids: &dyn IdSource,
     ) -> ActionOutcome {
         if let Some(view) = &self.view {
-            return view.execute(workspace, target, action_id);
+            return view.execute_with_ids(workspace, target, action_id, ids);
         }
         if let Some(module) = self.module(workspace.documents())
             && let Some(outcome) = module.execute(self, workspace, target, action_id, ids)

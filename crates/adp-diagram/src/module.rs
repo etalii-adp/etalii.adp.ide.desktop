@@ -245,6 +245,33 @@ pub trait ModuleView {
     /// Runs action `action_id` on `target`, or asks first.
     fn execute(&self, workspace: &mut DiagramWorkspace, target: &ActionTarget, action_id: &str) -> ActionOutcome;
 
+    /// Runs action `action_id` on `target`, or asks first, with `ids` giving the id of what it makes: the ids the
+    /// standalone host generated, when a parity replay hands them over. By default the view's own
+    /// [`ModuleView::execute`], for a view whose actions make nothing that needs an id.
+    fn execute_with_ids(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        ids: &dyn IdSource,
+    ) -> ActionOutcome {
+        let _ = ids;
+        self.execute(workspace, target, action_id)
+    }
+
+    /// The action a connect gesture from `source` to `target` runs, as an action on the
+    /// [connection target](ActionTarget::Connection) the gesture names, or why the view connects no such pair: none
+    /// for a view that takes no connection from the canvas (the C4 views), which is the default.
+    fn connect_action(
+        &self,
+        documents: &DiagramDocuments,
+        source: &str,
+        target: &str,
+    ) -> Option<Result<String, String>> {
+        let _ = (documents, source, target);
+        None
+    }
+
     /// Answers the prompt action `action_id` of `target` raised with `value`.
     fn answer(
         &self,

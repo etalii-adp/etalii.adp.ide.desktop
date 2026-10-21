@@ -4,6 +4,7 @@ The documents the edit scripts under `parity/scripts/` open, copied from the sta
 
 | Folder | Copied from (in `etalii.adp.ide.standalone` at `8b6ccfc`) | Script |
 |---|---|---|
+| `etalii/functional-decomposition-graph/field-service/` | `src/diagrams/functional-decomposition-graph/examples/field-service/` (`field-service.adp`, `field-service.fdg`) | `parity/scripts/etalii/functional-decomposition-graph/field-service.json` |
 | `freeplane/mindmap/example-1/` | `src/diagrams/mindmap/examples/example 1/` (`mindmap.adp`, `mindmap.mm`, `design.mm`) | `parity/scripts/freeplane/mindmap/example-1.json` |
 | `gartner/hypecycle-graph/coal-technologies/` | `src/diagrams/gartner-hype-cycle-graph/examples/coal-technologies/` (`coal-technologies.adp`, `coal-technologies.ghg`) | `parity/scripts/gartner/hypecycle-graph/coal-technologies.json` |
 | `generic/dependencies/services/` | `src/diagrams/dependency-graph/examples/example-1/` (`services.adp`, `services.dgr`, committed with CRLF line endings) | `parity/scripts/generic/dependencies/services.json` |

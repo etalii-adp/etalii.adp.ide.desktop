@@ -1186,3 +1186,6 @@ mod walk;
 
 // The causal loop diagram with its module (T069), in a file of its own.
 mod causal_loop;
+
+// The functional decomposition graph with its module (T072), in a file of its own.
+mod fdg;

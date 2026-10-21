@@ -126,6 +126,7 @@ dependencies = [
  "adp-diagram",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
+ "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
@@ -252,6 +253,22 @@ dependencies = [
  "adp-disl",
  "adp-fbl",
  "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-functional-decomposition-graph"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "saphyr-parser",
+ "tempfile",
+ "uuid",
 ]
 
 [[package]]
@@ -396,6 +413,7 @@ dependencies = [
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
+ "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
@@ -449,6 +467,7 @@ dependencies = [
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
+ "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
@@ -474,6 +493,7 @@ dependencies = [
  "stats_alloc",
  "syntect",
  "tempfile",
+ "uuid",
 ]
 
 [[package]]

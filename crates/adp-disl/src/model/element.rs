@@ -1,7 +1,8 @@
 //! A node or a relation as DISL's CEL sees it (DISL section 12.2; the standalone host's `DislElement`): `id`,
 //! `type`, `kind`, every attribute as a field, the containment members of a node, the ends of a relation, and the
 //! methods `isA`, `descendants`, `ancestors`, `childrenOfType`, `incomingOf`, `outgoingOf`, `positionIn`, `label`,
-//! `other` and `location`.
+//! `other` and `location`, and the node-specific graph functions of section 12.4 `successors`, `predecessors`,
+//! `reachable` and `inCycle`.
 //!
 //! An unset attribute reads as its default, else its type's zero value, while `has(e.attr)` holds only for a stored
 //! value (section 4.3); a derived attribute is computed from its expression whenever it is read. A reference
@@ -452,6 +453,53 @@ impl DislElement {
         self.try_diagram().map(|d| d.outgoing_of(self)).unwrap_or_default()
     }
 
+    /// `n.successors(t)` (section 12.4): the nodes the relations of type `t` (its subtypes included) leaving this
+    /// node lead to, each once, in the order of those relations.
+    pub fn successors(&self, relation_type: &str) -> Vec<DislElement> {
+        let mut seen = HashSet::new();
+        self.outgoing()
+            .into_iter()
+            .filter(|r| r.is_a(relation_type))
+            .filter_map(|r| r.target())
+            .filter(|n| seen.insert(n.key()))
+            .collect()
+    }
+
+    /// `n.predecessors(t)` (section 12.4): the nodes the relations of type `t` arriving at this node come from, each
+    /// once, in the order of those relations.
+    pub fn predecessors(&self, relation_type: &str) -> Vec<DislElement> {
+        let mut seen = HashSet::new();
+        self.incoming()
+            .into_iter()
+            .filter(|r| r.is_a(relation_type))
+            .filter_map(|r| r.source())
+            .filter(|n| seen.insert(n.key()))
+            .collect()
+    }
+
+    /// `n.reachable(t)` (section 12.4): the transitive successors along relations of type `t`, breadth first in the
+    /// order the relations are read, each once; this node itself only when it lies on a cycle of them.
+    pub fn reachable(&self, relation_type: &str) -> Vec<DislElement> {
+        let mut seen = HashSet::new();
+        let mut found = Vec::new();
+        let mut pending = std::collections::VecDeque::from([self.clone()]);
+        while let Some(node) = pending.pop_front() {
+            for next in node.successors(relation_type) {
+                if seen.insert(next.key()) {
+                    found.push(next.clone());
+                    pending.push_back(next);
+                }
+            }
+        }
+        found
+    }
+
+    /// `n.inCycle(t)` (section 12.4): whether this node lies on a cycle of relations of type `t`, that is, whether
+    /// it can reach itself along them.
+    pub fn in_cycle(&self, relation_type: &str) -> bool {
+        self.reachable(relation_type).iter().any(|n| n == self)
+    }
+
     /// The value of the type's label attribute (section 4.6), as text; empty when it has none.
     fn label(&self) -> String {
         let label = self.0.state.borrow().element_type.label_attribute.clone();
@@ -633,6 +681,10 @@ impl DislElement {
             ("childrenOfType", 1) if !is_relation => of_type(self.children()),
             ("incomingOf", 1) if !is_relation => of_type(self.incoming()),
             ("outgoingOf", 1) if !is_relation => of_type(self.outgoing()),
+            ("successors", 1) if !is_relation => type_text(&arguments[0]).map(|t| list(self.successors(t))),
+            ("predecessors", 1) if !is_relation => type_text(&arguments[0]).map(|t| list(self.predecessors(t))),
+            ("reachable", 1) if !is_relation => type_text(&arguments[0]).map(|t| list(self.reachable(t))),
+            ("inCycle", 1) if !is_relation => type_text(&arguments[0]).map(|t| Value::Bool(self.in_cycle(t))),
             ("other", 1) if is_relation => self.other(&arguments[0]),
             ("location", 0) => Ok(self.location_map()),
             _ => return None,

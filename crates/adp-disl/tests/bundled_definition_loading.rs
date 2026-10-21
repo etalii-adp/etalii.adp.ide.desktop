@@ -257,11 +257,48 @@ fn a_call_of_a_function_the_runtime_lacks_refuses_the_definition() {
     }
 }
 
+/// The library functions of DISL section 12.4 this runtime implements and the standalone host's evaluator did not:
+/// where the standalone host's loader refused a call of one of them, this one loads it.
+const BEYOND_THE_STANDALONE_HOST: [&str; 4] = ["inCycle", "reachable", "successors", "predecessors"];
+
+/// The recorded diagnostics of the standalone host's loader, less its refusals of a call to a function of
+/// [`BEYOND_THE_STANDALONE_HOST`]; a definition those were the only errors of loads here.
+fn expected_here(recorded: &str) -> String {
+    let refused = |line: &str| {
+        BEYOND_THE_STANDALONE_HOST
+            .iter()
+            .any(|f| line.contains(&format!("The function '{f}' is not supported by this CEL evaluator.")))
+    };
+    let mut out = String::new();
+    let mut lines = recorded.lines().peekable();
+    while let Some(header) = lines.next() {
+        let mut body = Vec::new();
+        while let Some(line) = lines.peek().filter(|l| !l.starts_with("# ")) {
+            body.push(*line);
+            lines.next();
+        }
+        let kept: Vec<&str> = body.iter().copied().filter(|l| !refused(l)).collect();
+        let header = if kept.len() < body.len() && !kept.iter().any(|l| l.starts_with("error")) {
+            header.replace("loaded=False", "loaded=True")
+        } else {
+            header.to_owned()
+        };
+        out.push_str(&header);
+        out.push('\n');
+        for line in kept {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
+}
+
 /// Every `.dis` the desktop host vendors - the tool types' definitions and the DISL examples - loads with the very
-/// diagnostics the standalone host's loader gives it, and the two the standalone host bundles with none.
+/// diagnostics the standalone host's loader gives it, and the two the standalone host bundles with none; less the
+/// refusals of the graph functions this runtime implements beyond it ([`BEYOND_THE_STANDALONE_HOST`]).
 #[test]
 fn every_vendored_definition_has_the_standalone_loaders_diagnostics() {
-    let expected = include_str!("fixtures/standalone-diagnostics.txt").replace('\r', "");
+    let expected = expected_here(&include_str!("fixtures/standalone-diagnostics.txt").replace('\r', ""));
     let mut actual = String::new();
     let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../vendor/etalii.adp");
     for (folder, path) in [("diagrams", "definitions/diagrams"), ("disl", "specifications/disl")] {

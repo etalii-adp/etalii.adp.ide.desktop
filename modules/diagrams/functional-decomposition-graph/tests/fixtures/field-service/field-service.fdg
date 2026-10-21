@@ -1,0 +1,236 @@
+functional-decomposition-graph: 1
+# A mobile app that helps field service employees tick off their planning and the steps of each task.
+elements:
+  # The screens.
+  - id: planning
+    type: ui-element
+    name: Planning
+    description: The first screen after signing in, holding one day's work.
+    x: 600
+    y: 40
+    width: 140
+  - id: task-list
+    type: ui-element
+    name: Task list
+    description: The day's tasks in planned order, nearest first.
+    x: 280
+    y: 160
+    width: 140
+  - id: task-row
+    type: ui-element
+    name: Task row
+    description: One task, with its address and planned start.
+    x: 280
+    y: 280
+    width: 140
+  - id: task-detail
+    type: ui-element
+    name: Task detail
+    description: Everything the employee needs on site for one task.
+    x: 820
+    y: 160
+    width: 140
+  - id: step-list
+    type: ui-element
+    name: Step list
+    x: 660
+    y: 280
+    width: 140
+  - id: step-row
+    type: ui-element
+    name: Step row
+    description: One step, with a tick box.
+    x: 660
+    y: 400
+    width: 140
+
+  # What the employee does.
+  - id: open-task
+    type: action
+    name: Open task
+    description: A tap anywhere on a task row.
+    x: 280
+    y: 400
+    width: 140
+  - id: back-to-list
+    type: action
+    name: Back to list
+    x: 840
+    y: 280
+    width: 140
+  - id: tick-step
+    type: action
+    name: Tick step
+    description: Marks a step done, and can be undone until the task is completed.
+    x: 660
+    y: 520
+    width: 140
+  - id: complete-task
+    type: action
+    name: Complete task
+    description: Only offered once every step is ticked.
+    x: 1020
+    y: 280
+    width: 140
+
+  # What the app keeps.
+  - id: planning-day
+    type: data-element
+    name: Planning day
+    description: One employee's tasks for one date, as the office planned them.
+    x: 1300
+    y: 160
+    width: 140
+  - id: task
+    type: data-element
+    name: Task
+    x: 1240
+    y: 280
+    width: 140
+  - id: step
+    type: data-element
+    name: Step
+    x: 1240
+    y: 400
+    width: 140
+  - id: location
+    type: data-element
+    name: Location
+    description: The customer's address and the coordinates the office geocoded it to.
+    x: 1400
+    y: 400
+    width: 140
+
+  # What runs behind the screens.
+  - id: sync-queue
+    type: function
+    name: Sync queue
+    description: Holds completed work until the device is back online, oldest first.
+    x: 1020
+    y: 400
+    width: 140
+  - id: upload-photos
+    type: function
+    name: Upload photos
+    x: 1020
+    y: 520
+    width: 140
+  - id: offline-cache
+    type: function
+    name: Offline cache
+    description: Keeps the planning day readable with no connection at all.
+    x: 1480
+    y: 280
+    width: 140
+
+  - id: note-offline
+    type: comment
+    text: |-
+      Everything on these screens must work offline.
+      Completed work waits in the sync queue until the device reconnects.
+    x: 1560
+    y: 520
+    width: 260
+    height: 96
+  - id: note-round-trip
+    type: comment
+    text: |-
+      Open task and Back to list make a loop through Shows.
+      That is navigation rather than ownership, so the cycle rule allows it.
+    x: 20
+    y: 520
+    width: 260
+    height: 96
+connections:
+  # The screens, parent to child.
+  - id: c-planning-task-list
+    type: ui-child
+    from: planning
+    to: task-list
+  - id: c-task-list-task-row
+    type: ui-child
+    from: task-list
+    to: task-row
+    name: one per task
+  - id: c-planning-task-detail
+    type: ui-child
+    from: planning
+    to: task-detail
+  - id: c-task-detail-step-list
+    type: ui-child
+    from: task-detail
+    to: step-list
+  - id: c-step-list-step-row
+    type: ui-child
+    from: step-list
+    to: step-row
+    name: one per step
+
+  # Which screen offers which action.
+  - id: c-task-row-open-task
+    type: owns-action
+    from: task-row
+    to: open-task
+  - id: c-task-detail-back
+    type: owns-action
+    from: task-detail
+    to: back-to-list
+  - id: c-step-row-tick
+    type: owns-action
+    from: step-row
+    to: tick-step
+  - id: c-task-detail-complete
+    type: owns-action
+    from: task-detail
+    to: complete-task
+
+  # The navigation round trip.
+  - id: c-open-shows-detail
+    type: shows
+    from: open-task
+    to: task-detail
+    name: opens
+    description: Shows the detail of the task whose row was tapped.
+  - id: c-back-shows-list
+    type: shows
+    from: back-to-list
+    to: task-list
+    name: returns to
+    description: Back to the list, scrolled to where the employee left it.
+
+  # Data, nesting included.
+  - id: c-planning-day
+    type: owns-data
+    from: planning
+    to: planning-day
+  - id: c-day-task
+    type: owns-data
+    from: planning-day
+    to: task
+    name: planned
+  - id: c-task-step
+    type: owns-data
+    from: task
+    to: step
+  - id: c-task-location
+    type: owns-data
+    from: task
+    to: location
+    description: Every task happens somewhere, even a remote one.
+
+  # Functions, Function to Function included.
+  - id: c-complete-sync
+    type: owns-function
+    from: complete-task
+    to: sync-queue
+    name: queues
+  - id: c-sync-upload
+    type: owns-function
+    from: sync-queue
+    to: upload-photos
+    name: calls
+    description: Photos go last, since they are the largest and the least urgent.
+  - id: c-day-cache
+    type: owns-function
+    from: planning-day
+    to: offline-cache
