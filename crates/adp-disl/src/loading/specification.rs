@@ -15,6 +15,9 @@ use super::metamodel::{DislExpression, DislFunctionDeclaration, DislIdRule, Disl
 use crate::expressions::contexts;
 use crate::json::{self, Json, NOTHING};
 
+/// A program compiled on first use, or why it does not compile.
+pub(crate) type Compiled = Result<Program, String>;
+
 /// A loaded specification; cloning it shares it. Made by [`crate::DislLoader`], which refuses a specification with
 /// errors rather than giving a view of it.
 #[derive(Clone)]
@@ -31,7 +34,7 @@ pub(crate) struct SpecificationData {
     id_types: HashMap<String, DislIdRule>,
     id_prefixes: HashMap<String, String>,
     /// The programs compiled on first use for expressions the loader does not walk, by context, source and bindings.
-    pub(crate) compiled: RefCell<HashMap<(String, String, String), Result<Program, String>>>,
+    pub(crate) compiled: RefCell<HashMap<(String, String, String), Compiled>>,
 }
 
 impl fmt::Debug for DislSpecification {

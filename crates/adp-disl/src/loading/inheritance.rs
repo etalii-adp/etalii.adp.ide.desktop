@@ -12,6 +12,14 @@ use super::loader::is_reserved;
 use super::metamodel::{DislAttribute, DislEnum, DislEnumValue, DislMetamodel, DislRelationEnd, DislType, PRIMITIVES};
 use crate::json::{self, Json, NOTHING};
 
+/// A type's attributes, child types and label attribute, merged along its linearisation.
+type Merged = (IndexMap<String, DislAttribute>, Vec<String>, Option<String>);
+
+/// A declaration as it is written, member order included, for telling two apart.
+fn raw(json: &Json) -> String {
+    serde_json::to_string(json).unwrap_or_default()
+}
+
 /// The names an attribute's type may be: a primitive, an enum, a data type, or a node or relation type.
 struct TypeNames(HashSet<String>);
 
@@ -57,7 +65,7 @@ pub(crate) fn build(metamodel: &Json, diagnostics: &mut Vec<DislDiagnostic>) -> 
     known.extend(all.keys().cloned());
     let known = TypeNames(known);
 
-    let mut merged: HashMap<String, (IndexMap<String, DislAttribute>, Vec<String>, Option<String>)> = HashMap::new();
+    let mut merged: HashMap<String, Merged> = HashMap::new();
     for t in all.values() {
         let section = if t.is_relation {
             "/metamodel/relations"
@@ -239,7 +247,7 @@ fn merge(
     pointer: &str,
     known: &TypeNames,
     diagnostics: &mut Vec<DislDiagnostic>,
-) -> (IndexMap<String, DislAttribute>, Vec<String>, Option<String>) {
+) -> Merged {
     let mut merged: IndexMap<String, DislAttribute> = IndexMap::new();
     for ancestor in t.linearisation.iter().rev() {
         let Some(declarer) = all.get(ancestor) else {
@@ -262,7 +270,7 @@ fn merge(
                     .get(&attribute.declared_by)
                     .is_some_and(|d| d.linearisation.contains(&inherited.declared_by));
                 if !narrows
-                    && attribute.json.to_string() != inherited.json.to_string()
+                    && raw(&attribute.json) != raw(&inherited.json)
                     && !json::members(&t.json, "attributes").any(|(n, _)| *n == attribute.name)
                 {
                     diagnostics.push(DislDiagnostic::error(

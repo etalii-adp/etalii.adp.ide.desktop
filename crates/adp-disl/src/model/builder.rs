@@ -365,15 +365,18 @@ fn derived_ids(diagram: &DislDiagram, elements: &[DislElement], findings: &mut V
         };
         element.set_id(&id);
         element.set_id_is_stored(false);
-        if computed.contains_key(&id) {
-            if reports_duplicates {
-                findings.push(finding(
-                    codes::DUPLICATE_ID,
-                    format!("The id '{id}' is computed for two elements; the first keeps it."),
-                ));
+        match computed.entry(id.clone()) {
+            std::collections::hash_map::Entry::Occupied(_) => {
+                if reports_duplicates {
+                    findings.push(finding(
+                        codes::DUPLICATE_ID,
+                        format!("The id '{id}' is computed for two elements; the first keeps it."),
+                    ));
+                }
             }
-        } else {
-            computed.insert(id, element.clone());
+            std::collections::hash_map::Entry::Vacant(slot) => {
+                slot.insert(element.clone());
+            }
         }
     }
 }

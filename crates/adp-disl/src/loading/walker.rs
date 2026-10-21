@@ -148,7 +148,7 @@ pub(crate) fn sites(root: &Json) -> Vec<Site> {
             sites: &mut sites,
             section: name,
         };
-        walk.value(value, &json::pointer("", name), &frame, &[name.clone()]);
+        walk.value(value, &json::pointer("", name), &frame, std::slice::from_ref(name));
     }
     sites
 }
