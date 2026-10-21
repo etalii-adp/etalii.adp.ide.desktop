@@ -137,7 +137,8 @@ pub(crate) struct ReadElement {
     pub candidate: Candidate,
     pub id: String,
     pub id_stored: bool,
-    pub id_read: Option<SlotRead>,
+    /// Boxed, as are the source and the target: most elements have none, and an element is kept for each entry read.
+    pub id_read: Option<Box<SlotRead>>,
     /// The value references name this element by: its stored id, or the attribute its own rules reference it by.
     pub key: String,
     /// The attribute whose value is `key`, when it is an attribute.
@@ -147,8 +148,8 @@ pub(crate) struct ReadElement {
     pub parent: Option<usize>,
     /// The element's zero-based place among those of the same parent and slot, in document order.
     pub position_in_slot: usize,
-    pub source_read: Option<SlotRead>,
-    pub target_read: Option<SlotRead>,
+    pub source_read: Option<Box<SlotRead>>,
+    pub target_read: Option<Box<SlotRead>>,
     pub source_element: Option<usize>,
     pub target_element: Option<usize>,
     pub line: usize,

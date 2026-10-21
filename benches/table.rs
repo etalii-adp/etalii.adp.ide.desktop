@@ -70,8 +70,10 @@ fn ten_thousand_rows_scroll_top_to_bottom_without_a_stall_and_without_growing() 
     let folder = tempfile::tempdir().expect("a temporary folder");
     let path = generated(ROWS, folder.path());
     let opening = Instant::now();
+    let opened_region = Region::new(GLOBAL);
     let mut tab = table::TableTab::open(&path, folder.path()).expect("the table opens");
     let opened = opening.elapsed();
+    let opened_held = held(&opened_region) as f64 / 1_048_576.0;
     let ctx = egui::Context::default();
     theme::install(&ctx);
     ctx.set_theme(egui::Theme::Dark);
@@ -115,7 +117,10 @@ fn ten_thousand_rows_scroll_top_to_bottom_without_a_stall_and_without_growing() 
     let end = *counted.last().expect("counted");
     let per_screen = (end - start) as f64 / (counted.len() - 1 - WARM_UP) as f64;
     let peak = counted.iter().max().copied().unwrap_or_default();
-    println!("opened {ROWS} rows in {} ms", opened.as_millis());
+    println!(
+        "opened {ROWS} rows in {} ms, holding {opened_held:.1} MiB",
+        opened.as_millis()
+    );
     println!(
         "{} screens: mean {:.2} ms, 95th percentile {:.2} ms, slowest {:.2} ms per frame",
         times.len(),
@@ -130,6 +135,11 @@ fn ten_thousand_rows_scroll_top_to_bottom_without_a_stall_and_without_growing() 
         peak / 1024
     );
 
+    // What opening holds (walk 4: the window's private bytes grew by about 360 MB for the 1.7 MB file). The FBL
+    // reading kept for the byte-preserving splices is most of it: its lists are compacted once read, the id, source
+    // and target reads and the large kinds of entry are boxed, and the session shares the body's model rather than
+    // copying it - about 308 MiB before, 182 MiB after.
+    assert!(opened_held < 220.0, "opening holds {opened_held:.1} MiB");
     // Only a window of lines is ever held.
     assert!(most_held_lines <= 80, "{most_held_lines} lines held");
     // The memory held does not grow with each screen scrolled: less than a kibibyte a screen, which a leak of one
