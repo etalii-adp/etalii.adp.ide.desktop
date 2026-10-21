@@ -75,6 +75,9 @@ jobs:
         run: |
           mkdir -p package
           cp LICENSE README.md package/
+          # The tool types the program loads at start: the vendored specifications, definitions and bindings.
+          mkdir -p package/vendor
+          cp -r vendor/etalii.adp vendor/etalii.adp.ide.standalone package/vendor/
           if [ "${{ runner.os }}" = "Windows" ]; then
             cp target/release/adp-desktop.exe package/
             7z a "adp-desktop-${{ matrix.platform }}.zip" ./package/*

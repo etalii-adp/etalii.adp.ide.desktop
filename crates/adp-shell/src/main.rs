@@ -3,12 +3,14 @@
 
 #![cfg_attr(not(test), windows_subsystem = "windows")]
 
+mod canvas;
 mod documents;
 mod editor;
 mod explorer;
 mod highlight;
 mod markdown;
 mod problems;
+mod properties;
 mod shell;
 mod theme;
 

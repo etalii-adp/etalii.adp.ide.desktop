@@ -170,3 +170,46 @@ fn a_drag_of_two_nodes_a_connect_and_an_inline_rename_are_one_undo_each() {
         assert_eq!(&fs::read_to_string(&body).unwrap(), expected);
     }
 }
+
+#[test]
+fn a_connect_gesture_draws_the_relation_types_whose_ends_take_both_nodes() {
+    let folder = tempfile::tempdir().unwrap();
+    for name in ["services.adp", "services.dgr"] {
+        fs::copy(fixtures().join(name), folder.path().join(name)).unwrap();
+    }
+    let mut tools = tools();
+    let mut workspace = DiagramWorkspace::new(folder.path());
+    let (_, session) = workspace.open(&mut tools, Path::new("services.dgr")).unwrap();
+    let documents = workspace.documents();
+    assert_eq!(
+        session.relation_types_between(documents, "checkout-web", Some("orders-db")),
+        ["DependsOn"]
+    );
+    assert_eq!(
+        session.relation_types_between(documents, "checkout-web", None),
+        ["DependsOn"]
+    );
+    assert!(
+        session
+            .relation_types_between(documents, "checkout-web", Some("no-such-node"))
+            .is_empty()
+    );
+    // A line released on empty canvas makes its target with the toolbox's node, and the line to it, as one undo.
+    let body = folder.path().join("services.dgr");
+    let original = fs::read_to_string(&body).unwrap();
+    session
+        .connect_to_new(
+            &mut workspace,
+            "DependsOn",
+            "checkout-web",
+            40.0,
+            3.0,
+            &ids::fixed(&["made", "to-made"]),
+        )
+        .unwrap();
+    let written = fs::read_to_string(&body).unwrap();
+    assert!(written.contains("  - id: made\r\n"), "{written}");
+    assert!(written.contains("from: checkout-web\r\n    to: made"), "{written}");
+    assert!(workspace.undo().is_done());
+    assert_eq!(fs::read_to_string(&body).unwrap(), original);
+}
