@@ -15,13 +15,17 @@ use crate::loading::metamodel::DislEnum;
 use crate::model::diagram::DiagramData;
 
 /// The methods of DISL's Element and Diagram types (section 12.2) this runtime implements, with their arities.
-const METHODS: [(&str, usize, usize); 13] = [
+const METHODS: [(&str, usize, usize); 17] = [
     ("isA", 1, 1),
     ("descendants", 0, 0),
     ("ancestors", 0, 0),
     ("childrenOfType", 1, 1),
     ("incomingOf", 1, 1),
     ("outgoingOf", 1, 1),
+    ("successors", 1, 1),
+    ("predecessors", 1, 1),
+    ("reachable", 1, 1),
+    ("inCycle", 1, 1),
     ("positionIn", 1, 1),
     ("nodesOfType", 1, 2),
     ("relationsOfType", 1, 1),

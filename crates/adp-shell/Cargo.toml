@@ -29,10 +29,12 @@ adp-context = { path = "../adp-context" }
 adp-diagram = { path = "../adp-diagram" }
 adp-diagram-c4 = { path = "../../modules/diagrams/c4" }
 adp-diagram-dependency-graph = { path = "../../modules/diagrams/dependency-graph" }
+adp-diagram-hype-cycle = { path = "../../modules/diagrams/gartner-hype-cycle-graph" }
 adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap" }
 adp-diagram-timeline = { path = "../../modules/diagrams/timeline" }
 adp-diagram-causal-loop = { path = "../../modules/diagrams/causal-loop-diagram" }
 adp-diagram-sankey = { path = "../../modules/diagrams/sankey" }
+adp-diagram-functional-decomposition-graph = { path = "../../modules/diagrams/functional-decomposition-graph" }
 # The designer tab: the Knowledge designer's session over the DESL table model (spec 030, T064, T065).
 adp-designer-knowledge = { path = "../../modules/designers/knowledge" }
 adp-desl = { path = "../adp-desl" }
@@ -42,6 +44,8 @@ adp-history = { path = "../adp-history" }
 adp-layout = { path = "../adp-layout" }
 adp-scene = { path = "../adp-scene" }
 serde_json = { version = "1", features = ["preserve_order"] }
+# A module's view mints what it adds as a ShortGuid, a version 4 GUID as 25 characters of base 36.
+uuid = { version = "1", features = ["v4"] }
 adp-theme = { path = "../adp-theme" }
 # The window, drawn on wgpu, with AccessKit for screen readers (spec 030, research R2).
 adp-documents = { path = "../adp-documents" }

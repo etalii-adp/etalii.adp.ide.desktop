@@ -1,0 +1,33 @@
+functional-decomposition-graph: 1
+# Comments and blank lines survive every edit.
+elements:
+  - id: task-list
+    type: ui-element
+    name: Task list
+    description: The day's tasks, in planned order.
+    x: 120
+    y: 80
+    width: 160
+
+  - id: open-task
+    type: action
+    name: Open task
+    x: 120
+    y: 200
+    width: 140
+  - id: note-offline
+    type: comment
+    text: |-
+      Everything here must work offline.
+      Sync happens when the device reconnects.
+    x: 420
+    y: 80
+    width: 240
+    height: 96
+connections:
+  - id: c-open
+    type: owns-action
+    from: task-list
+    to: open-task
+    name: tap
+    description: A tap anywhere on a task row.

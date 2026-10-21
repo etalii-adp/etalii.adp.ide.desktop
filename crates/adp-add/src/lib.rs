@@ -463,6 +463,16 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_sankey::ORIGIN,
         adp_diagram_sankey::EMPTY_DOCUMENT,
     )));
+    // `ServiceCollection.AddFunctionalDecompositionGraph.cs`: the header and two empty sections, in CRLF.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_functional_decomposition_graph::ORIGIN,
+        adp_diagram_functional_decomposition_graph::EMPTY_DOCUMENT,
+    )));
+    // `ServiceCollection.AddGartnerHypeCycleGraph.cs`: `GhgParser.EmptyDocument("\r\n")`.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_hype_cycle::ORIGIN,
+        adp_diagram_hype_cycle::EMPTY_DOCUMENT,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 

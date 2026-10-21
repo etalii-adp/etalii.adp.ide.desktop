@@ -27,7 +27,6 @@ use adp_scene::style::{Colour, Font, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
 
 use super::module_scene::ModuleScene;
-use super::placement::Mapping;
 
 /// The element types the Sankey module puts on the wire (`adp_diagram_sankey::mapper`).
 const NODE_TYPE: &str = "etalii/sankey+node";
@@ -309,18 +308,7 @@ pub fn build(
     }
 
     // A drag reports a bar's top left, as the client did.
-    let mappings = rects
-        .keys()
-        .map(|id| {
-            (
-                id.clone(),
-                Mapping {
-                    top_left: true,
-                    ..Mapping::default()
-                },
-            )
-        })
-        .collect();
+    let top_left = rects.keys().cloned().collect();
     ModuleScene {
         scene: Scene {
             primitives,
@@ -331,7 +319,7 @@ pub fn build(
         lines,
         labels,
         anchors,
-        mappings,
+        top_left,
     }
 }
 

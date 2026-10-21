@@ -908,16 +908,16 @@ fn a_drag_of_the_left_edge_moves_the_note_and_sizes_it_in_one_edit() {
         .view
         .to_screen(harness.tab.surface, Point::new(before.x, before.centre().y));
     let zoom = harness.tab.view.zoom;
-    // Twelve months to the left: the hype cycle's x axis is one unit a month.
+    // A year to the left: the hype cycle's x axis is four canvas units a step of its unit, a year in this fixture.
     harness.drag(
         left,
-        left - egui::vec2((12.0 * zoom) as f32, 0.0),
+        left - egui::vec2((4.0 * zoom) as f32, 0.0),
         PointerButton::Primary,
         true,
     );
     let written = harness.written();
     assert!(written.contains("    at: 1949-01\n"), "{written}");
-    assert!(written.contains("    width: 172\n"), "{written}");
+    assert!(written.contains("    width: 164\n"), "{written}");
     let after = harness.tab.bounds_of("note-1").unwrap();
     assert!(
         (after.right() - before.right()).abs() < 1e-6,
@@ -1071,6 +1071,115 @@ fn a_submenu_of_the_context_menu_opens_in_place_and_runs_its_action() {
     );
 }
 
+impl Harness {
+    /// The standalone host's coal-technologies example, as the parity script opens it: its registration and body.
+    fn coal_technologies() -> Harness {
+        Harness::open_from(
+            &Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../parity/fixtures/gartner/hypecycle-graph/coal-technologies"),
+            &["coal-technologies.adp", "coal-technologies.ghg"],
+            "coal-technologies.adp",
+            "coal-technologies.ghg",
+        )
+    }
+}
+
+/// A hype cycle graph opens, draws every trend on its month axis with the phase legend and the ruler, and edits
+/// (etalii.adp spec 030, T073): a drag moves a trend by whole months, one undo puts the bytes back; Compact packs the
+/// trends 24 units a phase, moves nothing and adds nothing on empty canvas, and switching it off draws true time again.
+#[test]
+fn a_hype_cycle_graph_draws_its_trends_legend_and_ruler_edits_and_toggles_compact() {
+    let mut harness = Harness::coal_technologies();
+    let scene = harness.tab.scene().expect("a scene");
+    assert!(
+        bodies(scene) > 34 + 9,
+        "every trend, trigger and note has its body: {}",
+        bodies(scene)
+    );
+    // Four canvas units a month from 1900-01, rows 56 apart: the Newcomen engine, 1712-01 to 1800-01 on row 0.
+    let newcomen = harness.tab.bounds_of("newcomen-engine").unwrap();
+    assert_eq!(
+        (newcomen.x, newcomen.y, newcomen.width, newcomen.height),
+        (-9024.0, 0.0, 4224.0, 32.0)
+    );
+    // A trigger by its centre: Rainhill, 1829-10 on row 13.
+    let rainhill = harness.tab.bounds_of("rainhill-trials").unwrap();
+    assert_eq!(rainhill.centre(), Point::new(-3372.0, 13.0 * 56.0 + 16.0));
+    for phase in ["Peak", "Trough", "Slope", "Plateau"] {
+        assert!(harness.text(phase).is_some(), "the legend shows {phase}");
+    }
+    assert!(
+        harness
+            .texts
+            .iter()
+            .any(|(text, _)| text.len() == 4 && text.parse::<i32>().is_ok_and(|y| (1700..=2100).contains(&y))),
+        "the ruler labels the years in view"
+    );
+
+    // A drag of a trend by a year's width writes a year later, its length kept; one undo puts every byte back.
+    let zoom = harness.tab.view.zoom;
+    harness
+        .tab
+        .zoom_by(16.0 / zoom, Some(Point::new(newcomen.x + 100.0, newcomen.y + 16.0)));
+    harness.frame(Vec::new());
+    let zoom = harness.tab.view.zoom;
+    let at = harness
+        .tab
+        .view
+        .to_screen(harness.tab.surface, Point::new(newcomen.x + 100.0, newcomen.y + 16.0));
+    harness.drag(
+        at,
+        at + egui::vec2((48.0 * zoom) as f32, 0.0),
+        PointerButton::Primary,
+        true,
+    );
+    let written = harness.written();
+    assert!(
+        written.contains("    start: 1713-01\n    stop: 1801-01\n    row: 0\n"),
+        "{}",
+        &written[..400]
+    );
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
+    harness.tab.changed();
+    harness.frame(Vec::new());
+
+    // Compact: 24 units a visible phase, packed; nothing moves, and empty canvas offers no addition.
+    let documents = harness.host.workspaces[&harness.root].documents();
+    harness.tab.set_toggled(documents, true);
+    harness.tab.fit();
+    harness.settle();
+    let packed = harness.tab.bounds_of("newcomen-engine").unwrap();
+    assert_eq!((packed.width, packed.height), (96.0, 32.0));
+    let gigafactory_like = harness.tab.bounds_of("autonomous-mining").unwrap();
+    assert_eq!(gigafactory_like.width, 48.0, "two visible phases");
+    assert!(harness.text("Peak").is_some(), "the legend stays");
+    let at = harness.screen_of("newcomen-engine");
+    harness.drag(at, at + egui::vec2(80.0, 40.0), PointerButton::Primary, true);
+    assert_eq!(harness.written(), harness.original, "nothing moves in Compact");
+    let documents = harness.host.workspaces[&harness.root].documents();
+    assert!(
+        harness
+            .tab
+            .session
+            .actions(documents, &adp_diagram::ActionTarget::Canvas { x: 0.0, y: 0.0 })
+            .iter()
+            .all(|group| group.actions.is_empty()),
+        "Compact has no background menu"
+    );
+    harness.screenshot(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/screenshots/hype-cycle-compact.png"));
+
+    let documents = harness.host.workspaces[&harness.root].documents();
+    harness.tab.set_toggled(documents, false);
+    harness.settle();
+    assert_eq!(
+        harness.tab.bounds_of("newcomen-engine").unwrap().width,
+        4224.0,
+        "true time again"
+    );
+    harness.screenshot(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/screenshots/hype-cycle.png"));
+}
+
 /// What the Story 2 walk found (`parity/walks.md`, F1 to F14), each held to the standalone host's behaviour.
 #[path = "walk_tests.rs"]
 mod walk;
@@ -1080,3 +1189,5 @@ mod causal_loop;
 
 // The Sankey diagram with its module (T077), in a file of its own.
 mod sankey;
+// The functional decomposition graph with its module (T072), in a file of its own.
+mod fdg;

@@ -13,6 +13,7 @@
 //! scene's [`HookKind::ResizeHandle`] hooks, carry one edge each (`DiagramCanvas.tsx`, the `resize` gesture, and
 //! `gestureFrame.ts`: the preview is the frame's, the edit is written once, at the release, and Escape reverts it).
 
+pub mod fdg_scene;
 pub mod gestures;
 pub mod metrics;
 pub mod module_scene;
@@ -20,6 +21,7 @@ pub mod paint;
 pub mod placement;
 pub mod sankey_scene;
 pub mod toolbox;
+pub mod viewpoint;
 
 #[cfg(test)]
 mod tests;
@@ -100,7 +102,12 @@ impl DiagramHost {
                     DislPluginFunctions::none()
                 }))
                 .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
-                .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module()),
+                .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
+                .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
+                .with_module(
+                    adp_diagram_functional_decomposition_graph::ORIGIN,
+                    adp_diagram_functional_decomposition_graph::module(),
+                ),
             ))),
             workspaces: HashMap::new(),
         }
@@ -195,6 +202,23 @@ impl IdSource for FreshIds {
     }
 }
 
+/// Ids as the standalone host's modules minted them (`ShortGuid.NewShortGuid()`): a version 4 GUID written as 25
+/// characters of base 36, for what a module's own view adds.
+struct ShortGuids;
+
+impl IdSource for ShortGuids {
+    fn next(&self, _type_name: &str) -> Result<String, String> {
+        const DIGITS: &[u8; 36] = b"0123456789abcdefghijklmnopqrstuvwxyz";
+        let mut value = uuid::Uuid::new_v4().as_u128();
+        let mut digits = [b'0'; 25];
+        for digit in digits.iter_mut().rev() {
+            *digit = DIGITS[(value % 36) as usize];
+            value /= 36;
+        }
+        Ok(String::from_utf8(digits.to_vec()).expect("base 36 digits"))
+    }
+}
+
 /// What an inline editor writes when it is committed.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Commit {
@@ -235,12 +259,16 @@ struct Menu {
     area: Option<egui::Rect>,
 }
 
+/// Where a layout draws every node, by id: its position and its stored size.
+type LaidOut = (HashMap<String, (f64, f64)>, HashMap<String, adp_diagram::Extent>);
+
 /// What a scene was built for.
 #[derive(Debug, Clone, PartialEq)]
 struct SceneKey {
     generation: u64,
     selection: Vec<String>,
     dark: bool,
+    viewpoint: Option<String>,
     preview: Option<(Vec<String>, u64, u64)>,
     resizing: Option<(String, u8, u64)>,
 }
@@ -266,6 +294,10 @@ struct Cached {
     drop_mapping: Mapping,
     /// The ruler of a time axis: its height in screen points and the axis's canvas units per second.
     ruler: Option<(f64, f64)>,
+    /// The ruler of the hype cycle graph's month axis, in the diagram's time unit; none in Compact, whose x is no date.
+    month_ruler: Option<adp_diagram_hype_cycle::scale::TimeUnit>,
+    /// The legend at the top left of the canvas (`notation.canvas.legend`).
+    legend: Vec<viewpoint::LegendEntry>,
 }
 
 /// A diagram open in a tab.
@@ -276,6 +308,12 @@ pub struct DiagramTab {
     pub opened: OpenedDiagram,
     pub session: DiagramSession,
     definition: Result<DiagramDefinition, String>,
+    /// The viewpoint a switch of the canvas toggles (the hype cycle graph's Compact), when the specification has one.
+    pub toggle: Option<viewpoint::Toggle>,
+    /// Whether the toggled viewpoint is on: the viewer's, never saved.
+    pub toggled: bool,
+    /// The notation the toggled viewpoint draws with, compiled when it is first switched on.
+    variant: Option<Result<DiagramDefinition, String>>,
     /// Counts the changes to the document this tab has seen; a scene is rebuilt when it moves.
     pub generation: u64,
     cache: Option<Cached>,
@@ -321,6 +359,9 @@ impl DiagramTab {
             opened,
             session,
             definition: Err(String::new()),
+            toggle: None,
+            toggled: false,
+            variant: None,
             generation: 0,
             cache: None,
             metrics: None,
@@ -402,6 +443,73 @@ impl DiagramTab {
             return;
         };
         self.definition = compile_notation(document.tool().definition.specification()).map_err(|e| e.to_string());
+        self.toggle = viewpoint::toggle_of(document.tool().definition.specification());
+    }
+
+    /// The notation the canvas draws with now: the toggled viewpoint's while it is on, else the specification's.
+    fn active(&self) -> Option<&DiagramDefinition> {
+        match (&self.variant, self.toggled) {
+            (Some(Ok(variant)), true) => Some(variant),
+            _ => self.definition.as_ref().ok(),
+        }
+    }
+
+    /// Switches the toggled viewpoint on or off: its notation compiled the first time, the session's `env.viewpoint`
+    /// following it, and the scene drawn again; a viewpoint that does not compile stays off, with its reason.
+    pub fn set_toggled(&mut self, documents: &DiagramDocuments, on: bool) {
+        let Some(toggle) = self.toggle.clone() else { return };
+        let Some(document) = documents.get(&self.opened.body_path) else {
+            return;
+        };
+        let specification = document.tool().definition.specification();
+        if on && self.variant.is_none() {
+            let plugins = document
+                .tool()
+                .module
+                .as_ref()
+                .map(|m| m.plugin_functions())
+                .unwrap_or_else(DislPluginFunctions::none);
+            self.variant = Some(viewpoint::variant_definition(specification, &toggle.id, &plugins));
+        }
+        if let (true, Some(Err(reason))) = (on, &self.variant) {
+            self.notice = Some(reason.clone());
+            return;
+        }
+        self.toggled = on;
+        let default = specification
+            .root()
+            .get("viewpoints")
+            .and_then(|v| v.get(&toggle.id))
+            .and_then(|v| v.get("variantOf"))
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_owned();
+        self.session.set_viewpoint(if on { &toggle.id } else { &default });
+        self.selection.clear();
+        self.changed();
+    }
+
+    /// Where the toggled viewpoint's layout draws every node, centres and sizes in canvas units, when it is on and the
+    /// tool type's module lays it out (the hype cycle graph's Compact, `adp_diagram_hype_cycle::compact`).
+    fn variant_positions(&self, document: &adp_diagram::DiagramDocument) -> Option<LaidOut> {
+        if !self.toggled || self.opened.origin != adp_diagram_hype_cycle::ORIGIN {
+            return None;
+        }
+        let packed = adp_diagram_hype_cycle::compact::positions(&document.model().diagram);
+        let positions = packed.iter().map(|(id, p)| (id.clone(), (p.x, p.y))).collect();
+        let extents = packed
+            .iter()
+            .map(|(id, p)| {
+                (
+                    id.clone(),
+                    adp_diagram::Extent {
+                        width: Some(adp_diagram::Length::Canvas(p.width)),
+                        height: None,
+                    },
+                )
+            })
+            .collect();
+        Some((positions, extents))
     }
 
     /// Builds the scene when what it shows changed since it was last built.
@@ -419,6 +527,10 @@ impl DiagramTab {
             generation: self.generation,
             selection: self.selection.clone(),
             dark,
+            viewpoint: self
+                .toggled
+                .then(|| self.toggle.as_ref().map(|t| t.id.clone()))
+                .flatten(),
             preview,
             resizing,
         };
@@ -429,9 +541,15 @@ impl DiagramTab {
             self.ensure_module_scene(ctx, documents, key);
             return;
         }
-        let (Ok(definition), Some(document)) = (&self.definition, documents.get(&self.opened.body_path)) else {
+        let Some(document) = documents.get(&self.opened.body_path) else {
             return;
         };
+        let variant_positions = self.variant_positions(document);
+        let Some(definition) = self.active() else {
+            return;
+        };
+        let definition = definition.clone();
+        let definition = &definition;
         let metrics = self.metrics.get_or_insert_with(|| EguiMetrics::new(ctx));
         let specification = &definition.specification;
         let has_mode = |mode: &str| {
@@ -460,9 +578,14 @@ impl DiagramTab {
         // The viewer's folds, which the corner glyphs read; a layout that places the diagram leaves out what is folded
         // away, which is then not drawn.
         document.bind_views();
-        let laid_out = document.laid_out();
-        let positions = laid_out.clone().unwrap_or_else(|| document.positions());
-        let extents = document.extents();
+        let (laid_out, positions, extents) = match variant_positions {
+            Some((positions, extents)) => (Some(positions.clone()), positions, extents),
+            None => {
+                let laid_out = document.laid_out();
+                let positions = laid_out.clone().unwrap_or_else(|| document.positions());
+                (laid_out, positions, document.extents())
+            }
+        };
         let module = document.tool().module.as_deref();
         let time_axis = placement::time_axis(specification);
         if time_axis.is_some() && self.time_scale.is_none() {
@@ -581,6 +704,9 @@ impl DiagramTab {
             .and_then(|axis| axis.ruler)
             .zip(time_scale)
             .filter(|(_, scale)| *scale > 0.0);
+        let month_ruler = (self.opened.origin == adp_diagram_hype_cycle::ORIGIN && !self.toggled)
+            .then(|| adp_diagram_hype_cycle::reading::unit_of(diagram));
+        let legend = viewpoint::legend_of(specification, mode);
         self.cache = Some(Cached {
             key,
             scene,
@@ -594,6 +720,8 @@ impl DiagramTab {
             surface,
             drop_mapping,
             ruler,
+            month_ruler,
+            legend,
         });
     }
 
@@ -613,15 +741,21 @@ impl DiagramTab {
         let built = if self.opened.origin == adp_diagram_sankey::ORIGIN {
             sankey_scene::build(&elements, &self.selection, self.arbiter.moving())
         } else {
-            module_scene::build(&elements, &self.selection, self.arbiter.moving())
+            module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark)
         };
         let bounds = built.scene.bounds(metrics);
+        // Where a module writes a move as the element's top-left, the drag hands it the top-left.
+        let top_left = Mapping {
+            top_left: true,
+            ..Mapping::default()
+        };
+        let mappings = built.top_left.iter().map(|id| (id.clone(), top_left)).collect();
         self.cache = Some(Cached {
             key,
             scene: built.scene,
             placed: Placed {
                 rects: built.rects,
-                mappings: built.mappings,
+                mappings,
                 ..Placed::default()
             },
             boxes: built.boxes,
@@ -633,6 +767,8 @@ impl DiagramTab {
             surface: None,
             drop_mapping: Mapping::default(),
             ruler: None,
+            month_ruler: None,
+            legend: Vec::new(),
         });
     }
 
@@ -779,7 +915,7 @@ impl DiagramTab {
             // Every card of a module's view drags; where it goes is the module's to record.
             return true;
         }
-        let Ok(definition) = &self.definition else { return false };
+        let Some(definition) = self.active() else { return false };
         cache
             .placed
             .types
@@ -791,6 +927,10 @@ impl DiagramTab {
     // ---- what gestures do -------------------------------------------------------------------------------------------
 
     fn ensure_ids(&mut self, documents: &DiagramDocuments) {
+        if self.ids.is_none() && self.session.module_view().is_some() {
+            // A module that draws its view itself mints what it adds as its standalone module did.
+            self.ids = Some(Box::new(ShortGuids));
+        }
         if self.ids.is_none() {
             let minted = self
                 .definition
@@ -976,7 +1116,7 @@ impl DiagramTab {
     /// limits, as one edit (`resizedBounds`, `element-resized`).
     pub fn resize_by(&mut self, workspace: &mut DiagramWorkspace, id: &str, edge: ResizedEdge, delta: f64) {
         let Some(cache) = &self.cache else { return };
-        let Ok(definition) = &self.definition else { return };
+        let Some(definition) = self.active() else { return };
         let (Some(rect), Some(element_type)) = (
             cache.placed.rects.get(id),
             cache.placed.types.get(id).and_then(|t| definition.element_type(t)),
@@ -1003,26 +1143,23 @@ impl DiagramTab {
     }
 
     fn connect(&mut self, workspace: &mut DiagramWorkspace, source: &str, target: Option<&str>, at: Point) {
-        if self.session.module_view().is_some() {
-            // A module that draws its view itself takes a connection from the canvas only where it offers an action
-            // for the finished gesture, which it runs: the Sankey diagram's Add flow (`onConnectionDrawn`). The
-            // standalone host's C4 canvas draws its cards' edge anchors and the drag from one, and handles no
-            // `connection-drawn`.
+        if let Some(view) = self.session.module_view().cloned() {
+            // A module that draws its view itself says which of its actions a connection runs: the functional
+            // decomposition graph's, the one relation the pair admits (`relationOnto`). One that names none takes no
+            // connection from the canvas: the standalone host's C4 canvas draws its cards' edge anchors and the drag
+            // from one, and handles no `connection-drawn`.
             let Some(target) = target.filter(|t| *t != source) else {
                 return;
             };
-            let gesture = ActionTarget::Connection {
-                source: Some(source.to_owned()),
-                target: Some(target.to_owned()),
-            };
-            let offered = self
-                .session
-                .actions(workspace.documents(), &gesture)
-                .into_iter()
-                .flat_map(|group| group.actions)
-                .find(|action| action.unavailable_reason.is_empty());
-            match offered {
-                Some(action) => self.run_action(workspace, gesture, &action.id),
+            match view.connect_action(workspace.documents(), source, target) {
+                Some(Ok(action)) => {
+                    let target = ActionTarget::Connection {
+                        source: Some(source.to_owned()),
+                        target: Some(target.to_owned()),
+                    };
+                    self.run_action(workspace, target, &action);
+                }
+                Some(Err(refusal)) => self.notice = Some(refusal),
                 None => self.notice = Some(adp_diagram::session::NOT_OFFERED.to_owned()),
             }
             return;
@@ -1115,6 +1252,13 @@ impl DiagramTab {
             }
             return;
         }
+        let at = match workspace.documents().get(&self.opened.body_path) {
+            Some(document) if self.toggled && self.opened.origin == adp_diagram_hype_cycle::ORIGIN => {
+                let (x, y) = adp_diagram_hype_cycle::compact::inverse(&document.model().diagram, at.x, at.y);
+                Point::new(x, y)
+            }
+            _ => at,
+        };
         let (x, y) = self
             .cache
             .as_ref()
@@ -1353,6 +1497,7 @@ impl DiagramTab {
         let mut zoom: Option<f64> = None;
         let mut fit = false;
         let mut history = None;
+        let mut switched = None;
         let muted = theme::color(theme, &["descriptionForeground"], palette.foreground);
         egui::Frame::NONE
             .inner_margin(egui::Margin::symmetric(8, 2))
@@ -1381,12 +1526,28 @@ impl DiagramTab {
                     if button(ui, "Redo", "Redo (Ctrl+Y)") {
                         history = Some(false);
                     }
+                    if let Some(toggle) = &self.toggle {
+                        ui.separator();
+                        let mut on = self.toggled;
+                        if ui
+                            .checkbox(
+                                &mut on,
+                                RichText::new(&toggle.label).size(theme.sizes.workbench_font - 1.0),
+                            )
+                            .changed()
+                        {
+                            switched = Some(on);
+                        }
+                    }
                     ui.label(RichText::new(format!("{:.0}%", self.view.zoom * 100.0)).color(muted));
                     if let Some(notice) = &self.notice {
                         ui.label(RichText::new(notice).color(ui.visuals().warn_fg_color));
                     }
                 });
             });
+        if let Some(on) = switched {
+            self.set_toggled(workspace.documents(), on);
+        }
         if let Some(undo) = history {
             // Said as Ctrl+Z says it: a refusal in the status bar, which a step that went through takes away.
             match if undo { workspace.undo() } else { workspace.redo() } {
@@ -1668,6 +1829,12 @@ impl DiagramTab {
         if let Some((height, scale)) = cache.ruler {
             self.paint_ruler(&painter, palette, height as f32, scale);
         }
+        if let Some(unit) = cache.month_ruler {
+            self.paint_month_ruler(&painter, palette, unit);
+        }
+        if !cache.legend.is_empty() {
+            self.paint_legend(&painter, palette, &cache.legend);
+        }
         match &self.arbiter.gesture {
             gestures::Gesture::Boxing { from, to, .. } => {
                 let rect = Rect::around([*from, *to]).unwrap_or_default();
@@ -1713,6 +1880,81 @@ impl DiagramTab {
                 tick.label,
                 egui::FontId::proportional(11.0),
                 palette.foreground.gamma_multiply(0.8),
+            );
+        }
+    }
+
+    /// The hype cycle graph's ruler along the bottom of the canvas: fixed to the view, its labels on the boundaries of
+    /// the coarsest level that fits (`adp_diagram_hype_cycle::ruler`), each over the month it names.
+    fn paint_month_ruler(
+        &self,
+        painter: &egui::Painter,
+        palette: &Palette,
+        unit: adp_diagram_hype_cycle::scale::TimeUnit,
+    ) {
+        let surface = self.surface;
+        let height = 24.0;
+        let band = egui::Rect::from_min_max(Pos2::new(surface.min.x, surface.max.y - height), surface.max);
+        painter.rect_filled(band, 0.0, palette.editor_background.gamma_multiply(0.92));
+        painter.line_segment(
+            [band.left_top(), band.right_top()],
+            Stroke::new(1.0, palette.foreground.gamma_multiply(0.3)),
+        );
+        let visible = self.view.visible(surface);
+        for tick in adp_diagram_hype_cycle::ruler::ticks(visible.x, visible.right(), surface.width() as f64, unit) {
+            let x = self.view.to_screen(surface, Point::new(tick.x, 0.0)).x;
+            painter.line_segment(
+                [Pos2::new(x, band.top()), Pos2::new(x, band.top() + 5.0)],
+                Stroke::new(1.0, palette.foreground.gamma_multiply(0.5)),
+            );
+            painter.text(
+                Pos2::new(x + 3.0, band.center().y + 2.0),
+                egui::Align2::LEFT_CENTER,
+                tick.label,
+                egui::FontId::proportional(11.0),
+                palette.foreground.gamma_multiply(0.8),
+            );
+        }
+    }
+
+    /// The legend at the top left of the canvas: one swatch per entry, in its colour, beside its label.
+    fn paint_legend(&self, painter: &egui::Painter, palette: &Palette, legend: &[viewpoint::LegendEntry]) {
+        let font = egui::FontId::proportional(12.0);
+        let origin = self.surface.min + egui::vec2(8.0, 8.0);
+        let row = 18.0;
+        let width = legend
+            .iter()
+            .map(|entry| {
+                painter
+                    .layout_no_wrap(entry.label.clone(), font.clone(), palette.foreground)
+                    .size()
+                    .x
+            })
+            .fold(0.0_f32, f32::max)
+            + 30.0;
+        let frame = egui::Rect::from_min_size(origin, egui::vec2(width, row * legend.len() as f32 + 8.0));
+        painter.rect_filled(frame, 3.0, palette.editor_background.gamma_multiply(0.92));
+        painter.rect_stroke(
+            frame,
+            3.0,
+            Stroke::new(1.0, palette.foreground.gamma_multiply(0.3)),
+            egui::StrokeKind::Inside,
+        );
+        for (index, entry) in legend.iter().enumerate() {
+            let top = origin.y + 4.0 + row * index as f32;
+            let swatch = egui::Rect::from_min_size(Pos2::new(origin.x + 6.0, top + 3.0), egui::vec2(12.0, 12.0));
+            let colour = entry
+                .colour
+                .as_deref()
+                .and_then(paint::parse_colour)
+                .unwrap_or(palette.foreground);
+            painter.rect_filled(swatch, 2.0, colour);
+            painter.text(
+                Pos2::new(swatch.right() + 6.0, swatch.center().y),
+                egui::Align2::LEFT_CENTER,
+                &entry.label,
+                font.clone(),
+                palette.foreground,
             );
         }
     }

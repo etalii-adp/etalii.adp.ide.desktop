@@ -142,7 +142,8 @@ pub fn parses(specification: &DislSpecification, element: &DislElement, row: &st
 }
 
 /// The transaction that sets attribute `declared` of `element` to `chosen`, a text typed as the attribute is; refused
-/// when the text is not a value of it.
+/// when the text is not a value of it. A text typed for a `many` attribute is its items as a row shows them, separated
+/// by commas, each trimmed, blank ones left out.
 fn set(
     specification: &DislSpecification,
     element: &DislElement,
@@ -151,6 +152,18 @@ fn set(
     typed: &str,
 ) -> DislTransaction {
     let written = match chosen {
+        Value::String(text) if declared.many => {
+            let items: Vec<Value> = text
+                .split(',')
+                .map(str::trim)
+                .filter(|item| !item.is_empty())
+                .map(Value::from)
+                .collect();
+            match values::from_read(&Value::list(items), declared, specification.metamodel()) {
+                Some(value) => value,
+                None => return DislTransaction::refused(format!("'{typed}' is not a value of {}.", declared.name)),
+            }
+        }
         Value::String(text) => {
             match values::from_read(&Value::String(text.clone()), declared, specification.metamodel()) {
                 Some(value) => value,

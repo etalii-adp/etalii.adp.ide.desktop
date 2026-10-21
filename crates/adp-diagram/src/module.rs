@@ -161,8 +161,15 @@ pub trait DiagramModule {
         None
     }
 
-    /// Runs the plugin layout `plugin` (a layout algorithm `plugin:<plugin>`, DISL section 10) over `diagram`: the
-    /// changes it makes, as one step, or why it cannot; none when the module does not implement it.
+    /// The `position` an operation or a tool run at the canvas point (`x`, `y`) of `diagram` reads, where it depends
+    /// on the diagram (the hype cycle graph's time unit): [`DiagramModule::position_at`] by default.
+    fn position_in(&self, _diagram: &DislDiagram, x: f64, y: f64) -> Option<Map> {
+        self.position_at(x, y)
+    }
+
+    /// Runs the plugin layout `plugin` (a layout algorithm `plugin:<plugin>`, DISL section 10), or the algorithm an
+    /// operation's `layout` action names that the runtime leaves to the module (the hype cycle graph's `rows`), over
+    /// `diagram`: the changes it makes, as one step, or why it cannot; none when the module does not implement it.
     fn layout(
         &self,
         _specification: &DislSpecification,
@@ -238,9 +245,9 @@ pub trait ModuleView {
     /// Runs action `action_id` on `target`, or asks first.
     fn execute(&self, workspace: &mut DiagramWorkspace, target: &ActionTarget, action_id: &str) -> ActionOutcome;
 
-    /// Runs action `action_id` on `target` as [`ModuleView::execute`] does, taking the id of what it creates from
-    /// `ids`, so a replay can hand out the ids the standalone host generated (the Sankey diagram's new node). By
-    /// default the view mints its own and `ids` is not asked.
+    /// Runs action `action_id` on `target`, or asks first, with `ids` giving the id of what it makes: the ids the
+    /// standalone host generated, when a parity replay hands them over. By default the view's own
+    /// [`ModuleView::execute`], for a view whose actions make nothing that needs an id.
     fn execute_with_ids(
         &self,
         workspace: &mut DiagramWorkspace,
@@ -250,6 +257,19 @@ pub trait ModuleView {
     ) -> ActionOutcome {
         let _ = ids;
         self.execute(workspace, target, action_id)
+    }
+
+    /// The action a connect gesture from `source` to `target` runs, as an action on the
+    /// [connection target](ActionTarget::Connection) the gesture names, or why the view connects no such pair: none
+    /// for a view that takes no connection from the canvas (the C4 views), which is the default.
+    fn connect_action(
+        &self,
+        documents: &DiagramDocuments,
+        source: &str,
+        target: &str,
+    ) -> Option<Result<String, String>> {
+        let _ = (documents, source, target);
+        None
     }
 
     /// Answers the prompt action `action_id` of `target` raised with `value`.

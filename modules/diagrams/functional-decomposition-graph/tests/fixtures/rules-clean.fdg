@@ -1,0 +1,47 @@
+functional-decomposition-graph: 1
+elements:
+  - id: page
+    type: ui-element
+    name: page
+    x: 0
+    y: 0
+    width: 100
+  - id: detail
+    type: ui-element
+    name: detail
+    x: 0
+    y: 100
+    width: 100
+  - id: open
+    type: action
+    name: open
+    x: 0
+    y: 200
+    width: 100
+  - id: back
+    type: action
+    name: back
+    x: 0
+    y: 300
+    width: 100
+connections:
+  - id: c1
+    type: ui-child
+    from: page
+    to: detail
+  - id: c2
+    type: owns-action
+    from: page
+    to: open
+  - id: c3
+    type: owns-action
+    from: detail
+    to: back
+  - id: c4
+    type: shows
+    from: open
+    to: detail
+  - id: c5
+    type: shows
+    from: back
+    to: page

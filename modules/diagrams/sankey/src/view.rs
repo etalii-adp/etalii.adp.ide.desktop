@@ -167,6 +167,17 @@ impl ModuleView for SankeyDiagramView {
         self.run(workspace, target, action_id, || ids.next("node"))
     }
 
+    /// A connect gesture between two nodes is Add flow (`onConnectionDrawn`); what it may not join, it refuses.
+    fn connect_action(
+        &self,
+        documents: &DiagramDocuments,
+        source: &str,
+        target: &str,
+    ) -> Option<Result<String, String>> {
+        let _ = (documents, source, target);
+        Some(Ok(actions::CONNECT.to_owned()))
+    }
+
     fn answer(
         &self,
         workspace: &mut DiagramWorkspace,

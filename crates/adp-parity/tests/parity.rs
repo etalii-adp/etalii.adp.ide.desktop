@@ -42,6 +42,11 @@ fn freeplane_mindmap_example_1() {
 }
 
 #[test]
+fn gartner_hypecycle_graph_coal_technologies() {
+    check("gartner/hypecycle-graph/coal-technologies");
+}
+
+#[test]
 fn generic_timeline_add() {
     check("generic/timeline/add");
 }
@@ -54,6 +59,11 @@ fn generic_dependencies_services() {
 #[test]
 fn generic_timeline_roadmap() {
     check("generic/timeline/roadmap");
+}
+
+#[test]
+fn etalii_functional_decomposition_graph_field_service() {
+    check("etalii/functional-decomposition-graph/field-service");
 }
 
 #[test]
