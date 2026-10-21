@@ -8,6 +8,8 @@ use std::path::Path;
 
 use adp_diagram::ActionTarget;
 
+use eframe::egui::{Modifiers, PointerButton};
+
 use super::{Harness, bodies, texts_of};
 
 fn reference() -> Harness {
@@ -109,4 +111,27 @@ fn a_causal_loop_diagram_opens_on_its_ring_and_is_edited_and_arranged_on_the_can
     }
     assert_eq!(fs::read_to_string(&registration).unwrap(), original_registration);
     assert_eq!(fs::read_to_string(&harness.body).unwrap(), harness.original);
+}
+
+#[test]
+fn a_right_drag_from_one_variable_to_another_draws_a_link_where_the_specification_binds_it_to_the_right_button() {
+    let mut harness = reference();
+    harness.settle();
+    let deaths = harness.screen_of("variable:deaths");
+    let sanitation = harness.screen_of("variable:sanitation");
+    harness.press(deaths, PointerButton::Secondary, Modifiers::NONE);
+    assert!(
+        harness.tab.arbiter.connects_on_right_drag,
+        "causal-loop-diagram.dis binds the link to a right drag from the body"
+    );
+    harness.release(deaths, PointerButton::Secondary, Modifiers::NONE);
+    assert!(harness.tab.menu.is_some(), "a right click still opens the menu");
+    assert_eq!(harness.written(), harness.original);
+
+    harness.drag(deaths, sanitation, PointerButton::Secondary, true);
+    assert!(harness.tab.menu.is_none(), "the drag opens no menu");
+    let written = harness.written();
+    assert!(written.contains("link deaths -> sanitation"), "{written}");
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
 }

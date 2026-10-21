@@ -181,6 +181,11 @@ impl ModuleView for SupplyChainView {
         }
     }
 
+    /// A right drag from one element to another draws a connection (`SupplyChainCanvas.tsx`, `connectOnRightDrag: true`).
+    fn connects_on_right_drag(&self) -> bool {
+        true
+    }
+
     /// A flow drawn from one card to another is the menu's Add flow on the finished gesture (`onConnectionDrawn`).
     fn connect_action(
         &self,

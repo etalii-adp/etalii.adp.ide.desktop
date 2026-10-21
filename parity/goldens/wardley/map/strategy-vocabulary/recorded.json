@@ -1,0 +1,244 @@
+{
+  "script": "parity/scripts/wardley/map/strategy-vocabulary.json",
+  "tool": "wardley/map",
+  "fixture": "wardley/map/strategy-vocabulary/strategy-vocabulary.owm",
+  "registration": "wardley/map/strategy-vocabulary/strategy-vocabulary.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T10:44:07Z",
+  "edits": 25,
+  "changed": [
+    "strategy-vocabulary.identities.json",
+    "strategy-vocabulary.owm"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 10,
+      "id": "4ndt134kcx713rrnqizzpsn5i",
+      "type": "wardley/map+link",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "e5qi005zdnsn83xbspnom5383",
+      "type": "wardley/map+link",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "0b2ensyrqwjkpm78urcywjxi3",
+      "type": "wardley/map+link",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "bfp4jmsn8fo2ihdguzx58a86e",
+      "type": "wardley/map+link",
+      "connection": false
+    },
+    {
+      "step": 11,
+      "id": "0k5jmapx566tx6rwyd8rd2qb0",
+      "type": "wardley/map+link",
+      "connection": false
+    },
+    {
+      "step": 12,
+      "id": "bauda479zrlbnng6v0709b5d7",
+      "type": "wardley/map+link",
+      "connection": false
+    },
+    {
+      "step": 22,
+      "id": "7bjjtlylq1hi0fdkh5oyw87sb",
+      "type": "wardley/map+link",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "et0fqurcgd3ri1az051jupyvf by (0.05, -0.05) to (0.77, 0.25000000000000006)"
+    },
+    {
+      "step": 1,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "5mohg9hrrnhjw5t5bvksobqlo to (0.31, 0.4)"
+    },
+    {
+      "step": 2,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 3,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on b474cr9m9t3eczg1gdv5gcjhk"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on et0fqurcgd3ri1az051jupyvf"
+    },
+    {
+      "step": 6,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "wardley.decorators = 'ecosystem, build'"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on et0fqurcgd3ri1az051jupyvf; input 'Evolve element' answered '0.85'"
+    },
+    {
+      "step": 8,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "wardley.evolve = '0.8'"
+    },
+    {
+      "step": 9,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "wardley.evolve-name = 'Cloud Platform'"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on 28aq8skvp5n22fbrkdpr7w6eu; input 'Rename element' answered 'Storefront'"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on 28aq8skvp5n22fbrkdpr7w6eu; choice 'Link to' answered 'b474cr9m9t3eczg1gdv5gcjhk'"
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on b7ak4vpps5jzv5z6e35bwkdk0; choice 'Flow to' answered 'et0fqurcgd3ri1az051jupyvf'"
+    },
+    {
+      "step": 13,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on et0fqurcgd3ri1az051jupyvf; choice 'Remove link' answered 'Payment\u001FLedger\u001FDependency'"
+    },
+    {
+      "step": 14,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "wardley.link.context = 'through the plugin SDK'"
+    },
+    {
+      "step": 15,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on b7ak4vpps5jzv5z6e35bwkdk0; confirmation 'Remove element' answered ''"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on 804r9rdikiiftb5uxc4dmz1sb"
+    },
+    {
+      "step": 17,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 18,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 19,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "wardley.maturity = '0.7'"
+    },
+    {
+      "step": 20,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "Both of a Wardley map's axes run from 0 to 1, so a position outside that is off the map."
+    },
+    {
+      "step": 21,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on et0fqurcgd3ri1az051jupyvf"
+    },
+    {
+      "step": 22,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "wardley.name = 'Plugin Market'"
+    },
+    {
+      "step": 23,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on 804r9rdikiiftb5uxc4dmz1sb"
+    },
+    {
+      "step": 24,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 25,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}
