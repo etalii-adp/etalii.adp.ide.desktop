@@ -273,7 +273,13 @@ pub struct DiagramTab {
     cache: Option<Cached>,
     metrics: Option<EguiMetrics>,
     pub view: View,
-    fitted: bool,
+    /// Whether the view is the diagram fitted to the surface, kept so as either changes, until the person zooms,
+    /// pans or scrolls (`DiagramCanvas.tsx`: the view is `null`, the fit box, until it is set).
+    follows_fit: bool,
+    /// Whether the view followed the fit when the pan in flight began, so Escape puts that back too.
+    followed_before_pan: bool,
+    /// Whether the canvas has had the keyboard handed to it once, when its tab first drew.
+    focused_once: bool,
     /// The selected elements and relations, the most recent last.
     pub selection: Vec<String>,
     pub arbiter: Arbiter,
@@ -284,6 +290,8 @@ pub struct DiagramTab {
     pub ids: Option<Box<dyn IdSource>>,
     /// The last refusal or report, for the status bar.
     pub notice: Option<String>,
+    /// Whether an edit succeeded since the status bar last looked, so a refusal shown before it is taken away.
+    pub cleared: bool,
     hovered: Option<String>,
     /// The surface drawn last frame.
     pub surface: egui::Rect,
@@ -306,7 +314,9 @@ impl DiagramTab {
             cache: None,
             metrics: None,
             view: View::default(),
-            fitted: false,
+            follows_fit: true,
+            followed_before_pan: false,
+            focused_once: false,
             selection: Vec::new(),
             arbiter: Arbiter::default(),
             editor: None,
@@ -314,6 +324,7 @@ impl DiagramTab {
             menu: None,
             ids: None,
             notice: None,
+            cleared: false,
             hovered: None,
             surface: egui::Rect::NOTHING,
             grid: crate::properties::Grid::default(),
@@ -592,10 +603,24 @@ impl DiagramTab {
             about.y - (about.y - self.view.origin.y) * kept,
         );
         self.view.zoom = zoom;
+        self.follows_fit = false;
     }
 
-    /// Fits the view to everything the diagram draws, with a padding round it.
+    /// Fits the view to everything the diagram draws, with a padding round it, and keeps it fitted as the diagram or
+    /// the surface changes until the person zooms, pans or scrolls (`fitToView`: the view is `null` again).
     pub fn fit(&mut self) {
+        self.follows_fit = true;
+        self.refit();
+    }
+
+    /// Sets the view by hand, as a pan or a scroll does: it no longer follows the fit.
+    pub fn look_from(&mut self, origin: Point) {
+        self.view.origin = origin;
+        self.follows_fit = false;
+    }
+
+    /// The view fitted to what the diagram draws now.
+    fn refit(&mut self) {
         let Some(bounds) = self.cache.as_ref().and_then(|c| c.bounds) else {
             self.view = View {
                 origin: Point::new(
@@ -735,12 +760,16 @@ impl DiagramTab {
 
     pub(crate) fn report(&mut self, result: Result<(), String>) {
         match result {
-            Ok(()) => {
-                self.notice = None;
-                self.changed();
-            }
+            Ok(()) => self.succeeded(),
             Err(refusal) => self.notice = Some(refusal),
         }
+    }
+
+    /// An edit went through: the refusal shown before it is taken away, and the scene is drawn again.
+    fn succeeded(&mut self) {
+        self.notice = None;
+        self.cleared = true;
+        self.changed();
     }
 
     /// Carries out what a gesture came to.
@@ -796,7 +825,12 @@ impl DiagramTab {
                     });
                 }
             }
-            Intent::Pan { origin } => self.view.origin = origin,
+            Intent::Pan { origin } => {
+                if self.follows_fit {
+                    self.followed_before_pan = true;
+                }
+                self.look_from(origin);
+            }
         }
     }
 
@@ -1000,8 +1034,7 @@ impl DiagramTab {
         let ids = self.ids.as_deref().expect("made");
         match self.session.execute(workspace, &target, action_id, ids) {
             ActionOutcome::Done => {
-                self.notice = None;
-                self.changed();
+                self.succeeded();
                 self.select_new(workspace.documents(), &before);
             }
             ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
@@ -1042,10 +1075,7 @@ impl DiagramTab {
             .session
             .answer(workspace, &pending.target, &pending.action_id, value)
         {
-            ActionOutcome::Done => {
-                self.notice = None;
-                self.changed();
-            }
+            ActionOutcome::Done => self.succeeded(),
             ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
             ActionOutcome::Prompt(_) => self.notice = Some("That cannot be answered here yet.".to_owned()),
         }
@@ -1115,6 +1145,7 @@ impl DiagramTab {
     pub fn cancel_gesture(&mut self) -> bool {
         if let Some(origin) = self.arbiter.pan_origin() {
             self.view.origin = origin;
+            self.follows_fit = std::mem::take(&mut self.followed_before_pan);
         }
         self.arbiter.cancel()
     }
@@ -1177,9 +1208,10 @@ impl DiagramTab {
                 });
             });
         if let Some(undo) = history {
-            let outcome = if undo { workspace.undo() } else { workspace.redo() };
-            if let adp_history::Outcome::Refused(refusal) = outcome {
-                self.notice = Some(refusal.0);
+            // Said as Ctrl+Z says it: a refusal in the status bar, which a step that went through takes away.
+            match if undo { workspace.undo() } else { workspace.redo() } {
+                adp_history::Outcome::Refused(refusal) => self.notice = Some(refusal.0),
+                adp_history::Outcome::Done { .. } => self.succeeded(),
             }
             self.changed();
         }
@@ -1188,15 +1220,14 @@ impl DiagramTab {
         let surface = egui::Rect::from_min_max(available.min, available.max - egui::vec2(SCROLL_BAR, SCROLL_BAR));
         ui.allocate_rect(available, Sense::hover());
         let response = ui.interact(surface, self.id, Sense::click_and_drag());
-        let resized = self.surface != surface;
         self.surface = surface;
-        self.ensure_scene(ui.ctx(), workspace.documents(), dark);
-        if !self.fitted && self.cache.is_some() {
-            self.fit();
-            self.fitted = true;
-        } else if resized && !self.fitted {
-            self.fit();
+        if !self.focused_once {
+            // A diagram that opens has the keyboard, as an editor that opens has it.
+            self.focused_once = true;
+            ui.memory_mut(|m| m.request_focus(self.id));
         }
+        self.ensure_scene(ui.ctx(), workspace.documents(), dark);
+        self.follow_fit();
         if let Some(factor) = zoom {
             self.zoom_by(factor, None);
         }
@@ -1206,11 +1237,24 @@ impl DiagramTab {
 
         self.input(ui, workspace, &response);
         self.ensure_scene(ui.ctx(), workspace.documents(), dark);
+        self.follow_fit();
         self.paint(ui, palette);
         self.scroll_bars(ui, palette, theme);
         self.show_editor(ui, workspace);
         self.show_menu(ui, workspace, palette);
         self.show_prompt(ui, workspace);
+        if self.notice.is_some() || self.cleared {
+            // The status bar is drawn before the canvas: one more frame shows what this one said.
+            ui.ctx().request_repaint();
+        }
+    }
+
+    /// Keeps the view fitted while it follows the fit; never under a gesture in flight, whose preview is not yet the
+    /// diagram (`fitBoxOf` reads the model, not the drag).
+    fn follow_fit(&mut self) {
+        if self.follows_fit && self.cache.is_some() && self.arbiter.is_idle() {
+            self.refit();
+        }
     }
 
     fn input(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace, response: &egui::Response) {
@@ -1224,7 +1268,7 @@ impl DiagramTab {
                     .as_ref()
                     .is_some_and(|e| tab.view.rect_to_screen(surface, e.area).contains(pos))
         };
-        let (press, release, latest, double, modifiers, zoom_delta, scroll) = ui.input(|i| {
+        let (press, release, latest, double, modifiers, zooms) = ui.input(|i| {
             let press = if i.pointer.primary_pressed() {
                 i.pointer.press_origin().map(|p| (Button::Primary, p))
             } else if i.pointer.button_pressed(egui::PointerButton::Secondary) {
@@ -1242,8 +1286,7 @@ impl DiagramTab {
                     command: i.modifiers.command,
                     shift: i.modifiers.shift,
                 },
-                i.zoom_delta(),
-                i.smooth_scroll_delta,
+                wheel_zooms(&i.events),
             )
         });
         let hover = latest.filter(|p| surface.contains(*p));
@@ -1278,6 +1321,7 @@ impl DiagramTab {
                 self.commit_editor(workspace);
             }
             ui.memory_mut(|m| m.request_focus(self.id));
+            self.followed_before_pan = false;
             let canvas = self.view.to_canvas(surface, pos);
             let hit = self.hit(canvas);
             let moves = self.moves_for(&hit);
@@ -1313,19 +1357,16 @@ impl DiagramTab {
         if let Some(pos) = hover
             && self.prompt.is_none()
         {
-            let about = self.view.to_canvas(surface, pos);
-            if zoom_delta != 1.0 {
-                self.zoom_by(zoom_delta as f64, Some(about));
-            } else if scroll != egui::Vec2::ZERO {
-                self.view.origin = Point::new(
-                    self.view.origin.x - scroll.x as f64 / self.view.zoom,
-                    self.view.origin.y - scroll.y as f64 / self.view.zoom,
-                );
+            for factor in zooms {
+                let about = self.view.to_canvas(surface, pos);
+                self.zoom_by(factor, Some(about));
             }
         }
 
+        // The canvas's keys are the canvas's only while it has the keyboard: an Enter that commits a field of the
+        // property grid is that field's (`onKeyDown` is the surface's own, `isTextTarget` aside).
         let focused = ui.memory(|m| m.focused());
-        let ours = focused.is_none() || focused == Some(self.id);
+        let ours = focused == Some(self.id);
         if focused == Some(self.id) {
             ui.memory_mut(|m| {
                 m.set_focus_lock_filter(
@@ -1517,11 +1558,12 @@ impl DiagramTab {
             if response.dragged() {
                 let delta = response.drag_delta();
                 let moved = if horizontal { delta.x } else { delta.y } as f64 / length * extent_span;
-                if horizontal {
-                    self.view.origin.x += moved;
+                let origin = if horizontal {
+                    Point::new(self.view.origin.x + moved, self.view.origin.y)
                 } else {
-                    self.view.origin.y += moved;
-                }
+                    Point::new(self.view.origin.x, self.view.origin.y + moved)
+                };
+                self.look_from(origin);
             }
         }
     }
@@ -1758,6 +1800,28 @@ fn choose(
         }
     });
     answer
+}
+
+/// The zoom each turn of the wheel and each pinch of `events` asks for, in order: a notch of the wheel, with or without
+/// Ctrl, zooms in or out by one step of [`ZOOM_STEP`] about the pointer (`onWheel`: `deltaY < 0` zooms in), a wheel
+/// that reports lines or pages by one step a line, and a pinch by its own factor.
+fn wheel_zooms(events: &[egui::Event]) -> Vec<f64> {
+    events
+        .iter()
+        .filter_map(|event| match event {
+            egui::Event::MouseWheel { unit, delta, .. } if delta.y != 0.0 => {
+                let steps = match unit {
+                    egui::MouseWheelUnit::Point => 1,
+                    egui::MouseWheelUnit::Line | egui::MouseWheelUnit::Page => (delta.y.abs().round() as i32).max(1),
+                };
+                // egui's y is positive for a wheel turned away from the person, the browser's deltaY negative.
+                let step = if delta.y > 0.0 { ZOOM_STEP } else { 1.0 / ZOOM_STEP };
+                Some(step.powi(steps))
+            }
+            egui::Event::Zoom(factor) if *factor != 1.0 => Some(*factor as f64),
+            _ => None,
+        })
+        .collect()
 }
 
 fn distance_to_segment(p: Point, a: Point, b: Point) -> f64 {

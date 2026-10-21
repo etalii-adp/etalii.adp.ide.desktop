@@ -44,6 +44,10 @@ struct Harness {
     /// The textures every frame so far set, and the shapes the last one painted: what a screenshot rasterises.
     textures: HashMap<egui::TextureId, egui::ColorImage>,
     shapes: Vec<egui::epaint::ClippedShape>,
+    /// The window's size.
+    screen: egui::Vec2,
+    /// Whether the property grid is drawn beside the canvas, as the shell draws it.
+    grid: bool,
     _folder: tempfile::TempDir,
 }
 
@@ -75,6 +79,8 @@ impl Harness {
             texts: Vec::new(),
             textures: HashMap::new(),
             shapes: Vec::new(),
+            screen: SCREEN,
+            grid: false,
             _folder: folder,
         };
         harness.frame(Vec::new());
@@ -98,15 +104,20 @@ impl Harness {
     fn frame_with(&mut self, mut events: Vec<Event>, modifiers: Modifiers) -> usize {
         events.insert(0, Event::ModifiersChanged(modifiers));
         let input = RawInput {
-            screen_rect: Some(egui::Rect::from_min_size(Pos2::ZERO, SCREEN)),
+            screen_rect: Some(egui::Rect::from_min_size(Pos2::ZERO, self.screen)),
             events,
             ..Default::default()
         };
         let theme = Theme::dark();
         let palette = Palette::of(&theme);
-        let (host, tab, root) = (&mut self.host, &mut self.tab, &self.root);
+        let (host, tab, root, grid) = (&mut self.host, &mut self.tab, &self.root, self.grid);
         let mut output = self.ctx.run_ui(input, |ui| {
             let workspace = host.workspace(root);
+            if grid {
+                egui::Panel::right("grid")
+                    .exact_size(320.0)
+                    .show(ui, |ui| crate::properties::show(ui, tab, workspace, &theme, &palette));
+            }
             egui::CentralPanel::default().show(ui, |ui| tab.show(ui, workspace, &theme, &palette));
         });
         for (id, delta) in std::mem::take(&mut output.textures_delta.set)
@@ -1070,3 +1081,7 @@ fn a_submenu_of_the_context_menu_opens_in_place_and_runs_its_action() {
         leaf.id
     );
 }
+
+/// What the Story 2 walk found (`parity/walks.md`, F1 to F14), each held to the standalone host's behaviour.
+#[path = "walk_tests.rs"]
+mod walk;
