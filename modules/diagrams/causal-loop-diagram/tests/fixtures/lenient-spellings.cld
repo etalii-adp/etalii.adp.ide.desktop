@@ -1,0 +1,19 @@
+causal-loop 1
+
+# Finding B1: every spelling below is read by CausalLoopParser today.
+# An unquoted label, a quoted identifier, leading whitespace, an unquoted loop
+# name, S and O as polarity, and a link's note written as a bare word.
+
+variable a Label
+variable "my id" "My id"
+  variable indented "Indented"
+variable b "B"
+
+link a -> b S
+link b -> a O
+link "my id" -> a +
+link a -> indented + bareNote
+  link indented -> a -
+
+loop R1 Unquoted a indented
+loop B2 "Through b" a b

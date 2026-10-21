@@ -49,6 +49,35 @@ pub fn of(specification: &DislSpecification) -> DeriveId {
     })
 }
 
+/// The id an element of metamodel type `type_name` holding `attributes` is read back with under the `natural`
+/// strategy: its type's prefix and its key attributes joined by `|`; none under another strategy, or where a key holds
+/// no text. A host stores a created element's point under it (FBL section 8.3), since the id it created the element
+/// with stands in for one the binding derives.
+pub fn id_of(specification: &DislSpecification, type_name: &str, attributes: &adp_cel::Map) -> Option<String> {
+    let rule = specification.id_rule_of(type_name);
+    if rule.strategy != "natural" {
+        return None;
+    }
+    let element_type = specification.metamodel().type_of(type_name)?;
+    let keys: Vec<_> = element_type
+        .attributes
+        .values()
+        .filter(|a| json::bool_of(&a.json, "key"))
+        .collect();
+    if keys.is_empty() {
+        return None;
+    }
+    let mut parts = Vec::with_capacity(keys.len());
+    for key in keys {
+        let text = text(attributes.get(&key.name)?)?;
+        if text.is_empty() {
+            return None;
+        }
+        parts.push(text);
+    }
+    Some(format!("{}{}", rule.prefix.unwrap_or_default(), parts.join("|")))
+}
+
 fn text(value: &Value) -> Option<String> {
     match value {
         Value::Null | Value::List(_) | Value::Map(_) => None,

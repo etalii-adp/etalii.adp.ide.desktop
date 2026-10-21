@@ -997,3 +997,6 @@ fn a_submenu_of_the_context_menu_opens_in_place_and_runs_its_action() {
 /// What the Story 2 walk found (`parity/walks.md`, F1 to F14), each held to the standalone host's behaviour.
 #[path = "walk_tests.rs"]
 mod walk;
+
+// The causal loop diagram with its module (T069), in a file of its own.
+mod causal_loop;

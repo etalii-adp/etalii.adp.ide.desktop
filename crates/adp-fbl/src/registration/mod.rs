@@ -259,6 +259,10 @@ pub struct OpenRegistration {
     pub ephemeral: Option<HashSet<String>>,
     /// The natural keys the reading has, when known: an `identities` entry for any other key is stale (FBL 8.6).
     pub known_keys: Option<HashSet<String>>,
+    /// The line ending a block created anew is written with, in place of the registration's own (FBL section 8.3):
+    /// the standalone host's `RegistrationLayout` wrote a new `layout:` block with `AdpFileWriter.NewLine`, CRLF on
+    /// every platform, and a tool type whose parity is that host's bytes asks for it. None for the registration's own.
+    pub created_block_ending: Option<String>,
 }
 
 impl OpenRegistration {
@@ -269,6 +273,7 @@ impl OpenRegistration {
             known_ids: None,
             ephemeral: None,
             known_keys: None,
+            created_block_ending: None,
         }
     }
 
@@ -436,7 +441,10 @@ impl OpenRegistration {
         let ends_without_newline = text.lines().last().is_some_and(|l| l.ending.is_empty());
         let Some(block) = block else {
             let offset = create_at;
-            let newline = text.newline_at(offset.saturating_sub(1), "\n");
+            let newline = match &self.created_block_ending {
+                Some(ending) => ending.clone(),
+                None => text.newline_at(offset.saturating_sub(1), "\n"),
+            };
             let lead = offset == text.len() && ends_without_newline && offset > 0;
             if lead {
                 splices.push(splice(

@@ -210,6 +210,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-causal-loop"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-layout",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-mindmap"
 version = "0.1.0"
 dependencies = [
@@ -334,6 +348,7 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-c4",
+ "adp-diagram-causal-loop",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
  "adp-disl",
@@ -383,6 +398,7 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-c4",
+ "adp-diagram-causal-loop",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
  "adp-disl",

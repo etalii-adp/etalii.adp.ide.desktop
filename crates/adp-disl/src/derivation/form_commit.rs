@@ -132,6 +132,15 @@ pub fn row(
     set(specification, element, declared, &chosen, value)
 }
 
+/// Whether the row `row` of `element`'s form has a `parse` (DISL 0.3, 6.12), so that it also takes a value as the
+/// document writes it, which its `accepts` judges rather than its options (the causal loop link's polarity row takes
+/// `+`, `s`, `-` and `o`).
+pub fn parses(specification: &DislSpecification, element: &DislElement, row: &str, usage: &str) -> bool {
+    form_of(specification, element, usage)
+        .and_then(|(form, pointer)| find(form, &json::pointer(&pointer, "items"), row))
+        .is_some_and(|(item, _)| json::get(item, "parse").is_some())
+}
+
 /// The transaction that sets attribute `declared` of `element` to `chosen`, a text typed as the attribute is; refused
 /// when the text is not a value of it.
 fn set(

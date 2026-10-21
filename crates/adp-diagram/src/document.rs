@@ -28,7 +28,7 @@ use std::rc::Rc;
 
 use adp_cel::Value;
 use adp_disl::behavior::write;
-use adp_disl::model::builder;
+use adp_disl::model::{builder, natural_ids};
 use adp_disl::{DislChange, DislElement, DislModel};
 use adp_documents::SelfWriteGuard;
 use adp_fbl::history::{DRIFT_UNDO, apply_in_order, inverse};
@@ -410,11 +410,19 @@ impl DiagramDocument {
         let specification = self.tool.definition.specification();
         let options = self.tool.options(&file_name(&self.body_path), self.registration());
         let mut body = Body::open(&self.tool, self.body.to_vec(), options, &file_name(&self.body_path));
-        let mut registration = self.registration.as_ref().map(|r| OpenRegistration::open(r.to_vec()));
+        let mut registration = self.registration.as_ref().map(|r| {
+            let mut open = OpenRegistration::open(r.to_vec());
+            open.created_block_ending = self.tool.module.as_ref().and_then(|m| m.created_block_ending());
+            open
+        });
         let mut steps = Vec::new();
         for change in changes {
             let (model_change, place, explicit) = match change {
-                DiagramChange::Disl(disl) => (Some(write::to_fbl(specification, disl)), placement_of(disl), false),
+                DiagramChange::Disl(disl) => (
+                    Some(write::to_fbl(specification, disl)),
+                    placement_of(specification, disl),
+                    false,
+                ),
                 DiagramChange::Body(model_change) => (Some(model_change.clone()), None, false),
                 DiagramChange::Place { id, x, y } => (None, Some((id.clone(), *x, *y)), true),
             };
@@ -534,17 +542,23 @@ impl Body {
     }
 }
 
-/// The point a create was made at, when it says one: a map with `x` and `y`.
-fn placement_of(change: &DislChange) -> Option<(String, f64, f64)> {
+/// The point a create was made at, when it says one: a map with `x` and `y`, under the id the element is read back
+/// with, which under the `natural` strategy is its keys' rather than the one it was created with.
+fn placement_of(specification: &adp_disl::DislSpecification, change: &DislChange) -> Option<(String, f64, f64)> {
     let DislChange::Create {
-        id, at: Value::Map(at), ..
+        id,
+        type_name,
+        attributes,
+        at: Value::Map(at),
+        ..
     } = change
     else {
         return None;
     };
     let x = at.get("x")?.as_number()?;
     let y = at.get("y")?.as_number()?;
-    Some((id.clone(), x, y))
+    let id = natural_ids::id_of(specification, type_name, attributes).unwrap_or_else(|| id.clone());
+    Some((id, x, y))
 }
 
 /// A value as text: a number in .NET's invariant form, as the standalone host wrote it, a list as its items joined.
