@@ -4,7 +4,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use adp_editor_json::{SchemaTarget, Severity, analyse, completions, resolve_schema_reference};
+use adp_editor_json::{
+    SchemaTarget, Severity, analyse, completions, resolve_schema_reference, resolve_schema_reference_with,
+};
 
 fn project(files: &[(&str, &str)]) -> adp_editor_json::ReadFile {
     let files: HashMap<String, String> = files.iter().map(|(p, t)| (p.to_string(), t.to_string())).collect();
@@ -119,4 +121,29 @@ fn completion_offers_missing_properties_required_first_and_enum_values() {
     let text = "{ \"mode\":  }";
     let values: Vec<String> = completions(text, 10, &schema).into_iter().map(|c| c.insert).collect();
     assert_eq!(values, ["\"fast\"", "\"safe\""]);
+}
+
+#[test]
+fn every_shared_schema_reference_case_of_the_standalone_host_holds() {
+    let cases: serde_json::Value = serde_json::from_str(include_str!("examples/schema-reference-cases.json")).unwrap();
+    for case in cases["cases"].as_array().unwrap() {
+        let strings = |v: &serde_json::Value| -> Vec<String> {
+            v.as_array()
+                .unwrap()
+                .iter()
+                .map(|s| s.as_str().unwrap().to_owned())
+                .collect()
+        };
+        let document = strings(&case["document"]);
+        let bundled = strings(&case["bundled"]);
+        let bundled: Vec<&str> = bundled.iter().map(String::as_str).collect();
+        let expected = &case["expected"];
+        let wanted = match expected["kind"].as_str().unwrap() {
+            "project" => SchemaTarget::Project(strings(&expected["path"])),
+            "bundled" => SchemaTarget::Bundled(expected["id"].as_str().unwrap().to_owned()),
+            _ => SchemaTarget::None(expected["reason"].as_str().unwrap().to_owned()),
+        };
+        let found = resolve_schema_reference_with(case["reference"].as_str().unwrap(), &document, &bundled);
+        assert_eq!(found, wanted, "{}", case["name"]);
+    }
 }

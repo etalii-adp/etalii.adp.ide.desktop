@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=service.schema.json
+# A service that satisfies its schema: open it and nothing is marked.
+name: orders
+image: example/orders:1.4.2
+replicas: 3
+restart: on-failure
+ports:
+  - port: 8080
+    protocol: tcp
+environment:
+  LOG_LEVEL: info
+limits:
+  memory: 512Mi
+  cpu: 0.5

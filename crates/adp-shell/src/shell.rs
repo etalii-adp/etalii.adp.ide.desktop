@@ -46,12 +46,7 @@ impl OpenText {
             ));
             return;
         }
-        let is_json = self
-            .file
-            .path()
-            .extension()
-            .is_some_and(|e| e.eq_ignore_ascii_case("json"));
-        if !is_json {
+        if !matches!(extension.as_str(), "json" | "yaml" | "yml" | "xml" | "xsd") {
             return;
         }
         let text = self.editor.buffer.text();
@@ -70,22 +65,64 @@ impl OpenText {
             .unwrap_or_default();
         let read: adp_editor_json::ReadFile =
             std::sync::Arc::new(move |path: &[String]| std::fs::read_to_string(folder.join(path.join("/"))).ok());
-        let analysis = adp_editor_json::analyse(&text, &[name], read);
+        // Each editor's findings as (byte span, level, message), and its status line.
+        let (findings, status): (Vec<(std::ops::Range<usize>, MarkLevel, String)>, String) = if extension == "json" {
+            let analysis = adp_editor_json::analyse(&text, &[name], read);
+            let findings = analysis
+                .findings
+                .into_iter()
+                .map(|f| {
+                    let level = match f.severity {
+                        adp_editor_json::Severity::Error => MarkLevel::Error,
+                        adp_editor_json::Severity::Warning => MarkLevel::Warning,
+                        adp_editor_json::Severity::Info => MarkLevel::Info,
+                    };
+                    (f.span, level, f.message)
+                })
+                .collect();
+            (findings, analysis.status)
+        } else if extension == "xml" || extension == "xsd" {
+            let analysis = adp_editor_xml::analyse(&text, &[name], self.file.encoding_name());
+            let findings = analysis
+                .findings
+                .into_iter()
+                .map(|f| {
+                    let level = match f.severity {
+                        adp_editor_xml::Severity::Error => MarkLevel::Error,
+                        adp_editor_xml::Severity::Warning => MarkLevel::Warning,
+                        adp_editor_xml::Severity::Info => MarkLevel::Info,
+                    };
+                    (f.span, level, f.message)
+                })
+                .collect();
+            (findings, analysis.status)
+        } else {
+            let analysis = adp_editor_yaml::analyse(&text, &[name], read);
+            let findings = analysis
+                .findings
+                .into_iter()
+                .map(|f| {
+                    let level = match f.severity {
+                        adp_editor_yaml::Severity::Error => MarkLevel::Error,
+                        adp_editor_yaml::Severity::Warning => MarkLevel::Warning,
+                        adp_editor_yaml::Severity::Info => MarkLevel::Info,
+                    };
+                    (f.span, level, f.message)
+                })
+                .collect();
+            (findings, analysis.status)
+        };
         let char_at = |byte: usize| text.get(..byte.min(text.len())).map_or(0, |t| t.chars().count());
-        self.editor.marks = analysis
-            .findings
-            .iter()
-            .map(|f| Mark {
-                start: char_at(f.span.start),
-                end: char_at(f.span.end),
-                level: match f.severity {
-                    adp_editor_json::Severity::Error => MarkLevel::Error,
-                    adp_editor_json::Severity::Warning => MarkLevel::Warning,
-                    adp_editor_json::Severity::Info => MarkLevel::Info,
-                },
-                message: f.message.clone(),
+        self.editor.marks = findings
+            .into_iter()
+            .map(|(span, level, message)| Mark {
+                start: char_at(span.start),
+                end: char_at(span.end),
+                level,
+                message,
             })
             .collect();
+        let analysis_status = status;
         let errors = self.editor.marks.iter().filter(|m| m.level == MarkLevel::Error).count();
         let warnings = self
             .editor
@@ -93,7 +130,7 @@ impl OpenText {
             .iter()
             .filter(|m| m.level == MarkLevel::Warning)
             .count();
-        self.status = format!("{} · {errors} errors, {warnings} warnings", analysis.status);
+        self.status = format!("{analysis_status} · {errors} errors, {warnings} warnings");
     }
 }
 

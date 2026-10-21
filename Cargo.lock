@@ -172,6 +172,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-editor-xml"
+version = "0.1.0"
+dependencies = [
+ "adp-editor-json",
+ "roxmltree",
+]
+
+[[package]]
+name = "adp-editor-yaml"
+version = "0.1.0"
+dependencies = [
+ "adp-editor-json",
+ "saphyr-parser",
+ "serde_json",
+]
+
+[[package]]
 name = "adp-fbl"
 version = "0.1.0"
 
@@ -222,6 +239,8 @@ dependencies = [
  "adp-documents",
  "adp-editor-json",
  "adp-editor-markdown",
+ "adp-editor-xml",
+ "adp-editor-yaml",
  "adp-text",
  "adp-theme",
  "eframe",
@@ -325,6 +344,12 @@ dependencies = [
  "wl-clipboard-rs",
  "x11rb",
 ]
+
+[[package]]
+name = "arraydeque"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d902e3d592a523def97af8f317b08ce16b7ab854c1985a0c671e6f15cebc236"
 
 [[package]]
 name = "arrayvec"
@@ -1602,6 +1627,15 @@ dependencies = [
  "allocator-api2",
  "equivalent",
  "foldhash 0.2.0",
+]
+
+[[package]]
+name = "hashlink"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7382cf6263419f2d8df38c55d7da83da5c18aef87fc7a7fc1fb1e344edfe14c1"
+dependencies = [
+ "hashbrown 0.15.5",
 ]
 
 [[package]]
@@ -3072,6 +3106,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "roxmltree"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
+
+[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3131,6 +3171,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "saphyr-parser"
+version = "0.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb771b59f6b1985d1406325ec28f97cfb14256abcec4fdfb37b36a1766d6af7"
+dependencies = [
+ "arraydeque",
+ "hashlink",
 ]
 
 [[package]]
