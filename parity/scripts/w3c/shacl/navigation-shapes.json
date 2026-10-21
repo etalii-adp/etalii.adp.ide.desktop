@@ -1,0 +1,24 @@
+{
+  "tool": "w3c/shacl",
+  "fixture": "w3c/shacl/navigation-shapes/navigation-shapes.ttl",
+  "registration": "w3c/shacl/navigation-shapes/navigation-shapes.adp",
+  "steps": [
+    { "select": ["res:http://fairdatapoint.org/catNavShape"] },
+    { "property": { "row": "shacl.name", "value": "Catalog navigation" } },
+    { "property": { "row": "shacl.description", "value": "How a catalog links to its datasets\nand its repository.", "target": "res:http://fairdatapoint.org/catNavShape" } },
+    { "property": { "row": "shacl.name", "value": "Catalog" } },
+    { "property": { "row": "Deactivated", "value": "true" }, "expect": "refused" },
+    { "action": "shacl.add-node-shape", "args": { "target": "new:960,0", "value": ":personNavShape" } },
+    { "action": "shacl.add-node-shape", "args": { "target": "new:960,0", "value": "foaf:Person" }, "expect": "refused" },
+    { "action": "rdf.rename-resource", "args": { "target": "res:http://fairdatapoint.org/distNavShape", "value": ":distributionNavShape" } },
+    { "action": "rdf.remove-resource", "args": { "target": "res:http://fairdatapoint.org/repoNavShape", "confirm": true }, "expect": "refused" },
+    { "undo": 1 },
+    { "redo": 1 },
+    { "move": { "refs": ["res:http://fairdatapoint.org/fdpNavShape"], "to": { "x": 960, "y": 178 } } },
+    { "move": { "refs": ["res:http://fairdatapoint.org/catNavShape"], "dx": -20, "dy": 15 } },
+    { "move": { "refs": ["shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/datasetNavShape"], "to": { "x": 0, "y": 0 } }, "expect": "refused" },
+    { "undo": 3 },
+    { "redo": 2 },
+    { "save": true }
+  ]
+}

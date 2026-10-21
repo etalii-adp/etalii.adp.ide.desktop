@@ -1,0 +1,157 @@
+{
+  "script": "parity/scripts/w3c/shacl/navigation-shapes.json",
+  "tool": "w3c/shacl",
+  "fixture": "w3c/shacl/navigation-shapes/navigation-shapes.ttl",
+  "registration": "w3c/shacl/navigation-shapes/navigation-shapes.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T23:39:09Z",
+  "edits": 18,
+  "changed": [
+    "navigation-shapes.adp",
+    "navigation-shapes.ttl"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 5,
+      "id": "res:http://fairdatapoint.org/personNavShape",
+      "type": "w3c/shacl+shape",
+      "connection": false
+    },
+    {
+      "step": 7,
+      "id": "res:http://fairdatapoint.org/distributionNavShape",
+      "type": "w3c/shacl+shape",
+      "connection": false
+    },
+    {
+      "step": 7,
+      "id": "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/distributionNavShape",
+      "type": "w3c/shacl+edge",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "res:http://fairdatapoint.org/catNavShape"
+    },
+    {
+      "step": 1,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "shacl.name = 'Catalog navigation'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "shacl.description = 'How a catalog links to its datasets\nand its repository.'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "shacl.name = 'Catalog'"
+    },
+    {
+      "step": 4,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "Switch the shape off and on through the context menu."
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on new:960,0; input 'Add node shape' answered ':personNavShape'"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "'shacl.add-node-shape' does not apply to this selection."
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on res:http://fairdatapoint.org/distNavShape; input 'Rename resource' answered ':distributionNavShape'"
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "That element is rooted in a blank node, which has no identity that survives a reparse, so this edit cannot land in the file. Name the node with an IRI to edit it."
+    },
+    {
+      "step": 9,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 10,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 11,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "res:http://fairdatapoint.org/fdpNavShape to (960, 178)"
+    },
+    {
+      "step": 12,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "res:http://fairdatapoint.org/catNavShape by (-20, 15) to (300, 15)"
+    },
+    {
+      "step": 13,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "That element is not something this diagram can move."
+    },
+    {
+      "step": 14,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "3 time(s)"
+    },
+    {
+      "step": 15,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 16,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

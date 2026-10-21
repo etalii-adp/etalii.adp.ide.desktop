@@ -1,0 +1,246 @@
+{
+  "script": "parity/scripts/w3c/rdf/nobel-1903.json",
+  "tool": "w3c/rdf",
+  "fixture": "w3c/rdf/nobel-1903/nobel-1903.ttl",
+  "registration": "w3c/rdf/nobel-1903/nobel-1903.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T23:37:32Z",
+  "edits": 27,
+  "changed": [
+    "nobel-1903.adp",
+    "nobel-1903.ttl"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 4,
+      "id": "res:https://data.nobelprize.org/resource/laureate/295b",
+      "type": "w3c/rdf+resource",
+      "connection": false
+    },
+    {
+      "step": 4,
+      "id": "edge:res:https://data.nobelprize.org/resource/laureate/295b|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+      "type": "w3c/rdf+edge",
+      "connection": false
+    },
+    {
+      "step": 8,
+      "id": "res:https://data.nobelprize.org/resource/laureate/999",
+      "type": "w3c/rdf+resource",
+      "connection": false
+    },
+    {
+      "step": 9,
+      "id": "edge:res:https://data.nobelprize.org/resource/laureate/999|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+      "type": "w3c/rdf+edge",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "edge:res:https://data.nobelprize.org/resource/laureate/999|http://xmlns.com/foaf/0.1/knows|res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
+      "type": "w3c/rdf+edge",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "res:https://data.nobelprize.org/resource/laureate/6"
+    },
+    {
+      "step": 1,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "rdf.label = 'Maria Skłodowska-Curie'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "rdf.comment = 'Shared the prize with \"Pierre\" and Henri.'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "Rename through the context menu, so every reference follows the name."
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on res:https://data.nobelprize.org/resource/laureate/295; input 'Rename resource' answered 'laureate:295b'"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "'rdf.rename-resource' does not apply to this selection."
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on new:0,0; input 'Declare prefix' answered 'foaf: <http://xmlns.com/foaf/0.1/>'"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "'rdf.add-prefix' does not apply to this selection."
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on new:400,300; input 'Add resource' answered 'laureate:999'"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on rel:res:https://data.nobelprize.org/resource/laureate/999->res:https://data.nobelprize.org/resource/nobelprize/physics-1903; input 'Relate' answered 'nobel:nobelPrize'"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on rel:res:https://data.nobelprize.org/resource/laureate/999->res:https://data.nobelprize.org/resource/nobelprize/peace-1903; input 'Relate' answered 'foaf:knows'"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on edge:res:https://data.nobelprize.org/resource/laureate/4|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903"
+    },
+    {
+      "step": 12,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 13,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 14,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on res:https://data.nobelprize.org/resource/laureate/466; confirmation 'Remove resource' answered ''"
+    },
+    {
+      "step": 15,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + CancelInteraction",
+      "outcome": "accepted",
+      "detail": "on res:https://data.nobelprize.org/resource/laureate/572; confirmation 'Remove resource' dismissed"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on res:https://data.nobelprize.org/resource/laureate/162; confirmation 'Remove resource' answered ''"
+    },
+    {
+      "step": 18,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "res:https://data.nobelprize.org/resource/laureate/5 to (1200, 40)"
+    },
+    {
+      "step": 19,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "res:https://data.nobelprize.org/resource/laureate/6 by (30, -20,5) to (590, 379,5)"
+    },
+    {
+      "step": 20,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "res:https://data.nobelprize.org/resource/laureate/5 to (1200,12345, -0,0004)"
+    },
+    {
+      "step": 21,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 22,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "That element is not something this diagram can move."
+    },
+    {
+      "step": 23,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "A resource has no parent to move it under; dragging changes where it sits on the canvas."
+    },
+    {
+      "step": 24,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "rdf.label = 'Peace'"
+    },
+    {
+      "step": 25,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 26,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 27,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

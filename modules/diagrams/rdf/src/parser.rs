@@ -52,13 +52,15 @@ pub enum TokenKind {
 pub struct Token {
     pub kind: TokenKind,
     pub start: usize,
+    /// How many bytes of the text the token spans, which a language tag's value (without its `@`) does not say.
+    pub length: usize,
     pub value: String,
 }
 
 impl Token {
     /// The offset just past the token.
     pub fn end(&self) -> usize {
-        self.start + self.value.len()
+        self.start + self.length
     }
 }
 
@@ -100,6 +102,7 @@ impl<'a> Tokenizer<'a> {
         Token {
             kind,
             start,
+            length: end - start,
             value: self.text[start..end].to_owned(),
         }
     }
@@ -109,6 +112,7 @@ impl<'a> Tokenizer<'a> {
         Token {
             kind,
             start,
+            length: value.len(),
             value: value.to_owned(),
         }
     }
@@ -121,6 +125,7 @@ impl<'a> Tokenizer<'a> {
             return Ok(Token {
                 kind: TokenKind::EndOfFile,
                 start: self.text.len(),
+                length: 0,
                 value: String::new(),
             });
         };
@@ -211,17 +216,20 @@ impl<'a> Tokenizer<'a> {
             "prefix" => Ok(Token {
                 kind: TokenKind::PrefixDirective,
                 start,
+                length: position - start,
                 value: "@prefix".to_owned(),
             }),
             "base" => Ok(Token {
                 kind: TokenKind::BaseDirective,
                 start,
+                length: position - start,
                 value: "@base".to_owned(),
             }),
             "" => Err(self.error("A lone '@' is not a Turtle token.", start)),
             _ => Ok(Token {
                 kind: TokenKind::LanguageTag,
                 start,
+                length: position - start,
                 value: word,
             }),
         }
@@ -242,21 +250,25 @@ impl<'a> Tokenizer<'a> {
                 "a" => Ok(Token {
                     kind: TokenKind::A,
                     start,
+                    length: word.len(),
                     value: word,
                 }),
                 "true" | "false" => Ok(Token {
                     kind: TokenKind::Boolean,
                     start,
+                    length: word.len(),
                     value: word,
                 }),
                 _ if word.eq_ignore_ascii_case("PREFIX") => Ok(Token {
                     kind: TokenKind::SparqlPrefix,
                     start,
+                    length: word.len(),
                     value: word,
                 }),
                 _ if word.eq_ignore_ascii_case("BASE") => Ok(Token {
                     kind: TokenKind::SparqlBase,
                     start,
+                    length: word.len(),
                     value: word,
                 }),
                 _ => Err(self.error(

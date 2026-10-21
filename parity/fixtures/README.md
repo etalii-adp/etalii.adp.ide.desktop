@@ -19,3 +19,7 @@ The documents the edit scripts under `parity/scripts/` open, copied from the sta
 | `etalii/supply-chain/automotive/` | `src/diagrams/supply-chain/examples/automotive/` (`automotive.adp`, `automotive.supply`) | `parity/scripts/etalii/supply-chain/automotive.json` |
 | `etalii/agent-activity-diagram/two-projects/` | `src/diagrams/agent-activity-diagram/examples/two-projects/` (`two-projects.adp`, `two-projects.aad`, committed with CRLF line endings) | `parity/scripts/etalii/agent-activity-diagram/two-projects.json` |
 | `wardley/map/strategy-vocabulary/` | `src/diagrams/wardley-map/examples/example 2/` (`strategy-vocabulary.adp`, `strategy-vocabulary.owm` and its identity sidecar `strategy-vocabulary.identities.json`, which names every element of the map, so no id is minted on opening) | `parity/scripts/wardley/map/strategy-vocabulary.json` |
+| `w3c/rdf/nobel-1903/` | `src/diagrams/rdf/examples/nobel/` (`nobel-1903.adp`, `nobel-1903.ttl`, committed with CRLF line endings) | `parity/scripts/w3c/rdf/nobel-1903.json` |
+| `w3c/owl/prov-o/` | `src/diagrams/rdf/examples/prov-o/` (`prov-o.adp`, `prov-o.ttl`) | `parity/scripts/w3c/owl/prov-o.json` |
+| `w3c/skos/geographic-names/` | `src/diagrams/rdf/examples/stw/` (`geographic-names.adp` with its `language: en` header, `geographic-names.ttl`) | `parity/scripts/w3c/skos/geographic-names.json` |
+| `w3c/shacl/navigation-shapes/` | `src/diagrams/rdf/examples/shacl/fair-data-point/` (`navigation-shapes.adp`, `navigation-shapes.ttl`) | `parity/scripts/w3c/shacl/navigation-shapes.json` |

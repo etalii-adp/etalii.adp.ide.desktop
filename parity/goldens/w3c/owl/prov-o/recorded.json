@@ -1,0 +1,246 @@
+{
+  "script": "parity/scripts/w3c/owl/prov-o.json",
+  "tool": "w3c/owl",
+  "fixture": "w3c/owl/prov-o/prov-o.ttl",
+  "registration": "w3c/owl/prov-o/prov-o.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T23:37:07Z",
+  "edits": 20,
+  "changed": [
+    "prov-o.adp",
+    "prov-o.ttl"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 2,
+      "id": "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Bundle",
+      "type": "w3c/owl+edge",
+      "connection": false
+    },
+    {
+      "step": 4,
+      "id": "res:http://www.w3.org/ns/prov#Recipe",
+      "type": "w3c/owl+node",
+      "connection": false
+    },
+    {
+      "step": 5,
+      "id": "thing:http://www.w3.org/ns/prov#followedRecipe|domain",
+      "type": "w3c/owl+node",
+      "connection": false
+    },
+    {
+      "step": 5,
+      "id": "thing:http://www.w3.org/ns/prov#followedRecipe|range",
+      "type": "w3c/owl+node",
+      "connection": false
+    },
+    {
+      "step": 5,
+      "id": "edge:thing:http://www.w3.org/ns/prov#followedRecipe|domain|http://www.w3.org/ns/prov#followedRecipe|thing:http://www.w3.org/ns/prov#followedRecipe|range",
+      "type": "w3c/owl+edge",
+      "connection": false
+    },
+    {
+      "step": 6,
+      "id": "thing:http://www.w3.org/ns/prov#servings|domain",
+      "type": "w3c/owl+node",
+      "connection": false
+    },
+    {
+      "step": 6,
+      "id": "dt:http://www.w3.org/ns/prov#servings",
+      "type": "w3c/owl+node",
+      "connection": false
+    },
+    {
+      "step": 6,
+      "id": "edge:thing:http://www.w3.org/ns/prov#servings|domain|http://www.w3.org/ns/prov#servings|dt:http://www.w3.org/ns/prov#servings",
+      "type": "w3c/owl+edge",
+      "connection": false
+    },
+    {
+      "step": 7,
+      "id": "res:http://www.w3.org/ns/prov#grandmasPie",
+      "type": "w3c/owl+node",
+      "connection": false
+    },
+    {
+      "step": 8,
+      "id": "edge:res:http://www.w3.org/ns/prov#Recipe|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Plan",
+      "type": "w3c/owl+edge",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "res:http://www.w3.org/ns/prov#Part",
+      "type": "w3c/owl+node",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadRole|res:http://www.w3.org/ns/prov#Part",
+      "type": "w3c/owl+edge",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "res:http://www.w3.org/ns/prov#Plan"
+    },
+    {
+      "step": 1,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "rdf.label = 'Plan (prescriptive)'"
+    },
+    {
+      "step": 2,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:res:http://www.w3.org/ns/prov#Plan->res:http://www.w3.org/ns/prov#Bundle"
+    },
+    {
+      "step": 3,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "That subclass relation is already asserted; drawing it again would state nothing new."
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on new:200,1800; input 'Add class' answered ':Recipe'"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on new:400,1800; input 'Add object property' answered ':followedRecipe'"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on new:600,1800; input 'Add datatype property' answered ':servings'"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on new:800,1800; input 'Add individual' answered ':grandmasPie'"
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:res:http://www.w3.org/ns/prov#Recipe->res:http://www.w3.org/ns/prov#Plan"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on rel:res:http://www.w3.org/ns/prov#Recipe->res:http://www.w3.org/ns/prov#Role; input 'Relate' answered 'rdfs:seeAlso'"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on res:http://www.w3.org/ns/prov#Role; input 'Rename resource' answered ':Part'"
+    },
+    {
+      "step": 11,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 12,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "rdf.comment = 'A plan written down to be followed.'"
+    },
+    {
+      "step": 13,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on res:http://www.w3.org/ns/prov#servings"
+    },
+    {
+      "step": 14,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on res:http://www.w3.org/ns/prov#Recipe; confirmation 'Remove resource' answered ''"
+    },
+    {
+      "step": 15,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 16,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 17,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "res:http://www.w3.org/ns/prov#Activity to (-300, 250)"
+    },
+    {
+      "step": 18,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "res:http://www.w3.org/ns/prov#Entity by (12,5, 40) to (12,5, 420)"
+    },
+    {
+      "step": 19,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "That is an anonymous class expression, whose identity does not survive an edit to the file, so a stored position could not be trusted. It takes its place beside the class that uses it; edit the expression as text."
+    },
+    {
+      "step": 20,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 21,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

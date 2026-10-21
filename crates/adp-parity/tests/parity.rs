@@ -117,3 +117,23 @@ fn every_script_is_checked_and_listed() {
         );
     }
 }
+
+#[test]
+fn w3c_rdf_nobel_1903() {
+    check("w3c/rdf/nobel-1903");
+}
+
+#[test]
+fn w3c_owl_prov_o() {
+    check("w3c/owl/prov-o");
+}
+
+#[test]
+fn w3c_skos_geographic_names() {
+    check("w3c/skos/geographic-names");
+}
+
+#[test]
+fn w3c_shacl_navigation_shapes() {
+    check("w3c/shacl/navigation-shapes");
+}

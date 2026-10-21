@@ -149,6 +149,32 @@ fn replacing_a_literal_object_touches_no_neighbouring_byte() {
     );
 }
 
+/// Not in the standalone host's tests: a language tag's token spans its `@`, so the literal it ends is replaced to its
+/// last byte (found by the `w3c/skos/geographic-names` parity script, where `@en` became `@enn`).
+#[test]
+fn replacing_a_language_tagged_literal_replaces_the_whole_tag() {
+    let text = "@prefix ex: <http://example.org/> .\r\n\r\nex:alice ex:name \"Alice\"@de, \"Alice\"@en .\r\n";
+    let (mut document, model) = load(text);
+    let triple = model
+        .triples
+        .iter()
+        .find(|t| {
+            t.object
+                .as_literal()
+                .is_some_and(|l| l.language.as_deref() == Some("en"))
+        })
+        .unwrap()
+        .clone();
+    assert_eq!(
+        writer::replace_object_literal(&mut document, &model, &triple, "Alicia", Some("en"), None),
+        ""
+    );
+    assert_eq!(
+        document.text(),
+        "@prefix ex: <http://example.org/> .\r\n\r\nex:alice ex:name \"Alice\"@de, \"Alicia\"@en .\r\n"
+    );
+}
+
 #[test]
 fn replacing_a_non_literal_object_is_refused() {
     let (mut document, model) = load(CORPUS);
