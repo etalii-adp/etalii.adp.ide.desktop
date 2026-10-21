@@ -16,6 +16,16 @@ workspace = true
 
 [dependencies]
 adp-core = { path = "../adp-core" }
+# The canvas: diagram sessions, their scenes and the layouts of what has no place of its own (spec 030, T055 to T057).
+adp-cel = { path = "../adp-cel" }
+adp-context = { path = "../adp-context" }
+adp-diagram = { path = "../adp-diagram" }
+adp-disl = { path = "../adp-disl" }
+adp-fbl = { path = "../adp-fbl" }
+adp-history = { path = "../adp-history" }
+adp-layout = { path = "../adp-layout" }
+adp-scene = { path = "../adp-scene" }
+serde_json = { version = "1", features = ["preserve_order"] }
 adp-theme = { path = "../adp-theme" }
 # The window, drawn on wgpu, with AccessKit for screen readers (spec 030, research R2).
 adp-documents = { path = "../adp-documents" }
@@ -34,5 +44,4 @@ rfd = "0.15"
 eframe = { version = "0.37", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "wayland", "x11"] }
 
 [dev-dependencies]
-adp-context = { path = "../adp-context" }
 tempfile = "3"
