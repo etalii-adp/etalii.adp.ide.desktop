@@ -1,6 +1,6 @@
 # Walks
 
-The manual walks of etalii.adp spec 030's user stories ([quickstart](https://github.com/etalii-adp/etalii.adp/blob/develop/specs/030-desktop-native-rust/quickstart.md), "Walk a user story by hand"): each one says what was done, what happened and whether it passed, per tool type. An inventory row whose Check is `walk: <story>/<step>` points at a step here. A difference from the standalone host's behaviour at [`8b6ccfc`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e) is recorded as a failure, with what was done, what was expected and what happened; the walk fixes nothing.
+The manual walks of etalii.adp spec 030's user stories ([quickstart](https://github.com/etalii-adp/etalii.adp/blob/develop/specs/030-desktop-native-rust/quickstart.md), "Walk a user story by hand"): each one says what was done, what happened and whether it passed, per tool type. An inventory row whose Check is `walk: <story>/<step>` points at a step here. A difference from the standalone host's behaviour at [`8b6ccfc`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e) is recorded as a failure, with what was done, what was expected and what happened; the walk fixes nothing, and a re-walk after the fixes records what each one changed beside the original findings.
 
 ## Story 2: work in a diagram with the same result on disk (task T062)
 
@@ -97,6 +97,48 @@ The manual walks of etalii.adp spec 030's user stories ([quickstart](https://git
 
 Also seen, outside Story 2: the click on `courier.dsl`'s expander arrow in the explorer opened `courier.dsl` in a tab as well (Story 1).
 
+### Re-walk after the fixes
+
+| | |
+|---|---|
+| Date | 2026-10-21 |
+| Platform | As above, a debug build of `adp-shell` at `6a9e77e` (branch `features/030-walk-fixes`), on fresh copies of the same three folders |
+| How | As above: the real window driven with Win32 input and read through its AccessKit tree, the written bytes compared by SHA-256 and `git diff --no-index` after every step. Each fix also has a headless test that fails at `c1d708f` and passes after it (`crates/adp-shell/src/canvas/walk_tests.rs`, `crates/adp-shell/src/explorer.rs`, `modules/diagrams/timeline/tests/session.rs`) |
+| Standalone behaviour | Read again at `8b6ccfc` for each finding before it was fixed; where the source disagreed with what the walk expected, the source decided (F6, F8, F9's double-click) |
+
+| # | Fixed | Test | Re-walked in the window |
+|---|---|---|---|
+| F1 | yes: a wheel notch zooms by 1.25 about the pointer, with or without Ctrl; a pinch by its own factor | `f1_the_plain_wheel_zooms_about_the_pointer_by_one_step_a_notch` | Mind map: one notch up over *Scene graph* 50% to 63% with *Scene graph* still under the pointer, two down to 40%, Ctrl and one up to 50% |
+| F2 | yes: a drag of a node the layout places proposes a parent: dropped with its centre on another node it becomes that node's last child, one undo away; on empty canvas or its own branch the drag ends; no position is written | `f2_a_node_dragged_onto_another_becomes_its_last_child_and_no_position_is_written` | *Overflow handling* dragged onto *Persistence*: its `<node>` moved to the end of *Persistence*'s, `mindmap.adp` unchanged; Ctrl+Z gave back every byte |
+| F3 | yes: the view follows the fit, as the standalone host's `null` view does, until the person zooms, pans or scrolls; Fit to View follows it again | `f3_the_view_stays_fitted_as_the_surface_changes_until_the_person_changes_it` | `mindmap.mm` opened at 50% with the whole map in view; `courier.containers.adp` at 27%, `roadmap.adp` at 61% |
+| F4 | yes: the canvas's keys are its own only while it has the keyboard (it is handed it when its tab first draws, and by a press on it) | `f4_enter_in_a_field_of_the_property_grid_commits_the_field_and_never_reaches_the_canvas` | *Scene graph* and *Rendering pipeline* selected, Link set to `walk.md` with Enter: `LINK="walk.md"` on both and no sibling; Ctrl+Z gave back every byte |
+| F5 | yes: a time axis of instants is scaled once, as `timelineScaleOf` scales it (the span with a tenth to spare either side across 1200 units; an empty timeline 20 units a day), the module's 60 units a row kept; a period is as long as it lasts; its edge writes its begin or its end; the ruler `timelineTicks.ts` labels runs along the bottom | `f5_a_timeline_opens_fitted_in_readable_units_with_its_ruler_and_its_periods_as_long_as_they_last`, `f5_a_period_dragged_by_days_moves_by_days_and_its_edge_resizes_it`, `f5_a_connection_from_a_period_released_on_empty_canvas_makes_its_target_at_the_date_under_it`, `a_drag_of_a_periods_edge_writes_its_begin_or_its_end` | `roadmap.adp` opened fitted at 61%, every element and label in view, the ruler reading 2025 to 2028; a 40-pixel drag of *Private beta* wrote `begin: 2025-11-22` and `end: 2026-01-06` (its 45 days kept); its right edge dragged 30 pixels wrote `end: 2025-12-19` alone; `0` fitted at 61% again; each undone to the original bytes |
+| F6 | as the standalone host: each card has an anchor in the middle of each edge, drawn when it is selected or under the pointer, and a drag from one to another card writes nothing, now saying "This diagram does not offer that here." The walk expected a relationship, but at `8b6ccfc` `C4Canvas.tsx` hands no `onConnectionDrawn` to `DiagramCanvas` (whose `dispatchDiagramEvent` drops an event without a handler) and the C4 module has no command that adds a relationship, so writing one would write bytes the standalone host never writes. Left for a decision | `f6_a_c4_card_has_an_anchor_on_each_edge_and_a_drag_from_one_writes_nothing_and_says_why` | Anchors drawn on *Courier App*; a drag from its right anchor to *Single-Page Application* wrote nothing and said the sentence |
+| F7 | yes: a toolbox tool that runs an operation runs it on the node it is dropped on, as that node's menu runs it; over empty canvas nothing happens (`MindmapCanvas.tsx`, `onElementDropped`) | `f7_the_toolbox_node_dropped_on_a_node_adds_a_child_under_it` | *Node* dropped on *Persistence*: a child "Node" written under it, drawn, selected and named in place; "Dropped child" written; two undos gave back every byte |
+| F8 | not changed: the standalone host refuses this drop too. `C4Canvas.tsx`'s `onElementDropped` looks for the target among `model.nodes` only, never the boundaries, which are `selectable: false` "read, never picked", so a drop inside a boundary goes to the module with no parent and its `C4Placement` refuses it with the same sentence | none (behaviour kept) | *Container* dropped inside the *Courier Tracking* boundary, named "Walk Store": nothing written, "A container lives inside a software system. Drop it on one." |
+| F9 | yes for F2: F2 runs the shortcut the menu declares on it before the label's own editor, so on a C4 card it is the module's Rename…, opened in place with the name. Not for the double-click: `C4Canvas.tsx` declares no `activate` gesture, so a double-click on a card does nothing in the standalone host; it now does nothing here instead of opening an empty editor that refused its commit | `f9_f2_on_a_c4_element_renames_it_in_place_through_the_modules_rename_and_a_double_click_does_nothing` | F2 on *Courier App* opened the editor with "Courier App"; "Courier Phone" rewrote the name in its `container` line, Ctrl+Z gave back every byte; a double-click opened nothing |
+| F10 | yes: a node an action adds before its name is asked is drawn in the same frame and the editor opens over it | `f10_f11_a_node_added_by_key_is_drawn_at_once_selected_and_named_in_place_over_itself` | Insert on *Input handling*: the child drawn at once with the editor over it; "Walk child" written. Enter on it: a sibling "Node" after it, drawn, the editor over it |
+| F11 | yes: that node is selected | as F10 | The properties pane named the new child; it was outlined |
+| F12 | yes: the module binds this viewer's folds to `self.view`, so the menu offers Collapse or Expand, and the canvas routes Space, which the specification declares; what a fold hides is not drawn; nothing is written or put on the history | `f12_space_and_the_menu_collapse_and_expand_a_branch_for_this_viewer_only` | The menu of *Constraints* offered Collapse, which hid its five leaves and drew the collapsed glyph; Space on it expanded and collapsed it; `mindmap.mm` unchanged |
+| F13 | yes: the toolbar's Undo and Redo say their refusal as Ctrl+Z does and ask for the frame that shows it | `f13_the_toolbar_undo_says_why_it_was_refused_and_a_later_success_takes_it_away` | After *Spacing* renamed to *Gaps* and `TEXT="Persistence"` changed to `TEXT="Storage"` on disk, the toolbar's Undo put "The file was changed outside ADP, so the changes before that cannot be undone." in the status bar without the pointer moving |
+| F14 | yes: a deletion with several selected deletes all of them as one edit, asking first where the specification asks before any of them, or none of them with the reason | `f14_delete_with_several_selected_deletes_all_of_them_as_one_undo_or_none` | The five constraint leaves boxed ("5 elements") and Delete: all five gone, one Ctrl+Z gave back every byte |
+| F15 | not changed: waits for a decision | | |
+
+Also fixed: an edit that goes through takes a refusal off the status bar (walked: after the refused Undo above, renaming *Alignment* cleared it, and a second refused Undo said it again); a press on an explorer row's chevron expands it without opening the file (`a_press_on_the_chevron_of_a_file_with_registrations_expands_it_without_opening_it`; walked: `courier.dsl`'s chevron expanded its five registrations and opened no tab); and a connection released on empty canvas reads the point through the module, so the timeline makes its target at the date under it instead of refusing the number its time functions cannot read (found while testing F5).
+
+Seen on the re-walk and not fixed: a double-click on a mind map node still renames it, although `mindmap.dis` says `doubleClick: "none"` (the standalone host opens nothing); the properties pane names a single selected mind map node by its id rather than its text; the collapsed glyph `⊕` is drawn as a box (the font has no such glyph); and the walk's own input sometimes loses the first press after it brings the window forward, so a first click or toolbox drag was repeated.
+
+| Step | Mind map | Timeline | C4 container view |
+|---|---|---|---|
+| 2/3 | pass, but see F15 | pass, but see F15 (now in the window) | as the standalone host (F6), but see F15 |
+| 2/4 | pass | pass (*headless*, not re-walked) | pass (not re-walked) |
+| 2/5 | pass | pass (*headless*, not re-walked) | pass (not re-walked) |
+| 2/6 | pass | pass (*headless*, not re-walked) | as the standalone host (F8) |
+| 2/7 | pass (not re-walked) | pass (*headless*, not re-walked) | pass |
+| 2/8 | pass | not declared | not declared |
+| 2/9 | pass | pass (*headless*, not re-walked) | pass |
+| 2/10 | pass | not declared | not declared |
+
 ### Screenshots
 
 - [Mind map fitted to view](walks/story2-mindmap-fit-to-view.png)
@@ -108,6 +150,9 @@ Also seen, outside Story 2: the click on `courier.dsl`'s expander arrow in the e
 - [C4 container view, two elements in the grid](walks/story2-c4-two-elements-grid.png)
 - [C4, F2 opens an empty editor (F9)](walks/story2-c4-inline-rename-empty.png)
 - [C4, change on disk drawn with the person's edit](walks/story2-c4-disk-change.png)
+- [Re-walk: the timeline as it opens, fitted, with its ruler (F5)](walks/story2-rewalk-timeline-open.png)
+- [Re-walk: Insert draws the child and names it in place over itself (F10, F11)](walks/story2-rewalk-mindmap-insert.png)
+- [Re-walk: *Constraints* collapsed from its menu (F12)](walks/story2-rewalk-mindmap-collapsed.png)
 
 ## Story 4: work in the Knowledge designer (task T067)
 

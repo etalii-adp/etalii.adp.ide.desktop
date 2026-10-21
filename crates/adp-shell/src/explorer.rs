@@ -11,6 +11,9 @@ use eframe::egui::{self, Color32, Key, RichText, Sense};
 
 use crate::theme::color;
 
+/// How far right of a row's indent its chevron reaches: a press left of that is a press on the chevron.
+const CHEVRON_WIDTH: f32 = 12.0;
+
 /// What the person asked of the explorer.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Request {
@@ -113,10 +116,15 @@ impl Explorer {
                     if response.clicked() {
                         ui.memory_mut(|m| m.request_focus(id));
                         self.selected = Some(row.node.path.clone());
+                        // A press on the chevron opens or closes the row and does nothing else, as VS Code's twistie;
+                        // a press on the name of a file opens the file.
+                        let on_chevron = response
+                            .interact_pointer_pos()
+                            .is_some_and(|p| p.x < rect.left() + indent + CHEVRON_WIDTH);
                         if row.node.kind == Kind::Folder || has_children {
                             self.toggle(&row.node.path);
                         }
-                        if row.node.kind != Kind::Folder {
+                        if row.node.kind != Kind::Folder && !(has_children && on_chevron) {
                             requests.push(Request::Open(row.node.path.clone()));
                         }
                     }
@@ -218,5 +226,83 @@ fn flatten<'n>(nodes: &'n [Node], depth: usize, expanded: &HashSet<String>, rows
         if expanded.contains(&node.path) {
             flatten(&node.children, depth + 1, expanded, rows);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn node(name: &str, kind: Kind, children: Vec<Node>) -> Node {
+        Node {
+            name: name.to_owned(),
+            path: name.to_owned(),
+            kind,
+            orphan: false,
+            children,
+        }
+    }
+
+    /// One frame of the explorer over `tree`, with `events`; what it was asked.
+    fn frame(ctx: &egui::Context, explorer: &mut Explorer, tree: &Hierarchy, events: Vec<egui::Event>) -> Vec<Request> {
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(400.0, 300.0))),
+            events,
+            ..Default::default()
+        };
+        let mut requests = Vec::new();
+        let theme = Theme::dark();
+        ctx.run_ui(input, |ui| {
+            egui::CentralPanel::default().show(ui, |ui| requests = explorer.show(ui, tree, &theme));
+        })
+        .textures_delta
+        .clear();
+        requests
+    }
+
+    fn click(ctx: &egui::Context, explorer: &mut Explorer, tree: &Hierarchy, at: egui::Pos2) -> Vec<Request> {
+        let press = |pressed| egui::Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        let mut requests = frame(ctx, explorer, tree, vec![egui::Event::PointerMoved(at), press(true)]);
+        requests.extend(frame(ctx, explorer, tree, vec![press(false)]));
+        requests
+    }
+
+    #[test]
+    fn a_press_on_the_chevron_of_a_file_with_registrations_expands_it_without_opening_it() {
+        let tree = Hierarchy {
+            root: std::path::PathBuf::new(),
+            children: vec![node(
+                "courier.dsl",
+                Kind::File,
+                vec![node("courier.containers.adp", Kind::Registration, Vec::new())],
+            )],
+        };
+        let ctx = egui::Context::default();
+        let mut explorer = Explorer::default();
+        frame(&ctx, &mut explorer, &tree, Vec::new());
+        let row = theme_row_height() / 2.0;
+        // The first row's chevron sits 8 in from the left, its name 22 in.
+        let chevron = egui::pos2(8.0 + 12.0, 8.0 + row);
+        assert!(
+            click(&ctx, &mut explorer, &tree, chevron).is_empty(),
+            "nothing is opened"
+        );
+        assert!(explorer.expanded.contains("courier.dsl"), "the row is expanded");
+
+        let name = egui::pos2(8.0 + 60.0, 8.0 + row);
+        assert_eq!(
+            click(&ctx, &mut explorer, &tree, name),
+            vec![Request::Open("courier.dsl".into())],
+            "a press on the name opens the file"
+        );
+    }
+
+    fn theme_row_height() -> f32 {
+        Theme::dark().sizes.row_height
     }
 }

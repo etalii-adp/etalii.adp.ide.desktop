@@ -8,6 +8,8 @@
 //!   cylinder), its name 22 below its top at 13 and bold, its bracketed type line 38 below at 10, cut with an ellipsis
 //!   when it does not fit, and its description from 58 below at 10, broken at spaces into lines 14 apart, each no
 //!   wider than the card holds at 0.55 of the font size per character less 12 either side;
+//! - an element has an anchor in the middle of each edge, drawn while it is selected or under the pointer, which a
+//!   connection is drawn from (`anchors: { kind: "edge" }`);
 //! - a boundary is a dashed rectangle with `{name} [{kind}]` above it, drawn under everything and never picked;
 //! - a relationship is a dashed line with an arrowhead, between the two boxes' edges, labelled at its midpoint 6
 //!   above it with `{order}. {description} [{technology}]`;
@@ -49,7 +51,12 @@ pub struct ModuleScene {
     pub lines: Vec<(String, Vec<Point>, f64)>,
     /// Each element's name line: what the inline editor of a rename opens over.
     pub labels: Vec<(String, String, Rect)>,
+    /// Each card's anchors on the middle of its four edges: element, anchor, area (`anchors: { kind: "edge" }`).
+    pub anchors: Vec<(String, String, Rect)>,
 }
+
+/// The radius of an anchor's dot, in canvas units (the scene builder's `ANCHOR_RADIUS`).
+const ANCHOR_RADIUS: f64 = 5.0;
 
 fn number(element: &DiagramElement, name: &str) -> f64 {
     element.attribute(name).parse().unwrap_or_default()
@@ -216,6 +223,7 @@ pub fn build(
     let mut boxes = Vec::new();
     let mut lines = Vec::new();
     let mut labels = Vec::new();
+    let mut anchors = Vec::new();
 
     // Boundaries first, so everything they enclose draws on top of them; they are read, never picked.
     for boundary in elements.iter().filter(|e| e.element_type == BOUNDARY_TYPE) {
@@ -400,6 +408,25 @@ pub fn build(
                 area: rect,
             }));
         }
+        // An anchor on each edge, drawn while the card is selected or under the pointer.
+        let centre_y = rect.centre().y;
+        for (name, at) in [
+            ("top", Point::new(centre, rect.y)),
+            ("right", Point::new(rect.right(), centre_y)),
+            ("bottom", Point::new(centre, rect.bottom())),
+            ("left", Point::new(rect.x, centre_y)),
+        ] {
+            let area = Rect::centred(at, 2.0 * ANCHOR_RADIUS, 2.0 * ANCHOR_RADIUS);
+            primitives.push(Primitive::Hook(Hook {
+                owner: owner.clone(),
+                kind: HookKind::Anchor {
+                    name: name.to_owned(),
+                    visible: false,
+                },
+                area,
+            }));
+            anchors.push((element.id.clone(), name.to_owned(), area));
+        }
         boxes.push((element.id.clone(), rect));
     }
 
@@ -490,6 +517,7 @@ pub fn build(
         boxes,
         lines,
         labels,
+        anchors,
     }
 }
 

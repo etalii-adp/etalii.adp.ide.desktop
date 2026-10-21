@@ -61,6 +61,8 @@ const FIT_PADDING: f64 = 40.0;
 const SCROLL_BAR: f32 = 10.0;
 /// The smallest share of its track a thumb takes (`thumbOf`).
 const MIN_THUMB: f64 = 0.05;
+/// What the action id of the question a deletion of the whole selection asks starts with, before the deletion's own.
+const DELETE_SELECTION: &str = "canvas.delete-selection:";
 /// What stands in for the notation of a diagram its module draws itself: its scene is built from the module's view
 /// ([`module_scene`]) rather than compiled from a specification.
 pub const MODULE_CANVAS: &str = "This diagram is drawn by its module.";
@@ -204,9 +206,11 @@ pub enum Commit {
 #[derive(Debug, Clone, PartialEq)]
 pub struct InlineEditor {
     pub element: String,
+    /// The label it edits, its element's first editable one when none is named.
+    pub label: Option<String>,
     pub commit: Commit,
     pub text: String,
-    /// Where it is drawn, in canvas units.
+    /// Where it is drawn, in canvas units: over the label as the scene last drew it.
     pub area: Rect,
     opened: bool,
 }
@@ -258,6 +262,8 @@ struct Cached {
     /// The canvas's own fill where the scene draws no background.
     surface: Option<Color32>,
     drop_mapping: Mapping,
+    /// The ruler of a time axis: its height in screen points and the axis's canvas units per second.
+    ruler: Option<(f64, f64)>,
 }
 
 /// A diagram open in a tab.
@@ -273,7 +279,16 @@ pub struct DiagramTab {
     cache: Option<Cached>,
     metrics: Option<EguiMetrics>,
     pub view: View,
-    fitted: bool,
+    /// Whether the view is the diagram fitted to the surface, kept so as either changes, until the person zooms,
+    /// pans or scrolls (`DiagramCanvas.tsx`: the view is `null`, the fit box, until it is set).
+    follows_fit: bool,
+    /// Whether the view followed the fit when the pan in flight began, so Escape puts that back too.
+    followed_before_pan: bool,
+    /// Whether the canvas has had the keyboard handed to it once, when its tab first drew.
+    focused_once: bool,
+    /// The scale of a time axis, canvas units per second, frozen when the diagram is first drawn with something on
+    /// it, so an edit never rescales the drawing under the person (`timelineScaleOf`).
+    time_scale: Option<f64>,
     /// The selected elements and relations, the most recent last.
     pub selection: Vec<String>,
     pub arbiter: Arbiter,
@@ -284,6 +299,8 @@ pub struct DiagramTab {
     pub ids: Option<Box<dyn IdSource>>,
     /// The last refusal or report, for the status bar.
     pub notice: Option<String>,
+    /// Whether an edit succeeded since the status bar last looked, so a refusal shown before it is taken away.
+    pub cleared: bool,
     hovered: Option<String>,
     /// The surface drawn last frame.
     pub surface: egui::Rect,
@@ -306,7 +323,10 @@ impl DiagramTab {
             cache: None,
             metrics: None,
             view: View::default(),
-            fitted: false,
+            follows_fit: true,
+            followed_before_pan: false,
+            focused_once: false,
+            time_scale: None,
             selection: Vec::new(),
             arbiter: Arbiter::default(),
             editor: None,
@@ -314,6 +334,7 @@ impl DiagramTab {
             menu: None,
             ids: None,
             notice: None,
+            cleared: false,
             hovered: None,
             surface: egui::Rect::NOTHING,
             grid: crate::properties::Grid::default(),
@@ -434,13 +455,35 @@ impl DiagramTab {
             .and_then(|c| paint::parse_colour(&c));
         let evaluator = Evaluator::new(specification, notation_theme, DislEnv::default());
         let diagram = &document.model().diagram;
+        // The viewer's folds, which the corner glyphs read; a layout that places the diagram leaves out what is folded
+        // away, which is then not drawn.
+        document.bind_views();
+        let laid_out = document.laid_out();
+        let positions = laid_out.clone().unwrap_or_else(|| document.positions());
+        let extents = document.extents();
+        let module = document.tool().module.as_deref();
+        let time_axis = placement::time_axis(specification);
+        if time_axis.is_some() && self.time_scale.is_none() {
+            // Frozen at the first drawing with something on it: each element from its begin to its end.
+            self.time_scale = placement::fitted_time_scale(positions.iter().map(|(id, (x, _))| {
+                let width = match extents.get(id).and_then(|e| e.width) {
+                    Some(adp_diagram::Length::Domain(width)) => width,
+                    _ => 0.0,
+                };
+                (*x, x + width)
+            }));
+        }
+        let time_scale = self.time_scale.or(time_axis.map(|a| a.units_per_second));
         let placed = placement::place(
             definition,
             &evaluator,
             diagram,
-            &document.positions(),
-            &document.extents(),
+            &positions,
+            &extents,
             metrics,
+            laid_out.is_some(),
+            module,
+            time_scale,
         );
         let mut rects = placed.rects.clone();
         if let Some((ids, (dx, dy))) = self.arbiter.moving() {
@@ -524,7 +567,18 @@ impl DiagramTab {
             }
         }
         let bounds = scene.bounds(metrics);
-        let drop_mapping = placement::drop_mapping(specification, diagram);
+        let drop_mapping = placement::drop_mapping(
+            specification,
+            diagram,
+            placement::Scales {
+                time: time_scale,
+                module: module.is_some_and(|m| m.position_at(0.0, 0.0).is_some()),
+            },
+        );
+        let ruler = time_axis
+            .and_then(|axis| axis.ruler)
+            .zip(time_scale)
+            .filter(|(_, scale)| *scale > 0.0);
         self.cache = Some(Cached {
             key,
             scene,
@@ -537,6 +591,7 @@ impl DiagramTab {
             bounds,
             surface,
             drop_mapping,
+            ruler,
         });
     }
 
@@ -564,12 +619,13 @@ impl DiagramTab {
             },
             boxes: built.boxes,
             lines: built.lines,
-            anchors: Vec::new(),
+            anchors: built.anchors,
             handles: Vec::new(),
             labels: built.labels,
             bounds,
             surface: None,
             drop_mapping: Mapping::default(),
+            ruler: None,
         });
     }
 
@@ -592,10 +648,24 @@ impl DiagramTab {
             about.y - (about.y - self.view.origin.y) * kept,
         );
         self.view.zoom = zoom;
+        self.follows_fit = false;
     }
 
-    /// Fits the view to everything the diagram draws, with a padding round it.
+    /// Fits the view to everything the diagram draws, with a padding round it, and keeps it fitted as the diagram or
+    /// the surface changes until the person zooms, pans or scrolls (`fitToView`: the view is `null` again).
     pub fn fit(&mut self) {
+        self.follows_fit = true;
+        self.refit();
+    }
+
+    /// Sets the view by hand, as a pan or a scroll does: it no longer follows the fit.
+    pub fn look_from(&mut self, origin: Point) {
+        self.view.origin = origin;
+        self.follows_fit = false;
+    }
+
+    /// The view fitted to what the diagram draws now.
+    fn refit(&mut self) {
         let Some(bounds) = self.cache.as_ref().and_then(|c| c.bounds) else {
             self.view = View {
                 origin: Point::new(
@@ -735,12 +805,16 @@ impl DiagramTab {
 
     pub(crate) fn report(&mut self, result: Result<(), String>) {
         match result {
-            Ok(()) => {
-                self.notice = None;
-                self.changed();
-            }
+            Ok(()) => self.succeeded(),
             Err(refusal) => self.notice = Some(refusal),
         }
+    }
+
+    /// An edit went through: the refusal shown before it is taken away, and the scene is drawn again.
+    fn succeeded(&mut self) {
+        self.notice = None;
+        self.cleared = true;
+        self.changed();
     }
 
     /// Carries out what a gesture came to.
@@ -796,7 +870,12 @@ impl DiagramTab {
                     });
                 }
             }
-            Intent::Pan { origin } => self.view.origin = origin,
+            Intent::Pan { origin } => {
+                if self.follows_fit {
+                    self.followed_before_pan = true;
+                }
+                self.look_from(origin);
+            }
         }
     }
 
@@ -831,8 +910,16 @@ impl DiagramTab {
         }
     }
 
-    /// Moves elements by `delta` canvas units, each landing where its placement puts it, as one edit.
+    /// Moves elements by `delta` canvas units, each landing where its placement puts it, as one edit; where a drag
+    /// proposes a parent instead, each becomes the last child of the node its box is dropped on.
     pub fn move_by(&mut self, workspace: &mut DiagramWorkspace, ids: &[String], delta: (f64, f64)) {
+        if ids
+            .iter()
+            .any(|id| self.session.drag_reparents(workspace.documents(), id))
+        {
+            self.reparent_by(workspace, ids, delta);
+            return;
+        }
         let Some(cache) = &self.cache else { return };
         let moves: Vec<(String, f64, f64)> = ids
             .iter()
@@ -848,6 +935,33 @@ impl DiagramTab {
             return;
         }
         let result = self.session.move_elements(workspace, &moves);
+        self.report(result);
+    }
+
+    /// A drag that re-parents (`MindmapCanvas.tsx`, `onElementMoved` and `dropTargetAt`): each node dropped with its
+    /// centre on another becomes that node's last child, as one edit; dropped on itself, on a node of its own branch
+    /// or on empty canvas, the drag simply ends. Nothing is placed: the layout puts it where it now belongs.
+    fn reparent_by(&mut self, workspace: &mut DiagramWorkspace, ids: &[String], delta: (f64, f64)) {
+        let Some(cache) = &self.cache else { return };
+        let documents = workspace.documents();
+        let Some(document) = documents.get(&self.opened.body_path) else {
+            return;
+        };
+        let moves: Vec<(String, String)> = ids
+            .iter()
+            .filter_map(|id| {
+                let rect = cache.placed.rects.get(id)?;
+                let dropped = Point::new(rect.centre().x + delta.0, rect.centre().y + delta.1);
+                // The topmost node under the drop, where the model has it; the dragged one and its branch are no target.
+                let (target, _) = cache.boxes.iter().rev().find(|(_, b)| b.contains(dropped))?;
+                let branch = document.element(id)?.descendants();
+                (target != id && !branch.iter().any(|d| d.id() == *target)).then(|| (id.clone(), target.clone()))
+            })
+            .collect();
+        if moves.is_empty() {
+            return;
+        }
+        let result = self.session.reparent_elements(workspace, &moves);
         self.report(result);
     }
 
@@ -882,6 +996,14 @@ impl DiagramTab {
     }
 
     fn connect(&mut self, workspace: &mut DiagramWorkspace, source: &str, target: Option<&str>, at: Point) {
+        if self.session.module_view().is_some() {
+            // A module that draws its view itself takes no connection from the canvas: the standalone host's C4 canvas
+            // draws its cards' edge anchors and the drag from one, and handles no `connection-drawn`.
+            if target.is_some_and(|t| t != source) {
+                self.notice = Some(adp_diagram::session::NOT_OFFERED.to_owned());
+            }
+            return;
+        }
         let types = self
             .session
             .relation_types_between(workspace.documents(), source, target);
@@ -958,6 +1080,18 @@ impl DiagramTab {
             }
             return;
         }
+        if self.session.tool_operation(workspace.documents(), tool_id).is_some() {
+            // A tool that runs an operation runs it on the node it lands on, as that node's menu runs it; over empty
+            // canvas there is no node and nothing happens (`MindmapCanvas.tsx`, `onElementDropped`).
+            let Hit::Element(id) = self.hit(at) else { return };
+            let before = self.node_ids(workspace.documents());
+            self.ensure_ids(workspace.documents());
+            let ids = self.ids.as_deref().expect("made");
+            if let Some((action_id, outcome)) = self.session.drop_tool_on(workspace, tool_id, &id, ids) {
+                self.outcome(workspace, ActionTarget::Element(id), &action_id, outcome, &before);
+            }
+            return;
+        }
         let (x, y) = self
             .cache
             .as_ref()
@@ -981,8 +1115,8 @@ impl DiagramTab {
             .unwrap_or_default()
     }
 
-    /// Selects the one node an edit added, when it added one.
-    fn select_new(&mut self, documents: &DiagramDocuments, before: &HashSet<String>) {
+    /// Selects the one node an edit added, when it added one; that node.
+    fn select_new(&mut self, documents: &DiagramDocuments, before: &HashSet<String>) -> Option<String> {
         let added: Vec<String> = self
             .node_ids(documents)
             .into_iter()
@@ -990,7 +1124,9 @@ impl DiagramTab {
             .collect();
         if let [one] = added.as_slice() {
             self.select(vec![one.clone()], SelectMode::Replace);
+            return Some(one.clone());
         }
+        None
     }
 
     /// Runs action `action_id` of `target`'s menu: done, refused with its sentence, or a prompt to answer.
@@ -998,11 +1134,26 @@ impl DiagramTab {
         let before = self.node_ids(workspace.documents());
         self.ensure_ids(workspace.documents());
         let ids = self.ids.as_deref().expect("made");
-        match self.session.execute(workspace, &target, action_id, ids) {
+        let outcome = self.session.execute(workspace, &target, action_id, ids);
+        self.outcome(workspace, target, action_id, outcome, &before);
+    }
+
+    /// Carries out what action `action_id` of `target` answered, the nodes before it ran being `before`: an edit
+    /// drawn and what it added selected, a refusal said, a question asked. A name asked of an element is asked in place,
+    /// over the node the action added when it added one (`addChild`: `select: added`, then `editLabel` of it), else
+    /// over the element itself.
+    fn outcome(
+        &mut self,
+        workspace: &mut DiagramWorkspace,
+        target: ActionTarget,
+        action_id: &str,
+        outcome: ActionOutcome,
+        before: &HashSet<String>,
+    ) {
+        match outcome {
             ActionOutcome::Done => {
-                self.notice = None;
-                self.changed();
-                self.select_new(workspace.documents(), &before);
+                self.succeeded();
+                self.select_new(workspace.documents(), before);
             }
             ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
             ActionOutcome::Prompt(Prompt::Input { initial_value, .. })
@@ -1011,9 +1162,16 @@ impl DiagramTab {
                 let ActionTarget::Element(element) = &target else {
                     unreachable!()
                 };
-                let area = self.label_area(element, None).unwrap_or_default();
+                // A node made before its name is asked is drawn, and selected, at once.
+                let added = self.select_new(workspace.documents(), before);
+                if added.is_some() {
+                    self.succeeded();
+                }
+                let element = added.unwrap_or_else(|| element.clone());
+                let area = self.label_area(&element, None).unwrap_or_default();
                 self.editor = Some(InlineEditor {
-                    element: element.clone(),
+                    element,
+                    label: None,
                     commit: Commit::Answer {
                         target: target.clone(),
                         action_id: action_id.to_owned(),
@@ -1038,14 +1196,15 @@ impl DiagramTab {
     pub fn answer(&mut self, workspace: &mut DiagramWorkspace, value: Option<&str>) {
         let Some(pending) = self.prompt.take() else { return };
         let Some(value) = value else { return };
+        if let Some(action_id) = pending.action_id.strip_prefix(DELETE_SELECTION) {
+            self.delete_selection(workspace, action_id, true);
+            return;
+        }
         match self
             .session
             .answer(workspace, &pending.target, &pending.action_id, value)
         {
-            ActionOutcome::Done => {
-                self.notice = None;
-                self.changed();
-            }
+            ActionOutcome::Done => self.succeeded(),
             ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
             ActionOutcome::Prompt(_) => self.notice = Some("That cannot be answered here yet.".to_owned()),
         }
@@ -1084,6 +1243,7 @@ impl DiagramTab {
         let area = self.label_area(element, Some(&label)).unwrap_or_default();
         self.editor = Some(InlineEditor {
             element: element.to_owned(),
+            label: Some(label.clone()),
             commit: Commit::Label(label),
             text,
             area,
@@ -1115,11 +1275,14 @@ impl DiagramTab {
     pub fn cancel_gesture(&mut self) -> bool {
         if let Some(origin) = self.arbiter.pan_origin() {
             self.view.origin = origin;
+            self.follows_fit = std::mem::take(&mut self.followed_before_pan);
         }
         self.arbiter.cancel()
     }
 
-    /// A declared shortcut of the selected element: Tab, Enter, Delete and the rest, by the specification's menus.
+    /// A declared shortcut of the selected element: Tab, Enter, Delete, Space, F2 and the rest, by the menus. With
+    /// several selected, a deletion deletes all of them as one edit, or none (the multi-select specification's
+    /// Requirement 7.3).
     pub fn shortcut(&mut self, workspace: &mut DiagramWorkspace, pressed: &Shortcut) -> bool {
         let Some(primary) = self.selection.last().cloned() else {
             return false;
@@ -1130,8 +1293,33 @@ impl DiagramTab {
             return false;
         };
         let id = action.id.clone();
+        if self.selection.len() > 1 && self.session.is_deletion(workspace.documents(), &target, &id) {
+            self.delete_selection(workspace, &id, false);
+            return true;
+        }
         self.run_action(workspace, target, &id);
         true
+    }
+
+    /// Deletes every selected element by its deletion `action_id`, as one edit, asking first where the specification
+    /// asks before deleting any of them.
+    fn delete_selection(&mut self, workspace: &mut DiagramWorkspace, action_id: &str, confirmed: bool) {
+        let selection = self.selection.clone();
+        match self
+            .session
+            .delete_elements(workspace, &selection, action_id, confirmed)
+        {
+            ActionOutcome::Done => self.succeeded(),
+            ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+            ActionOutcome::Prompt(prompt) => {
+                self.prompt = Some(PendingPrompt {
+                    target: ActionTarget::Element(selection.last().cloned().unwrap_or_default()),
+                    action_id: format!("{DELETE_SELECTION}{action_id}"),
+                    prompt,
+                    value: String::new(),
+                })
+            }
+        }
     }
 
     // ---- drawing and input -------------------------------------------------------------------------------------------
@@ -1177,9 +1365,10 @@ impl DiagramTab {
                 });
             });
         if let Some(undo) = history {
-            let outcome = if undo { workspace.undo() } else { workspace.redo() };
-            if let adp_history::Outcome::Refused(refusal) = outcome {
-                self.notice = Some(refusal.0);
+            // Said as Ctrl+Z says it: a refusal in the status bar, which a step that went through takes away.
+            match if undo { workspace.undo() } else { workspace.redo() } {
+                adp_history::Outcome::Refused(refusal) => self.notice = Some(refusal.0),
+                adp_history::Outcome::Done { .. } => self.succeeded(),
             }
             self.changed();
         }
@@ -1188,15 +1377,14 @@ impl DiagramTab {
         let surface = egui::Rect::from_min_max(available.min, available.max - egui::vec2(SCROLL_BAR, SCROLL_BAR));
         ui.allocate_rect(available, Sense::hover());
         let response = ui.interact(surface, self.id, Sense::click_and_drag());
-        let resized = self.surface != surface;
         self.surface = surface;
-        self.ensure_scene(ui.ctx(), workspace.documents(), dark);
-        if !self.fitted && self.cache.is_some() {
-            self.fit();
-            self.fitted = true;
-        } else if resized && !self.fitted {
-            self.fit();
+        if !self.focused_once {
+            // A diagram that opens has the keyboard, as an editor that opens has it.
+            self.focused_once = true;
+            ui.memory_mut(|m| m.request_focus(self.id));
         }
+        self.ensure_scene(ui.ctx(), workspace.documents(), dark);
+        self.follow_fit();
         if let Some(factor) = zoom {
             self.zoom_by(factor, None);
         }
@@ -1206,11 +1394,24 @@ impl DiagramTab {
 
         self.input(ui, workspace, &response);
         self.ensure_scene(ui.ctx(), workspace.documents(), dark);
+        self.follow_fit();
         self.paint(ui, palette);
         self.scroll_bars(ui, palette, theme);
         self.show_editor(ui, workspace);
         self.show_menu(ui, workspace, palette);
         self.show_prompt(ui, workspace);
+        if self.notice.is_some() || self.cleared {
+            // The status bar is drawn before the canvas: one more frame shows what this one said.
+            ui.ctx().request_repaint();
+        }
+    }
+
+    /// Keeps the view fitted while it follows the fit; never under a gesture in flight, whose preview is not yet the
+    /// diagram (`fitBoxOf` reads the model, not the drag).
+    fn follow_fit(&mut self) {
+        if self.follows_fit && self.cache.is_some() && self.arbiter.is_idle() {
+            self.refit();
+        }
     }
 
     fn input(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace, response: &egui::Response) {
@@ -1224,7 +1425,7 @@ impl DiagramTab {
                     .as_ref()
                     .is_some_and(|e| tab.view.rect_to_screen(surface, e.area).contains(pos))
         };
-        let (press, release, latest, double, modifiers, zoom_delta, scroll) = ui.input(|i| {
+        let (press, release, latest, double, modifiers, zooms) = ui.input(|i| {
             let press = if i.pointer.primary_pressed() {
                 i.pointer.press_origin().map(|p| (Button::Primary, p))
             } else if i.pointer.button_pressed(egui::PointerButton::Secondary) {
@@ -1242,8 +1443,7 @@ impl DiagramTab {
                     command: i.modifiers.command,
                     shift: i.modifiers.shift,
                 },
-                i.zoom_delta(),
-                i.smooth_scroll_delta,
+                wheel_zooms(&i.events),
             )
         });
         let hover = latest.filter(|p| surface.contains(*p));
@@ -1278,6 +1478,7 @@ impl DiagramTab {
                 self.commit_editor(workspace);
             }
             ui.memory_mut(|m| m.request_focus(self.id));
+            self.followed_before_pan = false;
             let canvas = self.view.to_canvas(surface, pos);
             let hit = self.hit(canvas);
             let moves = self.moves_for(&hit);
@@ -1299,7 +1500,12 @@ impl DiagramTab {
                 for intent in self.arbiter.release(canvas, &hit) {
                     self.apply(intent, workspace);
                 }
-                if double && let Hit::Element(id) = &hit {
+                // A double-click edits a label in place; a module that draws its view itself declares no double-click
+                // (`C4Canvas.tsx` declares no `activate` gesture), and its renames are its menu's and F2's.
+                if double
+                    && self.session.module_view().is_none()
+                    && let Hit::Element(id) = &hit
+                {
                     let id = id.clone();
                     self.open_editor(workspace.documents(), &id, Some(canvas));
                 }
@@ -1313,19 +1519,16 @@ impl DiagramTab {
         if let Some(pos) = hover
             && self.prompt.is_none()
         {
-            let about = self.view.to_canvas(surface, pos);
-            if zoom_delta != 1.0 {
-                self.zoom_by(zoom_delta as f64, Some(about));
-            } else if scroll != egui::Vec2::ZERO {
-                self.view.origin = Point::new(
-                    self.view.origin.x - scroll.x as f64 / self.view.zoom,
-                    self.view.origin.y - scroll.y as f64 / self.view.zoom,
-                );
+            for factor in zooms {
+                let about = self.view.to_canvas(surface, pos);
+                self.zoom_by(factor, Some(about));
             }
         }
 
+        // The canvas's keys are the canvas's only while it has the keyboard: an Enter that commits a field of the
+        // property grid is that field's (`onKeyDown` is the surface's own, `isTextTarget` aside).
         let focused = ui.memory(|m| m.focused());
-        let ours = focused.is_none() || focused == Some(self.id);
+        let ours = focused == Some(self.id);
         if focused == Some(self.id) {
             ui.memory_mut(|m| {
                 m.set_focus_lock_filter(
@@ -1364,7 +1567,11 @@ impl DiagramTab {
             self.fit();
         }
         if pressed(ui, M::NONE, Key::F2) {
-            if let Some(id) = self.selection.last().cloned() {
+            // F2 is the rename the menu declares on it, where it declares one (C4's Rename…), else the label's own
+            // editor.
+            if !self.shortcut(workspace, &Shortcut::key("F2"))
+                && let Some(id) = self.selection.last().cloned()
+            {
                 self.open_editor(workspace.documents(), &id, None);
             }
             return;
@@ -1375,6 +1582,8 @@ impl DiagramTab {
             (Key::Delete, "Delete"),
             (Key::Backspace, "Backspace"),
             (Key::Insert, "Insert"),
+            // A browser's `key` for the space bar, which `Space` in a specification is spelled as.
+            (Key::Space, " "),
         ] {
             for shift in [false, true] {
                 let modifiers = if shift { M::SHIFT } else { M::NONE };
@@ -1433,6 +1642,9 @@ impl DiagramTab {
                 palette.foreground.gamma_multiply(0.7),
             );
         }
+        if let Some((height, scale)) = cache.ruler {
+            self.paint_ruler(&painter, palette, height as f32, scale);
+        }
         match &self.arbiter.gesture {
             gestures::Gesture::Boxing { from, to, .. } => {
                 let rect = Rect::around([*from, *to]).unwrap_or_default();
@@ -1447,6 +1659,38 @@ impl DiagramTab {
                 );
             }
             _ => {}
+        }
+    }
+
+    /// The time ruler along the bottom of the canvas (`TimelineRuler.tsx`): fixed to the view, its labels on the
+    /// boundaries `timelineTicks.ts` picks for the time in view, each over the instant it names.
+    fn paint_ruler(&self, painter: &egui::Painter, palette: &Palette, height: f32, units_per_second: f64) {
+        let surface = self.surface;
+        let band = egui::Rect::from_min_max(Pos2::new(surface.min.x, surface.max.y - height), surface.max);
+        painter.rect_filled(band, 0.0, palette.editor_background.gamma_multiply(0.92));
+        painter.line_segment(
+            [band.left_top(), band.right_top()],
+            Stroke::new(1.0, palette.foreground.gamma_multiply(0.3)),
+        );
+        let visible = self.view.visible(surface);
+        let start = visible.x / units_per_second;
+        let end = visible.right() / units_per_second;
+        for tick in adp_diagram_timeline::ruler::ticks(start, end, surface.width() as f64) {
+            let x = self
+                .view
+                .to_screen(surface, Point::new(tick.seconds * units_per_second, 0.0))
+                .x;
+            painter.line_segment(
+                [Pos2::new(x, band.top()), Pos2::new(x, band.top() + 5.0)],
+                Stroke::new(1.0, palette.foreground.gamma_multiply(0.5)),
+            );
+            painter.text(
+                Pos2::new(x + 3.0, band.center().y + 2.0),
+                egui::Align2::LEFT_CENTER,
+                tick.label,
+                egui::FontId::proportional(11.0),
+                palette.foreground.gamma_multiply(0.8),
+            );
         }
     }
 
@@ -1517,16 +1761,23 @@ impl DiagramTab {
             if response.dragged() {
                 let delta = response.drag_delta();
                 let moved = if horizontal { delta.x } else { delta.y } as f64 / length * extent_span;
-                if horizontal {
-                    self.view.origin.x += moved;
+                let origin = if horizontal {
+                    Point::new(self.view.origin.x + moved, self.view.origin.y)
                 } else {
-                    self.view.origin.y += moved;
-                }
+                    Point::new(self.view.origin.x, self.view.origin.y + moved)
+                };
+                self.look_from(origin);
             }
         }
     }
 
     fn show_editor(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace) {
+        if let Some((element, label)) = self.editor.as_ref().map(|e| (e.element.clone(), e.label.clone()))
+            && let Some(area) = self.label_area(&element, label.as_deref())
+            && let Some(editor) = &mut self.editor
+        {
+            editor.area = area;
+        }
         let Some(editor) = &mut self.editor else { return };
         let mut screen = self.view.rect_to_screen(self.surface, editor.area);
         if screen.height() < 22.0 {
@@ -1758,6 +2009,28 @@ fn choose(
         }
     });
     answer
+}
+
+/// The zoom each turn of the wheel and each pinch of `events` asks for, in order: a notch of the wheel, with or without
+/// Ctrl, zooms in or out by one step of [`ZOOM_STEP`] about the pointer (`onWheel`: `deltaY < 0` zooms in), a wheel
+/// that reports lines or pages by one step a line, and a pinch by its own factor.
+fn wheel_zooms(events: &[egui::Event]) -> Vec<f64> {
+    events
+        .iter()
+        .filter_map(|event| match event {
+            egui::Event::MouseWheel { unit, delta, .. } if delta.y != 0.0 => {
+                let steps = match unit {
+                    egui::MouseWheelUnit::Point => 1,
+                    egui::MouseWheelUnit::Line | egui::MouseWheelUnit::Page => (delta.y.abs().round() as i32).max(1),
+                };
+                // egui's y is positive for a wheel turned away from the person, the browser's deltaY negative.
+                let step = if delta.y > 0.0 { ZOOM_STEP } else { 1.0 / ZOOM_STEP };
+                Some(step.powi(steps))
+            }
+            egui::Event::Zoom(factor) if *factor != 1.0 => Some(*factor as f64),
+            _ => None,
+        })
+        .collect()
 }
 
 fn distance_to_segment(p: Point, a: Point, b: Point) -> f64 {
