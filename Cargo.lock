@@ -149,8 +149,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-designer-knowledge"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-desl",
+ "adp-documents",
+ "adp-fbl",
+ "regex",
+ "serde_json",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
 name = "adp-desl"
 version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-fbl",
+ "indexmap",
+ "jsonschema",
+ "regex",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "adp-disl"
