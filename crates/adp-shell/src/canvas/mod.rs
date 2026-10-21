@@ -1,0 +1,1485 @@
+//! The diagram canvas (etalii.adp spec 030, Story 2, FR-014, FR-018, SC-006, tasks T055 and T056): a diagram tab
+//! that draws its session's scene with egui, culled to the view, with pan, zoom, fit to view and scroll bars, and
+//! the one gesture arbiter that turns presses into selections, moves, connections, drops, renames and actions on
+//! the session, each one undo away on the project's history.
+//!
+//! Ported from the standalone host at `8b6ccfc`: `src/client/src/canvas/library/DiagramCanvas.tsx` (the view box,
+//! `zoomBy` about a point by steps of 1.25, fit to view with a padding of 40, the selection, the drop, the
+//! keyboard's Escape, declared shortcuts and F2, the context menu, the inline label editor and the toolbox drop),
+//! `src/client/src/canvas/scroll/` (scroll bars over an unbounded plane: the content's extent with half its span
+//! again on either side, a thumb at least 5% of its track), and `src/client/src/shell/panels/ToolTabsPanel.tsx`
+//! (a diagram opens in a tab of its own, its text still a choice away). A scene is rebuilt only when what it shows
+//! changes: the document, the selection, the theme or the drag in flight.
+
+pub mod gestures;
+pub mod metrics;
+pub mod paint;
+pub mod placement;
+pub mod toolbox;
+
+#[cfg(test)]
+mod tests;
+
+use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
+
+use adp_context::{ActionGroup, Prompt, SelectMode, Shortcut, action_for_shortcut};
+use adp_core::Catalogue;
+use adp_diagram::document::DiagramDocuments;
+use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
+use adp_diagram::tool::DiagramTools;
+use adp_diagram::workspace::{DiagramWorkspace, OpenedDiagram};
+use adp_disl::behavior::ids;
+use adp_disl::{DislEnv, DislPluginFunctions, IdSource};
+use adp_fbl::RegistrationDocument;
+use adp_scene::definition::compartments::Folding;
+use adp_scene::scene::{HookKind, Owner, Primitive, Role, SceneOptions, StandardRoutePlugins, build_scene};
+use adp_scene::text::TextMetrics;
+use adp_scene::{DiagramDefinition, Evaluator, Point, Rect, Scene, Theme as NotationTheme, compile_notation};
+use adp_theme::{Kind, Theme};
+use eframe::egui::{self, Color32, Pos2, RichText, Sense, Stroke};
+
+use crate::theme::{self, Palette};
+use gestures::{Arbiter, Button, Hit, Intent, Modifiers};
+use metrics::EguiMetrics;
+use paint::{Chrome, View};
+use placement::{Mapping, Placed};
+
+/// The factor one zoom step changes the view by (`ZOOM_STEP`).
+pub const ZOOM_STEP: f64 = 1.25;
+/// The narrowest and the widest the view may show, in canvas units (`MIN_VIEW_WIDTH`, `MAX_VIEW_WIDTH`).
+const MIN_VIEW_WIDTH: f64 = 40.0;
+const MAX_VIEW_WIDTH: f64 = 100_000.0;
+/// What fitting the view keeps round the diagram, in canvas units (`FIT_PADDING`).
+const FIT_PADDING: f64 = 40.0;
+/// The thickness of a scroll bar, in screen points.
+const SCROLL_BAR: f32 = 10.0;
+/// The smallest share of its track a thumb takes (`thumbOf`).
+const MIN_THUMB: f64 = 0.05;
+
+/// Where the vendored specifications and bindings are: `ADP_VENDOR`, else a `vendor` folder beside the program or
+/// above it, else the source tree's.
+pub fn vendor_folder() -> PathBuf {
+    if let Some(folder) = std::env::var_os("ADP_VENDOR") {
+        return PathBuf::from(folder);
+    }
+    if let Ok(exe) = std::env::current_exe() {
+        for dir in exe.ancestors().skip(1) {
+            let candidate = dir.join("vendor");
+            if candidate.join("etalii.adp").is_dir() {
+                return candidate;
+            }
+        }
+    }
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../vendor")
+}
+
+/// The diagram tool types of the catalogue and one diagram workspace, with its history, per project.
+pub struct DiagramHost {
+    pub tools: DiagramTools,
+    workspaces: HashMap<PathBuf, DiagramWorkspace>,
+}
+
+impl DiagramHost {
+    /// The tool types the vendored catalogue at `vendor` knows.
+    pub fn with_vendor(vendor: &Path) -> Self {
+        DiagramHost {
+            tools: DiagramTools::new(Catalogue::load(vendor), |_| DislPluginFunctions::none()),
+            workspaces: HashMap::new(),
+        }
+    }
+
+    /// The diagrams of the project at `root`.
+    pub fn workspace(&mut self, root: &Path) -> &mut DiagramWorkspace {
+        self.workspaces
+            .entry(root.to_path_buf())
+            .or_insert_with(|| DiagramWorkspace::new(root))
+    }
+
+    /// Whether a usable diagram tool type claims the file at `path`: a body by its extension, or a registration by
+    /// the tool type on its first line.
+    pub fn claims(&self, path: &Path) -> bool {
+        let catalogue = self.tools.catalogue();
+        let usable = |origin: &str| catalogue.by_origin(origin).is_some_and(|t| t.is_usable());
+        if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
+            return std::fs::read(path).is_ok_and(|bytes| usable(&RegistrationDocument::read(bytes).origin));
+        }
+        let name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        self.tools.for_file(&name).iter().any(|origin| usable(origin))
+    }
+
+    /// Opens the diagram at `path`, a body or its registration, in the project at `root`.
+    pub fn open(&mut self, path: &Path, root: &Path) -> Result<DiagramTab, String> {
+        let workspace = self
+            .workspaces
+            .entry(root.to_path_buf())
+            .or_insert_with(|| DiagramWorkspace::new(root));
+        let (opened, session) = workspace.open(&mut self.tools, path)?;
+        DiagramTab::new(root, path, opened, session)
+    }
+
+    /// Reconciles a file changed on disk with every project's open diagrams; the bodies whose documents changed.
+    pub fn reconcile(&mut self, path: &Path) -> Vec<PathBuf> {
+        for workspace in self.workspaces.values_mut() {
+            workspace.reconcile(path);
+        }
+        self.take_changed()
+    }
+
+    /// The bodies whose documents changed since this was last asked, in every project.
+    pub fn take_changed(&mut self) -> Vec<PathBuf> {
+        self.workspaces
+            .values_mut()
+            .flat_map(DiagramWorkspace::take_changed)
+            .collect()
+    }
+}
+
+/// What a toolbox entry dragged onto a canvas carries.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ToolboxDrag {
+    pub tool_id: String,
+}
+
+/// Ids for what a gesture creates: the specification's own strategy where the host can mint it, else the type's
+/// name and the first number no element has yet.
+struct FreshIds {
+    taken: HashSet<String>,
+    issued: std::cell::RefCell<HashSet<String>>,
+}
+
+impl IdSource for FreshIds {
+    fn next(&self, type_name: &str) -> Result<String, String> {
+        let stem: String = type_name
+            .chars()
+            .enumerate()
+            .flat_map(|(i, c)| {
+                let lower = c.to_lowercase().collect::<Vec<_>>();
+                if c.is_uppercase() && i > 0 {
+                    std::iter::once('-').chain(lower).collect::<Vec<_>>()
+                } else {
+                    lower
+                }
+            })
+            .collect();
+        let mut issued = self.issued.borrow_mut();
+        let id = (1..)
+            .map(|n| format!("{stem}-{n}"))
+            .find(|id| !self.taken.contains(id) && !issued.contains(id))
+            .expect("some number is free");
+        issued.insert(id.clone());
+        Ok(id)
+    }
+}
+
+/// What an inline editor writes when it is committed.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Commit {
+    /// The element's label of this id, by its `parse`.
+    Label(String),
+    /// The answer to the prompt of an action.
+    Answer { target: ActionTarget, action_id: String },
+}
+
+/// The inline label editor, open over an element.
+#[derive(Debug, Clone, PartialEq)]
+pub struct InlineEditor {
+    pub element: String,
+    pub commit: Commit,
+    pub text: String,
+    /// Where it is drawn, in canvas units.
+    pub area: Rect,
+    opened: bool,
+}
+
+/// A prompt an action raised, waiting for the person.
+#[derive(Debug, Clone, PartialEq)]
+pub struct PendingPrompt {
+    pub target: ActionTarget,
+    pub action_id: String,
+    pub prompt: Prompt,
+    pub value: String,
+}
+
+/// A context menu, open at a screen point.
+#[derive(Debug, Clone)]
+struct Menu {
+    target: ActionTarget,
+    at: Pos2,
+    groups: Vec<ActionGroup>,
+    area: Option<egui::Rect>,
+}
+
+/// What a scene was built for.
+#[derive(Debug, Clone, PartialEq)]
+struct SceneKey {
+    generation: u64,
+    selection: Vec<String>,
+    dark: bool,
+    preview: Option<(Vec<String>, u64, u64)>,
+}
+
+/// A scene and what the gestures hit-test against, as of one [`SceneKey`].
+struct Cached {
+    key: SceneKey,
+    scene: Scene,
+    /// Every node's box and mapping, without the drag in flight.
+    placed: Placed,
+    /// Each element's box in painting order, the topmost last.
+    boxes: Vec<(String, Rect)>,
+    /// Each relation's line, in canvas units, and how far from it a press still hits it.
+    lines: Vec<(String, Vec<Point>, f64)>,
+    anchors: Vec<(String, String, Rect)>,
+    /// The editable labels: element, label id, box.
+    labels: Vec<(String, String, Rect)>,
+    bounds: Option<Rect>,
+    /// The canvas's own fill where the scene draws no background.
+    surface: Option<Color32>,
+    drop_mapping: Mapping,
+}
+
+/// A diagram open in a tab.
+pub struct DiagramTab {
+    pub root: PathBuf,
+    /// The path it was opened by: the body or its registration.
+    pub path: PathBuf,
+    pub opened: OpenedDiagram,
+    pub session: DiagramSession,
+    definition: Result<DiagramDefinition, String>,
+    /// Counts the changes to the document this tab has seen; a scene is rebuilt when it moves.
+    pub generation: u64,
+    cache: Option<Cached>,
+    metrics: Option<EguiMetrics>,
+    pub view: View,
+    fitted: bool,
+    /// The selected elements and relations, the most recent last.
+    pub selection: Vec<String>,
+    pub arbiter: Arbiter,
+    pub editor: Option<InlineEditor>,
+    pub prompt: Option<PendingPrompt>,
+    menu: Option<Menu>,
+    /// Where new ids come from; a test may set its own.
+    pub ids: Option<Box<dyn IdSource>>,
+    /// The last refusal or report, for the status bar.
+    pub notice: Option<String>,
+    hovered: Option<String>,
+    /// The surface drawn last frame.
+    pub surface: egui::Rect,
+    pub grid: crate::properties::Grid,
+    /// The selection last reported to the window's one selection.
+    pub reported: Option<Vec<String>>,
+    id: egui::Id,
+}
+
+impl DiagramTab {
+    fn new(root: &Path, path: &Path, opened: OpenedDiagram, session: DiagramSession) -> Result<Self, String> {
+        Ok(DiagramTab {
+            root: root.to_path_buf(),
+            path: path.to_path_buf(),
+            id: egui::Id::unique(("diagram-canvas", opened.body_path.clone())),
+            opened,
+            session,
+            definition: Err(String::new()),
+            generation: 0,
+            cache: None,
+            metrics: None,
+            view: View::default(),
+            fitted: false,
+            selection: Vec::new(),
+            arbiter: Arbiter::default(),
+            editor: None,
+            prompt: None,
+            menu: None,
+            ids: None,
+            notice: None,
+            hovered: None,
+            surface: egui::Rect::NOTHING,
+            grid: crate::properties::Grid::default(),
+            reported: None,
+        })
+    }
+
+    pub fn name(&self) -> String {
+        self.path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default()
+    }
+
+    /// The tab's title; every edit is written as it is made, so a diagram tab is never unsaved.
+    pub fn title(&self) -> String {
+        self.name()
+    }
+
+    /// Whether this tab shows `path`, by the body or the registration.
+    pub fn shows(&self, path: &Path) -> bool {
+        self.path == path || self.opened.body_path == path || self.opened.registration_path.as_deref() == Some(path)
+    }
+
+    /// The canvas's keyboard focus id.
+    pub fn canvas_id(&self) -> egui::Id {
+        self.id
+    }
+
+    /// The scene as last built.
+    #[cfg(test)]
+    pub fn scene(&self) -> Option<&Scene> {
+        self.cache.as_ref().map(|c| &c.scene)
+    }
+
+    /// The box an element is drawn in, without the drag in flight.
+    pub fn bounds_of(&self, id: &str) -> Option<Rect> {
+        let cache = self.cache.as_ref()?;
+        cache
+            .placed
+            .rects
+            .get(id)
+            .copied()
+            .or_else(|| cache.boxes.iter().find(|(e, _)| e == id).map(|(_, r)| *r))
+    }
+
+    /// Something this tab shows changed: its scene is rebuilt on the next frame.
+    pub fn changed(&mut self) {
+        self.generation += 1;
+    }
+
+    fn ensure_definition(&mut self, documents: &DiagramDocuments) {
+        if self.definition.is_ok() || !self.definition.as_ref().err().is_some_and(String::is_empty) {
+            return;
+        }
+        let Some(document) = documents.get(&self.opened.body_path) else {
+            self.definition = Err("The diagram is not open.".to_owned());
+            return;
+        };
+        self.definition = compile_notation(document.tool().definition.specification()).map_err(|e| e.to_string());
+    }
+
+    /// Builds the scene when what it shows changed since it was last built.
+    pub fn ensure_scene(&mut self, ctx: &egui::Context, documents: &DiagramDocuments, dark: bool) {
+        self.ensure_definition(documents);
+        let preview = self
+            .arbiter
+            .moving()
+            .map(|(ids, (dx, dy))| (ids.to_vec(), dx.to_bits(), dy.to_bits()));
+        let key = SceneKey {
+            generation: self.generation,
+            selection: self.selection.clone(),
+            dark,
+            preview,
+        };
+        if self.cache.as_ref().is_some_and(|c| c.key == key) {
+            return;
+        }
+        let (Ok(definition), Some(document)) = (&self.definition, documents.get(&self.opened.body_path)) else {
+            return;
+        };
+        let metrics = self.metrics.get_or_insert_with(|| EguiMetrics::new(ctx));
+        let specification = &definition.specification;
+        let has_mode = |mode: &str| {
+            specification
+                .root()
+                .get("notation")
+                .and_then(|n| n.get("theme"))
+                .and_then(|t| t.get("modes"))
+                .and_then(|m| m.get(mode))
+                .is_some()
+        };
+        let mode = if dark && has_mode("dark") {
+            Some("dark")
+        } else if !dark && has_mode("light") {
+            Some("light")
+        } else {
+            None
+        };
+        let notation_theme = NotationTheme::of(specification, mode);
+        let surface = (dark && mode.is_none())
+            .then(|| notation_theme.text_of("color.surface"))
+            .flatten()
+            .and_then(|c| paint::parse_colour(&c));
+        let evaluator = Evaluator::new(specification, notation_theme, DislEnv::default());
+        let diagram = &document.model().diagram;
+        let placed = placement::place(definition, &evaluator, diagram, &document.positions(), metrics);
+        let mut rects = placed.rects.clone();
+        if let Some((ids, (dx, dy))) = self.arbiter.moving() {
+            for id in ids {
+                if let Some(rect) = rects.get_mut(id) {
+                    *rect = Rect::new(rect.x + dx, rect.y + dy, rect.width, rect.height);
+                }
+            }
+        }
+        // A selected element that is gone is no longer selected.
+        let known: HashSet<String> = diagram.elements().iter().map(|e| e.id()).collect();
+        self.selection.retain(|id| known.contains(id));
+        let folding = Folding::default();
+        let options = SceneOptions {
+            selection: &self.selection,
+            folding: &folding,
+            metrics,
+            plugins: &StandardRoutePlugins,
+        };
+        let scene = build_scene(definition, &evaluator, diagram, &rects, &options);
+        let identity = View::default();
+        let origin = egui::Rect::from_min_size(Pos2::ZERO, egui::vec2(1.0, 1.0));
+        let mut boxes: Vec<(String, Rect)> = Vec::new();
+        let mut lines = Vec::new();
+        let mut anchors = Vec::new();
+        let mut labels = Vec::new();
+        for primitive in &scene.primitives {
+            match (primitive, primitive.owner()) {
+                (Primitive::Shape(shape), Owner::Element(id)) => {
+                    let Some(bounds) = primitive.bounds(metrics) else {
+                        continue;
+                    };
+                    let body = matches!(shape.role, Role::Body | Role::BodyPart | Role::Part(_));
+                    match boxes.iter_mut().find(|(e, _)| e == id) {
+                        Some((_, rect)) if body || !rects.contains_key(id) => *rect = rect.union(&bounds),
+                        Some(_) => {}
+                        None => boxes.push((id.clone(), rects.get(id).copied().unwrap_or(bounds))),
+                    }
+                }
+                (Primitive::Text(text), Owner::Element(id)) => {
+                    if let (true, Role::Label { id: label, .. }) = (text.editable, &text.role)
+                        && let Some(bounds) = primitive.bounds(metrics)
+                    {
+                        labels.push((id.clone(), label.clone(), bounds));
+                    }
+                    if !boxes.iter().any(|(e, _)| e == id)
+                        && let Some(bounds) = primitive.bounds(metrics)
+                    {
+                        boxes.push((id.clone(), rects.get(id).copied().unwrap_or(bounds)));
+                    }
+                }
+                (Primitive::Edge(edge), Owner::Relation(id)) if edge.selectable => {
+                    let points = paint::flatten(&edge.path, &identity, origin)
+                        .into_iter()
+                        .flat_map(|(points, _)| points)
+                        .map(|p| Point::new(p.x as f64, p.y as f64))
+                        .collect();
+                    lines.push((id.clone(), points, edge.hit_width.max(edge.stroke.width) / 2.0));
+                }
+                (Primitive::Hook(hook), Owner::Element(id)) => {
+                    if let HookKind::Anchor { name, .. } = &hook.kind {
+                        anchors.push((id.clone(), name.clone(), hook.area));
+                    }
+                }
+                _ => {}
+            }
+        }
+        let bounds = scene.bounds(metrics);
+        let drop_mapping = placement::drop_mapping(specification, diagram);
+        self.cache = Some(Cached {
+            key,
+            scene,
+            placed,
+            boxes,
+            lines,
+            anchors,
+            labels,
+            bounds,
+            surface,
+            drop_mapping,
+        });
+    }
+
+    // ---- the view ---------------------------------------------------------------------------------------------------
+
+    fn zoom_limits(&self) -> (f64, f64) {
+        let width = (self.surface.width() as f64).max(1.0);
+        (width / MAX_VIEW_WIDTH, width / MIN_VIEW_WIDTH)
+    }
+
+    /// Changes the zoom by `factor` about a canvas point, the view's centre when none is given (`zoomBy`).
+    pub fn zoom_by(&mut self, factor: f64, about: Option<Point>) {
+        let (min, max) = self.zoom_limits();
+        let zoom = (self.view.zoom * factor).clamp(min, max);
+        let visible = self.view.visible(self.surface);
+        let about = about.unwrap_or_else(|| visible.centre());
+        let kept = self.view.zoom / zoom;
+        self.view.origin = Point::new(
+            about.x - (about.x - self.view.origin.x) * kept,
+            about.y - (about.y - self.view.origin.y) * kept,
+        );
+        self.view.zoom = zoom;
+    }
+
+    /// Fits the view to everything the diagram draws, with a padding round it.
+    pub fn fit(&mut self) {
+        let Some(bounds) = self.cache.as_ref().and_then(|c| c.bounds) else {
+            self.view = View {
+                origin: Point::new(
+                    -(self.surface.width() as f64) / 2.0,
+                    -(self.surface.height() as f64) / 2.0,
+                ),
+                zoom: 1.0,
+            };
+            return;
+        };
+        let padded = bounds.inflate(FIT_PADDING);
+        let (min, max) = self.zoom_limits();
+        let zoom = (self.surface.width() as f64 / padded.width)
+            .min(self.surface.height() as f64 / padded.height)
+            .clamp(min, max);
+        let centre = padded.centre();
+        self.view = View {
+            origin: Point::new(
+                centre.x - self.surface.width() as f64 / zoom / 2.0,
+                centre.y - self.surface.height() as f64 / zoom / 2.0,
+            ),
+            zoom,
+        };
+    }
+
+    /// The scrollable extent of each axis: the content's bounds with half its span on either side.
+    fn extent(&self) -> Rect {
+        let content = self
+            .cache
+            .as_ref()
+            .and_then(|c| c.bounds)
+            .unwrap_or_else(|| Rect::new(0.0, 0.0, 1.0, 1.0));
+        Rect::new(
+            content.x - content.width * 0.5,
+            content.y - content.height * 0.5,
+            (content.width * 2.0).max(1.0),
+            (content.height * 2.0).max(1.0),
+        )
+    }
+
+    // ---- hit testing ------------------------------------------------------------------------------------------------
+
+    /// What lies at a canvas point: an anchor, else the topmost element, else a relation's line, else nothing.
+    pub fn hit(&self, point: Point) -> Hit {
+        let Some(cache) = &self.cache else { return Hit::Empty };
+        let tolerance = 3.0 / self.view.zoom;
+        if let Some((element, anchor, _)) = cache
+            .anchors
+            .iter()
+            .rev()
+            .find(|(_, _, area)| area.inflate(tolerance).contains(point))
+        {
+            return Hit::Anchor {
+                element: element.clone(),
+                anchor: anchor.clone(),
+            };
+        }
+        if let Some((id, _)) = cache.boxes.iter().rev().find(|(_, rect)| rect.contains(point)) {
+            return Hit::Element(id.clone());
+        }
+        let near = |line: &[Point], reach: f64| {
+            line.windows(2)
+                .any(|pair| distance_to_segment(point, pair[0], pair[1]) <= reach.max(tolerance))
+        };
+        if let Some((id, _, _)) = cache.lines.iter().rev().find(|(_, line, reach)| near(line, *reach)) {
+            return Hit::Relation(id.clone());
+        }
+        Hit::Empty
+    }
+
+    /// What a drag of a press on `hit` moves: the selected nodes that move, when the press is on one of them, else
+    /// the pressed node alone, when it moves.
+    fn moves_for(&self, hit: &Hit) -> Vec<String> {
+        let Hit::Element(id) = hit else { return Vec::new() };
+        let movable = |id: &str| self.movable(id);
+        if self.selection.iter().any(|s| s == id) {
+            self.selection.iter().filter(|s| movable(s)).cloned().collect()
+        } else if movable(id) {
+            vec![id.clone()]
+        } else {
+            Vec::new()
+        }
+    }
+
+    /// Whether a node may be dragged: it is placed, and its notation lets it move.
+    fn movable(&self, id: &str) -> bool {
+        let Some(cache) = &self.cache else { return false };
+        if !cache.placed.rects.contains_key(id) {
+            return false;
+        }
+        let Ok(definition) = &self.definition else { return false };
+        cache
+            .placed
+            .types
+            .get(id)
+            .and_then(|t| definition.element_type(t))
+            .is_some_and(|t| t.draggable)
+    }
+
+    // ---- what gestures do -------------------------------------------------------------------------------------------
+
+    fn ensure_ids(&mut self, documents: &DiagramDocuments) {
+        if self.ids.is_none() {
+            let minted = self
+                .definition
+                .as_ref()
+                .ok()
+                .and_then(|d| ids::of(&d.specification).ok());
+            self.ids = Some(match minted {
+                Some(uuids) => Box::new(uuids),
+                None => Box::new(FreshIds {
+                    taken: documents
+                        .get(&self.opened.body_path)
+                        .map(|d| d.model().diagram.elements().iter().map(|e| e.id()).collect())
+                        .unwrap_or_default(),
+                    issued: Default::default(),
+                }),
+            });
+        }
+    }
+
+    pub(crate) fn report(&mut self, result: Result<(), String>) {
+        match result {
+            Ok(()) => {
+                self.notice = None;
+                self.changed();
+            }
+            Err(refusal) => self.notice = Some(refusal),
+        }
+    }
+
+    /// Carries out what a gesture came to.
+    pub fn apply(&mut self, intent: Intent, workspace: &mut DiagramWorkspace) {
+        match intent {
+            Intent::Select { ids, mode } => self.select(ids, mode),
+            Intent::Move { ids, delta } => {
+                if !ids.iter().all(|id| self.selection.contains(id)) {
+                    self.select(ids.clone(), SelectMode::Replace);
+                }
+                self.move_by(workspace, &ids, delta);
+            }
+            Intent::BoxSelect { rect, additive } => {
+                let inside: Vec<String> = self
+                    .cache
+                    .as_ref()
+                    .map(|c| {
+                        c.boxes
+                            .iter()
+                            .filter(|(_, b)| {
+                                b.x >= rect.x
+                                    && b.y >= rect.y
+                                    && b.right() <= rect.right()
+                                    && b.bottom() <= rect.bottom()
+                            })
+                            .map(|(id, _)| id.clone())
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                self.select(inside, if additive { SelectMode::Add } else { SelectMode::Replace });
+            }
+            Intent::Connect { source, target, at } => self.connect(workspace, &source, target.as_deref(), at),
+            Intent::ContextMenu { hit, screen, canvas } => {
+                let target = match hit.id() {
+                    Some(id) => ActionTarget::Element(id.to_owned()),
+                    None => {
+                        let (x, y) = self
+                            .cache
+                            .as_ref()
+                            .map(|c| c.drop_mapping.point_to_domain(canvas))
+                            .unwrap_or((canvas.x, canvas.y));
+                        ActionTarget::Canvas { x, y }
+                    }
+                };
+                let groups = self.session.actions(workspace.documents(), &target);
+                if groups.iter().any(|g| !g.actions.is_empty()) {
+                    self.menu = Some(Menu {
+                        target,
+                        at: Pos2::new(screen.0, screen.1),
+                        groups,
+                        area: None,
+                    });
+                }
+            }
+            Intent::Pan { origin } => self.view.origin = origin,
+        }
+    }
+
+    /// Changes the selection.
+    pub fn select(&mut self, ids: Vec<String>, mode: SelectMode) {
+        match mode {
+            SelectMode::Replace => {
+                self.selection.clear();
+                for id in ids {
+                    if !self.selection.contains(&id) {
+                        self.selection.push(id);
+                    }
+                }
+            }
+            SelectMode::Toggle => {
+                for id in ids {
+                    match self.selection.iter().position(|s| *s == id) {
+                        Some(at) => {
+                            self.selection.remove(at);
+                        }
+                        None => self.selection.push(id),
+                    }
+                }
+            }
+            SelectMode::Add => {
+                for id in ids {
+                    if !self.selection.contains(&id) {
+                        self.selection.push(id);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Moves elements by `delta` canvas units, each landing where its placement puts it, as one edit.
+    pub fn move_by(&mut self, workspace: &mut DiagramWorkspace, ids: &[String], delta: (f64, f64)) {
+        let Some(cache) = &self.cache else { return };
+        let moves: Vec<(String, f64, f64)> = ids
+            .iter()
+            .filter_map(|id| {
+                let rect = cache.placed.rects.get(id)?;
+                let mapping = cache.placed.mappings.get(id).copied().unwrap_or_default();
+                let moved = Rect::new(rect.x + delta.0, rect.y + delta.1, rect.width, rect.height);
+                let (x, y) = mapping.to_domain(moved);
+                Some((id.clone(), x, y))
+            })
+            .collect();
+        if moves.is_empty() {
+            return;
+        }
+        let result = self.session.move_elements(workspace, &moves);
+        self.report(result);
+    }
+
+    fn connect(&mut self, workspace: &mut DiagramWorkspace, source: &str, target: Option<&str>, at: Point) {
+        let types = self
+            .session
+            .relation_types_between(workspace.documents(), source, target);
+        let Ok(definition) = &self.definition else { return };
+        match target {
+            Some(target) => {
+                let Some(relation) = types
+                    .into_iter()
+                    .find(|t| target != source || definition.relation_type(t).is_some_and(|r| r.endpoints.allow_self))
+                else {
+                    if target != source {
+                        self.notice = Some("Nothing in this diagram connects these two.".to_owned());
+                    }
+                    return;
+                };
+                self.ensure_ids(workspace.documents());
+                let ids = self.ids.as_deref().expect("made");
+                let result = self.session.connect(workspace, &relation, source, target, ids);
+                self.report(result);
+            }
+            None => {
+                // Dropped on empty canvas: only a relation that declares the release meaningful makes its target.
+                let Some(relation) = types
+                    .into_iter()
+                    .find(|t| definition.relation_type(t).is_some_and(|r| r.empty_release))
+                else {
+                    return;
+                };
+                let (x, y) = self
+                    .cache
+                    .as_ref()
+                    .map(|c| c.drop_mapping.point_to_domain(at))
+                    .unwrap_or((at.x, at.y));
+                self.ensure_ids(workspace.documents());
+                let ids = self.ids.as_deref().expect("made");
+                let result = self.session.connect_to_new(workspace, &relation, source, x, y, ids);
+                self.report(result);
+            }
+        }
+    }
+
+    /// Drops toolbox entry `tool_id` at a canvas point.
+    pub fn drop_tool(&mut self, workspace: &mut DiagramWorkspace, tool_id: &str, at: Point) {
+        let (x, y) = self
+            .cache
+            .as_ref()
+            .map(|c| c.drop_mapping.point_to_domain(at))
+            .unwrap_or((at.x, at.y));
+        let before = self.node_ids(workspace.documents());
+        self.ensure_ids(workspace.documents());
+        let ids = self.ids.as_deref().expect("made");
+        let result = self.session.drop_tool(workspace, tool_id, x, y, ids);
+        let done = result.is_ok();
+        self.report(result);
+        if done {
+            self.select_new(workspace.documents(), &before);
+        }
+    }
+
+    fn node_ids(&self, documents: &DiagramDocuments) -> HashSet<String> {
+        documents
+            .get(&self.opened.body_path)
+            .map(|d| d.model().diagram.nodes().iter().map(|n| n.id()).collect())
+            .unwrap_or_default()
+    }
+
+    /// Selects the one node an edit added, when it added one.
+    fn select_new(&mut self, documents: &DiagramDocuments, before: &HashSet<String>) {
+        let added: Vec<String> = self
+            .node_ids(documents)
+            .into_iter()
+            .filter(|id| !before.contains(id))
+            .collect();
+        if let [one] = added.as_slice() {
+            self.select(vec![one.clone()], SelectMode::Replace);
+        }
+    }
+
+    /// Runs action `action_id` of `target`'s menu: done, refused with its sentence, or a prompt to answer.
+    pub fn run_action(&mut self, workspace: &mut DiagramWorkspace, target: ActionTarget, action_id: &str) {
+        let before = self.node_ids(workspace.documents());
+        self.ensure_ids(workspace.documents());
+        let ids = self.ids.as_deref().expect("made");
+        match self.session.execute(workspace, &target, action_id, ids) {
+            ActionOutcome::Done => {
+                self.notice = None;
+                self.changed();
+                self.select_new(workspace.documents(), &before);
+            }
+            ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+            ActionOutcome::Prompt(Prompt::Input { initial_value, .. })
+                if matches!(target, ActionTarget::Element(_)) =>
+            {
+                let ActionTarget::Element(element) = &target else {
+                    unreachable!()
+                };
+                let area = self.label_area(element, None).unwrap_or_default();
+                self.editor = Some(InlineEditor {
+                    element: element.clone(),
+                    commit: Commit::Answer {
+                        target: target.clone(),
+                        action_id: action_id.to_owned(),
+                    },
+                    text: initial_value,
+                    area,
+                    opened: false,
+                });
+            }
+            ActionOutcome::Prompt(prompt) => {
+                self.prompt = Some(PendingPrompt {
+                    target,
+                    action_id: action_id.to_owned(),
+                    prompt,
+                    value: String::new(),
+                })
+            }
+        }
+    }
+
+    /// Answers the prompt waiting, with `value`; or drops it.
+    pub fn answer(&mut self, workspace: &mut DiagramWorkspace, value: Option<&str>) {
+        let Some(pending) = self.prompt.take() else { return };
+        let Some(value) = value else { return };
+        match self
+            .session
+            .answer(workspace, &pending.target, &pending.action_id, value)
+        {
+            ActionOutcome::Done => {
+                self.notice = None;
+                self.changed();
+            }
+            ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+            ActionOutcome::Prompt(_) => self.notice = Some("That cannot be answered here yet.".to_owned()),
+        }
+    }
+
+    /// Where an element's label of `label` (its first editable one when none is named) is drawn.
+    fn label_area(&self, element: &str, label: Option<&str>) -> Option<Rect> {
+        let cache = self.cache.as_ref()?;
+        let found = cache
+            .labels
+            .iter()
+            .find(|(e, l, _)| e == element && label.is_none_or(|name| name == l))
+            .map(|(_, _, area)| *area);
+        let element_box = self.bounds_of(element);
+        match (found, element_box) {
+            (Some(text), Some(b)) => Some(Rect::new(b.x, text.y - 2.0, b.width, text.height + 4.0)),
+            (Some(text), None) => Some(text),
+            (None, b) => b,
+        }
+    }
+
+    /// Opens the inline editor on an element's label: the one under `at`, else its first editable one (F2 and
+    /// double-click).
+    pub fn open_editor(&mut self, documents: &DiagramDocuments, element: &str, at: Option<Point>) {
+        let Some(cache) = &self.cache else { return };
+        let candidates: Vec<&(String, String, Rect)> = cache.labels.iter().filter(|(e, _, _)| e == element).collect();
+        let Some((_, label, _)) = at
+            .and_then(|p| candidates.iter().find(|(_, _, area)| area.contains(p)).copied())
+            .or_else(|| candidates.first().copied())
+        else {
+            self.notice = Some("This has no label to rename here.".to_owned());
+            return;
+        };
+        let label = label.clone();
+        let text = self.session.label_text(documents, element, &label).unwrap_or_default();
+        let area = self.label_area(element, Some(&label)).unwrap_or_default();
+        self.editor = Some(InlineEditor {
+            element: element.to_owned(),
+            commit: Commit::Label(label),
+            text,
+            area,
+            opened: false,
+        });
+    }
+
+    /// Writes what the inline editor holds, and closes it.
+    pub fn commit_editor(&mut self, workspace: &mut DiagramWorkspace) {
+        let Some(editor) = self.editor.take() else { return };
+        match editor.commit {
+            Commit::Label(label) => {
+                let result = self
+                    .session
+                    .edit_label(workspace, &editor.element, &label, &editor.text);
+                self.report(result);
+            }
+            Commit::Answer { target, action_id } => {
+                match self.session.answer(workspace, &target, &action_id, &editor.text) {
+                    ActionOutcome::Done => self.report(Ok(())),
+                    ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+                    ActionOutcome::Prompt(_) => {}
+                }
+            }
+        }
+    }
+
+    /// Escape: the gesture in flight dissolves, a pan back where it began; whether there was one.
+    pub fn cancel_gesture(&mut self) -> bool {
+        if let Some(origin) = self.arbiter.pan_origin() {
+            self.view.origin = origin;
+        }
+        self.arbiter.cancel()
+    }
+
+    /// A declared shortcut of the selected element: Tab, Enter, Delete and the rest, by the specification's menus.
+    pub fn shortcut(&mut self, workspace: &mut DiagramWorkspace, pressed: &Shortcut) -> bool {
+        let Some(primary) = self.selection.last().cloned() else {
+            return false;
+        };
+        let target = ActionTarget::Element(primary);
+        let groups = self.session.actions(workspace.documents(), &target);
+        let Some(action) = action_for_shortcut(&groups, pressed) else {
+            return false;
+        };
+        let id = action.id.clone();
+        self.run_action(workspace, target, &id);
+        true
+    }
+
+    // ---- drawing and input -------------------------------------------------------------------------------------------
+
+    /// Draws the tab: its view controls, the canvas and its scroll bars, and what is open over them.
+    pub fn show(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace, theme: &Theme, palette: &Palette) {
+        let dark = theme.kind == Kind::Dark;
+        let mut zoom: Option<f64> = None;
+        let mut fit = false;
+        let mut history = None;
+        let muted = theme::color(theme, &["descriptionForeground"], palette.foreground);
+        egui::Frame::NONE
+            .inner_margin(egui::Margin::symmetric(8, 2))
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    let button = |ui: &mut egui::Ui, text: &str, hint: &str| {
+                        ui.add(
+                            egui::Button::new(RichText::new(text).size(theme.sizes.workbench_font - 1.0)).frame(false),
+                        )
+                        .on_hover_text(hint)
+                        .clicked()
+                    };
+                    if button(ui, "Zoom In", "Zoom in (+)") {
+                        zoom = Some(ZOOM_STEP);
+                    }
+                    if button(ui, "Zoom Out", "Zoom out (-)") {
+                        zoom = Some(1.0 / ZOOM_STEP);
+                    }
+                    if button(ui, "Fit to View", "Fit the diagram to the view (0)") {
+                        fit = true;
+                    }
+                    ui.separator();
+                    if button(ui, "Undo", "Undo (Ctrl+Z)") {
+                        history = Some(true);
+                    }
+                    if button(ui, "Redo", "Redo (Ctrl+Y)") {
+                        history = Some(false);
+                    }
+                    ui.label(RichText::new(format!("{:.0}%", self.view.zoom * 100.0)).color(muted));
+                    if let Some(notice) = &self.notice {
+                        ui.label(RichText::new(notice).color(ui.visuals().warn_fg_color));
+                    }
+                });
+            });
+        if let Some(undo) = history {
+            let outcome = if undo { workspace.undo() } else { workspace.redo() };
+            if let adp_history::Outcome::Refused(refusal) = outcome {
+                self.notice = Some(refusal.0);
+            }
+            self.changed();
+        }
+
+        let available = ui.available_rect_before_wrap();
+        let surface = egui::Rect::from_min_max(available.min, available.max - egui::vec2(SCROLL_BAR, SCROLL_BAR));
+        ui.allocate_rect(available, Sense::hover());
+        let response = ui.interact(surface, self.id, Sense::click_and_drag());
+        let resized = self.surface != surface;
+        self.surface = surface;
+        self.ensure_scene(ui.ctx(), workspace.documents(), dark);
+        if !self.fitted && self.cache.is_some() {
+            self.fit();
+            self.fitted = true;
+        } else if resized && !self.fitted {
+            self.fit();
+        }
+        if let Some(factor) = zoom {
+            self.zoom_by(factor, None);
+        }
+        if fit {
+            self.fit();
+        }
+
+        self.input(ui, workspace, &response);
+        self.ensure_scene(ui.ctx(), workspace.documents(), dark);
+        self.paint(ui, palette);
+        self.scroll_bars(ui, palette, theme);
+        self.show_editor(ui, workspace);
+        self.show_menu(ui, workspace, palette);
+        self.show_prompt(ui, workspace);
+    }
+
+    fn input(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace, response: &egui::Response) {
+        let ctx = ui.ctx().clone();
+        let surface = self.surface;
+        let blocked_at = |tab: &Self, pos: Pos2| {
+            tab.prompt.is_some()
+                || tab.menu.as_ref().and_then(|m| m.area).is_some_and(|a| a.contains(pos))
+                || tab
+                    .editor
+                    .as_ref()
+                    .is_some_and(|e| tab.view.rect_to_screen(surface, e.area).contains(pos))
+        };
+        let (press, release, latest, double, modifiers, zoom_delta, scroll) = ui.input(|i| {
+            let press = if i.pointer.primary_pressed() {
+                i.pointer.press_origin().map(|p| (Button::Primary, p))
+            } else if i.pointer.button_pressed(egui::PointerButton::Secondary) {
+                i.pointer.press_origin().map(|p| (Button::Secondary, p))
+            } else {
+                None
+            };
+            let release = i.pointer.primary_released() || i.pointer.button_released(egui::PointerButton::Secondary);
+            (
+                press,
+                release,
+                i.pointer.latest_pos(),
+                i.pointer.button_double_clicked(egui::PointerButton::Primary),
+                Modifiers {
+                    command: i.modifiers.command,
+                    shift: i.modifiers.shift,
+                },
+                i.zoom_delta(),
+                i.smooth_scroll_delta,
+            )
+        });
+        let hover = latest.filter(|p| surface.contains(*p));
+        self.hovered = hover.and_then(|p| self.hit(self.view.to_canvas(surface, p)).id().map(str::to_owned));
+
+        // A press anywhere but on the open menu closes it.
+        if let Some((_, pos)) = press
+            && self
+                .menu
+                .as_ref()
+                .is_some_and(|m| m.area.is_none_or(|a| !a.contains(pos)))
+        {
+            self.menu = None;
+        }
+        if let Some((button, pos)) = press
+            && surface.contains(pos)
+            && !blocked_at(self, pos)
+        {
+            if self.editor.is_some() {
+                self.commit_editor(workspace);
+            }
+            ui.memory_mut(|m| m.request_focus(self.id));
+            let canvas = self.view.to_canvas(surface, pos);
+            let hit = self.hit(canvas);
+            let moves = self.moves_for(&hit);
+            self.arbiter
+                .press(button, hit, modifiers, (pos.x, pos.y), canvas, moves, self.view.origin);
+        }
+        if !self.arbiter.is_idle()
+            && let Some(pos) = latest
+            && let Some(intent) = self
+                .arbiter
+                .motion((pos.x, pos.y), self.view.to_canvas(surface, pos), self.view.zoom)
+        {
+            self.apply(intent, workspace);
+        }
+        if release && let Some(pos) = latest {
+            let canvas = self.view.to_canvas(surface, pos);
+            if !self.arbiter.is_idle() {
+                let hit = self.hit(canvas);
+                for intent in self.arbiter.release(canvas, &hit) {
+                    self.apply(intent, workspace);
+                }
+                if double && let Hit::Element(id) = &hit {
+                    let id = id.clone();
+                    self.open_editor(workspace.documents(), &id, Some(canvas));
+                }
+            }
+            if surface.contains(pos)
+                && let Some(drag) = egui::DragAndDrop::take_payload::<ToolboxDrag>(&ctx)
+            {
+                self.drop_tool(workspace, &drag.tool_id, canvas);
+            }
+        }
+        if let Some(pos) = hover
+            && self.prompt.is_none()
+        {
+            let about = self.view.to_canvas(surface, pos);
+            if zoom_delta != 1.0 {
+                self.zoom_by(zoom_delta as f64, Some(about));
+            } else if scroll != egui::Vec2::ZERO {
+                self.view.origin = Point::new(
+                    self.view.origin.x - scroll.x as f64 / self.view.zoom,
+                    self.view.origin.y - scroll.y as f64 / self.view.zoom,
+                );
+            }
+        }
+
+        let focused = ui.memory(|m| m.focused());
+        let ours = focused.is_none() || focused == Some(self.id);
+        if focused == Some(self.id) {
+            ui.memory_mut(|m| {
+                m.set_focus_lock_filter(
+                    self.id,
+                    egui::EventFilter {
+                        tab: true,
+                        horizontal_arrows: true,
+                        vertical_arrows: true,
+                        escape: true,
+                    },
+                )
+            });
+        }
+        if ours && self.editor.is_none() && self.prompt.is_none() {
+            self.keys(ui, workspace);
+        }
+        let _ = response;
+    }
+
+    fn keys(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace) {
+        use egui::{Key, Modifiers as M};
+        let pressed = |ui: &mut egui::Ui, modifiers: M, key: Key| ui.input_mut(|i| i.consume_key(modifiers, key));
+        if pressed(ui, M::NONE, Key::Escape) {
+            if !self.cancel_gesture() {
+                self.menu = None;
+            }
+            return;
+        }
+        if pressed(ui, M::NONE, Key::Plus) || pressed(ui, M::NONE, Key::Equals) {
+            self.zoom_by(ZOOM_STEP, None);
+        }
+        if pressed(ui, M::NONE, Key::Minus) {
+            self.zoom_by(1.0 / ZOOM_STEP, None);
+        }
+        if pressed(ui, M::NONE, Key::Num0) {
+            self.fit();
+        }
+        if pressed(ui, M::NONE, Key::F2) {
+            if let Some(id) = self.selection.last().cloned() {
+                self.open_editor(workspace.documents(), &id, None);
+            }
+            return;
+        }
+        for (key, name) in [
+            (Key::Tab, "Tab"),
+            (Key::Enter, "Enter"),
+            (Key::Delete, "Delete"),
+            (Key::Backspace, "Backspace"),
+            (Key::Insert, "Insert"),
+        ] {
+            for shift in [false, true] {
+                let modifiers = if shift { M::SHIFT } else { M::NONE };
+                if ui.input(|i| i.key_pressed(key) && i.modifiers.matches_exact(modifiers)) {
+                    let mut shortcut = Shortcut::key(name);
+                    if shift {
+                        shortcut = shortcut.with_shift();
+                    }
+                    if self.shortcut(workspace, &shortcut) {
+                        ui.input_mut(|i| i.consume_key(modifiers, key));
+                    }
+                }
+            }
+        }
+    }
+
+    fn paint(&mut self, ui: &mut egui::Ui, palette: &Palette) {
+        let surface = self.surface;
+        let painter = ui.painter_at(surface);
+        let Some(cache) = &self.cache else {
+            let message = match &self.definition {
+                Err(reason) if !reason.is_empty() => reason.clone(),
+                _ => "The diagram cannot be drawn.".to_owned(),
+            };
+            painter.rect_filled(surface, 0.0, palette.editor_background);
+            painter.text(
+                surface.center(),
+                egui::Align2::CENTER_CENTER,
+                message,
+                egui::FontId::proportional(13.0),
+                palette.foreground,
+            );
+            return;
+        };
+        painter.rect_filled(surface, 0.0, cache.surface.unwrap_or(palette.editor_background));
+        let metrics = self.metrics.as_ref().expect("made with the scene");
+        let visible = self.view.visible(surface);
+        let culled = cache.scene.cull(visible, metrics as &dyn TextMetrics);
+        let mut shown: HashSet<String> = self.selection.iter().cloned().collect();
+        if let Some(hovered) = &self.hovered {
+            shown.insert(hovered.clone());
+        }
+        let chrome = Chrome {
+            foreground: palette.foreground,
+            focus: palette.focus,
+            anchors_of: &shown,
+        };
+        let shapes = paint::paint(&culled, &self.view, surface, &chrome, ui.ctx());
+        painter.extend(shapes);
+        if let Some(text) = &cache.scene.empty_text {
+            painter.text(
+                surface.center(),
+                egui::Align2::CENTER_CENTER,
+                text,
+                egui::FontId::proportional(13.0),
+                palette.foreground.gamma_multiply(0.7),
+            );
+        }
+        match &self.arbiter.gesture {
+            gestures::Gesture::Boxing { from, to, .. } => {
+                let rect = Rect::around([*from, *to]).unwrap_or_default();
+                let screen = self.view.rect_to_screen(surface, rect);
+                painter.rect_filled(screen, 0.0, palette.focus.gamma_multiply(0.15));
+                painter.rect_stroke(screen, 0.0, Stroke::new(1.0, palette.focus), egui::StrokeKind::Inside);
+            }
+            gestures::Gesture::Connecting { from, to, .. } => {
+                painter.line_segment(
+                    [self.view.to_screen(surface, *from), self.view.to_screen(surface, *to)],
+                    Stroke::new(1.5, palette.focus),
+                );
+            }
+            _ => {}
+        }
+    }
+
+    fn scroll_bars(&mut self, ui: &mut egui::Ui, palette: &Palette, theme: &Theme) {
+        let surface = self.surface;
+        let extent = self.extent();
+        let visible = self.view.visible(surface);
+        let track = theme::color(
+            theme,
+            &["scrollbarSlider.background"],
+            palette.foreground.gamma_multiply(0.2),
+        );
+        let active = theme::color(
+            theme,
+            &["scrollbarSlider.activeBackground"],
+            palette.foreground.gamma_multiply(0.4),
+        );
+        for horizontal in [true, false] {
+            let (start, span, extent_start, extent_span, track_rect) = if horizontal {
+                (
+                    visible.x,
+                    visible.width,
+                    extent.x.min(visible.x),
+                    extent.width.max(visible.right() - extent.x.min(visible.x)),
+                    egui::Rect::from_min_max(
+                        Pos2::new(surface.min.x, surface.max.y),
+                        Pos2::new(surface.max.x, surface.max.y + SCROLL_BAR),
+                    ),
+                )
+            } else {
+                (
+                    visible.y,
+                    visible.height,
+                    extent.y.min(visible.y),
+                    extent.height.max(visible.bottom() - extent.y.min(visible.y)),
+                    egui::Rect::from_min_max(
+                        Pos2::new(surface.max.x, surface.min.y),
+                        Pos2::new(surface.max.x + SCROLL_BAR, surface.max.y),
+                    ),
+                )
+            };
+            let extent_span = extent_span.max(1.0);
+            let size = (span / extent_span).clamp(MIN_THUMB, 1.0);
+            let offset = ((start - extent_start) / extent_span).clamp(0.0, 1.0 - size);
+            let length = if horizontal {
+                track_rect.width()
+            } else {
+                track_rect.height()
+            } as f64;
+            let thumb = if horizontal {
+                egui::Rect::from_min_size(
+                    Pos2::new(track_rect.min.x + (offset * length) as f32, track_rect.min.y + 2.0),
+                    egui::vec2((size * length) as f32, SCROLL_BAR - 4.0),
+                )
+            } else {
+                egui::Rect::from_min_size(
+                    Pos2::new(track_rect.min.x + 2.0, track_rect.min.y + (offset * length) as f32),
+                    egui::vec2(SCROLL_BAR - 4.0, (size * length) as f32),
+                )
+            };
+            let response = ui.interact(thumb, self.id.with(horizontal), Sense::drag());
+            let colour = if response.dragged() || response.hovered() {
+                active
+            } else {
+                track
+            };
+            ui.painter().rect_filled(thumb, 4.0, colour);
+            if response.dragged() {
+                let delta = response.drag_delta();
+                let moved = if horizontal { delta.x } else { delta.y } as f64 / length * extent_span;
+                if horizontal {
+                    self.view.origin.x += moved;
+                } else {
+                    self.view.origin.y += moved;
+                }
+            }
+        }
+    }
+
+    fn show_editor(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace) {
+        let Some(editor) = &mut self.editor else { return };
+        let mut screen = self.view.rect_to_screen(self.surface, editor.area);
+        if screen.height() < 22.0 {
+            screen = egui::Rect::from_center_size(screen.center(), egui::vec2(screen.width().max(80.0), 22.0));
+        }
+        let id = self.id.with("inline-editor");
+        let response = ui.put(
+            screen,
+            egui::TextEdit::singleline(&mut editor.text)
+                .id(id)
+                .align(egui::Align2::CENTER_CENTER),
+        );
+        if !editor.opened {
+            editor.opened = true;
+            response.request_focus();
+            return;
+        }
+        let (enter, escape) = ui.input(|i| (i.key_pressed(egui::Key::Enter), i.key_pressed(egui::Key::Escape)));
+        if escape {
+            self.editor = None;
+            ui.memory_mut(|m| m.request_focus(self.id));
+        } else if enter || response.lost_focus() {
+            self.commit_editor(workspace);
+            ui.memory_mut(|m| m.request_focus(self.id));
+        }
+    }
+
+    fn show_menu(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace, palette: &Palette) {
+        let Some(menu) = &mut self.menu else { return };
+        let mut chosen = None;
+        let area = egui::Area::new(self.id.with("context-menu"))
+            .order(egui::Order::Foreground)
+            .fixed_pos(menu.at)
+            .show(ui.ctx(), |ui| {
+                egui::Frame::menu(ui.style()).show(ui, |ui| {
+                    ui.set_min_width(180.0);
+                    for (index, group) in menu.groups.iter().enumerate() {
+                        if index > 0 && !group.actions.is_empty() {
+                            ui.separator();
+                        }
+                        for action in &group.actions {
+                            if !action.items.is_empty() {
+                                continue;
+                            }
+                            let available = action.is_available();
+                            let response = ui
+                                .add_enabled(available, egui::Button::new(&action.label).frame(false))
+                                .on_disabled_hover_text(&action.unavailable_reason);
+                            if response.clicked() {
+                                chosen = Some(action.id.clone());
+                            }
+                        }
+                    }
+                });
+            });
+        menu.area = Some(area.response.rect);
+        let _ = palette;
+        if let Some(action) = chosen {
+            let target = menu.target.clone();
+            self.menu = None;
+            self.run_action(workspace, target, &action);
+        }
+    }
+
+    fn show_prompt(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace) {
+        let Some(pending) = &mut self.prompt else { return };
+        let mut answer: Option<Option<String>> = None;
+        egui::Modal::new(self.id.with("prompt")).show(ui.ctx(), |ui| {
+            ui.set_width(420.0);
+            match &pending.prompt {
+                Prompt::Confirm {
+                    title,
+                    message,
+                    confirm_label,
+                    ..
+                } => {
+                    ui.heading(title.as_str());
+                    ui.label(message.as_str());
+                    ui.horizontal(|ui| {
+                        if ui.button(confirm_label.as_str()).clicked() {
+                            answer = Some(Some(String::new()));
+                        }
+                        if ui.button("Cancel").clicked() {
+                            answer = Some(None);
+                        }
+                    });
+                }
+                Prompt::Input {
+                    title,
+                    label,
+                    confirm_label,
+                    ..
+                } => {
+                    ui.heading(title.as_str());
+                    ui.label(label.as_str());
+                    ui.text_edit_singleline(&mut pending.value).request_focus();
+                    ui.horizontal(|ui| {
+                        if ui.button(confirm_label.as_str()).clicked() {
+                            answer = Some(Some(pending.value.clone()));
+                        }
+                        if ui.button("Cancel").clicked() {
+                            answer = Some(None);
+                        }
+                    });
+                }
+                Prompt::Closed { message } => {
+                    ui.label(message.as_str());
+                    if ui.button("OK").clicked() {
+                        answer = Some(None);
+                    }
+                }
+                _ => {
+                    ui.label("This question cannot be answered on the canvas yet.");
+                    if ui.button("Close").clicked() {
+                        answer = Some(None);
+                    }
+                }
+            }
+            if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+                answer = Some(None);
+            }
+        });
+        if let Some(value) = answer {
+            self.answer(workspace, value.as_deref());
+        }
+    }
+}
+
+fn distance_to_segment(p: Point, a: Point, b: Point) -> f64 {
+    let (dx, dy) = (b.x - a.x, b.y - a.y);
+    let length = dx * dx + dy * dy;
+    if length == 0.0 {
+        return p.distance(a);
+    }
+    let t = (((p.x - a.x) * dx + (p.y - a.y) * dy) / length).clamp(0.0, 1.0);
+    p.distance(Point::new(a.x + t * dx, a.y + t * dy))
+}

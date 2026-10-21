@@ -630,6 +630,76 @@ impl DiagramSession {
         self.write(workspace, "Connect", transaction)
     }
 
+    /// The connect gesture released on empty canvas (DISL sections 6.10 and 7.2): the relation's missing target
+    /// made at (`x`, `y`) in the diagram's units by the tool that creates it, and the relation from `source` to it, as
+    /// one command; refused where no tool makes such a target.
+    #[allow(clippy::too_many_arguments)]
+    pub fn connect_to_new(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        relation_type: &str,
+        source: &str,
+        x: f64,
+        y: f64,
+        ids: &dyn IdSource,
+    ) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        let specification = document.tool().definition.specification();
+        let working = builder::from(document.fbl(), specification).diagram;
+        let existing = working.element_by_id(source).ok_or_else(|| GONE.to_owned())?;
+        let transaction = operations::connect_to_new(
+            specification,
+            relation_type,
+            &working,
+            &existing,
+            "target",
+            &bounds(x, y),
+            ids,
+            Some(&self.env),
+        );
+        self.write(workspace, "Connect", transaction)
+    }
+
+    /// The relation types a connect gesture from `source` may draw to `target`, or towards empty canvas when there
+    /// is none, in the metamodel's order: those whose source end takes the source's type and whose target end takes
+    /// the target's, abstract types left out.
+    pub fn relation_types_between(
+        &self,
+        documents: &DiagramDocuments,
+        source: &str,
+        target: Option<&str>,
+    ) -> Vec<String> {
+        let Ok(document) = self.document(documents) else {
+            return Vec::new();
+        };
+        let Some(from) = document.element(source) else {
+            return Vec::new();
+        };
+        let to = target.and_then(|id| document.element(id));
+        if target.is_some() && to.is_none() {
+            return Vec::new();
+        }
+        let takes = |end: Option<&adp_disl::DislRelationEnd>, element: &DislElement| match end {
+            None => true,
+            Some(end) => {
+                (end.types.is_empty() || end.types.iter().any(|t| element.is_a(t)))
+                    && !end.exclude.iter().any(|t| element.is_a(t))
+            }
+        };
+        document
+            .tool()
+            .definition
+            .specification()
+            .metamodel()
+            .relations
+            .values()
+            .filter(|relation| !relation.is_abstract())
+            .filter(|relation| takes(relation.source.as_ref(), &from))
+            .filter(|relation| to.as_ref().is_none_or(|to| takes(relation.target.as_ref(), to)))
+            .map(|relation| relation.name.clone())
+            .collect()
+    }
+
     /// Removes an element; the binding's cascade takes what goes with it, as the standalone host's removal
     /// commands let it.
     fn remove(&self, workspace: &mut DiagramWorkspace, element_id: &str) -> ActionOutcome {

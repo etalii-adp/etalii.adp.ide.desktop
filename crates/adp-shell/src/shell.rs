@@ -1,11 +1,13 @@
 //! The window (etalii.adp spec 030, Story 1, tasks T021, T034, T035): the project list when no project is open; with
 //! one open, the activity bar, the explorer, the tabs and their editors, the errors and warnings panel and the status
 //! bar, in VS Code's sizes and colours. The shell drains the core's events once per frame, follows the disk, and
-//! asks before anything it cannot undo.
+//! asks before anything it cannot undo. A diagram opens on its canvas (task T055), with the toolbox and the property
+//! grid beside it where the standalone host has them (T057): right of the tabs, as two tabs of one pane.
 
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
 
+use adp_context::{Reference, SelectMode, SelectionSource};
 use adp_core::state::StateFolder;
 use adp_core::{Event, Outcome, Workspace};
 use adp_documents::reconcile::CONFLICT_NOTICE;
@@ -15,6 +17,7 @@ use adp_problems::{ProblemSet, ProblemStore, Scope};
 use adp_projects::{Project, ProjectList};
 use eframe::egui::{self, Frame, Margin, RichText};
 
+use crate::canvas::{DiagramHost, DiagramTab};
 use crate::documents::OpenText;
 use crate::explorer::{Explorer, Request};
 use crate::highlight::Highlighter;
@@ -28,6 +31,78 @@ struct OpenProject {
     explorer: Explorer,
     problems: Option<ProblemStore>,
     problem_set: Option<ProblemSet>,
+}
+
+/// What a tab shows: a text in its editor, or a diagram on its canvas.
+// A window holds a handful of tabs, so the text editor's size is not worth a box of its own.
+#[allow(clippy::large_enum_variant)]
+pub enum Tab {
+    Text(OpenText),
+    Diagram(Box<DiagramTab>),
+}
+
+impl Tab {
+    pub fn text(&self) -> Option<&OpenText> {
+        match self {
+            Tab::Text(open) => Some(open),
+            Tab::Diagram(_) => None,
+        }
+    }
+
+    pub fn text_mut(&mut self) -> Option<&mut OpenText> {
+        match self {
+            Tab::Text(open) => Some(open),
+            Tab::Diagram(_) => None,
+        }
+    }
+
+    pub fn diagram(&self) -> Option<&DiagramTab> {
+        match self {
+            Tab::Diagram(tab) => Some(tab),
+            Tab::Text(_) => None,
+        }
+    }
+
+    pub fn diagram_mut(&mut self) -> Option<&mut DiagramTab> {
+        match self {
+            Tab::Diagram(tab) => Some(tab),
+            Tab::Text(_) => None,
+        }
+    }
+
+    /// The file the tab was opened on.
+    pub fn path(&self) -> &Path {
+        match self {
+            Tab::Text(open) => open.file.path(),
+            Tab::Diagram(tab) => &tab.path,
+        }
+    }
+
+    pub fn name(&self) -> String {
+        match self {
+            Tab::Text(open) => open.name(),
+            Tab::Diagram(tab) => tab.name(),
+        }
+    }
+
+    pub fn title(&self) -> String {
+        match self {
+            Tab::Text(open) => open.title(),
+            Tab::Diagram(tab) => tab.title(),
+        }
+    }
+
+    /// Whether the tab holds changes that are not on disk; a diagram writes every edit as it is made.
+    pub fn is_modified(&self) -> bool {
+        self.text().is_some_and(|t| t.editor.buffer.is_modified())
+    }
+}
+
+/// Which pane beside a diagram is showing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SidePane {
+    Toolbox,
+    Properties,
 }
 
 /// A question the window is waiting on the person to answer.
@@ -63,8 +138,11 @@ pub struct Shell {
     state: Option<StateFolder>,
     projects: Option<ProjectList>,
     project: Option<OpenProject>,
-    tabs: Vec<OpenText>,
+    tabs: Vec<Tab>,
     active: usize,
+    /// The diagram tool types and each project's diagrams, loaded when a file is first opened.
+    diagrams: Option<DiagramHost>,
+    side_pane: SidePane,
     pending: Option<Pending>,
 }
 
@@ -83,6 +161,8 @@ impl Default for Shell {
             project: None,
             tabs: Vec::new(),
             active: 0,
+            diagrams: None,
+            side_pane: SidePane::Toolbox,
             pending: None,
         }
     }
@@ -142,13 +222,47 @@ impl Shell {
             let root = self
                 .root()
                 .unwrap_or_else(|| path.parent().map(Path::to_path_buf).unwrap_or_default());
-            self.open_text(path, &root);
+            self.open_document(path, &root);
         }
     }
 
-    /// Opens a text file in a tab, or focuses the tab it already has.
+    fn host(&mut self) -> &mut DiagramHost {
+        self.diagrams
+            .get_or_insert_with(|| DiagramHost::with_vendor(&crate::canvas::vendor_folder()))
+    }
+
+    /// Opens a file in a tab, or focuses the tab it already has: a diagram that a usable tool type claims, by its
+    /// body or its registration, on its canvas, anything else in the text editor.
+    pub fn open_document(&mut self, path: &Path, root: &Path) {
+        if let Some(index) = self
+            .tabs
+            .iter()
+            .position(|t| t.diagram().is_some_and(|d| d.shows(path)))
+        {
+            self.active = index;
+            return;
+        }
+        if self.host().claims(path) {
+            match self.host().open(path, root) {
+                Ok(tab) => {
+                    self.notice = Some(format!("Opened {} as {}", tab.name(), tab.opened.origin));
+                    self.tabs.push(Tab::Diagram(Box::new(tab)));
+                    self.active = self.tabs.len() - 1;
+                    return;
+                }
+                Err(reason) => self.notice = Some(reason),
+            }
+        }
+        self.open_text(path, root);
+    }
+
+    /// Opens a text file in a tab, or focuses the text tab it already has.
     pub fn open_text(&mut self, path: &Path, root: &Path) {
-        if let Some(index) = self.tabs.iter().position(|t| t.file.path() == path) {
+        if let Some(index) = self
+            .tabs
+            .iter()
+            .position(|t| t.text().is_some_and(|t| t.file.path() == path))
+        {
             self.active = index;
             return;
         }
@@ -159,7 +273,7 @@ impl Shell {
                     open.file.encoding_name(),
                     open.file.line_ending_style()
                 ));
-                self.tabs.push(open);
+                self.tabs.push(Tab::Text(open));
                 self.active = self.tabs.len() - 1;
             }
             Err(reason) => self.notice = Some(reason),
@@ -206,7 +320,7 @@ impl Shell {
     }
 
     fn close_project(&mut self) {
-        if self.tabs.iter().any(|t| t.editor.buffer.is_modified()) {
+        if self.tabs.iter().any(Tab::is_modified) {
             self.notice = Some("Save or close the tabs with unsaved changes first.".into());
             return;
         }
@@ -229,27 +343,51 @@ impl Shell {
         }
         let root = project.project.path.clone();
         for change in changes {
-            if let Change::Modified(path) | Change::Added(path) = change {
-                self.reconcile(&path, &root);
+            let path = match change {
+                Change::Modified(path) | Change::Added(path) => {
+                    self.reconcile(&path, &root);
+                    path
+                }
+                Change::Removed(path) => path,
+                _ => continue,
+            };
+            if let Some(host) = &mut self.diagrams {
+                let changed = host.reconcile(&path);
+                self.diagrams_changed(&changed);
+            }
+        }
+    }
+
+    /// The diagram tabs of bodies whose documents changed draw them again.
+    fn diagrams_changed(&mut self, bodies: &[PathBuf]) {
+        for tab in self.tabs.iter_mut().filter_map(Tab::diagram_mut) {
+            if bodies.iter().any(|b| tab.shows(b)) {
+                tab.changed();
             }
         }
     }
 
     /// Reconciles the open tab of `path`, if any, with what the file holds now.
     fn reconcile(&mut self, path: &Path, root: &Path) {
-        let Some(index) = self.tabs.iter().position(|t| t.file.path() == path) else {
+        let Some(index) = self
+            .tabs
+            .iter()
+            .position(|t| t.text().is_some_and(|t| t.file.path() == path))
+        else {
             return;
         };
         let Ok(disk) = TextFile::open(path) else {
             return;
         };
-        let open = &mut self.tabs[index];
+        let Some(open) = self.tabs[index].text_mut() else {
+            return;
+        };
         let edited = open.editor.buffer.is_modified().then(|| open.editor.buffer.text());
         match reconcile_text(open.file.content(), edited.as_deref(), Some(disk.content())) {
             Reconciliation::Unchanged | Reconciliation::Deleted => {}
             Reconciliation::TakeOver => {
                 if let Ok(reloaded) = OpenText::open(path, root) {
-                    self.tabs[index] = reloaded;
+                    self.tabs[index] = Tab::Text(reloaded);
                 }
             }
             Reconciliation::Conflict => open.disk = Some(disk),
@@ -258,12 +396,14 @@ impl Shell {
 
     /// Settles a tab whose file changed on disk under unsaved edits.
     fn resolve_conflict(&mut self, index: usize, resolution: Resolution) {
-        let Some(open) = self.tabs.get_mut(index) else { return };
+        let Some(open) = self.tabs.get_mut(index).and_then(Tab::text_mut) else {
+            return;
+        };
         let Some(disk) = open.disk.take() else { return };
         match resolution {
             Resolution::LoadDisk => {
                 if let Ok(reloaded) = OpenText::open(disk.path(), &open.root) {
-                    self.tabs[index] = reloaded;
+                    self.tabs[index] = Tab::Text(reloaded);
                 }
             }
             Resolution::KeepMine => open.file = disk,
@@ -274,7 +414,8 @@ impl Shell {
         let Some(root) = self.root() else { return };
         let name_of = |path: &str| path.rsplit('/').next().unwrap_or(path).to_owned();
         match request {
-            Request::Open(path) | Request::OpenAsText(path) => self.open_text(&root.join(&path), &root),
+            Request::Open(path) => self.open_document(&root.join(&path), &root),
+            Request::OpenAsText(path) => self.open_text(&root.join(&path), &root),
             Request::NewFolder(parent) => {
                 self.pending = Some(Pending::NewFolder {
                     parent,
@@ -397,10 +538,10 @@ impl Shell {
                     }
                 }
                 for tab in &mut self.tabs {
-                    if tab.file.path() == from
+                    if tab.text().is_some_and(|t| t.file.path() == from)
                         && let Ok(reopened) = OpenText::open(&to, &root)
                     {
-                        *tab = reopened;
+                        *tab = Tab::Text(reopened);
                     }
                 }
             }
@@ -430,7 +571,7 @@ impl Shell {
                 for registration in registrations {
                     let _ = std::fs::remove_file(root.join(registration));
                 }
-                self.tabs.retain(|t| !t.file.path().starts_with(&target));
+                self.tabs.retain(|t| !t.path().starts_with(&target));
                 self.active = self.active.min(self.tabs.len().saturating_sub(1));
             }
             Pending::CloseUnsaved { index } => {
@@ -453,7 +594,7 @@ impl Shell {
         if !ui.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, egui::Key::S)) {
             return;
         }
-        if let Some(open) = self.tabs.get_mut(self.active) {
+        if let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut) {
             self.notice = Some(match open.save() {
                 Ok(()) => format!("Saved {}", open.file.path().display()),
                 Err(reason) => reason,
@@ -469,12 +610,32 @@ impl Shell {
             let undo = input.consume_key(egui::Modifiers::COMMAND, egui::Key::Z);
             (undo, redo)
         });
+        if !undo && !redo {
+            return;
+        }
+        // A diagram's edits are on its project's diagram history.
+        if let Some(root) = self
+            .tabs
+            .get(self.active)
+            .and_then(Tab::diagram)
+            .map(|d| d.root.clone())
+        {
+            let workspace = self.host().workspace(&root);
+            let outcome = if undo { workspace.undo() } else { workspace.redo() };
+            if let adp_history::Outcome::Refused(reason) = outcome {
+                self.notice = Some(reason.0);
+            }
+            let changed = self.host().take_changed();
+            self.diagrams_changed(&changed);
+            if let Some(tab) = self.tabs.get_mut(self.active).and_then(Tab::diagram_mut) {
+                tab.changed();
+            }
+            return;
+        }
         let outcome = if undo {
             self.workspace.undo()
-        } else if redo {
-            self.workspace.redo()
         } else {
-            return;
+            self.workspace.redo()
         };
         if let Outcome::Refused(reason) = outcome {
             self.notice = Some(reason);
@@ -496,13 +657,15 @@ impl Shell {
         self.drain();
         self.follow_disk();
         self.save(ui);
-        if let Some(open) = self.tabs.get_mut(self.active) {
+        if let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut) {
             open.analyse();
         }
-        let editor_focused = self
-            .tabs
-            .get(self.active)
-            .is_some_and(|o| ui.memory(|m| m.has_focus(o.editor.id())));
+        // A text field has the keyboard: the editor, or a field over or beside a canvas.
+        let editor_focused = match self.tabs.get(self.active) {
+            Some(Tab::Text(open)) => ui.memory(|m| m.has_focus(open.editor.id())),
+            Some(Tab::Diagram(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.canvas_id())),
+            None => false,
+        };
         if !editor_focused {
             self.shortcuts(ui);
         }
@@ -577,7 +740,12 @@ impl Shell {
                     };
                     ui.label(small(text));
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if let Some(open) = self.tabs.get(self.active).filter(|o| !o.status.is_empty()) {
+                        if let Some(open) = self
+                            .tabs
+                            .get(self.active)
+                            .and_then(Tab::text)
+                            .filter(|o| !o.status.is_empty())
+                        {
                             ui.label(small(&open.status));
                         }
                         if let Some(set) = self.project.as_ref().and_then(|p| p.problem_set.as_ref()) {
@@ -691,6 +859,9 @@ impl Shell {
                     });
                     requests = project.explorer.show(ui, &project.tree, theme);
                 });
+        }
+        self.diagram_panes(ui, theme, palette);
+        if let Some(project) = &mut self.project {
             let mut jump = None;
             egui::Panel::bottom("problems")
                 .default_size(140.0)
@@ -715,7 +886,7 @@ impl Shell {
             if let Some((file, line)) = jump {
                 let root = project.project.path.clone();
                 self.open_text(&root.join(&file), &root);
-                if let Some(open) = self.tabs.get_mut(self.active) {
+                if let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut) {
                     let offset = open.editor.buffer.offset(line.saturating_sub(1) as usize, 0);
                     open.editor.buffer.set_cursor(offset);
                 }
@@ -793,14 +964,19 @@ impl Shell {
                 });
             });
         if let Some(index) = close {
-            if self.tabs[index].editor.buffer.is_modified() {
+            if self.tabs[index].is_modified() {
                 self.pending = Some(Pending::CloseUnsaved { index });
             } else {
                 self.tabs.remove(index);
                 self.active = self.active.min(self.tabs.len().saturating_sub(1));
             }
         }
-        if self.tabs.get(self.active).is_some_and(|t| t.disk.is_some()) {
+        if self
+            .tabs
+            .get(self.active)
+            .and_then(Tab::text)
+            .is_some_and(|t| t.disk.is_some())
+        {
             let mut chosen = None;
             egui::Panel::top("conflict")
                 .frame(
@@ -822,8 +998,19 @@ impl Shell {
                 self.resolve_conflict(self.active, resolution);
             }
         }
+        if let Some(Tab::Diagram(tab)) = self.tabs.get_mut(self.active) {
+            let workspace = self
+                .diagrams
+                .get_or_insert_with(|| DiagramHost::with_vendor(&crate::canvas::vendor_folder()))
+                .workspace(&tab.root);
+            egui::CentralPanel::default()
+                .frame(Frame::NONE.fill(palette.editor_background))
+                .show(ui, |ui| tab.show(ui, workspace, theme, palette));
+            self.after_canvas();
+            return;
+        }
         let highlighter = self.highlighter.get_or_insert_with(Highlighter::default);
-        let Some(open) = self.tabs.get_mut(self.active) else {
+        let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut) else {
             return;
         };
         egui::CentralPanel::default()
@@ -850,6 +1037,106 @@ impl Shell {
                 None => {
                     open.editor.show(ui, theme, highlighter);
                 }
+            });
+    }
+
+    /// What a frame of a canvas changed: its notice in the status bar, its selection the window's, and every other
+    /// view of a body it edited drawn again.
+    fn after_canvas(&mut self) {
+        let Some(tab) = self.tabs.get_mut(self.active).and_then(Tab::diagram_mut) else {
+            return;
+        };
+        if let Some(notice) = tab.notice.take() {
+            self.notice = Some(notice);
+        }
+        let document = tab.opened.body_path.display().to_string();
+        let references: Vec<Reference> = tab
+            .selection
+            .iter()
+            .map(|element| Reference::Element {
+                document: document.clone(),
+                element: element.clone(),
+            })
+            .collect();
+        if tab.reported.as_ref() != Some(&tab.selection) {
+            tab.reported = Some(tab.selection.clone());
+            self.workspace
+                .select(references, SelectMode::Replace, SelectionSource::Canvas);
+        }
+        if let Some(host) = &mut self.diagrams {
+            let changed = host.take_changed();
+            let active = self.active;
+            for (index, tab) in self.tabs.iter_mut().enumerate() {
+                if index != active
+                    && let Some(tab) = tab.diagram_mut()
+                    && changed.iter().any(|b| tab.shows(b))
+                {
+                    tab.changed();
+                }
+            }
+        }
+    }
+
+    /// The toolbox and the property grid of the active diagram, as two tabs of one pane right of the editor.
+    fn diagram_panes(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
+        let Some(Tab::Diagram(tab)) = self.tabs.get_mut(self.active) else {
+            return;
+        };
+        let sizes = theme.sizes;
+        let workspace = self
+            .diagrams
+            .get_or_insert_with(|| DiagramHost::with_vendor(&crate::canvas::vendor_folder()))
+            .workspace(&tab.root);
+        let side_pane = &mut self.side_pane;
+        egui::Panel::right("diagram-panes")
+            .default_size(280.0)
+            .min_size(180.0)
+            .resizable(true)
+            .frame(
+                Frame::NONE
+                    .fill(palette.side_bar_background)
+                    .stroke(egui::Stroke::new(sizes.border_width, palette.border))
+                    .inner_margin(Margin::symmetric(12, 8)),
+            )
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    for (pane, label) in [(SidePane::Toolbox, "TOOLBOX"), (SidePane::Properties, "PROPERTIES")] {
+                        let active = *side_pane == pane;
+                        let colour = if active {
+                            palette.side_bar_title
+                        } else {
+                            palette.side_bar_title.gamma_multiply(0.6)
+                        };
+                        let response = ui.add(
+                            egui::Label::new(RichText::new(label).size(sizes.workbench_font - 2.0).color(colour))
+                                .sense(egui::Sense::click()),
+                        );
+                        if active {
+                            let r = response.rect;
+                            ui.painter().line_segment(
+                                [
+                                    r.left_bottom() + egui::vec2(0.0, 2.0),
+                                    r.right_bottom() + egui::vec2(0.0, 2.0),
+                                ],
+                                egui::Stroke::new(
+                                    1.0,
+                                    theme::color(theme, &["panelTitle.activeBorder"], palette.focus),
+                                ),
+                            );
+                        }
+                        if response.clicked() {
+                            *side_pane = pane;
+                        }
+                        ui.add_space(12.0);
+                    }
+                });
+                ui.add_space(8.0);
+                egui::ScrollArea::vertical()
+                    .auto_shrink(false)
+                    .show(ui, |ui| match *side_pane {
+                        SidePane::Toolbox => crate::canvas::toolbox::show(ui, tab, workspace, theme, palette),
+                        SidePane::Properties => crate::properties::show(ui, tab, workspace, theme, palette),
+                    });
             });
     }
 
@@ -890,7 +1177,7 @@ impl Shell {
                     });
                 }
                 Pending::CloseUnsaved { index } => {
-                    let name = self.tabs.get(*index).map(OpenText::name).unwrap_or_default();
+                    let name = self.tabs.get(*index).map(Tab::name).unwrap_or_default();
                     ui.heading("Unsaved changes");
                     ui.label(format!(
                         "'{name}' has changes that are not saved. Close it and lose them?"
@@ -923,6 +1210,13 @@ mod tests {
     use super::*;
     use crate::editor::MarkLevel;
     use adp_context::{Reference, SelectMode, SelectionSource};
+
+    impl Shell {
+        /// The text tab at `index`.
+        fn text(&mut self, index: usize) -> &mut OpenText {
+            self.tabs[index].text_mut().expect("a text tab")
+        }
+    }
 
     /// One headless frame, as the window would draw it.
     fn frame(ctx: &egui::Context, shell: &mut Shell) {
@@ -973,7 +1267,7 @@ mod tests {
         let examples = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../modules/editors/json/tests/examples");
         let mut shell = Shell::default();
         shell.open_path(&examples.join("service-broken.json"));
-        let open = &mut shell.tabs[0];
+        let open = shell.text(0);
         open.analyse();
         assert!(
             open.editor.marks.iter().any(|m| m.level == MarkLevel::Error),
@@ -994,7 +1288,7 @@ mod tests {
         .unwrap();
         let mut shell = Shell::default();
         shell.open_path(&path);
-        let root = shell.tabs[0].root.clone();
+        let root = shell.text(0).root.clone();
 
         std::fs::write(
             &path, "two
@@ -1003,24 +1297,24 @@ mod tests {
         .unwrap();
         shell.reconcile(&path, &root);
         assert_eq!(
-            shell.tabs[0].editor.buffer.text(),
+            shell.text(0).editor.buffer.text(),
             "two
 ",
             "a clean tab takes the new text over"
         );
 
-        shell.tabs[0].editor.buffer.insert("mine ");
+        shell.text(0).editor.buffer.insert("mine ");
         std::fs::write(
             &path, "three
 ",
         )
         .unwrap();
         shell.reconcile(&path, &root);
-        assert!(shell.tabs[0].disk.is_some(), "unsaved edits wait for the person");
+        assert!(shell.text(0).disk.is_some(), "unsaved edits wait for the person");
         shell.resolve_conflict(0, Resolution::KeepMine);
-        assert!(shell.tabs[0].editor.buffer.is_modified(), "the edits stay, unsaved");
+        assert!(shell.text(0).editor.buffer.is_modified(), "the edits stay, unsaved");
         assert_eq!(
-            shell.tabs[0].file.content(),
+            shell.text(0).file.content(),
             "three
 ",
             "over the new text"
@@ -1034,11 +1328,11 @@ mod tests {
         shell.reconcile(&path, &root);
         shell.resolve_conflict(0, Resolution::LoadDisk);
         assert_eq!(
-            shell.tabs[0].editor.buffer.text(),
+            shell.text(0).editor.buffer.text(),
             "four
 "
         );
-        assert!(!shell.tabs[0].editor.buffer.is_modified());
+        assert!(!shell.text(0).editor.buffer.is_modified());
 
         std::fs::write(
             &path, "four
@@ -1047,7 +1341,7 @@ mod tests {
         .unwrap();
         shell.reconcile(&path, &root);
         assert_eq!(
-            shell.tabs[0].editor.buffer.text(),
+            shell.text(0).editor.buffer.text(),
             "four
 ",
             "a clean tab takes over other line endings, so its next save keeps them"
@@ -1155,6 +1449,62 @@ mod tests {
         let set = shell.project.as_ref().unwrap().problem_set.as_ref().unwrap();
         assert_eq!(set.errors, 1);
         assert_eq!(set.problems[0].finding.file, "broken.json");
+    }
+
+    #[test]
+    fn a_diagram_opens_on_its_canvas_its_text_a_choice_away_and_ctrl_z_undoes_its_edits() {
+        let fixtures =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../adp-diagram/tests/fixtures/dependency-graph/example-1");
+        let folder = tempfile::tempdir().unwrap();
+        for name in ["services.adp", "services.dgr"] {
+            std::fs::copy(fixtures.join(name), folder.path().join(name)).unwrap();
+        }
+        let body = folder.path().join("services.dgr");
+        let original = std::fs::read_to_string(&body).unwrap();
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+        shell.handle(Request::Open("services.dgr".into()));
+        shell.handle(Request::Open("services.adp".into()));
+        assert_eq!(shell.tabs.len(), 1, "the body and its registration are one diagram");
+        assert!(shell.tabs[0].diagram().is_some(), "a claimed body opens on a canvas");
+        shell.handle(Request::OpenAsText("services.dgr".into()));
+        assert_eq!(shell.tabs.len(), 2);
+        assert!(shell.tabs[1].text().is_some(), "and as text when asked");
+        shell.active = 0;
+
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        frame(&ctx, &mut shell);
+        let root = shell.tabs[0].diagram().unwrap().root.clone();
+        let tab = shell.tabs[0].diagram_mut().unwrap();
+        tab.select(vec!["api-gateway".into()], SelectMode::Replace);
+        let workspace = shell.diagrams.as_mut().unwrap().workspace(&root);
+        let label = crate::properties::rows(tab, workspace)
+            .into_iter()
+            .find(|r| r.label == "Label")
+            .unwrap()
+            .id;
+        crate::properties::set(tab, workspace, &label, "Edge gateway");
+        assert_ne!(std::fs::read_to_string(&body).unwrap(), original, "{:?}", tab.notice);
+        frame(&ctx, &mut shell);
+
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0))),
+            events: vec![egui::Event::Key {
+                key: egui::Key::Z,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: egui::Modifiers::COMMAND,
+            }],
+            ..Default::default()
+        };
+        ctx.run_ui(input, |ui| shell.show(ui)).textures_delta.clear();
+        assert_eq!(
+            std::fs::read_to_string(&body).unwrap(),
+            original,
+            "Ctrl+Z undoes the diagram's edit"
+        );
     }
 
     #[test]
