@@ -7,10 +7,9 @@
 //! change into the splices of one edit (FBL section 6), and the history ([`history`]) applies, undoes and redoes
 //! those edits (FBL section 7). A registration ([`registration`]) is written by the same splices (FBL section 8).
 //! Routing ([`routing`]) finds the bindings a file opens with and makes new bodies from templates (FBL sections
-//! 10, 12 and 13). The splice catalogue itself ([`splice`]) is FBL sections 6.1, 6.5 and 7.1.
-//!
-//! Not ported, because no fixture needs them: persistence plugins and folder bodies (FBL section 11; the standalone
-//! host's `Plugins`), and the legacy sidecar of FBL section 8.7 (`Registration/LegacySidecar`).
+//! 10, 12 and 13). The splice catalogue itself ([`splice`]) is FBL sections 6.1, 6.5 and 7.1. Persistence plugins
+//! ([`plugins`]) read the bodies FBL cannot declare, file bodies and folder subjects alike (FBL sections 10 and 11),
+//! and the legacy sidecars of FBL section 8.7 are read and written by [`registration::legacy_sidecar`].
 
 pub mod documents;
 pub mod expressions;
@@ -18,6 +17,7 @@ pub(crate) mod families;
 pub mod history;
 pub mod model;
 pub mod planning;
+pub mod plugins;
 pub mod registration;
 pub mod routing;
 pub mod rules;
