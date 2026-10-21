@@ -1220,6 +1220,8 @@ mod supply_chain;
 mod ansible;
 // The Sankey diagram with its module (T077), in a file of its own.
 mod sankey;
+// The Helm chart diagram with its module (T080), in a file of its own.
+mod helm;
 // The functional decomposition graph with its module (T072), in a file of its own.
 mod fdg;
 // The agent activity diagram with its module (T075), in a file of its own.

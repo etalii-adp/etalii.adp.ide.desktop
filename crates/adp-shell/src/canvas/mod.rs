@@ -17,6 +17,7 @@ pub mod aad_scene;
 pub mod ansible_scene;
 pub mod fdg_scene;
 pub mod gestures;
+pub mod helm_scene;
 pub mod metrics;
 pub mod module_scene;
 pub mod paint;
@@ -110,6 +111,7 @@ impl DiagramHost {
                         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
                         .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
                         .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
+                        .with_module(adp_diagram_helm_chart::ORIGIN, adp_diagram_helm_chart::module())
                         .with_module(
                             adp_diagram_functional_decomposition_graph::ORIGIN,
                             adp_diagram_functional_decomposition_graph::module(),
@@ -753,6 +755,12 @@ impl DiagramTab {
         } else if self.opened.origin == adp_diagram_sankey::ORIGIN {
             (
                 sankey_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                HashMap::new(),
+            )
+        } else if self.opened.origin == adp_diagram_helm_chart::ORIGIN {
+            // A Helm chart's boxes are moved by the top-left the registration stores (`onElementMoved`).
+            (
+                helm_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_ansible_structure::ORIGIN {

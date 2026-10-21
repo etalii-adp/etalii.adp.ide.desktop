@@ -62,6 +62,11 @@ fn gartner_hypecycle_graph_coal_technologies() {
 }
 
 #[test]
+fn helm_chart_nginx() {
+    check("helm/chart/nginx");
+}
+
+#[test]
 fn generic_timeline_add() {
     check("generic/timeline/add");
 }

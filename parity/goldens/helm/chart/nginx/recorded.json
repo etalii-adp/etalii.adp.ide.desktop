@@ -1,0 +1,186 @@
+{
+  "script": "parity/scripts/helm/chart/nginx.json",
+  "tool": "helm/chart",
+  "fixture": "helm/chart/nginx/.adp",
+  "registration": "helm/chart/nginx/.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T21:32:18Z",
+  "edits": 26,
+  "changed": [
+    ".adp"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "values:values.yaml to (100, 700)"
+    },
+    {
+      "step": 1,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "chart by (50, -25) to (1377,665, 541,461)"
+    },
+    {
+      "step": 2,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "tpl:templates/hpa.yaml by (12,3456, -7,8912) to (592,3456, 368,1088)"
+    },
+    {
+      "step": 3,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 4,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 5,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "dep:common"
+    },
+    {
+      "step": 6,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "dep:common to (1700,5, 600,25)"
+    },
+    {
+      "step": 7,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "sub:charts/common by (-30, 30) to (1996,842, 635,222)"
+    },
+    {
+      "step": 8,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 9,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 10,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "That element is not something this diagram can move."
+    },
+    {
+      "step": 11,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "A chart element has no parent to move it under; dragging changes where it sits on the canvas."
+    },
+    {
+      "step": 12,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "Defined in Chart.yaml; edit it in a text editor."
+    },
+    {
+      "step": 13,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "lock:Chart.lock to (0,0001, 3,33333)"
+    },
+    {
+      "step": 14,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "tpl:templates/NOTES.txt to (-120,5, -60,0625)"
+    },
+    {
+      "step": 15,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 16,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "tpl:templates/_helpers.tpl by (5, 5) to (590,618, 1599,676)"
+    },
+    {
+      "step": 17,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "values:values-dev.yaml to (0, 0)"
+    },
+    {
+      "step": 18,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "tpl:templates/svc.yaml by (0, 300) to (580, 1516)"
+    },
+    {
+      "step": 19,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "schema:values.schema.json by (181,6, 0) to (-153,89400000000003, 154,642)"
+    },
+    {
+      "step": 20,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "3 time(s)"
+    },
+    {
+      "step": 21,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 22,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "dep:common by (-0,0005, 0,0005) to (1700,4995, 600,2505)"
+    },
+    {
+      "step": 23,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}
