@@ -46,7 +46,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-040 | C4 dynamic diagram (`c4/dynamic`, prototype) | docs/tools.md, 2. The C4 Model | 4 | adp-diagram-c4 tests | built |
 | P-041 | C4 deployment diagram (`c4/deployment`, prototype) | docs/tools.md, 2. The C4 Model | 4 | adp-diagram-c4 tests | built |
 | P-042 | Timeline diagram (`generic/timeline`, implemented) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::generic_timeline_roadmap | checked |
-| P-043 | Dependency graph (`generic/dependencies`, implemented) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
+| P-043 | Dependency graph (`generic/dependencies`, implemented) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::generic_dependencies_services | checked |
 | P-044 | Functional decomposition graph (`etalii/functional-decomposition-graph`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
 | P-045 | Agent Behavior Modelling (`etalii/agent-behavior-modelling`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
 | P-046 | Agent activity diagram (`etalii/agent-activity-diagram`, work-in-progress) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
