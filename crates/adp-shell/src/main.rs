@@ -12,6 +12,7 @@ mod markdown;
 mod problems;
 mod properties;
 mod shell;
+mod table;
 mod theme;
 
 use eframe::egui;

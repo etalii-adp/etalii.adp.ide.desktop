@@ -2,7 +2,9 @@
 //! one open, the activity bar, the explorer, the tabs and their editors, the errors and warnings panel and the status
 //! bar, in VS Code's sizes and colours. The shell drains the core's events once per frame, follows the disk, and
 //! asks before anything it cannot undo. A diagram opens on its canvas (task T055), with the toolbox and the property
-//! grid beside it where the standalone host has them (T057): right of the tabs, as two tabs of one pane.
+//! grid beside it where the standalone host has them (T057): right of the tabs, as two tabs of one pane. A Knowledge
+//! designer document opens as its table (T065), with the selected row's values in the property pane and the
+//! explorer's entry that adds a relation (T064).
 
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
@@ -21,6 +23,7 @@ use crate::canvas::{DiagramHost, DiagramTab};
 use crate::documents::OpenText;
 use crate::explorer::{Explorer, Request};
 use crate::highlight::Highlighter;
+use crate::table::TableTab;
 use crate::theme::{self, Palette};
 
 /// A project open in the window: its tree, kept in step with the disk, and its findings.
@@ -39,34 +42,49 @@ struct OpenProject {
 pub enum Tab {
     Text(OpenText),
     Diagram(Box<DiagramTab>),
+    Table(Box<TableTab>),
 }
 
 impl Tab {
     pub fn text(&self) -> Option<&OpenText> {
         match self {
             Tab::Text(open) => Some(open),
-            Tab::Diagram(_) => None,
+            _ => None,
         }
     }
 
     pub fn text_mut(&mut self) -> Option<&mut OpenText> {
         match self {
             Tab::Text(open) => Some(open),
-            Tab::Diagram(_) => None,
+            _ => None,
         }
     }
 
     pub fn diagram(&self) -> Option<&DiagramTab> {
         match self {
             Tab::Diagram(tab) => Some(tab),
-            Tab::Text(_) => None,
+            _ => None,
         }
     }
 
     pub fn diagram_mut(&mut self) -> Option<&mut DiagramTab> {
         match self {
             Tab::Diagram(tab) => Some(tab),
-            Tab::Text(_) => None,
+            _ => None,
+        }
+    }
+
+    pub fn table(&self) -> Option<&TableTab> {
+        match self {
+            Tab::Table(tab) => Some(tab),
+            _ => None,
+        }
+    }
+
+    pub fn table_mut(&mut self) -> Option<&mut TableTab> {
+        match self {
+            Tab::Table(tab) => Some(tab),
+            _ => None,
         }
     }
 
@@ -75,6 +93,7 @@ impl Tab {
         match self {
             Tab::Text(open) => open.file.path(),
             Tab::Diagram(tab) => &tab.path,
+            Tab::Table(tab) => &tab.path,
         }
     }
 
@@ -82,6 +101,7 @@ impl Tab {
         match self {
             Tab::Text(open) => open.name(),
             Tab::Diagram(tab) => tab.name(),
+            Tab::Table(tab) => tab.name(),
         }
     }
 
@@ -89,10 +109,12 @@ impl Tab {
         match self {
             Tab::Text(open) => open.title(),
             Tab::Diagram(tab) => tab.title(),
+            Tab::Table(tab) => tab.title(),
         }
     }
 
-    /// Whether the tab holds changes that are not on disk; a diagram writes every edit as it is made.
+    /// Whether the tab holds changes that are not on disk; a diagram writes every edit as it is made, and a table
+    /// writes its edits behind, by the next frame.
     pub fn is_modified(&self) -> bool {
         self.text().is_some_and(|t| t.editor.buffer.is_modified())
     }
@@ -123,6 +145,16 @@ enum Pending {
     },
     CloseUnsaved {
         index: usize,
+    },
+    /// The explorer's entry that adds a relation to a knowledge file (T064): the question it asks now, committed
+    /// under `action_id`, and what has been answered.
+    Relate {
+        path: PathBuf,
+        action_id: String,
+        prompt: Box<adp_context::Prompt>,
+        value: String,
+        text: String,
+        error: Option<String>,
     },
 }
 
@@ -237,10 +269,22 @@ impl Shell {
         if let Some(index) = self
             .tabs
             .iter()
-            .position(|t| t.diagram().is_some_and(|d| d.shows(path)))
+            .position(|t| t.diagram().is_some_and(|d| d.shows(path)) || t.table().is_some_and(|d| d.shows(path)))
         {
             self.active = index;
             return;
+        }
+        // A Knowledge designer document - a knowledge file or its registration - opens as its table.
+        if crate::table::claims(path) {
+            match TableTab::open(path, root) {
+                Ok(tab) => {
+                    self.notice = Some(format!("Opened {} as {}", tab.name(), adp_designer_knowledge::ORIGIN));
+                    self.tabs.push(Tab::Table(Box::new(tab)));
+                    self.active = self.tabs.len() - 1;
+                    return;
+                }
+                Err(reason) => self.notice = Some(reason),
+            }
         }
         if self.host().claims(path) {
             match self.host().open(path, root) {
@@ -309,11 +353,13 @@ impl Shell {
             .map(|state| ProblemStore::load(state, &project.id, &project.path));
         let problem_set = problems.as_ref().map(ProblemStore::get);
         self.notice = Some(format!("Opened {}", project.name));
+        let mut explorer = Explorer::default();
+        explorer.root = project.path.clone();
         self.project = Some(OpenProject {
             project,
             tree,
             watcher,
-            explorer: Explorer::default(),
+            explorer,
             problems,
             problem_set,
         });
@@ -354,6 +400,10 @@ impl Shell {
             if let Some(host) = &mut self.diagrams {
                 let changed = host.reconcile(&path);
                 self.diagrams_changed(&changed);
+            }
+            // A table reads its file again when it changed, and a table it relates to when that one did.
+            for table in self.tabs.iter_mut().filter_map(Tab::table_mut) {
+                table.changed_on_disk(&path);
             }
         }
     }
@@ -440,6 +490,7 @@ impl Shell {
                 Scope::File(path)
             }),
             Request::ValidateAll => self.validate(Scope::Project),
+            Request::Relate(path) => self.start_relate(&root, &root.join(&path)),
         }
     }
 
@@ -479,6 +530,8 @@ impl Shell {
     }
 
     /// Carries out an answered question; returns the error to show when the answer cannot be used.
+    // The question is handed back whole, to be asked again with the reason; it is answered once per press.
+    #[allow(clippy::result_large_err)]
     fn answer(&mut self, pending: Pending) -> Result<(), (Pending, String)> {
         let Some(root) = self.root() else { return Ok(()) };
         match pending {
@@ -580,11 +633,111 @@ impl Shell {
                     self.active = self.active.min(self.tabs.len().saturating_sub(1));
                 }
             }
+            relate @ Pending::Relate { .. } => return self.relate(&root, relate),
         }
         if let Some(project) = &mut self.project
             && let Ok(tree) = Hierarchy::scan(&project.project.path)
         {
             project.tree = tree;
+        }
+        Ok(())
+    }
+
+    /// Starts the explorer's entry that adds a relation to the knowledge file at `path` (the standalone host's
+    /// `KnowledgeContextActionProvider`): its first question is the table to relate to.
+    fn start_relate(&mut self, root: &Path, path: &Path) {
+        match adp_designer_knowledge::context_actions::execute(root, path) {
+            Ok(prompt) => {
+                self.pending = Some(Pending::Relate {
+                    path: path.to_path_buf(),
+                    action_id: adp_designer_knowledge::context_actions::RELATE.to_owned(),
+                    prompt: Box::new(prompt),
+                    value: String::new(),
+                    text: String::new(),
+                    error: None,
+                })
+            }
+            Err(reason) => self.notice = Some(reason),
+        }
+    }
+
+    /// Commits one answer of the entry that adds a relation: the next question, or the relation made through the
+    /// table's tab - opened when it is not - as one of its edits, shown at once and undone with Ctrl+Z.
+    #[allow(clippy::result_large_err)]
+    fn relate(&mut self, root: &Path, pending: Pending) -> Result<(), (Pending, String)> {
+        use adp_designer_knowledge::context_actions::{self, Commit};
+        let Pending::Relate {
+            path,
+            action_id,
+            prompt,
+            value,
+            text,
+            error,
+        } = pending
+        else {
+            return Ok(());
+        };
+        let checked = if value == context_actions::TWO_WAY {
+            context_actions::validate(root, &action_id, &text)
+        } else if value.is_empty() {
+            Err("Choose one first.".to_owned())
+        } else {
+            context_actions::validate(root, &action_id, &value)
+        };
+        if let Err(reason) = checked {
+            let back = Pending::Relate {
+                path,
+                action_id,
+                prompt,
+                value,
+                text,
+                error,
+            };
+            return Err((back, reason));
+        }
+        match context_actions::commit(root, &path, &action_id, &value, &text) {
+            Commit::Asks {
+                prompt: next,
+                next_action_id,
+            } => {
+                let text = match &next {
+                    adp_context::Prompt::Choice {
+                        name_field: Some(field),
+                        ..
+                    } => field.initial_value.clone(),
+                    _ => String::new(),
+                };
+                self.pending = Some(Pending::Relate {
+                    path,
+                    action_id: next_action_id,
+                    prompt: Box::new(next),
+                    value: String::new(),
+                    text,
+                    error: None,
+                });
+            }
+            Commit::Make { body_path, gesture } => {
+                self.open_document(&path, root);
+                match self.tabs.get_mut(self.active).and_then(Tab::table_mut) {
+                    Some(table) if table.shows(&body_path) => table.raise(gesture),
+                    _ => {
+                        if let Err(reason) = context_actions::make(&body_path, &gesture) {
+                            self.notice = Some(reason);
+                        }
+                    }
+                }
+            }
+            Commit::Failed(reason) => {
+                let back = Pending::Relate {
+                    path,
+                    action_id,
+                    prompt,
+                    value,
+                    text,
+                    error,
+                };
+                return Err((back, reason));
+            }
         }
         Ok(())
     }
@@ -611,6 +764,14 @@ impl Shell {
             (undo, redo)
         });
         if !undo && !redo {
+            return;
+        }
+        // A table's edits are its session's.
+        if let Some(table) = self.tabs.get_mut(self.active).and_then(Tab::table_mut) {
+            let outcome = if undo { table.undo() } else { table.redo() };
+            if let Err(reason) = outcome {
+                self.notice = Some(reason);
+            }
             return;
         }
         // A diagram's edits are on its project's diagram history.
@@ -664,6 +825,7 @@ impl Shell {
         let editor_focused = match self.tabs.get(self.active) {
             Some(Tab::Text(open)) => ui.memory(|m| m.has_focus(open.editor.id())),
             Some(Tab::Diagram(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.canvas_id())),
+            Some(Tab::Table(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.grid_id())),
             None => false,
         };
         if !editor_focused {
@@ -998,6 +1160,13 @@ impl Shell {
                 self.resolve_conflict(self.active, resolution);
             }
         }
+        if let Some(Tab::Table(tab)) = self.tabs.get_mut(self.active) {
+            egui::CentralPanel::default()
+                .frame(Frame::NONE.fill(palette.editor_background))
+                .show(ui, |ui| crate::table::show(ui, tab, theme, palette));
+            self.after_table();
+            return;
+        }
         if let Some(Tab::Diagram(tab)) = self.tabs.get_mut(self.active) {
             let workspace = self
                 .diagrams
@@ -1077,8 +1246,64 @@ impl Shell {
         }
     }
 
+    /// What a frame of a table changed: its notice in the status bar, and its selected row the window's selection.
+    fn after_table(&mut self) {
+        let Some(tab) = self.tabs.get_mut(self.active).and_then(Tab::table_mut) else {
+            return;
+        };
+        if let Some(notice) = tab.notice.take() {
+            self.notice = Some(notice);
+        }
+        if tab.reported.as_ref() != Some(&tab.selected) {
+            tab.reported = Some(tab.selected.clone());
+            let references = tab
+                .selected
+                .iter()
+                .map(|row| Reference::Element {
+                    document: tab.body_path().display().to_string(),
+                    element: row.clone(),
+                })
+                .collect();
+            self.workspace
+                .select(references, SelectMode::Replace, SelectionSource::Canvas);
+        }
+    }
+
+    /// The property grid of the active table: the selected row's values, each edited as the table edits it.
+    fn table_pane(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
+        let Some(Tab::Table(tab)) = self.tabs.get_mut(self.active) else {
+            return;
+        };
+        let sizes = theme.sizes;
+        egui::Panel::right("table-pane")
+            .default_size(280.0)
+            .min_size(180.0)
+            .resizable(true)
+            .frame(
+                Frame::NONE
+                    .fill(palette.side_bar_background)
+                    .stroke(egui::Stroke::new(sizes.border_width, palette.border))
+                    .inner_margin(Margin::symmetric(12, 8)),
+            )
+            .show(ui, |ui| {
+                ui.label(
+                    RichText::new("PROPERTIES")
+                        .size(sizes.workbench_font - 2.0)
+                        .color(palette.side_bar_title),
+                );
+                ui.add_space(8.0);
+                egui::ScrollArea::vertical()
+                    .auto_shrink(false)
+                    .show(ui, |ui| crate::properties::show_row(ui, tab, theme, palette));
+            });
+    }
+
     /// The toolbox and the property grid of the active diagram, as two tabs of one pane right of the editor.
     fn diagram_panes(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
+        if matches!(self.tabs.get(self.active), Some(Tab::Table(_))) {
+            self.table_pane(ui, theme, palette);
+            return;
+        }
         let Some(Tab::Diagram(tab)) = self.tabs.get_mut(self.active) else {
             return;
         };
@@ -1150,6 +1375,7 @@ impl Shell {
             Pending::Rename { .. } => "Rename",
             Pending::Delete { .. } => "Delete",
             Pending::CloseUnsaved { .. } => "Unsaved changes",
+            Pending::Relate { .. } => "Add relation",
         };
         egui::Modal::new(egui::Id::unique("prompt")).show(ctx, |ui| {
             ui.set_width(420.0);
@@ -1176,6 +1402,22 @@ impl Shell {
                         cancelled |= ui.button("Cancel").clicked();
                     });
                 }
+                Pending::Relate {
+                    prompt,
+                    value,
+                    text,
+                    error,
+                    ..
+                } => {
+                    let confirm = relate_prompt(ui, prompt, value, text);
+                    if let Some(error) = error {
+                        ui.colored_label(ui.visuals().error_fg_color, error.as_str());
+                    }
+                    ui.horizontal(|ui| {
+                        answered = ui.button(confirm).clicked();
+                        cancelled |= ui.button("Cancel").clicked();
+                    });
+                }
                 Pending::CloseUnsaved { index } => {
                     let name = self.tabs.get(*index).map(Tab::name).unwrap_or_default();
                     ui.heading("Unsaved changes");
@@ -1197,11 +1439,76 @@ impl Shell {
             return;
         }
         if let Err((mut back, reason)) = self.answer(pending) {
-            if let Pending::NewFolder { error, .. } | Pending::Rename { error, .. } = &mut back {
+            if let Pending::NewFolder { error, .. } | Pending::Rename { error, .. } | Pending::Relate { error, .. } =
+                &mut back
+            {
                 *error = Some(reason);
             }
             self.pending = Some(back);
         }
+    }
+}
+
+/// The body of one question of the entry that adds a relation: the files or the options to choose from, and the
+/// name field where the option chosen takes a name. The label of the button that answers it.
+fn relate_prompt(ui: &mut egui::Ui, prompt: &adp_context::Prompt, value: &mut String, text: &mut String) -> String {
+    use adp_context::Prompt;
+    match prompt {
+        Prompt::File {
+            title,
+            confirm_label,
+            files,
+            pinned,
+            empty_message,
+            ..
+        } => {
+            ui.heading(title);
+            for option in pinned.iter().chain(files) {
+                let label = if option.label == option.id {
+                    option.label.clone()
+                } else {
+                    format!("{} ({})", option.label, option.id)
+                };
+                if ui.selectable_label(*value == option.id, label).clicked() {
+                    *value = option.id.clone();
+                }
+            }
+            if files.is_empty() {
+                ui.label(RichText::new(empty_message).small());
+            }
+            confirm_label.clone()
+        }
+        Prompt::Choice {
+            title,
+            confirm_label,
+            options,
+            name_field,
+            ..
+        } => {
+            ui.heading(title);
+            for option in options {
+                if ui.radio(*value == option.id, &option.label).clicked() {
+                    *value = option.id.clone();
+                    if text.is_empty() && !option.suggested_value.is_empty() {
+                        *text = option.suggested_value.clone();
+                    }
+                }
+            }
+            let chosen = options.iter().find(|o| o.id == *value);
+            if let Some(field) = name_field {
+                match chosen.filter(|o| !o.name_suppressed_reason.is_empty()) {
+                    Some(option) => {
+                        ui.label(RichText::new(&option.name_suppressed_reason).small());
+                    }
+                    None => {
+                        ui.label(&field.label);
+                        ui.text_edit_singleline(text);
+                    }
+                }
+            }
+            confirm_label.clone()
+        }
+        _ => "OK".to_owned(),
     }
 }
 
@@ -1505,6 +1812,128 @@ mod tests {
             original,
             "Ctrl+Z undoes the diagram's edit"
         );
+    }
+
+    /// A copy of the Knowledge designer's cities example and the table it relates to, each with its registration.
+    fn knowledge_project(folder: &Path) {
+        let examples = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../modules/designers/knowledge/tests/examples");
+        for name in ["cities.yaml", "provinces.yaml"] {
+            std::fs::copy(examples.join(name), folder.join(name)).unwrap();
+        }
+        std::fs::write(folder.join("cities.adp"), "etalii/knowledge\r\nbody: cities.yaml\r\n").unwrap();
+    }
+
+    fn ctrl(key: egui::Key) -> egui::RawInput {
+        egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0))),
+            events: vec![egui::Event::Key {
+                key,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: egui::Modifiers::COMMAND,
+            }],
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn a_knowledge_document_opens_as_its_table_its_edits_are_written_and_ctrl_z_undoes_them() {
+        let folder = tempfile::tempdir().unwrap();
+        knowledge_project(folder.path());
+        let body = folder.path().join("cities.yaml");
+        let original = std::fs::read(&body).unwrap();
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+        shell.handle(Request::Open("cities.adp".into()));
+        shell.handle(Request::Open("cities.yaml".into()));
+        assert_eq!(shell.tabs.len(), 1, "the registration and its data file are one table");
+        assert!(shell.tabs[0].table().is_some(), "a knowledge file opens as its table");
+
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        frame(&ctx, &mut shell);
+        let table = shell.tabs[0].table_mut().unwrap();
+        assert!(!table.held.is_empty(), "the lines in sight are drawn");
+        table.select_row(Some("r1".into()));
+        table.set_property("p1", "Mokum");
+        frame(&ctx, &mut shell);
+        frame(&ctx, &mut shell);
+        assert!(std::fs::read_to_string(&body).unwrap().contains("text: Mokum"));
+        assert_eq!(
+            shell.tabs[0].table().unwrap().reported,
+            Some(Some("r1".to_owned())),
+            "the selected row is told to the window as its selection"
+        );
+
+        ctx.run_ui(ctrl(egui::Key::Z), |ui| shell.show(ui))
+            .textures_delta
+            .clear();
+        assert_eq!(
+            std::fs::read(&body).unwrap(),
+            original,
+            "Ctrl+Z undoes the table's edit"
+        );
+        ctx.run_ui(ctrl(egui::Key::Y), |ui| shell.show(ui))
+            .textures_delta
+            .clear();
+        assert!(
+            std::fs::read_to_string(&body).unwrap().contains("text: Mokum"),
+            "Ctrl+Y makes it again"
+        );
+    }
+
+    #[test]
+    fn the_explorers_add_relation_asks_three_questions_and_makes_the_relation_in_the_open_table() {
+        use adp_designer_knowledge::context_actions::{MANY, TWO_WAY};
+        let folder = tempfile::tempdir().unwrap();
+        knowledge_project(folder.path());
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+        shell.handle(Request::Relate("cities.adp".into()));
+        let mut answers = vec![("provinces.yaml", ""), (MANY, ""), (TWO_WAY, "Cities nearby")].into_iter();
+        while let Some(Pending::Relate { .. }) = &shell.pending {
+            let Some(Pending::Relate {
+                path,
+                action_id,
+                prompt,
+                error,
+                ..
+            }) = shell.pending.take()
+            else {
+                unreachable!()
+            };
+            let (value, text) = answers.next().expect("three questions");
+            let answered = shell.answer(Pending::Relate {
+                path,
+                action_id,
+                prompt,
+                value: value.into(),
+                text: text.into(),
+                error,
+            });
+            assert!(answered.is_ok(), "{:?}", answered.err().map(|e| e.1));
+        }
+        assert_eq!(answers.next(), None, "every question was asked");
+        let table = shell
+            .tabs
+            .iter_mut()
+            .find_map(Tab::table_mut)
+            .expect("the table is open");
+        assert!(
+            table
+                .columns
+                .iter()
+                .any(|c| c.name == "Provinces" && c.kind == "relation"),
+            "{}",
+            table.refusal
+        );
+        table.write_behind();
+        let provinces = std::fs::read_to_string(folder.path().join("provinces.yaml")).unwrap();
+        assert!(provinces.contains("Cities nearby"), "the other table has its side");
+        table.undo().expect("undone");
+        let provinces = std::fs::read_to_string(folder.path().join("provinces.yaml")).unwrap();
+        assert!(!provinces.contains("Cities nearby"), "one undo takes both sides back");
     }
 
     #[test]

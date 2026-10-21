@@ -113,3 +113,57 @@ pub fn rows_relating_to(root: &Path, body_path: &Path, row_ids: &[String]) -> us
     }
     count
 }
+
+/// The extensions a knowledge file's data file has, with their dot (the standalone host's
+/// `KnowledgeContextActionProvider.Extensions` at 8b6ccfc).
+const DATA_EXTENSIONS: [&str; 4] = [".yaml", ".yml", ".json", ".xml"];
+
+/// Whether a file is a knowledge file's data file: one of the three formats, and readable as a table (the standalone
+/// host's `KnowledgeContextActionProvider.IsKnowledgeFile`). A file that does not say it is one is not read.
+pub fn is_knowledge_file(path: &Path) -> bool {
+    let extension = path
+        .extension()
+        .map(|e| format!(".{}", e.to_string_lossy().to_lowercase()))
+        .unwrap_or_default();
+    DATA_EXTENSIONS.contains(&extension.as_str())
+        && says(path)
+        && store::read(path).body.is_some_and(|b| b.unreadable().is_empty())
+}
+
+/// The data file an explorer entry stands for: the entry itself when it is one, or the file its registration names -
+/// by a `body:` line, or as the file of its own name in one of the formats. None for an entry that is neither (the
+/// standalone host's `KnowledgeContextActionProvider.BodyOf` at 8b6ccfc).
+pub fn body_of(path: &Path) -> Option<PathBuf> {
+    if !path.is_file() {
+        return None;
+    }
+    if !path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
+        return is_knowledge_file(path).then(|| path.to_path_buf());
+    }
+    let bytes = std::fs::read(path).ok()?;
+    let text = String::from_utf8_lossy(&bytes);
+    let lines: Vec<&str> = text.split('\n').map(str::trim).collect();
+    if lines.first().is_none_or(|first| *first != crate::ORIGIN) {
+        return None;
+    }
+    let folder = path.parent().unwrap_or(Path::new(""));
+    let named = lines
+        .iter()
+        .skip(1)
+        .find_map(|line| line.strip_prefix("body:"))
+        .map(str::trim)
+        .unwrap_or_default();
+    let candidates: Vec<PathBuf> = if named.is_empty() {
+        let stem = path
+            .file_stem()
+            .map(|s| s.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        DATA_EXTENSIONS
+            .iter()
+            .map(|extension| folder.join(format!("{stem}{extension}")))
+            .collect()
+    } else {
+        vec![folder.join(named)]
+    };
+    candidates.into_iter().find(|c| is_knowledge_file(c))
+}
