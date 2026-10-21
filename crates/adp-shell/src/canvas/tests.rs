@@ -1,7 +1,8 @@
 //! The canvas in headless egui frames (etalii.adp spec 030, Story 2 scenarios 3 and 4; tasks T055 to T057): the
-//! standalone host's dependency graph and causal loop examples, vendored under `adp-diagram`'s test fixtures, opened
-//! on a canvas, drawn, clicked, dragged, connected, renamed and edited in the property grid, with every write checked
-//! against the bytes on disk and undone through the project's history.
+//! standalone host's dependency graph and causal loop examples and its hype cycle fixture with notes, vendored under
+//! `adp-diagram`'s test fixtures, opened on a canvas, drawn, clicked, dragged, resized, connected, renamed, asked and
+//! edited in the property grid, with every write checked against the bytes on disk and undone through the project's
+//! history.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -37,6 +38,8 @@ struct Harness {
     root: PathBuf,
     body: PathBuf,
     original: String,
+    /// Every text the last frame painted, with where.
+    texts: Vec<(String, egui::Rect)>,
     _folder: tempfile::TempDir,
 }
 
@@ -61,6 +64,7 @@ impl Harness {
             tab,
             root,
             body,
+            texts: Vec::new(),
             _folder: folder,
         };
         harness.frame(Vec::new());
@@ -96,7 +100,34 @@ impl Harness {
             egui::CentralPanel::default().show(ui, |ui| tab.show(ui, workspace, &theme, &palette));
         });
         output.textures_delta.clear();
+        fn texts(shape: &egui::Shape, into: &mut Vec<(String, egui::Rect)>) {
+            match shape {
+                egui::Shape::Text(text) => into.push((text.galley.text().to_owned(), text.visual_bounding_rect())),
+                egui::Shape::Vec(shapes) => shapes.iter().for_each(|s| texts(s, into)),
+                _ => {}
+            }
+        }
+        self.texts.clear();
+        for clipped in &output.shapes {
+            texts(&clipped.shape, &mut self.texts);
+        }
         output.shapes.len()
+    }
+
+    /// Frames enough for a new window to be measured and drawn, and for a section to finish opening.
+    fn settle(&mut self) {
+        for _ in 0..30 {
+            self.frame(Vec::new());
+        }
+    }
+
+    /// Where the last frame painted `text`, the last of them when it painted it more than once.
+    fn text(&self, text: &str) -> Option<Pos2> {
+        self.texts
+            .iter()
+            .rev()
+            .find(|(painted, _)| painted == text)
+            .map(|(_, rect)| rect.center())
     }
 
     fn workspace(&mut self) -> &mut adp_diagram::DiagramWorkspace {
@@ -560,5 +591,313 @@ fn a_c4_registration_is_claimed_and_opened_by_its_module_whose_canvas_is_not_dra
     assert_eq!(
         tab.definition.as_ref().err().map(String::as_str),
         Some(super::MODULE_CANVAS)
+    );
+}
+
+impl Harness {
+    fn hype_cycle() -> Harness {
+        Harness::open(
+            "gartner-hype-cycle-graph",
+            &["triggers-and-notes.ghg"],
+            "triggers-and-notes.ghg",
+            "triggers-and-notes.ghg",
+        )
+    }
+
+    /// The width of an element as the document keeps it.
+    fn stored_width(&self, id: &str) -> Option<adp_diagram::Length> {
+        self.host.workspaces[&self.root]
+            .documents()
+            .get(&self.body)
+            .unwrap()
+            .extents()
+            .get(id)
+            .and_then(|e| e.width)
+    }
+
+    /// The middle of a selected element's right edge, on the screen.
+    fn right_edge_of(&self, id: &str) -> Pos2 {
+        let bounds = self.tab.bounds_of(id).unwrap();
+        self.tab
+            .view
+            .to_screen(self.tab.surface, Point::new(bounds.right(), bounds.centre().y))
+    }
+}
+
+#[test]
+fn a_note_is_drawn_at_the_size_it_keeps_and_a_drag_of_its_edge_resizes_it_as_one_undo() {
+    let mut harness = Harness::hype_cycle();
+    let note = harness.tab.bounds_of("note-1").expect("the note is drawn");
+    assert_eq!(
+        (note.width, note.height),
+        (160.0, 64.0),
+        "drawn at the width and height it keeps"
+    );
+    assert_eq!(harness.tab.bounds_of("note-2").unwrap().width, 120.0);
+
+    // A press on the edge of an element that is not selected is a press on the element: it has no handles yet.
+    let centre = harness.screen_of("note-1");
+    harness.click(centre, Modifiers::NONE);
+    assert_eq!(harness.tab.selection, ["note-1"]);
+    let edge = harness.right_edge_of("note-1");
+    assert!(matches!(
+        harness.tab.hit(harness.tab.view.to_canvas(harness.tab.surface, edge)),
+        super::gestures::Hit::Resize { .. }
+    ));
+
+    let zoom = harness.tab.view.zoom;
+    harness.drag(edge, edge + egui::vec2(40.0, 25.0), PointerButton::Primary, false);
+    assert!(harness.tab.arbiter.resizing().is_some(), "the resize is in flight");
+    let handle = harness
+        .tab
+        .scene()
+        .unwrap()
+        .primitives
+        .iter()
+        .find_map(|p| match p {
+            Primitive::Hook(hook)
+                if hook.kind == adp_scene::scene::HookKind::ResizeHandle(adp_scene::connectors::Edge::Right)
+                    && matches!(&hook.owner, Owner::Element(id) if id == "note-1") =>
+            {
+                Some(hook.area)
+            }
+            _ => None,
+        })
+        .expect("the selected note keeps its handles");
+    assert!(
+        (handle.centre().x - (note.right() + 40.0 / zoom)).abs() < 0.5,
+        "the preview carries the edge"
+    );
+    assert_eq!(
+        harness.written(),
+        harness.original,
+        "nothing is written before the release"
+    );
+    harness.release(edge + egui::vec2(40.0, 25.0), PointerButton::Primary, Modifiers::NONE);
+
+    let expected = 160.0 + 40.0 / zoom;
+    match harness.stored_width("note-1") {
+        Some(adp_diagram::Length::Canvas(width)) => {
+            assert!((width - expected).abs() < 0.01, "{width}, not {expected}")
+        }
+        other => panic!("a width in canvas units, not {other:?}"),
+    }
+    let written = harness.written();
+    let changed: Vec<(&str, &str)> = harness
+        .original
+        .lines()
+        .zip(written.lines())
+        .filter(|(a, b)| a != b)
+        .collect();
+    assert_eq!(changed.len(), 1, "one line is written: {changed:?}");
+    assert_eq!(changed[0].0, "    width: 160");
+    assert!(changed[0].1.starts_with("    width: 1"), "{changed:?}");
+    assert_eq!(
+        harness.tab.bounds_of("note-1").unwrap().x,
+        note.x,
+        "the left edge stays put"
+    );
+
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original, "one undo puts every byte back");
+}
+
+#[test]
+fn escape_cancels_a_resize_and_an_edge_stops_at_the_minimum_before_the_far_one() {
+    let mut harness = Harness::hype_cycle();
+    let centre = harness.screen_of("note-2");
+    harness.click(centre, Modifiers::NONE);
+    let edge = harness.right_edge_of("note-2");
+    let before = harness.tab.bounds_of("note-2").unwrap();
+
+    harness.drag(edge, edge + egui::vec2(60.0, 0.0), PointerButton::Primary, false);
+    harness.key(Key::Escape, Modifiers::NONE);
+    assert!(harness.tab.arbiter.is_idle());
+    harness.release(edge + egui::vec2(60.0, 0.0), PointerButton::Primary, Modifiers::NONE);
+    assert_eq!(harness.written(), harness.original, "Escape writes nothing");
+    assert_eq!(
+        harness.tab.bounds_of("note-2").unwrap(),
+        before,
+        "and the preview is gone"
+    );
+
+    // Dragged far past its left edge, the right edge stops one unit from it: a note states no minimum.
+    let far = edge - egui::vec2(before.width as f32 * harness.tab.view.zoom as f32 * 3.0, 0.0);
+    harness.drag(edge, far, PointerButton::Primary, true);
+    assert_eq!(harness.stored_width("note-2"), Some(adp_diagram::Length::Canvas(1.0)));
+    assert_eq!(harness.tab.bounds_of("note-2").unwrap().x, before.x);
+}
+
+#[test]
+fn a_drag_of_the_left_edge_moves_the_note_and_sizes_it_in_one_edit() {
+    let mut harness = Harness::hype_cycle();
+    let centre = harness.screen_of("note-1");
+    harness.click(centre, Modifiers::NONE);
+    let before = harness.tab.bounds_of("note-1").unwrap();
+    let left = harness
+        .tab
+        .view
+        .to_screen(harness.tab.surface, Point::new(before.x, before.centre().y));
+    let zoom = harness.tab.view.zoom;
+    // Twelve months to the left: the hype cycle's x axis is one unit a month.
+    harness.drag(
+        left,
+        left - egui::vec2((12.0 * zoom) as f32, 0.0),
+        PointerButton::Primary,
+        true,
+    );
+    let written = harness.written();
+    assert!(written.contains("    at: 1949-01\n"), "{written}");
+    assert!(written.contains("    width: 172\n"), "{written}");
+    let after = harness.tab.bounds_of("note-1").unwrap();
+    assert!(
+        (after.right() - before.right()).abs() < 1e-6,
+        "the right edge stays put"
+    );
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
+}
+
+fn option(id: &str, label: &str) -> adp_context::PromptOption {
+    adp_context::PromptOption {
+        id: id.into(),
+        label: label.into(),
+        selectable: true,
+        ..Default::default()
+    }
+}
+
+#[test]
+fn a_choice_is_answered_on_the_canvas_with_an_option_that_may_be_chosen() {
+    let mut harness = Harness::dependency_graph();
+    let kinds = adp_context::PromptOption {
+        id: "kinds".into(),
+        label: "Kinds".into(),
+        selectable: false,
+        children: vec![
+            option("first", "First"),
+            adp_context::PromptOption {
+                unavailable_reason: "Not now.".into(),
+                ..option("second", "Second")
+            },
+        ],
+        ..Default::default()
+    };
+    harness.tab.prompt = Some(super::PendingPrompt {
+        target: adp_diagram::ActionTarget::Element("api-gateway".into()),
+        action_id: "test.pick".into(),
+        prompt: adp_context::Prompt::Choice {
+            title: "Pick one".into(),
+            icon: String::new(),
+            confirm_label: "Pick".into(),
+            options: vec![kinds, option("third", "Third")],
+            empty_message: "Nothing to pick.".into(),
+            name_field: None,
+        },
+        value: String::new(),
+    });
+    harness.settle();
+    assert!(harness.text("Pick one").is_some(), "the question is asked");
+    assert!(harness.text("Kinds").is_some(), "a group is a heading over its options");
+    assert!(
+        harness
+            .text("This question cannot be answered on the canvas yet.")
+            .is_none()
+    );
+
+    let pick = harness.text("Pick").unwrap();
+    harness.click(pick, Modifiers::NONE);
+    assert!(
+        harness.tab.prompt.is_some(),
+        "nothing is chosen yet, so Pick does nothing"
+    );
+    let second = harness.text("Second").unwrap();
+    harness.click(second, Modifiers::NONE);
+    assert_eq!(
+        harness.tab.prompt.as_ref().unwrap().value,
+        "",
+        "an option that may not be chosen is not"
+    );
+    let third = harness.text("Third").unwrap();
+    harness.click(third, Modifiers::NONE);
+    assert_eq!(harness.tab.prompt.as_ref().unwrap().value, "third");
+    let pick = harness.text("Pick").unwrap();
+    harness.click(pick, Modifiers::NONE);
+    assert!(harness.tab.prompt.is_none(), "the answer is handed to the session");
+    assert_eq!(
+        harness.tab.notice.as_deref(),
+        Some("'test.pick' does not apply to this selection."),
+        "which answers this made-up action with its refusal"
+    );
+}
+
+#[test]
+fn a_file_question_with_no_files_says_so_and_escape_dismisses_it() {
+    let mut harness = Harness::dependency_graph();
+    harness.tab.prompt = Some(super::PendingPrompt {
+        target: adp_diagram::ActionTarget::Element("api-gateway".into()),
+        action_id: "test.file".into(),
+        prompt: adp_context::Prompt::File {
+            title: "Open which file?".into(),
+            icon: String::new(),
+            confirm_label: "Open".into(),
+            files: Vec::new(),
+            pinned: Vec::new(),
+            empty_message: "There are no files to open.".into(),
+            name_field: None,
+        },
+        value: String::new(),
+    });
+    harness.settle();
+    assert!(harness.text("There are no files to open.").is_some());
+    harness.key(Key::Escape, Modifiers::NONE);
+    assert!(harness.tab.prompt.is_none());
+    assert_eq!(harness.written(), harness.original);
+}
+
+#[test]
+fn a_submenu_of_the_context_menu_opens_in_place_and_runs_its_action() {
+    let mut harness = Harness::dependency_graph();
+    let target = adp_diagram::ActionTarget::Element("api-gateway".into());
+    let documents = harness.host.workspaces[&harness.root].documents();
+    let leaf = harness
+        .tab
+        .session
+        .actions(documents, &target)
+        .into_iter()
+        .flat_map(|g| g.actions)
+        .find(|a| a.items.is_empty() && a.is_available())
+        .expect("the gateway has an action");
+    let mut more = adp_context::Action::new("test.more", "More actions");
+    more.items = vec![adp_context::ActionGroup {
+        actions: vec![leaf.clone()],
+    }];
+    harness.tab.menu = Some(super::Menu {
+        target,
+        at: harness.tab.surface.center(),
+        groups: vec![adp_context::ActionGroup { actions: vec![more] }],
+        area: None,
+    });
+    harness.settle();
+    assert!(harness.text(&leaf.label).is_none(), "a submenu starts closed");
+    let heading = harness.text("More actions").expect("the submenu is drawn");
+    harness.click(heading, Modifiers::NONE);
+    assert!(
+        harness.tab.menu.is_some(),
+        "a press on the submenu is a press on the menu"
+    );
+    harness.settle();
+    let entry = harness
+        .text(&leaf.label)
+        .expect("the submenu opened beneath its heading");
+    harness.click(entry, Modifiers::NONE);
+    assert!(harness.tab.menu.is_none(), "running an action closes the menu");
+    assert!(
+        harness.written() != harness.original
+            || harness.tab.prompt.is_some()
+            || harness.tab.editor.is_some()
+            || harness.tab.notice.is_some(),
+        "and {} ran",
+        leaf.id
     );
 }

@@ -8,7 +8,8 @@
 //! gives (the mind map's), the implementations of the specification's plugin CEL functions (DISL section 13.1.1),
 //! the canvas coordinates of a coordinate system whose placement attributes are not plain numbers (section 5; the
 //! timeline's `TimelineScale` and `TimelineRows`), the plugin layouts its `layout` actions name (section 10), the
-//! attribute an inline rename writes where a computed label names none, and the changes as its body writes them.
+//! attribute an inline rename writes where a computed label names none, the size a node is drawn at and what a resize
+//! of it writes where its coordinates are not plain numbers, and the changes as its body writes them.
 //! Every hook has the generic answer as its default, so a module implements only what it adds, and a tool type
 //! without a module is drawn and edited from its specification alone.
 //!
@@ -34,6 +35,7 @@ use crate::document::{DiagramDocument, DiagramDocuments};
 use crate::element::{DiagramElement, DiagramViewport};
 use crate::problems::DiagramProblem;
 use crate::session::{ActionOutcome, ActionTarget, DiagramSession};
+use crate::sizing::{Extent, Resize};
 use crate::workspace::{DiagramWorkspace, OpenedDiagram};
 
 /// Where a gesture puts an element, as a module's coordinates say: the attributes to set, and the bounds before and
@@ -128,6 +130,18 @@ pub trait DiagramModule {
     /// What a gesture that puts `element` at (`x`, `y`) in canvas units writes, or why it may not; none to write the
     /// point into the placement attributes as numbers.
     fn placement(&self, _element: &DislElement, _x: f64, _y: f64) -> Option<Result<ModulePlacement, String>> {
+        None
+    }
+
+    /// `element`'s stored size, in the units of [`DiagramModule::position`] or in canvas units; none to read it from
+    /// the attributes its notation binds (DISL sections 5.8 and 6.9).
+    fn extent(&self, _element: &DislElement) -> Option<Extent> {
+        None
+    }
+
+    /// What a resize of `element` to `resize` writes, or why it may not; none to write it into the attributes its
+    /// notation binds.
+    fn resize(&self, _element: &DislElement, _resize: &Resize) -> Option<Result<ModulePlacement, String>> {
         None
     }
 
