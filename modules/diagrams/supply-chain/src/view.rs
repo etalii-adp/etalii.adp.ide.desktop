@@ -181,6 +181,16 @@ impl ModuleView for SupplyChainView {
         }
     }
 
+    /// A flow drawn from one card to another is the menu's Add flow on the finished gesture (`onConnectionDrawn`).
+    fn connect_action(
+        &self,
+        _documents: &DiagramDocuments,
+        _source: &str,
+        _target: &str,
+    ) -> Option<Result<String, String>> {
+        Some(Ok(actions::CONNECT.to_owned()))
+    }
+
     fn answer(
         &self,
         workspace: &mut DiagramWorkspace,

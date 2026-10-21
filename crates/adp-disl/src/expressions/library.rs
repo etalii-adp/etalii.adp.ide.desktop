@@ -9,18 +9,23 @@ use adp_cel::{Environment, Function, Value};
 use indexmap::IndexMap;
 
 use super::color::DislColor;
+use super::number_format;
 use super::year_month;
 use crate::loading::metamodel::DislEnum;
 use crate::model::diagram::DiagramData;
 
 /// The methods of DISL's Element and Diagram types (section 12.2) this runtime implements, with their arities.
-const METHODS: [(&str, usize, usize); 13] = [
+const METHODS: [(&str, usize, usize); 17] = [
     ("isA", 1, 1),
     ("descendants", 0, 0),
     ("ancestors", 0, 0),
     ("childrenOfType", 1, 1),
     ("incomingOf", 1, 1),
     ("outgoingOf", 1, 1),
+    ("successors", 1, 1),
+    ("predecessors", 1, 1),
+    ("reachable", 1, 1),
+    ("inCycle", 1, 1),
     ("positionIn", 1, 1),
     ("nodesOfType", 1, 2),
     ("relationsOfType", 1, 1),
@@ -84,20 +89,22 @@ pub(crate) fn register(environment: &mut Environment, enums: Rc<IndexMap<String,
             _ => 1,
         }),
     );
-    for (name, kind) in [
-        ("sum", Aggregate::Sum),
-        ("min", Aggregate::Min),
-        ("max", Aggregate::Max),
-    ] {
+    environment.add_function(
+        Function::receiver("sum", 0, |a| sum(&a[0])).with_cost(|a| match a.first() {
+            Some(Value::List(l)) => l.len() as i64,
+            _ => 1,
+        }),
+    );
+    for (name, sign) in [("min", -1), ("max", 1)] {
         environment.add_function(
-            Function::receiver(name, 0, move |a| aggregate(&a[0], name, kind)).with_cost(|a| match a.first() {
+            Function::receiver(name, 0, move |a| list_extreme(&a[0], name, sign)).with_cost(|a| match a.first() {
                 Some(Value::List(l)) => l.len() as i64,
                 _ => 1,
             }),
         );
     }
     environment.add_function(Function::global("formatNumber", 2, |a| {
-        Ok(Value::String(super::number_format::format_number(
+        Ok(Value::String(number_format::format_number(
             number(&a[0])?,
             text(&a[1])?,
         )?))
@@ -207,53 +214,39 @@ fn average(value: &Value) -> Result<Value, String> {
     Ok(Value::Double(sum / list.len() as f64))
 }
 
-/// Which of the numeric aggregates of section 12.4 a receiver call is.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Aggregate {
-    Sum,
-    Min,
-    Max,
+/// `l.sum()` (section 12.4): the sum of a list of ints and doubles; an int while every item is one, a double once one
+/// is a double, and 0 for an empty list.
+fn sum(value: &Value) -> Result<Value, String> {
+    let list = value.as_list().ok_or("sum() takes a list of numbers.")?;
+    let mut total = Value::Int(0);
+    for item in list {
+        total = match (&total, item) {
+            (Value::Int(a), Value::Int(b)) => Value::Int(a.checked_add(*b).ok_or("sum() overflowed an int.")?),
+            (Value::Int(a), Value::Double(b)) => Value::Double(*a as f64 + b),
+            (Value::Double(a), Value::Int(b)) => Value::Double(a + *b as f64),
+            (Value::Double(a), Value::Double(b)) => Value::Double(a + b),
+            _ => return Err("sum() takes a list of numbers.".into()),
+        };
+    }
+    Ok(total)
 }
 
-/// `l.sum()`, `l.min()` and `l.max()` (section 12.4) over a list of ints and doubles: a sum of ints is an int (an
-/// empty list's is 0), and a sum with a double in it a double; the smallest or largest is the item itself, the first
-/// of equals, and an empty list has none.
-fn aggregate(value: &Value, name: &str, kind: Aggregate) -> Result<Value, String> {
-    let refused = || format!("{name}() takes a list of numbers.");
-    let list = value.as_list().ok_or_else(refused)?;
+/// `l.min()` and `l.max()` (section 12.4): the smallest (`sign` -1) or largest (1) item of a list of ints and
+/// doubles, the item itself, the first of equals; an empty list has none.
+fn list_extreme(value: &Value, name: &str, sign: i32) -> Result<Value, String> {
+    let list = value
+        .as_list()
+        .ok_or_else(|| format!("{name}() takes a list of numbers."))?;
     if list
         .iter()
         .any(|item| !matches!(item, Value::Int(_) | Value::Double(_)))
     {
-        return Err(refused());
+        return Err(format!("{name}() takes a list of numbers."));
     }
-    match kind {
-        Aggregate::Sum => {
-            if list.iter().all(|item| matches!(item, Value::Int(_))) {
-                let mut sum: i64 = 0;
-                for item in list {
-                    let Value::Int(i) = item else {
-                        unreachable!("checked above")
-                    };
-                    sum = sum
-                        .checked_add(*i)
-                        .ok_or_else(|| "sum() of these ints overflows.".to_owned())?;
-                }
-                return Ok(Value::Int(sum));
-            }
-            let mut sum = 0.0;
-            for item in list {
-                sum += number(item)?;
-            }
-            Ok(Value::Double(sum))
-        }
-        Aggregate::Min | Aggregate::Max => {
-            if list.is_empty() {
-                return Err(format!("{name}() of an empty list has no value."));
-            }
-            extreme(list, if kind == Aggregate::Max { 1 } else { -1 })
-        }
+    if list.is_empty() {
+        return Err(format!("{name}() of an empty list has no value."));
     }
+    extreme(list, sign)
 }
 
 /// `b.center()` on a Bounds (section 12.2): `[x + width / 2, y + height / 2]`, as doubles.

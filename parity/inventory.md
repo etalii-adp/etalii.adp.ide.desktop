@@ -47,17 +47,17 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-041 | C4 deployment diagram (`c4/deployment`, prototype) | docs/tools.md, 2. The C4 Model | 4 | adp-diagram-c4 tests | built |
 | P-042 | Timeline diagram (`generic/timeline`, implemented) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::generic_timeline_roadmap | checked |
 | P-043 | Dependency graph (`generic/dependencies`, implemented) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::generic_dependencies_services | checked |
-| P-044 | Functional decomposition graph (`etalii/functional-decomposition-graph`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
+| P-044 | Functional decomposition graph (`etalii/functional-decomposition-graph`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::etalii_functional_decomposition_graph_field_service | checked |
 | P-045 | Agent Behavior Modelling (`etalii/agent-behavior-modelling`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
 | P-046 | Agent activity diagram (`etalii/agent-activity-diagram`, work-in-progress) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
 | P-047 | Supply chain diagram (`etalii/supply-chain`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::etalii_supply_chain_automotive | checked |
-| P-048 | Sankey diagram (`etalii/sankey`, prototype) | docs/tools.md, 7. Data-oriented diagrams | 4 |  | planned |
+| P-048 | Sankey diagram (`etalii/sankey`, prototype) | docs/tools.md, 7. Data-oriented diagrams | 4 | adp-parity::etalii_sankey_brightwater_coffee | checked |
 | P-049 | Azure DevOps pipeline (`azure-devops/pipeline`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-050 | Ansible project structure (`ansible/structure`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-051 | Helm chart (`helm/chart`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-052 | .NET dependency graph (`dotnet/dependency-graph`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-053 | Wardley map (`wardley/map`, prototype) | docs/tools.md, 9. Strategy & landscape mapping | 4 |  | planned |
-| P-054 | Gartner hype cycle graph (`gartner/hypecycle-graph`, work-in-progress) | docs/tools.md, 9. Strategy & landscape mapping | 4 |  | planned |
+| P-054 | Gartner hype cycle graph (`gartner/hypecycle-graph`, work-in-progress) | docs/tools.md, 9. Strategy & landscape mapping | 4 | adp-parity::gartner_hypecycle_graph_coal_technologies | checked |
 | P-055 | Mind map (`freeplane/mindmap`, prototype) | docs/tools.md, 10. Knowledge & informal modeling | 4 | adp-parity::freeplane_mindmap_example_1 | checked |
 | P-056 | Causal loop diagram (`systems/causal-loop-diagram`, work-in-progress) | docs/tools.md, 10. Knowledge & informal modeling | 4 | adp-parity::systems_causal_loop_diagram_reference, adp-parity::systems_causal_loop_diagram_on_call | checked |
 | P-057 | Databricks bundle (`databricks/bundle`, prototype) | docs/tools.md, 12. Data platforms & pipeline orchestration | 4 |  | planned |

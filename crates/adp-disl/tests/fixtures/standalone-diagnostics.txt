@@ -39,9 +39,30 @@ error at /constraints/rules/1/rule: The function 'reachable' is not supported by
 # diagrams/mindmap.dis loaded=True
 # diagrams/sankey.dis loaded=False
 error at /functions/uniqueName/cel: 'uniqueName' calls 'labelOf', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/formatNumber2/cel: The function 'formatNumber' is not supported by this CEL evaluator.
+error at /functions/formatValue/cel: 'formatValue' calls 'formatNumber2', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/nodeDisplay/cel: 'nodeDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/flowDisplay/cel: 'flowDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/remainder/cel: The function 'sum' is not supported by this CEL evaluator.
+error at /metamodel/types/Node/attributes/quantity/derived: The function 'sum' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Node/labels/1/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Node/labels/4/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Node/tooltip/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)
+error at /notation/edges/Flow/tooltip/cel: The function 'flowDisplay' is not supported by this CEL evaluator. (context element)
 error at /behavior/hooks/0/actions/0/set/name: The function 'uniqueName' is not supported by this CEL evaluator. (context hook)
+error at /behavior/hooks/1/actions/0/set/quantity: The function 'remainder' is not supported by this CEL evaluator. (context hook)
 # diagrams/sparql-query.dis loaded=True
-# diagrams/supply-chain.dis loaded=True
+# diagrams/supply-chain.dis loaded=False
+error at /functions/formatAmount/cel: The function 'formatNumber' is not supported by this CEL evaluator.
+error at /functions/bandWidth/cel: The function 'max' is not supported by this CEL evaluator.
+error at /functions/quantityShare/cel: The function 'max' is not supported by this CEL evaluator.
+error at /notation/styles/band/stroke/width/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Stage/shape/params/share/cel: The function 'quantityShare' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Stage/labels/2/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Stage/tooltip/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)
+error at /notation/edges/Flow/targetMarker/params/length/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)
+error at /notation/edges/Flow/targetMarker/params/width/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)
+error at /notation/edges/Flow/labels/1/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)
 # diagrams/timeline.dis loaded=True
 # diagrams/w3c-owl.dis loaded=False
 error at /constraints/rules/0/rule: The function 'inCycle' is not supported by this CEL evaluator. (context constraint)
@@ -57,6 +78,7 @@ error at /constraints/rules/3/rule: The function 'successors' is not supported b
 error at /constraints/rules/4/rule: The function 'reachable' is not supported by this CEL evaluator. (context constraint)
 # diagrams/wardley-map.dis loaded=False
 error at /notation/nodes/Component/badges/0/visible/attribute: 'inertia' is not a variable here; available: self, diagram, env. (context element)
+error at /toolbox/groups/0/tools/7/initial/number/cel: The function 'max' is not supported by this CEL evaluator. (context create)
 # disl/c4-container.dis loaded=False
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
 error at /functions/inView/cel: The function 'matchesGlob' is not supported by this CEL evaluator.

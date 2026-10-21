@@ -1,9 +1,7 @@
 //! Both bundled definitions load with this runtime: nothing refused and nothing warned about, every expression
 //! compiled in its own context; a function either calls that the runtime lacks fails the load by name, wherever the
 //! call is (the standalone host's `BundledDefinitionLoadingTests`). Beside them, every vendored `.dis` loads with the
-//! diagnostics the standalone host's loader gives it, recorded in `fixtures/standalone-diagnostics.txt`, less those
-//! of the DISL library functions (section 12.4) this runtime implements and the standalone host's evaluator lacked:
-//! `formatNumber`, `l.sum()`, `l.min()` and `l.max()`, so that `supply-chain.dis` loads here.
+//! diagnostics the standalone host's loader gives it, recorded in `fixtures/standalone-diagnostics.txt`.
 
 mod common;
 
@@ -259,12 +257,79 @@ fn a_call_of_a_function_the_runtime_lacks_refuses_the_definition() {
     }
 }
 
+/// The standalone host's diagnostics this runtime does not give, because its library has a function DISL section 12.4
+/// defines and the standalone host's `DislCelLibrary` at `8b6ccfc` lacks: `formatNumber(n, pattern)`, `l.sum()` and `l.max()`.
+/// Each is the refusal of a call to one of them, or of a call to a function that called one.
+const BEYOND_THE_STANDALONE_LIBRARY: [&str; 22] = [
+    "error at /functions/formatNumber2/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /functions/formatValue/cel: 'formatValue' calls 'formatNumber2', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/nodeDisplay/cel: 'nodeDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/flowDisplay/cel: 'flowDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /functions/remainder/cel: The function 'sum' is not supported by this CEL evaluator.",
+    "error at /metamodel/types/Node/attributes/quantity/derived: The function 'sum' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/labels/1/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/labels/4/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Node/tooltip/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/tooltip/cel: The function 'flowDisplay' is not supported by this CEL evaluator. (context element)",
+    "error at /behavior/hooks/1/actions/0/set/quantity: The function 'remainder' is not supported by this CEL evaluator. (context hook)",
+    "error at /functions/formatAmount/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /notation/nodes/Stage/labels/2/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Stage/tooltip/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/labels/1/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+    "error at /functions/bandWidth/cel: The function 'max' is not supported by this CEL evaluator.",
+    "error at /functions/quantityShare/cel: The function 'max' is not supported by this CEL evaluator.",
+    "error at /notation/styles/band/stroke/width/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Stage/shape/params/share/cel: The function 'quantityShare' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/targetMarker/params/length/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/targetMarker/params/width/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)",
+    "error at /toolbox/groups/0/tools/7/initial/number/cel: The function 'max' is not supported by this CEL evaluator. (context create)",
+];
+
+/// The library functions of DISL section 12.4 this runtime implements and the standalone host's evaluator did not:
+/// where the standalone host's loader refused a call of one of them, this one loads it.
+const BEYOND_THE_STANDALONE_HOST: [&str; 4] = ["inCycle", "reachable", "successors", "predecessors"];
+
+/// The recorded diagnostics of the standalone host's loader, less its refusals of a call to a function of
+/// [`BEYOND_THE_STANDALONE_HOST`] and the refusals [`BEYOND_THE_STANDALONE_LIBRARY`] names; a definition those were
+/// the only errors of loads here.
+fn expected_here(recorded: &str) -> String {
+    let refused = |line: &str| {
+        BEYOND_THE_STANDALONE_HOST
+            .iter()
+            .any(|f| line.contains(&format!("The function '{f}' is not supported by this CEL evaluator.")))
+            || BEYOND_THE_STANDALONE_LIBRARY.contains(&line)
+    };
+    let mut out = String::new();
+    let mut lines = recorded.lines().peekable();
+    while let Some(header) = lines.next() {
+        let mut body = Vec::new();
+        while let Some(line) = lines.peek().filter(|l| !l.starts_with("# ")) {
+            body.push(*line);
+            lines.next();
+        }
+        let kept: Vec<&str> = body.iter().copied().filter(|l| !refused(l)).collect();
+        let header = if kept.len() < body.len() && !kept.iter().any(|l| l.starts_with("error")) {
+            header.replace("loaded=False", "loaded=True")
+        } else {
+            header.to_owned()
+        };
+        out.push_str(&header);
+        out.push('\n');
+        for line in kept {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
+}
+
 /// Every `.dis` the desktop host vendors - the tool types' definitions and the DISL examples - loads with the very
-/// diagnostics the standalone host's loader gives it, less those of the library functions it lacked, and the two the
-/// standalone host bundles with none.
+/// diagnostics the standalone host's loader gives it, and the two the standalone host bundles with none; less the
+/// refusals of the library functions this runtime implements beyond it ([`BEYOND_THE_STANDALONE_HOST`],
+/// [`BEYOND_THE_STANDALONE_LIBRARY`]).
 #[test]
 fn every_vendored_definition_has_the_standalone_loaders_diagnostics() {
-    let expected = include_str!("fixtures/standalone-diagnostics.txt").replace('\r', "");
+    let expected = expected_here(&include_str!("fixtures/standalone-diagnostics.txt").replace('\r', ""));
     let mut actual = String::new();
     let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../vendor/etalii.adp");
     for (folder, path) in [("diagrams", "definitions/diagrams"), ("disl", "specifications/disl")] {

@@ -1,0 +1,27 @@
+[package]
+name = "adp-diagram-sankey"
+description = "The Sankey diagram's residue: the .skv reader and line-splicing writer, its layout and arrangement, its actions, rows and rules (spec 030, T077)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# Reading only, with every node's place: every write is a splice of the document's lines.
+saphyr-parser = "0.0.6"
+# A new node's ShortGuid, where nothing hands one out.
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+tempfile = "3"
+
+[lints]
+workspace = true

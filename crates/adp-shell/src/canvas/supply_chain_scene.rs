@@ -28,11 +28,6 @@ use adp_scene::{Path, Point, Rect, Scene};
 
 use super::module_scene::{ANCHOR_RADIUS, ModuleScene, SELECTED, SELECTED_WIDTH, font, number, stroke, text};
 
-/// Whether `elements` are a supply chain's, which this scene draws.
-pub fn draws(elements: &[DiagramElement]) -> bool {
-    elements.iter().any(|e| e.element_type.starts_with(PREFIX))
-}
-
 /// The header colour of `stage` (`supply-chain.dis`, `color.supply.<stage>`).
 fn stage_colour(stage: &str) -> &'static str {
     match stage {
@@ -467,6 +462,7 @@ pub fn build(
         .then(|| "This supply chain has no node yet. Drop a stage from the toolbox.".to_owned());
     ModuleScene {
         scene: Scene { primitives, empty_text },
+        top_left: rects.keys().cloned().collect(),
         rects,
         boxes,
         lines,

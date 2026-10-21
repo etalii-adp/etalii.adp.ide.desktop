@@ -1,0 +1,25 @@
+functional-decomposition-graph: 1
+elements:
+  - id: good
+    type: function
+    name: Reads fine
+    x: 10
+    y: 20
+    width: 100
+  - id: odd
+    type: not-a-type
+    name: Unknown type, kept
+    colour: puce
+    x: not-a-number
+    y: 20
+    width: 12
+  - id: commented
+    type: comment
+    name: A Comment with a name
+    text: |-
+      kept anyway
+    x: 0
+    y: 0
+    width: 80
+    height: 48
+connections: []

@@ -422,9 +422,12 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
     let catalogue = Catalogue::load(&repository_root().join("vendor"));
     let tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
+        .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
         .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module());
     let tools = adp_diagram_dependency_graph::register(tools);
     let tools = adp_diagram_supply_chain::register(tools);
+    let tools = adp_diagram_sankey::register(tools);
+    let tools = adp_diagram_functional_decomposition_graph::register(tools);
     let mut tools = adp_diagram_c4::register(tools);
     let mut workspace = DiagramWorkspace::new(project.path());
     let (_, mut session) = match workspace.open(&mut tools, &document) {

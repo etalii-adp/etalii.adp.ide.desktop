@@ -1,0 +1,31 @@
+sankey: 1
+nodes:
+  - name: Nameless
+  - id: a
+    name: A
+    color: chartreuse
+  - id: b
+    name: B
+  - id: a
+    name: A again
+  - id: c
+    name: C
+flows:
+  - from: a
+    to: b
+    value: 2
+  - from: a
+    to: b
+    value: 3
+  - from: a
+    to: ghost
+    value: 1
+  - from: b
+    to: b
+    value: 1
+  - from: b
+    to: c
+  - from: c
+    to: a
+    value: -1
+    color: "#12"
