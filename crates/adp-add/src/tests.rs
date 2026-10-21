@@ -329,6 +329,19 @@ fn a_supply_chain_diagram_is_written_with_its_empty_document() {
 }
 
 #[test]
+fn an_agent_activity_diagram_is_written_with_its_empty_document() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/agent-activity-diagram", "team")
+        .unwrap();
+    assert_eq!(created, folder.path().join("team.adp"));
+    assert_eq!(read(&created), "etalii/agent-activity-diagram\r\n");
+    // The standalone host's `AadBody.EmptyDocument("\r\n")`: the header alone, no list written empty, in CRLF.
+    assert_eq!(read(&folder.path().join("team.aad")), "agent-activity-diagram: 1\r\n");
+}
+
+#[test]
 fn a_sankey_diagram_is_written_with_its_empty_document() {
     let folder = tempfile::tempdir().unwrap();
     let target = AddTarget::Folder(folder.path().to_path_buf());
