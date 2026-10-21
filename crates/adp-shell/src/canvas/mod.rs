@@ -9,7 +9,9 @@
 //! `src/client/src/canvas/scroll/` (scroll bars over an unbounded plane: the content's extent with half its span
 //! again on either side, a thumb at least 5% of its track), and `src/client/src/shell/panels/ToolTabsPanel.tsx`
 //! (a diagram opens in a tab of its own, its text still a choice away). A scene is rebuilt only when what it shows
-//! changes: the document, the selection, the theme or the drag in flight.
+//! changes: the document, the selection, the theme or the drag in flight. A selected element's resize handles, the
+//! scene's [`HookKind::ResizeHandle`] hooks, carry one edge each (`DiagramCanvas.tsx`, the `resize` gesture, and
+//! `gestureFrame.ts`: the preview is the frame's, the edit is written once, at the release, and Escape reverts it).
 
 pub mod gestures;
 pub mod metrics;
@@ -23,15 +25,17 @@ mod tests;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use adp_context::{ActionGroup, Prompt, SelectMode, Shortcut, action_for_shortcut};
+use adp_context::{ActionGroup, Prompt, PromptOption, SelectMode, Shortcut, action_for_shortcut, find_answer};
 use adp_core::Catalogue;
 use adp_diagram::document::DiagramDocuments;
 use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
 use adp_diagram::tool::DiagramTools;
 use adp_diagram::workspace::{DiagramWorkspace, OpenedDiagram};
+use adp_diagram::{Resize, ResizedEdge};
 use adp_disl::behavior::ids;
 use adp_disl::{DislEnv, DislPluginFunctions, IdSource};
 use adp_fbl::RegistrationDocument;
+use adp_scene::connectors::Edge;
 use adp_scene::definition::compartments::Folding;
 use adp_scene::scene::{HookKind, Owner, Primitive, Role, SceneOptions, StandardRoutePlugins, build_scene};
 use adp_scene::text::TextMetrics;
@@ -223,6 +227,7 @@ struct SceneKey {
     selection: Vec<String>,
     dark: bool,
     preview: Option<(Vec<String>, u64, u64)>,
+    resizing: Option<(String, u8, u64)>,
 }
 
 /// A scene and what the gestures hit-test against, as of one [`SceneKey`].
@@ -236,6 +241,8 @@ struct Cached {
     /// Each relation's line, in canvas units, and how far from it a press still hits it.
     lines: Vec<(String, Vec<Point>, f64)>,
     anchors: Vec<(String, String, Rect)>,
+    /// The resize handles of the selected elements: element, edge, area.
+    handles: Vec<(String, ResizedEdge, Rect)>,
     /// The editable labels: element, label id, box.
     labels: Vec<(String, String, Rect)>,
     bounds: Option<Rect>,
@@ -367,11 +374,16 @@ impl DiagramTab {
             .arbiter
             .moving()
             .map(|(ids, (dx, dy))| (ids.to_vec(), dx.to_bits(), dy.to_bits()));
+        let resizing = self
+            .arbiter
+            .resizing()
+            .map(|(id, edge, delta)| (id.to_owned(), edge as u8, delta.to_bits()));
         let key = SceneKey {
             generation: self.generation,
             selection: self.selection.clone(),
             dark,
             preview,
+            resizing,
         };
         if self.cache.as_ref().is_some_and(|c| c.key == key) {
             return;
@@ -404,7 +416,14 @@ impl DiagramTab {
             .and_then(|c| paint::parse_colour(&c));
         let evaluator = Evaluator::new(specification, notation_theme, DislEnv::default());
         let diagram = &document.model().diagram;
-        let placed = placement::place(definition, &evaluator, diagram, &document.positions(), metrics);
+        let placed = placement::place(
+            definition,
+            &evaluator,
+            diagram,
+            &document.positions(),
+            &document.extents(),
+            metrics,
+        );
         let mut rects = placed.rects.clone();
         if let Some((ids, (dx, dy))) = self.arbiter.moving() {
             for id in ids {
@@ -412,6 +431,12 @@ impl DiagramTab {
                     *rect = Rect::new(rect.x + dx, rect.y + dy, rect.width, rect.height);
                 }
             }
+        }
+        if let Some((id, edge, delta)) = self.arbiter.resizing()
+            && let Some(element_type) = placed.types.get(id).and_then(|t| definition.element_type(t))
+            && let Some(rect) = rects.get_mut(id)
+        {
+            *rect = placement::resized(*rect, edge, delta, &element_type.size);
         }
         // A selected element that is gone is no longer selected.
         let known: HashSet<String> = diagram.elements().iter().map(|e| e.id()).collect();
@@ -429,6 +454,7 @@ impl DiagramTab {
         let mut boxes: Vec<(String, Rect)> = Vec::new();
         let mut lines = Vec::new();
         let mut anchors = Vec::new();
+        let mut handles = Vec::new();
         let mut labels = Vec::new();
         for primitive in &scene.primitives {
             match (primitive, primitive.owner()) {
@@ -463,11 +489,19 @@ impl DiagramTab {
                         .collect();
                     lines.push((id.clone(), points, edge.hit_width.max(edge.stroke.width) / 2.0));
                 }
-                (Primitive::Hook(hook), Owner::Element(id)) => {
-                    if let HookKind::Anchor { name, .. } = &hook.kind {
-                        anchors.push((id.clone(), name.clone(), hook.area));
+                (Primitive::Hook(hook), Owner::Element(id)) => match &hook.kind {
+                    HookKind::Anchor { name, .. } => anchors.push((id.clone(), name.clone(), hook.area)),
+                    HookKind::ResizeHandle(edge) => {
+                        let edge = match edge {
+                            Edge::Left => ResizedEdge::Left,
+                            Edge::Right => ResizedEdge::Right,
+                            Edge::Top => ResizedEdge::Top,
+                            Edge::Bottom => ResizedEdge::Bottom,
+                        };
+                        handles.push((id.clone(), edge, hook.area));
                     }
-                }
+                    _ => {}
+                },
                 _ => {}
             }
         }
@@ -480,6 +514,7 @@ impl DiagramTab {
             boxes,
             lines,
             anchors,
+            handles,
             labels,
             bounds,
             surface,
@@ -552,7 +587,8 @@ impl DiagramTab {
 
     // ---- hit testing ------------------------------------------------------------------------------------------------
 
-    /// What lies at a canvas point: an anchor, else the topmost element, else a relation's line, else nothing.
+    /// What lies at a canvas point: an anchor, else a selected element's resize handle (the anchors are drawn over the
+    /// handles, `SpanElement.tsx`), else the topmost element, else a relation's line, else nothing.
     pub fn hit(&self, point: Point) -> Hit {
         let Some(cache) = &self.cache else { return Hit::Empty };
         let tolerance = 3.0 / self.view.zoom;
@@ -565,6 +601,17 @@ impl DiagramTab {
             return Hit::Anchor {
                 element: element.clone(),
                 anchor: anchor.clone(),
+            };
+        }
+        if let Some((element, edge, _)) = cache
+            .handles
+            .iter()
+            .rev()
+            .find(|(_, _, area)| area.inflate(tolerance).contains(point))
+        {
+            return Hit::Resize {
+                element: element.clone(),
+                edge: *edge,
             };
         }
         if let Some((id, _)) = cache.boxes.iter().rev().find(|(_, rect)| rect.contains(point)) {
@@ -670,6 +717,7 @@ impl DiagramTab {
                     .unwrap_or_default();
                 self.select(inside, if additive { SelectMode::Add } else { SelectMode::Replace });
             }
+            Intent::Resize { element, edge, delta } => self.resize_by(workspace, &element, edge, delta),
             Intent::Connect { source, target, at } => self.connect(workspace, &source, target.as_deref(), at),
             Intent::ContextMenu { hit, screen, canvas } => {
                 let target = match hit.id() {
@@ -745,6 +793,36 @@ impl DiagramTab {
             return;
         }
         let result = self.session.move_elements(workspace, &moves);
+        self.report(result);
+    }
+
+    /// Carries one edge of an element `delta` canvas units along its axis, the far edge kept, within the notation's
+    /// limits, as one edit (`resizedBounds`, `element-resized`).
+    pub fn resize_by(&mut self, workspace: &mut DiagramWorkspace, id: &str, edge: ResizedEdge, delta: f64) {
+        let Some(cache) = &self.cache else { return };
+        let Ok(definition) = &self.definition else { return };
+        let (Some(rect), Some(element_type)) = (
+            cache.placed.rects.get(id),
+            cache.placed.types.get(id).and_then(|t| definition.element_type(t)),
+        ) else {
+            return;
+        };
+        let mapping = cache.placed.mappings.get(id).copied().unwrap_or_default();
+        let bounds = placement::resized(*rect, edge, delta, &element_type.size);
+        if bounds == *rect {
+            return;
+        }
+        let (x, y) = mapping.to_domain(bounds);
+        let resize = Resize {
+            edge,
+            x,
+            y,
+            right: bounds.right() / mapping.scale.0,
+            bottom: bounds.bottom() / mapping.scale.1,
+            width: bounds.width,
+            height: bounds.height,
+        };
+        let result = self.session.resize_element(workspace, id, &resize);
         self.report(result);
     }
 
@@ -1081,7 +1159,19 @@ impl DiagramTab {
             )
         });
         let hover = latest.filter(|p| surface.contains(*p));
-        self.hovered = hover.and_then(|p| self.hit(self.view.to_canvas(surface, p)).id().map(str::to_owned));
+        let hovering = hover.map(|p| self.hit(self.view.to_canvas(surface, p)));
+        self.hovered = hovering.as_ref().and_then(|h| h.id().map(str::to_owned));
+        let edge = match (&self.arbiter.gesture, &hovering) {
+            (gestures::Gesture::Resizing { edge, .. }, _) | (_, Some(Hit::Resize { edge, .. })) => Some(*edge),
+            _ => None,
+        };
+        if let Some(edge) = edge {
+            ctx.set_cursor_icon(if edge.is_horizontal() {
+                egui::CursorIcon::ResizeHorizontal
+            } else {
+                egui::CursorIcon::ResizeVertical
+            });
+        }
 
         // A press anywhere but on the open menu closes it.
         if let Some((_, pos)) = press
@@ -1379,29 +1469,14 @@ impl DiagramTab {
     fn show_menu(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace, palette: &Palette) {
         let Some(menu) = &mut self.menu else { return };
         let mut chosen = None;
-        let area = egui::Area::new(self.id.with("context-menu"))
+        let id = self.id.with("context-menu");
+        let area = egui::Area::new(id)
             .order(egui::Order::Foreground)
             .fixed_pos(menu.at)
             .show(ui.ctx(), |ui| {
                 egui::Frame::menu(ui.style()).show(ui, |ui| {
                     ui.set_min_width(180.0);
-                    for (index, group) in menu.groups.iter().enumerate() {
-                        if index > 0 && !group.actions.is_empty() {
-                            ui.separator();
-                        }
-                        for action in &group.actions {
-                            if !action.items.is_empty() {
-                                continue;
-                            }
-                            let available = action.is_available();
-                            let response = ui
-                                .add_enabled(available, egui::Button::new(&action.label).frame(false))
-                                .on_disabled_hover_text(&action.unavailable_reason);
-                            if response.clicked() {
-                                chosen = Some(action.id.clone());
-                            }
-                        }
-                    }
+                    menu_entries(ui, &menu.groups, id, &mut chosen);
                 });
             });
         menu.area = Some(area.response.rect);
@@ -1418,6 +1493,7 @@ impl DiagramTab {
         let mut answer: Option<Option<String>> = None;
         egui::Modal::new(self.id.with("prompt")).show(ui.ctx(), |ui| {
             ui.set_width(420.0);
+            let enter = ui.input(|i| i.key_pressed(egui::Key::Enter));
             match &pending.prompt {
                 Prompt::Confirm {
                     title,
@@ -1446,7 +1522,7 @@ impl DiagramTab {
                     ui.label(label.as_str());
                     ui.text_edit_singleline(&mut pending.value).request_focus();
                     ui.horizontal(|ui| {
-                        if ui.button(confirm_label.as_str()).clicked() {
+                        if ui.button(confirm_label.as_str()).clicked() || enter {
                             answer = Some(Some(pending.value.clone()));
                         }
                         if ui.button("Cancel").clicked() {
@@ -1454,15 +1530,37 @@ impl DiagramTab {
                         }
                     });
                 }
+                Prompt::Choice {
+                    title,
+                    confirm_label,
+                    options,
+                    empty_message,
+                    ..
+                } => {
+                    ui.heading(title.as_str());
+                    answer = choose(ui, &[options], empty_message, confirm_label, &mut pending.value, enter);
+                }
+                Prompt::File {
+                    title,
+                    confirm_label,
+                    files,
+                    pinned,
+                    empty_message,
+                    ..
+                } => {
+                    ui.heading(title.as_str());
+                    answer = choose(
+                        ui,
+                        &[pinned, files],
+                        empty_message,
+                        confirm_label,
+                        &mut pending.value,
+                        enter,
+                    );
+                }
                 Prompt::Closed { message } => {
                     ui.label(message.as_str());
                     if ui.button("OK").clicked() {
-                        answer = Some(None);
-                    }
-                }
-                _ => {
-                    ui.label("This question cannot be answered on the canvas yet.");
-                    if ui.button("Close").clicked() {
                         answer = Some(None);
                     }
                 }
@@ -1475,6 +1573,103 @@ impl DiagramTab {
             self.answer(workspace, value.as_deref());
         }
     }
+}
+
+/// The entries of a context menu, a separator between groups; a submenu is a heading that opens its entries beneath
+/// it, indented, inside the same menu, so a press on them is a press on the menu (an action with `items` instead of a
+/// run, as the standalone host's menus nest them). The action chosen is put in `chosen`.
+fn menu_entries(ui: &mut egui::Ui, groups: &[ActionGroup], id: egui::Id, chosen: &mut Option<String>) {
+    for (index, group) in groups.iter().enumerate() {
+        if index > 0 && !group.actions.is_empty() {
+            ui.separator();
+        }
+        for action in &group.actions {
+            let available = action.is_available();
+            if action.items.is_empty() {
+                let response = ui
+                    .add_enabled(available, egui::Button::new(&action.label).frame(false))
+                    .on_disabled_hover_text(&action.unavailable_reason);
+                if response.clicked() {
+                    *chosen = Some(action.id.clone());
+                }
+                continue;
+            }
+            let nested = id.with(&action.id);
+            ui.add_enabled_ui(available, |ui| {
+                egui::CollapsingHeader::new(action.label.as_str())
+                    .id_salt(nested)
+                    .show(ui, |ui| menu_entries(ui, &action.items, nested, chosen));
+            })
+            .response
+            .on_disabled_hover_text(&action.unavailable_reason);
+        }
+    }
+}
+
+/// The options of a choice or a file question, each list in turn, groups as headings over their indented options and
+/// an option that may not be chosen greyed with its reason; the one picked is held in `value`, and the confirm button,
+/// or Enter, answers with it once it is one that may be chosen (`find_answer`). The empty message stands in for no
+/// options at all. A name field the question carries is not offered: an answer here carries the one value.
+fn choose(
+    ui: &mut egui::Ui,
+    lists: &[&Vec<PromptOption>],
+    empty_message: &str,
+    confirm_label: &str,
+    value: &mut String,
+    enter: bool,
+) -> Option<Option<String>> {
+    fn rows(ui: &mut egui::Ui, options: &[PromptOption], value: &mut String) {
+        for option in options {
+            if option.selectable {
+                let available = option.unavailable_reason.is_empty();
+                let mut response = ui
+                    .add_enabled(
+                        available,
+                        egui::Button::selectable(*value == option.id, option.label.as_str()),
+                    )
+                    .on_disabled_hover_text(&option.unavailable_reason);
+                if !option.description.is_empty() {
+                    response = response.on_hover_text(&option.description);
+                }
+                if response.clicked() {
+                    *value = option.id.clone();
+                }
+            } else {
+                ui.label(RichText::new(option.label.as_str()).strong());
+            }
+            if !option.children.is_empty() {
+                ui.indent(option.id.as_str(), |ui| rows(ui, &option.children, value));
+            }
+        }
+    }
+    if lists.iter().all(|l| l.is_empty()) {
+        ui.label(empty_message);
+    } else {
+        egui::ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
+            let mut shown = false;
+            for options in lists {
+                if options.is_empty() {
+                    continue;
+                }
+                if shown {
+                    ui.separator();
+                }
+                rows(ui, options, value);
+                shown = true;
+            }
+        });
+    }
+    let answerable = lists.iter().any(|options| find_answer(options, value).is_some());
+    let mut answer = None;
+    ui.horizontal(|ui| {
+        if ui.add_enabled(answerable, egui::Button::new(confirm_label)).clicked() || (enter && answerable) {
+            answer = Some(Some(value.clone()));
+        }
+        if ui.button("Cancel").clicked() {
+            answer = Some(None);
+        }
+    });
+    answer
 }
 
 fn distance_to_segment(p: Point, a: Point, b: Point) -> f64 {

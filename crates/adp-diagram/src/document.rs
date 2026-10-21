@@ -42,6 +42,7 @@ use adp_history::{Applied, Command, Refusal};
 use crate::change_handler::same_path;
 use crate::element::{DiagramElement, ElementKind};
 use crate::memo::RecentBodies;
+use crate::sizing::{Extent, Length, SizeSource, SizeSources};
 use crate::tool::DiagramTool;
 
 /// The refusal of a position for a diagram opened without a registration, as the standalone host words it.
@@ -236,6 +237,13 @@ impl DiagramDocument {
     /// The two attributes the notation places a node by (`placement.x.attribute` and `placement.y.attribute` of the
     /// node type, or of the nearest type it is one of), or none when its place is the registration's.
     pub fn placement_attributes(&self, element: &DislElement) -> Option<(String, String)> {
+        let placement = self.notation_of(element)?.get("placement")?;
+        let attribute = |axis: &str| Some(placement.get(axis)?.get("attribute")?.as_str()?.to_owned());
+        Some((attribute("x")?, attribute("y")?))
+    }
+
+    /// The node notation `element` is drawn by: its type's, or that of the nearest type it is one of.
+    fn notation_of(&self, element: &DislElement) -> Option<&serde_json::Value> {
         let nodes = self
             .tool
             .definition
@@ -244,12 +252,61 @@ impl DiagramDocument {
             .get("notation")?
             .get("nodes")?
             .as_object()?;
-        let declared = nodes
+        nodes
             .get(&element.type_name())
-            .or_else(|| nodes.iter().find(|(name, _)| element.is_a(name)).map(|(_, n)| n))?;
-        let placement = declared.get("placement")?;
-        let attribute = |axis: &str| Some(placement.get(axis)?.get("attribute")?.as_str()?.to_owned());
-        Some((attribute("x")?, attribute("y")?))
+            .or_else(|| nodes.iter().find(|(name, _)| element.is_a(name)).map(|(_, n)| n))
+    }
+
+    /// The attributes the notation keeps `element`'s width and height in (DISL sections 5.8 and 6.9).
+    pub fn size_sources(&self, element: &DislElement) -> SizeSources {
+        self.notation_of(element).map(SizeSources::of).unwrap_or_default()
+    }
+
+    /// The stored sizes, by element id, of the nodes whose size is kept: where the tool type's module says, else
+    /// in the attributes the notation binds. A node whose size is the notation's alone is not listed.
+    pub fn extents(&self) -> HashMap<String, Extent> {
+        let module = self.tool.module.as_deref();
+        let mut extents = HashMap::new();
+        for element in self.reading.model.diagram.nodes() {
+            let extent = match module.and_then(|m| m.extent(&element)) {
+                Some(extent) => extent,
+                // A node the module places by coordinates of its own has no size the attributes give as numbers.
+                None if module.is_some_and(|m| m.position(&element).is_some()) => Extent::default(),
+                None => {
+                    let sources = self.size_sources(&element);
+                    let placement = self.placement_attributes(&element);
+                    let number = |name: &str| element.value_of(name).as_number();
+                    let length = |source: &Option<SizeSource>, near: Option<&String>| -> Option<Length> {
+                        match source.as_ref()? {
+                            SizeSource::Size(a) => number(a).map(Length::Canvas),
+                            SizeSource::Span(a) => number(a).map(Length::Domain),
+                            SizeSource::Far(a) => Some(Length::Domain(number(a)? - number(near?).unwrap_or_default())),
+                        }
+                    };
+                    Extent {
+                        width: length(&sources.width, placement.as_ref().map(|(x, _)| x)),
+                        height: length(&sources.height, placement.as_ref().map(|(_, y)| y)),
+                    }
+                }
+            };
+            if extent != Extent::default() {
+                extents.insert(element.id(), extent);
+            }
+        }
+        extents
+    }
+
+    /// `value` as `element`'s attribute `name` holds it: a whole number for an integer or a `yearMonth` attribute.
+    pub fn typed(&self, element: &DislElement, name: &str, value: f64) -> Value {
+        match element
+            .element_type()
+            .attributes
+            .get(name)
+            .map(|a| a.type_name.as_str())
+        {
+            Some("int" | "integer" | "long" | "yearMonth") => Value::Int(value.round() as i64),
+            _ => Value::Double(value),
+        }
     }
 
     /// The change that puts `element` at (`x`, `y`) in the diagram's domain units: its placement attributes set,
@@ -258,11 +315,7 @@ impl DiagramDocument {
         let Some((x_attribute, y_attribute)) = self.placement_attributes(element) else {
             return DiagramChange::Place { id: element.id(), x, y };
         };
-        let element_type = element.element_type();
-        let typed = |name: &str, value: f64| match element_type.attributes.get(name).map(|a| a.type_name.as_str()) {
-            Some("int" | "integer" | "long") => Value::Int(value.round() as i64),
-            _ => Value::Double(value),
-        };
+        let typed = |name: &str, value: f64| self.typed(element, name, value);
         DiagramChange::Disl(DislChange::Set {
             element_id: element.id(),
             type_name: element.type_name(),

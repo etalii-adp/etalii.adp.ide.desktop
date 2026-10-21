@@ -11,13 +11,16 @@
 //! position the registration's `layout:` holds is already the element's centre in canvas units.
 //!
 //! An element's size is its type's (`default_size` in `adp-scene`), widened to its first label where the type sizes
-//! by its content, as `elementBounds` widens it: the label's width at the label font plus 16.
+//! by its content, as `elementBounds` widens it: the label's width at the label font plus 16; where the document keeps
+//! a node's size (its notation binds it, `adp_diagram::sizing`), that size, within the notation's limits. A resize
+//! carries one edge and keeps the far one, which it never crosses (`resizedBounds`), nor the limits.
 
 use std::collections::HashMap;
 
+use adp_diagram::{Extent, Length, ResizedEdge};
 use adp_disl::{DislDiagram, DislElement, DislSpecification, DislType};
 use adp_layout::{LayoutAlgorithm, LayoutDefinition, LayoutElement, LayoutInput, LayoutMode, TreeLayout};
-use adp_scene::definition::{ElementType, Sizing};
+use adp_scene::definition::{ElementType, SizeRule, Sizing};
 use adp_scene::scene::default_size;
 use adp_scene::text::{LABEL_FONT_SIZE, TextMetrics};
 use adp_scene::{DiagramDefinition, Evaluator, Point, Rect};
@@ -184,6 +187,55 @@ pub fn size_of(
     (width.max(fitted).min(max), height)
 }
 
+/// The size a resize never goes below where the notation states no minimum (`resizedBounds`: one unit).
+const MIN_RESIZED: f64 = 1.0;
+
+/// The size an element with a stored `extent` is drawn at: the stored axes, scaled as its position is where they are
+/// in the axis's units, within the notation's limits; the other axes as `size` has them.
+pub fn stored_size(size: (f64, f64), extent: &Extent, mapping: Mapping, rule: &SizeRule) -> (f64, f64) {
+    let canvas = |length: Option<Length>, scale: f64, fallback: f64| match length {
+        Some(Length::Canvas(v)) => v,
+        Some(Length::Domain(v)) => v * scale,
+        None => fallback,
+    };
+    let clamp = |v: f64, min: Option<f64>, max: Option<f64>| v.min(max.unwrap_or(f64::MAX)).max(min.unwrap_or(0.0));
+    (
+        clamp(canvas(extent.width, mapping.scale.0, size.0), rule.min.0, rule.max.0),
+        clamp(canvas(extent.height, mapping.scale.1, size.1), rule.min.1, rule.max.1),
+    )
+}
+
+/// `bounds` with one edge carried `delta` canvas units along its axis: the far edge stays where it is and is never
+/// crossed, and the size stays within the notation's limits (at least one unit where it states no minimum).
+pub fn resized(bounds: Rect, edge: ResizedEdge, delta: f64, rule: &SizeRule) -> Rect {
+    let horizontal = edge.is_horizontal();
+    let (start, length) = if horizontal {
+        (bounds.x, bounds.width)
+    } else {
+        (bounds.y, bounds.height)
+    };
+    let (min, max) = if horizontal {
+        (rule.min.0, rule.max.0)
+    } else {
+        (rule.min.1, rule.max.1)
+    };
+    let min = min.unwrap_or(MIN_RESIZED).max(MIN_RESIZED);
+    let max = max.unwrap_or(f64::MAX).max(min);
+    let (start, length) = match edge {
+        ResizedEdge::Left | ResizedEdge::Top => {
+            let end = start + length;
+            let carried = (length - delta).clamp(min, max);
+            (end - carried, carried)
+        }
+        ResizedEdge::Right | ResizedEdge::Bottom => (start, (length + delta).clamp(min, max)),
+    };
+    if horizontal {
+        Rect::new(start, bounds.y, length, bounds.height)
+    } else {
+        Rect::new(bounds.x, start, bounds.width, length)
+    }
+}
+
 /// Every node's box on the canvas and the mapping it was placed by, by element id.
 #[derive(Debug, Clone, Default)]
 pub struct Placed {
@@ -201,6 +253,7 @@ pub fn place(
     evaluator: &Evaluator,
     diagram: &DislDiagram,
     positions: &HashMap<String, (f64, f64)>,
+    extents: &HashMap<String, Extent>,
     metrics: &dyn TextMetrics,
 ) -> Placed {
     let specification = &definition.specification;
@@ -214,8 +267,11 @@ pub fn place(
             continue;
         }
         placed.types.insert(element.id(), element.type_name());
-        let size = size_of(element_type, evaluator, &element, metrics);
         let mapping = Mapping::of(specification, &element);
+        let mut size = size_of(element_type, evaluator, &element, metrics);
+        if let Some(extent) = extents.get(&element.id()) {
+            size = stored_size(size, extent, mapping, &element_type.size);
+        }
         match positions.get(&element.id()) {
             Some(position) => {
                 placed.rects.insert(element.id(), mapping.to_canvas(*position, size));
@@ -300,5 +356,40 @@ mod tests {
             Rect::new(-45.0, -20.0, 90.0, 40.0)
         );
         assert_eq!(centred.to_domain(Rect::new(-45.0, -20.0, 90.0, 40.0)), (0.0, 0.0));
+    }
+
+    #[test]
+    fn a_resize_keeps_the_far_edge_never_crosses_it_and_stays_within_the_limits() {
+        let rule = SizeRule {
+            min: (Some(80.0), None),
+            max: (Some(300.0), Some(48.0)),
+            ..SizeRule::default()
+        };
+        let box_ = Rect::new(100.0, 50.0, 160.0, 48.0);
+        assert_eq!(
+            resized(box_, ResizedEdge::Right, 40.0, &rule),
+            Rect::new(100.0, 50.0, 200.0, 48.0)
+        );
+        assert_eq!(
+            resized(box_, ResizedEdge::Left, 30.0, &rule),
+            Rect::new(130.0, 50.0, 130.0, 48.0),
+            "the right edge stays put"
+        );
+        assert_eq!(
+            resized(box_, ResizedEdge::Left, 500.0, &rule),
+            Rect::new(180.0, 50.0, 80.0, 48.0),
+            "the minimum stops the edge before the far one"
+        );
+        assert_eq!(
+            resized(box_, ResizedEdge::Right, 900.0, &rule).width,
+            300.0,
+            "nor past the maximum"
+        );
+        assert_eq!(resized(box_, ResizedEdge::Bottom, 20.0, &rule).height, 48.0);
+        assert_eq!(
+            resized(box_, ResizedEdge::Top, 100.0, &SizeRule::default()),
+            Rect::new(100.0, 97.0, 160.0, 1.0),
+            "one unit where no minimum is stated"
+        );
     }
 }
