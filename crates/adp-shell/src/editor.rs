@@ -26,6 +26,24 @@ pub struct TextEditor {
     runs: Option<(u64, Kind, Vec<Vec<Run>>)>,
     /// The line the cursor was on last frame, to scroll it into view when it moves.
     last_cursor: Option<usize>,
+    /// Findings to underline, by character offsets.
+    pub marks: Vec<Mark>,
+}
+
+/// A finding drawn as a squiggle under its range, in the theme's error, warning or information colour.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Mark {
+    pub start: usize,
+    pub end: usize,
+    pub level: MarkLevel,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MarkLevel {
+    Error,
+    Warning,
+    Info,
 }
 
 impl TextEditor {
@@ -36,6 +54,7 @@ impl TextEditor {
             id,
             runs: None,
             last_cursor: None,
+            marks: Vec::new(),
         }
     }
 
@@ -174,6 +193,24 @@ impl TextEditor {
                         );
                     }
                     painter.galley(text_origin, galley.clone(), foreground);
+                    for mark in &self.marks {
+                        if mark.end < line_start || mark.start > line_end {
+                            continue;
+                        }
+                        let from = mark.start.max(line_start) - line_start;
+                        let to = (mark.end.min(line_end) - line_start).max(from + 1);
+                        let left = text_origin.x + galley.pos_from_cursor(egui::text::CCursor::new(from)).left();
+                        let right = (text_origin.x + galley.pos_from_cursor(egui::text::CCursor::new(to)).left())
+                            .max(left + digit_width);
+                        let colour = match mark.level {
+                            MarkLevel::Error => {
+                                color(theme, &["editorError.foreground", "errorForeground"], Color32::RED)
+                            }
+                            MarkLevel::Warning => color(theme, &["editorWarning.foreground"], Color32::YELLOW),
+                            MarkLevel::Info => color(theme, &["editorInfo.foreground"], Color32::LIGHT_BLUE),
+                        };
+                        squiggle(&painter, left, right, top + row_height - 3.0, colour);
+                    }
                     if focused && line == cursor_line {
                         let column = self.buffer.position(self.buffer.cursor()).1;
                         let x = text_origin.x + galley.pos_from_cursor(egui::text::CCursor::new(column)).left();
@@ -280,6 +317,21 @@ impl TextEditor {
             }
             _ => {}
         }
+    }
+}
+
+/// A wavy underline from `left` to `right` at `y`, as VS Code draws a finding.
+fn squiggle(painter: &egui::Painter, left: f32, right: f32, y: f32, colour: Color32) {
+    let mut points = Vec::new();
+    let mut x = left;
+    let mut up = true;
+    while x <= right {
+        points.push(Pos2::new(x, if up { y - 1.5 } else { y + 1.5 }));
+        x += 2.0;
+        up = !up;
+    }
+    if points.len() > 1 {
+        painter.add(egui::Shape::line(points, Stroke::new(1.0, colour)));
     }
 }
 
