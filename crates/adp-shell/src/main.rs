@@ -3,9 +3,12 @@
 
 #![cfg_attr(not(test), windows_subsystem = "windows")]
 
+mod documents;
 mod editor;
+mod explorer;
 mod highlight;
 mod markdown;
+mod problems;
 mod shell;
 mod theme;
 
@@ -34,10 +37,13 @@ fn main() -> eframe::Result {
         options,
         Box::new(|cc| {
             theme::install(&cc.egui_ctx);
-            let mut shell = shell::Shell::default();
-            // `adp-desktop <file>` opens the file in the editor, as `code <file>` does.
+            let mut shell = match adp_core::state::StateFolder::for_platform() {
+                Ok(state) => shell::Shell::with_state(state),
+                Err(_) => shell::Shell::default(),
+            };
+            // `adp-desktop <folder>` opens a project and `adp-desktop <file>` a file, as `code <path>` does.
             if let Some(path) = std::env::args_os().nth(1) {
-                shell.open_text(std::path::Path::new(&path));
+                shell.open_path(std::path::Path::new(&path));
             }
             Ok(Box::new(App { shell }))
         }),
