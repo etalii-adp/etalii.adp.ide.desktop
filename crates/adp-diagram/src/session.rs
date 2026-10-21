@@ -291,6 +291,15 @@ impl DiagramSession {
             ..DislConstraintOptions::default()
         };
         let mut problems = missing;
+        if let Some(found) = document
+            .tool()
+            .module
+            .as_ref()
+            .and_then(|m| m.problems(document, options.clone()))
+        {
+            problems.extend(found);
+            return problems;
+        }
         problems.extend(
             constraints::evaluate(
                 document.tool().definition.specification(),

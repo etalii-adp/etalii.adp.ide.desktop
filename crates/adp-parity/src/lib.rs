@@ -422,6 +422,7 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
     let catalogue = Catalogue::load(&repository_root().join("vendor"));
     let tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module());
+    let tools = adp_diagram_dependency_graph::register(tools);
     let mut tools = adp_diagram_c4::register(tools);
     let mut workspace = DiagramWorkspace::new(project.path());
     let (_, mut session) = match workspace.open(&mut tools, &document) {
@@ -584,6 +585,14 @@ impl Replay<'_> {
             }
         }
         let target = self.target(args.get("target"))?;
+        if let ActionTarget::Connection {
+            source: Some(source),
+            target: Some(end),
+        } = &target
+            && let Some(point) = end.strip_prefix("new:")
+        {
+            return self.connect_to_new(source, point);
+        }
         let prompt = match self.session.execute(&mut self.workspace, &target, action, self.ids) {
             ActionOutcome::Done => {
                 return match args.get("value").and_then(Json::as_str) {
@@ -630,6 +639,21 @@ impl Replay<'_> {
         adp_add::AddCatalogue::standalone()
             .commit(&target, value, text)
             .map(|_| ())
+    }
+
+    /// A connect gesture from `source` released on empty canvas at `point` (`rel:a->new:x,y`), as the canvas runs it:
+    /// the first relation type that may leave `source` towards empty canvas, its target made at the point.
+    fn connect_to_new(&mut self, source: &str, point: &str) -> Result<(), String> {
+        let (x, y) = point.split_once(',').ok_or("a canvas end is new:x,y")?;
+        let number = |n: &str| n.trim().parse::<f64>().map_err(|e| format!("'{n}': {e}"));
+        let relation = self
+            .session
+            .relation_types_between(self.workspace.documents(), source, None)
+            .into_iter()
+            .next()
+            .ok_or_else(|| format!("no relation leaves '{source}' towards empty canvas"))?;
+        self.session
+            .connect_to_new(&mut self.workspace, &relation, source, number(x)?, number(y)?, self.ids)
     }
 
     /// `ContextService.SetProperty`, the row named by its id or by its label as the grid shows it.

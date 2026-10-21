@@ -42,6 +42,11 @@ fn generic_timeline_add() {
 }
 
 #[test]
+fn generic_dependencies_services() {
+    check("generic/dependencies/services");
+}
+
+#[test]
 fn generic_timeline_roadmap() {
     check("generic/timeline/roadmap");
 }
