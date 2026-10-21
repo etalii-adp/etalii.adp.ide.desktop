@@ -5,6 +5,7 @@
 
 mod editor;
 mod highlight;
+mod markdown;
 mod shell;
 mod theme;
 

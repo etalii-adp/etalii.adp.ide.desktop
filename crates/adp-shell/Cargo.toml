@@ -19,6 +19,8 @@ adp-core = { path = "../adp-core" }
 adp-theme = { path = "../adp-theme" }
 # The window, drawn on wgpu, with AccessKit for screen readers (spec 030, research R2).
 adp-documents = { path = "../adp-documents" }
+adp-editor-json = { path = "../../modules/editors/json" }
+adp-editor-markdown = { path = "../../modules/editors/markdown" }
 adp-text = { path = "../adp-text" }
 # Highlighting with TextMate grammars, which VS Code's token colours are written for (spec 030, research R6).
 syntect = { version = "5", default-features = false, features = ["default-fancy"] }

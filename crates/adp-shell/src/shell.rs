@@ -9,7 +9,7 @@ use adp_core::{Event, Outcome, Workspace};
 use adp_documents::TextFile;
 use eframe::egui::{self, Frame, Margin, RichText};
 
-use crate::editor::TextEditor;
+use crate::editor::{Mark, MarkLevel, TextEditor};
 use crate::highlight::Highlighter;
 use crate::theme::{self, Palette};
 
@@ -17,6 +17,84 @@ use crate::theme::{self, Palette};
 struct OpenText {
     file: TextFile,
     editor: TextEditor,
+    /// The buffer revision the editor's analysis was made for, and what it says on the status line.
+    analysed: Option<u64>,
+    status: String,
+    /// For Markdown: the outline and the preview, made for the analysed revision.
+    markdown: Option<(Vec<adp_editor_markdown::Heading>, Vec<adp_editor_markdown::Block>)>,
+}
+
+impl OpenText {
+    /// Runs the editor's analysis when the text changed: for JSON, its mistakes and its schema (FR-020).
+    fn analyse(&mut self) {
+        let revision = self.editor.buffer.revision();
+        if self.analysed == Some(revision) {
+            return;
+        }
+        self.analysed = Some(revision);
+        let extension = self
+            .file
+            .path()
+            .extension()
+            .map(|e| e.to_string_lossy().to_lowercase())
+            .unwrap_or_default();
+        if extension == "md" || extension == "markdown" {
+            let text = self.editor.buffer.text();
+            self.markdown = Some((
+                adp_editor_markdown::headings_of(&text),
+                adp_editor_markdown::preview(&text),
+            ));
+            return;
+        }
+        let is_json = self
+            .file
+            .path()
+            .extension()
+            .is_some_and(|e| e.eq_ignore_ascii_case("json"));
+        if !is_json {
+            return;
+        }
+        let text = self.editor.buffer.text();
+        // Without a project, the file's own folder is the project the schema may be read from.
+        let folder = self
+            .file
+            .path()
+            .parent()
+            .map(std::path::Path::to_path_buf)
+            .unwrap_or_default();
+        let name = self
+            .file
+            .path()
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let read: adp_editor_json::ReadFile =
+            std::sync::Arc::new(move |path: &[String]| std::fs::read_to_string(folder.join(path.join("/"))).ok());
+        let analysis = adp_editor_json::analyse(&text, &[name], read);
+        let char_at = |byte: usize| text.get(..byte.min(text.len())).map_or(0, |t| t.chars().count());
+        self.editor.marks = analysis
+            .findings
+            .iter()
+            .map(|f| Mark {
+                start: char_at(f.span.start),
+                end: char_at(f.span.end),
+                level: match f.severity {
+                    adp_editor_json::Severity::Error => MarkLevel::Error,
+                    adp_editor_json::Severity::Warning => MarkLevel::Warning,
+                    adp_editor_json::Severity::Info => MarkLevel::Info,
+                },
+                message: f.message.clone(),
+            })
+            .collect();
+        let errors = self.editor.marks.iter().filter(|m| m.level == MarkLevel::Error).count();
+        let warnings = self
+            .editor
+            .marks
+            .iter()
+            .filter(|m| m.level == MarkLevel::Warning)
+            .count();
+        self.status = format!("{} · {errors} errors, {warnings} warnings", analysis.status);
+    }
 }
 
 /// The window's state: its core and what the core last told it.
@@ -61,7 +139,13 @@ impl Shell {
                     .unwrap_or_default();
                 let editor = TextEditor::new(file.content(), &extension, egui::Id::unique("text-editor"));
                 self.notice = Some(format!("{} · {}", file.encoding_name(), file.line_ending_style()));
-                self.open = Some(OpenText { file, editor });
+                self.open = Some(OpenText {
+                    file,
+                    editor,
+                    analysed: None,
+                    status: String::new(),
+                    markdown: None,
+                });
             }
             Err(reason) => self.notice = Some(reason),
         }
@@ -118,6 +202,9 @@ impl Shell {
     pub fn show(&mut self, ui: &mut egui::Ui) {
         self.drain();
         self.save(ui);
+        if let Some(open) = &mut self.open {
+            open.analyse();
+        }
         let editor_focused = self
             .open
             .as_ref()
@@ -145,6 +232,15 @@ impl Shell {
                             .color(palette.status_bar_foreground)
                             .size(sizes.workbench_font - 1.0),
                     );
+                    if let Some(open) = self.open.as_ref().filter(|o| !o.status.is_empty()) {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.label(
+                                RichText::new(&open.status)
+                                    .color(palette.status_bar_foreground)
+                                    .size(sizes.workbench_font - 1.0),
+                            );
+                        });
+                    }
                 });
             });
 
@@ -209,8 +305,28 @@ impl Shell {
                 });
             egui::CentralPanel::default()
                 .frame(Frame::NONE.fill(palette.editor_background))
-                .show(ui, |ui| {
-                    open.editor.show(ui, &theme, highlighter);
+                .show(ui, |ui| match &open.markdown {
+                    Some((headings, blocks)) => {
+                        if !headings.is_empty()
+                            && let Some(line) = crate::markdown::outline(ui, headings, &theme)
+                        {
+                            let offset = open.editor.buffer.offset(line - 1, 0);
+                            open.editor.buffer.set_cursor(offset);
+                            ui.memory_mut(|m| m.request_focus(open.editor.id()));
+                        }
+                        let blocks = blocks.clone();
+                        ui.columns(2, |columns| {
+                            open.editor.show(&mut columns[0], &theme, highlighter);
+                            egui::Frame::NONE
+                                .inner_margin(Margin::symmetric(16, 8))
+                                .show(&mut columns[1], |ui| {
+                                    crate::markdown::preview(ui, &blocks, &theme);
+                                });
+                        });
+                    }
+                    None => {
+                        open.editor.show(ui, &theme, highlighter);
+                    }
                 });
         } else {
             egui::CentralPanel::default()
@@ -277,6 +393,22 @@ mod tests {
         };
         ctx.run_ui(input, |ui| shell.show(ui)).textures_delta.clear();
         assert_eq!(shell.notice.as_deref(), Some("There is nothing to undo."));
+    }
+
+    #[test]
+    fn a_json_file_is_checked_against_its_schema_and_its_findings_are_marked() {
+        let examples =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../modules/editors/json/tests/examples");
+        let mut shell = Shell::default();
+        shell.open_text(&examples.join("service-broken.json"));
+        let open = shell.open.as_mut().unwrap();
+        open.analyse();
+        assert!(
+            open.editor.marks.iter().any(|m| m.level == MarkLevel::Error),
+            "{:?}",
+            open.editor.marks
+        );
+        assert!(!open.status.starts_with("No schema"), "{}", open.status);
     }
 
     #[test]

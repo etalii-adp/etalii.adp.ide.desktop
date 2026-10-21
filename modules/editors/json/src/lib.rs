@@ -401,12 +401,21 @@ fn normalise(reference: &str) -> String {
     }
 }
 
-/// A schema break, on the key of the property it is about when there is one, else on the value.
+/// A schema break: on the key of the property it is about when there is one; for a whole object, on the property
+/// the message names ("'region' was unexpected") or else on its opening brace, as VS Code marks it; otherwise on the
+/// value.
 fn schema_finding(root: &Node, pointer: &str, message: String) -> Finding {
     let span = match root.at_pointer(pointer) {
+        Some((Node::Object { span, members }, _)) => message
+            .split('\'')
+            .skip(1)
+            .step_by(2)
+            .find_map(|name| members.iter().find(|m| m.key == name).map(|m| m.key_span.clone()))
+            .unwrap_or(span.start..span.start + 1),
+        Some((Node::Array { span, .. }, _)) => span.start..span.start + 1,
         Some((_, Some(key))) => key,
         Some((node, None)) => node.span(),
-        None => root.span(),
+        None => root.span().start..root.span().start + 1,
     };
     Finding {
         span,
