@@ -24,6 +24,7 @@ pub mod xml;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use adp_cel::{Map, Value};
 use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
 use adp_diagram::workspace::DiagramWorkspace;
 use adp_diagram::{DiagramDocument, DiagramModule, DiagramTools};
@@ -95,6 +96,13 @@ impl DiagramModule for MindmapModule {
         value: &str,
     ) -> Option<ActionOutcome> {
         self.actions.answer(session, workspace, target, action_id, value)
+    }
+
+    /// This viewer's fold of `element`, as `self.view.collapsed` reads it: Collapse or Expand on its menu, and the
+    /// collapsed glyph among its indicators.
+    fn view_of(&self, document: &DiagramDocument, element: &DislElement) -> Option<Map> {
+        let folded = self.actions.is_folded(document, &element.id());
+        Some([("collapsed", Value::Bool(folded))].into_iter().collect())
     }
 
     /// The centre of every visible node's box, as the two-sided layout places it for this viewer's folds.

@@ -765,3 +765,59 @@ fn a_dragged_period_with_an_unreadable_end_moves_only_its_begin() {
         timeline.text()
     );
 }
+
+/// The Story 2 walk's F5 (`parity/walks.md`): a drag of a period's edge, given to the session as the canvas gives it,
+/// writes that edge in the period's precision, stopped at the other edge, as `TimelineCanvas.tsx`'s
+/// `onElementResized` set `timeline.begin` or `timeline.end`; a moment has no edge to drag.
+#[test]
+fn a_drag_of_a_periods_edge_writes_its_begin_or_its_end() {
+    let mut timeline = open(TIMELINE);
+    let before = timeline.text();
+    let resize = |edge, x: f64, right: f64| adp_diagram::Resize {
+        edge,
+        x,
+        y: 0.0,
+        right,
+        bottom: 36.0,
+        width: 10.0,
+        height: 36.0,
+    };
+    let result = timeline.session.resize_element(
+        &mut timeline.workspace,
+        "aaa",
+        &resize(
+            adp_diagram::ResizedEdge::Right,
+            seconds("2026-01-05"),
+            seconds("2026-02-20") + 3600.0,
+        ),
+    );
+    assert_eq!(result, Ok(()));
+    assert_eq!(timeline.text(), before.replace("end: 2026-02-13", "end: 2026-02-20"));
+    assert!(timeline.workspace.undo().is_done());
+    assert_eq!(timeline.text(), before);
+    let result = timeline.session.resize_element(
+        &mut timeline.workspace,
+        "aaa",
+        &resize(
+            adp_diagram::ResizedEdge::Left,
+            seconds("2026-03-01"),
+            seconds("2026-02-13"),
+        ),
+    );
+    assert_eq!(result, Ok(()));
+    assert_eq!(
+        timeline.text(),
+        before.replace("begin: 2026-01-05", "begin: 2026-02-13"),
+        "the left edge stops at the right one"
+    );
+    assert!(
+        timeline
+            .session
+            .resize_element(
+                &mut timeline.workspace,
+                "bbb",
+                &resize(adp_diagram::ResizedEdge::Right, 0.0, 0.0)
+            )
+            .is_err()
+    );
+}

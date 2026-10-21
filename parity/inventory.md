@@ -16,7 +16,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-010 | Ribbon: Save, New, Undo, Redo, contextual groups, Zoom In, Zoom Out, Fit to View | adp-diagram-ide, fit-to-view-extent | 2 |  | planned |
 | P-011 | One selection per window; actions as data to ribbon, context menu and keyboard | context-service, centralized-selection | 2 |  | planned |
 | P-012 | Prompts: choices, file dialogs, text input, confirmations, notices | context-service | 2 |  | planned |
-| P-013 | Undo and redo of every change, composite changes as one step, a barrier at a change from outside | diagram-undo-redo, multi-select | 2 | walk: 2/9, 2/4, 2/5 (the toolbar Undo does not show its refusal; walks.md F13) | checked |
+| P-013 | Undo and redo of every change, composite changes as one step, a barrier at a change from outside | diagram-undo-redo, multi-select | 2 | walk: 2/9, 2/4, 2/5 (the toolbar Undo says its refusal since the re-walk; walks.md F13) | checked |
 | P-014 | Errors and warnings panel: validated, cached per project, revalidated at start | errors-and-warnings-panel | 2 |  | planned |
 | P-015 | Search panel (a placeholder at the reference commit) | adp-diagram-ide | 2 |  | planned |
 | P-016 | Light and dark themes following the system, with the contrast the theme tests require | client-centralization | 2 |  | planned |
@@ -26,14 +26,14 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-020 | DISL runtime: findings, toolbox, operations, constraints, notation; later versions refused | backend-centralization | 3 |  | planned |
 | P-021 | DESL and DED runtime | knowledge-designer | 3 |  | planned |
 | P-022 | CEL expressions | backend-centralization | 3 |  | planned |
-| P-023 | Canvas: pan with right-drag and scroll bars, zoom, fit to view | canvas-scrollbars, canvas-single-scrollbar, fit-to-view-extent | 4 | walk: 2/3 (fails: the plain wheel pans rather than zooms, and the timeline cannot be fitted; walks.md F1, F3, F5) | built |
-| P-024 | Canvas gestures: drag, move, resize, connect, Escape to cancel | drag-and-drop-centralization, selection-after-drag | 4 | walk: 2/3 (fails: a mind map drag writes a position instead of re-parenting, a C4 element cannot be connected, a left drag on empty canvas boxes rather than pans; walks.md F2, F6, F15) | built |
+| P-023 | Canvas: pan with right-drag and scroll bars, zoom, fit to view | canvas-scrollbars, canvas-single-scrollbar, fit-to-view-extent | 4 | walk: 2/3 (re-walked: the wheel zooms about the pointer, a diagram opens and stays fitted, the timeline fits with its ruler; walks.md F1, F3, F5) | checked |
+| P-024 | Canvas gestures: drag, move, resize, connect, Escape to cancel | drag-and-drop-centralization, selection-after-drag | 4 | walk: 2/3 (re-walked: a mind map drag re-parents, a timeline period drags and resizes by days, a C4 connection is refused as the standalone host refuses it; still fails: a left drag on empty canvas boxes rather than pans, waiting for a decision; walks.md F2, F5, F6, F15) | built |
 | P-025 | Box selection and Ctrl selection | multi-select | 4 | walk: 2/3 (the standalone host at 8b6ccfc has neither; walks.md F15) | checked |
-| P-026 | Toolbox dragged onto the canvas; a connection dropped on empty space creates its target | drag-and-drop-centralization | 4 | walk: 2/6 (fails for the mind map and the C4 container view; walks.md F7, F8) | built |
-| P-027 | Tab and Enter add a child or a sibling | adp-diagram-ide | 4 | walk: 2/8 (fails: the canvas is not redrawn and the editor opens over the parent; walks.md F10, F11) | built |
-| P-028 | Inline label rename on the canvas | inline-rename | 4 | walk: 2/7 (fails for C4: F2 and double-click refused; walks.md F9) | built |
-| P-029 | Layout modes: Manual, Automatic Horizontal, Vertical, Cloud; collapse and expand | layout-modes | 4 | walk: 2/10 (fails: Space and the menu do not collapse a mind map node; walks.md F12) | built |
-| P-030 | Property grid: selection chain, groups, read-only rows with their reason, five editor kinds | property-grid | 4 | walk: 2/4 (line, text and read-only rows with their reasons walked; toggle, choice and slider not reached by these tool types; walks.md F4) | built |
+| P-026 | Toolbox dragged onto the canvas; a connection dropped on empty space creates its target | drag-and-drop-centralization | 4 | walk: 2/6 (re-walked: the mind map's Node adds a child where it is dropped; a C4 container dropped inside a boundary is refused as the standalone host refuses it; walks.md F7, F8) | checked |
+| P-027 | Tab and Enter add a child or a sibling | adp-diagram-ide | 4 | walk: 2/8 (re-walked: the new node is drawn, selected and named in place over itself; Delete with several selected deletes all of them as one undo; walks.md F10, F11, F14) | checked |
+| P-028 | Inline label rename on the canvas | inline-rename | 4 | walk: 2/7 (re-walked: F2 on a C4 element renames it in place through its Rename…; still differs: a double-click renames a mind map node, which `doubleClick: "none"` does not; walks.md F9 and the re-walk) | built |
+| P-029 | Layout modes: Manual, Automatic Horizontal, Vertical, Cloud; collapse and expand | layout-modes | 4 | walk: 2/10 (re-walked: Space and the menu collapse and expand a mind map branch; the layout modes are not walked; walks.md F12) | built |
+| P-030 | Property grid: selection chain, groups, read-only rows with their reason, five editor kinds | property-grid | 4 | walk: 2/4 (line, text and read-only rows with their reasons walked, and an Enter that commits a field stays in it; toggle, choice and slider not reached by these tool types; walks.md F4) | built |
 | P-031 | Property grid on several elements, one undo for all | multi-select | 4 | walk: 2/4 | checked |
 | P-032 | Changes on disk reconciled with unsaved edits in open views | view-delta-adoption | 4 | walk: 2/5 | checked |
 | P-033 | Add dialog: tool types grouped by vendor, with names and states | add-diagram-action | 4 |  | planned |

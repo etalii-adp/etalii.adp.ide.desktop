@@ -1215,6 +1215,10 @@ impl Shell {
         let Some(tab) = self.tabs.get_mut(self.active).and_then(Tab::diagram_mut) else {
             return;
         };
+        // An edit that went through takes away the refusal the status bar still shows.
+        if std::mem::take(&mut tab.cleared) {
+            self.notice = None;
+        }
         if let Some(notice) = tab.notice.take() {
             self.notice = Some(notice);
         }
