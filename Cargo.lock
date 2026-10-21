@@ -125,6 +125,7 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-agent-activity",
+ "adp-diagram-agent-behavior-modelling",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-functional-decomposition-graph",
@@ -232,6 +233,21 @@ dependencies = [
  "serde_json",
  "tempfile",
  "time",
+]
+
+[[package]]
+name = "adp-diagram-agent-behavior-modelling"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-fbl",
+ "adp-history",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -518,6 +534,7 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-agent-activity",
+ "adp-diagram-agent-behavior-modelling",
  "adp-diagram-ansible-structure",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
@@ -578,6 +595,7 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-agent-activity",
+ "adp-diagram-agent-behavior-modelling",
  "adp-diagram-ansible-structure",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",

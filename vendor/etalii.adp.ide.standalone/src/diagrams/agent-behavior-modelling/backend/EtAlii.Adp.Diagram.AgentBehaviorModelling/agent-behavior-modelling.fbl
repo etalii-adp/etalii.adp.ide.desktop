@@ -1,0 +1,19 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.1",
+  "doc": "The agent behavior model's Markdown body (definitions/diagrams/agent-behavior-modelling.dis, agent-behavior-modelling.md): a binding whose reader is a persistence plugin (section 11), because the tree is a nested Markdown list whose nesting, keywords and notes no declared rule reads. The plugin net.etalii.adp.etalii.abmMarkdown wraps the module's AbmParser and AbmWriter: it reads the first bullet list under the first Behavior heading and plans every change as the lines it touches, so everything else in the file is kept byte for byte. A repository is full of Markdown that is not a behavior model, so the claim is shared and registration-only: a file becomes one when it is registered, never on sight. Routing, undo and drift are the host's.",
+  "bindings": {
+    "abm": {
+      "title": "Agent behavior model",
+      "claims": {
+        "extensions": [".md"],
+        "shared": true,
+        "registrationOnly": true,
+        "origins": ["etalii/agent-behavior-modelling"]
+      },
+      "body": { "kind": "file", "family": "lines" },
+      "reader": { "plugin": "net.etalii.adp.etalii.abmMarkdown", "version": "^0.1.0" },
+      "text": { "newline": "crlf", "finalNewline": true }
+    }
+  }
+}
