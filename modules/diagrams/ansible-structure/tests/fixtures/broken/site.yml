@@ -1,0 +1,5 @@
+---
+# ansible.dangling-import: no such file exists in this tree.
+- import_playbook: does-not-exist.yml
+
+- import_playbook: playbooks/deploy.yml

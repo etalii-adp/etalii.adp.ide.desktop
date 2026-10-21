@@ -13,6 +13,7 @@
 //! scene's [`HookKind::ResizeHandle`] hooks, carry one edge each (`DiagramCanvas.tsx`, the `resize` gesture, and
 //! `gestureFrame.ts`: the preview is the frame's, the edit is written once, at the release, and Escape reverts it).
 
+pub mod ansible_scene;
 pub mod fdg_scene;
 pub mod gestures;
 pub mod metrics;
@@ -98,8 +99,8 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
-                adp_diagram_dependency_graph::register(
+            tools: adp_diagram_ansible_structure::register(adp_diagram_supply_chain::register(
+                adp_diagram_sankey::register(adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                     adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                         DislPluginFunctions::none()
                     }))
@@ -110,8 +111,8 @@ impl DiagramHost {
                         adp_diagram_functional_decomposition_graph::ORIGIN,
                         adp_diagram_functional_decomposition_graph::module(),
                     ),
-                ),
-            ))),
+                ))),
+            )),
             workspaces: HashMap::new(),
         }
     }
@@ -131,7 +132,7 @@ impl DiagramHost {
         let usable = |origin: &str| {
             catalogue.by_origin(origin).is_some_and(|t| t.is_usable()) || self.tools.opened_by_module(origin)
         };
-        if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
+        if adp_diagram::workspace::is_registration(path) {
             return std::fs::read(path).is_ok_and(|bytes| usable(&RegistrationDocument::read(bytes).origin));
         }
         let name = path
@@ -743,6 +744,9 @@ impl DiagramTab {
         self.selection.retain(|id| known.contains(id.as_str()));
         let built = if self.opened.origin == adp_diagram_sankey::ORIGIN {
             sankey_scene::build(&elements, &self.selection, self.arbiter.moving())
+        } else if self.opened.origin == adp_diagram_ansible_structure::ORIGIN {
+            // An Ansible structure's boxes are moved by the top-left the registration stores (`onElementMoved`).
+            ansible_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark)
         } else if self.opened.origin == adp_diagram_supply_chain::ORIGIN {
             // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
             supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving())

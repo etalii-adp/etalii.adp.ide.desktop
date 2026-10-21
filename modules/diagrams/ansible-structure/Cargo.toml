@@ -1,0 +1,28 @@
+[package]
+name = "adp-diagram-ansible-structure"
+description = "The Ansible structure diagram's residue: the folder plugin that reads an Ansible project, its graph, its ranked layout, its findings and rows, and the one edit, a position in the registration (spec 030, T079)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# The project's YAML is only read, for its structure and the line each node starts on.
+saphyr-parser = "0.0.6"
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+serde_json = "1"
+tempfile = "3"
+
+[lints]
+workspace = true
