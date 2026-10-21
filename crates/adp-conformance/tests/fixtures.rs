@@ -3,8 +3,8 @@
 //! This first level checks what the splice catalogue alone decides, as etalii.adp's own validator does (FBL section
 //! 15.3): each step's splices turn the body before it into its expected body and back by their inverses; an undo
 //! gives back the body the undone edit started from and a redo the body it left; a refused edit and a save change
-//! nothing. Reading the input and planning each edit's splices from its binding follow with the families (T040 to
-//! T044), and then the same fixtures are replayed from the edits rather than from their listed splices.
+//! nothing. Reading the input and planning each edit's splices from its binding is `standalone.rs`, which runs the
+//! standalone host's harness over the fixtures that host reads.
 
 use std::fs;
 use std::path::{Path, PathBuf};

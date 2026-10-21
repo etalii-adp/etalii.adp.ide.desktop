@@ -1335,3 +1335,22 @@ fn a_planted_defect_in_a_splice_is_caught() {
     let failure = run("timeline-edits", &folder, &fixture).unwrap_err();
     assert!(failure.contains("expected splices"), "{failure}");
 }
+
+/// Every binding the fixtures above name loads without an error (FBL section 14.1), and routes its fixture's
+/// input to itself (FBL section 12.3).
+#[test]
+fn the_bindings_load_and_route_their_fixtures_inputs() {
+    let mut failures = Vec::new();
+    for name in STANDALONE_FIXTURES.iter().chain(KNOWLEDGE_FIXTURES.iter()) {
+        let (binding, input, input_name, _) = binding_and_input(name);
+        // A registration-only binding is opened through a registration, never by routing (FBL section 12.3).
+        if input_name.to_lowercase().ends_with(".adp") || binding.claims.registration_only {
+            continue;
+        }
+        let routed = adp_fbl::routing::candidates(&input_name, &input, [binding.as_ref()]);
+        if routed.is_empty() {
+            failures.push(format!("{name}: {input_name} does not route to {}", binding.name));
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+}

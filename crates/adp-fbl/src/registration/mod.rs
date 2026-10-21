@@ -517,3 +517,152 @@ fn numbers(text: &BodyText, value: Span) -> Vec<Span> {
     }
     spans
 }
+
+/// Where a registration's body is (FBL section 8.2), or why it is not opened.
+#[derive(Debug, Clone, PartialEq)]
+pub struct BodyLocation {
+    pub path: Option<std::path::PathBuf>,
+    pub exists: bool,
+    pub refusal: Option<String>,
+    /// What locating found: `fbl.missing-body` when the body is missing (FBL sections 7.4 and 8.2), else nothing.
+    pub findings: Vec<Finding>,
+}
+
+impl BodyLocation {
+    /// A missing body opens empty with `fbl.missing-body`, and nothing is written until the registration names a
+    /// file.
+    pub fn is_missing(&self) -> bool {
+        self.refusal.is_none() && !self.exists
+    }
+
+    fn refused(reason: &str) -> Self {
+        BodyLocation {
+            path: None,
+            exists: false,
+            refusal: Some(reason.to_owned()),
+            findings: Vec::new(),
+        }
+    }
+}
+
+/// Finds a registration's body (FBL section 8.2): the `body` header relative to the registration's folder, else
+/// the sibling with the registration's base name and the first existing claimed extension, else the registration's
+/// folder for a folder binding. A body outside the workspace root, or reached through a symbolic link, is refused
+/// (FBL section 16).
+pub fn locate_body(
+    registration_path: &std::path::Path,
+    registration: &RegistrationDocument,
+    binding: &crate::documents::FblBinding,
+    workspace_root: &std::path::Path,
+) -> BodyLocation {
+    use std::path::{Component, Path, PathBuf};
+
+    /// The path with `.` and `..` resolved without touching the file system, as .NET's `GetFullPath` does.
+    fn normalise(path: &Path) -> PathBuf {
+        let mut out = PathBuf::new();
+        for component in path.components() {
+            match component {
+                Component::CurDir => {}
+                Component::ParentDir => {
+                    out.pop();
+                }
+                other => out.push(other.as_os_str()),
+            }
+        }
+        out
+    }
+
+    let registration_full =
+        normalise(&std::path::absolute(registration_path).unwrap_or_else(|_| registration_path.to_path_buf()));
+    let folder = registration_full.parent().map(Path::to_path_buf).unwrap_or_default();
+    let root = normalise(&std::path::absolute(workspace_root).unwrap_or_else(|_| workspace_root.to_path_buf()));
+    let candidate = if let Some(body) = registration.body() {
+        if Path::new(body).is_absolute() || body.starts_with(['/', '\\']) {
+            return BodyLocation::refused("The registration's body is an absolute path, which is never followed.");
+        }
+        normalise(&folder.join(body))
+    } else if binding.body.is_folder {
+        folder.clone()
+    } else {
+        let base = registration_full
+            .file_stem()
+            .map(|s| s.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        binding
+            .claims
+            .extensions
+            .iter()
+            .map(|e| folder.join(format!("{base}{e}")))
+            .find(|p| p.is_file())
+            .unwrap_or_else(|| {
+                folder.join(format!(
+                    "{base}{}",
+                    binding
+                        .claims
+                        .extensions
+                        .first()
+                        .map(String::as_str)
+                        .unwrap_or_default()
+                ))
+            })
+    };
+    if !candidate.starts_with(&root) {
+        return BodyLocation::refused(
+            "The registration's body is outside the workspace, so it is not opened without the user's consent.",
+        );
+    }
+    let mut current = candidate.clone();
+    while current.starts_with(&root) && current != root {
+        if std::fs::symlink_metadata(&current).is_ok_and(|m| m.file_type().is_symlink()) {
+            return BodyLocation::refused(
+                "The registration's body is reached through a link, which is not followed without the user's consent.",
+            );
+        }
+        if !current.pop() {
+            break;
+        }
+    }
+    let exists = if binding.body.is_folder {
+        candidate.is_dir()
+    } else {
+        candidate.is_file()
+    };
+    let mut findings = Vec::new();
+    if !exists {
+        // On the registration's `body` header, or on its origin line when the body is the derived sibling.
+        let text = registration.text();
+        let span = registration
+            .headers
+            .iter()
+            .find(|h| h.key == "body")
+            .map(|h| h.line)
+            .unwrap_or(Span::new(text.bom_length(), text.lines()[0].end));
+        let (line, column) = text.position(span.start);
+        let name = |p: &Path| {
+            p.file_name()
+                .map(|n| n.to_string_lossy().into_owned())
+                .unwrap_or_default()
+        };
+        findings.push(Finding {
+            code: codes::MISSING_BODY.into(),
+            severity: FindingSeverity::Error,
+            message: format!(
+                "The body '{}' does not exist, so the document opens empty and nothing is written until the registration names a file.",
+                name(&candidate)
+            ),
+            location: Some(SourceLocation {
+                file: name(&registration_full),
+                line,
+                column,
+                length: text.code_points(span.start, span.end),
+            }),
+            detail: None,
+        });
+    }
+    BodyLocation {
+        path: Some(candidate),
+        exists,
+        refusal: None,
+        findings,
+    }
+}
