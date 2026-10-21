@@ -269,11 +269,7 @@ impl DiagramSession {
             if let Some(refusal) = refusals.into_iter().next() {
                 return Err(refusal.message);
             }
-            changes.push(DiagramChange::Place {
-                id: id.clone(),
-                x: *x,
-                y: *y,
-            });
+            changes.push(document.placement_change(&element, *x, *y));
         }
         let label = if moves.len() == 1 {
             "Move".to_owned()
@@ -489,6 +485,20 @@ impl DiagramSession {
                     None => self.remove(workspace, id),
                 }
             }
+            ("editLabel", ActionTarget::Element(id)) => {
+                let Some(element) = document.element(id) else {
+                    return ActionOutcome::Refused(GONE.to_owned());
+                };
+                let label = label_id(document, &element, &entry);
+                ActionOutcome::Prompt(Prompt::Input {
+                    title: entry.label.clone(),
+                    icon: entry.icon.clone(),
+                    label: "Label".into(),
+                    initial_value: form_commit::edit_text(specification, &element, &label, &self.env)
+                        .unwrap_or_default(),
+                    confirm_label: entry.label.clone(),
+                })
+            }
             (_, _) if entry.operation.is_some() => {
                 let operation = entry.operation.clone().unwrap_or_default();
                 let working = builder::from(document.fbl(), specification).diagram;
@@ -521,15 +531,103 @@ impl DiagramSession {
         }
     }
 
-    /// Confirms action `action_id` of `target` after its prompt: the deletion it asked about.
-    pub fn confirm(&self, workspace: &mut DiagramWorkspace, target: &ActionTarget, action_id: &str) -> ActionOutcome {
+    /// Answers the prompt action `action_id` of `target` raised: the deletion it asked to confirm, or the label
+    /// typed for an inline rename.
+    pub fn answer(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        value: &str,
+    ) -> ActionOutcome {
         let Ok(document) = self.document(workspace.documents()) else {
             return ActionOutcome::Refused(NOT_OPEN.to_owned());
         };
-        match (self.entry(document, target, action_id), target) {
+        let entry = self.entry(document, target, action_id);
+        match (entry, target) {
             (Some(entry), ActionTarget::Element(id)) if entry.kind == "delete" => self.remove(workspace, id),
+            (Some(entry), ActionTarget::Element(id)) if entry.kind == "editLabel" => {
+                let label = match document.element(id) {
+                    Some(element) => label_id(document, &element, &entry),
+                    None => return ActionOutcome::Refused(GONE.to_owned()),
+                };
+                match self.edit_label(workspace, id, &label, value) {
+                    Ok(()) => ActionOutcome::Done,
+                    Err(refusal) => ActionOutcome::Refused(refusal),
+                }
+            }
             _ => ActionOutcome::Refused(format!("'{action_id}' does not apply to this selection.")),
         }
+    }
+
+    /// The text the inline editor of `element_id`'s label `label` opens on, or none when it has no such label.
+    pub fn label_text(&self, documents: &DiagramDocuments, element_id: &str, label: &str) -> Option<String> {
+        let document = self.document(documents).ok()?;
+        let element = document.element(element_id)?;
+        form_commit::edit_text(document.tool().definition.specification(), &element, label, &self.env)
+    }
+
+    /// Commits the inline edit `text` of `element_id`'s label `label`, as the label's `parse` writes it, as one
+    /// command.
+    pub fn edit_label(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        element_id: &str,
+        label: &str,
+        text: &str,
+    ) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        let element = document.element(element_id).ok_or_else(|| GONE.to_owned())?;
+        let transaction = form_commit::label(
+            document.tool().definition.specification(),
+            &element,
+            label,
+            text,
+            &self.env,
+        );
+        self.write(workspace, "Rename", transaction)
+    }
+
+    /// The connect gesture: a relation of `relation_type` from `source` to `target`, under the id `ids` gives; for a
+    /// derived relation type, the operation its `edits.connect` names (DISL section 4.11.4).
+    pub fn connect(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        relation_type: &str,
+        source: &str,
+        target: &str,
+        ids: &dyn IdSource,
+    ) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        let specification = document.tool().definition.specification();
+        let relation = specification
+            .metamodel()
+            .type_of(relation_type)
+            .filter(|t| t.is_relation)
+            .ok_or_else(|| format!("There is no relation type '{relation_type}'."))?
+            .clone();
+        let (Some(from), Some(to)) = (document.element(source), document.element(target)) else {
+            return Err("Both ends of a relation must be elements of this diagram.".to_owned());
+        };
+        let transaction = if relation.derived().is_some() {
+            let working = builder::from(document.fbl(), specification).diagram;
+            let (Some(from), Some(to)) = (working.element_by_id(source), working.element_by_id(target)) else {
+                return Err(GONE.to_owned());
+            };
+            operations::connect(specification, relation_type, &working, &from, &to, ids, Some(&self.env))
+        } else {
+            DislTransaction {
+                changes: vec![DislChange::Connect {
+                    type_name: relation_type.to_owned(),
+                    id: ids.next(relation_type)?,
+                    source_id: from.id(),
+                    target_id: to.id(),
+                    attributes: Map::default(),
+                }],
+                ..DislTransaction::default()
+            }
+        };
+        self.write(workspace, "Connect", transaction)
     }
 
     /// Removes an element; the binding's cascade takes what goes with it, as the standalone host's removal
@@ -558,6 +656,20 @@ impl DiagramSession {
         let edit = self.document(workspace.documents())?.plan(label, &changes)?;
         workspace.execute(edit)
     }
+}
+
+/// The label an `editLabel` entry edits: its `label` argument, else the first label of the element's notation.
+fn label_id(document: &DiagramDocument, element: &DislElement, entry: &DerivedMenuEntry) -> String {
+    if let Some(Value::String(label)) = entry.arguments.get("label") {
+        return label.clone();
+    }
+    let notation = document.tool().definition.specification().root().get("notation");
+    ["nodes", "edges"]
+        .iter()
+        .filter_map(|kind| notation?.get(kind)?.get(element.type_name())?.get("labels")?.as_array())
+        .flatten()
+        .find_map(|label| label.get("id")?.as_str().map(str::to_owned))
+        .unwrap_or_else(|| "label".to_owned())
 }
 
 /// The name of the specification's tool whose wire id is `tool_id`.

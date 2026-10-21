@@ -268,3 +268,41 @@ fn a_deleted_body_empties_the_diagram_and_refuses_edits() {
         .unwrap_err();
     assert!(!refusal.is_empty());
 }
+
+#[test]
+fn a_viewport_narrows_the_view_to_the_nodes_it_touches_and_the_relations_between_them() {
+    let project = project();
+    let (workspace, mut session, _) = open(&project);
+    session.baseline(workspace.documents()).unwrap();
+    let all = session.delivered().len();
+
+    // Around insight (20, 120) and narratives (-270, 120), and nothing else.
+    let viewport = adp_diagram::DiagramViewport::new(-280.0, 110.0, 30.0, 130.0);
+    let deltas = session.update_view(workspace.documents(), viewport).unwrap();
+    let [DiagramDelta::Remove(removed)] = deltas.as_slice() else {
+        panic!("only removals, not {deltas:?}");
+    };
+    let mut kept: Vec<&str> = session.delivered().iter().map(|e| e.id.as_str()).collect();
+    kept.sort_unstable();
+    assert_eq!(removed.len() + kept.len(), all);
+    assert!(
+        kept.contains(&"variable:insight") && kept.contains(&"variable:narratives"),
+        "{kept:?}"
+    );
+    assert!(
+        session
+            .delivered()
+            .iter()
+            .filter(|e| e.kind == ElementKind::Relation)
+            .all(|e| kept.contains(&e.source.as_deref().unwrap()) && kept.contains(&e.target.as_deref().unwrap()))
+    );
+
+    // Widening it again brings the rest back as one add.
+    let deltas = session
+        .update_view(workspace.documents(), adp_diagram::DiagramViewport::UNBOUNDED)
+        .unwrap();
+    let [DiagramDelta::Add(added)] = deltas.as_slice() else {
+        panic!("one add, not {deltas:?}");
+    };
+    assert_eq!(added.len(), removed.len());
+}

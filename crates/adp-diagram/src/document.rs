@@ -199,19 +199,67 @@ impl DiagramDocument {
         })
     }
 
-    /// The authored positions, by element id, from the registration's `layout:`.
+    /// The authored positions, by element id, in the diagram's domain units: a node whose notation places it by two
+    /// of its attributes is where they say, any other where the registration's `layout:` puts it.
     pub fn positions(&self) -> HashMap<String, (f64, f64)> {
         let mut positions = HashMap::new();
-        let Some(layout) = self.registration().and_then(|r| r.layout.as_ref()) else {
-            return positions;
-        };
-        for entry in &layout.entries {
-            let mut parts = entry.value.split_whitespace().map(str::parse::<f64>);
-            if let (Some(Ok(x)), Some(Ok(y)), None) = (parts.next(), parts.next(), parts.next()) {
-                positions.insert(entry.key.clone(), (x, y));
+        if let Some(layout) = self.registration().and_then(|r| r.layout.as_ref()) {
+            for entry in &layout.entries {
+                let mut parts = entry.value.split_whitespace().map(str::parse::<f64>);
+                if let (Some(Ok(x)), Some(Ok(y)), None) = (parts.next(), parts.next(), parts.next()) {
+                    positions.insert(entry.key.clone(), (x, y));
+                }
+            }
+        }
+        for element in self.reading.model.diagram.nodes() {
+            if let Some((x, y)) = self.placement_attributes(&element) {
+                let number = |name: &str| element.value_of(name).as_number().unwrap_or_default();
+                positions.insert(element.id(), (number(&x), number(&y)));
             }
         }
         positions
+    }
+
+    /// The two attributes the notation places a node by (`placement.x.attribute` and `placement.y.attribute` of the
+    /// node type, or of the nearest type it is one of), or none when its place is the registration's.
+    pub fn placement_attributes(&self, element: &DislElement) -> Option<(String, String)> {
+        let nodes = self
+            .tool
+            .definition
+            .specification()
+            .root()
+            .get("notation")?
+            .get("nodes")?
+            .as_object()?;
+        let declared = nodes
+            .get(&element.type_name())
+            .or_else(|| nodes.iter().find(|(name, _)| element.is_a(name)).map(|(_, n)| n))?;
+        let placement = declared.get("placement")?;
+        let attribute = |axis: &str| Some(placement.get(axis)?.get("attribute")?.as_str()?.to_owned());
+        Some((attribute("x")?, attribute("y")?))
+    }
+
+    /// The change that puts `element` at (`x`, `y`) in the diagram's domain units: its placement attributes set,
+    /// whole numbers for an integer attribute, or its position stored in the registration.
+    pub fn placement_change(&self, element: &DislElement, x: f64, y: f64) -> DiagramChange {
+        let Some((x_attribute, y_attribute)) = self.placement_attributes(element) else {
+            return DiagramChange::Place { id: element.id(), x, y };
+        };
+        let element_type = element.element_type();
+        let typed = |name: &str, value: f64| match element_type.attributes.get(name).map(|a| a.type_name.as_str()) {
+            Some("int" | "integer" | "long") => Value::Int(value.round() as i64),
+            _ => Value::Double(value),
+        };
+        DiagramChange::Disl(DislChange::Set {
+            element_id: element.id(),
+            type_name: element.type_name(),
+            attributes: [
+                (x_attribute.clone(), typed(&x_attribute, x)),
+                (y_attribute.clone(), typed(&y_attribute, y)),
+            ]
+            .into_iter()
+            .collect(),
+        })
     }
 
     /// Every element of the diagram, in the model's order, placed where the registration puts it.

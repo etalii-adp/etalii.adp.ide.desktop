@@ -21,7 +21,8 @@ pub struct DiagramElement {
     /// The authored position, in the diagram's own units; `0` when the element has none.
     pub x: f64,
     pub y: f64,
-    /// Whether the position was authored (read from the registration's `layout:`), rather than left to a layout.
+    /// Whether the position was authored (by the attributes the notation places the node by, or in the registration's
+    /// `layout:`), rather than left to a layout.
     pub placed: bool,
     /// The element's type in the specification's metamodel (`Variable`, `CausalLink`).
     pub element_type: String,
