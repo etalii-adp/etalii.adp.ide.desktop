@@ -42,10 +42,11 @@ pub fn append_property_shape_block(
     );
     let line_index = document.index();
     let terminator_line = line_index.line_of(anchor.terminator_offset);
-    let terminator_column = anchor.terminator_offset.checked_sub(line_index.start_of(terminator_line));
+    let terminator_column = anchor
+        .terminator_offset
+        .checked_sub(line_index.start_of(terminator_line));
     let line_text = document.line(terminator_line).to_owned();
-    let Some(terminator_column) =
-        terminator_column.filter(|&c| c < line_text.len() && line_text.as_bytes()[c] == b'.')
+    let Some(terminator_column) = terminator_column.filter(|&c| c < line_text.len() && line_text.as_bytes()[c] == b'.')
     else {
         return refusals::NO_SUCH_SHAPE.to_owned();
     };
@@ -155,7 +156,13 @@ pub fn set_deactivated(document: &mut LineDocument, model: &RdfModel, shape_iri:
 }
 
 /// Sets a shape's `sh:name` or `sh:description`: rewritten where one is stated, added where none is.
-pub fn set_literal(document: &mut LineDocument, model: &RdfModel, shape_iri: &str, predicate: &str, value: &str) -> String {
+pub fn set_literal(
+    document: &mut LineDocument,
+    model: &RdfModel,
+    shape_iri: &str,
+    predicate: &str,
+    value: &str,
+) -> String {
     if shape_iri.trim().is_empty() {
         return refusals::BLANK_ROOTED.to_owned();
     }
@@ -200,14 +207,11 @@ pub fn remove_shape_with_subtrees(document: &mut LineDocument, model: &RdfModel,
         return refusals::NO_SUCH_SHAPE.to_owned();
     }
     let mut current = model.clone();
-    loop {
-        let Some(next) = separately_stated_subtree_triples(&current, shape_iri)
-            .into_iter()
-            .rev()
-            .max_by_key(|t| t.span_start)
-        else {
-            break;
-        };
+    while let Some(next) = separately_stated_subtree_triples(&current, shape_iri)
+        .into_iter()
+        .rev()
+        .max_by_key(|t| t.span_start)
+    {
         let refusal = writer::remove_triple_anchored(document, &current, &next);
         if !refusal.is_empty() {
             return refusal;

@@ -144,3 +144,64 @@ pub fn describe(model: &RdfModel, element_id: &str) -> Option<String> {
     };
     Some(format!("{} → {}", display_of(&edge.from_id), display_of(&edge.to_id)))
 }
+
+/// The shapes reading (`ShaclReading`). STUB: filled in by the SHACL port.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ShaclReading;
+
+impl crate::reading::Reading for ShaclReading {
+    type Projection = projection::ShaclProjectionResult;
+
+    fn origin(&self) -> &'static str {
+        ORIGIN
+    }
+
+    fn parent_refusal(&self) -> &'static str {
+        PARENT_REFUSAL
+    }
+
+    fn project(&self, model: &RdfModel) -> Self::Projection {
+        projection::project(model, usize::MAX)
+    }
+
+    fn positions(
+        &self,
+        projection: &Self::Projection,
+        stored: &crate::reading::Positions,
+    ) -> crate::reading::Positions {
+        crate::reading::apply(positions(projection), stored)
+    }
+
+    fn in_view(
+        &self,
+        projection: &Self::Projection,
+        _positions: &crate::reading::Positions,
+        _viewport: adp_diagram::DiagramViewport,
+    ) -> Self::Projection {
+        projection.clone()
+    }
+
+    fn elements(
+        &self,
+        _projection: &Self::Projection,
+        _positions: &crate::reading::Positions,
+    ) -> Vec<adp_diagram::DiagramElement> {
+        Vec::new()
+    }
+
+    fn refusal(&self, element_id: &str) -> Option<String> {
+        refusal(element_id)
+    }
+
+    fn toolbox(&self) -> Vec<adp_diagram::ToolboxItem> {
+        Vec::new()
+    }
+
+    fn problems(
+        &self,
+        document: &crate::store::RdfDocument,
+        _registration: Option<&std::path::Path>,
+    ) -> Vec<adp_diagram::DiagramProblem> {
+        crate::validator::validate(&document.text)
+    }
+}

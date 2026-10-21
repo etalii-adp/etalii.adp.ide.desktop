@@ -14,7 +14,7 @@ pub struct Line {
 }
 
 /// An inclusive range of zero-based line indices: the lines that declare one construct.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct LineRange {
     pub start: usize,
     pub end: usize,
@@ -190,6 +190,7 @@ impl LineDocument {
             self.lines.len()
         );
     }
+}
 
 impl Line {
     /// Whether the line holds nothing but whitespace (`Line.IsBlank`).

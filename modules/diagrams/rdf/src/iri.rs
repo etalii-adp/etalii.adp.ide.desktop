@@ -151,10 +151,7 @@ pub fn resolve(base: &str, reference: &str) -> Option<String> {
         ));
     }
     let (path, query) = if reference_parts.path.is_empty() {
-        (
-            base_parts.path.to_owned(),
-            reference_parts.query.or(base_parts.query),
-        )
+        (base_parts.path.to_owned(), reference_parts.query.or(base_parts.query))
     } else if reference_parts.path.starts_with('/') {
         (remove_dot_segments(reference_parts.path), reference_parts.query)
     } else {
@@ -179,12 +176,21 @@ mod tests {
     #[test]
     fn references_resolve_as_rfc_3986_says() {
         let base = "http://example.org/base/";
-        assert_eq!(resolve(base, "relative").as_deref(), Some("http://example.org/base/relative"));
+        assert_eq!(
+            resolve(base, "relative").as_deref(),
+            Some("http://example.org/base/relative")
+        );
         assert_eq!(resolve(base, "").as_deref(), Some("http://example.org/base/"));
-        assert_eq!(resolve("http://example.org/", "#x").as_deref(), Some("http://example.org/#x"));
+        assert_eq!(
+            resolve("http://example.org/", "#x").as_deref(),
+            Some("http://example.org/#x")
+        );
         assert_eq!(resolve(base, "../up").as_deref(), Some("http://example.org/up"));
         assert_eq!(resolve(base, "/root").as_deref(), Some("http://example.org/root"));
-        assert_eq!(resolve("http://example.org", "a").as_deref(), Some("http://example.org/a"));
+        assert_eq!(
+            resolve("http://example.org", "a").as_deref(),
+            Some("http://example.org/a")
+        );
     }
 
     #[test]

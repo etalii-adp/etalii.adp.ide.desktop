@@ -171,14 +171,12 @@ impl<'a> Tokenizer<'a> {
         let scan = scanner::iri(self.text, start);
         match scan.problem {
             TerminalProblem::None => Ok(self.token(TokenKind::Iri, start, scan.end)),
-            TerminalProblem::LineEnded => Err(self.error(
-                "An IRI ran to the end of its line without its closing '>'.",
-                start,
-            )),
-            TerminalProblem::FileEnded => Err(self.error(
-                "An IRI ran to the end of the file without its closing '>'.",
-                start,
-            )),
+            TerminalProblem::LineEnded => {
+                Err(self.error("An IRI ran to the end of its line without its closing '>'.", start))
+            }
+            TerminalProblem::FileEnded => {
+                Err(self.error("An IRI ran to the end of the file without its closing '>'.", start))
+            }
         }
     }
 
@@ -188,18 +186,16 @@ impl<'a> Tokenizer<'a> {
         let is_long = start + 2 < bytes.len() && bytes[start + 1] == bytes[start] && bytes[start + 2] == bytes[start];
         match scan.problem {
             TerminalProblem::None => Ok(self.token(TokenKind::String, start, scan.end)),
-            TerminalProblem::LineEnded => Err(self.error(
-                "A string ran to the end of its line without its closing quote.",
-                start,
-            )),
+            TerminalProblem::LineEnded => {
+                Err(self.error("A string ran to the end of its line without its closing quote.", start))
+            }
             TerminalProblem::FileEnded if is_long => Err(self.error(
                 "A long string ran to the end of the file without its closing quotes.",
                 start,
             )),
-            TerminalProblem::FileEnded => Err(self.error(
-                "A string ran to the end of the file without its closing quote.",
-                start,
-            )),
+            TerminalProblem::FileEnded => {
+                Err(self.error("A string ran to the end of the file without its closing quote.", start))
+            }
         }
     }
 
@@ -644,7 +640,10 @@ impl<'a> Parser<'a> {
         let token = self.current.clone();
         if token.kind == TokenKind::Iri {
             self.advance()?;
-            return Ok(IriTerm::new(self.resolve(&scanner::iri_value(&token.value)), token.value));
+            return Ok(IriTerm::new(
+                self.resolve(&scanner::iri_value(&token.value)),
+                token.value,
+            ));
         }
         let colon = token.value.find(':').unwrap_or(token.value.len());
         let prefix = &token.value[..colon];
@@ -746,7 +745,10 @@ impl<'a> Parser<'a> {
         }
         let end = self.current.end();
         self.advance()?;
-        Ok((RdfTerm::Blank(head.expect("a collection with a member has a head")), end))
+        Ok((
+            RdfTerm::Blank(head.expect("a collection with a member has a head")),
+            end,
+        ))
     }
 
     fn span_of(&self, start: usize, end: usize) -> SourceSpan {

@@ -30,7 +30,7 @@ pub fn key_of(term: &RdfTerm) -> Option<String> {
 /// Every shape of `model`, in document order of what made it one.
 pub fn discover(model: &RdfModel) -> Vec<ShaclShape> {
     let mut found: HashMap<String, (RdfTerm, usize)> = HashMap::new();
-    let mut mark = |found: &mut HashMap<String, (RdfTerm, usize)>, term: &RdfTerm, index: usize| {
+    let mark = |found: &mut HashMap<String, (RdfTerm, usize)>, term: &RdfTerm, index: usize| {
         let Some(key) = key_of(term) else {
             return;
         };

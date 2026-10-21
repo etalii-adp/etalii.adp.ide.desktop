@@ -220,7 +220,15 @@ fn build_card(
             shacl::PROPERTY => rows.push(property_row(model, context, &triple.object, &id, claimants, edges)),
             shacl::NODE => reference(edges, &id, &triple.object, "node", "node"),
             shacl::AND | shacl::OR | shacl::XONE => {
-                combinator_row(model, context, &triple.object, &id, kind_of(predicate), &mut rows, edges);
+                combinator_row(
+                    model,
+                    context,
+                    &triple.object,
+                    &id,
+                    kind_of(predicate),
+                    &mut rows,
+                    edges,
+                );
             }
             shacl::NOT => {
                 if matches!(triple.object, RdfTerm::Iri(_)) {
@@ -291,7 +299,13 @@ fn reference(edges: &mut Vec<ShaclEdge>, from_id: &str, target: &RdfTerm, kind: 
     }
 }
 
-fn chip(model: &RdfModel, context: &Context<'_>, shape_iri: &str, predicate: &str, target: &RdfTerm) -> ShaclTargetChip {
+fn chip(
+    model: &RdfModel,
+    context: &Context<'_>,
+    shape_iri: &str,
+    predicate: &str,
+    target: &RdfTerm,
+) -> ShaclTargetChip {
     let kind = match predicate {
         shacl::TARGET_CLASS => ShaclTargetKind::Class,
         shacl::TARGET_NODE => ShaclTargetKind::Node,
@@ -302,10 +316,7 @@ fn chip(model: &RdfModel, context: &Context<'_>, shape_iri: &str, predicate: &st
         RdfTerm::Iri(iri) => (display(model, &iri.iri), iri.iri.clone()),
         RdfTerm::Literal(literal) => (literal.lexical.clone(), String::new()),
         RdfTerm::Blank(blank) => (
-            format!(
-                "_:{}",
-                blank.label.clone().unwrap_or_else(|| blank.ordinal.to_string())
-            ),
+            format!("_:{}", blank.label.clone().unwrap_or_else(|| blank.ordinal.to_string())),
             String::new(),
         ),
     };

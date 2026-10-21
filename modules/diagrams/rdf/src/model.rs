@@ -196,6 +196,8 @@ impl RdfModel {
 
     /// Whether any triple names `iri` as its subject or object.
     pub fn names(&self, iri: &str) -> bool {
-        self.triples.iter().any(|t| t.subject.is_iri(iri) || t.object.is_iri(iri))
+        self.triples
+            .iter()
+            .any(|t| t.subject.is_iri(iri) || t.object.is_iri(iri))
     }
 }

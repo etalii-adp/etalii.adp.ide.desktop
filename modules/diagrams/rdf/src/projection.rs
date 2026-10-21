@@ -187,7 +187,10 @@ pub fn project(model: &RdfModel, budget: usize) -> RdfProjection {
     };
     for triple in &model.triples {
         let is_plumbing = matches!(triple.predicate.iri.as_str(), rdf::FIRST | rdf::REST)
-            && triple.subject.as_blank().is_some_and(|b| builder.firsts.contains_key(b));
+            && triple
+                .subject
+                .as_blank()
+                .is_some_and(|b| builder.firsts.contains_key(b));
         if is_plumbing {
             continue;
         }
@@ -300,7 +303,11 @@ pub fn positions(result: &RdfProjection) -> BTreeMap<String, (f64, f64)> {
             None => bands.push((key, vec![node])),
         }
     }
-    bands.sort_by(|(a, _), (b, _)| a.is_empty().cmp(&b.is_empty()).then_with(|| a.as_bytes().cmp(b.as_bytes())));
+    bands.sort_by(|(a, _), (b, _)| {
+        a.is_empty()
+            .cmp(&b.is_empty())
+            .then_with(|| a.as_bytes().cmp(b.as_bytes()))
+    });
     let mut positions = BTreeMap::new();
     let mut y = 0.0;
     for (_, members) in &bands {

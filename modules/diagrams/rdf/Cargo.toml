@@ -1,0 +1,24 @@
+[package]
+name = "adp-diagram-rdf"
+description = "The RDF family: Turtle and N-Triples read with where each triple is stated, its data-graph, OWL, SKOS and SHACL readings, and every edit as a splice (spec 030, T083)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# The shapes reading groups by first appearance, as the standalone host's ordered LINQ groupings do.
+indexmap = "2"
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+tempfile = "3"
+
+[lints]
+workspace = true

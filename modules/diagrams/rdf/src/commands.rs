@@ -28,9 +28,17 @@ use crate::writer;
 #[derive(Debug, Clone, PartialEq)]
 pub enum RdfEdit {
     /// One more triple; the object an IRI where `object_iri` is set, a literal otherwise (`AddRdfTripleCommand`).
-    AddTriple { subject: String, predicate: String, object: ObjectValue },
+    AddTriple {
+        subject: String,
+        predicate: String,
+        object: ObjectValue,
+    },
     /// One triple, matched by its three values (`RemoveRdfTripleCommand`).
-    RemoveTriple { subject: String, predicate: String, object: ObjectValue },
+    RemoveTriple {
+        subject: String,
+        predicate: String,
+        object: ObjectValue,
+    },
     /// A resource and every triple it is subject or object of (`RemoveRdfResourceCommand`).
     RemoveResource { iri: String },
     /// A term renamed everywhere (`RenameRdfTermCommand`).
@@ -58,15 +66,27 @@ pub enum RdfEdit {
     /// A property row on a shape (`AddShaclPropertyRowCommand`).
     AddShaclPropertyRow { shape: String, path: String },
     /// A target declared on a shape (`AddShaclTargetCommand`).
-    AddShaclTarget { shape: String, predicate: String, term: String },
+    AddShaclTarget {
+        shape: String,
+        predicate: String,
+        term: String,
+    },
     /// A target withdrawn (`RemoveShaclTargetCommand`).
-    RemoveShaclTarget { shape: String, predicate: String, term: String },
+    RemoveShaclTarget {
+        shape: String,
+        predicate: String,
+        term: String,
+    },
     /// A new node shape (`CreateShaclNodeShapeCommand`).
     CreateShaclNodeShape { shape: String },
     /// A shape switched off or on (`SetShaclDeactivatedCommand`).
     SetShaclDeactivated { shape: String, deactivated: bool },
     /// A shape's `sh:name` or `sh:description` (`SetShaclLiteralCommand`).
-    SetShaclLiteral { shape: String, predicate: String, value: String },
+    SetShaclLiteral {
+        shape: String,
+        predicate: String,
+        value: String,
+    },
     /// A shape and the blank subtrees only it reaches (`RemoveShaclShapeCommand`).
     RemoveShaclShape { shape: String },
     /// The body's whole text put back (`RestoreDocumentCommand`).
@@ -113,7 +133,12 @@ impl ObjectValue {
 }
 
 /// The triple a command addresses, matched by its three values (`RdfEditHandler.TripleOf`).
-pub fn triple_of<'a>(model: &'a RdfModel, subject: &str, predicate: &str, object: &ObjectValue) -> Option<&'a RdfTriple> {
+pub fn triple_of<'a>(
+    model: &'a RdfModel,
+    subject: &str,
+    predicate: &str,
+    object: &ObjectValue,
+) -> Option<&'a RdfTriple> {
     model.triples.iter().find(|t| {
         t.subject.is_iri(subject)
             && t.predicate.iri == predicate
@@ -269,7 +294,8 @@ fn add_skos_concept(
 
 /// Every asserted direction of one pair, re-found on a fresh reading after each splice (`DisconnectSkosPairCommandHandler`).
 fn disconnect_skos_pair(body: &mut LineDocument, model: &RdfModel, a: &str, b: &str, hierarchy: bool) -> String {
-    let is = |t: &RdfTriple, s: &str, p: &str, o: &str| t.subject.is_iri(s) && t.predicate.iri == p && t.object.is_iri(o);
+    let is =
+        |t: &RdfTriple, s: &str, p: &str, o: &str| t.subject.is_iri(s) && t.predicate.iri == p && t.object.is_iri(o);
     let mut removed = 0;
     loop {
         let current = if removed == 0 {

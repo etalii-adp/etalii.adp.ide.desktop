@@ -101,9 +101,9 @@ pub fn remove_triple_anchored(document: &mut LineDocument, model: &RdfModel, tri
         document.remove(triple.statement);
         return String::new();
     }
-    let continuations = mates.iter().any(|m| {
-        m.is_list_continuation() && m.subject == triple.subject && m.predicate.iri == triple.predicate.iri
-    });
+    let continuations = mates
+        .iter()
+        .any(|m| m.is_list_continuation() && m.subject == triple.subject && m.predicate.iri == triple.predicate.iri);
     let text = document.text();
     let (start, end) = if triple.is_list_continuation() || continuations {
         extend_over_separator(&text, triple.object_start, triple.object_end, ',')
@@ -174,7 +174,7 @@ pub fn rename_term(document: &mut LineDocument, model: &RdfModel, old_iri: &str,
     }
     let written = compress(model, new_iri);
     let mut occurrences = term_occurrences(&document.text(), old_iri);
-    occurrences.sort_by(|a, b| b.0.cmp(&a.0));
+    occurrences.sort_by_key(|o| std::cmp::Reverse(o.0));
     for (start, end) in occurrences {
         replace_region(document, start, end, &written);
     }
@@ -281,7 +281,11 @@ pub fn write_term(model: &RdfModel, term: &RdfTerm) -> String {
                 .as_deref()
                 .filter(|d| !d.is_empty() && *d != rdf::XSD_STRING)
             {
-                format!("\"{}\"^^{}", escape_literal(&literal.lexical), compress(model, datatype))
+                format!(
+                    "\"{}\"^^{}",
+                    escape_literal(&literal.lexical),
+                    compress(model, datatype)
+                )
             } else {
                 format!("\"{}\"", escape_literal(&literal.lexical))
             }
@@ -372,7 +376,9 @@ fn term_occurrences(text: &str, iri: &str) -> Vec<(usize, usize)> {
     let resolve = |base: &Option<String>, candidate: &str| -> String {
         match base {
             Some(base)
-                if !candidate.contains("://") && !candidate.starts_with("urn:") && !candidate.starts_with("mailto:") =>
+                if !candidate.contains("://")
+                    && !candidate.starts_with("urn:")
+                    && !candidate.starts_with("mailto:") =>
             {
                 iri::resolve(base, candidate).unwrap_or_else(|| candidate.to_owned())
             }

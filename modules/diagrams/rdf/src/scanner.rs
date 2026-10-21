@@ -394,8 +394,18 @@ mod tests {
 
     #[test]
     fn an_unknown_escape_is_refused() {
-        assert!(escape_refusal("\"a\\qb\"").unwrap().1.starts_with("'\\q' is not a string escape"));
-        assert!(escape_refusal("\"\\u12zz\"").unwrap().1.starts_with("'\\u12zz' is not an escape"));
+        assert!(
+            escape_refusal("\"a\\qb\"")
+                .unwrap()
+                .1
+                .starts_with("'\\q' is not a string escape")
+        );
+        assert!(
+            escape_refusal("\"\\u12zz\"")
+                .unwrap()
+                .1
+                .starts_with("'\\u12zz' is not an escape")
+        );
         assert_eq!(escape_refusal("\"ok\\n\""), None);
     }
 
