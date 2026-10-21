@@ -1,0 +1,17 @@
+apiVersion: v2
+name: same-named-dependencies
+description: Two dependencies with one name and one constraint, and two with one name and two constraints.
+version: 1.0.0
+dependencies:
+  - name: redis
+    version: 17.0.0
+    repository: https://charts.bitnami.com/bitnami
+  - name: redis
+    version: 17.0.0
+    repository: oci://registry-1.docker.io/bitnamicharts
+  - name: nats
+    version: 1.0.0
+    repository: https://nats-io.github.io/k8s/helm/charts
+  - name: nats
+    version: 2.0.0
+    repository: https://nats-io.github.io/k8s/helm/charts
