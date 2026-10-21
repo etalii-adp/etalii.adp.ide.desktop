@@ -302,6 +302,13 @@ pub trait ModuleView {
         None
     }
 
+    /// Whether a right drag from one element to another draws a connection (the standalone host's
+    /// `connectOnRightDrag`); without it a right drag on the view does nothing, and its right click opens the menu. No
+    /// by default.
+    fn connects_on_right_drag(&self) -> bool {
+        false
+    }
+
     /// Answers the prompt action `action_id` of `target` raised with `value`.
     fn answer(
         &self,

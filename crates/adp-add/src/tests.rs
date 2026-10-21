@@ -239,7 +239,7 @@ fn what_the_standalone_host_refuses_is_refused_with_its_words() {
         adds.commit(&target, "generic/timeline", "map"),
         Err("An item named 'map.adp' already exists in this folder.".into())
     );
-    assert_eq!(adds.commit(&target, "wardley/map", "strategy"), Err(INCOMPLETE.into()));
+    assert_eq!(adds.commit(&target, "w3c/sparql", "query"), Err(INCOMPLETE.into()));
     assert_eq!(
         adds.commit(&target, "nobody/nothing", "x"),
         Err("That diagram type is not available.".into())
@@ -313,6 +313,23 @@ fn a_causal_loop_diagram_is_written_with_its_bindings_template() {
 }
 
 #[test]
+fn a_wardley_map_is_written_titled_with_its_name() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "wardley/map", "strategy")
+        .unwrap();
+    assert_eq!(created, folder.path().join("strategy.adp"));
+    assert_eq!(read(&created), "wardley/map\r\n");
+    // The standalone host's `EmptyDocument`: the file's base name as its title, LF-terminated, and nothing else.
+    assert_eq!(read(&folder.path().join("strategy.owm")), "title strategy\n");
+    assert!(
+        !folder.path().join("strategy.identities.json").exists(),
+        "a map nobody edited has no identities to keep"
+    );
+}
+
+#[test]
 fn a_supply_chain_diagram_is_written_with_its_empty_document() {
     let folder = tempfile::tempdir().unwrap();
     let target = AddTarget::Folder(folder.path().to_path_buf());
@@ -326,6 +343,19 @@ fn a_supply_chain_diagram_is_written_with_its_empty_document() {
         read(&folder.path().join("chain.supply")),
         "supply-chain: 1\r\ngroups: []\r\nnodes: []\r\nflows: []\r\n"
     );
+}
+
+#[test]
+fn an_agent_activity_diagram_is_written_with_its_empty_document() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/agent-activity-diagram", "team")
+        .unwrap();
+    assert_eq!(created, folder.path().join("team.adp"));
+    assert_eq!(read(&created), "etalii/agent-activity-diagram\r\n");
+    // The standalone host's `AadBody.EmptyDocument("\r\n")`: the header alone, no list written empty, in CRLF.
+    assert_eq!(read(&folder.path().join("team.aad")), "agent-activity-diagram: 1\r\n");
 }
 
 #[test]

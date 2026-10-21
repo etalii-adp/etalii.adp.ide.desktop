@@ -12,8 +12,18 @@ use std::fs;
 use adp_parity::{check, repository_root, script_names};
 
 #[test]
+fn ansible_structure_infrastructure() {
+    check("ansible/structure/infrastructure");
+}
+
+#[test]
 fn c4_container_courier() {
     check("c4/container/courier");
+}
+
+#[test]
+fn etalii_agent_activity_diagram_two_projects() {
+    check("etalii/agent-activity-diagram/two-projects");
 }
 
 #[test]
@@ -84,6 +94,11 @@ fn systems_causal_loop_diagram_on_call() {
 #[test]
 fn systems_causal_loop_diagram_reference() {
     check("systems/causal-loop-diagram/reference");
+}
+
+#[test]
+fn wardley_map_strategy_vocabulary() {
+    check("wardley/map/strategy-vocabulary");
 }
 
 /// Every script has its test here and its row in `parity/README.md`, so none is skipped silently.

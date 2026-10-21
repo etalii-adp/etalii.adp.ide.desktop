@@ -241,6 +241,11 @@ impl ModuleView for FdgView {
         self.run(workspace, target, action_id, Some(ids))
     }
 
+    /// A right drag from one element to another draws a connection (`FdgCanvas.tsx`, `connectOnRightDrag: true`).
+    fn connects_on_right_drag(&self) -> bool {
+        true
+    }
+
     fn connect_action(
         &self,
         documents: &DiagramDocuments,

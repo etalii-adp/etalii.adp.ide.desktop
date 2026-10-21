@@ -7,17 +7,23 @@
 //! taken from what the gesture recorded rather than from a trailing click, and an abandon that reverts the preview.
 //! What each verdict means is `DiagramCanvas.tsx`'s: a press on an element selects it (Ctrl toggles it), a press on
 //! the empty canvas clears the selection, a drag of an element moves it with the rest of the selection as one edit,
-//! a drag from an anchor, or a right-drag from an element, draws a connection, and a release of one on empty canvas
-//! is handed on with its point, and a drag of a selected element's resize handle carries that one edge, the far edge
-//! staying put, and is one resize at its release (`DiagramCanvas.tsx`, the `resize` gesture). Two gestures follow this host's task list rather than the standalone's left-drag pan:
-//! a left drag on empty canvas draws a selection box, and a right drag on it pans.
+//! a left drag on the empty canvas pans the view (`DiagramCanvas.tsx`, the `background` target), a drag from an
+//! anchor draws a connection, and a release of one on empty canvas is handed on with its point, and a drag of a
+//! selected element's resize handle carries that one edge, the far edge staying put, and is one resize at its release
+//! (`DiagramCanvas.tsx`, the `resize` gesture). There is no selection box: the standalone host draws none.
+//!
+//! The right button is the context menu's (`usePointerGesture.ts`: "the right button is the menu's gesture"): a right
+//! press that does not move opens the menu of what it was pressed on. A right drag draws a connection from the
+//! element it began on only where the specification asks for one (`connectOnRightDrag`, DISL section 6.10's
+//! pointer binding `{ "button": "secondary", "start": "body" }`, [`connects_on_right_drag`]); anywhere else it does nothing.
 //!
 //! The arbiter knows no toolkit and no diagram: the canvas hit-tests the press and hands it in, and turns the
 //! [`Intent`]s it gives back into edits, so every rule here is tested without a window.
 
 use adp_context::SelectMode;
 use adp_diagram::ResizedEdge;
-use adp_scene::{Point, Rect};
+use adp_scene::Point;
+use serde_json::Value as Json;
 
 /// The movement, in screen points, a press may make and still be a click (`GESTURE_MOVEMENT_THRESHOLD_PX`).
 pub const MOVEMENT_THRESHOLD: f32 = 4.0;
@@ -95,12 +101,6 @@ pub enum Gesture {
         from: Point,
         delta: f64,
     },
-    /// A selection box from one corner to the other.
-    Boxing {
-        from: Point,
-        to: Point,
-        additive: bool,
-    },
     /// A connection drawn from an element towards a point.
     Connecting {
         source: String,
@@ -127,8 +127,6 @@ pub enum Intent {
         edge: ResizedEdge,
         delta: f64,
     },
-    /// Select what lies wholly inside `rect`, added to the selection when `additive`.
-    BoxSelect { rect: Rect, additive: bool },
     /// Connect `source` to `target`, or to something made at `at` when the release is on empty canvas.
     Connect {
         source: String,
@@ -149,11 +147,17 @@ pub enum Intent {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Arbiter {
     pub gesture: Gesture,
+    /// Whether a right drag from an element draws a connection (`connectOnRightDrag`); without it a right drag does
+    /// nothing. The canvas sets it from the diagram it shows.
+    pub connects_on_right_drag: bool,
 }
 
 impl Default for Arbiter {
     fn default() -> Self {
-        Arbiter { gesture: Gesture::Idle }
+        Arbiter {
+            gesture: Gesture::Idle,
+            connects_on_right_drag: false,
+        }
     }
 }
 
@@ -196,13 +200,14 @@ impl Arbiter {
         if let Gesture::Pressed {
             button,
             hit,
-            modifiers,
             screen: start,
             canvas: from,
             moves,
             origin,
+            ..
         } = &self.gesture
         {
+            let right_connects = self.connects_on_right_drag;
             let moved = ((screen.0 - start.0).powi(2) + (screen.1 - start.1).powi(2)).sqrt();
             if moved <= MOVEMENT_THRESHOLD {
                 return None;
@@ -219,23 +224,24 @@ impl Arbiter {
                     from: *from,
                     delta: 0.0,
                 },
-                (Button::Primary, Hit::Empty) => Gesture::Boxing {
+                (Button::Primary, Hit::Empty) => Gesture::Panning {
+                    origin: *origin,
+                    screen: *start,
+                },
+                (Button::Primary, Hit::Anchor { element, .. }) => Gesture::Connecting {
+                    source: element.clone(),
                     from: *from,
                     to: *from,
-                    additive: modifiers.command || modifiers.shift,
                 },
-                (Button::Primary, Hit::Anchor { element, .. }) | (Button::Secondary, Hit::Element(element)) => {
+                (Button::Secondary, Hit::Element(element) | Hit::Anchor { element, .. }) if right_connects => {
                     Gesture::Connecting {
                         source: element.clone(),
                         from: *from,
                         to: *from,
                     }
                 }
-                (Button::Secondary, _) => Gesture::Panning {
-                    origin: *origin,
-                    screen: *start,
-                },
-                // A relation, or an element that does not move: dragging it is just not a click.
+                // A relation, an element that does not move, or a right drag nothing claims: dragging it is just not
+                // a click, and does nothing.
                 _ => Gesture::Moving {
                     ids: Vec::new(),
                     from: *from,
@@ -252,7 +258,7 @@ impl Arbiter {
                 *delta = along(*edge, *from, canvas);
                 None
             }
-            Gesture::Boxing { to, .. } | Gesture::Connecting { to, .. } => {
+            Gesture::Connecting { to, .. } => {
                 *to = canvas;
                 None
             }
@@ -326,10 +332,6 @@ impl Arbiter {
                 }
                 vec![Intent::Resize { element, edge, delta }]
             }
-            Gesture::Boxing { from, additive, .. } => vec![Intent::BoxSelect {
-                rect: Rect::around([from, canvas]).unwrap_or_default(),
-                additive,
-            }],
             Gesture::Connecting { source, .. } => {
                 let target = match hit {
                     // The source itself is a target too: a self loop, where the relation allows one.
@@ -378,6 +380,26 @@ impl Arbiter {
             _ => None,
         }
     }
+}
+
+/// Whether a notation draws a relation by a right drag from an element's body (`compileNotation.ts`,
+/// `connectsOnRightDrag`): one of its edges binds its connect gesture to the secondary button, started on the body
+/// and with no modifier.
+pub fn connects_on_right_drag(notation: &Json) -> bool {
+    notation
+        .get("edges")
+        .and_then(Json::as_object)
+        .into_iter()
+        .flat_map(|edges| edges.values())
+        .filter_map(|edge| edge.pointer("/connect/pointer"))
+        .any(|pointer| {
+            pointer.get("button").and_then(Json::as_str) == Some("secondary")
+                && pointer.get("start").and_then(Json::as_str) == Some("body")
+                && pointer
+                    .get("modifiers")
+                    .and_then(Json::as_array)
+                    .is_none_or(|m| m.is_empty())
+        })
 }
 
 /// How far the pointer went from `from` to `to` along the axis an edge moves on (`alongSide`).
@@ -496,25 +518,39 @@ mod tests {
     }
 
     #[test]
-    fn a_drag_on_empty_canvas_boxes_a_right_drag_pans_and_a_right_click_opens_the_menu() {
+    fn a_left_drag_on_empty_canvas_pans_selects_nothing_and_escape_hands_back_where_it_began() {
         let mut arbiter = Arbiter::default();
         pressed(&mut arbiter, Button::Primary, Hit::Empty, Modifiers::default(), &[]);
-        arbiter.motion((200.0, 200.0), p(20.0, 20.0), 10.0);
-        assert_eq!(
-            arbiter.release(p(20.0, 30.0), &Hit::Empty),
-            vec![Intent::BoxSelect {
-                rect: Rect::new(10.0, 10.0, 10.0, 20.0),
-                additive: false
-            }]
-        );
-
-        pressed(&mut arbiter, Button::Secondary, Hit::Empty, Modifiers::default(), &[]);
         assert_eq!(
             arbiter.motion((150.0, 80.0), p(15.0, 8.0), 2.0),
             Some(Intent::Pan { origin: p(-25.0, 10.0) })
         );
-        assert!(arbiter.release(p(15.0, 8.0), &Hit::Empty).is_empty());
+        assert_eq!(arbiter.pan_origin(), Some(p(0.0, 0.0)));
+        assert!(
+            arbiter.release(p(15.0, 8.0), &Hit::Empty).is_empty(),
+            "a pan neither selects nor clears"
+        );
 
+        let ctrl = Modifiers {
+            command: true,
+            shift: false,
+        };
+        pressed(&mut arbiter, Button::Primary, Hit::Empty, ctrl, &[]);
+        assert!(
+            matches!(
+                arbiter.motion((200.0, 200.0), p(20.0, 20.0), 10.0),
+                Some(Intent::Pan { .. })
+            ),
+            "Ctrl draws no box either: the drag pans"
+        );
+        assert_eq!(arbiter.pan_origin(), Some(p(0.0, 0.0)));
+        assert!(arbiter.cancel());
+        assert!(arbiter.release(p(20.0, 20.0), &Hit::Empty).is_empty());
+    }
+
+    #[test]
+    fn a_right_click_opens_the_menu_and_a_right_drag_does_nothing_unless_the_diagram_connects_on_it() {
+        let mut arbiter = Arbiter::default();
         pressed(
             &mut arbiter,
             Button::Secondary,
@@ -522,18 +558,41 @@ mod tests {
             Modifiers::default(),
             &[],
         );
-        let intents = arbiter.release(p(10.0, 10.0), &Hit::Empty);
+        assert_eq!(
+            arbiter.release(p(10.0, 10.0), &Hit::Empty),
+            vec![
+                Intent::Select {
+                    ids: vec!["r".into()],
+                    mode: SelectMode::Replace
+                },
+                Intent::ContextMenu {
+                    hit: Hit::Relation("r".into()),
+                    screen: (100.0, 100.0),
+                    canvas: p(10.0, 10.0)
+                }
+            ]
+        );
+        pressed(&mut arbiter, Button::Secondary, Hit::Empty, Modifiers::default(), &[]);
         assert!(matches!(
-            intents.last(),
-            Some(Intent::ContextMenu {
-                hit: Hit::Relation(_),
-                ..
-            })
+            arbiter.release(p(10.0, 10.0), &Hit::Empty).as_slice(),
+            [Intent::ContextMenu { hit: Hit::Empty, .. }]
         ));
+
+        for hit in [Hit::Empty, Hit::Element("a".into()), Hit::Relation("r".into())] {
+            pressed(&mut arbiter, Button::Secondary, hit, Modifiers::default(), &["a"]);
+            assert_eq!(arbiter.motion((180.0, 100.0), p(18.0, 10.0), 10.0), None, "no pan");
+            assert_eq!(arbiter.moving(), None, "no move");
+            assert_eq!(arbiter.pan_origin(), None);
+            assert!(
+                arbiter.release(p(30.0, 10.0), &Hit::Element("b".into())).is_empty(),
+                "no menu, no connection, no selection"
+            );
+        }
     }
 
     #[test]
-    fn a_drag_from_an_anchor_or_a_right_drag_from_an_element_connects_to_what_it_is_released_on() {
+    fn a_drag_from_an_anchor_or_a_right_drag_from_an_element_where_the_diagram_asks_connects_to_what_it_is_released_on()
+    {
         let mut arbiter = Arbiter::default();
         let anchor = Hit::Anchor {
             element: "a".into(),
@@ -549,6 +608,7 @@ mod tests {
                 at: p(30.0, 10.0)
             }]
         );
+        arbiter.connects_on_right_drag = true;
         pressed(
             &mut arbiter,
             Button::Secondary,
@@ -565,6 +625,47 @@ mod tests {
                 at: p(50.0, 50.0)
             }]
         );
+        pressed(&mut arbiter, Button::Secondary, Hit::Empty, Modifiers::default(), &[]);
+        arbiter.motion((180.0, 100.0), p(18.0, 10.0), 10.0);
+        assert!(
+            arbiter.release(p(18.0, 10.0), &Hit::Empty).is_empty(),
+            "a right drag on empty canvas still does nothing"
+        );
+        pressed(
+            &mut arbiter,
+            Button::Secondary,
+            Hit::Element("a".into()),
+            Modifiers::default(),
+            &["a"],
+        );
+        assert!(
+            matches!(
+                arbiter.release(p(10.0, 10.0), &Hit::Empty).last(),
+                Some(Intent::ContextMenu { .. })
+            ),
+            "a right click on the element still opens its menu"
+        );
+    }
+
+    #[test]
+    fn a_notation_connects_on_a_right_drag_only_by_a_secondary_body_pointer_without_modifiers() {
+        let edge = |pointer: Json| serde_json::json!({ "edges": { "Link": { "connect": { "pointer": pointer } } } });
+        assert!(connects_on_right_drag(&edge(
+            serde_json::json!({ "button": "secondary", "start": "body", "doc": "…" })
+        )));
+        assert!(!connects_on_right_drag(&edge(
+            serde_json::json!({ "button": "secondary", "start": "anchor" })
+        )));
+        assert!(!connects_on_right_drag(&edge(
+            serde_json::json!({ "button": "primary", "start": "body" })
+        )));
+        assert!(!connects_on_right_drag(&edge(
+            serde_json::json!({ "button": "secondary", "start": "body", "modifiers": ["Alt"] })
+        )));
+        assert!(!connects_on_right_drag(
+            &serde_json::json!({ "edges": { "Link": { "connect": { "from": { "right": "source" } } } } })
+        ));
+        assert!(!connects_on_right_drag(&serde_json::json!({})));
     }
 
     #[test]

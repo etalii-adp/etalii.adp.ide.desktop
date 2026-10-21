@@ -5,6 +5,7 @@ The documents the edit scripts under `parity/scripts/` open, copied from the sta
 | Folder | Copied from (in `etalii.adp.ide.standalone` at `8b6ccfc`) | Script |
 |---|---|---|
 | `etalii/agent-behavior-modelling/research-assistant/` | `src/diagrams/agent-behavior-modelling/examples/research-assistant/` (`research-assistant.adp`, whose `layout:` block stores one dragged row, and `research-assistant.md`, both committed with LF line endings) | `parity/scripts/etalii/agent-behavior-modelling/research-assistant.json` |
+| `ansible/structure/infrastructure/` | `src/diagrams/ansible-structure/examples/example 1/infrastructure/` (the folder whole: its registration `.adp`, `ansible/structure` and LF, and every file under it) | `parity/scripts/ansible/structure/infrastructure.json` |
 | `etalii/functional-decomposition-graph/field-service/` | `src/diagrams/functional-decomposition-graph/examples/field-service/` (`field-service.adp`, `field-service.fdg`) | `parity/scripts/etalii/functional-decomposition-graph/field-service.json` |
 | `freeplane/mindmap/example-1/` | `src/diagrams/mindmap/examples/example 1/` (`mindmap.adp`, `mindmap.mm`, `design.mm`) | `parity/scripts/freeplane/mindmap/example-1.json` |
 | `gartner/hypecycle-graph/coal-technologies/` | `src/diagrams/gartner-hype-cycle-graph/examples/coal-technologies/` (`coal-technologies.adp`, `coal-technologies.ghg`) | `parity/scripts/gartner/hypecycle-graph/coal-technologies.json` |
@@ -16,3 +17,5 @@ The documents the edit scripts under `parity/scripts/` open, copied from the sta
 | `systems/causal-loop-diagram/reference/` | `src/diagrams/causal-loop-diagram/examples/reference/` (`reference.adp`, `reference.cld`) | `parity/scripts/systems/causal-loop-diagram/reference.json` |
 | `systems/causal-loop-diagram/on-call/` | `src/diagrams/causal-loop-diagram/examples/on-call/` (`on-call.adp`, `on-call.cld`) | `parity/scripts/systems/causal-loop-diagram/on-call.json` |
 | `etalii/supply-chain/automotive/` | `src/diagrams/supply-chain/examples/automotive/` (`automotive.adp`, `automotive.supply`) | `parity/scripts/etalii/supply-chain/automotive.json` |
+| `etalii/agent-activity-diagram/two-projects/` | `src/diagrams/agent-activity-diagram/examples/two-projects/` (`two-projects.adp`, `two-projects.aad`, committed with CRLF line endings) | `parity/scripts/etalii/agent-activity-diagram/two-projects.json` |
+| `wardley/map/strategy-vocabulary/` | `src/diagrams/wardley-map/examples/example 2/` (`strategy-vocabulary.adp`, `strategy-vocabulary.owm` and its identity sidecar `strategy-vocabulary.identities.json`, which names every element of the map, so no id is minted on opening) | `parity/scripts/wardley/map/strategy-vocabulary.json` |

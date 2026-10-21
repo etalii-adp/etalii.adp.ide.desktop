@@ -1,0 +1,62 @@
+agent-activity-diagram: 1
+# What the agents of one project were doing on 2026-10-08, kept by agents and by ADP.
+projects:
+  - id: p-standalone
+    name: etalii.adp.ide.standalone
+    link: https://github.com/etalii-adp/etalii.adp.ide.standalone
+  - id: p-adp
+    name: etalii.adp
+specifications:
+  - id: s-knowledge
+    project: p-standalone
+    name: Knowledge designer
+    link: .spec-workflow/specs/knowledge-designer/requirements.md
+    status: progressing
+    tasks:
+      - id: t-k2
+        title: Trial the three bindings
+        status: progressing
+        updated: 2026-10-08T23:44:00+02:00
+      # Waits on Peter's answer about the table header.
+      - id: t-k6
+        title: Table component
+        status: input-required
+        updated: 2026-10-08T21:10:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150
+  - id: s-rider
+    project: p-standalone
+    name: Rider warnings cleanup
+    status: archived
+agents:
+  - id: a-dev2
+    name: Developer 2
+    specification: s-knowledge
+    link: https://claude.ai/code
+locations:
+  - id: l-kd
+    agent: a-dev2
+    environment: e-fractal
+    folder: .claude/worktrees/kd
+    folderLink: C:/git/etalii.adp.ide.standalone/.claude/worktrees/kd
+    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/features/knowledge-designer
+    branch: features/knowledge-designer
+    pullRequests:
+      - id: pr-150
+        title: "150: Knowledge designer, tasks 2 and 6"
+        updated: 2026-10-08T23:50:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150
+environments:
+  - id: e-fractal
+    name: Fractal
+    kind: local-machine
+    owner: Peter   # not read by the diagram, kept
+view:
+  showArchived: false
+  placements:
+    - element: s-knowledge
+      x: 240
+      y: -80
+  groups:
+    - element: s-knowledge
+      group: pending
+      collapsed: false

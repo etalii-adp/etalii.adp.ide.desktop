@@ -458,6 +458,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_causal_loop::ORIGIN,
         adp_diagram_causal_loop::TEMPLATE,
     )));
+    // `ServiceCollection.AddWardleyMap.cs`: a `title` line carrying the file's base name.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_wardley_map::ORIGIN,
+        adp_diagram_wardley_map::empty_document,
+    )));
     // `ServiceCollection.AddSupplyChain.cs`: `SupplyChainParser.EmptyDocument`.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_supply_chain::ORIGIN,
@@ -482,6 +487,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
     factories.push(Box::new(EmptyDocumentFactory::from_base_name(
         adp_diagram_agent_behavior_modelling::ORIGIN,
         adp_diagram_agent_behavior_modelling::empty_document,
+    )));
+    // `ServiceCollection.AddAgentActivityDiagram.cs`: `AadBody.EmptyDocument("\r\n")`, the header alone.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_agent_activity::ORIGIN,
+        adp_diagram_agent_activity::TEMPLATE,
     )));
     DiagramDocumentFactories::new(factories)
 }
