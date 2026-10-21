@@ -18,7 +18,6 @@ fn c4_container_courier() {
 }
 
 #[test]
-#[ignore = "differs at byte offset 213: the mind map's binding reads .mm through the persistence plugin net.etalii.adp.freeplane.mm, the module's residue, which is not ported, so the map opens with no elements and every step that names one is refused"]
 fn freeplane_mindmap_example_1() {
     check("freeplane/mindmap/example-1");
 }
