@@ -1,0 +1,318 @@
+{
+  "script": "parity/scripts/generic/dependencies/services.json",
+  "tool": "generic/dependencies",
+  "fixture": "generic/dependencies/services/services.dgr",
+  "registration": "generic/dependencies/services/services.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T09:05:31Z",
+  "edits": 27,
+  "changed": [
+    "services.dgr"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 9,
+      "id": "51e71014b5hzxx4nk5cpkod6c",
+      "type": "generic/dependencies+node",
+      "connection": false
+    },
+    {
+      "step": 9,
+      "id": "11ct5q02gmtvd93otbevsfxt0",
+      "type": "generic/dependencies+relation",
+      "connection": true
+    },
+    {
+      "step": 10,
+      "id": "4hrin2ths5xmrwzlpb29abjtq",
+      "type": "generic/dependencies+node",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "buv3ohi3mqebghrp0h0qfy972",
+      "type": "generic/dependencies+relation",
+      "connection": true
+    },
+    {
+      "step": 15,
+      "id": "f2l95kayzmapdgsrek57ftky9",
+      "type": "generic/dependencies+relation",
+      "connection": true
+    },
+    {
+      "step": 18,
+      "id": "5kc4kfyegzhkq7njr0s8mv4we",
+      "type": "generic/dependencies+node",
+      "connection": false
+    },
+    {
+      "step": 19,
+      "id": "7yxwlqfi4fcv63bmdakhufj59",
+      "type": "generic/dependencies+node",
+      "connection": false
+    },
+    {
+      "step": 19,
+      "id": "25efk23pn7c4dt00txzfxlhry",
+      "type": "generic/dependencies+relation",
+      "connection": true
+    },
+    {
+      "step": 29,
+      "id": "b33yper85kxyzww12puriz9c5",
+      "type": "generic/dependencies+node",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "checkout-web"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename' answered 'Checkout web app'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "dependencies.x = '40'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "dependencies.row = '5'"
+    },
+    {
+      "step": 4,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "'2.5' is not a number this graph can place a node at."
+    },
+    {
+      "step": 5,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "'far left' is not a number this graph can place a node at."
+    },
+    {
+      "step": 6,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "api-gateway by (100, 60) to (370.42873351852575, 300)"
+    },
+    {
+      "step": 7,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "order-service to (600, 170)"
+    },
+    {
+      "step": 8,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "order-service"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 11,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "dependencies.label = 'Fraud check'"
+    },
+    {
+      "step": 12,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "r-web-gateway"
+    },
+    {
+      "step": 13,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Relabel' answered 'calls over HTTPS'"
+    },
+    {
+      "step": 14,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "dependencies.label = 'authenticates with'"
+    },
+    {
+      "step": 15,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:checkout-web->identity-service"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on f2l95kayzmapdgsrek57ftky9"
+    },
+    {
+      "step": 17,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 18,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:300,0"
+    },
+    {
+      "step": 19,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:payments-db->new:1400,0"
+    },
+    {
+      "step": 20,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "message-broker"
+    },
+    {
+      "step": 21,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; confirmation 'Remove' answered ''"
+    },
+    {
+      "step": 22,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 23,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 24,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 25,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "r-orders-db"
+    },
+    {
+      "step": 26,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 27,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "notification-service"
+    },
+    {
+      "step": 28,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "dependencies.row = '-3'"
+    },
+    {
+      "step": 29,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:-250.5,0"
+    },
+    {
+      "step": 30,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "dependencies.label = 'Search service'"
+    },
+    {
+      "step": 31,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "b33yper85kxyzww12puriz9c5"
+    },
+    {
+      "step": 32,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 33,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 34,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

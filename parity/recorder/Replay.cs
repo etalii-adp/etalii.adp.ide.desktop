@@ -354,7 +354,8 @@ internal sealed partial class Replay : IAsyncDisposable
     private static bool IsConnection(Element element) =>
         element.SourceId is not null
         || element.Type.EndsWith("+connection", StringComparison.Ordinal)
-        || element.Type.EndsWith("+relationship", StringComparison.Ordinal);
+        || element.Type.EndsWith("+relationship", StringComparison.Ordinal)
+        || element.Type.EndsWith("+relation", StringComparison.Ordinal);
 
     private List<GeneratedId> GeneratedSnapshot()
     {

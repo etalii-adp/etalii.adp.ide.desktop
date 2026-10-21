@@ -349,8 +349,9 @@ fn a_drag_of_two_selected_nodes_moves_both_as_one_undo_and_a_vertical_drag_lands
     let zoom = harness.tab.view.zoom;
     let rows_down = egui::vec2(0.0, (2.0 * 60.0 * zoom) as f32);
     harness.drag(gateway, gateway + rows_down, PointerButton::Primary, true);
-    assert_eq!(harness.position("api-gateway").1, 6.0);
-    assert_eq!(harness.position("orders-db").1, 4.0);
+    // The dependency graph's module places a node in its own coordinates, 60 canvas units a row (`DependencyGraphRows`).
+    assert_eq!(harness.position("api-gateway").1, 6.0 * 60.0);
+    assert_eq!(harness.position("orders-db").1, 4.0 * 60.0);
     assert!(harness.workspace().undo().is_done());
     assert_eq!(harness.written(), harness.original, "one undo reverts both");
 }
@@ -458,6 +459,82 @@ fn a_connection_from_an_anchor_to_a_node_is_one_edit() {
     assert_eq!(harness.written(), harness.original);
 }
 
+/// The dependency graph through its registration, with its module (etalii.adp spec 030, T071): a dependency dragged
+/// out of a node's right anchor and released on empty canvas makes the node it depends on there, on the nearest row,
+/// as one edit, and a vertical drag lands on a row (`DependencyGraphRows`, `AddConnectedDependencyGraphElementCommand`).
+#[test]
+fn a_dependency_graph_opens_through_its_registration_and_a_dependency_released_on_empty_canvas_makes_its_node() {
+    let mut harness = Harness::open(
+        "dependency-graph/example-1",
+        &["services.adp", "services.dgr"],
+        "services.adp",
+        "services.dgr",
+    );
+    assert_eq!(bodies(harness.tab.scene().expect("a scene")), 10, "every node is drawn");
+    let identity = harness.tab.bounds_of("identity-service").unwrap();
+    assert_eq!(
+        (identity.x, identity.y),
+        (797.5845690363473, 240.0),
+        "x, and row 4 at 60 a row"
+    );
+
+    harness.tab.ids = Some(Box::new(ids::fixed(&["cache", "web-to-cache"])));
+    let anchor = harness
+        .tab
+        .scene()
+        .unwrap()
+        .primitives
+        .iter()
+        .find_map(|p| match p {
+            Primitive::Hook(h)
+                if h.owner == Owner::Element("checkout-web".into())
+                    && matches!(&h.kind, adp_scene::scene::HookKind::Anchor { name, .. } if name == "right") =>
+            {
+                Some(h.area.centre())
+            }
+            _ => None,
+        })
+        .expect("the right anchor");
+    let from = harness.tab.view.to_screen(harness.tab.surface, anchor);
+    let to = harness
+        .tab
+        .view
+        .to_screen(harness.tab.surface, Point::new(1000.0, 170.0));
+    assert!(harness.tab.surface.contains(to), "the release is in view");
+    harness.drag(from, to, PointerButton::Primary, true);
+    let written = harness.written();
+    assert!(
+        written.contains("  - id: cache\r\n    label: New node\r\n"),
+        "{written}"
+    );
+    assert!(
+        written.contains("    row: 3\r\nrelations:\r\n"),
+        "the nearest row to 170"
+    );
+    assert!(written.contains("  - id: web-to-cache\r\n    from: checkout-web\r\n    to: cache\r\n"));
+    assert_eq!(harness.position("cache").1, 3.0 * 60.0);
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(
+        harness.written(),
+        harness.original,
+        "one undo takes the node and its dependency"
+    );
+
+    let gateway = harness.screen_of("api-gateway");
+    let zoom = harness.tab.view.zoom;
+    harness.drag(
+        gateway,
+        gateway + egui::vec2(0.0, (70.0 * zoom) as f32),
+        PointerButton::Primary,
+        true,
+    );
+    assert!(
+        harness
+            .written()
+            .contains("  - id: api-gateway\r\n    label: API gateway\r\n    x: 270.42873351852575\r\n    row: 5\r\n")
+    );
+}
+
 #[test]
 fn a_toolbox_entry_dropped_on_the_canvas_lands_on_the_nearest_row_and_is_selected() {
     let mut harness = Harness::dependency_graph();
@@ -469,7 +546,7 @@ fn a_toolbox_entry_dropped_on_the_canvas_lands_on_the_nearest_row_and_is_selecte
     let node = items.first().expect("a toolbox entry").id.clone();
     let (host, tab, root) = (&mut harness.host, &mut harness.tab, &harness.root);
     tab.drop_tool(host.workspace(root), &node, Point::new(40.0, 185.0));
-    assert_eq!(harness.position("dropped"), (40.0, 3.0));
+    assert_eq!(harness.position("dropped"), (40.0, 3.0 * 60.0));
     assert_eq!(harness.tab.selection, ["dropped"]);
 }
 
