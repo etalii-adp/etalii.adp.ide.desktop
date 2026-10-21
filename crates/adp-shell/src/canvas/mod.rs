@@ -585,7 +585,7 @@ impl DiagramTab {
             },
             boxes: built.boxes,
             lines: built.lines,
-            anchors: Vec::new(),
+            anchors: built.anchors,
             handles: Vec::new(),
             labels: built.labels,
             bounds,
@@ -961,6 +961,14 @@ impl DiagramTab {
     }
 
     fn connect(&mut self, workspace: &mut DiagramWorkspace, source: &str, target: Option<&str>, at: Point) {
+        if self.session.module_view().is_some() {
+            // A module that draws its view itself takes no connection from the canvas: the standalone host's C4 canvas
+            // draws its cards' edge anchors and the drag from one, and handles no `connection-drawn`.
+            if target.is_some_and(|t| t != source) {
+                self.notice = Some(adp_diagram::session::NOT_OFFERED.to_owned());
+            }
+            return;
+        }
         let types = self
             .session
             .relation_types_between(workspace.documents(), source, target);
@@ -1457,7 +1465,12 @@ impl DiagramTab {
                 for intent in self.arbiter.release(canvas, &hit) {
                     self.apply(intent, workspace);
                 }
-                if double && let Hit::Element(id) = &hit {
+                // A double-click edits a label in place; a module that draws its view itself declares no double-click
+                // (`C4Canvas.tsx` declares no `activate` gesture), and its renames are its menu's and F2's.
+                if double
+                    && self.session.module_view().is_none()
+                    && let Hit::Element(id) = &hit
+                {
                     let id = id.clone();
                     self.open_editor(workspace.documents(), &id, Some(canvas));
                 }

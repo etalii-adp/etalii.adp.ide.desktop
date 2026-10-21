@@ -380,3 +380,81 @@ fn f14_delete_with_several_selected_deletes_all_of_them_as_one_undo_or_none() {
     harness.key(Key::Delete, Modifiers::NONE);
     assert_eq!(harness.written(), harness.original, "{:?}", harness.tab.notice);
 }
+
+// ---- the C4 container view -------------------------------------------------------------------------------------------
+
+#[test]
+fn f9_f2_on_a_c4_element_renames_it_in_place_through_the_modules_rename_and_a_double_click_does_nothing() {
+    let mut harness = Harness::c4_containers();
+    harness.settle();
+    let api = harness.screen_of("api");
+    harness.click(api, Modifiers::NONE);
+    harness.key(Key::F2, Modifiers::NONE);
+    let editor = harness.tab.editor.clone().expect("F2 opens the inline editor");
+    assert_eq!(editor.text, "API Application", "with the element's name");
+    assert_eq!(editor.element, "api");
+    harness.tab.editor.as_mut().unwrap().text = "Tracking API".into();
+    let (host, tab, root) = (&mut harness.host, &mut harness.tab, &harness.root);
+    tab.commit_editor(host.workspace(root));
+    assert!(
+        harness.written().contains("api = container \"Tracking API\""),
+        "{:?}",
+        harness.tab.notice
+    );
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
+
+    // A double-click is no rename here: C4Canvas declares no double-click.
+    harness.tab.changed();
+    harness.settle();
+    let api = harness.screen_of("api");
+    harness.click(api, Modifiers::NONE);
+    harness.click(api, Modifiers::NONE);
+    assert!(
+        harness
+            .ctx
+            .input(|i| i.pointer.button_double_clicked(PointerButton::Primary)),
+        "the second click is a double-click"
+    );
+    assert!(harness.tab.editor.is_none(), "no empty editor that refuses its commit");
+}
+
+#[test]
+fn f6_a_c4_card_has_an_anchor_on_each_edge_and_a_drag_from_one_writes_nothing_and_says_why() {
+    let mut harness = Harness::c4_containers();
+    harness.settle();
+    let anchors: Vec<(String, adp_scene::Rect)> = harness
+        .tab
+        .scene()
+        .unwrap()
+        .primitives
+        .iter()
+        .filter_map(|p| match p {
+            Primitive::Hook(hook) => match (&hook.owner, &hook.kind) {
+                (Owner::Element(id), adp_scene::scene::HookKind::Anchor { name, .. }) if id == "api" => {
+                    Some((name.clone(), hook.area))
+                }
+                _ => None,
+            },
+            _ => None,
+        })
+        .collect();
+    let names: Vec<&str> = anchors.iter().map(|(n, _)| n.as_str()).collect();
+    assert_eq!(names, ["top", "right", "bottom", "left"]);
+    let (_, right) = &anchors[1];
+    let from = harness.tab.view.to_screen(harness.tab.surface, right.centre());
+    let to = harness.screen_of("spa");
+    let sidecar = fs::read_to_string(harness.root.join("courier.layout.json")).unwrap();
+    harness.drag(from, to, PointerButton::Primary, true);
+    assert_eq!(harness.written(), harness.original, "no relationship is written");
+    assert_eq!(
+        fs::read_to_string(harness.root.join("courier.layout.json")).unwrap(),
+        sidecar,
+        "nor anything moved"
+    );
+    assert_eq!(
+        harness.tab.notice.as_deref(),
+        Some(adp_diagram::session::NOT_OFFERED),
+        "and it says so"
+    );
+}
