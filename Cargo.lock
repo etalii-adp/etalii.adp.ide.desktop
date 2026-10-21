@@ -155,6 +155,20 @@ name = "adp-desl"
 version = "0.1.0"
 
 [[package]]
+name = "adp-diagram"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-disl"
 version = "0.1.0"
 dependencies = [
