@@ -15,6 +15,7 @@
 
 pub mod gestures;
 pub mod metrics;
+pub mod module_scene;
 pub mod paint;
 pub mod placement;
 pub mod toolbox;
@@ -60,10 +61,9 @@ const FIT_PADDING: f64 = 40.0;
 const SCROLL_BAR: f32 = 10.0;
 /// The smallest share of its track a thumb takes (`thumbOf`).
 const MIN_THUMB: f64 = 0.05;
-/// What a tab of a diagram its module draws itself shows: its edits, menus and properties are the module's, and its
-/// canvas (the standalone host's `C4Canvas.tsx`) is not drawn here yet.
-pub const MODULE_CANVAS: &str =
-    "This diagram is read and edited by its module, whose canvas this host does not draw yet. Open its text to see it.";
+/// What stands in for the notation of a diagram its module draws itself: its scene is built from the module's view
+/// ([`module_scene`]) rather than compiled from a specification.
+pub const MODULE_CANVAS: &str = "This diagram is drawn by its module.";
 
 /// Where the vendored specifications and bindings are: `ADP_VENDOR`, else a `vendor` folder beside the program or
 /// above it, else the source tree's.
@@ -402,6 +402,10 @@ impl DiagramTab {
         if self.cache.as_ref().is_some_and(|c| c.key == key) {
             return;
         }
+        if self.session.module_view().is_some() {
+            self.ensure_module_scene(ctx, documents, key);
+            return;
+        }
         let (Ok(definition), Some(document)) = (&self.definition, documents.get(&self.opened.body_path)) else {
             return;
         };
@@ -536,6 +540,39 @@ impl DiagramTab {
         });
     }
 
+    /// Builds the scene of a diagram its module draws itself, from what the module's view renders.
+    fn ensure_module_scene(&mut self, ctx: &egui::Context, documents: &DiagramDocuments, key: SceneKey) {
+        let elements = match self.session.render(documents) {
+            Ok(elements) => elements,
+            Err(reason) => {
+                self.notice = Some(reason);
+                Vec::new()
+            }
+        };
+        let metrics = self.metrics.get_or_insert_with(|| EguiMetrics::new(ctx));
+        // A selected element that is gone is no longer selected.
+        let known: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
+        self.selection.retain(|id| known.contains(id.as_str()));
+        let built = module_scene::build(&elements, &self.selection, self.arbiter.moving());
+        let bounds = built.scene.bounds(metrics);
+        self.cache = Some(Cached {
+            key,
+            scene: built.scene,
+            placed: Placed {
+                rects: built.rects,
+                ..Placed::default()
+            },
+            boxes: built.boxes,
+            lines: built.lines,
+            anchors: Vec::new(),
+            handles: Vec::new(),
+            labels: built.labels,
+            bounds,
+            surface: None,
+            drop_mapping: Mapping::default(),
+        });
+    }
+
     // ---- the view ---------------------------------------------------------------------------------------------------
 
     fn zoom_limits(&self) -> (f64, f64) {
@@ -660,6 +697,10 @@ impl DiagramTab {
         let Some(cache) = &self.cache else { return false };
         if !cache.placed.rects.contains_key(id) {
             return false;
+        }
+        if self.session.module_view().is_some() {
+            // Every card of a module's view drags; where it goes is the module's to record.
+            return true;
         }
         let Ok(definition) = &self.definition else { return false };
         cache
@@ -884,6 +925,39 @@ impl DiagramTab {
 
     /// Drops toolbox entry `tool_id` at a canvas point.
     pub fn drop_tool(&mut self, workspace: &mut DiagramWorkspace, tool_id: &str, at: Point) {
+        if self.session.module_view().is_some() {
+            // The entry carries the module's own action: dropped on an element, that element is the target the
+            // action adds inside; on empty canvas, the canvas (`onElementDropped`).
+            let Some(action) = self
+                .session
+                .toolbox(workspace.documents())
+                .into_iter()
+                .find(|item| item.id == tool_id)
+                .map(|item| item.drop_action_id)
+            else {
+                return;
+            };
+            let target = match self.hit(at) {
+                Hit::Element(id) => ActionTarget::Element(id),
+                _ => ActionTarget::Canvas { x: at.x, y: at.y },
+            };
+            // Asked in a dialog rather than over the card it lands on: what is typed names the new element.
+            self.ensure_ids(workspace.documents());
+            let ids = self.ids.as_deref().expect("made");
+            match self.session.execute(workspace, &target, &action, ids) {
+                ActionOutcome::Done => self.report(Ok(())),
+                ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+                ActionOutcome::Prompt(prompt) => {
+                    self.prompt = Some(PendingPrompt {
+                        target,
+                        action_id: action,
+                        prompt,
+                        value: String::new(),
+                    })
+                }
+            }
+            return;
+        }
         let (x, y) = self
             .cache
             .as_ref()
