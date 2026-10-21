@@ -1,7 +1,9 @@
 //! Both bundled definitions load with this runtime: nothing refused and nothing warned about, every expression
 //! compiled in its own context; a function either calls that the runtime lacks fails the load by name, wherever the
 //! call is (the standalone host's `BundledDefinitionLoadingTests`). Beside them, every vendored `.dis` loads with the
-//! diagnostics the standalone host's loader gives it, recorded in `fixtures/standalone-diagnostics.txt`.
+//! diagnostics the standalone host's loader gives it, recorded in `fixtures/standalone-diagnostics.txt`, less those
+//! of the DISL library functions (section 12.4) this runtime implements and the standalone host's evaluator lacked:
+//! `formatNumber`, `l.sum()`, `l.min()` and `l.max()`, so that `supply-chain.dis` loads here.
 
 mod common;
 
@@ -258,7 +260,8 @@ fn a_call_of_a_function_the_runtime_lacks_refuses_the_definition() {
 }
 
 /// Every `.dis` the desktop host vendors - the tool types' definitions and the DISL examples - loads with the very
-/// diagnostics the standalone host's loader gives it, and the two the standalone host bundles with none.
+/// diagnostics the standalone host's loader gives it, less those of the library functions it lacked, and the two the
+/// standalone host bundles with none.
 #[test]
 fn every_vendored_definition_has_the_standalone_loaders_diagnostics() {
     let expected = include_str!("fixtures/standalone-diagnostics.txt").replace('\r', "");

@@ -190,3 +190,48 @@ fn an_enumeration_the_specification_lacks_is_an_error() {
         evaluate("enumLabel('Colour', 'red')")
     );
 }
+
+#[test]
+fn a_list_of_numbers_is_summed_and_its_smallest_and_largest_are_its_own_items() {
+    for (expression, expected) in [
+        ("[1, 2, 3].sum()", Value::Int(6)),
+        ("[].sum()", Value::Int(0)),
+        ("[1, 2.5].sum()", Value::Double(3.5)),
+        ("[3, 1, 2].min()", Value::Int(1)),
+        ("[3.5, 1, 7].max()", Value::Int(7)),
+        ("[0.25, 0.5].max()", Value::Double(0.5)),
+    ] {
+        assert_eq!(Ok(expected), evaluate(expression), "{expression}");
+    }
+}
+
+#[test]
+fn an_aggregate_of_nothing_or_of_text_is_an_error() {
+    assert_eq!(
+        Err("max() of an empty list has no value.".to_owned()),
+        evaluate("[].max()")
+    );
+    assert_eq!(
+        Err("sum() takes a list of numbers.".to_owned()),
+        evaluate("['a'].sum()")
+    );
+}
+
+#[test]
+fn a_number_is_formatted_with_an_icu_decimal_pattern() {
+    for (expression, expected) in [
+        ("formatNumber(1234567.891, '#,##0.##')", "1,234,567.89"),
+        ("formatNumber(0.1234, '#,##0.###')", "0.123"),
+        ("formatNumber(2.5, '#,##0')", "2"),
+        ("formatNumber(12, '0.00')", "12.00"),
+        ("formatNumber(-3.25, '#,##0.#')", "-3.2"),
+        ("formatNumber(0.25, '0%')", "25%"),
+    ] {
+        assert_eq!(
+            Ok(Value::String(expected.to_owned())),
+            evaluate(expression),
+            "{expression}"
+        );
+    }
+    assert!(evaluate("formatNumber(1.0, 'no digits')").is_err());
+}

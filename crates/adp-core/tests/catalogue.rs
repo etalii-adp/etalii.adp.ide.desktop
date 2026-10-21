@@ -91,7 +91,7 @@ fn a_tool_type_claims_the_extensions_of_its_specification_and_bindings() {
 /// evaluator ported from the standalone host at 8b6ccfc does not have. The standalone host reads these tool types with
 /// its modules' own code; their modules are ported in phase 7. A specification that starts or stops loading changes
 /// this list.
-const NOT_LOADING: [&str; 15] = [
+const NOT_LOADING: [&str; 14] = [
     "azure-devops/pipeline",
     "c4/component",
     "c4/container",
@@ -102,7 +102,6 @@ const NOT_LOADING: [&str; 15] = [
     "databricks/job",
     "etalii/functional-decomposition-graph",
     "etalii/sankey",
-    "etalii/supply-chain",
     "w3c/owl",
     "w3c/rdf",
     "w3c/skos",
