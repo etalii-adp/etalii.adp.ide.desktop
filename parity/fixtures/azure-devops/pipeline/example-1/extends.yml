@@ -1,0 +1,12 @@
+# The pipeline's real shape is the template's; what this file contributes is
+# parameters. A diagram of this file is mostly not about this file.
+trigger:
+  - main
+
+extends:
+  template: templates/pipeline.yml
+  parameters:
+    buildConfiguration: Release
+    deployTo:
+      - staging
+      - production

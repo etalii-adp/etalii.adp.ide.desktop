@@ -124,6 +124,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-functional-decomposition-graph",
@@ -211,6 +212,21 @@ dependencies = [
  "adp-fbl",
  "adp-history",
  "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-azure-devops-pipeline"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "saphyr-parser",
  "tempfile",
 ]
 
@@ -444,6 +460,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
@@ -500,6 +517,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",

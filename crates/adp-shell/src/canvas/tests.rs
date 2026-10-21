@@ -1193,3 +1193,5 @@ mod supply_chain;
 mod sankey;
 // The functional decomposition graph with its module (T072), in a file of its own.
 mod fdg;
+// The Azure DevOps pipeline with its module (T078), in a file of its own.
+mod pipeline;

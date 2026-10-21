@@ -426,6 +426,7 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module());
     let tools = adp_diagram_dependency_graph::register(tools);
     let tools = adp_diagram_supply_chain::register(tools);
+    let tools = adp_diagram_azure_devops_pipeline::register(tools);
     let tools = adp_diagram_sankey::register(tools);
     let tools = adp_diagram_functional_decomposition_graph::register(tools);
     let mut tools = adp_diagram_c4::register(tools);

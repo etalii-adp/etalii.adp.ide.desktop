@@ -18,6 +18,7 @@ pub mod gestures;
 pub mod metrics;
 pub mod module_scene;
 pub mod paint;
+pub mod pipeline_scene;
 pub mod placement;
 pub mod sankey_scene;
 pub mod supply_chain_scene;
@@ -98,8 +99,8 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
-                adp_diagram_dependency_graph::register(
+            tools: adp_diagram_azure_devops_pipeline::register(adp_diagram_supply_chain::register(
+                adp_diagram_sankey::register(adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                     adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                         DislPluginFunctions::none()
                     }))
@@ -110,8 +111,8 @@ impl DiagramHost {
                         adp_diagram_functional_decomposition_graph::ORIGIN,
                         adp_diagram_functional_decomposition_graph::module(),
                     ),
-                ),
-            ))),
+                ))),
+            )),
             workspaces: HashMap::new(),
         }
     }
@@ -746,6 +747,9 @@ impl DiagramTab {
         } else if self.opened.origin == adp_diagram_supply_chain::ORIGIN {
             // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
             supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving())
+        } else if self.opened.origin == adp_diagram_azure_devops_pipeline::ORIGIN {
+            // A pipeline arranges itself from its dependencies: nothing on it is dragged.
+            pipeline_scene::build(&elements, &self.selection)
         } else {
             module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark)
         };
