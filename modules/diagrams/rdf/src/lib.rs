@@ -62,10 +62,6 @@ pub const ORIGINS: [&str; 4] = [graph::ORIGIN, owl::ORIGIN, skos::ORIGIN, shacl:
 /// How many lines after its first a registration's headers are looked for in.
 const HEADER_SCAN_LIMIT: usize = 8;
 
-/// What opening a body under a reading no registration names answers: only the data graph claims a bare file.
-pub const NOT_REGISTERED: &str =
-    "A .ttl or .nt file opens as an RDF graph; open it as another reading through a registration that names it.";
-
 /// The family's module, serving every reading.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct RdfModule;
@@ -104,20 +100,21 @@ impl DiagramModule for RdfModule {
         origin: &str,
         documents: &mut DiagramDocuments,
     ) -> Result<(OpenedDiagram, Rc<dyn ModuleView>), String> {
-        let mut origin = origin;
         let is_registration = path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp"));
-        let (body_path, registration) = if is_registration {
-            (route_registration(root, path)?, Some(path.to_path_buf()))
+        // A bare body is asked for under whichever reading the workspace found first among the four that share its
+        // extension; it opens as the reading the registration beside it names, else as the data graph, the anchor
+        // that keeps bare files (`SharedExtension: true` on the other three).
+        let (body_path, registration, origin) = if is_registration {
+            (route_registration(root, path)?, Some(path.to_path_buf()), origin)
         } else {
             let beside = path.with_extension("adp");
-            let registered = beside.is_file() && fs::read_to_string(&beside).is_ok_and(|t| first_line(&t) == origin);
-            if registered {
-                (path.to_path_buf(), Some(beside))
-            } else {
-                // A bare body is the anchor's, whichever reading the workspace found first for its extension: the
-                // other readings never claim a bare body (`SharedExtension: true`).
-                origin = graph::ORIGIN;
-                (path.to_path_buf(), None)
+            let named = beside
+                .is_file()
+                .then(|| fs::read_to_string(&beside).map(|t| first_line(&t)).unwrap_or_default())
+                .and_then(|named| ORIGINS.into_iter().find(|o| *o == named));
+            match named {
+                Some(named) => (path.to_path_buf(), Some(beside), named),
+                None => (path.to_path_buf(), None, graph::ORIGIN),
             }
         };
         if !body_path.is_file() {

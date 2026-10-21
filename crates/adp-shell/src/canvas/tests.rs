@@ -1222,6 +1222,8 @@ mod ansible;
 mod sankey;
 // The Helm chart diagram with its module (T080), in a file of its own.
 mod helm;
+// The RDF family's four readings with their module (T083), in a file of its own.
+mod rdf;
 // The functional decomposition graph with its module (T072), in a file of its own.
 mod fdg;
 // The agent activity diagram with its module (T075), in a file of its own.
