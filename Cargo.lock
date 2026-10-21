@@ -123,6 +123,10 @@ version = "0.1.0"
 [[package]]
 name = "adp-conformance"
 version = "0.1.0"
+dependencies = [
+ "adp-fbl",
+ "serde_json",
+]
 
 [[package]]
 name = "adp-context"
@@ -191,6 +195,9 @@ dependencies = [
 [[package]]
 name = "adp-fbl"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "adp-hierarchy"
