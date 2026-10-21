@@ -1,0 +1,17 @@
+agent-activity-diagram: 1
+# A lock and a group state left behind by an element an agent removed.
+projects:
+  - id: p
+    name: Project
+view:
+  placements:
+    - element: p
+      x: 10
+      y: 20
+    - element: s-gone
+      x: 1
+      y: 2
+  groups:
+    - element: s-gone
+      group: pending
+      collapsed: false

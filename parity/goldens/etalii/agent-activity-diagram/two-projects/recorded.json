@@ -1,0 +1,287 @@
+{
+  "script": "parity/scripts/etalii/agent-activity-diagram/two-projects.json",
+  "tool": "etalii/agent-activity-diagram",
+  "fixture": "etalii/agent-activity-diagram/two-projects/two-projects.aad",
+  "registration": "etalii/agent-activity-diagram/two-projects/two-projects.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T14:24:53Z",
+  "edits": 31,
+  "changed": [
+    "two-projects.aad"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 5,
+      "id": "6xe90awwiog7f15dpcecgsrmo",
+      "type": "etalii/agent-activity-diagram+agent",
+      "connection": false
+    },
+    {
+      "step": 6,
+      "id": "specification:6xe90awwiog7f15dpcecgsrmo",
+      "type": "etalii/agent-activity-diagram+relation",
+      "connection": true
+    },
+    {
+      "step": 8,
+      "id": "a7zb4lrkzfnnnyn9zi9e7i7vi",
+      "type": "etalii/agent-activity-diagram+location",
+      "connection": false
+    },
+    {
+      "step": 9,
+      "id": "agent:a7zb4lrkzfnnnyn9zi9e7i7vi",
+      "type": "etalii/agent-activity-diagram+relation",
+      "connection": true
+    },
+    {
+      "step": 11,
+      "id": "environment:a7zb4lrkzfnnnyn9zi9e7i7vi",
+      "type": "etalii/agent-activity-diagram+relation",
+      "connection": true
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "s-conversion"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename' answered 'Causal loop diagram, on DISL and FBL'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "status = 'Progressing'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "'Paused' is not one of the values this can have."
+    },
+    {
+      "step": 4,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "link = 'https://github.com/etalii-adp/etalii.adp/tree/develop/specs/cld'"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:400,-120"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:s-conversion->6xe90awwiog7f15dpcecgsrmo"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on 6xe90awwiog7f15dpcecgsrmo; input 'Rename' answered 'Conversion thread'"
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:620.4,-200.6"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:a7zb4lrkzfnnnyn9zi9e7i7vi->6xe90awwiog7f15dpcecgsrmo"
+    },
+    {
+      "step": 10,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "branch = 'features/cld-disl-fbl'"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:a7zb4lrkzfnnnyn9zi9e7i7vi->e-cloud"
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "\"Module thread\" is already joined to \"Agent activity diagram\". Remove that line first: each agent has one specification."
+    },
+    {
+      "step": 13,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "A project cannot be joined to an environment. A project is joined to a specification."
+    },
+    {
+      "step": 14,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "a-definitions to (-300, 250)"
+    },
+    {
+      "step": 15,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "a-definitions to (-320.2, 260.6)"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on s-module#progressing"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on s-module#pending"
+    },
+    {
+      "step": 18,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on diagram view"
+    },
+    {
+      "step": 19,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "l-module"
+    },
+    {
+      "step": 20,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 21,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 22,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 23,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "name = 'Definitions agent'"
+    },
+    {
+      "step": 24,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on a-definitions"
+    },
+    {
+      "step": 25,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 26,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "environmentKind = 'Container'"
+    },
+    {
+      "step": 27,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "folder = ''"
+    },
+    {
+      "step": 28,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on diagram view"
+    },
+    {
+      "step": 29,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on s-definitions"
+    },
+    {
+      "step": 30,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 31,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 32,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on s-module#progressing"
+    },
+    {
+      "step": 33,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

@@ -49,7 +49,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-043 | Dependency graph (`generic/dependencies`, implemented) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::generic_dependencies_services | checked |
 | P-044 | Functional decomposition graph (`etalii/functional-decomposition-graph`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::etalii_functional_decomposition_graph_field_service | checked |
 | P-045 | Agent Behavior Modelling (`etalii/agent-behavior-modelling`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
-| P-046 | Agent activity diagram (`etalii/agent-activity-diagram`, work-in-progress) | docs/tools.md, 5. Business process & workflow notation | 4 |  | planned |
+| P-046 | Agent activity diagram (`etalii/agent-activity-diagram`, work-in-progress) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::etalii_agent_activity_diagram_two_projects | checked |
 | P-047 | Supply chain diagram (`etalii/supply-chain`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::etalii_supply_chain_automotive | checked |
 | P-048 | Sankey diagram (`etalii/sankey`, prototype) | docs/tools.md, 7. Data-oriented diagrams | 4 | adp-parity::etalii_sankey_brightwater_coffee | checked |
 | P-049 | Azure DevOps pipeline (`azure-devops/pipeline`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |

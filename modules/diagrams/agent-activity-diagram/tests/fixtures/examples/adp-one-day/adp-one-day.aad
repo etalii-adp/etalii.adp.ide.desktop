@@ -1,0 +1,188 @@
+agent-activity-diagram: 1
+# The work on ADP as it stood on 2026-10-09, written for ADP as an example.
+# Agents keep a file like this current: each changes its own entries and leaves the rest alone.
+projects:
+  - id: p-standalone
+    name: etalii.adp
+    link: https://github.com/etalii-adp/etalii.adp.ide.standalone
+specifications:
+  - id: s-knowledge
+    project: p-standalone
+    name: Knowledge designer
+    link: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/.spec-workflow/specs/knowledge-designer
+    status: progressing
+    tasks:
+      - id: t-k2
+        title: Measure a ten-thousand-row file
+        status: finished
+        updated: 2026-10-09T01:20:00+02:00
+      - id: t-k6
+        title: The designer family's definition and catalog
+        status: progressing
+        updated: 2026-10-09T13:05:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150
+      - id: t-k8
+        title: Reordering in the FBL runtime
+        status: pending
+      - id: t-k12
+        title: The table library
+        status: pending
+  - id: s-activity
+    project: p-standalone
+    name: Agent activity diagram
+    link: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/.spec-workflow/specs/agent-activity-diagram
+    status: progressing
+    tasks:
+      - id: t-a5
+        title: A save that does not overwrite an unseen change
+        status: finished
+        updated: 2026-10-09T12:53:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/154
+      - id: t-a12
+        title: The radiating layout
+        status: finished
+        updated: 2026-10-09T15:40:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/156
+      - id: t-a16
+        title: The module opens an activity file
+        status: progressing
+        updated: 2026-10-09T16:55:00+02:00
+      - id: t-a7
+        title: Locked, group states and the switch on the wire
+        status: input-required
+        updated: 2026-10-09T13:01:00+02:00
+      - id: t-a28
+        title: The browser pass
+        status: pending
+  - id: s-conversion
+    project: p-standalone
+    name: DISL and FBL conversion of the causal loop diagram
+    status: input-required
+  - id: s-warnings
+    project: p-standalone
+    name: Rider warnings cleanup
+    status: finished
+  - id: s-fbl
+    project: p-standalone
+    name: FBL implementation
+    status: archived
+  - id: s-definitions
+    project: p-standalone
+    name: Agent activity diagram definitions
+    link: https://github.com/etalii-adp/etalii.adp/tree/develop/specs/014-agent-activity-diagram
+    status: progressing
+    tasks:
+      - id: t-d4
+        title: The specification, its companion and the file's schema
+        status: finished
+        updated: 2026-10-09T16:16:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp/pull/105
+      - id: t-d5
+        title: Move the reader's part back under one key
+        status: progressing
+        updated: 2026-10-09T16:54:00+02:00
+agents:
+  - id: a-knowledge
+    name: Knowledge designer thread
+    specification: s-knowledge
+  - id: a-activity
+    name: Agent activity diagram thread
+    specification: s-activity
+  - id: a-definitions
+    name: Definitions thread
+    specification: s-definitions
+  - id: a-upkeep
+    name: Project upkeep routine
+locations:
+  - id: l-knowledge
+    agent: a-knowledge
+    environment: e-fractal
+    folder: .claude/worktrees/knowledge
+    branch: claude/project-thread-qi3o77
+    pullRequests:
+      - id: pr-150
+        title: "150: Knowledge designer, tasks 2 and 6"
+        updated: 2026-10-09T13:05:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/150
+  - id: l-activity
+    agent: a-activity
+    environment: e-fractal
+    folder: .claude/worktrees/jovial-wiles-eafc0e
+    branchLink: https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/claude/project-thread-j58hge
+    branch: claude/project-thread-j58hge
+    pullRequests:
+      - id: pr-154
+        title: "154: Save against the file as it is"
+        updated: 2026-10-09T12:53:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/154
+      - id: pr-155
+        title: "155: Lists inside an element, selectable rows and link symbols"
+        updated: 2026-10-09T13:20:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/155
+      - id: pr-156
+        title: "156: Locked elements, a radiating layout, motion and a switch"
+        updated: 2026-10-09T15:40:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp.ide.standalone/pull/156
+  - id: l-activity-specs
+    agent: a-activity
+    environment: e-fractal
+    branch: develop
+  - id: l-definitions
+    agent: a-definitions
+    environment: e-cloud
+    branch: claude/project-thread-cqez7b
+    pullRequests:
+      - id: pr-105
+        title: "105: Agent activity diagram definitions"
+        updated: 2026-10-09T16:16:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp/pull/105
+environments:
+  - id: e-fractal
+    name: Fractal
+    kind: local-machine
+  - id: e-cloud
+    name: Claude Code cloud environment
+    kind: cloud
+    link: https://code.claude.com/docs/en/claude-code-on-the-web
+view:
+  placements:
+    - element: p-standalone
+      x: 49
+      y: 52
+    - element: l-activity
+      x: -123
+      y: -562
+    - element: a-upkeep
+      x: -489
+      y: 197
+    - element: e-cloud
+      x: 1220
+      y: -154
+    - element: a-definitions
+      x: 686
+      y: -109
+    - element: l-definitions
+      x: 927
+      y: -59
+    - element: s-definitions
+      x: 402
+      y: 68
+    - element: l-activity-specs
+      x: -528
+      y: -609
+  groups:
+    - element: s-activity
+      group: finished
+      collapsed: false
+    - element: s-knowledge
+      group: pending
+      collapsed: false
+    - element: s-definitions
+      group: finished
+      collapsed: false
+    - element: l-knowledge
+      group: pullRequests
+      collapsed: false
+    - element: l-activity
+      group: pullRequests
+      collapsed: false
