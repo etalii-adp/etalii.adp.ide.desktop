@@ -1,0 +1,13 @@
+title Submaps and urls
+anchor Customer [0.95, 0.63]
+
+component Ordering [0.85, 0.42]
+submap Fulfilment [0.60, 0.55] url(fulfilmentMap)
+submap Billing [0.45, 0.68] url(billingMap)
+
+url fulfilmentMap [https://onlinewardleymaps.com/#clone:example-fulfilment]
+url billingMap [https://onlinewardleymaps.com/#clone:example-billing]
+
+Customer->Ordering
+Ordering->Fulfilment
+Ordering->Billing
