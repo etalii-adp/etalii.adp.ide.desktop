@@ -89,6 +89,9 @@ pub struct FblElement {
     pub target: Option<String>,
     pub own_span: Span,
     pub line: usize,
+    /// The file the element is in, relative to a folder subject and `/`-separated, as the persistence plugin that
+    /// read it says (FBL section 11.2); none for an element of a file body, whose file is the body's.
+    pub file: Option<String>,
 }
 
 /// A view a block of the body defines (FBL section 4.7): its name, the block rule that matched it, and where it is.
@@ -176,7 +179,14 @@ pub struct FblOptions {
     pub resource: Option<String>,
     /// The registration's `identities` block, for rules with `id.sidecar`.
     pub identities: HashMap<String, String>,
+    /// The entries a host adds beside a folder subject's selected files for its persistence plugin, each a path
+    /// relative to the folder, given the folder's full path (the standalone host's `SupplementaryEntries`; outside
+    /// FBL 0.2). None adds nothing.
+    pub supplementary_entries: Option<SupplementaryEntries>,
 }
+
+/// What [`FblOptions::supplementary_entries`] gives for a folder: paths relative to it, with no bytes.
+pub type SupplementaryEntries = Rc<dyn Fn(&std::path::Path) -> Vec<String>>;
 
 impl Default for FblOptions {
     fn default() -> Self {
@@ -191,6 +201,7 @@ impl Default for FblOptions {
             registration_headers: Vec::new(),
             resource: None,
             identities: HashMap::new(),
+            supplementary_entries: None,
         }
     }
 }
