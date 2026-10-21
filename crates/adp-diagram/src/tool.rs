@@ -16,8 +16,11 @@ use adp_disl::model::{attribute_types, natural_ids};
 use adp_fbl::documents::{self, FblBinding};
 use adp_fbl::{FblOptions, RegistrationDocument};
 
+use adp_fbl::plugins::PersistencePlugin;
+
 use crate::definition::DiagramDefinition;
 use crate::disl_definition::DislDiagramDefinition;
+use crate::module::DiagramModule;
 
 /// A diagram tool type whose specification and binding are loaded.
 #[derive(Debug)]
@@ -28,6 +31,8 @@ pub struct DiagramTool {
     pub binding: Rc<FblBinding>,
     /// The extensions it opens, lower case with their dot.
     pub extensions: Vec<String>,
+    /// What its module adds, when it has one ([`DiagramTools::with_module`]).
+    pub module: Option<Rc<dyn DiagramModule>>,
 }
 
 impl DiagramTool {
@@ -61,7 +66,15 @@ impl DiagramTool {
             definition,
             binding: Rc::new(binding),
             extensions: tool_type.extensions.clone(),
+            module: None,
         })
+    }
+
+    /// The persistence plugin the binding names as its reader, when the module provides it; none for a binding read
+    /// by its declared rules, and none when the host lacks the plugin.
+    pub fn persistence(&self) -> Option<Rc<dyn PersistencePlugin>> {
+        let reader = self.binding.plugin.as_ref()?;
+        self.module.as_ref()?.persistence(&reader.plugin)
     }
 
     /// The tool type as the host's definition: its origin, its title and the extension of its bodies.
@@ -127,6 +140,7 @@ fn load_binding(file: &Path, reference: &str) -> Result<FblBinding, String> {
 pub struct DiagramTools {
     catalogue: Catalogue,
     plugins: Box<dyn Fn(&str) -> DislPluginFunctions>,
+    modules: HashMap<String, Rc<dyn DiagramModule>>,
     loaded: HashMap<String, Result<Rc<DiagramTool>, String>>,
 }
 
@@ -136,8 +150,16 @@ impl DiagramTools {
         DiagramTools {
             catalogue,
             plugins: Box::new(plugins),
+            modules: HashMap::new(),
             loaded: HashMap::new(),
         }
+    }
+
+    /// These tool types with `module` added to the tool type of `origin`.
+    pub fn with_module(mut self, origin: &str, module: Rc<dyn DiagramModule>) -> Self {
+        self.loaded.remove(origin);
+        self.modules.insert(origin.to_owned(), module);
+        self
     }
 
     pub fn catalogue(&self) -> &Catalogue {
@@ -149,7 +171,10 @@ impl DiagramTools {
         if !self.loaded.contains_key(origin) {
             let loaded = match self.catalogue.by_origin(origin) {
                 None => Err(format!("No tool type '{origin}' is known.")),
-                Some(tool_type) => DiagramTool::load(tool_type, &(self.plugins)(origin)).map(Rc::new),
+                Some(tool_type) => DiagramTool::load(tool_type, &(self.plugins)(origin)).map(|mut tool| {
+                    tool.module = self.modules.get(origin).cloned();
+                    Rc::new(tool)
+                }),
             };
             self.loaded.insert(origin.to_owned(), loaded);
         }

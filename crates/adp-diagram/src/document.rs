@@ -31,7 +31,12 @@ use adp_disl::model::builder;
 use adp_disl::{DislChange, DislElement, DislModel};
 use adp_documents::SelfWriteGuard;
 use adp_fbl::history::{DRIFT_UNDO, apply_in_order, inverse};
-use adp_fbl::{FblModel, ModelChange, OpenBody, OpenRegistration, PlanResult, RegistrationDocument, Splice};
+use adp_fbl::model::{SourceLocation, codes};
+use adp_fbl::plugins::PluginBody;
+use adp_fbl::{
+    FblModel, FblOptions, Finding, FindingSeverity, ModelChange, OpenBody, OpenRegistration, PlanResult,
+    RegistrationDocument, Splice,
+};
 use adp_history::{Applied, Command, Refusal};
 
 use crate::change_handler::same_path;
@@ -200,8 +205,12 @@ impl DiagramDocument {
     }
 
     /// The authored positions, by element id, in the diagram's domain units: a node whose notation places it by two
-    /// of its attributes is where they say, any other where the registration's `layout:` puts it.
+    /// of its attributes is where they say, any other where the registration's `layout:` puts it; for a tool type
+    /// whose module lays it out, where that layout puts it.
     pub fn positions(&self) -> HashMap<String, (f64, f64)> {
+        if let Some(positions) = self.tool.module.as_ref().and_then(|module| module.positions(self)) {
+            return positions;
+        }
         let mut positions = HashMap::new();
         if let Some(layout) = self.registration().and_then(|r| r.layout.as_ref()) {
             for entry in &layout.entries {
@@ -308,7 +317,7 @@ impl DiagramDocument {
         }
         let specification = self.tool.definition.specification();
         let options = self.tool.options(&file_name(&self.body_path), self.registration());
-        let mut body = OpenBody::open(self.body.to_vec(), self.tool.binding.clone(), Rc::new(options));
+        let mut body = Body::open(&self.tool, self.body.to_vec(), options, &file_name(&self.body_path));
         let mut registration = self.registration.as_ref().map(|r| OpenRegistration::open(r.to_vec()));
         let mut steps = Vec::new();
         for change in changes {
@@ -354,6 +363,82 @@ impl DiagramDocument {
             body_path: self.body_path.clone(),
             steps,
         })
+    }
+}
+
+/// A body opened to be read or planned against: through its binding's declared rules, through the persistence plugin
+/// the binding names as its reader (FBL section 11.3), or, when the host lacks that plugin, as unreadable with the
+/// finding that says so, so it opens with a problem and refuses every edit rather than opening empty.
+enum Body {
+    Declared(Box<OpenBody>),
+    Plugin(PluginBody),
+    Missing { bytes: Vec<u8>, finding: Finding },
+}
+
+impl Body {
+    fn open(tool: &DiagramTool, bytes: Vec<u8>, options: FblOptions, file_name: &str) -> Body {
+        let Some(reader) = &tool.binding.plugin else {
+            return Body::Declared(Box::new(OpenBody::open(bytes, tool.binding.clone(), Rc::new(options))));
+        };
+        let Some(plugin) = tool.persistence() else {
+            let finding = Finding {
+                code: codes::PLUGIN_MISSING.into(),
+                severity: FindingSeverity::Error,
+                message: format!(
+                    "The plugin '{}' that reads {file_name} is not part of this host, so it cannot be read.",
+                    reader.plugin
+                ),
+                location: Some(SourceLocation {
+                    file: file_name.to_owned(),
+                    line: 1,
+                    column: 1,
+                    length: 0,
+                }),
+                detail: None,
+            };
+            return Body::Missing { bytes, finding };
+        };
+        match PluginBody::open(bytes.clone(), tool.binding.clone(), Some(plugin), file_name) {
+            Ok(body) => Body::Plugin(body),
+            Err(reason) => Body::Missing {
+                bytes,
+                finding: Finding {
+                    code: codes::PLUGIN_MISSING.into(),
+                    severity: FindingSeverity::Error,
+                    message: reason,
+                    location: None,
+                    detail: None,
+                },
+            },
+        }
+    }
+
+    fn bytes(&self) -> &[u8] {
+        match self {
+            Body::Declared(body) => body.bytes(),
+            Body::Plugin(body) => body.bytes(),
+            Body::Missing { bytes, .. } => bytes,
+        }
+    }
+
+    fn model(&self) -> FblModel {
+        match self {
+            Body::Declared(body) => body.model(),
+            Body::Plugin(body) => body.model(),
+            Body::Missing { finding, .. } => FblModel {
+                findings: vec![finding.clone()],
+                unreadable: true,
+                ..FblModel::default()
+            },
+        }
+    }
+
+    fn change(&mut self, change: &ModelChange) -> PlanResult {
+        match self {
+            Body::Declared(body) => body.change(change),
+            Body::Plugin(body) => body.change(change),
+            Body::Missing { finding, .. } => PlanResult::Refused(finding.message.clone()),
+        }
     }
 }
 
@@ -485,7 +570,7 @@ impl DiagramDocuments {
             None => {
                 let registration_document = registration.as_ref().map(|r| RegistrationDocument::read(r.to_vec()));
                 let options = tool.options(&file_name(&body_path), registration_document.as_ref());
-                let fbl = OpenBody::open(body.to_vec(), tool.binding.clone(), Rc::new(options)).model();
+                let fbl = Body::open(&tool, body.to_vec(), options, &file_name(&body_path)).model();
                 let model = builder::from(&fbl, tool.definition.specification());
                 let reading = Rc::new(Reading {
                     fbl,

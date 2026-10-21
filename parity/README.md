@@ -27,7 +27,7 @@ Every script is a test in `crates/adp-parity/tests/parity.rs`. A script whose to
 | Script | State | Why |
 |---|---|---|
 | `c4/container/courier` | cannot open | The C4 container specification (`vendor/etalii.adp/definitions/diagrams/c4-container.dis`) does not load: `/persistence/typeMap/ViewInclude/attributes/members: 'includes' is not a variable here; available: self, diagram, env. (context element)`. The C4 module's residue (the Structurizr DSL reading and writing of `courier.dsl`, and the layout sidecar `courier.layout.json`) is not ported either. |
-| `freeplane/mindmap/example-1` | differs at offset 213 of `mindmap.mm` | The mind map's binding (`mindmap.fbl#mindmap`) reads `.mm` through the persistence plugin `net.etalii.adp.freeplane.mm`, the module's residue, which is not ported. The desktop host opens the map without a refusal but with no elements, so every one of the 28 steps that names a node is refused and nothing is written: the replay keeps the fixture's bytes, which first differ from the golden at the node step 9 renames (`Node lifecycle` against `Node lifecycle &amp; pooling`). |
+| `freeplane/mindmap/example-1` | matches | The mind map's residue (`modules/diagrams/mindmap`: the `.mm` reader `net.etalii.adp.freeplane.mm`, its actions and sibling naming) is ported: every one of the 29 steps goes as it did in the standalone host, and `mindmap.mm` is the golden's bytes. |
 | `generic/timeline/roadmap` | differs at offset 63 of `roadmap.tml` | 13 of the 32 steps are refused, listed below; the first differing line is the rename of step 1 (`label: Discovery` against `label: Discovery phase`). |
 
 ### Where the timeline replay parts from the standalone host

@@ -1,0 +1,29 @@
+[package]
+name = "adp-diagram-mindmap"
+description = "The mind map diagram's residue: the .mm reader and writer, the two-sided layout and what a node's menu does (spec 030, T059)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# The layout's boxes are kept in the order they were placed.
+indexmap = "2"
+# A new node's id is a ShortGuid: a version 4 GUID in 25 characters of base 36 (mindmap.dis, persistence.ids).
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+adp-history = { path = "../../../crates/adp-history" }
+serde_json = "1"
+tempfile = "3"
+
+[lints]
+workspace = true
