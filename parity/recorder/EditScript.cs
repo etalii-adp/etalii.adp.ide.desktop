@@ -27,7 +27,7 @@ internal sealed record EditScript(
     /// <summary>How many steps change something: SC-004 counts these.</summary>
     public int EditCount => Steps.Sum(step => step switch
     {
-        ActionStep or PropertyStep or SaveTextStep => 1,
+        ActionStep or PropertyStep or SaveTextStep or TableStep or ViewStep => 1,
         MoveStep move => move.Refs.Count,
         UndoStep undo => undo.Count,
         RedoStep redo => redo.Count,
@@ -154,6 +154,33 @@ internal abstract record Step(int Index, bool ExpectRefusal)
             return new MoveStep(index, refused, refs, MoveKind.By, null, -1, dx, dy);
         }
 
+        if (step.TryGetProperty("table", out var table))
+        {
+            if (table.ValueKind != JsonValueKind.Object || !table.TryGetProperty("kind", out var kind) || kind.GetString() is not { Length: > 0 } kindName)
+            {
+                throw new ScriptException(path, $"step {index}: a table step is an object with a gesture's kind");
+            }
+
+            string? Text(string name) => table.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+            var values = table.TryGetProperty("values", out var v) ? Strings(v, index, path) : [];
+            var settings = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (table.TryGetProperty("settings", out var s) && s.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var setting in s.EnumerateObject())
+                {
+                    settings[setting.Name] = setting.Value.GetString() ?? "";
+                }
+            }
+
+            var at = table.TryGetProperty("index", out var i) ? i.GetInt32() : 0;
+            return new TableStep(index, refused, kindName, Text("row"), Text("column"), Text("view"), values, at, Text("target"), settings);
+        }
+
+        if (step.TryGetProperty("view", out var view))
+        {
+            return new ViewStep(index, refused, view.GetString() ?? throw new ScriptException(path, $"step {index}: a view step names the view"));
+        }
+
         if (step.TryGetProperty("undo", out var undo))
         {
             return new UndoStep(index, refused, undo.GetInt32());
@@ -178,7 +205,7 @@ internal abstract record Step(int Index, bool ExpectRefusal)
             return new SaveStep(index, refused);
         }
 
-        throw new ScriptException(path, $"step {index} is none of select, action, property, move, undo, redo or save");
+        throw new ScriptException(path, $"step {index} is none of select, action, property, move, table, view, undo, redo or save");
     }
 
     private static Answer ParseAnswer(JsonElement answer, int index, string path)
@@ -221,6 +248,12 @@ internal enum MoveKind
 }
 
 internal sealed record MoveStep(int Index, bool ExpectRefusal, IReadOnlyList<string> Refs, MoveKind Kind, string? Parent, int At, double X, double Y) : Step(Index, ExpectRefusal);
+
+/// <summary>One gesture of a table, sent with <c>DesignerService.Edit</c>; its fields are the <c>TableGesture</c>'s.</summary>
+internal sealed record TableStep(int Index, bool ExpectRefusal, string Kind, string? Row, string? Column, string? View, IReadOnlyList<string> Values, int At, string? Target, IReadOnlyDictionary<string, string> Settings) : Step(Index, ExpectRefusal);
+
+/// <summary>The view a table's connection shows, sent with <c>DesignerService.SetTableView</c>.</summary>
+internal sealed record ViewStep(int Index, bool ExpectRefusal, string ViewId) : Step(Index, ExpectRefusal);
 
 internal sealed record UndoStep(int Index, bool ExpectRefusal, int Count) : Step(Index, ExpectRefusal);
 

@@ -17,6 +17,7 @@ use adp_theme::Theme;
 use eframe::egui::{self, RichText};
 
 use crate::canvas::DiagramTab;
+use crate::table::TableTab;
 use crate::theme::{self, Palette};
 
 /// What the grid keeps between frames: the text of a field being edited, by row id, for the selection it was
@@ -108,7 +109,7 @@ pub fn show(
                 for row in members {
                     ui.label(RichText::new(&row.label).color(palette.side_bar_foreground))
                         .on_hover_text(&row.id);
-                    if let Some(value) = editor(ui, &mut tab.grid, row, muted) {
+                    if let Some(value) = editor(ui, &mut tab.grid.editing, row, muted) {
                         commit = Some((row.id.clone(), value));
                     }
                     ui.end_row();
@@ -120,8 +121,54 @@ pub fn show(
     }
 }
 
+/// Draws the property grid of the row selected in `tab`'s table (the standalone host's `KnowledgeRowPropertyProvider`,
+/// T064): one row per property, each edited as its type is, and each change the same edit it is in the table.
+pub fn show_row(ui: &mut egui::Ui, tab: &mut TableTab, theme: &Theme, palette: &Palette) {
+    if tab.grid_row != tab.selected {
+        tab.grid_editing.clear();
+        tab.grid_row = tab.selected.clone();
+    }
+    let muted = theme::color(theme, &["descriptionForeground"], palette.foreground);
+    let small = theme.sizes.workbench_font - 2.0;
+    let Some(title) = tab.selected_title() else {
+        ui.label(RichText::new("Select a row to see its properties.").color(muted));
+        return;
+    };
+    ui.label(
+        RichText::new(format!("{} › {title}", tab.name()))
+            .size(small)
+            .color(muted),
+    );
+    ui.add_space(4.0);
+    let rows = tab.property_rows();
+    let mut commit: Option<(String, String)> = None;
+    let label_width = (ui.available_width() * 0.4).max(80.0);
+    egui::Grid::new(("row-grid", tab.body_path().to_path_buf()))
+        .num_columns(2)
+        .min_col_width(label_width)
+        .spacing(egui::vec2(8.0, 4.0))
+        .show(ui, |ui| {
+            for row in &rows {
+                ui.label(RichText::new(&row.label).color(palette.side_bar_foreground))
+                    .on_hover_text(&row.id);
+                if let Some(value) = editor(ui, &mut tab.grid_editing, row, muted) {
+                    commit = Some((row.id.clone(), value));
+                }
+                ui.end_row();
+            }
+        });
+    if let Some((id, value)) = commit {
+        tab.set_property(&id, &value);
+    }
+}
+
 /// One row's editor; the new value when it was committed this frame.
-fn editor(ui: &mut egui::Ui, grid: &mut Grid, row: &PropertyRow, muted: egui::Color32) -> Option<String> {
+fn editor(
+    ui: &mut egui::Ui,
+    editing: &mut HashMap<String, String>,
+    row: &PropertyRow,
+    muted: egui::Color32,
+) -> Option<String> {
     if row.is_read_only() {
         let shown = if row.value.is_empty() {
             "—"
@@ -137,7 +184,7 @@ fn editor(ui: &mut egui::Ui, grid: &mut Grid, row: &PropertyRow, muted: egui::Co
     let id = egui::Id::unique(("property", &row.id));
     match row.editor {
         PropertyEditor::Line | PropertyEditor::Tags | PropertyEditor::Text => {
-            let mut text = grid.editing.get(&row.id).cloned().unwrap_or_else(|| row.value.clone());
+            let mut text = editing.get(&row.id).cloned().unwrap_or_else(|| row.value.clone());
             let field = if row.editor == PropertyEditor::Text {
                 egui::TextEdit::multiline(&mut text).desired_rows(3)
             } else {
@@ -145,10 +192,10 @@ fn editor(ui: &mut egui::Ui, grid: &mut Grid, row: &PropertyRow, muted: egui::Co
             };
             let response = ui.add(field.id(id).desired_width(f32::INFINITY));
             if response.has_focus() {
-                grid.editing.insert(row.id.clone(), text.clone());
+                editing.insert(row.id.clone(), text.clone());
             }
             if response.lost_focus() {
-                grid.editing.remove(&row.id);
+                editing.remove(&row.id);
                 if text != row.value {
                     return Some(text);
                 }

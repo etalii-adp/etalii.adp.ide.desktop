@@ -1,0 +1,247 @@
+{
+  "script": "parity/scripts/etalii/knowledge/cities-yaml.json",
+  "tool": "etalii/knowledge",
+  "fixture": "etalii/knowledge/cities-yaml/cities.yaml",
+  "registration": "etalii/knowledge/cities-yaml/cities.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T07:57:52Z",
+  "edits": 30,
+  "changed": [
+    "cities.yaml"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 7,
+      "id": "0u4kbpteeum348jnd5t5kvf6h",
+      "type": "etalii/knowledge+id",
+      "connection": false
+    },
+    {
+      "step": 8,
+      "id": "csww3vl4zxw72dwmqlv3osihg",
+      "type": "etalii/knowledge+id",
+      "connection": false
+    },
+    {
+      "step": 24,
+      "id": "4j06p2d3s607m63zo69df3kp0",
+      "type": "etalii/knowledge+id",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"r1\", \"columnId\": \"p1\", \"viewId\": \"v2\", \"values\": [ \"Amsterdam (NH)\" ] }"
+    },
+    {
+      "step": 1,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"r2\", \"columnId\": \"p3\", \"viewId\": \"v2\", \"values\": [ \"530000\" ] }"
+    },
+    {
+      "step": 2,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"r1\", \"columnId\": \"p6\", \"viewId\": \"v2\", \"values\": [ \"false\" ] }"
+    },
+    {
+      "step": 3,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"r2\", \"columnId\": \"p7\", \"viewId\": \"v2\", \"values\": [ \"1291-01-01\" ] }"
+    },
+    {
+      "step": 4,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"r2\", \"columnId\": \"p9\", \"viewId\": \"v2\", \"values\": [ \"10:30\" ] }"
+    },
+    {
+      "step": 5,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"r1\", \"columnId\": \"p2\", \"viewId\": \"v2\", \"values\": [ \"o2\" ] }"
+    },
+    {
+      "step": 6,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"r2\", \"columnId\": \"p4\", \"viewId\": \"v2\", \"values\": [ \"o3\", \"o4\" ] }"
+    },
+    {
+      "step": 7,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"r2\", \"columnId\": \"p2\", \"viewId\": \"v2\", \"settings\": { \"newOption\": \"Luxembourg\" } }"
+    },
+    {
+      "step": 8,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "addRow { \"kind\": \"addRow\", \"viewId\": \"v2\", \"settings\": { \"group\": \"\" } }"
+    },
+    {
+      "step": 9,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"csww3vl4zxw72dwmqlv3osihg\", \"columnId\": \"p1\", \"viewId\": \"v2\", \"values\": [ \"Utrecht\" ] }"
+    },
+    {
+      "step": 10,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"csww3vl4zxw72dwmqlv3osihg\", \"columnId\": \"p3\", \"viewId\": \"v2\", \"values\": [ \"361924\" ] }"
+    },
+    {
+      "step": 11,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setCell { \"kind\": \"setCell\", \"rowId\": \"csww3vl4zxw72dwmqlv3osihg\", \"columnId\": \"p5\", \"viewId\": \"v2\", \"values\": [ \"zh\" ] }"
+    },
+    {
+      "step": 12,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 13,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 14,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "refused",
+      "detail": "A number is expected."
+    },
+    {
+      "step": 15,
+      "kind": "view",
+      "rpc": "DesignerService.SetTableView",
+      "outcome": "accepted",
+      "detail": "v1"
+    },
+    {
+      "step": 16,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "addSort { \"kind\": \"addSort\", \"columnId\": \"p1\", \"viewId\": \"v1\", \"settings\": { \"direction\": \"descending\" } }"
+    },
+    {
+      "step": 17,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setSort { \"kind\": \"setSort\", \"columnId\": \"p3\", \"viewId\": \"v1\", \"settings\": { \"direction\": \"ascending\" } }"
+    },
+    {
+      "step": 18,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "addFilter { \"kind\": \"addFilter\", \"columnId\": \"p3\", \"viewId\": \"v1\", \"settings\": { \"comparison\": \"greater-than\" } }"
+    },
+    {
+      "step": 19,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setFilter { \"kind\": \"setFilter\", \"viewId\": \"v1\", \"values\": [ \"500000\" ], \"targetId\": \"1\" }"
+    },
+    {
+      "step": 20,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "setHideEmptyGroups { \"kind\": \"setHideEmptyGroups\", \"viewId\": \"v1\", \"settings\": { \"hide\": \"true\" } }"
+    },
+    {
+      "step": 21,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "toggleGroup { \"kind\": \"toggleGroup\", \"viewId\": \"v1\", \"targetId\": \"o2\", \"settings\": { \"collapsed\": \"true\" } }"
+    },
+    {
+      "step": 22,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "hideColumn { \"kind\": \"hideColumn\", \"columnId\": \"p6\", \"viewId\": \"v1\" }"
+    },
+    {
+      "step": 23,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "resizeColumn { \"kind\": \"resizeColumn\", \"columnId\": \"p3\", \"viewId\": \"v1\", \"settings\": { \"width\": \"200\" } }"
+    },
+    {
+      "step": 24,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "addView { \"kind\": \"addView\", \"viewId\": \"v1\" }"
+    },
+    {
+      "step": 25,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "renameView { \"kind\": \"renameView\", \"viewId\": \"4j06p2d3s607m63zo69df3kp0\", \"values\": [ \"Recent\" ] }"
+    },
+    {
+      "step": 26,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 27,
+      "kind": "view",
+      "rpc": "DesignerService.SetTableView",
+      "outcome": "accepted",
+      "detail": "v2"
+    },
+    {
+      "step": 28,
+      "kind": "table",
+      "rpc": "DesignerService.Edit",
+      "outcome": "accepted",
+      "detail": "deleteRows { \"kind\": \"deleteRows\", \"rowId\": \"r2\", \"viewId\": \"v2\", \"settings\": { \"confirmed\": \"true\" } }"
+    },
+    {
+      "step": 29,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

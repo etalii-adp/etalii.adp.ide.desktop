@@ -9,6 +9,8 @@ publish = false
 
 [dependencies]
 adp-cel = { path = "../../../crates/adp-cel" }
+# The property grid's rows and the explorer's entries and prompts (row_context, context_actions).
+adp-context = { path = "../../../crates/adp-context" }
 adp-desl = { path = "../../../crates/adp-desl" }
 adp-documents = { path = "../../../crates/adp-documents" }
 adp-fbl = { path = "../../../crates/adp-fbl" }
