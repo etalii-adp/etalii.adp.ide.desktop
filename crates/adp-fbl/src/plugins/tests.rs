@@ -1237,7 +1237,7 @@ fn held(path: &Path) -> Option<Held> {
     #[cfg(not(windows))]
     {
         use std::os::unix::fs::PermissionsExt as _;
-        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0)).unwrap();
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o000)).unwrap();
         if std::fs::File::open(path).is_ok() {
             std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o644)).unwrap();
             return None;
