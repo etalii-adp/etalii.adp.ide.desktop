@@ -3,6 +3,8 @@
 
 #![cfg_attr(not(test), windows_subsystem = "windows")]
 
+mod editor;
+mod highlight;
 mod shell;
 mod theme;
 
@@ -31,9 +33,12 @@ fn main() -> eframe::Result {
         options,
         Box::new(|cc| {
             theme::install(&cc.egui_ctx);
-            Ok(Box::new(App {
-                shell: shell::Shell::default(),
-            }))
+            let mut shell = shell::Shell::default();
+            // `adp-desktop <file>` opens the file in the editor, as `code <file>` does.
+            if let Some(path) = std::env::args_os().nth(1) {
+                shell.open_text(std::path::Path::new(&path));
+            }
+            Ok(Box::new(App { shell }))
         }),
     )
 }
