@@ -1216,6 +1216,8 @@ mod causal_loop;
 
 // The supply chain diagram with its module (T076), in a file of its own.
 mod supply_chain;
+// The Ansible structure diagram with its module (T079), in a file of its own.
+mod ansible;
 // The Sankey diagram with its module (T077), in a file of its own.
 mod sankey;
 // The Helm chart diagram with its module (T080), in a file of its own.

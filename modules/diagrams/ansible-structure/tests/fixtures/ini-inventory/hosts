@@ -1,0 +1,14 @@
+# The oldest inventory format there is, and still the one most tutorials write.
+[web]
+a.example.com
+b.example.com ansible_port=2222
+
+[db]
+db1.example.com
+
+[app:children]
+web
+db
+
+[web:vars]
+http_port=8080

@@ -1,0 +1,33 @@
+{
+  "tool": "ansible/structure",
+  "fixture": "ansible/structure/infrastructure/.adp",
+  "registration": "ansible/structure/infrastructure/.adp",
+  "steps": [
+    { "move": { "refs": ["role:nginx"], "to": { "x": 640, "y": 160 } } },
+    { "move": { "refs": ["playbook:site.yml"], "dx": 0, "dy": 300 } },
+    { "move": { "refs": ["inventory:inventories/staging"], "dx": -50, "dy": 40 } },
+    { "move": { "refs": ["vars:inventories/staging/group_vars"], "dx": 12.3456, "dy": -7.8912 } },
+    { "undo": 1 },
+    { "redo": 1 },
+    { "select": ["taskfile:roles/nginx/tasks/tls.yml"] },
+    { "move": { "refs": ["taskfile:roles/nginx/tasks/tls.yml"], "to": { "x": 800.5, "y": -40.25 } } },
+    { "move": { "refs": ["role:nginx"], "dx": 30, "dy": 30 } },
+    { "undo": 2 },
+    { "redo": 1 },
+    { "move": { "refs": ["edge:role:nginx|DependsOn|common"], "to": { "x": 100, "y": 100 } }, "expect": "refused" },
+    { "move": { "refs": ["role:common"], "parent": "role:nginx" }, "expect": "refused" },
+    { "move": { "refs": ["playbook:webservers.yml"], "to": { "x": 0, "y": 0 } } },
+    { "move": { "refs": ["playbook:dbservers.yml"], "dx": 181.6, "dy": 0 } },
+    { "move": { "refs": ["role:postgres"], "to": { "x": 409.4, "y": 168 } } },
+    { "move": { "refs": ["inventory:inventories/production"], "dx": 0, "dy": 50 } },
+    { "move": { "refs": ["vars:inventories/production/group_vars"], "dx": 0, "dy": 50 } },
+    { "move": { "refs": ["vars:inventories/production/host_vars"], "dx": 0, "dy": 50 } },
+    { "undo": 3 },
+    { "redo": 2 },
+    { "move": { "refs": ["role:common"], "to": { "x": 0.0001, "y": 3.33333 } } },
+    { "move": { "refs": ["playbook:site.yml"], "to": { "x": -120.5, "y": -60.0625 } } },
+    { "undo": 1 },
+    { "move": { "refs": ["role:common"], "dx": 5, "dy": 5 } },
+    { "save": true }
+  ]
+}
