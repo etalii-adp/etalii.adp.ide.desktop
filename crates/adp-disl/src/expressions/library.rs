@@ -95,6 +95,14 @@ pub(crate) fn register(environment: &mut Environment, enums: Rc<IndexMap<String,
             _ => 1,
         }),
     );
+    for (name, sign) in [("min", -1), ("max", 1)] {
+        environment.add_function(
+            Function::receiver(name, 0, move |a| list_extreme(&a[0], name, sign)).with_cost(|a| match a.first() {
+                Some(Value::List(l)) => l.len() as i64,
+                _ => 1,
+            }),
+        );
+    }
     environment.add_function(Function::global("formatNumber", 2, |a| {
         Ok(Value::String(number_format::format_number(
             number(&a[0])?,
@@ -221,6 +229,24 @@ fn sum(value: &Value) -> Result<Value, String> {
         };
     }
     Ok(total)
+}
+
+/// `l.min()` and `l.max()` (section 12.4): the smallest (`sign` -1) or largest (1) item of a list of ints and
+/// doubles, the item itself, the first of equals; an empty list has none.
+fn list_extreme(value: &Value, name: &str, sign: i32) -> Result<Value, String> {
+    let list = value
+        .as_list()
+        .ok_or_else(|| format!("{name}() takes a list of numbers."))?;
+    if list
+        .iter()
+        .any(|item| !matches!(item, Value::Int(_) | Value::Double(_)))
+    {
+        return Err(format!("{name}() takes a list of numbers."));
+    }
+    if list.is_empty() {
+        return Err(format!("{name}() of an empty list has no value."));
+    }
+    extreme(list, sign)
 }
 
 /// `b.center()` on a Bounds (section 12.2): `[x + width / 2, y + height / 2]`, as doubles.

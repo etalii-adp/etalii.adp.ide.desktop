@@ -32,6 +32,11 @@ fn etalii_knowledge_cities_yaml() {
 }
 
 #[test]
+fn etalii_supply_chain_automotive() {
+    check("etalii/supply-chain/automotive");
+}
+
+#[test]
 fn etalii_sankey_brightwater_coffee() {
     check("etalii/sankey/brightwater-coffee");
 }

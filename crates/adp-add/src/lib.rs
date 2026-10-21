@@ -458,6 +458,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_causal_loop::ORIGIN,
         adp_diagram_causal_loop::TEMPLATE,
     )));
+    // `ServiceCollection.AddSupplyChain.cs`: `SupplyChainParser.EmptyDocument`.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_supply_chain::ORIGIN,
+        adp_diagram_supply_chain::TEMPLATE,
+    )));
     // `ServiceCollection.AddSankey.cs`: `SankeyParser.EmptyDocument`.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_sankey::ORIGIN,

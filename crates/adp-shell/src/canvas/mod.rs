@@ -20,6 +20,7 @@ pub mod module_scene;
 pub mod paint;
 pub mod placement;
 pub mod sankey_scene;
+pub mod supply_chain_scene;
 pub mod toolbox;
 pub mod viewpoint;
 
@@ -97,16 +98,18 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_sankey::register(adp_diagram_c4::register(adp_diagram_dependency_graph::register(
-                adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
-                    DislPluginFunctions::none()
-                }))
-                .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
-                .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
-                .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
-                .with_module(
-                    adp_diagram_functional_decomposition_graph::ORIGIN,
-                    adp_diagram_functional_decomposition_graph::module(),
+            tools: adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
+                adp_diagram_dependency_graph::register(
+                    adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
+                        DislPluginFunctions::none()
+                    }))
+                    .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
+                    .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
+                    .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
+                    .with_module(
+                        adp_diagram_functional_decomposition_graph::ORIGIN,
+                        adp_diagram_functional_decomposition_graph::module(),
+                    ),
                 ),
             ))),
             workspaces: HashMap::new(),
@@ -740,6 +743,9 @@ impl DiagramTab {
         self.selection.retain(|id| known.contains(id.as_str()));
         let built = if self.opened.origin == adp_diagram_sankey::ORIGIN {
             sankey_scene::build(&elements, &self.selection, self.arbiter.moving())
+        } else if self.opened.origin == adp_diagram_supply_chain::ORIGIN {
+            // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
+            supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving())
         } else {
             module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark)
         };

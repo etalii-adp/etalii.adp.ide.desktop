@@ -1,0 +1,28 @@
+[package]
+name = "adp-diagram-supply-chain"
+description = "The supply chain diagram's residue: the .supply reader and writer, its layered layout, its trace and every edit (spec 030, T076)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# The groups, nodes and slots of the layout are kept in the order they were made, as the standalone host's lists are.
+indexmap = "2"
+# The .supply document is YAML, read for its structure and the lines each entry occupies; never written through it.
+saphyr-parser = "0.0.6"
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+indexmap = "2"
+tempfile = "3"
+
+[lints]
+workspace = true

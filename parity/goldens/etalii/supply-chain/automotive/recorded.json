@@ -1,0 +1,267 @@
+{
+  "script": "parity/scripts/etalii/supply-chain/automotive.json",
+  "tool": "etalii/supply-chain",
+  "fixture": "etalii/supply-chain/automotive/automotive.supply",
+  "registration": "etalii/supply-chain/automotive/automotive.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T11:04:34Z",
+  "edits": 29,
+  "changed": [
+    "automotive.supply"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 16,
+      "id": "3b178e67wkhkkkbv43kg73std",
+      "type": "etalii/supply-chain+hub",
+      "connection": false
+    },
+    {
+      "step": 17,
+      "id": "azjobtvsshswgrzyiz22869mv",
+      "type": "etalii/supply-chain+flow",
+      "connection": false
+    },
+    {
+      "step": 20,
+      "id": "29eav2jgqtd3511rt0yq68qwg",
+      "type": "etalii/supply-chain+group",
+      "connection": false
+    },
+    {
+      "step": 21,
+      "id": "4gcbv04e700b4mzxwatjulaxq",
+      "type": "etalii/supply-chain+group",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "pack-assembly"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 2,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on kolwezi-cobalt"
+    },
+    {
+      "step": 3,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename' answered 'Battery pack line'"
+    },
+    {
+      "step": 4,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "supply-chain.unit = 'M packs'"
+    },
+    {
+      "step": 5,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "supply-chain.step = '0.25'"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on pack-assembly"
+    },
+    {
+      "step": 7,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "supply-chain.stage = 'outlet'"
+    },
+    {
+      "step": 8,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "supply-chain.group = '(none)'"
+    },
+    {
+      "step": 9,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "'lots' is not an amount this diagram can hold: a number of zero or more."
+    },
+    {
+      "step": 10,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "cathode-plant-to-pouch-cells"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on the selection"
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename product' answered 'NMC cathode: coated'"
+    },
+    {
+      "step": 13,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "supply-chain.description = 'Shipped by rail.'"
+    },
+    {
+      "step": 14,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 15,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:2600,1400"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:vehicle-plant->3b178e67wkhkkkbv43kg73std"
+    },
+    {
+      "step": 18,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "These two are already connected by a flow in this direction."
+    },
+    {
+      "step": 19,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "3b178e67wkhkkkbv43kg73std to (2700, 1500)"
+    },
+    {
+      "step": 20,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on 3b178e67wkhkkkbv43kg73std; input 'Put in a new group' answered 'Overseas'"
+    },
+    {
+      "step": 21,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:-600,200"
+    },
+    {
+      "step": 22,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "4gcbv04e700b4mzxwatjulaxq to (-900, 300)"
+    },
+    {
+      "step": 23,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "thai-rubber to (-880, 340)"
+    },
+    {
+      "step": 24,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on body-shop; confirmation 'Remove' answered ''"
+    },
+    {
+      "step": 25,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 26,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on australia"
+    },
+    {
+      "step": 27,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 28,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "kolwezi-cobalt to (40, 900)"
+    },
+    {
+      "step": 29,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on fleet-leasing-to-company-fleets"
+    },
+    {
+      "step": 30,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "That action is not available for this item."
+    },
+    {
+      "step": 31,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

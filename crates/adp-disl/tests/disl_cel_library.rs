@@ -242,3 +242,23 @@ fn a_number_is_formatted_with_an_icu_pattern() {
         evaluate("formatNumber(1, 'abc')")
     );
 }
+
+/// `l.min()` and `l.max()` (section 12.4): the smallest or largest item itself; an empty list has none.
+#[test]
+fn a_lists_smallest_and_largest_are_its_own_items() {
+    for (expression, expected) in [
+        ("[3, 1, 2].min()", Value::Int(1)),
+        ("[3.5, 1, 7].max()", Value::Int(7)),
+        ("[0.25, 0.5].max()", Value::Double(0.5)),
+    ] {
+        assert_eq!(Ok(expected), evaluate(expression), "{expression}");
+    }
+    assert_eq!(
+        Err("max() of an empty list has no value.".to_owned()),
+        evaluate("[].max()")
+    );
+    assert_eq!(
+        Err("min() takes a list of numbers.".to_owned()),
+        evaluate("['a'].min()")
+    );
+}

@@ -258,9 +258,9 @@ fn a_call_of_a_function_the_runtime_lacks_refuses_the_definition() {
 }
 
 /// The standalone host's diagnostics this runtime does not give, because its library has a function DISL section 12.4
-/// defines and the standalone host's `DislCelLibrary` at `8b6ccfc` lacks: `formatNumber(n, pattern)` and `l.sum()`.
+/// defines and the standalone host's `DislCelLibrary` at `8b6ccfc` lacks: `formatNumber(n, pattern)`, `l.sum()` and `l.max()`.
 /// Each is the refusal of a call to one of them, or of a call to a function that called one.
-const BEYOND_THE_STANDALONE_LIBRARY: [&str; 15] = [
+const BEYOND_THE_STANDALONE_LIBRARY: [&str; 22] = [
     "error at /functions/formatNumber2/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
     "error at /functions/formatValue/cel: 'formatValue' calls 'formatNumber2', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
     "error at /functions/nodeDisplay/cel: 'nodeDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
@@ -276,6 +276,13 @@ const BEYOND_THE_STANDALONE_LIBRARY: [&str; 15] = [
     "error at /notation/nodes/Stage/labels/2/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
     "error at /notation/nodes/Stage/tooltip/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
     "error at /notation/edges/Flow/labels/1/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)",
+    "error at /functions/bandWidth/cel: The function 'max' is not supported by this CEL evaluator.",
+    "error at /functions/quantityShare/cel: The function 'max' is not supported by this CEL evaluator.",
+    "error at /notation/styles/band/stroke/width/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/nodes/Stage/shape/params/share/cel: The function 'quantityShare' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/targetMarker/params/length/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)",
+    "error at /notation/edges/Flow/targetMarker/params/width/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)",
+    "error at /toolbox/groups/0/tools/7/initial/number/cel: The function 'max' is not supported by this CEL evaluator. (context create)",
 ];
 
 /// The library functions of DISL section 12.4 this runtime implements and the standalone host's evaluator did not:

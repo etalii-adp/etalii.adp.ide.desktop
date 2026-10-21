@@ -425,6 +425,7 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
         .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module());
     let tools = adp_diagram_dependency_graph::register(tools);
+    let tools = adp_diagram_supply_chain::register(tools);
     let tools = adp_diagram_sankey::register(tools);
     let tools = adp_diagram_functional_decomposition_graph::register(tools);
     let mut tools = adp_diagram_c4::register(tools);
@@ -618,7 +619,10 @@ impl Replay<'_> {
             // Dismissed, as Escape dismisses it.
             return Ok(());
         };
-        match self.session.answer(&mut self.workspace, &target, action, &answer) {
+        match self
+            .session
+            .answer_with_ids(&mut self.workspace, &target, action, &answer, self.ids)
+        {
             ActionOutcome::Done => Ok(()),
             ActionOutcome::Refused(reason) => Err(reason),
             ActionOutcome::Prompt(_) => Err("the answer asked again".to_owned()),

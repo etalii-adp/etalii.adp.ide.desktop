@@ -93,7 +93,7 @@ fn a_tool_type_claims_the_extensions_of_its_specification_and_bindings() {
 /// this list: the Azure DevOps pipeline, the Databricks job, the functional decomposition graph and the OWL ontology
 /// load since the graph functions `successors`, `predecessors`, `reachable` and `inCycle` (DISL section 12.4) are
 /// `adp-disl`'s.
-const NOT_LOADING: [&str; 11] = [
+const NOT_LOADING: [&str; 10] = [
     "c4/component",
     "c4/container",
     "c4/context",
@@ -101,7 +101,6 @@ const NOT_LOADING: [&str; 11] = [
     "c4/dynamic",
     "c4/system-landscape",
     "etalii/sankey",
-    "etalii/supply-chain",
     "w3c/rdf",
     "w3c/skos",
     "wardley/map",

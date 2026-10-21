@@ -1105,6 +1105,22 @@ impl DiagramSession {
         }
     }
 
+    /// Answers the prompt as [`DiagramSession::answer`] does, where what a module's own view creates in answer takes
+    /// the ids `ids` hands out (a supply chain's group put around a node); the specification's answers take their own.
+    pub fn answer_with_ids(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        value: &str,
+        ids: &dyn IdSource,
+    ) -> ActionOutcome {
+        match &self.view {
+            Some(view) => view.answer_with_ids(workspace, target, action_id, value, ids),
+            None => self.answer(workspace, target, action_id, value),
+        }
+    }
+
     /// Answers the prompt action `action_id` of `target` raised: the deletion it asked to confirm, the label typed
     /// for an inline rename, or the value an operation asked for (its one parameter, DISL section 9.3).
     pub fn answer(

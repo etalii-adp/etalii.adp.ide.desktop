@@ -30,7 +30,7 @@ struct Subpattern {
 }
 
 /// `value` written through `pattern`, or why the pattern cannot be read.
-pub(crate) fn format_number(value: f64, pattern: &str) -> Result<String, String> {
+pub fn format_number(value: f64, pattern: &str) -> Result<String, String> {
     let (positive, negative) = split_subpatterns(pattern);
     let positive = read_subpattern(positive, pattern)?;
     let negative = match negative {
