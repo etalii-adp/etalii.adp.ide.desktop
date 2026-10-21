@@ -13,12 +13,25 @@ use crate::shacl::refusals;
 use crate::vocabulary::{rdf, shacl};
 use crate::writer;
 
+/// What a new property row states beyond its path, each omitted from the written block when absent
+/// (`ShaclPropertyShapeOptions`).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ShaclPropertyShapeOptions {
+    /// The full datatype IRI for a `sh:datatype` constraint, empty for none.
+    pub datatype_iri: String,
+    pub min_count: Option<i64>,
+    pub max_count: Option<i64>,
+    /// The `sh:name`, empty for none.
+    pub name: String,
+}
+
 /// Splices one `sh:property [ … ] ;` continuation into an IRI-named shape's block.
 pub fn append_property_shape_block(
     document: &mut LineDocument,
     model: &RdfModel,
     shape_iri: &str,
     path_iri: &str,
+    options: &ShaclPropertyShapeOptions,
 ) -> String {
     if shape_iri.trim().is_empty() {
         return refusals::BLANK_ROOTED.to_owned();
@@ -34,12 +47,7 @@ pub fn append_property_shape_block(
     else {
         return refusals::NO_SUCH_SHAPE.to_owned();
     };
-    let block = format!(
-        "{} [ {} {} ]",
-        writer::compress(model, shacl::PROPERTY),
-        writer::compress(model, shacl::PATH),
-        writer::compress(model, path_iri)
-    );
+    let block = property_block(model, path_iri, options);
     let line_index = document.index();
     let terminator_line = line_index.line_of(anchor.terminator_offset);
     let terminator_column = anchor
@@ -311,6 +319,26 @@ fn exclusive_blanks(model: &RdfModel, shape_iri: &str) -> HashSet<String> {
             return exclusive;
         }
     }
+}
+
+/// The `sh:property [ … ]` block a row is written as (`ShaclWriter.PropertyBlock`).
+fn property_block(model: &RdfModel, path_iri: &str, options: &ShaclPropertyShapeOptions) -> String {
+    let term = |iri: &str| writer::compress(model, iri);
+    let mut parts = vec![format!("{} {}", term(shacl::PATH), term(path_iri))];
+    if !options.datatype_iri.is_empty() {
+        parts.push(format!("{} {}", term(shacl::DATATYPE), term(&options.datatype_iri)));
+    }
+    if let Some(min) = options.min_count {
+        parts.push(format!("{} {min}", term(shacl::MIN_COUNT)));
+    }
+    if let Some(max) = options.max_count {
+        parts.push(format!("{} {max}", term(shacl::MAX_COUNT)));
+    }
+    if !options.name.is_empty() {
+        let escaped = options.name.replace('\\', "\\\\").replace('"', "\\\"");
+        parts.push(format!("{} \"{escaped}\"", term(shacl::NAME)));
+    }
+    format!("{} [ {} ]", term(shacl::PROPERTY), parts.join(" ; "))
 }
 
 fn indent_of(line: &str) -> &str {

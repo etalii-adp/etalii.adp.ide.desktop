@@ -2,7 +2,9 @@
 //! task T083), ported from the standalone host's `Shacl/ShaclShapeDiscovery.cs` and `Shacl/_Model/ShaclShape.cs` at
 //! `8b6ccfc`. Shapes come back in document order of the triple that first made each one a shape.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+
+use indexmap::IndexMap;
 
 use crate::model::{RdfModel, RdfTerm, RdfTriple};
 use crate::vocabulary::{rdf, shacl};
@@ -29,14 +31,17 @@ pub fn key_of(term: &RdfTerm) -> Option<String> {
 
 /// Every shape of `model`, in document order of what made it one.
 pub fn discover(model: &RdfModel) -> Vec<ShaclShape> {
-    let mut found: HashMap<String, (RdfTerm, usize)> = HashMap::new();
-    let mark = |found: &mut HashMap<String, (RdfTerm, usize)>, term: &RdfTerm, index: usize| {
+    // Insertion-ordered, as the standalone host's dictionary enumerates: a key keeps its first slot when a lower index
+    // replaces its entry, and the stable sort by index below breaks ties in that order.
+    let mut found: IndexMap<String, (RdfTerm, usize)> = IndexMap::new();
+    let mark = |found: &mut IndexMap<String, (RdfTerm, usize)>, term: &RdfTerm, index: usize| {
         let Some(key) = key_of(term) else {
             return;
         };
-        match found.get(&key) {
+        match found.get_mut(&key) {
             Some((_, existing)) if *existing <= index => {}
-            _ => {
+            Some(slot) => *slot = (term.clone(), index),
+            None => {
                 found.insert(key, (term.clone(), index));
             }
         }
@@ -81,21 +86,8 @@ pub fn discover(model: &RdfModel) -> Vec<ShaclShape> {
             first_triple_index: index,
         })
         .collect();
-    // Two shapes made by one triple (a list's members share none, a subject and its object do) keep the order the
-    // standalone host's dictionary gave them: the subject first.
-    shapes.sort_by(|a, b| {
-        a.first_triple_index
-            .cmp(&b.first_triple_index)
-            .then_with(|| subject_first(model, a, b))
-    });
+    shapes.sort_by_key(|s| s.first_triple_index);
     shapes
-}
-
-fn subject_first(model: &RdfModel, a: &ShaclShape, b: &ShaclShape) -> std::cmp::Ordering {
-    let triple = &model.triples[a.first_triple_index];
-    let a_subject = key_of(&triple.subject).as_deref() == Some(a.key.as_str());
-    let b_subject = key_of(&triple.subject).as_deref() == Some(b.key.as_str());
-    b_subject.cmp(&a_subject)
 }
 
 /// The members of an RDF list with the index of each one's `rdf:first` triple; a malformed or cyclic list yields what

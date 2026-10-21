@@ -25,7 +25,9 @@ pub fn fixture(name: &str) -> String {
 
 /// The path of the example `relative` (`examples/{relative}`).
 pub fn example_path(relative: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/examples").join(relative)
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/examples")
+        .join(relative)
 }
 
 /// The text of the example `relative`, as committed.

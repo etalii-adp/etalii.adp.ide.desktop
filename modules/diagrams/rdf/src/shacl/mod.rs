@@ -4,16 +4,22 @@
 
 pub mod actions;
 pub mod discovery;
+pub mod mapper;
 pub mod projection;
 pub mod properties;
 pub mod refusals;
 pub mod validator;
 pub mod writer;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
+use std::path::Path;
+
+use adp_diagram::{DiagramElement, DiagramProblem, DiagramViewport, ToolboxItem};
 
 use crate::model::RdfModel;
+use crate::reading::{self, Positions, Reading};
 use crate::selection;
+use crate::store::RdfDocument;
 
 /// The shapes reading's origin.
 pub const ORIGIN: &str = "w3c/shacl";
@@ -145,11 +151,13 @@ pub fn describe(model: &RdfModel, element_id: &str) -> Option<String> {
     Some(format!("{} → {}", display_of(&edge.from_id), display_of(&edge.to_id)))
 }
 
-/// The shapes reading (`ShaclReading`). STUB: filled in by the SHACL port.
+/// The shapes reading (`ShaclReading`): the projection and the grid layout over the family's store, with the
+/// registration's `layout:` positions on top. It consumes no registration header, deliberately: a shapes graph
+/// constrains any number of data graphs, so binding a registration to one would misstate the medium.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ShaclReading;
 
-impl crate::reading::Reading for ShaclReading {
+impl Reading for ShaclReading {
     type Projection = projection::ShaclProjectionResult;
 
     fn origin(&self) -> &'static str {
@@ -164,44 +172,81 @@ impl crate::reading::Reading for ShaclReading {
         projection::project(model, usize::MAX)
     }
 
-    fn positions(
-        &self,
-        projection: &Self::Projection,
-        stored: &crate::reading::Positions,
-    ) -> crate::reading::Positions {
-        crate::reading::apply(positions(projection), stored)
+    fn positions(&self, projection: &Self::Projection, stored: &Positions) -> Positions {
+        reading::apply(positions(projection), stored)
     }
 
+    /// The cards the viewport admits, the edges both of whose ends survived, the budget as a floor; the counts stay
+    /// the document's (`ShaclReading.InView`).
     fn in_view(
         &self,
         projection: &Self::Projection,
-        _positions: &crate::reading::Positions,
-        _viewport: adp_diagram::DiagramViewport,
+        positions: &Positions,
+        viewport: DiagramViewport,
     ) -> Self::Projection {
-        projection.clone()
+        let visible: Vec<projection::ShaclCard> = projection
+            .cards
+            .iter()
+            .filter(|card| reading::admits(viewport, positions, &card.id, CARD_WIDTH, CARD_HEIGHT))
+            .cloned()
+            .collect();
+        let truncated = projection.total > projection::DEFAULT_BUDGET;
+        let kept: Vec<projection::ShaclCard> = visible.into_iter().take(projection::DEFAULT_BUDGET).collect();
+        let kept_ids: HashSet<&str> = kept.iter().map(|c| c.id.as_str()).collect();
+        let edges = projection
+            .edges
+            .iter()
+            .filter(|e| kept_ids.contains(e.from_id.as_str()) && kept_ids.contains(e.to_id.as_str()))
+            .cloned()
+            .collect();
+        let count = kept.len();
+        projection::ShaclProjectionResult {
+            cards: kept,
+            edges,
+            shown: if truncated { projection::DEFAULT_BUDGET } else { count },
+            total: if truncated { projection.total } else { count },
+        }
     }
 
-    fn elements(
-        &self,
-        _projection: &Self::Projection,
-        _positions: &crate::reading::Positions,
-    ) -> Vec<adp_diagram::DiagramElement> {
-        Vec::new()
+    fn elements(&self, projection: &Self::Projection, positions: &Positions) -> Vec<DiagramElement> {
+        mapper::elements(projection, positions)
     }
 
     fn refusal(&self, element_id: &str) -> Option<String> {
         refusal(element_id)
     }
 
-    fn toolbox(&self) -> Vec<adp_diagram::ToolboxItem> {
-        Vec::new()
+    fn toolbox(&self) -> Vec<ToolboxItem> {
+        toolbox()
     }
 
-    fn problems(
-        &self,
-        document: &crate::store::RdfDocument,
-        _registration: Option<&std::path::Path>,
-    ) -> Vec<adp_diagram::DiagramProblem> {
-        crate::validator::validate(&document.text)
+    fn problems(&self, document: &RdfDocument, _registration: Option<&Path>) -> Vec<DiagramProblem> {
+        validator::validate(&document.text)
     }
+}
+
+/// Whether Add should offer this reading for `text`: a textual marker test, judging whether the reading is worth
+/// offering rather than whether the file is good SHACL (`Diagram.Shacl.SuggestsBody`).
+pub fn suggests_body(text: &str) -> bool {
+    text.contains("sh:NodeShape") || text.contains("sh:property") || text.contains(crate::vocabulary::shacl::NODE_SHAPE)
+}
+
+/// The shapes palette, each entry naming the action its drop commits (`ShaclToolboxProvider`).
+pub fn toolbox() -> Vec<ToolboxItem> {
+    vec![
+        crate::toolbox::item(
+            "shacl.toolbox.node-shape",
+            "Node shape",
+            "mdi-check-decagram-outline",
+            "A shape that constrains focus nodes. Drop it where it should sit; you will be asked for its name.",
+            actions::ADD_NODE_SHAPE,
+        ),
+        crate::toolbox::item(
+            "shacl.toolbox.property-row",
+            "Property row",
+            "mdi-table-row-plus-after",
+            "A constraint on the values reached over one path. Drop it on a shape; you will be asked for the path.",
+            actions::ADD_PROPERTY_ROW,
+        ),
+    ]
 }

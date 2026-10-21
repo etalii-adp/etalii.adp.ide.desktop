@@ -63,8 +63,12 @@ pub enum RdfEdit {
     },
     /// Every asserted triple of a hierarchy or related pair (`DisconnectSkosPairCommand`).
     DisconnectSkosPair { a: String, b: String, hierarchy: bool },
-    /// A property row on a shape (`AddShaclPropertyRowCommand`).
-    AddShaclPropertyRow { shape: String, path: String },
+    /// A property row on a shape, with the constraints the add-row dialog offers (`AddShaclPropertyRowCommand`).
+    AddShaclPropertyRow {
+        shape: String,
+        path: String,
+        options: shacl_writer::ShaclPropertyShapeOptions,
+    },
     /// A target declared on a shape (`AddShaclTargetCommand`).
     AddShaclTarget {
         shape: String,
@@ -238,8 +242,8 @@ pub fn apply(edit: &RdfEdit, body: &mut LineDocument, model: &RdfModel) -> Strin
             scheme,
         } => add_skos_concept(body, model, concept, label, language, scheme),
         RdfEdit::DisconnectSkosPair { a, b, hierarchy } => disconnect_skos_pair(body, model, a, b, *hierarchy),
-        RdfEdit::AddShaclPropertyRow { shape, path } => {
-            shacl_writer::append_property_shape_block(body, model, shape, path)
+        RdfEdit::AddShaclPropertyRow { shape, path, options } => {
+            shacl_writer::append_property_shape_block(body, model, shape, path, options)
         }
         RdfEdit::AddShaclTarget { shape, predicate, term } => {
             shacl_writer::add_target(body, model, shape, predicate, &writer::iri_term(term))
