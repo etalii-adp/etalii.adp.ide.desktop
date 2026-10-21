@@ -327,3 +327,19 @@ fn a_functional_decomposition_graph_is_written_as_its_empty_document() {
         "functional-decomposition-graph: 1\r\nelements: []\r\nconnections: []\r\n"
     );
 }
+
+#[test]
+fn a_hype_cycle_graph_is_written_as_the_standalone_host_writes_an_empty_one() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "gartner/hypecycle-graph", "trends")
+        .unwrap();
+    assert_eq!(created, folder.path().join("trends.adp"));
+    assert_eq!(read(&created), "gartner/hypecycle-graph\r\n");
+    // The standalone host's `GhgParser.EmptyDocument("\r\n")`: the header and both sections flow-empty.
+    assert_eq!(
+        read(&folder.path().join("trends.ghg")),
+        "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n"
+    );
+}

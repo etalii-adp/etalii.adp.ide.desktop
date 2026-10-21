@@ -422,6 +422,7 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
     let catalogue = Catalogue::load(&repository_root().join("vendor"));
     let tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
+        .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
         .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module());
     let tools = adp_diagram_dependency_graph::register(tools);
     let tools = adp_diagram_functional_decomposition_graph::register(tools);

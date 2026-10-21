@@ -127,6 +127,7 @@ dependencies = [
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
  "adp-fbl",
@@ -271,6 +272,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-hype-cycle"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-layout",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-mindmap"
 version = "0.1.0"
 dependencies = [
@@ -399,6 +414,7 @@ dependencies = [
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
  "adp-disl",
@@ -452,6 +468,7 @@ dependencies = [
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
  "adp-disl",
