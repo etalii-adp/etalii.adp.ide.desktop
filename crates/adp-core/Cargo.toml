@@ -12,6 +12,9 @@ workspace = true
 
 [dependencies]
 adp-context = { path = "../adp-context" }
+# The tool-type catalogue loads the vendored specifications and their bindings (task T048).
+adp-disl = { path = "../adp-disl" }
+adp-fbl = { path = "../adp-fbl" }
 adp-history = { path = "../adp-history" }
 # The per-user state folder and its JSON files (spec 030, research R8, FR-036).
 directories = "6"
