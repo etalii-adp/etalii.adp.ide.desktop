@@ -1,0 +1,16 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.1",
+  "doc": "The mind map's Freeplane body (definitions/diagrams/mindmap.dis, mindmap.md): a binding whose reader is a persistence plugin (section 11), because the map is nested <node> elements whose text may be an HTML body that no declared rule reads as plain text. The plugin net.etalii.adp.freeplane.mm wraps the module's MindmapDocument: it reads every <node> as a Node with its text, notes, link, folded flag and side, its parent and its place, and keeps the ID the file writes. The standalone host edits the XML in place through the module's commands rather than through plans, so everything the map does not change is written back byte for byte. A .mm file is a mind map on sight, registered or not.",
+  "bindings": {
+    "mindmap": {
+      "title": "Mind map",
+      "claims": {
+        "extensions": [".mm"],
+        "origins": ["freeplane/mindmap"]
+      },
+      "body": { "kind": "file", "family": "xml" },
+      "reader": { "plugin": "net.etalii.adp.freeplane.mm", "version": "^0.1.0" }
+    }
+  }
+}
