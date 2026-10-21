@@ -9,3 +9,7 @@ publish = false
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+# The text metric's golden fixture is JSON (`tests/fixtures/text-metric.json`).
+serde_json = "1"

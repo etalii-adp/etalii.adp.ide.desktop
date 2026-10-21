@@ -1,0 +1,21 @@
+[package]
+name = "adp-scene"
+description = "A diagram's scene: its notation compiled and drawn as primitives in diagram coordinates (spec 030, tasks T046 and T055)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-cel = { path = "../adp-cel" }
+adp-disl = { path = "../adp-disl" }
+regex = "1"
+# A specification's members are read in the order it writes them (DISL section 2.1).
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[dev-dependencies]
+adp-fbl = { path = "../adp-fbl" }

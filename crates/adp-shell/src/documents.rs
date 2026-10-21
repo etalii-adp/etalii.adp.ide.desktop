@@ -96,6 +96,8 @@ pub struct OpenText {
     pub status: String,
     /// For Markdown: the outline and the preview, made for the analysed revision.
     pub markdown: Option<(Vec<adp_editor_markdown::Heading>, Vec<adp_editor_markdown::Block>)>,
+    /// The file as it is on disk, when it changed there while this tab had other unsaved edits (T058).
+    pub disk: Option<TextFile>,
 }
 
 impl OpenText {
@@ -110,6 +112,7 @@ impl OpenText {
             analysed: None,
             status: String::new(),
             markdown: None,
+            disk: None,
         })
     }
 

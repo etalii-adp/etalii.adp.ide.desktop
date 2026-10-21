@@ -1,0 +1,38 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.2",
+  "doc": "A Helm chart folder (definitions/diagrams/helm-chart.dis, helm-chart.md): a folder subject (section 10) read by a persistence plugin, never written. Recognition, the files handed to the plugin, the settle delay and the read-only sentence are declared; reading the YAML, scanning the templates, walking conditions and matching dependencies and includes stay in the plugin. The extensions of the values files are written as character classes because the tool matches them ignoring case on every file system, where a glob follows the file system. Directories, and files whose presence is all the plugin reads, cannot be said here (helm-chart.md, gap 3); nor can what suggests this binding for a folder (gap 6), so the binding suggests nothing.",
+  "bindings": {
+    "chart": {
+      "title": "Helm chart",
+      "claims": {
+        "names": ["Chart.yaml"],
+        "origins": ["helm/chart"],
+        "registrationOnly": true
+      },
+      "body": {
+        "kind": "folder",
+        "recognise": { "all": ["Chart.yaml"] },
+        "files": [
+          { "name": "chart", "glob": "Chart.yaml", "family": "yaml" },
+          { "name": "values", "glob": "values*.[yY][aA][mM][lL]", "family": "yaml" },
+          { "name": "valuesYml", "glob": "values*.[yY][mM][lL]", "family": "yaml" },
+          { "name": "schema", "glob": "values.schema.json" },
+          { "name": "templates", "glob": "templates/**", "family": "lines" },
+          { "name": "crds", "glob": "crds/**", "family": "yaml" },
+          { "name": "subcharts", "glob": "charts/*/Chart.yaml", "family": "yaml" },
+          { "name": "subchartTemplates", "glob": "charts/*/templates/**" },
+          { "name": "deeper", "glob": "charts/*/charts/*" },
+          { "name": "vendored", "glob": "charts/*" },
+          { "name": "lock", "glob": "Chart.lock", "family": "yaml" },
+          { "name": "requirements", "glob": "requirements.yaml", "family": "yaml" },
+          { "name": "legacyLock", "glob": "requirements.lock", "family": "yaml" }
+        ],
+        "ignore": [".git/**"],
+        "settle": 400
+      },
+      "reader": { "plugin": "net.etalii.adp.helm.chartFolder", "version": "^0.1.0" },
+      "readOnly": "A helm chart diagram shows the folder as it is and changes nothing in it. Edit the file this value comes from in a text editor."
+    }
+  }
+}

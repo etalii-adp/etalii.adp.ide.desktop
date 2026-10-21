@@ -1,0 +1,24 @@
+{
+  "reason": "The backend sizes a box for a text and the client draws that text inside it, so both tiers must estimate a text's width one way (backend-centralization R10). The width of a text is its characters times the font size times the average advance: characters x fontSize x averageAdvance, with averageAdvance fixed at 0.55 and 14 the font size the four measuring modules (ansible-structure, c4, causal-loop, mindmap) use today. A character is a UTF-16 code unit, which is what .NET's string.Length and JavaScript's string.length both count, so a character outside the Basic Multilingual Plane counts as two on both tiers; the emoji case pins that. Spaces are characters like any other. This is the metric only: the padding, minimum and maximum a module adds around it to size a box stay each module's own declared values (R10.2), so no case here includes them. Widths are written as the decimal the formula means; floating point makes 1 x 14 x 0.55 come out as 7.700000000000001, so both suites compare within 'tolerance' rather than exactly.",
+  "averageAdvance": 0.55,
+  "defaultFontSize": 14,
+  "tolerance": 1e-9,
+  "cases": [
+    { "text": "", "fontSize": 14, "width": 0, "why": "empty: no characters, no width" },
+    { "text": "", "fontSize": 12, "width": 0, "why": "empty: no characters, no width" },
+    { "text": "A", "fontSize": 14, "width": 7.7, "why": "one character: the average advance times the font size" },
+    { "text": "A", "fontSize": 12, "width": 6.6, "why": "one character: the average advance times the font size" },
+    { "text": "Customer", "fontSize": 14, "width": 61.6, "why": "a single word" },
+    { "text": "Customer", "fontSize": 12, "width": 52.8, "why": "a single word" },
+    { "text": "Order service", "fontSize": 14, "width": 100.1, "why": "a space counts as a character" },
+    { "text": "Order service", "fontSize": 12, "width": 85.8, "why": "a space counts as a character" },
+    { "text": "   ", "fontSize": 14, "width": 23.1, "why": "only spaces: still three characters wide" },
+    { "text": "   ", "fontSize": 12, "width": 19.8, "why": "only spaces: still three characters wide" },
+    { "text": "Place order via web shop", "fontSize": 14, "width": 184.8, "why": "several spaces" },
+    { "text": "Place order via web shop", "fontSize": 12, "width": 158.4, "why": "several spaces" },
+    { "text": "The customer places an order through the web shop, which reserves the stock and takes payment by card", "fontSize": 14, "width": 777.7, "why": "long: wider than c4's 240 maximum, which is c4's to apply, not the metric's" },
+    { "text": "The customer places an order through the web shop, which reserves the stock and takes payment by card", "fontSize": 12, "width": 666.6, "why": "long: wider than c4's 240 maximum, which is c4's to apply, not the metric's" },
+    { "text": "🙂", "fontSize": 14, "width": 15.4, "why": "outside the Basic Multilingual Plane: two UTF-16 code units, so two characters on both tiers" },
+    { "text": "🙂", "fontSize": 12, "width": 13.2, "why": "outside the Basic Multilingual Plane: two UTF-16 code units, so two characters on both tiers" }
+  ]
+}

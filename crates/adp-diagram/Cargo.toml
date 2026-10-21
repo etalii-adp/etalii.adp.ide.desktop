@@ -1,0 +1,23 @@
+[package]
+name = "adp-diagram"
+description = "Diagram sessions: open a DISL and FBL diagram, edit it through FBL as history commands, undo, reconcile (spec 030, FR-016 to FR-018, FR-023)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-cel = { path = "../adp-cel" }
+adp-context = { path = "../adp-context" }
+adp-core = { path = "../adp-core" }
+adp-disl = { path = "../adp-disl" }
+adp-documents = { path = "../adp-documents" }
+adp-fbl = { path = "../adp-fbl" }
+adp-history = { path = "../adp-history" }
+
+[dev-dependencies]
+tempfile = "3"
