@@ -311,3 +311,19 @@ fn a_causal_loop_diagram_is_written_with_its_bindings_template() {
         "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\nlink population -> births +\r\nlink births -> population +\r\n\r\nloop R1 \"Births beget births\" population births\r\n"
     );
 }
+
+#[test]
+fn a_functional_decomposition_graph_is_written_as_its_empty_document() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/functional-decomposition-graph", "screens")
+        .unwrap();
+    assert_eq!(created, folder.path().join("screens.adp"));
+    assert_eq!(read(&created), "etalii/functional-decomposition-graph\r\n");
+    // The standalone host's `FdgParser.EmptyDocument("\r\n")`: the header and two empty sections, in CRLF.
+    assert_eq!(
+        read(&folder.path().join("screens.fdg")),
+        "functional-decomposition-graph: 1\r\nelements: []\r\nconnections: []\r\n"
+    );
+}

@@ -52,6 +52,11 @@ fn generic_timeline_roadmap() {
 }
 
 #[test]
+fn etalii_functional_decomposition_graph_field_service() {
+    check("etalii/functional-decomposition-graph/field-service");
+}
+
+#[test]
 fn systems_causal_loop_diagram_on_call() {
     check("systems/causal-loop-diagram/on-call");
 }

@@ -13,6 +13,7 @@
 //! scene's [`HookKind::ResizeHandle`] hooks, carry one edge each (`DiagramCanvas.tsx`, the `resize` gesture, and
 //! `gestureFrame.ts`: the preview is the frame's, the edit is written once, at the release, and Escape reverts it).
 
+pub mod fdg_scene;
 pub mod gestures;
 pub mod metrics;
 pub mod module_scene;
@@ -99,7 +100,11 @@ impl DiagramHost {
                     DislPluginFunctions::none()
                 }))
                 .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
-                .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module()),
+                .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
+                .with_module(
+                    adp_diagram_functional_decomposition_graph::ORIGIN,
+                    adp_diagram_functional_decomposition_graph::module(),
+                ),
             )),
             workspaces: HashMap::new(),
         }
@@ -191,6 +196,23 @@ impl IdSource for FreshIds {
             .expect("some number is free");
         issued.insert(id.clone());
         Ok(id)
+    }
+}
+
+/// Ids as the standalone host's modules minted them (`ShortGuid.NewShortGuid()`): a version 4 GUID written as 25
+/// characters of base 36, for what a module's own view adds.
+struct ShortGuids;
+
+impl IdSource for ShortGuids {
+    fn next(&self, _type_name: &str) -> Result<String, String> {
+        const DIGITS: &[u8; 36] = b"0123456789abcdefghijklmnopqrstuvwxyz";
+        let mut value = uuid::Uuid::new_v4().as_u128();
+        let mut digits = [b'0'; 25];
+        for digit in digits.iter_mut().rev() {
+            *digit = DIGITS[(value % 36) as usize];
+            value /= 36;
+        }
+        Ok(String::from_utf8(digits.to_vec()).expect("base 36 digits"))
     }
 }
 
@@ -609,13 +631,20 @@ impl DiagramTab {
         // A selected element that is gone is no longer selected.
         let known: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
         self.selection.retain(|id| known.contains(id.as_str()));
-        let built = module_scene::build(&elements, &self.selection, self.arbiter.moving());
+        let built = module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark);
         let bounds = built.scene.bounds(metrics);
+        // Where a module writes a move as the element's top-left, the drag hands it the top-left.
+        let top_left = Mapping {
+            top_left: true,
+            ..Mapping::default()
+        };
+        let mappings = built.top_left.iter().map(|id| (id.clone(), top_left)).collect();
         self.cache = Some(Cached {
             key,
             scene: built.scene,
             placed: Placed {
                 rects: built.rects,
+                mappings,
                 ..Placed::default()
             },
             boxes: built.boxes,
@@ -785,6 +814,10 @@ impl DiagramTab {
     // ---- what gestures do -------------------------------------------------------------------------------------------
 
     fn ensure_ids(&mut self, documents: &DiagramDocuments) {
+        if self.ids.is_none() && self.session.module_view().is_some() {
+            // A module that draws its view itself mints what it adds as its standalone module did.
+            self.ids = Some(Box::new(ShortGuids));
+        }
         if self.ids.is_none() {
             let minted = self
                 .definition
@@ -997,11 +1030,24 @@ impl DiagramTab {
     }
 
     fn connect(&mut self, workspace: &mut DiagramWorkspace, source: &str, target: Option<&str>, at: Point) {
-        if self.session.module_view().is_some() {
-            // A module that draws its view itself takes no connection from the canvas: the standalone host's C4 canvas
-            // draws its cards' edge anchors and the drag from one, and handles no `connection-drawn`.
-            if target.is_some_and(|t| t != source) {
-                self.notice = Some(adp_diagram::session::NOT_OFFERED.to_owned());
+        if let Some(view) = self.session.module_view().cloned() {
+            // A module that draws its view itself says which of its actions a connection runs: the functional
+            // decomposition graph's, the one relation the pair admits (`relationOnto`). One that names none takes no
+            // connection from the canvas: the standalone host's C4 canvas draws its cards' edge anchors and the drag
+            // from one, and handles no `connection-drawn`.
+            let Some(target) = target.filter(|t| *t != source) else {
+                return;
+            };
+            match view.connect_action(workspace.documents(), source, target) {
+                Some(Ok(action)) => {
+                    let target = ActionTarget::Connection {
+                        source: Some(source.to_owned()),
+                        target: Some(target.to_owned()),
+                    };
+                    self.run_action(workspace, target, &action);
+                }
+                Some(Err(refusal)) => self.notice = Some(refusal),
+                None => self.notice = Some(adp_diagram::session::NOT_OFFERED.to_owned()),
             }
             return;
         }

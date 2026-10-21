@@ -1,0 +1,294 @@
+{
+  "script": "parity/scripts/etalii/functional-decomposition-graph/field-service.json",
+  "tool": "etalii/functional-decomposition-graph",
+  "fixture": "etalii/functional-decomposition-graph/field-service/field-service.fdg",
+  "registration": "etalii/functional-decomposition-graph/field-service/field-service.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T10:45:38Z",
+  "edits": 31,
+  "changed": [
+    "field-service.fdg"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 8,
+      "id": "8eg94tfqireqo7cyvhnaoela1",
+      "type": "etalii/functional-decomposition-graph+function",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "6vt0l08bq0e2ea43mnk1vaf4m",
+      "type": "etalii/functional-decomposition-graph+owns-function",
+      "connection": false
+    },
+    {
+      "step": 12,
+      "id": "4yd4ikhg7xnaz1wl8kpj0dnfu",
+      "type": "etalii/functional-decomposition-graph+shows",
+      "connection": false
+    },
+    {
+      "step": 20,
+      "id": "6vnlhd8l5rxs2tl29489e5mj1",
+      "type": "etalii/functional-decomposition-graph+comment",
+      "connection": false
+    },
+    {
+      "step": 32,
+      "id": "bq7tb6ivg0irbwo4nekv485v8",
+      "type": "etalii/functional-decomposition-graph+data-element",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "planning"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename' answered 'Day planning'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "fdg.description = 'The first screen after signing in.'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "fdg.width = '180.5'"
+    },
+    {
+      "step": 4,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "'fdg.height' is not a property of what is selected."
+    },
+    {
+      "step": 5,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "'wide' is not a size this graph can draw."
+    },
+    {
+      "step": 6,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "task-detail to (860, 140)"
+    },
+    {
+      "step": 7,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "step-row by (20, 10) to (750, 434)"
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:1200,640"
+    },
+    {
+      "step": 9,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "fdg.name = 'Compress photos'"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:sync-queue->8eg94tfqireqo7cyvhnaoela1"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "Refused by the cardinality check: `Compress photos` already has its `owns-function` parent, and may have 1."
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:tick-step->step-list"
+    },
+    {
+      "step": 13,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "Refused by the cardinality check: `Open task` already has its `shows` link, and may have 1."
+    },
+    {
+      "step": 14,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "Refused by the cycle check: `Day planning` already owns `Task row`, so this link would make an ownership loop."
+    },
+    {
+      "step": 15,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "Refused by the type check: `owns-action` does not link a action to a action."
+    },
+    {
+      "step": 16,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "c-sync-upload"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename' answered 'invokes'"
+    },
+    {
+      "step": 18,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "fdg.description = ''"
+    },
+    {
+      "step": 19,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "fdg.connection-name = 'opens the detail'"
+    },
+    {
+      "step": 20,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:200,760"
+    },
+    {
+      "step": 21,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "fdg.text = 'Photos upload last.\nThey are the largest.'"
+    },
+    {
+      "step": 22,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "fdg.height = '130'"
+    },
+    {
+      "step": 23,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "task-row"
+    },
+    {
+      "step": 24,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; confirmation 'Remove' answered ''"
+    },
+    {
+      "step": 25,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 26,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 27,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 28,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on c-day-cache"
+    },
+    {
+      "step": 29,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on note-round-trip"
+    },
+    {
+      "step": 30,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 31,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on note-offline; input 'Edit text' answered 'Everything must work offline.\nSync waits for a connection.'"
+    },
+    {
+      "step": 32,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:1500,700"
+    },
+    {
+      "step": 33,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "fdg.name = 'Photo: before and after'"
+    },
+    {
+      "step": 34,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

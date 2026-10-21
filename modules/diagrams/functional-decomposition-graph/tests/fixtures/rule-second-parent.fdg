@@ -1,0 +1,29 @@
+functional-decomposition-graph: 1
+elements:
+  - id: p1
+    type: ui-element
+    name: p1
+    x: 0
+    y: 0
+    width: 100
+  - id: p2
+    type: ui-element
+    name: p2
+    x: 0
+    y: 100
+    width: 100
+  - id: act
+    type: action
+    name: act
+    x: 0
+    y: 200
+    width: 100
+connections:
+  - id: c1
+    type: owns-action
+    from: p1
+    to: act
+  - id: c2
+    type: owns-action
+    from: p2
+    to: act
