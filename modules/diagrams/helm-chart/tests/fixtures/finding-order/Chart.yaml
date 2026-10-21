@@ -1,0 +1,14 @@
+apiVersion: v2
+name: finding-order
+description: Findings of several codes, three unreadable files and both shapes of lock drift, so the order they arrive in is pinned.
+version: "1.0"
+dependencies:
+  - name: zeta
+    version: 1.0.0
+    repository: https://example.org/charts
+  - name: alpha
+    version: 1.0.0
+    repository: https://example.org/charts
+  - name: locked
+    version: 1.0.0
+    repository: https://example.org/charts

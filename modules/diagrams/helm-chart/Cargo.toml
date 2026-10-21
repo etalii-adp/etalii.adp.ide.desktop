@@ -1,0 +1,29 @@
+[package]
+name = "adp-diagram-helm-chart"
+description = "The Helm chart diagram's residue: the folder plugin that reads a chart, its banded layout, its findings and rows, and the one edit, a position in the registration (spec 030, T080)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+adp-history = { path = "../../../crates/adp-history" }
+# The templates are scanned line by line for what is literally written.
+regex = "1"
+# The chart's own YAML is only read, for its structure and the line each entry starts on.
+saphyr-parser = "0.0.6"
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+serde_json = "1"
+tempfile = "3"
+
+[lints]
+workspace = true

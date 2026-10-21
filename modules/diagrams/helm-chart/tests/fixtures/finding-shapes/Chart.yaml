@@ -1,0 +1,15 @@
+apiVersion: v2
+name: finding-shapes
+description: Two unreadable files, three dependencies under one effective name, and a lock with two stale entries.
+version: 1.0.0
+dependencies:
+  - name: cache
+    version: 1.0.0
+    repository: https://example.org/charts
+  - name: memcached
+    alias: cache
+    version: 2.0.0
+    repository: https://example.org/charts
+  - name: cache
+    version: 3.0.0
+    repository: https://example.org/charts

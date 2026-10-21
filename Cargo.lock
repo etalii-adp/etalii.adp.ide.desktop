@@ -331,6 +331,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-helm-chart"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "regex",
+ "saphyr-parser",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-hype-cycle"
 version = "0.1.0"
 dependencies = [
@@ -525,6 +543,7 @@ dependencies = [
  "adp-diagram-dependency-graph",
  "adp-diagram-dotnet-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-helm-chart",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-sankey",
@@ -585,6 +604,7 @@ dependencies = [
  "adp-diagram-dependency-graph",
  "adp-diagram-dotnet-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-helm-chart",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-sankey",
