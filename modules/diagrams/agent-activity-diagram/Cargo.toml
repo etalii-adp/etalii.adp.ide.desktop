@@ -1,0 +1,28 @@
+[package]
+name = "adp-diagram-agent-activity"
+description = "The agent activity diagram's residue: its .aad bodies read and written through its binding, the reader's own part, its menus, rows, findings and layout (spec 030, T075)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+serde_json = "1"
+# The moment a gesture stamps on a task or a pull request, local time with its offset (`AadEdits.Now`).
+time = { version = "0.3", features = ["local-offset"] }
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+tempfile = "3"
+
+[lints]
+workspace = true

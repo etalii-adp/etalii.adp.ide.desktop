@@ -22,6 +22,11 @@ fn c4_container_courier() {
 }
 
 #[test]
+fn etalii_agent_activity_diagram_two_projects() {
+    check("etalii/agent-activity-diagram/two-projects");
+}
+
+#[test]
 fn etalii_knowledge_cities_json() {
     check("etalii/knowledge/cities-json");
 }

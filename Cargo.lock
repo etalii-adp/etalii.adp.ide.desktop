@@ -124,6 +124,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-agent-activity",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-functional-decomposition-graph",
@@ -213,6 +214,24 @@ dependencies = [
  "adp-history",
  "serde_json",
  "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-agent-activity"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "adp-layout",
+ "serde_json",
+ "tempfile",
+ "time",
 ]
 
 [[package]]
@@ -480,6 +499,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-agent-activity",
  "adp-diagram-ansible-structure",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
@@ -538,6 +558,7 @@ dependencies = [
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
+ "adp-diagram-agent-activity",
  "adp-diagram-ansible-structure",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
@@ -2827,6 +2848,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_threads"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cabcc654086861f9e1bc5115258de62ef92c79b20f4615a1b0cc57c4e82027d4"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "objc-sys"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4219,7 +4249,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb87b95ec50ddfa440816d227a17b2ccbdda963a316a727fda0fc4334f7d134"
 dependencies = [
  "deranged",
+ "libc",
  "num-conv",
+ "num_threads",
  "powerfmt",
  "serde_core",
  "time-core",

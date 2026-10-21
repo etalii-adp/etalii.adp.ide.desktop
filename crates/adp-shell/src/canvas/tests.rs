@@ -316,16 +316,33 @@ fn a_click_selects_ctrl_toggles_and_a_click_on_empty_canvas_clears() {
 }
 
 #[test]
-fn a_box_on_empty_canvas_selects_what_lies_inside_it() {
+fn a_left_drag_on_empty_canvas_pans_keeps_the_selection_and_escape_puts_the_view_back() {
     let mut harness = Harness::dependency_graph();
-    let surface = harness.tab.surface;
-    harness.drag(
-        surface.min + egui::vec2(2.0, 2.0),
-        surface.max - egui::vec2(2.0, 2.0),
-        PointerButton::Primary,
-        true,
+    let gateway = harness.screen_of("api-gateway");
+    let orders = harness.screen_of("orders-db");
+    harness.click(gateway, Modifiers::NONE);
+    harness.click(orders, Modifiers::COMMAND);
+    let empty = harness.tab.surface.min + egui::vec2(3.0, 3.0);
+    let origin = harness.tab.view.origin;
+    harness.drag(empty, empty + egui::vec2(100.0, 50.0), PointerButton::Primary, true);
+    let zoom = harness.tab.view.zoom;
+    let panned = harness.tab.view.origin;
+    assert!(
+        (panned.x - (origin.x - 100.0 / zoom)).abs() < 1e-6 && (panned.y - (origin.y - 50.0 / zoom)).abs() < 1e-6,
+        "{panned:?} from {origin:?}"
     );
-    assert_eq!(harness.tab.selection.len(), 10, "{:?}", harness.tab.selection);
+    assert_eq!(
+        harness.tab.selection,
+        ["api-gateway", "orders-db"],
+        "a pan draws no selection box and clears nothing"
+    );
+    harness.drag(empty, empty + egui::vec2(100.0, 50.0), PointerButton::Primary, false);
+    assert_ne!(harness.tab.view.origin, panned, "the second drag pans too");
+    harness.key(Key::Escape, Modifiers::NONE);
+    assert_eq!(harness.tab.view.origin, panned);
+    harness.release(empty + egui::vec2(100.0, 50.0), PointerButton::Primary, Modifiers::NONE);
+    assert_eq!(harness.tab.view.origin, panned, "the release after Escape is nothing");
+    assert_eq!(harness.written(), harness.original);
 }
 
 #[test]
@@ -375,21 +392,27 @@ fn escape_cancels_a_drag_and_nothing_is_written() {
 }
 
 #[test]
-fn a_right_drag_pans_and_escape_puts_the_view_back() {
+fn a_right_click_opens_the_menu_and_a_right_drag_does_nothing_where_the_specification_draws_no_relation_with_it() {
     let mut harness = Harness::dependency_graph();
+    assert!(!harness.tab.arbiter.connects_on_right_drag);
     let empty = harness.tab.surface.min + egui::vec2(3.0, 3.0);
     let origin = harness.tab.view.origin;
     harness.drag(empty, empty + egui::vec2(100.0, 50.0), PointerButton::Secondary, true);
-    let zoom = harness.tab.view.zoom;
-    let panned = harness.tab.view.origin;
-    assert!(
-        (panned.x - (origin.x - 100.0 / zoom)).abs() < 1e-6,
-        "{panned:?} from {origin:?}"
-    );
-    harness.drag(empty, empty + egui::vec2(100.0, 50.0), PointerButton::Secondary, false);
-    harness.key(Key::Escape, Modifiers::NONE);
-    assert_eq!(harness.tab.view.origin, panned);
-    assert_eq!(harness.written(), harness.original);
+    assert_eq!(harness.tab.view.origin, origin, "a right drag does not pan");
+    assert!(harness.tab.menu.is_none(), "a right drag opens no menu");
+
+    let gateway = harness.screen_of("api-gateway");
+    let orders = harness.screen_of("orders-db");
+    harness.drag(gateway, orders, PointerButton::Secondary, true);
+    assert!(harness.tab.arbiter.is_idle());
+    assert!(harness.tab.menu.is_none());
+    assert!(harness.tab.selection.is_empty(), "nor selects");
+    assert_eq!(harness.written(), harness.original, "nor connects");
+
+    harness.press(gateway, PointerButton::Secondary, Modifiers::NONE);
+    harness.release(gateway, PointerButton::Secondary, Modifiers::NONE);
+    assert!(harness.tab.menu.is_some(), "a right click opens the menu");
+    assert_eq!(harness.tab.selection, ["api-gateway"]);
 }
 
 #[test]
@@ -1199,5 +1222,7 @@ mod ansible;
 mod sankey;
 // The functional decomposition graph with its module (T072), in a file of its own.
 mod fdg;
+// The agent activity diagram with its module (T075), in a file of its own.
+mod agent_activity;
 // The Wardley map with its module (T070), in a file of its own.
 mod wardley_map;
