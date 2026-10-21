@@ -1,0 +1,8 @@
+---
+- name: A play whose YAML does not parse
+  hosts: web
+  tasks:
+    - name: Unclosed quote below, and an unbalanced bracket
+      ansible.builtin.debug:
+        msg: "this quote never closes
+      loop: [ 1, 2, 3

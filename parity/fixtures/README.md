@@ -4,6 +4,7 @@ The documents the edit scripts under `parity/scripts/` open, copied from the sta
 
 | Folder | Copied from (in `etalii.adp.ide.standalone` at `8b6ccfc`) | Script |
 |---|---|---|
+| `ansible/structure/infrastructure/` | `src/diagrams/ansible-structure/examples/example 1/infrastructure/` (the folder whole: its registration `.adp`, `ansible/structure` and LF, and every file under it) | `parity/scripts/ansible/structure/infrastructure.json` |
 | `dotnet/dependency-graph/pipeline-toolkit/` | `src/diagrams/dotnet-dependency-graph/examples/example 1/pipeline-toolkit/` (the folder whole: the registration `PipelineToolkit.adp`, `dotnet/dependency-graph` and `body: PipelineToolkit.slnx`, the solution, `Directory.Packages.props` and the four project files, committed with LF line endings) | `parity/scripts/dotnet/dependency-graph/pipeline-toolkit.json` |
 | `etalii/functional-decomposition-graph/field-service/` | `src/diagrams/functional-decomposition-graph/examples/field-service/` (`field-service.adp`, `field-service.fdg`) | `parity/scripts/etalii/functional-decomposition-graph/field-service.json` |
 | `freeplane/mindmap/example-1/` | `src/diagrams/mindmap/examples/example 1/` (`mindmap.adp`, `mindmap.mm`, `design.mm`) | `parity/scripts/freeplane/mindmap/example-1.json` |

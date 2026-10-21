@@ -53,7 +53,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-047 | Supply chain diagram (`etalii/supply-chain`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::etalii_supply_chain_automotive | checked |
 | P-048 | Sankey diagram (`etalii/sankey`, prototype) | docs/tools.md, 7. Data-oriented diagrams | 4 | adp-parity::etalii_sankey_brightwater_coffee | checked |
 | P-049 | Azure DevOps pipeline (`azure-devops/pipeline`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
-| P-050 | Ansible project structure (`ansible/structure`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
+| P-050 | Ansible project structure (`ansible/structure`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 | adp-parity::ansible_structure_infrastructure | checked |
 | P-051 | Helm chart (`helm/chart`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
 | P-052 | .NET dependency graph (`dotnet/dependency-graph`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 | adp-parity::dotnet_dependency_graph_pipeline_toolkit | checked |
 | P-053 | Wardley map (`wardley/map`, prototype) | docs/tools.md, 9. Strategy & landscape mapping | 4 | adp-parity::wardley_map_strategy_vocabulary | checked |

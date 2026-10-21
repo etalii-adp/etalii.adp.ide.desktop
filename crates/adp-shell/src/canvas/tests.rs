@@ -1216,6 +1216,8 @@ mod causal_loop;
 
 // The supply chain diagram with its module (T076), in a file of its own.
 mod supply_chain;
+// The Ansible structure diagram with its module (T079), in a file of its own.
+mod ansible;
 // The .NET dependency graph with its module (T082), in a file of its own.
 mod dotnet;
 // The Sankey diagram with its module (T077), in a file of its own.
