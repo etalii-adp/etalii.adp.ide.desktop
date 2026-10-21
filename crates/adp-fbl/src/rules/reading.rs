@@ -149,7 +149,16 @@ impl BodyReading {
         let mut findings = reading.family.findings.borrow().clone();
         findings.append(&mut reading.findings);
         reading.findings = findings;
+        reading.compact();
         reading
+    }
+
+    /// Gives back the room the reading's lists grew into and no longer need: a list that doubled as it grew holds up
+    /// to twice what it keeps, and a reading is kept for as long as its body is open. Nothing read changes.
+    fn compact(&mut self) {
+        self.elements.shrink_to_fit();
+        self.order.shrink_to_fit();
+        self.family.compact();
     }
 
     fn binding(&self) -> &FblBinding {
@@ -646,13 +655,23 @@ impl BodyReading {
             }
         }
         if let Some(source) = &rule.source {
-            element.source_read = Some(self.read_slot(&element.candidate, &source.slot, Some(source), element.rule));
+            element.source_read = Some(Box::new(self.read_slot(
+                &element.candidate,
+                &source.slot,
+                Some(source),
+                element.rule,
+            )));
         }
         if let Some(target) = &rule.target {
-            element.target_read = Some(self.read_slot(&element.candidate, &target.slot, Some(target), element.rule));
+            element.target_read = Some(Box::new(self.read_slot(
+                &element.candidate,
+                &target.slot,
+                Some(target),
+                element.rule,
+            )));
         }
         if let Some(from) = rule.id.as_ref().and_then(|i| i.from.as_ref()) {
-            element.id_read = Some(self.read_slot(&element.candidate, from, None, element.rule));
+            element.id_read = Some(Box::new(self.read_slot(&element.candidate, from, None, element.rule)));
         }
     }
 

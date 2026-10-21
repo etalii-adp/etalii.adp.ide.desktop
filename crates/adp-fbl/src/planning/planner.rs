@@ -123,7 +123,7 @@ fn plan_store_id(plan: &mut Plan<'_>, id: &str, new_id: &str) -> Planning {
         attribute: "id".into(),
         binding: &binding,
         rule: element.rule,
-        read: element.id_read.clone().unwrap_or_else(SlotRead::absent),
+        read: element.id_read.as_deref().cloned().unwrap_or_else(SlotRead::absent),
         value: Value::from(new_id),
         is_empty: false,
     };
@@ -155,7 +155,8 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
             } else {
                 &element.target_read
             }
-            .clone()
+            .as_deref()
+            .cloned()
             .unwrap_or_else(SlotRead::absent);
             rule = element.rule;
         } else {
@@ -317,10 +318,10 @@ fn rewrite_references(plan: &mut Plan<'_>, renamed: usize, new_key: &str) {
         let other = reading.element(other_index);
         if other.is_relation {
             if other.source_element == Some(renamed) {
-                rewrite(plan, other.source_read.as_ref(), &old_key, new_key);
+                rewrite(plan, other.source_read.as_deref(), &old_key, new_key);
             }
             if other.target_element == Some(renamed) {
-                rewrite(plan, other.target_read.as_ref(), &old_key, new_key);
+                rewrite(plan, other.target_read.as_deref(), &old_key, new_key);
             }
         }
         let other_rule = reading.family.rule(other.rule);

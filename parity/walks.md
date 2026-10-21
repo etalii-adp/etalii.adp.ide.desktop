@@ -243,6 +243,47 @@ Opening `places.yaml` from the explorer showed its first rows within two seconds
 
 Also seen: the opened 10,000-row table takes about 360 MB of private memory more than before it was opened (4/9), for a 1.7 MB file; not compared with the standalone host. Relation values are drawn underlined, like links, but do nothing when pressed; the standalone Knowledge designer draws them as text, as it passes no `onOpenValue`.
 
+### Re-walk after the fixes
+
+| | |
+|---|---|
+| Date | 2026-10-21 |
+| Platform | As above, a debug build of `adp-shell` (branch `features/030-table-fixes`) at `e2fda5f` for the XML steps and at `e5af4a4` for the rest, and a release build at `e5af4a4` for 4/9; dark theme, window 1600 by 1000 at 125%, the properties pane open |
+| Documents | The XML folder as the first walk left it after its whole sequence (`width="175"` the one difference from the golden), and fresh copies of `cities-yaml/` and of the 10,000-row `places.yaml` |
+| How | As above: the real window driven with Win32 input and read through its AccessKit tree, every written file hashed (SHA-256) after every step, screenshots with `PrintWindow`. Each fix also has a headless test that fails before it and passes after (`crates/adp-shell/src/table/tests.rs`, `crates/adp-shell/src/theme.rs`); the memory is counted by the instrumented allocator of `benches/table.rs` and in the window as the process's private bytes |
+| Standalone behaviour | Read again at `8b6ccfc` for each finding: `ColumnHeader.tsx`, `columnActions.ts`, `OptionsEditor.tsx`, `RelationEditor.tsx`, `CalculationRow.tsx`, `TableSurface.tsx`, `ViewBar.tsx`, `GroupEditor.tsx` and `table.css` |
+
+| # | Fixed | Test | Re-walked in the window |
+|---|---|---|---|
+| K1 | yes: a strip over each header's right edge is dragged to resize its column, which follows the pointer while nothing is written, and is sent once on release as `resizeColumn`, never under 60; a header dragged moves its column where it is let go (`moveColumn`, `dropIndex`) | `k1_a_columns_border_dragged_resizes_it_once_on_release_and_never_under_sixty`, `k1_a_columns_header_dragged_moves_the_column` | XML, *All cities*: *Population*'s border dragged 31 pixels: the file's hash unchanged while dragging, `<column property="p3" width="200"/>` written on release. YAML, *Map*: *Population*'s header dragged past *Tags*: its `- property: p3` line moved after `p4`'s; Ctrl+Z gave back every byte |
+| K2 | yes: the rename field asks for the focus once, so Enter and a press elsewhere keep the name; the key that leaves it is the field's (found on this re-walk: the Enter also opened the active cell's editor) | `k2_a_view_is_renamed_in_its_tab_by_enter_or_a_press_elsewhere` | XML: *+* added *View*, its menu's *Rename*, "Recent" and Enter wrote `name="Recent"`. YAML: *Map* renamed "Places" with Enter: written, and no cell's editor opened; Ctrl+Z gave back every byte |
+| K3 | yes: leaving the field gives the keyboard back to the table | `k3_escape_leaves_the_rename_field_and_gives_the_keyboard_back_to_the_table` | XML: *Rename* again, "xyz", Escape: nothing written; Ctrl+Z at once gave back the bytes before the rename, and a second the bytes before *+* |
+| K4 | yes: the first column, and the columns a view freezes (*Freeze up to column*), are drawn after the cells that scroll under them, header and line of calculations too | `k4_the_first_column_is_drawn_over_the_cells_that_scroll_under_it` | YAML, *Map*, four notches sideways: *Country* stays at the left over *Name*'s values and *Tags*' tags, its header over theirs |
+| K5 | yes: the rows are drawn in a `show_viewport` and the line of calculations, a refusal and a question stand after the rows, kept at the foot while the rows scroll under them (`position: sticky; bottom: 0`) | `k5_the_question_of_a_delete_stands_after_the_rows` | `provinces.yaml`, *Delete row* on *Noord-Holland*: the question with *Delete* and *Keep* on its own line after *+ New* and the line of calculations; *Keep* wrote nothing |
+| K6 | yes: a press on a header opens its menu, the Knowledge designer's `columnActions` in `MENU_ORDER` (Rename in the header, Change type, Edit options and Edit relation in their panels, Filter, Sort ascending and descending, Group, Nest where a column offers it, Hide in view, Wrap text, Freeze up to column, Insert left and right named at once, Duplicate, Delete, a two-way relation's Delete asking what becomes of the other side); the view bar's *Properties* panel ticks a property to show or hide it; the *Group* panel hides and shows each group and shows the hidden ones again; each row has a checkbox, the first header one for all, and a bar for the ticked rows sets a property of all of them (`setCells`) or deletes them | `k6_a_columns_menu_offers_the_knowledge_designers_column_actions`, `k6_pressing_a_header_opens_its_menu_and_a_column_is_renamed_in_its_header`, `k6_a_hidden_column_is_shown_again_from_the_views_properties`, `k6_groups_are_hidden_one_by_one_and_shown_again`, `k6_rows_are_ticked_and_acted_on_together` | YAML: a left press on *Population* listed the 13 entries of a number column; *Hide in view* wrote `visible: false`, and *Properties*, *Population* ticked, gave back every byte. *All cities*, *Group*: *Hide* beside *Netherlands* wrote `hiddenGroups: - key: o1`, and *Show 1 hidden group* gave back every byte. *Map*: two rows ticked showed "2 rows selected", *Delete 2 rows* and *Clear selection*; *Edit a property…*, *Visited*, *Check* wrote Antwerp's tick in one step, which one Ctrl+Z gave back |
+| K7 | yes: the line of calculations under the rows shows each column's calculation and figure, and a press on a column's place offers *None* and its type's calculations (`setColumnCalculation`) | `k7_the_line_of_calculations_shows_and_offers_each_columns_calculations` | YAML, *Map*: *Province* shows "COUNT UNIQUE VALUES 3"; *Population*'s place offered the 13 calculations of a number, *Sum* wrote `calculate: sum` and showed "SUM 1276643"; Ctrl+Z gave back every byte |
+| K8 | yes, in the shell's egui style: a checkbox's box takes VS Code's `checkbox.background` and the border of a secondary button and an input, so every checkbox shows its box | `an_unticked_checkbox_draws_its_box` | Antwerp's *Visited* in the property grid and *Population* in the *Properties* panel, both unticked, show their boxes |
+| K9 | yes: a notch scrolls 100 points, the browser's step, everywhere in the shell | `k9_a_notch_of_the_wheel_scrolls_the_browsers_hundred_points` | `places.yaml`: ten notches from the top put *Place 30* at the top, about three rows a notch (the first walk: 1.2) |
+
+Also fixed: a relation's rows are drawn as text, not as links that do nothing (`a_relation_is_drawn_as_text_not_as_a_link`; walked: *Noord-Holland* plain in *Province*); and opening a large table holds less. Counted headless for the 10,000-row table (`benches/table.rs`, the instrumented allocator), opening held 308 MiB, of which the FBL reading kept for the byte-preserving splices held 262 MiB (its element list 127 MiB, its entries 66 MiB, the YAML tree 50 MiB), the reading's model 15 MiB, the session's copy of that model 15 MiB, the Knowledge table 5 MiB a copy, egui's three frames 0.5 MiB. The reading's lists are now shrunk to what they keep once read, an element's id, source and target reads and an entry's xml element and statement are boxed, and the session shares the body's model until an edit is made: opening holds 182 MiB, which the benchmark now bounds at 220. In the window (release build) the private bytes grew from 471,112 KB to 705,476 KB on opening `places.yaml`: 234,364 KB, where the first walk saw 363,044 KB. Nothing read or written changed: the three Knowledge parity tests and every other still match their goldens.
+
+The body after the whole sequence, against the golden, with the two ids the first walk generated replaced by the golden's:
+
+| Format | Golden SHA-256 | Desktop SHA-256 (ids replaced) | Differences |
+|---|---|---|---|
+| XML | `ecf679db8565c3f9…` | `ecf679db8565c3f9…` | none: the first walk's file with step 24 (`width="200"`) made by dragging, steps 25 to 27 (*+*, *Rename* "Recent", two undos) and step 28 (*Map*) made again |
+| YAML, JSON | | | not re-walked: their bodies differed by K1's width and the walk's own order of *Hide empty groups* (above), which a re-walk would repeat |
+
+Seen on the re-walk and not fixed: the *Group* panel lists its groups without the handle that drags one into another place (`moveGroup`) and without *Order of groups* (`sortGroups`); a row has no handle that drags it (`moveRows`); *Insert left* and *Insert right* offer the kinds in a menu and name the new property in its header, where the standalone host asks name and kind in one panel (`NewColumnPanel.tsx`); and the view bar names its four panels as buttons rather than behind one control with the filters and sorts as items beside it.
+
+| Step | YAML | JSON | XML |
+|---|---|---|---|
+| 4/4 | pass | not re-walked | pass |
+| 4/5 | pass | not re-walked | pass |
+| 4/6 | as before: differs only by the walk's order (not re-walked) | as YAML | pass, byte for byte |
+| 4/7 | pass | not walked | not walked |
+| 4/9 | pass (`places.yaml`, release) | | |
+
 ### Screenshots
 
 - [The YAML example in its *Map* view](walks/story4-yaml-map-view.png)
@@ -256,3 +297,13 @@ Also seen: the opened 10,000-row table takes about 360 MB of private memory more
 - [Related rows renamed in the other file, by hand and on disk](walks/story4-related-file-changed.png)
 - [10,000 rows at the bottom](walks/story4-10000-rows-bottom.png)
 - [10,000 rows during a drag of the scroll bar](walks/story4-10000-rows-mid-drag.png)
+- [Re-walk: *Population*'s border dragged, nothing written yet (K1)](walks/story4-rewalk-resize-drag.png)
+- [Re-walk: scrolled sideways, the first column over the others; a relation as text; the line of calculations (K4, K7)](walks/story4-rewalk-first-column-over.png)
+- [Re-walk: an unticked checkbox in the property grid (K8)](walks/story4-rewalk-unticked-checkbox.png)
+- [Re-walk: a header's menu, opened by a press (K6)](walks/story4-rewalk-column-menu.png)
+- [Re-walk: the *Properties* panel with a hidden column (K6, K8)](walks/story4-rewalk-properties-panel.png)
+- [Re-walk: a group hidden from the *Group* panel (K6)](walks/story4-rewalk-group-hidden.png)
+- [Re-walk: two rows ticked and the bar for them (K6)](walks/story4-rewalk-ticked-rows.png)
+- [Re-walk: *Sum* chosen for *Population* (K7)](walks/story4-rewalk-calculation-sum.png)
+- [Re-walk: the delete question after the rows (K5)](walks/story4-rewalk-delete-question.png)
+- [Re-walk: ten wheel notches over 10,000 rows (K9)](walks/story4-rewalk-ten-notches.png)

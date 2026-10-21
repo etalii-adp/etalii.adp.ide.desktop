@@ -78,7 +78,7 @@ pub struct KnowledgeSession {
     generation: u64,
     body: Option<KnowledgeBody>,
     /// What the table shows: the body's own model and table, or those with the pending edits made to them.
-    shown_model: FblModel,
+    shown_model: Rc<FblModel>,
     shown: KnowledgeTable,
     /// What is shown with the computed sides of its relations filled in: what the view is made of.
     view: KnowledgeTable,
@@ -142,7 +142,7 @@ impl KnowledgeSession {
             queue: VecDeque::new(),
             generation: 0,
             body: None,
-            shown_model: FblModel::default(),
+            shown_model: Rc::default(),
             shown: KnowledgeTable::default(),
             view: KnowledgeTable::default(),
             targets: RefCell::new(HashMap::new()),
@@ -365,12 +365,12 @@ impl KnowledgeSession {
 
     /// Takes a reading as what the table shows, with the edits still waiting made to it again.
     fn show(&mut self, body: Option<KnowledgeBody>) {
-        self.shown_model = body.as_ref().map(|b| b.model().clone()).unwrap_or_default();
+        self.shown_model = body.as_ref().map(KnowledgeBody::shared_model).unwrap_or_default();
         self.shown = body.as_ref().map(|b| b.table().clone()).unwrap_or_default();
         self.body = body;
         let pending: Vec<Vec<ModelChange>> = self.pending.iter().map(|p| p.changes.clone()).collect();
         for changes in &pending {
-            self.shown_model = projection::apply(&self.shown_model, changes, self.beside_its_rule);
+            self.shown_model = Rc::new(projection::apply(&self.shown_model, changes, self.beside_its_rule));
         }
         if !pending.is_empty() {
             self.shown = model::read(&self.shown_model);
@@ -379,7 +379,7 @@ impl KnowledgeSession {
     }
 
     fn project(&mut self, changes: &[ModelChange]) {
-        self.shown_model = projection::apply(&self.shown_model, changes, self.beside_its_rule);
+        self.shown_model = Rc::new(projection::apply(&self.shown_model, changes, self.beside_its_rule));
         self.shown = model::read(&self.shown_model);
         self.relate();
     }
