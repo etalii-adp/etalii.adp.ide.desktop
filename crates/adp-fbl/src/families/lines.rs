@@ -189,14 +189,14 @@ impl Family {
                 children: Vec::new(),
                 name: None,
                 indent: first - line.start,
-                kind: EntryKind::Statement(Statement {
+                kind: EntryKind::Statement(Box::new(Statement {
                     first_line: index,
                     content,
                     content_start: first,
                     opens: false,
                     is_header: Cell::new(false),
                     first_line_span: own,
-                }),
+                })),
             });
             let statement = self.entries.len() - 1;
             if let Some(parent) = parent {

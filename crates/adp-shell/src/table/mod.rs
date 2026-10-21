@@ -19,6 +19,7 @@
 //! The shell's tab, its property grid and its explorer use this module through [`TableTab`]; it draws with egui and
 //! knows no file format.
 
+pub mod header;
 mod view;
 
 use std::collections::HashMap;
@@ -142,9 +143,75 @@ pub struct CellEditing {
 /// What a frame of the table panel was asked to show besides the rows: which of the view bar's panels is open.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ViewPanel {
+    /// Which properties the view shows (`PropertyVisibility`).
+    Properties,
     Sort,
     Filter,
     Group,
+}
+
+/// A name being typed in place: a view's in its tab, or a column's in its header.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Renaming {
+    /// The view or the column.
+    pub id: String,
+    /// What the field holds.
+    pub name: String,
+    /// Whether the field has been given the focus: it is asked for once, so Enter and a press elsewhere can take it.
+    pub focused: bool,
+    /// The sentence the name was refused with, shown under the field, which stays open.
+    pub refusal: String,
+}
+
+/// A drag in the header that has not ended: a border that resizes its column, or a column being moved.
+#[derive(Debug, Clone, PartialEq)]
+pub enum HeaderDrag {
+    /// The column's width when its border was grabbed, and the width the drag would give now.
+    Resize {
+        column_id: String,
+        grabbed: f32,
+        width: f32,
+    },
+    /// The column's place among those in sight, and how far the pointer went.
+    Move { column_id: String, from: usize, dx: f32 },
+}
+
+/// A panel of a column's own settings, open under its header.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ColumnPanel {
+    /// Its options: renamed, recoloured, moved, deleted and added (`OptionsEditor.tsx`).
+    Options { column_id: String },
+    /// Its relation's limit and other side (`RelationEditor.tsx`).
+    Relation { column_id: String },
+}
+
+/// Where the last frame drew the table, for what places a press: the header's cells, the lines' origin and what is
+/// drawn after them.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Drawn {
+    /// Each visible column's header cell, by its id, where it was drawn.
+    pub header: Vec<(String, egui::Rect)>,
+    /// Where line 0's top-left corner is, scrolled.
+    pub origin: egui::Pos2,
+    /// What of the rows is in sight.
+    pub clip: egui::Rect,
+    /// The line of calculations, the table's own line of a refusal, and the question, when drawn.
+    pub calculations: Option<egui::Rect>,
+    pub refusal: Option<egui::Rect>,
+    pub asking: Option<egui::Rect>,
+}
+
+impl Default for Drawn {
+    fn default() -> Drawn {
+        Drawn {
+            header: Vec::new(),
+            origin: egui::Pos2::ZERO,
+            clip: egui::Rect::NOTHING,
+            calculations: None,
+            refusal: None,
+            asking: None,
+        }
+    }
 }
 
 /// One open Knowledge designer document, in a tab.
@@ -179,8 +246,29 @@ pub struct TableTab {
     /// Where the rows are to be scrolled to on the next frame, in points from the top.
     pub scroll_to: Option<f32>,
     pub panel: Option<ViewPanel>,
-    /// A view being renamed, and the name its field holds.
-    pub renaming: Option<(String, String)>,
+    /// A view being renamed in its tab.
+    pub renaming: Option<Renaming>,
+    /// A column being renamed in its header.
+    pub column_renaming: Option<Renaming>,
+    /// A drag in the header, until it ends.
+    pub header_drag: Option<HeaderDrag>,
+    /// A panel of a column's settings, open under its header.
+    pub column_panel: Option<ColumnPanel>,
+    /// What the panel's fields hold: a new option's name, an option's name by its id, a relation's other name.
+    pub panel_text: HashMap<String, String>,
+    /// The sentence the panel's last change was refused with.
+    pub panel_refusal: String,
+    /// The option the options panel asks about deleting, because rows have it.
+    pub panel_asking: Option<String>,
+    /// The columns there were before a column was inserted: the one that is new is named at once.
+    pub naming_new: Option<Vec<String>>,
+    /// The rows ticked to be acted on together, in the order they were ticked.
+    pub checked: Vec<String>,
+    /// The property of the ticked rows being edited for all of them at once, and what its field holds.
+    pub bulk: Option<String>,
+    pub bulk_text: String,
+    /// Where the last frame drew the table.
+    pub drawn: Drawn,
     /// The text of a filter condition's value field being edited, by its place.
     pub filter_text: HashMap<usize, String>,
     /// The row whose menu a right press opened.
@@ -226,6 +314,17 @@ impl TableTab {
             scroll_to: None,
             panel: None,
             renaming: None,
+            column_renaming: None,
+            header_drag: None,
+            column_panel: None,
+            panel_text: HashMap::new(),
+            panel_refusal: String::new(),
+            panel_asking: None,
+            naming_new: None,
+            checked: Vec::new(),
+            bulk: None,
+            bulk_text: String::new(),
+            drawn: Drawn::default(),
             filter_text: HashMap::new(),
             menu_row: None,
             grid_editing: HashMap::new(),
@@ -285,6 +384,91 @@ impl TableTab {
         }
     }
 
+    /// A visible column's width as drawn now: the width a drag of its border would give, while it is dragged.
+    pub fn drawn_width(&self, column: &TableColumn) -> f32 {
+        match &self.header_drag {
+            Some(HeaderDrag::Resize { column_id, width, .. }) if *column_id == column.id => *width,
+            _ => TableTab::width_of(column),
+        }
+    }
+
+    /// The place of the column the view's columns are frozen up to, among those in sight.
+    pub fn frozen_up_to(&self) -> Option<usize> {
+        let freeze = self.settings.settings.get(adp_desl::table::mapper::FREEZE)?;
+        self.visible_columns().iter().position(|c| c.id == *freeze)
+    }
+
+    /// Ticks a row to be acted on with the others ticked, or no longer.
+    pub fn toggle_checked(&mut self, row_id: &str) {
+        if let Some(at) = self.checked.iter().position(|r| r == row_id) {
+            self.checked.remove(at);
+        } else {
+            self.checked.push(row_id.to_owned());
+        }
+        if self.checked.is_empty() {
+            self.bulk = None;
+        }
+    }
+
+    /// The rows a gesture on one row is about: all that are ticked when it is one of them, else that row alone.
+    pub fn rows_of(&self, row_id: &str) -> Vec<String> {
+        if self.checked.len() > 1 && self.checked.iter().any(|r| r == row_id) {
+            self.checked.clone()
+        } else {
+            vec![row_id.to_owned()]
+        }
+    }
+
+    /// Deletes rows: one by its id, several by their values. A row other tables relate to is asked about first.
+    pub fn delete_rows(&mut self, rows: &[String]) {
+        let gesture = match rows {
+            [one] => TableGesture::new("deleteRows").row(one),
+            several => TableGesture::new("deleteRows").values(several.iter().cloned()),
+        };
+        self.raise(gesture);
+        self.checked.clear();
+        self.bulk = None;
+    }
+
+    /// Sets one property of every ticked row to the same value, as one step (`setCells`).
+    pub fn set_checked(&mut self, column_id: &str, values: Vec<String>) {
+        let gesture = TableGesture::new("setCells")
+            .column(column_id)
+            .values(values)
+            .setting("rows", self.checked.join(","));
+        self.raise(gesture);
+    }
+
+    /// Starts renaming a view in its tab.
+    pub fn start_view_rename(&mut self, view_id: &str) {
+        let name = self
+            .views
+            .iter()
+            .find(|v| v.id == view_id)
+            .map(|v| v.name.clone())
+            .unwrap_or_default();
+        self.renaming = Some(Renaming {
+            id: view_id.to_owned(),
+            name,
+            ..Renaming::default()
+        });
+    }
+
+    /// Starts renaming a column in its header.
+    pub fn start_column_rename(&mut self, column_id: &str) {
+        let name = self
+            .columns
+            .iter()
+            .find(|c| c.id == column_id)
+            .map(|c| c.name.clone())
+            .unwrap_or_default();
+        self.column_renaming = Some(Renaming {
+            id: column_id.to_owned(),
+            name,
+            ..Renaming::default()
+        });
+    }
+
     /// What the session gave since it was last asked, taken into what the tab shows.
     pub fn drain(&mut self) {
         for change in self.session.take_changes() {
@@ -295,6 +479,16 @@ impl TableTab {
                     self.held = rows.into_iter().enumerate().map(|(i, r)| (first + i, r)).collect();
                 }
                 TableChange::Structure(structure) => {
+                    if let Some(before) = self.naming_new.take() {
+                        // A property inserted beside another is named at once, as if Rename had been chosen.
+                        if let Some(added) = structure.columns.iter().find(|c| !before.contains(&c.id)) {
+                            self.column_renaming = Some(Renaming {
+                                id: added.id.clone(),
+                                name: added.name.clone(),
+                                ..Renaming::default()
+                            });
+                        }
+                    }
                     self.title = structure.title;
                     self.columns = structure.columns;
                     self.views = structure.views;

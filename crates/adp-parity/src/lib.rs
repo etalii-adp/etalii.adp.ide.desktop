@@ -422,7 +422,9 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
     let catalogue = Catalogue::load(&repository_root().join("vendor"));
     let tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
-        .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module());
+        .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
+        .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module());
+    let tools = adp_diagram_dependency_graph::register(tools);
     let mut tools = adp_diagram_c4::register(tools);
     let mut workspace = DiagramWorkspace::new(project.path());
     let (_, mut session) = match workspace.open(&mut tools, &document) {
@@ -572,6 +574,10 @@ impl Replay<'_> {
         if args.get("answers").is_some() {
             return Err("the runner does not map a prompt that leads to another onto the desktop session".to_owned());
         }
+        // The explorer's add, on the entry the step names (T068).
+        if action == "hierarchy.add" {
+            return self.add(args);
+        }
         // A history action without a target is sent against the project.
         if args.get("target").is_none() {
             match action {
@@ -581,6 +587,14 @@ impl Replay<'_> {
             }
         }
         let target = self.target(args.get("target"))?;
+        if let ActionTarget::Connection {
+            source: Some(source),
+            target: Some(end),
+        } = &target
+            && let Some(point) = end.strip_prefix("new:")
+        {
+            return self.connect_to_new(source, point);
+        }
         let prompt = match self.session.execute(&mut self.workspace, &target, action, self.ids) {
             ActionOutcome::Done => {
                 return match args.get("value").and_then(Json::as_str) {
@@ -607,6 +621,41 @@ impl Replay<'_> {
             ActionOutcome::Refused(reason) => Err(reason),
             ActionOutcome::Prompt(_) => Err("the answer asked again".to_owned()),
         }
+    }
+
+    /// The explorer's add on the entry named `args.entry` - a folder to create in, a file to register - answered
+    /// with `value` and `text`, as `adp-add` does it for the shell.
+    fn add(&self, args: &Json) -> Result<(), String> {
+        let entry = args
+            .get("entry")
+            .and_then(Json::as_str)
+            .ok_or("an add names its entry")?;
+        let path = entry_named(self.workspace.root(), entry).ok_or_else(|| format!("no entry '{entry}'"))?;
+        let target = if path.is_dir() {
+            adp_add::AddTarget::Folder(path)
+        } else {
+            adp_add::AddTarget::File(path)
+        };
+        let value = args.get("value").and_then(Json::as_str).unwrap_or_default();
+        let text = args.get("text").and_then(Json::as_str).unwrap_or_default();
+        adp_add::AddCatalogue::standalone()
+            .commit(&target, value, text)
+            .map(|_| ())
+    }
+
+    /// A connect gesture from `source` released on empty canvas at `point` (`rel:a->new:x,y`), as the canvas runs it:
+    /// the first relation type that may leave `source` towards empty canvas, its target made at the point.
+    fn connect_to_new(&mut self, source: &str, point: &str) -> Result<(), String> {
+        let (x, y) = point.split_once(',').ok_or("a canvas end is new:x,y")?;
+        let number = |n: &str| n.trim().parse::<f64>().map_err(|e| format!("'{n}': {e}"));
+        let relation = self
+            .session
+            .relation_types_between(self.workspace.documents(), source, None)
+            .into_iter()
+            .next()
+            .ok_or_else(|| format!("no relation leaves '{source}' towards empty canvas"))?;
+        self.session
+            .connect_to_new(&mut self.workspace, &relation, source, number(x)?, number(y)?, self.ids)
     }
 
     /// `ContextService.SetProperty`, the row named by its id or by its label as the grid shows it.
@@ -694,6 +743,24 @@ impl Replay<'_> {
         }
         Err("the runner does not map a text editor's save onto the desktop session".to_owned())
     }
+}
+
+/// The first entry under `root` named `name`, breadth first in name order, as the recorder looks an entry up.
+fn entry_named(root: &Path, name: &str) -> Option<PathBuf> {
+    let mut pending = std::collections::VecDeque::from([root.to_path_buf()]);
+    while let Some(folder) = pending.pop_front() {
+        let mut entries: Vec<PathBuf> = fs::read_dir(&folder).ok()?.flatten().map(|e| e.path()).collect();
+        entries.sort();
+        for path in entries {
+            if path.file_name().is_some_and(|n| n == name) {
+                return Some(path);
+            }
+            if path.is_dir() {
+                pending.push_back(path);
+            }
+        }
+    }
+    None
 }
 
 fn compact(step: &Json) -> String {

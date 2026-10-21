@@ -1,0 +1,20 @@
+{
+  "tool": "generic/timeline",
+  "fixture": "generic/timeline/add/roadmap.tml",
+  "registration": "generic/timeline/add/roadmap.adp",
+  "steps": [
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "generic/timeline", "text": "plan" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "c4/context", "text": "context" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "c4/container", "text": "containers.adp" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "c4/component", "text": " components " } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "c4/system-landscape", "text": "landscape" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "c4/dynamic", "text": "the good one" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "c4/deployment", "text": "deployment" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "c4/code", "text": "classes" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "uml/class", "text": "domain" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "helm/chart", "text": "" } },
+    { "action": "hierarchy.add", "args": { "entry": "people.ttl", "value": "w3c/rdf" } },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "generic/timeline", "text": "plan" }, "expect": "refused" },
+    { "action": "hierarchy.add", "args": { "entry": "added", "value": "ansible/structure", "text": "" }, "expect": "refused" }
+  ]
+}

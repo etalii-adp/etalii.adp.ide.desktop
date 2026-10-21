@@ -37,6 +37,10 @@ use crate::scale::TimeUnit;
 /// The tool type this module serves.
 pub const ORIGIN: &str = "gartner/hypecycle-graph";
 
+/// A new, empty `.ghg` body, as the standalone host's Add dialog wrote it (`GhgParser.EmptyDocument("\r\n")`,
+/// `ServiceCollection.AddGartnerHypeCycleGraph.cs`): the header and both sections written flow-empty, with CRLF.
+pub const EMPTY_DOCUMENT: &str = "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n";
+
 /// The hype cycle graph's own code beside its specification.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct HypeCycleModule;

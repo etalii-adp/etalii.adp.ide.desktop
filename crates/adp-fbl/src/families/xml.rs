@@ -149,10 +149,10 @@ impl Family {
             children: Vec::new(),
             name: None,
             indent: 0,
-            kind: EntryKind::Xml(XmlElement {
+            kind: EntryKind::Xml(Box::new(XmlElement {
                 is_root: true,
                 ..XmlElement::default()
-            }),
+            })),
         });
         let root = self.entries.len() - 1;
         self.xml_data_mut().root = Some(root);
@@ -381,10 +381,10 @@ impl Family {
             children: Vec::new(),
             name: Some(name.clone()),
             indent: start - line_start,
-            kind: EntryKind::Xml(XmlElement {
+            kind: EntryKind::Xml(Box::new(XmlElement {
                 name_end,
                 ..XmlElement::default()
-            }),
+            })),
         });
         let element = self.entries.len() - 1;
         let mut position = name_end;

@@ -42,8 +42,28 @@ fn gartner_hypecycle_graph_coal_technologies() {
 }
 
 #[test]
+fn generic_timeline_add() {
+    check("generic/timeline/add");
+}
+
+#[test]
+fn generic_dependencies_services() {
+    check("generic/dependencies/services");
+}
+
+#[test]
 fn generic_timeline_roadmap() {
     check("generic/timeline/roadmap");
+}
+
+#[test]
+fn systems_causal_loop_diagram_on_call() {
+    check("systems/causal-loop-diagram/on-call");
+}
+
+#[test]
+fn systems_causal_loop_diagram_reference() {
+    check("systems/causal-loop-diagram/reference");
 }
 
 /// Every script has its test here and its row in `parity/README.md`, so none is skipped silently.

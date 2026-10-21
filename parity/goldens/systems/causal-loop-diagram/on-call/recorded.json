@@ -1,0 +1,95 @@
+{
+  "script": "parity/scripts/systems/causal-loop-diagram/on-call.json",
+  "tool": "systems/causal-loop-diagram",
+  "fixture": "systems/causal-loop-diagram/on-call/on-call.cld",
+  "registration": "systems/causal-loop-diagram/on-call/on-call.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T09:16:28Z",
+  "edits": 7,
+  "changed": [
+    "on-call.adp",
+    "on-call.cld"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 4,
+      "id": "variable:variable1",
+      "type": "systems/causal-loop+variable",
+      "connection": false
+    },
+    {
+      "step": 6,
+      "id": "link:variable1|teamSize",
+      "type": "systems/causal-loop+link",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 1,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 2,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 3,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "variable:toil to (10, 20)"
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:-400,250"
+    },
+    {
+      "step": 5,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "variable:variable1"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Add link' answered 'teamSize'"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:0,0"
+    },
+    {
+      "step": 8,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

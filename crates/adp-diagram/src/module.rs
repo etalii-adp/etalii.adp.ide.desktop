@@ -27,7 +27,10 @@ use std::rc::Rc;
 
 use adp_cel::Map;
 use adp_context::{ActionGroup, PropertyRow};
-use adp_disl::{DislChange, DislDiagram, DislElement, DislPluginFunctions, DislSpecification, IdSource};
+use adp_disl::derivation::finding::DislReaderFinding;
+use adp_disl::{
+    DislChange, DislConstraintOptions, DislDiagram, DislElement, DislPluginFunctions, DislSpecification, IdSource,
+};
 use adp_fbl::plugins::PersistencePlugin;
 
 use crate::definition::ToolboxItem;
@@ -188,6 +191,28 @@ pub trait DiagramModule {
     /// gesture, form or operation made it. The changes as they are by default.
     fn written(&self, _diagram: &DislDiagram, changes: Vec<DislChange>) -> Result<Vec<DislChange>, String> {
         Ok(changes)
+    }
+
+    /// The line ending a block the registration does not have yet is created with (its `layout:` on a first
+    /// placement), in place of the registration's own (FBL section 8.3): none for the registration's own. The
+    /// standalone host wrote a new `layout:` block with CRLF on every platform (`AdpFileWriter.NewLine`).
+    fn created_block_ending(&self) -> Option<String> {
+        None
+    }
+
+    /// What the reader could not read in `document`, beside what the session reports itself, each as the built-in
+    /// it is reported as (DISL section 8.6): none by default. The causal loop module words each statement its
+    /// binding leaves unread in the tool's own sentence (`causal-loop-diagram.md`, gap 1).
+    fn reader_findings(&self, document: &DiagramDocument) -> Vec<DislReaderFinding> {
+        let _ = document;
+        Vec::new()
+    }
+
+    /// The findings of `document`'s constraints (DISL section 8) as the module reports them, evaluated from the
+    /// session's `options`: in the module's order, each where the module locates it, with the ids the file writes
+    /// rather than the model's. None for the specification's findings as the session reports them.
+    fn problems(&self, _document: &DiagramDocument, _options: DislConstraintOptions) -> Option<Vec<DiagramProblem>> {
+        None
     }
 }
 

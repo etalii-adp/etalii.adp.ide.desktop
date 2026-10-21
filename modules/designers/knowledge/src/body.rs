@@ -26,7 +26,8 @@ pub const CHANGED_SINCE: &str = "The file has changed since this edit was made, 
 pub struct KnowledgeBody {
     bytes: Vec<u8>,
     opened: Option<(Rc<FblBinding>, Rc<FblOptions>, OpenBody)>,
-    model: FblModel,
+    /// Shared with the session that shows it, which keeps it as what it shows until an edit is made.
+    model: Rc<FblModel>,
     unreadable: String,
     table: KnowledgeTable,
 }
@@ -41,10 +42,10 @@ impl KnowledgeBody {
             return KnowledgeBody {
                 bytes,
                 opened: None,
-                model: FblModel {
+                model: Rc::new(FblModel {
                     unreadable: true,
                     ..FblModel::default()
-                },
+                }),
                 unreadable: format!("A knowledge file is YAML, JSON or XML; '{extension}' is none of them."),
                 table: KnowledgeTable::default(),
             };
@@ -85,7 +86,7 @@ impl KnowledgeBody {
         KnowledgeBody {
             bytes,
             opened: Some((binding, options, body)),
-            model,
+            model: Rc::new(model),
             unreadable,
             table,
         }
@@ -99,6 +100,11 @@ impl KnowledgeBody {
     /// What the reading gave: the elements, and what it has to report.
     pub fn model(&self) -> &FblModel {
         &self.model
+    }
+
+    /// The model, shared rather than copied: a large body's model is many megabytes.
+    pub fn shared_model(&self) -> Rc<FblModel> {
+        self.model.clone()
     }
 
     /// The table the elements make. Empty for a body that cannot be read.

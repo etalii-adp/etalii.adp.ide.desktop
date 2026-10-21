@@ -77,8 +77,9 @@ impl Entry {
 #[derive(Debug, Clone)]
 pub(crate) enum EntryKind {
     Tree(tree::TreeEntry),
-    Xml(xml::XmlElement),
-    Statement(lines::Statement),
+    // Boxed: an xml element or a statement is several times a tree entry, and every entry of a body is kept.
+    Xml(Box<xml::XmlElement>),
+    Statement(Box<lines::Statement>),
 }
 
 /// What each family knows besides its entries.
@@ -343,6 +344,22 @@ impl Family {
     }
 
     /// The header check (FBL section 5.6): whether the mark is there with the right value.
+    /// Gives back the room the reading's lists grew into and no longer need. Nothing read changes.
+    pub fn compact(&mut self) {
+        self.entries.shrink_to_fit();
+        for entry in &mut self.entries {
+            entry.children.shrink_to_fit();
+        }
+        self.order.shrink_to_fit();
+        self.leaves.shrink_to_fit();
+        if let FamilyKind::Yaml(tree) | FamilyKind::Json(tree) = &mut self.kind {
+            tree.values.shrink_to_fit();
+            for value in &mut tree.values {
+                value.entries.shrink_to_fit();
+            }
+        }
+    }
+
     pub fn header_holds(&self, header: &HeaderSettings) -> bool {
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_header_holds(header),

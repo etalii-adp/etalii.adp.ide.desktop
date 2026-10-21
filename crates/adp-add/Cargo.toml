@@ -1,0 +1,28 @@
+[package]
+name = "adp-add"
+description = "What the add dialog offers and what it writes, as the standalone host does (spec 030, FR-021, T068)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-core = { path = "../adp-core" }
+adp-desl = { path = "../adp-desl" }
+adp-diagram = { path = "../adp-diagram" }
+adp-fbl = { path = "../adp-fbl" }
+adp-hierarchy = { path = "../adp-hierarchy" }
+# The modules whose new documents the add writes, as each registers its `AddEmptyDocument` in the standalone host.
+adp-designer-knowledge = { path = "../../modules/designers/knowledge" }
+adp-diagram-c4 = { path = "../../modules/diagrams/c4" }
+adp-diagram-causal-loop = { path = "../../modules/diagrams/causal-loop-diagram" }
+adp-diagram-hype-cycle = { path = "../../modules/diagrams/gartner-hype-cycle-graph" }
+adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap" }
+adp-diagram-timeline = { path = "../../modules/diagrams/timeline" }
+
+[dev-dependencies]
+tempfile = "3"
