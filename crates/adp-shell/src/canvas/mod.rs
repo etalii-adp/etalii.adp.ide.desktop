@@ -94,13 +94,13 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_c4::register(
+            tools: adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                 adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                     DislPluginFunctions::none()
                 }))
                 .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
                 .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module()),
-            ),
+            )),
             workspaces: HashMap::new(),
         }
     }
