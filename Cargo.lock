@@ -132,6 +132,7 @@ dependencies = [
  "adp-diagram-sankey",
  "adp-diagram-supply-chain",
  "adp-diagram-timeline",
+ "adp-diagram-wardley-map",
  "adp-fbl",
  "adp-hierarchy",
  "tempfile",
@@ -351,6 +352,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-wardley-map"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "regex",
+ "serde_json",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
 name = "adp-disl"
 version = "0.1.0"
 dependencies = [
@@ -453,6 +471,7 @@ dependencies = [
  "adp-diagram-sankey",
  "adp-diagram-supply-chain",
  "adp-diagram-timeline",
+ "adp-diagram-wardley-map",
  "adp-disl",
  "adp-history",
  "serde",
@@ -509,6 +528,7 @@ dependencies = [
  "adp-diagram-sankey",
  "adp-diagram-supply-chain",
  "adp-diagram-timeline",
+ "adp-diagram-wardley-map",
  "adp-disl",
  "adp-documents",
  "adp-editor-json",

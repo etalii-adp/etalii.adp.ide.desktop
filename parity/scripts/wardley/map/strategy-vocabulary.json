@@ -1,0 +1,33 @@
+{
+  "tool": "wardley/map",
+  "fixture": "wardley/map/strategy-vocabulary/strategy-vocabulary.owm",
+  "registration": "wardley/map/strategy-vocabulary/strategy-vocabulary.adp",
+  "steps": [
+    {"move": {"refs": ["et0fqurcgd3ri1az051jupyvf"], "dx": 0.05, "dy": -0.05}},
+    {"move": {"refs": ["5mohg9hrrnhjw5t5bvksobqlo"], "to": {"x": 0.31, "y": 0.4}}},
+    {"undo": 1},
+    {"redo": 1},
+    {"action": "wardley.toggle-inertia", "args": {"target": "b474cr9m9t3eczg1gdv5gcjhk"}},
+    {"action": "wardley.toggle-market", "args": {"target": "et0fqurcgd3ri1az051jupyvf"}},
+    {"property": {"row": "Decorators", "value": "ecosystem, build", "target": "2m9av9ipvmp6w45ql55bgcsjf"}},
+    {"action": "wardley.set-evolve", "args": {"target": "et0fqurcgd3ri1az051jupyvf", "value": "0.85"}},
+    {"property": {"row": "Evolves to", "value": "0.8", "target": "5mohg9hrrnhjw5t5bvksobqlo"}},
+    {"property": {"row": "Becomes", "value": "Cloud Platform", "target": "804r9rdikiiftb5uxc4dmz1sb"}},
+    {"action": "wardley.rename", "args": {"target": "28aq8skvp5n22fbrkdpr7w6eu", "value": "Storefront"}},
+    {"action": "wardley.link", "args": {"target": "28aq8skvp5n22fbrkdpr7w6eu", "value": "b474cr9m9t3eczg1gdv5gcjhk"}},
+    {"action": "wardley.flow", "args": {"target": "b7ak4vpps5jzv5z6e35bwkdk0", "value": "et0fqurcgd3ri1az051jupyvf"}},
+    {"action": "wardley.unlink", "args": {"target": "et0fqurcgd3ri1az051jupyvf", "value": "Payment\u001fLedger\u001fDependency"}},
+    {"property": {"row": "Context", "value": "through the plugin SDK", "target": "$4"}},
+    {"action": "wardley.remove", "args": {"target": "b7ak4vpps5jzv5z6e35bwkdk0", "confirm": true}},
+    {"action": "wardley.clear-evolve", "args": {"target": "804r9rdikiiftb5uxc4dmz1sb"}},
+    {"undo": 1},
+    {"redo": 1},
+    {"property": {"row": "Maturity", "value": "0.7", "target": "esqtv1tg6r31atziq717uebs2"}},
+    {"property": {"row": "Visibility", "value": "1.4", "target": "b474cr9m9t3eczg1gdv5gcjhk"}, "expect": "refused"},
+    {"action": "wardley.toggle-buy", "args": {"target": "et0fqurcgd3ri1az051jupyvf"}},
+    {"property": {"row": "Name", "value": "Plugin Market", "target": "2m9av9ipvmp6w45ql55bgcsjf"}},
+    {"action": "wardley.toggle-inertia", "args": {"target": "804r9rdikiiftb5uxc4dmz1sb"}},
+    {"undo": 1},
+    {"save": true}
+  ]
+}

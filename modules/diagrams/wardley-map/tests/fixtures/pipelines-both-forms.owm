@@ -1,0 +1,26 @@
+title Pipelines in both forms
+anchor Customer [0.95, 0.63]
+
+// The current, nested form: children carry an evolution position only, and take their
+// visibility from the parent (Requirement 5.4).
+component Kettle [0.43, 0.35]
+pipeline Kettle
+{
+  component Campfire Kettle [0.15]
+  component Electric Kettle [0.63]
+}
+
+// The legacy two-coordinate form. Requirement 3.2 says a map written this way is written
+// back this way, rather than being silently upgraded to the nested form.
+component Power [0.10, 0.70]
+pipeline Power [0.30, 0.85]
+
+// An empty pipeline, which the parser tolerates during map construction.
+component Water [0.38, 0.82]
+pipeline Water
+{
+}
+
+Customer->Kettle
+Kettle->Power
+Kettle->Water

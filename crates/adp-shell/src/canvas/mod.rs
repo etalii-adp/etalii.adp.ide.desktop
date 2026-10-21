@@ -23,6 +23,7 @@ pub mod sankey_scene;
 pub mod supply_chain_scene;
 pub mod toolbox;
 pub mod viewpoint;
+pub mod wardley_scene;
 
 #[cfg(test)]
 mod tests;
@@ -98,8 +99,8 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
-                adp_diagram_dependency_graph::register(
+            tools: adp_diagram_wardley_map::register(adp_diagram_supply_chain::register(adp_diagram_sankey::register(
+                adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                     adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                         DislPluginFunctions::none()
                     }))
@@ -110,7 +111,7 @@ impl DiagramHost {
                         adp_diagram_functional_decomposition_graph::ORIGIN,
                         adp_diagram_functional_decomposition_graph::module(),
                     ),
-                ),
+                )),
             ))),
             workspaces: HashMap::new(),
         }
@@ -741,13 +742,26 @@ impl DiagramTab {
         // A selected element that is gone is no longer selected.
         let known: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
         self.selection.retain(|id| known.contains(id.as_str()));
-        let built = if self.opened.origin == adp_diagram_sankey::ORIGIN {
-            sankey_scene::build(&elements, &self.selection, self.arbiter.moving())
+        // A Wardley map is drawn in its 0..1 space on a square of 1000 canvas units (T070), its marks mapped back by
+        // that scale.
+        let (built, scaled) = if self.opened.origin == adp_diagram_wardley_map::ORIGIN {
+            wardley_scene::build(&elements, &self.selection, self.arbiter.moving())
+        } else if self.opened.origin == adp_diagram_sankey::ORIGIN {
+            (
+                sankey_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                HashMap::new(),
+            )
         } else if self.opened.origin == adp_diagram_supply_chain::ORIGIN {
             // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
-            supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving())
+            (
+                supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                HashMap::new(),
+            )
         } else {
-            module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark)
+            (
+                module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                HashMap::new(),
+            )
         };
         let bounds = built.scene.bounds(metrics);
         // Where a module writes a move as the element's top-left, the drag hands it the top-left.
@@ -755,7 +769,8 @@ impl DiagramTab {
             top_left: true,
             ..Mapping::default()
         };
-        let mappings = built.top_left.iter().map(|id| (id.clone(), top_left)).collect();
+        let mut mappings: HashMap<String, Mapping> = built.top_left.iter().map(|id| (id.clone(), top_left)).collect();
+        mappings.extend(scaled);
         self.cache = Some(Cached {
             key,
             scene: built.scene,

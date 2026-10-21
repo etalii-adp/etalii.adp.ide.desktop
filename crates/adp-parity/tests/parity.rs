@@ -81,6 +81,11 @@ fn systems_causal_loop_diagram_reference() {
     check("systems/causal-loop-diagram/reference");
 }
 
+#[test]
+fn wardley_map_strategy_vocabulary() {
+    check("wardley/map/strategy-vocabulary");
+}
+
 /// Every script has its test here and its row in `parity/README.md`, so none is skipped silently.
 #[test]
 fn every_script_is_checked_and_listed() {

@@ -34,6 +34,7 @@ use std::cell::{Cell, RefCell};
 use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 use adp_context::Prompt;
 use adp_core::Catalogue;
@@ -204,10 +205,10 @@ pub fn this_platform() -> &'static str {
     if cfg!(windows) { "windows" } else { "linux" }
 }
 
-/// Whether the standalone host writes `path` with the platform's line ending: the C4 layout sidecar, which
-/// `System.Text.Json` writes with `Environment.NewLine` (`parity/recorder/README.md`).
+/// Whether the standalone host writes `path` with the platform's line ending: the C4 layout sidecar and the Wardley
+/// map's identity sidecar, which `System.Text.Json` writes with `Environment.NewLine` (`parity/recorder/README.md`).
 pub fn platform_line_endings(path: &str) -> bool {
-    path.ends_with(".layout.json")
+    path.ends_with(".layout.json") || path.ends_with(".identities.json")
 }
 
 /// The bytes the desktop host wrote for `path`, in the line endings of the platform the golden was recorded on: a
@@ -419,11 +420,18 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         return table::replay(case, project.path(), &document);
     }
 
+    // The ids the standalone host generated, handed out at the steps that made them; the Wardley map mints its ids
+    // itself, when its identities are reconciled, so its module is handed them too.
+    let ids = Rc::new(RecordedIds::new(case.recorded.generated.clone()));
     let catalogue = Catalogue::load(&repository_root().join("vendor"));
     let tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
         .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
-        .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module());
+        .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
+        .with_module(
+            adp_diagram_wardley_map::ORIGIN,
+            Rc::new(adp_diagram_wardley_map::WardleyModule::with_ids(ids.clone())),
+        );
     let tools = adp_diagram_dependency_graph::register(tools);
     let tools = adp_diagram_supply_chain::register(tools);
     let tools = adp_diagram_sankey::register(tools);
@@ -439,7 +447,6 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         return Ok(Verdict::CannotOpen(reason));
     }
 
-    let ids = RecordedIds::new(case.recorded.generated.clone());
     let mut replay = Replay {
         workspace,
         session,
@@ -844,6 +851,11 @@ mod tests {
             in_recorded_line_endings("x.layout.json", lf.clone(), "windows", "windows"),
             lf,
             "on the recorded platform the bytes are compared as written"
+        );
+        assert_eq!(
+            in_recorded_line_endings("map.identities.json", lf.clone(), "windows", "linux"),
+            crlf,
+            "the Wardley map's identity sidecar is written with the platform's line ending too"
         );
         assert_eq!(
             in_recorded_line_endings("courier.dsl", lf.clone(), "windows", "linux"),

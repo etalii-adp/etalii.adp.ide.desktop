@@ -1193,3 +1193,5 @@ mod supply_chain;
 mod sankey;
 // The functional decomposition graph with its module (T072), in a file of its own.
 mod fdg;
+// The Wardley map with its module (T070), in a file of its own.
+mod wardley_map;
