@@ -14,6 +14,7 @@
 //! `gestureFrame.ts`: the preview is the frame's, the edit is written once, at the release, and Escape reverts it).
 
 pub mod aad_scene;
+pub mod dotnet_scene;
 pub mod fdg_scene;
 pub mod gestures;
 pub mod metrics;
@@ -100,9 +101,9 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_agent_activity::register(adp_diagram_wardley_map::register(
-                adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
-                    adp_diagram_dependency_graph::register(
+            tools: adp_diagram_dotnet_dependency_graph::register(adp_diagram_agent_activity::register(
+                adp_diagram_wardley_map::register(adp_diagram_supply_chain::register(adp_diagram_sankey::register(
+                    adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                         adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                             DislPluginFunctions::none()
                         }))
@@ -113,7 +114,7 @@ impl DiagramHost {
                             adp_diagram_functional_decomposition_graph::ORIGIN,
                             adp_diagram_functional_decomposition_graph::module(),
                         ),
-                    ),
+                    )),
                 ))),
             )),
             workspaces: HashMap::new(),
@@ -758,6 +759,12 @@ impl DiagramTab {
             // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
             (
                 supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                HashMap::new(),
+            )
+        } else if self.opened.origin == adp_diagram_dotnet_dependency_graph::ORIGIN {
+            // A .NET dependency graph's boxes are moved by the top-left the registration stores (`onElementMoved`).
+            (
+                dotnet_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_agent_activity::ORIGIN {

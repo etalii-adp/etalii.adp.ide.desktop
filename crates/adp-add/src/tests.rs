@@ -405,3 +405,17 @@ fn a_hype_cycle_graph_is_written_as_the_standalone_host_writes_an_empty_one() {
         "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n"
     );
 }
+
+#[test]
+fn a_dotnet_dependency_graph_is_written_with_an_empty_solution() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "dotnet/dependency-graph", "build")
+        .unwrap();
+    assert_eq!(created, folder.path().join("build.adp"));
+    assert_eq!(read(&created), "dotnet/dependency-graph\r\n");
+    // The standalone host's `AddEmptyDocument`: an empty solution in the newer serialization, at the definition's
+    // extension, which a registration without a `body:` header derives its body by.
+    assert_eq!(read(&folder.path().join("build.sln")), "<Solution>\r\n</Solution>\r\n");
+}

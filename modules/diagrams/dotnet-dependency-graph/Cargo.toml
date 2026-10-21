@@ -1,0 +1,29 @@
+[package]
+name = "adp-diagram-dotnet-dependency-graph"
+description = "The .NET dependency graph's residue: the solution, project and package readers, the derived graph, its layered layout, its read-only rows, and the one edit, a position in the registration (spec 030, T082)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-disl = { path = "../../../crates/adp-disl" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# The classic `.sln`'s `Project(...)` lines.
+regex = "1"
+# Solutions, project files, `Directory.Packages.props` and `.nuspec` files are only read.
+roxmltree = "0.20"
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+serde_json = "1"
+tempfile = "3"
+
+[lints]
+workspace = true

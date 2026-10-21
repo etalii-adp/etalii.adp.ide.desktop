@@ -17,6 +17,11 @@ fn c4_container_courier() {
 }
 
 #[test]
+fn dotnet_dependency_graph_pipeline_toolkit() {
+    check("dotnet/dependency-graph/pipeline-toolkit");
+}
+
+#[test]
 fn etalii_agent_activity_diagram_two_projects() {
     check("etalii/agent-activity-diagram/two-projects");
 }

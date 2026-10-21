@@ -1,0 +1,770 @@
+{
+  "module": "dotnet/dependency-graph",
+  "generator": "src/diagrams/dotnet-dependency-graph/backend/EtAlii.Adp.Diagram.DotNetDependencyGraph.Tests/Parity/DotNetTranscript.cs",
+  "regenerate": "ADP_WRITE_PARITY_TRANSCRIPTS=1 dotnet test --project <this test project> (then review the diff)",
+  "registrations": [
+    "SolutionReader => SolutionReader (Singleton)",
+    "ProjectReader => ProjectReader (Singleton)",
+    "PackageDescriptionReader => PackageDescriptionReader (Singleton)",
+    "DependencyGraphStore => DependencyGraphStore (Singleton)",
+    "IDependencyGraphStore => factory (Singleton)",
+    "IDiagramDocumentFactory => instance (Singleton)",
+    "DependencyElementMapper => DependencyElementMapper (Singleton)",
+    "IDiagramSessionFactory => DotNetDependencyGraphSessionFactory (Singleton)",
+    "IContextSourceResolver => DotNetContextSourceResolver (Singleton)",
+    "IContextPropertyProvider => DotNetContextPropertyProvider (Singleton)"
+  ],
+  "solutions": [
+    {
+      "solution": "diagrams/dotnet-dependency-graph/backend/EtAlii.Adp.Diagram.DotNetDependencyGraph.Tests/Fixtures/solution/Both.sln",
+      "sha256": "d7ed8deb409666936ca478ce8bd95715240f11c1dc8c59b0ca6fd45e09312031",
+      "projects": [
+        "project:Alpha.csproj | Alpha | Alpha.csproj | [net10.0] | \"10.0\"",
+        "project:nested/Beta.csproj | Beta | nested/Beta.csproj | [net10.0] | \"10.0\""
+      ],
+      "packages": [],
+      "references": [],
+      "failures": [
+        "Missing.csproj | The solution names this project, but the file is not there."
+      ],
+      "payloads": [
+        "project:Alpha.csproj | dotnet/dependency-graph+project | 0, 0 | DependencyElementPayload { \"name\": \"Alpha\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"Alpha.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:nested/Beta.csproj | dotnet/dependency-graph+project | 0, 90 | DependencyElementPayload { \"name\": \"Beta\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"nested\", \"Beta.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }"
+      ],
+      "payloadsWithAStoredPosition": [
+        "project:Alpha.csproj | dotnet/dependency-graph+project | 10.5, -20 | DependencyElementPayload { \"name\": \"Alpha\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"Alpha.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }"
+      ],
+      "rows": [
+        {
+          "target": "project:Alpha.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Alpha\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"Alpha.csproj\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:nested/Beta.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Beta\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"nested/Beta.csproj\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": "project:Alpha.csproj of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow.",
+      "session": [
+        "baseline => 2 elements added",
+        "reparent project:Alpha.csproj => A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow.",
+        "move project:Alpha.csproj to (10, 20) => This diagram is read-only."
+      ]
+    },
+    {
+      "solution": "diagrams/dotnet-dependency-graph/backend/EtAlii.Adp.Diagram.DotNetDependencyGraph.Tests/Fixtures/solution/Both.slnx",
+      "sha256": "af6a30ee754d82b11d70b812936eecd01dc625589ecd4e74236800aa863d8b77",
+      "projects": [
+        "project:Alpha.csproj | Alpha | Alpha.csproj | [net10.0] | \"10.0\"",
+        "project:nested/Beta.csproj | Beta | nested/Beta.csproj | [net10.0] | \"10.0\""
+      ],
+      "packages": [],
+      "references": [],
+      "failures": [
+        "Missing.csproj | The solution names this project, but the file is not there."
+      ],
+      "payloads": [
+        "project:Alpha.csproj | dotnet/dependency-graph+project | 0, 0 | DependencyElementPayload { \"name\": \"Alpha\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"Alpha.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:nested/Beta.csproj | dotnet/dependency-graph+project | 0, 90 | DependencyElementPayload { \"name\": \"Beta\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"nested\", \"Beta.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }"
+      ],
+      "payloadsWithAStoredPosition": [
+        "project:Alpha.csproj | dotnet/dependency-graph+project | 10.5, -20 | DependencyElementPayload { \"name\": \"Alpha\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"Alpha.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }"
+      ],
+      "rows": [
+        {
+          "target": "project:Alpha.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Alpha\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"Alpha.csproj\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:nested/Beta.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Beta\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"nested/Beta.csproj\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": "project:Alpha.csproj of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow.",
+      "session": [
+        "baseline => 2 elements added",
+        "reparent project:Alpha.csproj => A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow.",
+        "move project:Alpha.csproj to (10, 20) => This diagram is read-only."
+      ]
+    },
+    {
+      "solution": "diagrams/dotnet-dependency-graph/backend/EtAlii.Adp.Diagram.DotNetDependencyGraph.Tests/Fixtures/solution/Broken.slnx",
+      "sha256": "a095d9a72217b4f11bbebcc31baca002d2dccaa3b7f6cf127b6b3b5fe0de7bf0",
+      "projects": [],
+      "packages": [],
+      "references": [],
+      "failures": [
+        "{src}/diagrams/dotnet-dependency-graph/backend/EtAlii.Adp.Diagram.DotNetDependencyGraph.Tests/Fixtures/solution/Broken.slnx | The solution file could not be parsed."
+      ],
+      "payloads": [],
+      "rows": [
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": " of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow.",
+      "session": [
+        "baseline => 0 elements added",
+        "reparent parity:unknown => A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow.",
+        "move parity:unknown to (10, 20) => This diagram is read-only."
+      ]
+    },
+    {
+      "solution": "diagrams/dotnet-dependency-graph/backend/EtAlii.Adp.Diagram.DotNetDependencyGraph.Tests/Fixtures/solution/Empty.slnx",
+      "sha256": "3c3218784f99806d32d3531be1bdea5b130f5c75458574775e15151459a1027b",
+      "projects": [],
+      "packages": [],
+      "references": [],
+      "failures": [],
+      "payloads": [],
+      "rows": [
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": " of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow.",
+      "session": [
+        "baseline => 0 elements added",
+        "reparent parity:unknown => A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow.",
+        "move parity:unknown to (10, 20) => This diagram is read-only."
+      ]
+    },
+    {
+      "solution": "diagrams/dotnet-dependency-graph/backend/EtAlii.Adp.Diagram.DotNetDependencyGraph.Tests/Fixtures/solution/Flat.sln",
+      "sha256": "d8c2c653edf55f26218caa3467dbe6fa677d6b1499024bd38162d3ec931a810a",
+      "projects": [
+        "project:Alpha.csproj | Alpha | Alpha.csproj | [net10.0] | \"10.0\"",
+        "project:nested/Beta.csproj | Beta | nested/Beta.csproj | [net10.0] | \"10.0\""
+      ],
+      "packages": [],
+      "references": [],
+      "failures": [
+        "Missing.csproj | The solution names this project, but the file is not there."
+      ],
+      "payloads": [
+        "project:Alpha.csproj | dotnet/dependency-graph+project | 0, 0 | DependencyElementPayload { \"name\": \"Alpha\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"Alpha.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:nested/Beta.csproj | dotnet/dependency-graph+project | 0, 90 | DependencyElementPayload { \"name\": \"Beta\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"nested\", \"Beta.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }"
+      ],
+      "payloadsWithAStoredPosition": [
+        "project:Alpha.csproj | dotnet/dependency-graph+project | 10.5, -20 | DependencyElementPayload { \"name\": \"Alpha\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"Alpha.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }"
+      ],
+      "rows": [
+        {
+          "target": "project:Alpha.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Alpha\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"Alpha.csproj\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in Alpha.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:nested/Beta.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Beta\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"nested/Beta.csproj\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in nested/Beta.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": "project:Alpha.csproj of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow.",
+      "session": [
+        "baseline => 2 elements added",
+        "reparent project:Alpha.csproj => A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow.",
+        "move project:Alpha.csproj to (10, 20) => This diagram is read-only."
+      ]
+    },
+    {
+      "solution": "diagrams/dotnet-dependency-graph/examples/example 1/pipeline-toolkit/PipelineToolkit.slnx",
+      "sha256": "65f99323b4b62d30382daeb8d3793282925a7e45db266f36aaa3b466c9d7d1ca",
+      "projects": [
+        "project:src/Pipeline.Core/Pipeline.Core.csproj | Pipeline.Core | src/Pipeline.Core/Pipeline.Core.csproj | [net10.0] | \"10.0\"",
+        "project:src/Pipeline.Storage/Pipeline.Storage.csproj | Pipeline.Storage | src/Pipeline.Storage/Pipeline.Storage.csproj | [net10.0, netstandard2.0] | \"10.0\"",
+        "project:src/Pipeline.Cli/Pipeline.Cli.csproj | Pipeline.Cli | src/Pipeline.Cli/Pipeline.Cli.csproj | [net10.0] | \"10.0\"",
+        "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj | Pipeline.Core.Tests | tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj | [net10.0] | \"10.0\""
+      ],
+      "packages": [
+        "package:Serilog | Serilog | [3.1.1, 4.4.0] | conflict True | dependents 3 | ambient False | null",
+        "package:System.Text.Json | System.Text.Json | [10.0.0] | conflict False | dependents 1 | ambient False | null",
+        "package:xunit.v3 | xunit.v3 | [4.1.0] | conflict False | dependents 1 | ambient False | null"
+      ],
+      "references": [
+        "depends:project:src/Pipeline.Core/Pipeline.Core.csproj->package:Serilog | Package | project:src/Pipeline.Core/Pipeline.Core.csproj -> package:Serilog",
+        "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj | Project | project:src/Pipeline.Storage/Pipeline.Storage.csproj -> project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->package:System.Text.Json | Package | project:src/Pipeline.Storage/Pipeline.Storage.csproj -> package:System.Text.Json",
+        "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj | Project | project:src/Pipeline.Cli/Pipeline.Cli.csproj -> project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Storage/Pipeline.Storage.csproj | Project | project:src/Pipeline.Cli/Pipeline.Cli.csproj -> project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog | Package | project:src/Pipeline.Cli/Pipeline.Cli.csproj -> package:Serilog",
+        "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj | Project | project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj -> project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:xunit.v3 | Package | project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj -> package:xunit.v3",
+        "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:Serilog | Package | project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj -> package:Serilog"
+      ],
+      "failures": [],
+      "payloads": [
+        "project:src/Pipeline.Core/Pipeline.Core.csproj | dotnet/dependency-graph+project | 0, 0 | DependencyElementPayload { \"name\": \"Pipeline.Core\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"src\", \"Pipeline.Core\", \"Pipeline.Core.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:src/Pipeline.Storage/Pipeline.Storage.csproj | dotnet/dependency-graph+project | 320, 90 | DependencyElementPayload { \"name\": \"Pipeline.Storage\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"src\", \"Pipeline.Storage\", \"Pipeline.Storage.csproj\" ], \"targetFrameworks\": [ \"net10.0\", \"netstandard2.0\" ] }",
+        "project:src/Pipeline.Cli/Pipeline.Cli.csproj | dotnet/dependency-graph+project | 640, 0 | DependencyElementPayload { \"name\": \"Pipeline.Cli\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"src\", \"Pipeline.Cli\", \"Pipeline.Cli.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj | dotnet/dependency-graph+project | 320, 0 | DependencyElementPayload { \"name\": \"Pipeline.Core.Tests\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"tests\", \"Pipeline.Core.Tests\", \"Pipeline.Core.Tests.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "package:Serilog | dotnet/dependency-graph+package | 1160, 0 | DependencyElementPayload { \"name\": \"Serilog\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"3.1.1\", \"4.4.0\" ], \"hasVersionConflict\": true, \"dependentProjectCount\": 3 }",
+        "package:System.Text.Json | dotnet/dependency-graph+package | 1160, 90 | DependencyElementPayload { \"name\": \"System.Text.Json\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"10.0.0\" ], \"dependentProjectCount\": 1 }",
+        "package:xunit.v3 | dotnet/dependency-graph+package | 1160, 180 | DependencyElementPayload { \"name\": \"xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"4.1.0\" ], \"dependentProjectCount\": 1 }",
+        "depends:project:src/Pipeline.Core/Pipeline.Core.csproj->package:Serilog | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/Pipeline.Core/Pipeline.Core.csproj-\\u003epackage:Serilog\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj-\\u003eproject:src/Pipeline.Core/Pipeline.Core.csproj\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT_REFERENCE\" }",
+        "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->package:System.Text.Json | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj-\\u003epackage:System.Text.Json\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj-\\u003eproject:src/Pipeline.Core/Pipeline.Core.csproj\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT_REFERENCE\" }",
+        "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Storage/Pipeline.Storage.csproj | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj-\\u003eproject:src/Pipeline.Storage/Pipeline.Storage.csproj\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT_REFERENCE\" }",
+        "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj-\\u003epackage:Serilog\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj-\\u003eproject:src/Pipeline.Core/Pipeline.Core.csproj\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT_REFERENCE\" }",
+        "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:xunit.v3 | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj-\\u003epackage:xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:Serilog | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj-\\u003epackage:Serilog\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }"
+      ],
+      "payloadsWithAStoredPosition": [
+        "project:src/Pipeline.Core/Pipeline.Core.csproj | dotnet/dependency-graph+project | 10.5, -20 | DependencyElementPayload { \"name\": \"Pipeline.Core\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"src\", \"Pipeline.Core\", \"Pipeline.Core.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }"
+      ],
+      "rows": [
+        {
+          "target": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Pipeline.Core\" | Line | read-only (Defined in src/Pipeline.Core/Pipeline.Core.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"src/Pipeline.Core/Pipeline.Core.csproj\" | Line | read-only (Defined in src/Pipeline.Core/Pipeline.Core.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in src/Pipeline.Core/Pipeline.Core.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in src/Pipeline.Core/Pipeline.Core.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Pipeline.Storage\" | Line | read-only (Defined in src/Pipeline.Storage/Pipeline.Storage.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"src/Pipeline.Storage/Pipeline.Storage.csproj\" | Line | read-only (Defined in src/Pipeline.Storage/Pipeline.Storage.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target frameworks | \"net10.0, netstandard2.0\" | Line | read-only (Defined in src/Pipeline.Storage/Pipeline.Storage.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in src/Pipeline.Storage/Pipeline.Storage.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Pipeline.Cli\" | Line | read-only (Defined in src/Pipeline.Cli/Pipeline.Cli.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"src/Pipeline.Cli/Pipeline.Cli.csproj\" | Line | read-only (Defined in src/Pipeline.Cli/Pipeline.Cli.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in src/Pipeline.Cli/Pipeline.Cli.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in src/Pipeline.Cli/Pipeline.Cli.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Pipeline.Core.Tests\" | Line | read-only (Defined in tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj\" | Line | read-only (Defined in tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "package:Serilog",
+          "rows": [
+            "dotnet.package-id | Package | \"Serilog\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Versions | \"3.1.1, 4.4.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version-conflict | Version conflict | \"This solution's projects reference this package at more than one version.\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"Not available - this package is not in the local NuGet cache\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "package:System.Text.Json",
+          "rows": [
+            "dotnet.package-id | Package | \"System.Text.Json\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"10.0.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"Not available - this package is not in the local NuGet cache\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "package:xunit.v3",
+          "rows": [
+            "dotnet.package-id | Package | \"xunit.v3\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"4.1.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"Not available - this package is not in the local NuGet cache\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "depends:project:src/Pipeline.Core/Pipeline.Core.csproj->package:Serilog",
+          "rows": []
+        },
+        {
+          "target": "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+          "rows": []
+        },
+        {
+          "target": "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->package:System.Text.Json",
+          "rows": []
+        },
+        {
+          "target": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+          "rows": []
+        },
+        {
+          "target": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+          "rows": []
+        },
+        {
+          "target": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog",
+          "rows": []
+        },
+        {
+          "target": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+          "rows": []
+        },
+        {
+          "target": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:xunit.v3",
+          "rows": []
+        },
+        {
+          "target": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:Serilog",
+          "rows": []
+        },
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": "project:src/Pipeline.Core/Pipeline.Core.csproj of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow.",
+      "session": [
+        "baseline => 16 elements added",
+        "reparent project:src/Pipeline.Core/Pipeline.Core.csproj => A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow.",
+        "move project:src/Pipeline.Core/Pipeline.Core.csproj to (10, 20) => This diagram is read-only."
+      ]
+    },
+    {
+      "solution": "examples/diagrams/dotnet-dependency-graph/pipeline-toolkit/PipelineToolkit.slnx",
+      "sha256": "65f99323b4b62d30382daeb8d3793282925a7e45db266f36aaa3b466c9d7d1ca",
+      "sameAs": "diagrams/dotnet-dependency-graph/examples/example 1/pipeline-toolkit/PipelineToolkit.slnx"
+    }
+  ],
+  "graphs": [
+    {
+      "graph": "descriptions and conflicts",
+      "projects": [
+        "project:src/App/App.csproj | App | src/App/App.csproj | [net10.0, net8.0] | \"10.0, 8.0\"",
+        "project:src/Lib/Lib.csproj | Lib | src/Lib/Lib.csproj | [netstandard2.0] | null",
+        "project:src/None/None.csproj | None | src/None/None.csproj | [] | null",
+        "project:tests/App.Tests/App.Tests.csproj | App.Tests | tests/App.Tests/App.Tests.csproj | [net472, net9.0] | \"9.0\""
+      ],
+      "packages": [
+        "package:Described | Described | [1.0.0] | conflict False | dependents 1 | ambient False | \"A package with a description.\\nOver two lines.\"",
+        "package:EmptyDescription | EmptyDescription | [2.0.0] | conflict False | dependents 1 | ambient False | \"\"",
+        "package:Undescribed | Undescribed | [3.0.0] | conflict False | dependents 1 | ambient False | null",
+        "package:TwoVersions | TwoVersions | [1.0.0, 1.1.0] | conflict True | dependents 2 | ambient False | null",
+        "package:KnownAndUnknown | KnownAndUnknown | [4.0.0] | conflict True | dependents 2 | ambient False | null",
+        "package:Unknowable | Unknowable | [] | conflict False | dependents 1 | ambient False | null"
+      ],
+      "references": [
+        "depends:project:src/App/App.csproj->project:src/Lib/Lib.csproj | Project | project:src/App/App.csproj -> project:src/Lib/Lib.csproj",
+        "depends:project:tests/App.Tests/App.Tests.csproj->project:src/App/App.csproj | Project | project:tests/App.Tests/App.Tests.csproj -> project:src/App/App.csproj",
+        "depends:project:src/App/App.csproj->package:Described | Package | project:src/App/App.csproj -> package:Described",
+        "depends:project:src/Lib/Lib.csproj->package:TwoVersions | Package | project:src/Lib/Lib.csproj -> package:TwoVersions",
+        "depends:project:src/App/App.csproj->package:TwoVersions | Package | project:src/App/App.csproj -> package:TwoVersions"
+      ],
+      "failures": [
+        "Missing.csproj | The solution names this project, but the file is not there."
+      ],
+      "payloads": [
+        "project:src/App/App.csproj | dotnet/dependency-graph+project | 320, 0 | DependencyElementPayload { \"name\": \"App\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"src\", \"App\", \"App.csproj\" ], \"targetFrameworks\": [ \"net10.0\", \"net8.0\" ] }",
+        "project:src/Lib/Lib.csproj | dotnet/dependency-graph+project | 0, 0 | DependencyElementPayload { \"name\": \"Lib\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"src\", \"Lib\", \"Lib.csproj\" ], \"targetFrameworks\": [ \"netstandard2.0\" ] }",
+        "project:src/None/None.csproj | dotnet/dependency-graph+project | 0, 90 | DependencyElementPayload { \"name\": \"None\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"src\", \"None\", \"None.csproj\" ] }",
+        "project:tests/App.Tests/App.Tests.csproj | dotnet/dependency-graph+project | 640, 0 | DependencyElementPayload { \"name\": \"App.Tests\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"tests\", \"App.Tests\", \"App.Tests.csproj\" ], \"targetFrameworks\": [ \"net472\", \"net9.0\" ] }",
+        "package:Described | dotnet/dependency-graph+package | 1160, 0 | DependencyElementPayload { \"name\": \"Described\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"1.0.0\" ], \"dependentProjectCount\": 1 }",
+        "package:EmptyDescription | dotnet/dependency-graph+package | 1160, 90 | DependencyElementPayload { \"name\": \"EmptyDescription\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"2.0.0\" ], \"dependentProjectCount\": 1 }",
+        "package:Undescribed | dotnet/dependency-graph+package | 1160, 360 | DependencyElementPayload { \"name\": \"Undescribed\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"3.0.0\" ], \"dependentProjectCount\": 1 }",
+        "package:TwoVersions | dotnet/dependency-graph+package | 1160, 270 | DependencyElementPayload { \"name\": \"TwoVersions\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"1.0.0\", \"1.1.0\" ], \"hasVersionConflict\": true, \"dependentProjectCount\": 2 }",
+        "package:KnownAndUnknown | dotnet/dependency-graph+package | 1160, 180 | DependencyElementPayload { \"name\": \"KnownAndUnknown\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"4.0.0\" ], \"hasVersionConflict\": true, \"dependentProjectCount\": 2 }",
+        "package:Unknowable | dotnet/dependency-graph+package | 1160, 450 | DependencyElementPayload { \"name\": \"Unknowable\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"dependentProjectCount\": 1 }",
+        "depends:project:src/App/App.csproj->project:src/Lib/Lib.csproj | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/App/App.csproj-\\u003eproject:src/Lib/Lib.csproj\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT_REFERENCE\" }",
+        "depends:project:tests/App.Tests/App.Tests.csproj->project:src/App/App.csproj | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:tests/App.Tests/App.Tests.csproj-\\u003eproject:src/App/App.csproj\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT_REFERENCE\" }",
+        "depends:project:src/App/App.csproj->package:Described | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/App/App.csproj-\\u003epackage:Described\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:src/Lib/Lib.csproj->package:TwoVersions | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/Lib/Lib.csproj-\\u003epackage:TwoVersions\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:src/App/App.csproj->package:TwoVersions | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:src/App/App.csproj-\\u003epackage:TwoVersions\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }"
+      ],
+      "payloadsWithAStoredPosition": [
+        "project:src/App/App.csproj | dotnet/dependency-graph+project | 10.5, -20 | DependencyElementPayload { \"name\": \"App\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"src\", \"App\", \"App.csproj\" ], \"targetFrameworks\": [ \"net10.0\", \"net8.0\" ] }"
+      ],
+      "rows": [
+        {
+          "target": "project:src/App/App.csproj",
+          "rows": [
+            "dotnet.name | Name | \"App\" | Line | read-only (Defined in src/App/App.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"src/App/App.csproj\" | Line | read-only (Defined in src/App/App.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target frameworks | \"net10.0, net8.0\" | Line | read-only (Defined in src/App/App.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0, 8.0\" | Line | read-only (Defined in src/App/App.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:src/Lib/Lib.csproj",
+          "rows": [
+            "dotnet.name | Name | \"Lib\" | Line | read-only (Defined in src/Lib/Lib.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"src/Lib/Lib.csproj\" | Line | read-only (Defined in src/Lib/Lib.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"netstandard2.0\" | Line | read-only (Defined in src/Lib/Lib.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"Not discoverable\" | Line | read-only (Defined in src/Lib/Lib.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:src/None/None.csproj",
+          "rows": [
+            "dotnet.name | Name | \"None\" | Line | read-only (Defined in src/None/None.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"src/None/None.csproj\" | Line | read-only (Defined in src/None/None.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target frameworks | \"Not discoverable\" | Line | read-only (Defined in src/None/None.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"Not discoverable\" | Line | read-only (Defined in src/None/None.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:tests/App.Tests/App.Tests.csproj",
+          "rows": [
+            "dotnet.name | Name | \"App.Tests\" | Line | read-only (Defined in tests/App.Tests/App.Tests.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"tests/App.Tests/App.Tests.csproj\" | Line | read-only (Defined in tests/App.Tests/App.Tests.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target frameworks | \"net472, net9.0\" | Line | read-only (Defined in tests/App.Tests/App.Tests.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"9.0\" | Line | read-only (Defined in tests/App.Tests/App.Tests.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "package:Described",
+          "rows": [
+            "dotnet.package-id | Package | \"Described\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"1.0.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"A package with a description.\\nOver two lines.\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "package:EmptyDescription",
+          "rows": [
+            "dotnet.package-id | Package | \"EmptyDescription\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"2.0.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "package:Undescribed",
+          "rows": [
+            "dotnet.package-id | Package | \"Undescribed\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"3.0.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"Not available - this package is not in the local NuGet cache\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "package:TwoVersions",
+          "rows": [
+            "dotnet.package-id | Package | \"TwoVersions\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Versions | \"1.0.0, 1.1.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version-conflict | Version conflict | \"This solution's projects reference this package at more than one version.\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"Not available - this package is not in the local NuGet cache\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "package:KnownAndUnknown",
+          "rows": [
+            "dotnet.package-id | Package | \"KnownAndUnknown\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"4.0.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version-conflict | Version conflict | \"This solution's projects reference this package at more than one version.\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"Not available - this package is not in the local NuGet cache\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "package:Unknowable",
+          "rows": [
+            "dotnet.package-id | Package | \"Unknowable\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"Not discoverable\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"Not available - this package is not in the local NuGet cache\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "depends:project:src/App/App.csproj->project:src/Lib/Lib.csproj",
+          "rows": []
+        },
+        {
+          "target": "depends:project:tests/App.Tests/App.Tests.csproj->project:src/App/App.csproj",
+          "rows": []
+        },
+        {
+          "target": "depends:project:src/App/App.csproj->package:Described",
+          "rows": []
+        },
+        {
+          "target": "depends:project:src/Lib/Lib.csproj->package:TwoVersions",
+          "rows": []
+        },
+        {
+          "target": "depends:project:src/App/App.csproj->package:TwoVersions",
+          "rows": []
+        },
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": "project:src/App/App.csproj of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow."
+    },
+    {
+      "graph": "an ambient package",
+      "projects": [
+        "project:p1/P1.csproj | P1 | p1/P1.csproj | [net10.0] | \"10.0\"",
+        "project:p2/P2.csproj | P2 | p2/P2.csproj | [net10.0] | \"10.0\"",
+        "project:p3/P3.csproj | P3 | p3/P3.csproj | [net10.0] | \"10.0\"",
+        "project:p4/P4.csproj | P4 | p4/P4.csproj | [net10.0] | \"10.0\"",
+        "project:p5/P5.csproj | P5 | p5/P5.csproj | [net10.0] | \"10.0\"",
+        "project:p6/P6.csproj | P6 | p6/P6.csproj | [net10.0] | \"10.0\"",
+        "project:p7/P7.csproj | P7 | p7/P7.csproj | [net10.0] | \"10.0\""
+      ],
+      "packages": [
+        "package:xunit.v3 | xunit.v3 | [3.0.0] | conflict False | dependents 7 | ambient True | \"The test framework.\"",
+        "package:Serilog | Serilog | [4.4.0] | conflict False | dependents 1 | ambient False | null"
+      ],
+      "references": [
+        "depends:project:p1/P1.csproj->package:xunit.v3 | Package | project:p1/P1.csproj -> package:xunit.v3",
+        "depends:project:p2/P2.csproj->package:xunit.v3 | Package | project:p2/P2.csproj -> package:xunit.v3",
+        "depends:project:p3/P3.csproj->package:xunit.v3 | Package | project:p3/P3.csproj -> package:xunit.v3",
+        "depends:project:p4/P4.csproj->package:xunit.v3 | Package | project:p4/P4.csproj -> package:xunit.v3",
+        "depends:project:p5/P5.csproj->package:xunit.v3 | Package | project:p5/P5.csproj -> package:xunit.v3",
+        "depends:project:p6/P6.csproj->package:xunit.v3 | Package | project:p6/P6.csproj -> package:xunit.v3",
+        "depends:project:p7/P7.csproj->package:xunit.v3 | Package | project:p7/P7.csproj -> package:xunit.v3",
+        "depends:project:p1/P1.csproj->package:Serilog | Package | project:p1/P1.csproj -> package:Serilog",
+        "depends:project:p2/P2.csproj->project:p1/P1.csproj | Project | project:p2/P2.csproj -> project:p1/P1.csproj"
+      ],
+      "failures": [],
+      "payloads": [
+        "project:p1/P1.csproj | dotnet/dependency-graph+project | 0, 0 | DependencyElementPayload { \"name\": \"P1\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"p1\", \"P1.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:p2/P2.csproj | dotnet/dependency-graph+project | 320, 0 | DependencyElementPayload { \"name\": \"P2\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"p2\", \"P2.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:p3/P3.csproj | dotnet/dependency-graph+project | 0, 90 | DependencyElementPayload { \"name\": \"P3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"p3\", \"P3.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:p4/P4.csproj | dotnet/dependency-graph+project | 0, 180 | DependencyElementPayload { \"name\": \"P4\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"p4\", \"P4.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:p5/P5.csproj | dotnet/dependency-graph+project | 0, 270 | DependencyElementPayload { \"name\": \"P5\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"p5\", \"P5.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:p6/P6.csproj | dotnet/dependency-graph+project | 0, 360 | DependencyElementPayload { \"name\": \"P6\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"p6\", \"P6.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "project:p7/P7.csproj | dotnet/dependency-graph+project | 0, 450 | DependencyElementPayload { \"name\": \"P7\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"p7\", \"P7.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }",
+        "package:xunit.v3 | dotnet/dependency-graph+package | 840, 90 | DependencyElementPayload { \"name\": \"xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"3.0.0\" ], \"dependentProjectCount\": 7, \"isAmbient\": true }",
+        "package:Serilog | dotnet/dependency-graph+package | 840, 0 | DependencyElementPayload { \"name\": \"Serilog\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE\", \"versions\": [ \"4.4.0\" ], \"dependentProjectCount\": 1 }",
+        "depends:project:p1/P1.csproj->package:xunit.v3 | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p1/P1.csproj-\\u003epackage:xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:p2/P2.csproj->package:xunit.v3 | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p2/P2.csproj-\\u003epackage:xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:p3/P3.csproj->package:xunit.v3 | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p3/P3.csproj-\\u003epackage:xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:p4/P4.csproj->package:xunit.v3 | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p4/P4.csproj-\\u003epackage:xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:p5/P5.csproj->package:xunit.v3 | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p5/P5.csproj-\\u003epackage:xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:p6/P6.csproj->package:xunit.v3 | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p6/P6.csproj-\\u003epackage:xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:p7/P7.csproj->package:xunit.v3 | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p7/P7.csproj-\\u003epackage:xunit.v3\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:p1/P1.csproj->package:Serilog | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p1/P1.csproj-\\u003epackage:Serilog\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PACKAGE_REFERENCE\" }",
+        "depends:project:p2/P2.csproj->project:p1/P1.csproj | dotnet/dependency-graph+edge | 0, 0 | DependencyElementPayload { \"name\": \"depends:project:p2/P2.csproj-\\u003eproject:p1/P1.csproj\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT_REFERENCE\" }"
+      ],
+      "payloadsWithAStoredPosition": [
+        "project:p1/P1.csproj | dotnet/dependency-graph+project | 10.5, -20 | DependencyElementPayload { \"name\": \"P1\", \"kind\": \"DEPENDENCY_ELEMENT_KIND_PROJECT\", \"projectRelativePath\": [ \"p1\", \"P1.csproj\" ], \"targetFrameworks\": [ \"net10.0\" ] }"
+      ],
+      "rows": [
+        {
+          "target": "project:p1/P1.csproj",
+          "rows": [
+            "dotnet.name | Name | \"P1\" | Line | read-only (Defined in p1/P1.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"p1/P1.csproj\" | Line | read-only (Defined in p1/P1.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in p1/P1.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in p1/P1.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:p2/P2.csproj",
+          "rows": [
+            "dotnet.name | Name | \"P2\" | Line | read-only (Defined in p2/P2.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"p2/P2.csproj\" | Line | read-only (Defined in p2/P2.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in p2/P2.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in p2/P2.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:p3/P3.csproj",
+          "rows": [
+            "dotnet.name | Name | \"P3\" | Line | read-only (Defined in p3/P3.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"p3/P3.csproj\" | Line | read-only (Defined in p3/P3.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in p3/P3.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in p3/P3.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:p4/P4.csproj",
+          "rows": [
+            "dotnet.name | Name | \"P4\" | Line | read-only (Defined in p4/P4.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"p4/P4.csproj\" | Line | read-only (Defined in p4/P4.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in p4/P4.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in p4/P4.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:p5/P5.csproj",
+          "rows": [
+            "dotnet.name | Name | \"P5\" | Line | read-only (Defined in p5/P5.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"p5/P5.csproj\" | Line | read-only (Defined in p5/P5.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in p5/P5.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in p5/P5.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:p6/P6.csproj",
+          "rows": [
+            "dotnet.name | Name | \"P6\" | Line | read-only (Defined in p6/P6.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"p6/P6.csproj\" | Line | read-only (Defined in p6/P6.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in p6/P6.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in p6/P6.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "project:p7/P7.csproj",
+          "rows": [
+            "dotnet.name | Name | \"P7\" | Line | read-only (Defined in p7/P7.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.path | Path | \"p7/P7.csproj\" | Line | read-only (Defined in p7/P7.csproj; edit it in a text editor.) | group Identity",
+            "dotnet.target-frameworks | Target framework | \"net10.0\" | Line | read-only (Defined in p7/P7.csproj; edit it in a text editor.) | group Build",
+            "dotnet.dotnet-version | .NET version | \"10.0\" | Line | read-only (Defined in p7/P7.csproj; edit it in a text editor.) | group Build"
+          ]
+        },
+        {
+          "target": "package:xunit.v3",
+          "rows": [
+            "dotnet.package-id | Package | \"xunit.v3\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"3.0.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"The test framework.\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "package:Serilog",
+          "rows": [
+            "dotnet.package-id | Package | \"Serilog\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-version | Version | \"4.4.0\" | Line | read-only (Defined in the project files that reference it; edit it in a text editor.) | group Identity",
+            "dotnet.package-description | Description | \"Not available - this package is not in the local NuGet cache\" | Line | read-only (Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it.) | group About"
+          ]
+        },
+        {
+          "target": "depends:project:p1/P1.csproj->package:xunit.v3",
+          "rows": []
+        },
+        {
+          "target": "depends:project:p2/P2.csproj->package:xunit.v3",
+          "rows": []
+        },
+        {
+          "target": "depends:project:p3/P3.csproj->package:xunit.v3",
+          "rows": []
+        },
+        {
+          "target": "depends:project:p4/P4.csproj->package:xunit.v3",
+          "rows": []
+        },
+        {
+          "target": "depends:project:p5/P5.csproj->package:xunit.v3",
+          "rows": []
+        },
+        {
+          "target": "depends:project:p6/P6.csproj->package:xunit.v3",
+          "rows": []
+        },
+        {
+          "target": "depends:project:p7/P7.csproj->package:xunit.v3",
+          "rows": []
+        },
+        {
+          "target": "depends:project:p1/P1.csproj->package:Serilog",
+          "rows": []
+        },
+        {
+          "target": "depends:project:p2/P2.csproj->project:p1/P1.csproj",
+          "rows": []
+        },
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": "project:p1/P1.csproj of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow."
+    },
+    {
+      "graph": "empty",
+      "projects": [],
+      "packages": [],
+      "references": [],
+      "failures": [],
+      "payloads": [],
+      "rows": [
+        {
+          "target": "",
+          "rows": []
+        },
+        {
+          "target": "parity:unknown",
+          "rows": []
+        }
+      ],
+      "rowsOfAnotherFile": " of a .adp => 0 rows",
+      "write": "refused: A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow."
+    }
+  ]
+}
