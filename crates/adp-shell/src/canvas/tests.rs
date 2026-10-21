@@ -1218,5 +1218,7 @@ mod sankey;
 mod fdg;
 // The agent activity diagram with its module (T075), in a file of its own.
 mod agent_activity;
+// The Databricks job with its module (T081), in a file of its own.
+mod databricks;
 // The Wardley map with its module (T070), in a file of its own.
 mod wardley_map;

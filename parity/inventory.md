@@ -60,9 +60,9 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-054 | Gartner hype cycle graph (`gartner/hypecycle-graph`, work-in-progress) | docs/tools.md, 9. Strategy & landscape mapping | 4 | adp-parity::gartner_hypecycle_graph_coal_technologies | checked |
 | P-055 | Mind map (`freeplane/mindmap`, prototype) | docs/tools.md, 10. Knowledge & informal modeling | 4 | adp-parity::freeplane_mindmap_example_1 | checked |
 | P-056 | Causal loop diagram (`systems/causal-loop-diagram`, work-in-progress) | docs/tools.md, 10. Knowledge & informal modeling | 4 | adp-parity::systems_causal_loop_diagram_reference, adp-parity::systems_causal_loop_diagram_on_call | checked |
-| P-057 | Databricks bundle (`databricks/bundle`, prototype) | docs/tools.md, 12. Data platforms & pipeline orchestration | 4 |  | planned |
-| P-058 | Databricks job (`databricks/job`, prototype) | docs/tools.md, 12. Data platforms & pipeline orchestration | 4 |  | planned |
-| P-059 | Databricks pipeline (`databricks/pipeline`, prototype) | docs/tools.md, 12. Data platforms & pipeline orchestration | 4 |  | planned |
+| P-057 | Databricks bundle (`databricks/bundle`, prototype) | docs/tools.md, 12. Data platforms & pipeline orchestration | 4 | adp-parity::databricks_bundle_lakehouse | checked |
+| P-058 | Databricks job (`databricks/job`, prototype) | docs/tools.md, 12. Data platforms & pipeline orchestration | 4 | adp-parity::databricks_job_nightly_ingest | checked |
+| P-059 | Databricks pipeline (`databricks/pipeline`, prototype) | docs/tools.md, 12. Data platforms & pipeline orchestration | 4 | adp-parity::databricks_pipeline_lakehouse, adp-parity::databricks_pipeline_settings | checked |
 | P-060 | RDF graph (`w3c/rdf`, implemented) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
 | P-061 | OWL ontology (`w3c/owl`, implemented) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
 | P-062 | SKOS concept scheme (`w3c/skos`, prototype) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |

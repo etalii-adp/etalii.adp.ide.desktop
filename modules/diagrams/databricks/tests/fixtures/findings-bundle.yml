@@ -1,0 +1,17 @@
+bundle:
+  name: adrift
+
+resources:
+  jobs:
+    declared:
+      name: Declared
+
+targets:
+  dev:
+    mode: development
+  prod:
+    mode: production
+    resources:
+      jobs:
+        phantom:
+          name: Overridden

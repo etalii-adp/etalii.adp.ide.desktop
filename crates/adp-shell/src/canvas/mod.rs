@@ -14,6 +14,7 @@
 //! `gestureFrame.ts`: the preview is the frame's, the edit is written once, at the release, and Escape reverts it).
 
 pub mod aad_scene;
+pub mod databricks_scene;
 pub mod fdg_scene;
 pub mod gestures;
 pub mod metrics;
@@ -100,9 +101,9 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_agent_activity::register(adp_diagram_wardley_map::register(
-                adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
-                    adp_diagram_dependency_graph::register(
+            tools: adp_diagram_databricks::register(adp_diagram_agent_activity::register(
+                adp_diagram_wardley_map::register(adp_diagram_supply_chain::register(adp_diagram_sankey::register(
+                    adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                         adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                             DislPluginFunctions::none()
                         }))
@@ -113,7 +114,7 @@ impl DiagramHost {
                             adp_diagram_functional_decomposition_graph::ORIGIN,
                             adp_diagram_functional_decomposition_graph::module(),
                         ),
-                    ),
+                    )),
                 ))),
             )),
             workspaces: HashMap::new(),
@@ -760,6 +761,9 @@ impl DiagramTab {
                 supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving()),
                 HashMap::new(),
             )
+        } else if adp_diagram_databricks::ORIGINS.contains(&self.opened.origin.as_str()) {
+            // A Databricks box or frame is moved by the top-left its registration's `layout:` block stores.
+            (databricks_scene::build(&elements, &self.selection), HashMap::new())
         } else if self.opened.origin == adp_diagram_agent_activity::ORIGIN {
             // An activity file's cards are laid out on their rings by the module, and locked by their centre.
             (

@@ -468,6 +468,20 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_supply_chain::ORIGIN,
         adp_diagram_supply_chain::TEMPLATE,
     )));
+    // `ServiceCollection.AddDatabricks.cs`: `EmptyDocument`, one per type of the family, its keys made from the file's
+    // name.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_databricks::BUNDLE_ORIGIN,
+        adp_diagram_databricks::new_bundle,
+    )));
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_databricks::JOB_ORIGIN,
+        adp_diagram_databricks::new_job,
+    )));
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_databricks::PIPELINE_ORIGIN,
+        adp_diagram_databricks::new_pipeline,
+    )));
     // `ServiceCollection.AddSankey.cs`: `SankeyParser.EmptyDocument`.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_sankey::ORIGIN,

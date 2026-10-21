@@ -359,6 +359,33 @@ fn an_agent_activity_diagram_is_written_with_its_empty_document() {
 }
 
 #[test]
+fn a_databricks_diagram_is_written_with_its_empty_document_its_keys_made_from_the_name() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let catalogue = AddCatalogue::standalone();
+    let created = catalogue.commit(&target, "databricks/job", "Nightly Ingest").unwrap();
+    assert_eq!(created, folder.path().join("Nightly Ingest.adp"));
+    assert_eq!(read(&created), "databricks/job\r\n");
+    // The standalone host's `EmptyDocument`: one job with one notebook task, in CRLF.
+    assert_eq!(
+        read(&folder.path().join("Nightly Ingest.yml")),
+        "resources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly Ingest\r\n      tasks:\r\n        - \
+         task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/nightly_ingest\r\n"
+    );
+    catalogue.commit(&target, "databricks/pipeline", "gold").unwrap();
+    assert_eq!(
+        read(&folder.path().join("gold.json")),
+        "{\r\n  \"name\": \"gold\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"transformations/gold\" \
+         } }\r\n  ]\r\n}\r\n"
+    );
+    catalogue.commit(&target, "databricks/bundle", "lake").unwrap();
+    assert_eq!(
+        read(&folder.path().join("lake.yml")),
+        "bundle:\r\n  name: lake\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n"
+    );
+}
+
+#[test]
 fn a_sankey_diagram_is_written_with_its_empty_document() {
     let folder = tempfile::tempdir().unwrap();
     let target = AddTarget::Folder(folder.path().to_path_buf());

@@ -1,0 +1,27 @@
+{
+  "tool": "databricks/bundle",
+  "fixture": "databricks/lakehouse/databricks.yml",
+  "registration": "databricks/lakehouse/databricks.adp",
+  "steps": [
+    { "select": ["bundle"] },
+    { "action": "databricks.rename-bundle", "args": { "value": "lakehouse_core" } },
+    { "property": { "row": "Name", "value": "lake house: main", "target": "bundle" } },
+    { "property": { "row": "Name", "value": "", "target": "bundle" }, "expect": "refused" },
+    { "action": "databricks.add-resource:jobs", "args": { "target": "bundle", "value": "nightly_ingest_v2" } },
+    { "action": "databricks.add-resource:pipelines", "args": { "target": "bundle", "value": "silver_only" } },
+    { "action": "databricks.add-resource:jobs", "args": { "target": "bundle", "value": " audit " } },
+    { "action": "databricks.add-resource:pipelines", "args": { "target": "bundle", "value": "silver_only" }, "expect": "refused" },
+    { "undo": 1 },
+    { "redo": 1 },
+    { "action": "databricks.simulated.deploy", "args": { "target": "target:dev" } },
+    { "property": { "row": "Target", "value": "staging", "target": "target:prod" }, "expect": "refused" },
+    { "move": { "refs": ["bundle"], "to": { "x": 0, "y": -40 } } },
+    { "move": { "refs": ["target:prod"], "to": { "x": 300, "y": 520 } } },
+    { "move": { "refs": ["resource:jobs/audit"], "to": { "x": 520.25, "y": 180 } } },
+    { "undo": 1 },
+    { "move": { "refs": ["resource:pipelines/bronze_to_gold"], "dx": 10, "dy": 10 } },
+    { "undo": 2 },
+    { "redo": 1 },
+    { "move": { "refs": ["override:prod/pipelines/bronze_to_gold"], "to": { "x": 0, "y": 0 } }, "expect": "refused" }
+  ]
+}
