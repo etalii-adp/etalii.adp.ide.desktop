@@ -18,7 +18,8 @@ fn a_minimal_specification_loads() {
 
 #[test]
 fn a_duplicate_key_is_refused_where_it_repeats() {
-    let json = r#"{ "disl": "0.2", "language": { "id": "a", "version": "1.0.0", "id": "b" }, "metamodel": { "types": {} } }"#;
+    let json =
+        r#"{ "disl": "0.2", "language": { "id": "a", "version": "1.0.0", "id": "b" }, "metamodel": { "types": {} } }"#;
 
     assert_eq!(
         vec!["error at /language/id: The key 'id' appears more than once in one object (DISL §2.1).".to_owned()],
@@ -47,7 +48,11 @@ fn text_that_is_not_json_is_refused() {
 
     assert!(result.specification.is_none());
     assert_eq!(1, result.diagnostics.len());
-    assert!(result.diagnostics[0].message.starts_with("The specification is not JSON:"));
+    assert!(
+        result.diagnostics[0]
+            .message
+            .starts_with("The specification is not JSON:")
+    );
 }
 
 // Step 2.
@@ -137,7 +142,11 @@ fn a_diamond_is_linearised_by_c3() {
     assert!(!metamodel.is_a("A", "B"));
     assert_eq!(
         vec!["O", "A", "B", "D"],
-        metamodel.subtypes_of("O").iter().map(|t| t.name.as_str()).collect::<Vec<_>>()
+        metamodel
+            .subtypes_of("O")
+            .iter()
+            .map(|t| t.name.as_str())
+            .collect::<Vec<_>>()
     );
 }
 
@@ -145,7 +154,9 @@ fn a_diamond_is_linearised_by_c3() {
 fn an_attribute_inherited_differently_from_two_supertypes_is_refused_unless_redeclared() {
     let types = r#""A": { "abstract": true, "attributes": { "x": { "type": "int" } } },
         "B": { "abstract": true, "attributes": { "x": { "type": "string" } } },"#;
-    let conflicting = with(&format!(r#""metamodel": {{ "types": {{{types} "D": {{ "extends": ["A", "B"] }} }} }}"#));
+    let conflicting = with(&format!(
+        r#""metamodel": {{ "types": {{{types} "D": {{ "extends": ["A", "B"] }} }} }}"#
+    ));
     let redeclared = with(&format!(
         r#""metamodel": {{ "types": {{{types} "D": {{ "extends": ["A", "B"], "attributes": {{ "x": {{ "type": "int" }} }} }} }} }}"#
     ));
@@ -154,7 +165,10 @@ fn an_attribute_inherited_differently_from_two_supertypes_is_refused_unless_rede
         vec!["error at /metamodel/types/D: 'D' inherits 'x' from both 'B' and 'A', differently, and does not redeclare it (DISL §4.7).".to_owned()],
         diagnostics(&conflicting)
     );
-    assert_eq!("int", loaded(&redeclared).metamodel().types["D"].attributes["x"].type_name);
+    assert_eq!(
+        "int",
+        loaded(&redeclared).metamodel().types["D"].attributes["x"].type_name
+    );
 }
 
 #[test]
@@ -196,7 +210,10 @@ fn a_relation_end_that_names_nothing_is_refused() {
     );
 
     assert_eq!(
-        vec!["error at /metamodel/relations/Link/target: 'Other' is not a type of this specification (DISL §4.9).".to_owned()],
+        vec![
+            "error at /metamodel/relations/Link/target: 'Other' is not a type of this specification (DISL §4.9)."
+                .to_owned()
+        ],
         diagnostics(&json)
     );
 }
@@ -273,11 +290,19 @@ fn extensions_and_documentation_are_not_compiled() {
 
     assert_eq!(
         vec!["/constraints/rules/0/rule"],
-        specification.expressions().iter().map(|e| e.pointer.as_str()).collect::<Vec<_>>()
+        specification
+            .expressions()
+            .iter()
+            .map(|e| e.pointer.as_str())
+            .collect::<Vec<_>>()
     );
     assert_eq!(
         vec!["x-tool"],
-        specification.extensions().into_iter().map(|(k, _)| k).collect::<Vec<_>>()
+        specification
+            .extensions()
+            .into_iter()
+            .map(|(k, _)| k)
+            .collect::<Vec<_>>()
     );
 }
 

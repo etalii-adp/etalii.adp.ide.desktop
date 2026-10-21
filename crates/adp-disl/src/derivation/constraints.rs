@@ -164,7 +164,6 @@ fn setting_of<'s>(specification: &'s DislSpecification, id: &str) -> BuiltIn<'s>
 }
 
 impl Run<'_> {
-
     fn variables(&self, self_value: Value, detail: Option<Map>) -> Vars {
         let mut variables = evaluation::vars([
             ("self", self_value),
@@ -454,7 +453,14 @@ impl Run<'_> {
                 let mut bound = variables.clone();
                 bound.insert("item".into(), item.clone());
                 bound.insert("index".into(), Value::Int(index as i64));
-                self.one(rule, pointer, &scoped, &bound, DislElement::from_value(item), default_severity);
+                self.one(
+                    rule,
+                    pointer,
+                    &scoped,
+                    &bound,
+                    DislElement::from_value(item),
+                    default_severity,
+                );
             }
             return;
         }
@@ -483,7 +489,13 @@ impl Run<'_> {
             })
         };
         if let Some(when) = json::get(rule, "when")
-            && !evaluation::holds(specification, when, &json::pointer(pointer, "when"), contexts::CONSTRAINT, bound)
+            && !evaluation::holds(
+                specification,
+                when,
+                &json::pointer(pointer, "when"),
+                contexts::CONSTRAINT,
+                bound,
+            )
         {
             return;
         }
@@ -492,8 +504,12 @@ impl Run<'_> {
             return;
         }
 
-        let id = json::string_of(rule, "id").map(str::to_owned).unwrap_or_else(|| pointer.to_owned());
-        let code = json::string_of(rule, "code").map(str::to_owned).unwrap_or_else(|| id.clone());
+        let id = json::string_of(rule, "id")
+            .map(str::to_owned)
+            .unwrap_or_else(|| pointer.to_owned());
+        let code = json::string_of(rule, "code")
+            .map(str::to_owned)
+            .unwrap_or_else(|| id.clone());
         let targets = self.targets(rule, pointer, scoped, bound, item.as_ref());
         let severity = match json::get(rule, "severity") {
             Some(Json::String(s)) => s.clone(),
@@ -591,12 +607,13 @@ impl Run<'_> {
                     || f.file.as_ref().is_none_or(|file| !unparseable.contains(file))
             })
             .collect();
-        let order = json::get(&self.constraints, "order").map(json::strings).unwrap_or_default();
+        let order = json::get(&self.constraints, "order")
+            .map(json::strings)
+            .unwrap_or_default();
         if order.is_empty() {
             return kept.into_iter().map(|(f, _, _)| f).collect();
         }
-        let positions: HashMap<&str, usize> =
-            order.iter().enumerate().rev().map(|(i, c)| (c.as_str(), i)).collect();
+        let positions: HashMap<&str, usize> = order.iter().enumerate().rev().map(|(i, c)| (c.as_str(), i)).collect();
         let mut keyed: Vec<_> = kept.into_iter().enumerate().collect();
         keyed.sort_by_key(|(arising, (f, reading, position))| {
             (

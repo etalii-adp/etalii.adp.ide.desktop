@@ -56,7 +56,13 @@ impl BundledDefinition {
             }),
             None => Err(format!(
                 "{logical_name} does not load: {}",
-                loaded.diagnostics.iter().filter(|d| d.severity == crate::DislSeverity::Error).map(ToString::to_string).collect::<Vec<_>>().join("; ")
+                loaded
+                    .diagnostics
+                    .iter()
+                    .filter(|d| d.severity == crate::DislSeverity::Error)
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+                    .join("; ")
             )),
         }
     }

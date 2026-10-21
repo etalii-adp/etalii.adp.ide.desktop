@@ -60,8 +60,8 @@ fn finding(code: &str, message: String) -> Finding {
 
 /// The file a folder subject's plugin read the element in (FBL section 11.2); none for an element of the primary
 /// file.
-fn file_of(_element: &FblElement) -> Option<String> {
-    None
+fn file_of(element: &FblElement) -> Option<String> {
+    element.file.clone().filter(|f| !f.is_empty())
 }
 
 fn line_of(element: &FblElement) -> Option<i32> {

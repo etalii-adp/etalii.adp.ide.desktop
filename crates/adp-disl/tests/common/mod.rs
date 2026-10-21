@@ -32,7 +32,8 @@ pub fn text(logical_name: &str) -> String {
 
 pub fn bundled(logical_name: &str) -> BundledDefinition {
     let (bytes, provenance) = resource(logical_name);
-    BundledDefinition::load(logical_name, bytes, provenance, &DislPluginFunctions::none()).expect("the definition loads")
+    BundledDefinition::load(logical_name, bytes, provenance, &DislPluginFunctions::none())
+        .expect("the definition loads")
 }
 
 thread_local! {
@@ -84,14 +85,23 @@ pub fn loaded(json: &str) -> DislSpecification {
         Some(specification) => specification,
         None => panic!(
             "The specification does not load: {}",
-            result.diagnostics.iter().map(ToString::to_string).collect::<Vec<_>>().join("; ")
+            result
+                .diagnostics
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join("; ")
         ),
     }
 }
 
 /// The diagnostics of `json` as text a test can compare.
 pub fn diagnostics(json: &str) -> Vec<String> {
-    DislLoader::load(json).diagnostics.iter().map(ToString::to_string).collect()
+    DislLoader::load(json)
+        .diagnostics
+        .iter()
+        .map(ToString::to_string)
+        .collect()
 }
 
 /// Attributes from pairs.
@@ -213,7 +223,9 @@ pub fn hype_cycle_diagram() -> DislDiagram {
 /// A behavior model: a sequence with a check and a retry under it, the retry still without a child.
 pub fn behavior_diagram() -> DislDiagram {
     let diagram = DislDiagram::new(&behavior_model());
-    let root = diagram.add_node("Sequence", "1", attrs([("label", "Answer".into())])).unwrap();
+    let root = diagram
+        .add_node("Sequence", "1", attrs([("label", "Answer".into())]))
+        .unwrap();
     diagram
         .add_child("Check", "1.1", attrs([("label", "Is it known?".into())]), &root, None)
         .unwrap();

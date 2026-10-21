@@ -44,7 +44,10 @@ pub(crate) fn variables_of(context: &str, diagram: &DislDiagram, env: Option<&Di
 }
 
 fn operation_of<'a>(specification: &'a DislSpecification, id: &str) -> Option<&'a Json> {
-    json::get(json::member(json::member(specification.root(), "behavior"), "operations"), id)
+    json::get(
+        json::member(json::member(specification.root(), "behavior"), "operations"),
+        id,
+    )
 }
 
 /// Runs operation `operation_id` on `element` (none for one `for: "diagram"`).
@@ -224,11 +227,16 @@ pub fn drop(
     variables.insert("elementType".into(), Value::String(created.name.clone()));
     variables.insert("tool".into(), Value::from(tool_id));
 
-    let attributes =
-        match initial_attributes(specification, tool, &json::pointer(&pointer, "initial"), &created, &variables) {
-            Ok(attributes) => attributes,
-            Err(e) => return DislTransaction::refused(e),
-        };
+    let attributes = match initial_attributes(
+        specification,
+        tool,
+        &json::pointer(&pointer, "initial"),
+        &created,
+        &variables,
+    ) {
+        Ok(attributes) => attributes,
+        Err(e) => return DislTransaction::refused(e),
+    };
     let element = match ids
         .next(&created.name)
         .and_then(|id| diagram.add_node(&created.name, &id, attributes.clone()))
@@ -398,7 +406,8 @@ fn unavailable(
             ("diagram", diagram.to_value()),
             ("env", variables.get("env").cloned().unwrap_or(Value::Null)),
         ]);
-        if let Some(reason) = evaluation::first_reason(specification, gate, "/behavior/editGate", contexts::ELEMENT, &gated)
+        if let Some(reason) =
+            evaluation::first_reason(specification, gate, "/behavior/editGate", contexts::ELEMENT, &gated)
         {
             return Some(reason);
         }
@@ -476,7 +485,10 @@ fn in_groups<'a>(toolbox: &'a Json, list: &'a Json, at: &str, tool_id: &str) -> 
 /// 6.10), else the first library tool (`toolbox.tools`) that creates it.
 fn connect_tool<'a>(specification: &'a DislSpecification, relation_type: &str) -> Option<(&'a Json, String)> {
     let library = json::get(json::member(specification.root(), "toolbox"), "tools")?.as_object()?;
-    let edge = json::get(json::member(json::member(specification.root(), "notation"), "edges"), relation_type);
+    let edge = json::get(
+        json::member(json::member(specification.root(), "notation"), "edges"),
+        relation_type,
+    );
     let named = edge.and_then(|e| json::string_of(json::member(e, "connect"), "tool"));
     library.iter().find_map(|(name, tool)| {
         let chosen = match named {

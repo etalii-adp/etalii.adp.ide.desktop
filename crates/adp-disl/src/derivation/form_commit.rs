@@ -130,10 +130,12 @@ pub fn row(
         return DislTransaction::refused(format!("'{row}' cannot be edited here."));
     };
     let written = match &chosen {
-        Value::String(typed) => match values::from_read(&Value::String(typed.clone()), declared, specification.metamodel()) {
-            Some(value) => value,
-            None => return DislTransaction::refused(format!("'{value}' is not a value of {}.", declared.name)),
-        },
+        Value::String(typed) => {
+            match values::from_read(&Value::String(typed.clone()), declared, specification.metamodel()) {
+                Some(value) => value,
+                None => return DislTransaction::refused(format!("'{value}' is not a value of {}.", declared.name)),
+            }
+        }
         other => other.clone(),
     };
     let mut attributes = Map::default();
@@ -162,7 +164,13 @@ fn refused_by(
     text: &str,
 ) -> Option<String> {
     let accepts = json::get(parse, "accepts")?;
-    if evaluation::holds(specification, accepts, &json::pointer(parse_pointer, "accepts"), context, variables) {
+    if evaluation::holds(
+        specification,
+        accepts,
+        &json::pointer(parse_pointer, "accepts"),
+        context,
+        variables,
+    ) {
         return None;
     }
     let fallback = format!("'{text}' cannot be written here.");
@@ -266,7 +274,12 @@ pub fn refusal(
         if json::string_of(item, "attribute") != Some(attribute) {
             continue;
         }
-        return invalid(specification, item, &at, &variables(element, value, &env.to_cel(), diagram));
+        return invalid(
+            specification,
+            item,
+            &at,
+            &variables(element, value, &env.to_cel(), diagram),
+        );
     }
     None
 }
@@ -275,7 +288,13 @@ pub fn refusal(
 /// diagram `std.readOnly`; then the label's `parse`, whose `accepts` refuses with its `refusal` and whose `write`
 /// makes the transaction. A label without a `parse`, or with none of that id, cannot be edited. The refusal is the
 /// label's editor's alone: a form item on the same attribute keeps its own validation.
-pub fn label(specification: &DislSpecification, element: &DislElement, label: &str, text: &str, env: &DislEnv) -> DislTransaction {
+pub fn label(
+    specification: &DislSpecification,
+    element: &DislElement,
+    label: &str,
+    text: &str,
+    env: &DislEnv,
+) -> DislTransaction {
     let mut variables = variables(Some(element), Value::from(text), &env.to_cel(), None);
     if env.read_only {
         return DislTransaction::refused(evaluation::standard_message(
@@ -292,7 +311,14 @@ pub fn label(specification: &DislSpecification, element: &DislElement, label: &s
         return DislTransaction::refused(format!("'{label}' cannot be edited here."));
     };
     let parse_pointer = json::pointer(&pointer, "parse");
-    if let Some(refused) = refused_by(specification, parse, &parse_pointer, contexts::LABEL_PARSE, &variables, text) {
+    if let Some(refused) = refused_by(
+        specification,
+        parse,
+        &parse_pointer,
+        contexts::LABEL_PARSE,
+        &variables,
+        text,
+    ) {
         return DislTransaction::refused(refused);
     }
     let diagram = element.diagram();
@@ -306,9 +332,18 @@ pub fn label(specification: &DislSpecification, element: &DislElement, label: &s
 
 /// The text the inline editor of `element`'s label `label` opens on (section 6.12): its `editText`, else its `text`;
 /// none when there is no such label or it does not evaluate to text.
-pub fn edit_text(specification: &DislSpecification, element: &DislElement, label: &str, env: &DislEnv) -> Option<String> {
+pub fn edit_text(
+    specification: &DislSpecification,
+    element: &DislElement,
+    label: &str,
+    env: &DislEnv,
+) -> Option<String> {
     let (found, pointer) = label_of(specification, element, label)?;
-    let key = if json::has(found, "editText") { "editText" } else { "text" };
+    let key = if json::has(found, "editText") {
+        "editText"
+    } else {
+        "text"
+    };
     let json = json::get(found, key)?;
     match evaluation::expression(
         specification,
@@ -359,7 +394,13 @@ fn invalid(specification: &DislSpecification, item: &Json, pointer: &str, variab
         let Some(rule) = json::get(validation, "rule") else {
             continue;
         };
-        if evaluation::holds(specification, rule, &json::pointer(&at, "rule"), contexts::FORM, variables) {
+        if evaluation::holds(
+            specification,
+            rule,
+            &json::pointer(&at, "rule"),
+            contexts::FORM,
+            variables,
+        ) {
             continue;
         }
         let fallback = format!(

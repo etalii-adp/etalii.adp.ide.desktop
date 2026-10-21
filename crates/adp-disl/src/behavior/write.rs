@@ -154,7 +154,9 @@ fn stored(specification: &DislSpecification, type_name: &str, value: &Value) -> 
     match value {
         Value::Null => Value::Null,
         Value::List(list) => Value::list(list.iter().map(|i| stored(specification, type_name, i)).collect()),
-        Value::String(id) if metamodel.type_of(type_name).is_some() => Value::String(read_id(specification, type_name, id)),
+        Value::String(id) if metamodel.type_of(type_name).is_some() => {
+            Value::String(read_id(specification, type_name, id))
+        }
         Value::Int(month) if type_name == "yearMonth" => {
             Value::String(year_month::format(*month, "uuuu-MM").unwrap_or_default())
         }

@@ -25,8 +25,29 @@ use crate::model::element::DislElement;
 use crate::model::values;
 
 const KINDS: [&str; 24] = [
-    "set", "unset", "create", "connect", "delete", "move", "resize", "retype", "reparent", "reorder", "view", "let",
-    "if", "forEach", "select", "reveal", "highlight", "editLabel", "openForm", "notify", "layout", "abort", "call",
+    "set",
+    "unset",
+    "create",
+    "connect",
+    "delete",
+    "move",
+    "resize",
+    "retype",
+    "reparent",
+    "reorder",
+    "view",
+    "let",
+    "if",
+    "forEach",
+    "select",
+    "reveal",
+    "highlight",
+    "editLabel",
+    "openForm",
+    "notify",
+    "layout",
+    "abort",
+    "call",
     "plugin",
 ];
 
@@ -110,7 +131,13 @@ impl<'a> ActionRunner<'a> {
                 return self.refuse(format!("The action at {at} is not an object."));
             }
             if let Some(when) = json::get(action, "when")
-                && !evaluation::holds(self.specification, when, &json::pointer(&at, "when"), self.context, variables)
+                && !evaluation::holds(
+                    self.specification,
+                    when,
+                    &json::pointer(&at, "when"),
+                    self.context,
+                    variables,
+                )
             {
                 continue;
             }
@@ -209,7 +236,10 @@ impl<'a> ActionRunner<'a> {
                         "The reparent at {at} places the element beside one that is not beneath its new parent."
                     ));
                 }
-                if let Err(e) = self.diagram.reparent(&element, new_parent.as_ref(), slot.as_str(), index) {
+                if let Err(e) = self
+                    .diagram
+                    .reparent(&element, new_parent.as_ref(), slot.as_str(), index)
+                {
                     return self.refuse(e);
                 }
                 self.changes.push(DislChange::Reparent {
@@ -306,8 +336,13 @@ impl<'a> ActionRunner<'a> {
                 true
             }
             "abort" => {
-                let Some(message) = self.member(body, &body_at, "message", variables, Value::from("The change was refused."))
-                else {
+                let Some(message) = self.member(
+                    body,
+                    &body_at,
+                    "message",
+                    variables,
+                    Value::from("The change was refused."),
+                ) else {
                     return false;
                 };
                 self.refuse(evaluation::text_of(&message))
@@ -331,7 +366,10 @@ impl<'a> ActionRunner<'a> {
         let Some(type_value) = self.member(body, at, "type", variables, Value::Null) else {
             return false;
         };
-        let type_name = match type_value.as_str().and_then(|t| self.specification.metamodel().type_of(t)) {
+        let type_name = match type_value
+            .as_str()
+            .and_then(|t| self.specification.metamodel().type_of(t))
+        {
             Some(t) if !t.is_relation && !t.is_abstract() => t.name.clone(),
             _ => return self.refuse(format!("The create at {at} names no node type it can create.")),
         };
@@ -377,7 +415,10 @@ impl<'a> ActionRunner<'a> {
         let Some(type_value) = self.member(body, at, "type", variables, Value::Null) else {
             return false;
         };
-        let type_name = match type_value.as_str().and_then(|t| self.specification.metamodel().type_of(t)) {
+        let type_name = match type_value
+            .as_str()
+            .and_then(|t| self.specification.metamodel().type_of(t))
+        {
             Some(t) if t.is_relation && !t.is_abstract() => t.name.clone(),
             _ => return self.refuse(format!("The connect at {at} names no relation type it can create.")),
         };
@@ -393,10 +434,10 @@ impl<'a> ActionRunner<'a> {
         let Some(attributes) = self.attributes(body, at, variables) else {
             return false;
         };
-        let created = self
-            .ids
-            .next(&type_name)
-            .and_then(|id| self.diagram.add_relation(&type_name, &id, Some(&from), Some(&to), attributes.clone()));
+        let created = self.ids.next(&type_name).and_then(|id| {
+            self.diagram
+                .add_relation(&type_name, &id, Some(&from), Some(&to), attributes.clone())
+        });
         let created = match created {
             Ok(created) => created,
             Err(e) => return self.refuse(e),

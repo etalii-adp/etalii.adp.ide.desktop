@@ -130,7 +130,13 @@ impl Walk<'_> {
         };
         let variables = self.variables(value);
         if let Some(visible) = json::get(item, "visible")
-            && !evaluation::holds(specification, visible, &json::pointer(pointer, "visible"), contexts::FORM, &variables)
+            && !evaluation::holds(
+                specification,
+                visible,
+                &json::pointer(pointer, "visible"),
+                contexts::FORM,
+                &variables,
+            )
         {
             return;
         }
@@ -178,7 +184,15 @@ impl Walk<'_> {
         }
     }
 
-    fn row(&self, item: &Json, pointer: &str, group: &str, kind: &str, attribute: Option<&str>, variables: &Vars) -> DerivedRow {
+    fn row(
+        &self,
+        item: &Json,
+        pointer: &str,
+        group: &str,
+        kind: &str,
+        attribute: Option<&str>,
+        variables: &Vars,
+    ) -> DerivedRow {
         let specification = self.specification;
         let element_type = self.element.element_type();
         let declared = attribute.and_then(|a| element_type.attributes.get(a));
@@ -348,7 +362,9 @@ impl Walk<'_> {
                     .iter()
                     .map(|mark| match json::string_of(mark, "label") {
                         Some(label) => label.to_owned(),
-                        None => evaluation::text_of(&json::get(mark, "value").map(values::to_value).unwrap_or(Value::Null)),
+                        None => {
+                            evaluation::text_of(&json::get(mark, "value").map(values::to_value).unwrap_or(Value::Null))
+                        }
                     })
                     .collect(),
             );
@@ -358,7 +374,9 @@ impl Walk<'_> {
 
     /// An attribute's text: derived, else stored, else its default when it declares one, else empty.
     fn attribute_text(&self, attribute: &DislAttribute) -> String {
-        if !self.element.attributes().contains_key(&attribute.name) && attribute.default.is_none() && !attribute.is_derived()
+        if !self.element.attributes().contains_key(&attribute.name)
+            && attribute.default.is_none()
+            && !attribute.is_derived()
         {
             return String::new();
         }

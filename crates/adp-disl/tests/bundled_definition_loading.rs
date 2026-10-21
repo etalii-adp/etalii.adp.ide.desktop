@@ -22,7 +22,10 @@ fn the_bundled_definition_loads_without_a_diagnostic() {
         assert_eq!(language, bundled.specification.language_id());
         assert_eq!("0.3", bundled.specification.disl());
         let compiled = bundled.specification.expressions().len() + bundled.specification.functions().len();
-        assert!(compiled >= at_least, "Only {compiled} expressions were compiled; the walk has lost some.");
+        assert!(
+            compiled >= at_least,
+            "Only {compiled} expressions were compiled; the walk has lost some."
+        );
     }
 }
 
@@ -107,7 +110,11 @@ fn the_hype_cycle_graphs_enumerations_and_functions_are_read_as_declared() {
     assert_eq!("Phase", phase.name);
     assert!(phase.ordered);
     assert!(!specification.metamodel().enums["Edge"].ordered);
-    let unit_months: Vec<_> = specification.functions().iter().filter(|f| f.name == "unitMonths").collect();
+    let unit_months: Vec<_> = specification
+        .functions()
+        .iter()
+        .filter(|f| f.name == "unitMonths")
+        .collect();
     assert_eq!(1, unit_months.len());
     assert_eq!("int", unit_months[0].returns);
     assert_eq!(
@@ -163,20 +170,38 @@ fn an_expression_of_the_hype_cycle_graph_is_compiled_in_its_context() {
         ("/constraints/rules/0/rule", contexts::CONSTRAINT),
         ("/constraints/rules/9/rule", contexts::GESTURE_CHANGE),
         ("/constraints/rules/14/rule", contexts::GESTURE_PLACEMENT),
-        ("/constraints/builtIn/std.references/message/cel", contexts::BUILT_IN_MESSAGE),
-        ("/constraints/builtIn/std.endpoints/refusal/cel", contexts::BUILT_IN_REFUSAL),
+        (
+            "/constraints/builtIn/std.references/message/cel",
+            contexts::BUILT_IN_MESSAGE,
+        ),
+        (
+            "/constraints/builtIn/std.endpoints/refusal/cel",
+            contexts::BUILT_IN_REFUSAL,
+        ),
         ("/toolbox/groups/0/tools/0/initial/start/cel", contexts::CREATE),
         ("/toolbox/contextMenus/0/tools/0/visible", contexts::ELEMENT),
         ("/behavior/hooks/0/actions/1/set/peakEnd", contexts::HOOK),
-        ("/behavior/operations/addTrendHere/actions/0/create/attributes/start", contexts::OPERATION),
+        (
+            "/behavior/operations/addTrendHere/actions/0/create/attributes/start",
+            contexts::OPERATION,
+        ),
         ("/behavior/deletion/Trend/confirm/message/cel", contexts::GESTURE_DELETE),
         ("/notation/shapes/phasedBanner/handles/0/x", contexts::SHAPE),
         ("/notation/shapes/phasedBanner/handles/0/visible", contexts::ELEMENT),
-        ("/notation/shapes/phasedBanner/handles/0/snap/cel", contexts::HANDLE_SNAP),
-        ("/notation/shapes/phasedBanner/handles/0/write/0/set/peakEnd", contexts::HANDLE_WRITE),
+        (
+            "/notation/shapes/phasedBanner/handles/0/snap/cel",
+            contexts::HANDLE_SNAP,
+        ),
+        (
+            "/notation/shapes/phasedBanner/handles/0/write/0/set/peakEnd",
+            contexts::HANDLE_WRITE,
+        ),
         ("/notation/canvas/filters/tags/keep", contexts::FILTER),
         ("/notation/canvas/filters/tags/options/cel", contexts::FILTER_OPTIONS),
-        ("/notation/nodes/Trigger/labels/0/parse/write/0/set/name", contexts::LABEL_PARSE),
+        (
+            "/notation/nodes/Trigger/labels/0/parse/write/0/set/name",
+            contexts::LABEL_PARSE,
+        ),
         ("/forms/trend/items/3/items/0/value/cel", contexts::FORM),
     ] {
         let expression = specification.expression_at(pointer);
@@ -209,7 +234,11 @@ fn a_call_of_a_function_the_runtime_lacks_refuses_the_definition() {
         (HYPE_CYCLE, "/functions/monthText/cel", "soundex(string(m))"),
         (HYPE_CYCLE, "/notation/nodes/Trigger/tooltip/cel", "soundex(self.name)"),
         (BEHAVIOR_MODEL, "/functions/shorten/cel", "soundex(s)"),
-        (BEHAVIOR_MODEL, "/metamodel/relations/Child/derived/from", "soundex(diagram.nodes)"),
+        (
+            BEHAVIOR_MODEL,
+            "/metamodel/relations/Child/derived/from",
+            "soundex(diagram.nodes)",
+        ),
         (BEHAVIOR_MODEL, "/persistence/ids/expression", "soundex(self.label)"),
     ] {
         let mut root: Json = serde_json::from_str(&text(resource)).unwrap();
@@ -247,7 +276,11 @@ fn every_vendored_definition_has_the_standalone_loaders_diagnostics() {
             actual.push_str(&format!(
                 "# {folder}/{} loaded={}\n",
                 file.file_name().unwrap().to_string_lossy(),
-                if result.specification.is_some() { "True" } else { "False" }
+                if result.specification.is_some() {
+                    "True"
+                } else {
+                    "False"
+                }
             ));
             for diagnostic in &result.diagnostics {
                 actual.push_str(&format!("{diagnostic}\n"));

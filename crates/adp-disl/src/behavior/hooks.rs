@@ -88,9 +88,17 @@ struct Hooks<'a> {
 }
 
 impl Hooks<'_> {
-    fn ran_for(&mut self, element: &DislElement, before: Option<&DislElement>, happened: &str, changed: &[String]) -> bool {
+    fn ran_for(
+        &mut self,
+        element: &DislElement,
+        before: Option<&DislElement>,
+        happened: &str,
+        changed: &[String],
+    ) -> bool {
         for (hook, pointer) in hooks(self.specification, element, happened, changed) {
-            let id = json::string_of(hook, "id").map(str::to_owned).unwrap_or_else(|| pointer.clone());
+            let id = json::string_of(hook, "id")
+                .map(str::to_owned)
+                .unwrap_or_else(|| pointer.clone());
             if !self.ran.insert((id, element.key())) {
                 continue;
             }
@@ -104,7 +112,10 @@ impl Hooks<'_> {
             let mut variables = variables_of(contexts::HOOK, &element.diagram(), self.env);
             variables.insert("self".into(), element.to_value());
             variables.insert("old".into(), before.map(DislElement::to_value).unwrap_or(Value::Null));
-            variables.insert("event".into(), Value::map(event(element, before, happened, changed, self.source)));
+            variables.insert(
+                "event".into(),
+                Value::map(event(element, before, happened, changed, self.source)),
+            );
             if let Some(when) = json::get(hook, "when")
                 && !evaluation::holds(
                     self.specification,
@@ -120,7 +131,9 @@ impl Hooks<'_> {
             let first = self.runner.changes.len();
             self.runner.before = Some(HashMap::new());
             if let Some(actions) = json::get(hook, "actions")
-                && !self.runner.run(actions, &json::pointer(&pointer, "actions"), &mut variables)
+                && !self
+                    .runner
+                    .run(actions, &json::pointer(&pointer, "actions"), &mut variables)
             {
                 return false;
             }
@@ -137,7 +150,10 @@ impl Hooks<'_> {
                 .collect();
             for (element_id, attributes) in sets {
                 if let Some(target) = element.diagram().elements().into_iter().find(|e| e.id() == element_id) {
-                    let snapshot = snapshots.get(&target.key()).cloned().unwrap_or_else(|| target.snapshot());
+                    let snapshot = snapshots
+                        .get(&target.key())
+                        .cloned()
+                        .unwrap_or_else(|| target.snapshot());
                     if !self.ran_for(&target, Some(&snapshot), "change", &attributes) {
                         return false;
                     }
@@ -178,14 +194,20 @@ fn hooks<'a>(
         declared.push((hook, pointer, order, index));
     }
     declared.sort_by_key(|(_, _, order, index)| (*order, *index));
-    declared.into_iter().map(|(hook, pointer, _, _)| (hook, pointer)).collect()
+    declared
+        .into_iter()
+        .map(|(hook, pointer, _, _)| (hook, pointer))
+        .collect()
 }
 
 fn event(element: &DislElement, before: Option<&DislElement>, kind: &str, changed: &[String], source: &str) -> Map {
     let attribute = changed.first();
     let mut event = Map::default();
     event.insert("kind", Value::from(kind));
-    event.insert("attribute", attribute.map(|a| Value::String(a.clone())).unwrap_or(Value::Null));
+    event.insert(
+        "attribute",
+        attribute.map(|a| Value::String(a.clone())).unwrap_or(Value::Null),
+    );
     event.insert(
         "oldValue",
         match (attribute, before) {

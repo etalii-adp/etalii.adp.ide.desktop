@@ -47,7 +47,15 @@ pub fn derive(specification: &DislSpecification, ids: &WireIdMap) -> Vec<Derived
         ("env", Value::map(DislEnv::default().to_cel())),
     ]);
     if let Some(groups) = json::items(toolbox, "groups") {
-        walk(specification, ids, toolbox, groups, "/toolbox/groups", &variables, &mut tools);
+        walk(
+            specification,
+            ids,
+            toolbox,
+            groups,
+            "/toolbox/groups",
+            &variables,
+            &mut tools,
+        );
     }
     tools
 }
@@ -95,7 +103,15 @@ fn walk(
             }
         }
         if let Some(nested) = json::items(group, "groups") {
-            walk(specification, ids, toolbox, nested, &json::pointer(&at, "groups"), variables, tools);
+            walk(
+                specification,
+                ids,
+                toolbox,
+                nested,
+                &json::pointer(&at, "groups"),
+                variables,
+                tools,
+            );
         }
     }
 }

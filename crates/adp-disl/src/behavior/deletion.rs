@@ -83,7 +83,13 @@ pub fn confirmation(
         }
     }
     if let Some(when) = json::get(confirm, "when")
-        && !evaluation::holds(specification, when, &json::pointer(&at, "when"), contexts::GESTURE_DELETE, &variables)
+        && !evaluation::holds(
+            specification,
+            when,
+            &json::pointer(&at, "when"),
+            contexts::GESTURE_DELETE,
+            &variables,
+        )
     {
         return None;
     }

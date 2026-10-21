@@ -36,7 +36,11 @@ fn fixture() -> Fixture {
         .add_node(
             "Box",
             "outer",
-            attrs([("name", "Outer".into()), ("when", Value::Int(24320)), ("buddy", "c".into())]),
+            attrs([
+                ("name", "Outer".into()),
+                ("when", Value::Int(24320)),
+                ("buddy", "c".into()),
+            ]),
         )
         .unwrap();
     let inner = diagram
@@ -112,7 +116,10 @@ fn an_unset_attribute_reads_as_its_default_or_its_zero_value() {
         ("size(self.tags)", 0),
         ("size(self.children[0].children[0].tags)", 1),
     ] {
-        assert!(matches!(f.evaluate(expression), Ok(Value::Int(v)) if v == expected), "{expression}");
+        assert!(
+            matches!(f.evaluate(expression), Ok(Value::Int(v)) if v == expected),
+            "{expression}"
+        );
     }
 }
 
@@ -160,7 +167,10 @@ fn containment_is_read_parents_first() {
             ("self.parent == null", true),
             ("self.children.map(c, c.id) == ['inner', 'c']", true),
             ("self.descendants().map(c, c.id) == ['inner', 'c', 'c']", true),
-            ("self.descendants()[1].ancestors().map(c, c.id) == ['inner', 'outer']", true),
+            (
+                "self.descendants()[1].ancestors().map(c, c.id) == ['inner', 'outer']",
+                true,
+            ),
             ("self.childrenOfType('Circle').size() == 1", true),
             ("self.children[0].parent == self", true),
             ("self.owner == diagram", true),
@@ -177,7 +187,10 @@ fn relations_are_read_from_their_ends() {
             ("self.incoming.size() == 0", true),
             ("self.descendants()[1].incoming.map(r, r.id) == ['s', 'w']", true),
             ("self.descendants()[1].incomingOf('Link').size() == 2", true),
-            ("self.descendants()[1].incomingOf('Weak').map(r, r.source.id) == ['c']", true),
+            (
+                "self.descendants()[1].incomingOf('Weak').map(r, r.source.id) == ['c']",
+                true,
+            ),
             ("self.outgoingOf('Weak').size() == 0", true),
             ("diagram.relations[0].source == self", true),
             ("diagram.relations[0].target.name == 'Round'", true),
@@ -196,7 +209,10 @@ fn position_in_compares_by_identity_not_by_id() {
         ("self.positionIn(self.children)", -1),
         ("diagram.nodes.filter(n, n.id == 'c').size()", 2),
     ] {
-        assert!(matches!(f.evaluate(expression), Ok(Value::Int(v)) if v == expected), "{expression}");
+        assert!(
+            matches!(f.evaluate(expression), Ok(Value::Int(v)) if v == expected),
+            "{expression}"
+        );
     }
 }
 
@@ -220,17 +236,26 @@ fn the_diagram_lists_its_elements_in_model_order() {
 #[test]
 fn a_reference_reads_as_the_element_it_names() {
     let f = fixture();
-    assert_eq!(Some(f.circle.clone()), DislElement::from_value(&f.evaluate("self.buddy").unwrap()));
+    assert_eq!(
+        Some(f.circle.clone()),
+        DislElement::from_value(&f.evaluate("self.buddy").unwrap())
+    );
 }
 
 #[test]
 fn an_element_is_not_its_twin() {
-    assert_eq!(Ok(Value::Bool(false)), fixture().evaluate("diagram.nodes[2] == diagram.nodes[3]"));
+    assert_eq!(
+        Ok(Value::Bool(false)),
+        fixture().evaluate("diagram.nodes[2] == diagram.nodes[3]")
+    );
 }
 
 #[test]
 fn a_member_a_node_lacks_is_an_error() {
-    assert_eq!(Err("No such field: 'source'.".to_owned()), fixture().evaluate("self.source"));
+    assert_eq!(
+        Err("No such field: 'source'.".to_owned()),
+        fixture().evaluate("self.source")
+    );
 }
 
 #[test]
@@ -245,9 +270,17 @@ fn a_relation_method_on_a_node_is_an_error() {
 fn an_abstract_type_or_an_undeclared_attribute_cannot_be_added() {
     let f = fixture();
     assert!(f.diagram.add_node("Shape", "x", Map::default()).is_err());
-    assert!(f.diagram.add_node("Box", "x", attrs([("colour", "red".into())])).is_err());
+    assert!(
+        f.diagram
+            .add_node("Box", "x", attrs([("colour", "red".into())]))
+            .is_err()
+    );
     let inner = f.diagram.element_by_id("inner").unwrap();
-    assert!(f.diagram.add_relation("Box", "x", Some(&f.outer), Some(&inner), Map::default()).is_err());
+    assert!(
+        f.diagram
+            .add_relation("Box", "x", Some(&f.outer), Some(&inner), Map::default())
+            .is_err()
+    );
     assert_eq!(Some(f.weak.clone()), f.diagram.element_by_id("w"));
     assert_eq!(f.strong, f.diagram.relations()[0]);
 }

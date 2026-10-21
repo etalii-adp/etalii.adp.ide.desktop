@@ -38,9 +38,9 @@ fn evaluate(specification: &DislSpecification, expression: &str) -> Result<Value
 
 #[test]
 fn the_hosts_implementation_is_called_by_user_functions_too() {
-    let specification = loaded(
-        &DislPluginFunctions::none().add("shout", |a| Ok(Value::String(a[0].as_str().unwrap_or("").to_uppercase()))),
-    );
+    let specification = loaded(&DislPluginFunctions::none().add("shout", |a| {
+        Ok(Value::String(a[0].as_str().unwrap_or("").to_uppercase()))
+    }));
 
     assert_eq!(Ok(Value::from("HEY")), evaluate(&specification, "shout('hey')"));
     assert_eq!(Ok(Value::from("HEY")), evaluate(&specification, "twiceShouted('hey')"));
@@ -51,7 +51,10 @@ fn without_an_implementation_the_fallback_is_evaluated() {
     let specification = loaded(&DislPluginFunctions::none());
 
     assert_eq!(Ok(Value::from("hey!")), evaluate(&specification, "shout('hey')"));
-    assert_eq!(Ok(Value::from("hey!!")), evaluate(&specification, "twiceShouted('hey')"));
+    assert_eq!(
+        Ok(Value::from("hey!!")),
+        evaluate(&specification, "twiceShouted('hey')")
+    );
 }
 
 #[test]

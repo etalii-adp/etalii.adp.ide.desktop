@@ -6,9 +6,9 @@
 //! host writes through FBL (section 9). Its modules follow the standalone host's folders: [`loading`],
 //! [`expressions`], [`model`], [`derivation`], [`behavior`] and [`bundling`].
 
-pub mod derivation;
 pub mod behavior;
 pub mod bundling;
+pub mod derivation;
 pub mod expressions;
 pub mod json;
 pub mod loading;
@@ -21,10 +21,10 @@ pub use behavior::operations::DislInvocation;
 pub use bundling::{BundledDefinition, DefinitionProvenance};
 pub use derivation::context_menu::{DerivedMenuEntry, DerivedMenuGroup, DerivedShortcut, DislMenuTarget};
 pub use derivation::env::DislEnv;
+pub use derivation::finding::{DislConstraintOptions, DislFinding, DislReaderFinding};
 pub use derivation::form_commit::{FormRequest, FormRequestField};
 pub use derivation::forms::DerivedRow;
 pub use derivation::toolbox::DerivedTool;
-pub use derivation::finding::{DislConstraintOptions, DislFinding, DislReaderFinding};
 pub use derivation::wire_ids::WireIdMap;
 pub use expressions::contexts;
 pub use expressions::plugins::DislPluginFunctions;

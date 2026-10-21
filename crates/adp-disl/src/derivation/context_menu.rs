@@ -152,8 +152,14 @@ pub fn derive(
         DislMenuTarget::Connection { source, target, .. } => (
             contexts::CONNECTION,
             evaluation::vars([
-                ("source", source.as_ref().map(DislElement::to_value).unwrap_or(Value::Null)),
-                ("target", target.as_ref().map(DislElement::to_value).unwrap_or(Value::Null)),
+                (
+                    "source",
+                    source.as_ref().map(DislElement::to_value).unwrap_or(Value::Null),
+                ),
+                (
+                    "target",
+                    target.as_ref().map(DislElement::to_value).unwrap_or(Value::Null),
+                ),
                 ("sourceAnchor", Value::Null),
                 ("position", Value::Null),
                 ("diagram", diagram.to_value()),
@@ -181,7 +187,13 @@ pub fn derive(
             }
             matched = true;
             if let Some(when) = json::get(set, "when")
-                && !evaluation::holds(specification, when, &json::pointer(&pointer, "when"), context, &variables)
+                && !evaluation::holds(
+                    specification,
+                    when,
+                    &json::pointer(&pointer, "when"),
+                    context,
+                    &variables,
+                )
             {
                 continue;
             }
@@ -282,7 +294,10 @@ impl Menu<'_> {
 
     fn entries(&self, tool: &Json, pointer: &str, variables: &Vars) -> Vec<DerivedMenuEntry> {
         let Some(for_each) = json::get(tool, "forEach") else {
-            return self.entry(tool, pointer, variables, Map::default()).into_iter().collect();
+            return self
+                .entry(tool, pointer, variables, Map::default())
+                .into_iter()
+                .collect();
         };
         // An entry per item, in list order, with item (or its as name) and index bound (section 7.3); an empty or
         // failing list gives none.
@@ -316,7 +331,13 @@ impl Menu<'_> {
             variables.insert(name.clone(), value.clone());
         }
         if let Some(visible) = json::get(tool, "visible")
-            && !evaluation::holds(specification, visible, &json::pointer(pointer, "visible"), self.context, &variables)
+            && !evaluation::holds(
+                specification,
+                visible,
+                &json::pointer(pointer, "visible"),
+                self.context,
+                &variables,
+            )
         {
             return None;
         }
@@ -347,7 +368,9 @@ impl Menu<'_> {
                 &self.operational(&variables, &arguments),
                 kind,
             ),
-            _ => match json::string_of(tool, "via").and_then(|via| specification.metamodel().type_of(via).map(|t| (via, t))) {
+            _ => match json::string_of(tool, "via")
+                .and_then(|via| specification.metamodel().type_of(via).map(|t| (via, t)))
+            {
                 Some((via, t)) => json::string_of(&t.json, "label").unwrap_or(via).to_owned(),
                 None => kind.to_owned(),
             },
@@ -367,12 +390,19 @@ impl Menu<'_> {
             .or_else(|| operation.and_then(|o| json::string_of(o, "icon")))
             .unwrap_or("")
             .to_owned();
-        let shortcut = json::string_of(tool, "shortcut").or_else(|| operation.and_then(|o| json::string_of(o, "shortcut")));
+        let shortcut =
+            json::string_of(tool, "shortcut").or_else(|| operation.and_then(|o| json::string_of(o, "shortcut")));
 
         let reason = self.unavailable(tool, pointer, &variables, kind, operation, operation_name, &arguments);
         let available = reason.is_none()
             && json::get(tool, "enabled").is_none_or(|enabled| {
-                evaluation::holds(specification, enabled, &json::pointer(pointer, "enabled"), self.context, &variables)
+                evaluation::holds(
+                    specification,
+                    enabled,
+                    &json::pointer(pointer, "enabled"),
+                    self.context,
+                    &variables,
+                )
             });
 
         Some(DerivedMenuEntry {
@@ -434,7 +464,11 @@ impl Menu<'_> {
                     .filter(|n| n.parent().is_none())
                     .collect(),
             };
-            let place = siblings.iter().position(|s| s == element).map(|p| p as i64).unwrap_or(-1);
+            let place = siblings
+                .iter()
+                .position(|s| s == element)
+                .map(|p| p as i64)
+                .unwrap_or(-1);
             if kind == "moveUp" && place <= 0 {
                 return Some(evaluation::standard_message(
                     specification,
@@ -508,8 +542,14 @@ fn connect_edit(
 
     // The relation does not exist yet: self is its two ends, as the operation's reasons read them.
     let mut self_map = Map::default();
-    self_map.insert("source", source.as_ref().map(DislElement::to_value).unwrap_or(Value::Null));
-    self_map.insert("target", target.as_ref().map(DislElement::to_value).unwrap_or(Value::Null));
+    self_map.insert(
+        "source",
+        source.as_ref().map(DislElement::to_value).unwrap_or(Value::Null),
+    );
+    self_map.insert(
+        "target",
+        target.as_ref().map(DislElement::to_value).unwrap_or(Value::Null),
+    );
     self_map.insert("type", Value::from(relation));
     let variables = evaluation::vars([
         ("self", Value::map(self_map)),

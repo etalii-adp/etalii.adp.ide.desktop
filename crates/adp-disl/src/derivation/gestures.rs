@@ -61,7 +61,10 @@ pub fn placement(
             ("gesture", Value::from(gesture)),
             ("oldBounds", Value::map(old_bounds)),
             ("newBounds", Value::map(new_bounds)),
-            ("newParent", new_parent.map(DislElement::to_value).unwrap_or(Value::Null)),
+            (
+                "newParent",
+                new_parent.map(DislElement::to_value).unwrap_or(Value::Null),
+            ),
         ]),
         env,
     )
@@ -106,19 +109,33 @@ fn refusals(
             continue;
         }
         if let Some(when) = json::get(rule, "when")
-            && !evaluation::holds(specification, when, &json::pointer(&pointer, "when"), context, &variables)
+            && !evaluation::holds(
+                specification,
+                when,
+                &json::pointer(&pointer, "when"),
+                context,
+                &variables,
+            )
         {
             continue;
         }
         if let Some(condition) = json::get(rule, "rule")
             && matches!(
-                evaluation::expression(specification, condition, &json::pointer(&pointer, "rule"), context, &variables),
+                evaluation::expression(
+                    specification,
+                    condition,
+                    &json::pointer(&pointer, "rule"),
+                    context,
+                    &variables
+                ),
                 Ok(Value::Bool(true))
             )
         {
             continue;
         }
-        let id = json::string_of(rule, "id").map(str::to_owned).unwrap_or_else(|| pointer.clone());
+        let id = json::string_of(rule, "id")
+            .map(str::to_owned)
+            .unwrap_or_else(|| pointer.clone());
         let message = match json::get(rule, "message") {
             Some(text) => evaluation::message(
                 specification,
@@ -131,7 +148,9 @@ fn refusals(
             None => id.clone(),
         };
         refusals.push(DislFinding {
-            code: json::string_of(rule, "code").map(str::to_owned).unwrap_or_else(|| id.clone()),
+            code: json::string_of(rule, "code")
+                .map(str::to_owned)
+                .unwrap_or_else(|| id.clone()),
             constraint_id: id,
             severity: json::string_of(rule, "severity").unwrap_or("error").to_owned(),
             message,

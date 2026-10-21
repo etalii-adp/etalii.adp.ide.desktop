@@ -31,13 +31,11 @@ pub fn change(
     let target = match specification.metamodel().type_of(type_name) {
         Some(t) if !t.is_relation && !t.is_abstract() => t.clone(),
         _ => {
-            return DislTransaction::refused(format!(
-                "A {own} cannot become a {type_name}: that is no type of node."
-            ));
+            return DislTransaction::refused(format!("A {own} cannot become a {type_name}: that is no type of node."));
         }
     };
-    let Some((policy, pointer)) = policy(specification, element)
-        .filter(|(p, _)| json::strings_of(p, "to").iter().any(|t| t == type_name))
+    let Some((policy, pointer)) =
+        policy(specification, element).filter(|(p, _)| json::strings_of(p, "to").iter().any(|t| t == type_name))
     else {
         return DislTransaction::refused(format!("A {own} cannot become a {type_name}."));
     };

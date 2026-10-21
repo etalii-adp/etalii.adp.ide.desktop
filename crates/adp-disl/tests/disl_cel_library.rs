@@ -69,7 +69,10 @@ fn a_month_index_is_formatted_with_an_ldml_pattern() {
         ("formatYearMonth(yearMonth(7, 3), 'u-M')", "7-3"),
         ("formatYearMonth(yearMonth(2026, 9), 'MMM uuuu')", "Sep 2026"),
         ("formatYearMonth(yearMonth(2026, 9), 'MMMM')", "September"),
-        ("formatYearMonth(yearMonth(2026, 9), 'MMMM \\'of\\' uuuu')", "September of 2026"),
+        (
+            "formatYearMonth(yearMonth(2026, 9), 'MMMM \\'of\\' uuuu')",
+            "September of 2026",
+        ),
         ("formatYearMonth(yearMonth(2026, 9), '\\'\\'MM')", "'09"),
     ] {
         assert_eq!(Ok(Value::from(expected)), evaluate(expression), "{expression}");
@@ -78,7 +81,10 @@ fn a_month_index_is_formatted_with_an_ldml_pattern() {
 
 #[test]
 fn a_pattern_letter_a_month_has_not_is_an_error() {
-    for (expression, letter) in [("formatYearMonth(0, 'yyyy')", 'y'), ("formatYearMonth(0, 'dd-MM')", 'd')] {
+    for (expression, letter) in [
+        ("formatYearMonth(0, 'yyyy')", 'y'),
+        ("formatYearMonth(0, 'dd-MM')", 'd'),
+    ] {
         assert_eq!(
             Err(format!(
                 "formatYearMonth() formats a month index with the pattern letters u and M only, not '{letter}' (DISL §5.5)."
@@ -119,7 +125,11 @@ fn text_not_in_the_json_form_parses_to_none() {
         "2026/09",
         "",
     ] {
-        assert_eq!(Ok(Value::none()), evaluate(&format!("parseYearMonth('{text}')")), "{text}");
+        assert_eq!(
+            Ok(Value::none()),
+            evaluate(&format!("parseYearMonth('{text}')")),
+            "{text}"
+        );
     }
 }
 
@@ -133,7 +143,10 @@ fn clamp_min_and_max_keep_integers() {
         ("max(3, 1, 2, 7)", 7),
         ("max(1, 0)", 1),
     ] {
-        assert!(matches!(evaluate(expression), Ok(Value::Int(v)) if v == expected), "{expression}");
+        assert!(
+            matches!(evaluate(expression), Ok(Value::Int(v)) if v == expected),
+            "{expression}"
+        );
     }
 }
 
@@ -146,7 +159,10 @@ fn clamp_min_and_max_compare_numbers_of_either_kind() {
         ("max(1, 2.5)", 2.5),
         ("min(0.25, 1)", 0.25),
     ] {
-        assert!(matches!(evaluate(expression), Ok(Value::Double(v)) if v == expected), "{expression}");
+        assert!(
+            matches!(evaluate(expression), Ok(Value::Double(v)) if v == expected),
+            "{expression}"
+        );
     }
 }
 

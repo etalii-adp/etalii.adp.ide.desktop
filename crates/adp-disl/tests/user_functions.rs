@@ -9,7 +9,11 @@ use adp_cel::{Map, Value};
 use adp_disl::{DislSpecification, contexts};
 use common::{diagnostics, loaded, vars, with};
 
-fn evaluate(specification: &DislSpecification, expression: &str, variables: HashMap<String, Value>) -> Result<Value, String> {
+fn evaluate(
+    specification: &DislSpecification,
+    expression: &str,
+    variables: HashMap<String, Value>,
+) -> Result<Value, String> {
     specification
         .environment(contexts::ELEMENT, &[])
         .compile(expression)
@@ -25,10 +29,17 @@ fn a_function_calls_the_functions_declared_before_it() {
           "quadruple": { "params": [ { "name": "n", "type": "int" } ], "returns": "int", "cel": "twice(twice(n))" } }"#,
     ));
 
-    assert_eq!(Ok(Value::Int(20)), evaluate(&specification, "quadruple(5)", HashMap::new()));
+    assert_eq!(
+        Ok(Value::Int(20)),
+        evaluate(&specification, "quadruple(5)", HashMap::new())
+    );
     assert_eq!(
         vec!["twice", "quadruple"],
-        specification.functions().iter().map(|f| f.name.as_str()).collect::<Vec<_>>()
+        specification
+            .functions()
+            .iter()
+            .map(|f| f.name.as_str())
+            .collect::<Vec<_>>()
     );
 }
 
@@ -69,8 +80,14 @@ fn a_bounded_recursive_function_gives_at_max_depth_beyond_its_depth() {
     ));
 
     for (n, expected) in [(1, 1), (3, 6), (4, 4 + 3 + 2 + 1 - 1000), (5, 5 + 4 + 3 + 2 - 1001)] {
-        assert_eq!(Ok(Value::Int(expected)), evaluate(&specification, &format!("sum({n})"), HashMap::new()));
-        assert_eq!(Ok(Value::Int(expected)), evaluate(&specification, &format!("sum({n})"), HashMap::new()));
+        assert_eq!(
+            Ok(Value::Int(expected)),
+            evaluate(&specification, &format!("sum({n})"), HashMap::new())
+        );
+        assert_eq!(
+            Ok(Value::Int(expected)),
+            evaluate(&specification, &format!("sum({n})"), HashMap::new())
+        );
     }
 }
 
@@ -92,7 +109,11 @@ fn a_function_reads_diagram_only_through_uses() {
         evaluate(
             &allowed,
             "count()",
-            vars([("diagram", Value::map(map)), ("self", Value::Null), ("env", Value::Null)])
+            vars([
+                ("diagram", Value::map(map)),
+                ("self", Value::Null),
+                ("env", Value::Null)
+            ])
         )
     );
 }
