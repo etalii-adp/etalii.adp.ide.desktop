@@ -119,8 +119,18 @@ pub fn style(theme: &Theme) -> egui::Style {
         &["button.secondaryForeground", "button.foreground"],
         palette.foreground,
     );
-    widgets.inactive.bg_fill = button;
+    // A button fills with its weak colour; a checkbox's box with the strong one, in VS Code's checkbox colour, and
+    // the border is the one VS Code draws round a secondary button and an input: a box that is not ticked is seen.
+    widgets.inactive.bg_fill = color(theme, &["checkbox.background", "input.background"], button);
     widgets.inactive.weak_bg_fill = button;
+    widgets.inactive.bg_stroke = Stroke::new(
+        sizes.border_width.max(1.0),
+        color(
+            theme,
+            &["button.secondaryBorder", "checkbox.border", "input.border"],
+            palette.border,
+        ),
+    );
     widgets.inactive.fg_stroke = Stroke::new(1.0, button_text);
     let hover = color(
         theme,
@@ -156,11 +166,16 @@ pub fn style(theme: &Theme) -> egui::Style {
     style
 }
 
-/// Installs both themes and lets egui follow the system's light or dark setting.
+/// How far a notch of the mouse wheel scrolls, in points: the step of the browser the standalone host runs in,
+/// 100 pixels (egui's own is 40 on a desktop).
+pub const WHEEL_STEP: f32 = 100.0;
+
+/// Installs both themes, lets egui follow the system's light or dark setting, and gives the wheel the browser's step.
 pub fn install(ctx: &egui::Context) {
     ctx.set_style_of(egui::Theme::Dark, style(&Theme::dark()));
     ctx.set_style_of(egui::Theme::Light, style(&Theme::light()));
     ctx.set_theme(egui::ThemePreference::System);
+    ctx.options_mut(|o| o.input_options.line_scroll_speed = WHEEL_STEP);
 }
 
 /// The theme for egui's current light or dark setting.
@@ -193,6 +208,33 @@ mod tests {
             assert_eq!(style.text_styles[&TextStyle::Monospace].size, theme.sizes.editor_font);
             assert_eq!(style.spacing.interact_size.y, theme.sizes.row_height);
             assert_eq!(style.visuals.dark_mode, theme.kind == Kind::Dark);
+        }
+    }
+
+    /// Walk 4, K8: a checkbox that is not ticked draws its box, in both themes.
+    #[test]
+    fn an_unticked_checkbox_draws_its_box() {
+        for theme in [Theme::dark(), Theme::light()] {
+            let ctx = egui::Context::default();
+            ctx.set_style_of(egui::Theme::Dark, style(&theme));
+            ctx.set_style_of(egui::Theme::Light, style(&theme));
+            let background = Palette::of(&theme).editor_background;
+            let mut shapes = Vec::new();
+            for _ in 0..2 {
+                let mut output = ctx.run_ui(egui::RawInput::default(), |ui| {
+                    ui.checkbox(&mut false, "Hide empty groups");
+                });
+                output.textures_delta.clear();
+                shapes = output.shapes;
+            }
+            let seen = shapes.iter().any(|clipped| match &clipped.shape {
+                egui::Shape::Rect(rect) => {
+                    (rect.fill.a() > 0 && rect.fill != background)
+                        || (rect.stroke.width > 0.0 && rect.stroke.color.a() > 0 && rect.stroke.color != background)
+                }
+                _ => false,
+            });
+            assert!(seen, "{}: the box of an unticked checkbox is drawn", theme.name);
         }
     }
 
