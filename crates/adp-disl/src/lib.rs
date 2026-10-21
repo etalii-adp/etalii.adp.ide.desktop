@@ -7,12 +7,23 @@
 //! [`expressions`], [`model`], [`derivation`], [`behavior`] and [`bundling`].
 
 pub mod derivation;
+pub mod behavior;
+pub mod bundling;
 pub mod expressions;
 pub mod json;
 pub mod loading;
 pub mod model;
 
+pub use behavior::change::{DislChange, DislTransaction, HostAction};
+pub use behavior::deletion::DislConfirmation;
+pub use behavior::ids::IdSource;
+pub use behavior::operations::DislInvocation;
+pub use bundling::{BundledDefinition, DefinitionProvenance};
+pub use derivation::context_menu::{DerivedMenuEntry, DerivedMenuGroup, DerivedShortcut, DislMenuTarget};
 pub use derivation::env::DislEnv;
+pub use derivation::form_commit::{FormRequest, FormRequestField};
+pub use derivation::forms::DerivedRow;
+pub use derivation::toolbox::DerivedTool;
 pub use derivation::finding::{DislConstraintOptions, DislFinding, DislReaderFinding};
 pub use derivation::wire_ids::WireIdMap;
 pub use expressions::contexts;
