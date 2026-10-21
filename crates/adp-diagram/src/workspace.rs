@@ -59,14 +59,51 @@ impl DiagramWorkspace {
         &self.history
     }
 
-    /// Opens the diagram `path` names, a registration or a body, and a view of it.
+    /// Opens the diagram `path` names, a registration or a body, and a view of it: through the tool type's module when
+    /// it reads its documents itself, else through its specification and binding.
     pub fn open(&mut self, tools: &mut DiagramTools, path: &Path) -> Result<(OpenedDiagram, DiagramSession), String> {
+        if let Some(opened) = self.open_by_module(tools, path) {
+            return opened;
+        }
         let opened = self.resolve(tools, path)?;
         let tool = tools.get(&opened.origin)?;
         self.documents
             .open(tool, &opened.body_path, opened.registration_path.as_deref())?;
         let session = DiagramSession::new(opened.body_path.clone());
         Ok((opened, session))
+    }
+
+    /// Opens `path` through the module of its tool type, when that module reads its documents itself; none when the
+    /// tool type is drawn from its specification.
+    fn open_by_module(
+        &mut self,
+        tools: &DiagramTools,
+        path: &Path,
+    ) -> Option<Result<(OpenedDiagram, DiagramSession), String>> {
+        let full = normalise(&self.root.join(path));
+        if !full.starts_with(normalise(&self.root)) || !full.is_file() {
+            return None;
+        }
+        let origin = if full.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
+            RegistrationDocument::read(fs::read(&full).ok()?).origin
+        } else {
+            tools
+                .for_file(&file_name(&full))
+                .into_iter()
+                .find(|origin| tools.opened_by_module(origin))?
+        };
+        if !tools.opened_by_module(&origin) {
+            return None;
+        }
+        let module = tools.module(&origin)?;
+        Some(
+            module
+                .open(&self.root, &full, &origin, &mut self.documents)
+                .map(|(opened, view)| {
+                    let session = DiagramSession::of_module(opened.body_path.clone(), view);
+                    (opened, session)
+                }),
+        )
     }
 
     /// What `path` names: the tool type, the body and the registration, or the refusal.

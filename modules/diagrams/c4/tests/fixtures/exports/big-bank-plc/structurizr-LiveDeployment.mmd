@@ -1,0 +1,85 @@
+graph TB
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Deployment View: Internet Banking System - Live"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 34 ["Customer's mobile device"]
+      style 34 fill:#ffffff,stroke:#444444,color:#444444
+
+      35["<div style='font-weight: bold'>Mobile App</div><div style='font-size: 70%; margin-top: 0px'>[Container: Xamarin]</div><div style='font-size: 80%; margin-top:10px'>Provides a limited subset of<br />the Internet banking<br />functionality to customers<br />via their mobile device.</div>"]
+      style 35 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    subgraph 36 ["Customer's computer"]
+      style 36 fill:#ffffff,stroke:#444444,color:#444444
+
+      subgraph 37 ["Web Browser"]
+        style 37 fill:#ffffff,stroke:#444444,color:#444444
+
+        38["<div style='font-weight: bold'>Single-Page Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript and Angular]</div><div style='font-size: 80%; margin-top:10px'>Provides all of the Internet<br />banking functionality to<br />customers via their web<br />browser.</div>"]
+        style 38 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+    end
+
+    subgraph 39 ["Big Bank plc"]
+      style 39 fill:#ffffff,stroke:#444444,color:#444444
+
+      subgraph 40 ["bigbank-web***"]
+        style 40 fill:#ffffff,stroke:#444444,color:#444444
+
+        subgraph 41 ["Apache Tomcat"]
+          style 41 fill:#ffffff,stroke:#444444,color:#444444
+
+          42["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring MVC]</div><div style='font-size: 80%; margin-top:10px'>Delivers the static content<br />and the Internet banking<br />single page application.</div>"]
+          style 42 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        end
+
+      end
+
+      subgraph 44 ["bigbank-api***"]
+        style 44 fill:#ffffff,stroke:#444444,color:#444444
+
+        subgraph 45 ["Apache Tomcat"]
+          style 45 fill:#ffffff,stroke:#444444,color:#444444
+
+          46["<div style='font-weight: bold'>API Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring MVC]</div><div style='font-size: 80%; margin-top:10px'>Provides Internet banking<br />functionality via a<br />JSON/HTTPS API.</div>"]
+          style 46 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        end
+
+      end
+
+      subgraph 49 ["bigbank-db01"]
+        style 49 fill:#ffffff,stroke:#444444,color:#444444
+
+        subgraph 50 ["Oracle - Primary"]
+          style 50 fill:#ffffff,stroke:#444444,color:#444444
+
+          51[("<div style='font-weight: bold'>Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: Oracle Database Schema]</div><div style='font-size: 80%; margin-top:10px'>Stores user registration<br />information, hashed<br />authentication credentials,<br />access logs, etc.</div>")]
+          style 51 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        end
+
+      end
+
+      subgraph 53 ["bigbank-db02"]
+        style 53 fill:#ffffff,stroke:#444444,color:#444444
+
+        subgraph 54 ["Oracle - Secondary"]
+          style 54 fill:#ffffff,stroke:#444444,color:#444444
+
+          55[("<div style='font-weight: bold'>Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: Oracle Database Schema]</div><div style='font-size: 80%; margin-top:10px'>Stores user registration<br />information, hashed<br />authentication credentials,<br />access logs, etc.</div>")]
+          style 55 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        end
+
+      end
+
+    end
+
+    42-. "<div>Delivers to the customer's<br />web browser</div><div style='font-size: 70%'></div>" .->38
+    35-. "<div>Makes API calls to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->46
+    38-. "<div>Makes API calls to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->46
+    46-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->51
+    46-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->55
+
+  end

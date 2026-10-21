@@ -12,7 +12,6 @@ use std::fs;
 use adp_parity::{check, repository_root, script_names};
 
 #[test]
-#[ignore = "cannot open: the C4 container specification (vendor/etalii.adp/definitions/diagrams/c4-container.dis) does not load (/persistence/typeMap/ViewInclude/attributes/members: 'includes' is not a variable here), and the C4 module's residue (the Structurizr DSL reader and writer, the layout sidecar) is not ported"]
 fn c4_container_courier() {
     check("c4/container/courier");
 }

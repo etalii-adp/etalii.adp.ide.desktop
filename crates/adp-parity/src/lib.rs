@@ -412,8 +412,9 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         .to_path_buf();
 
     let catalogue = Catalogue::load(&repository_root().join("vendor"));
-    let mut tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
+    let tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module());
+    let mut tools = adp_diagram_c4::register(tools);
     let mut workspace = DiagramWorkspace::new(project.path());
     let (_, mut session) = match workspace.open(&mut tools, &document) {
         Ok(opened) => opened,

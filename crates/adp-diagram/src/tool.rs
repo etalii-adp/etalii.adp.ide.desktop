@@ -189,13 +189,39 @@ impl DiagramTools {
         self.loaded[origin].clone()
     }
 
-    /// The origins of the diagram tool types that open a file named `name` by its extension, in catalogue order.
+    /// The origins of the diagram tool types that open a file named `name` by its extension, in catalogue order, then
+    /// those whose module opens such a body itself, in the order of their origins.
     pub fn for_file(&self, name: &str) -> Vec<String> {
-        self.catalogue
+        let mut origins: Vec<String> = self
+            .catalogue
             .for_file(name)
             .into_iter()
             .filter(|t| t.kind == ToolKind::Diagram)
             .map(|t| t.origin.clone())
-            .collect()
+            .collect();
+        let lower = name.to_lowercase();
+        let mut owned: Vec<&String> = self
+            .modules
+            .iter()
+            .filter(|(_, m)| m.opens_documents() && m.extensions().iter().any(|e| lower.ends_with(e.as_str())))
+            .map(|(origin, _)| origin)
+            .collect();
+        owned.sort();
+        for origin in owned {
+            if !origins.contains(origin) {
+                origins.push(origin.clone());
+            }
+        }
+        origins
+    }
+
+    /// The module registered for `origin`, when it has one.
+    pub fn module(&self, origin: &str) -> Option<Rc<dyn DiagramModule>> {
+        self.modules.get(origin).cloned()
+    }
+
+    /// Whether the documents of `origin` are read, drawn and edited by its module, without a specification.
+    pub fn opened_by_module(&self, origin: &str) -> bool {
+        self.modules.get(origin).is_some_and(|m| m.opens_documents())
     }
 }

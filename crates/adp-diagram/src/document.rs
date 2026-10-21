@@ -17,6 +17,7 @@
 //! other it is refused with FBL section 7.2's sentence and nothing is written. Several elements changed by one
 //! gesture are one edit, so one undo.
 
+use std::any::Any;
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
@@ -554,6 +555,26 @@ pub struct DiagramDocuments {
     guard: SelfWriteGuard,
     recent: RecentBodies<Reading>,
     changed: Vec<PathBuf>,
+    /// What the modules that read their documents themselves keep of them, by the key each names
+    /// ([`crate::DiagramModule::opens_documents`]).
+    modules: HashMap<String, Box<dyn ModuleDocuments>>,
+}
+
+/// What a module that reads its documents itself keeps of them in the project's documents
+/// ([`DiagramDocuments::module_state`]): a change on disk and a close reach it as they reach every other document.
+pub trait ModuleDocuments: Any {
+    /// Reconciles the file at `path`, reported changed on disk, with the module's document of it: the module's own
+    /// write ignored, a body that holds what the document has needing nothing, any other change read again and a
+    /// deleted body ended; [`DiskChange::NotTracked`] when no document of the module has that file.
+    fn reconcile(&mut self, path: &Path) -> DiskChange {
+        let _ = path;
+        DiskChange::NotTracked
+    }
+
+    /// Forgets the document of the body at `body_path`, once no view shows it.
+    fn close(&mut self, body_path: &Path) {
+        let _ = body_path;
+    }
 }
 
 impl DiagramDocuments {
@@ -584,6 +605,9 @@ impl DiagramDocuments {
 
     /// Closes the document of the body at `body_path`.
     pub fn close(&mut self, body_path: &Path) {
+        for state in self.modules.values_mut() {
+            state.close(body_path);
+        }
         if let Some(index) = self.index_of(body_path) {
             let document = self.documents.remove(index);
             self.guard.forget(&document.body_path);
@@ -605,6 +629,34 @@ impl DiagramDocuments {
     /// The bodies whose documents changed since this was last asked, in order, each once.
     pub fn take_changed(&mut self) -> Vec<PathBuf> {
         std::mem::take(&mut self.changed)
+    }
+
+    /// Records that the document of the body at `body_path` changed, so its views refresh: a module that keeps its
+    /// documents itself says so after each of its writes, and after a write beside the body that changes what a view
+    /// shows (the standalone host's `IC4DocumentStore.Touch`).
+    pub fn mark_changed(&mut self, body_path: &Path) {
+        if !self.changed.iter().any(|c| same_path(c, body_path)) {
+            self.changed.push(body_path.to_path_buf());
+        }
+    }
+
+    /// What the module keyed `key` keeps of its documents, made empty the first time it is asked for.
+    pub fn module_state<T: ModuleDocuments + Default>(&mut self, key: &str) -> &mut T {
+        let entry = self
+            .modules
+            .entry(key.to_owned())
+            .or_insert_with(|| Box::new(T::default()));
+        if !(entry.as_ref() as &dyn Any).is::<T>() {
+            *entry = Box::new(T::default());
+        }
+        (entry.as_mut() as &mut dyn Any)
+            .downcast_mut::<T>()
+            .expect("just made of this type")
+    }
+
+    /// What the module keyed `key` keeps of its documents, or none before it kept anything.
+    pub fn module_state_ref<T: ModuleDocuments>(&self, key: &str) -> Option<&T> {
+        (self.modules.get(key)?.as_ref() as &dyn Any).downcast_ref::<T>()
     }
 
     fn index_of(&self, body_path: &Path) -> Option<usize> {
@@ -657,9 +709,7 @@ impl DiagramDocuments {
         let mut document = self.read(tool, body_path.clone(), registration_path, body, registration);
         document.deleted = deleted;
         self.documents[index] = document;
-        if !self.changed.iter().any(|c| same_path(c, &body_path)) {
-            self.changed.push(body_path);
-        }
+        self.mark_changed(&body_path);
     }
 
     /// Applies `edit` to its document and writes what changed to disk; the edit that reverses it, or the refusal
@@ -735,7 +785,19 @@ impl DiagramDocuments {
                 None
             }
         }) else {
-            return DiskChange::NotTracked;
+            // Not a document drawn from a specification: perhaps one a module reads itself.
+            let mut change = DiskChange::NotTracked;
+            for state in self.modules.values_mut() {
+                change = state.reconcile(path);
+                if change != DiskChange::NotTracked {
+                    break;
+                }
+            }
+            if let DiskChange::Reloaded(body) | DiskChange::Deleted(body) = &change {
+                let body = body.clone();
+                self.mark_changed(&body);
+            }
+            return change;
         };
         let disk = fs::read(path).ok();
         if self.guard.is_own_write(path, disk.as_deref()) {

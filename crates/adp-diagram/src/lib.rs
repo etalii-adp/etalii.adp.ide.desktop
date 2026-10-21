@@ -22,7 +22,8 @@
 //! - [`reload::DiagramDocumentReloadBridge`] says which documents a watcher's event reaches.
 //! - [`module::DiagramModule`] is what a tool type's module adds where its specification cannot say it: the persistence
 //!   plugin its binding reads with, the actions it runs itself and the positions its layout gives. A body whose reader
-//!   plugin the host lacks opens unreadable, with the finding that names the plugin.
+//!   plugin the host lacks opens unreadable, with the finding that names the plugin. A module may instead read, draw
+//!   and edit its documents itself ([`module::ModuleView`]), as the standalone host's C4 module did.
 
 pub mod actions;
 pub mod body_edits;
@@ -45,9 +46,9 @@ pub mod workspace;
 pub use change_handler::{DiagramDocumentChangeHandler, DocumentChange};
 pub use definition::{DiagramDefinition, ToolboxItem};
 pub use disl_definition::DislDiagramDefinition;
-pub use document::{DiagramChange, DiagramDocument, DiagramDocuments, DiskChange, DocumentEdit};
+pub use document::{DiagramChange, DiagramDocument, DiagramDocuments, DiskChange, DocumentEdit, ModuleDocuments};
 pub use element::{DiagramDelta, DiagramElement, DiagramViewport, ElementKind};
-pub use module::{DiagramModule, ModulePlacement};
+pub use module::{DiagramModule, ModulePlacement, ModuleView};
 pub use problems::{DiagramProblem, DiagramProblemLocation, DiagramProblemSeverity};
 pub use reload::{DiagramDocumentReloadBridge, FileEvent, Reload};
 pub use session::{ActionOutcome, ActionTarget, DiagramSession};

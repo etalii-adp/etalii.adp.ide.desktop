@@ -4,6 +4,7 @@
 //! edited in the property grid, with every write checked against the bytes on disk and undone through the project's
 //! history.
 
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -40,14 +41,21 @@ struct Harness {
     original: String,
     /// Every text the last frame painted, with where.
     texts: Vec<(String, egui::Rect)>,
+    /// The textures every frame so far set, and the shapes the last one painted: what a screenshot rasterises.
+    textures: HashMap<egui::TextureId, egui::ColorImage>,
+    shapes: Vec<egui::epaint::ClippedShape>,
     _folder: tempfile::TempDir,
 }
 
 impl Harness {
     fn open(fixture: &str, files: &[&str], open: &str, body: &str) -> Harness {
+        Harness::open_from(&fixtures(fixture), files, open, body)
+    }
+
+    fn open_from(source: &Path, files: &[&str], open: &str, body: &str) -> Harness {
         let folder = tempfile::tempdir().unwrap();
         for name in files {
-            fs::copy(fixtures(fixture).join(name), folder.path().join(name)).unwrap();
+            fs::copy(source.join(name), folder.path().join(name)).unwrap();
         }
         let root = folder.path().to_path_buf();
         let mut host = DiagramHost::with_vendor(&vendor());
@@ -65,6 +73,8 @@ impl Harness {
             root,
             body,
             texts: Vec::new(),
+            textures: HashMap::new(),
+            shapes: Vec::new(),
             _folder: folder,
         };
         harness.frame(Vec::new());
@@ -99,7 +109,27 @@ impl Harness {
             let workspace = host.workspace(root);
             egui::CentralPanel::default().show(ui, |ui| tab.show(ui, workspace, &theme, &palette));
         });
+        for (id, delta) in std::mem::take(&mut output.textures_delta.set)
+            .into_iter()
+            .flat_map(|(id, deltas)| deltas.into_iter().map(move |d| (id, d)))
+        {
+            let egui::ImageData::Color(image) = delta.image;
+            match (delta.pos, self.textures.get_mut(&id)) {
+                (Some([x, y]), Some(texture)) => {
+                    for row in 0..image.size[1] {
+                        for column in 0..image.size[0] {
+                            let at = (y + row) * texture.size[0] + x + column;
+                            texture.pixels[at] = image.pixels[row * image.size[0] + column];
+                        }
+                    }
+                }
+                _ => {
+                    self.textures.insert(id, (*image).clone());
+                }
+            }
+        }
         output.textures_delta.clear();
+        self.shapes = output.shapes.clone();
         fn texts(shape: &egui::Shape, into: &mut Vec<(String, egui::Rect)>) {
             match shape {
                 egui::Shape::Text(text) => into.push((text.galley.text().to_owned(), text.visual_bounding_rect())),
@@ -569,6 +599,168 @@ fn a_body_changed_on_disk_is_drawn_again() {
         })
         .collect();
     assert!(texts.contains(&"Front door"), "{texts:?}");
+}
+
+impl Harness {
+    /// The C4 container view of the parity corpus's courier model, through its registration.
+    fn c4_containers() -> Harness {
+        let courier = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/c4/container/courier");
+        Harness::open_from(
+            &courier,
+            &["courier.dsl", "courier.containers.adp", "courier.layout.json"],
+            "courier.containers.adp",
+            "courier.dsl",
+        )
+    }
+
+    /// The last frame as a PNG at `path`: every mesh egui tessellates from its shapes, rasterised over the editor's
+    /// background with its textures, the font atlas included.
+    fn screenshot(&self, path: &Path) {
+        let (width, height) = (SCREEN.x as usize, SCREEN.y as usize);
+        let background = Palette::of(&Theme::dark()).editor_background;
+        let mut pixels = vec![[background.r() as f32, background.g() as f32, background.b() as f32]; width * height];
+        for clipped in self.ctx.tessellate(self.shapes.clone(), 1.0) {
+            let egui::epaint::Primitive::Mesh(mesh) = clipped.primitive else {
+                continue;
+            };
+            let texture = self.textures.get(&mesh.texture_id);
+            let clip = clipped.clip_rect;
+            for triangle in mesh.indices.as_chunks::<3>().0 {
+                let [a, b, c] = [0, 1, 2].map(|i| mesh.vertices[triangle[i] as usize]);
+                let area = (b.pos - a.pos).x * (c.pos - a.pos).y - (b.pos - a.pos).y * (c.pos - a.pos).x;
+                if area.abs() < f32::EPSILON {
+                    continue;
+                }
+                let span = |v: [f32; 3], low: f32, high: f32, limit: usize| {
+                    let from = v[0].min(v[1]).min(v[2]).max(low).max(0.0).floor() as usize;
+                    let to = (v[0].max(v[1]).max(v[2]).min(high).ceil().max(0.0) as usize).min(limit);
+                    from..to
+                };
+                for y in span([a.pos.y, b.pos.y, c.pos.y], clip.min.y, clip.max.y, height) {
+                    for x in span([a.pos.x, b.pos.x, c.pos.x], clip.min.x, clip.max.x, width) {
+                        let p = egui::pos2(x as f32 + 0.5, y as f32 + 0.5);
+                        let edge = |u: egui::Pos2, v: egui::Pos2| (v - u).x * (p - u).y - (v - u).y * (p - u).x;
+                        let weights = [
+                            edge(b.pos, c.pos) / area,
+                            edge(c.pos, a.pos) / area,
+                            edge(a.pos, b.pos) / area,
+                        ];
+                        if weights.iter().any(|w| *w < 0.0) {
+                            continue;
+                        }
+                        let mix = |channel: fn(&egui::Color32) -> u8| {
+                            weights[0] * channel(&a.color) as f32
+                                + weights[1] * channel(&b.color) as f32
+                                + weights[2] * channel(&c.color) as f32
+                        };
+                        let texel = texture.map_or([1.0; 4], |image| {
+                            let uv =
+                                a.uv.to_vec2() * weights[0] + b.uv.to_vec2() * weights[1] + c.uv.to_vec2() * weights[2];
+                            let tx = ((uv.x * image.size[0] as f32) as usize).min(image.size[0] - 1);
+                            let ty = ((uv.y * image.size[1] as f32) as usize).min(image.size[1] - 1);
+                            let t = image.pixels[ty * image.size[0] + tx];
+                            [t.r(), t.g(), t.b(), t.a()].map(|v| v as f32 / 255.0)
+                        });
+                        let source = [
+                            mix(egui::Color32::r) * texel[0],
+                            mix(egui::Color32::g) * texel[1],
+                            mix(egui::Color32::b) * texel[2],
+                        ];
+                        let alpha = mix(egui::Color32::a) / 255.0 * texel[3];
+                        let pixel = &mut pixels[y * width + x];
+                        for channel in 0..3 {
+                            // Premultiplied colour over what is there.
+                            pixel[channel] = source[channel] + pixel[channel] * (1.0 - alpha);
+                        }
+                    }
+                }
+            }
+        }
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let file = fs::File::create(path).unwrap();
+        let mut encoder = png::Encoder::new(std::io::BufWriter::new(file), width as u32, height as u32);
+        encoder.set_color(png::ColorType::Rgb);
+        encoder.set_depth(png::BitDepth::Eight);
+        let bytes: Vec<u8> = pixels
+            .iter()
+            .flat_map(|p| p.map(|v| v.clamp(0.0, 255.0) as u8))
+            .collect();
+        encoder.write_header().unwrap().write_image_data(&bytes).unwrap();
+    }
+}
+
+fn texts_of(scene: &adp_scene::Scene) -> Vec<&str> {
+    scene
+        .primitives
+        .iter()
+        .filter_map(|p| match p {
+            Primitive::Text(t) => Some(t.text.as_str()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn a_c4_view_is_drawn_from_its_modules_layout_and_selected_moved_and_edited_through_the_session() {
+    let mut harness = Harness::c4_containers();
+    assert!(harness.tab.session.module_view().is_some());
+    harness.settle();
+
+    // What the module laid out: the cards, the boundary around the system's containers, the lines, the title and
+    // the key.
+    let scene = harness.tab.scene().expect("the view is drawn");
+    let texts = texts_of(scene);
+    for expected in [
+        "API Application",
+        "[Container: Java and Spring Boot]",
+        "Courier Tracking [Software System]",
+        "Calls [JSON/HTTPS]",
+        "Container diagram for Courier Tracking",
+        "Key",
+        "Person",
+    ] {
+        assert!(texts.contains(&expected), "{expected} is drawn: {texts:?}");
+    }
+    assert!(harness.text("API Application").is_some(), "the name is painted");
+    // Every card at the centre the module gave it: spa's at (840, 0), where the parity script's move starts from.
+    assert_eq!(harness.tab.bounds_of("spa").unwrap().centre(), Point::new(840.0, 0.0));
+
+    // A click selects a card, and the property grid shows its rows through the session.
+    let api = harness.screen_of("api");
+    harness.click(api, Modifiers::NONE);
+    assert_eq!(harness.tab.selection, vec!["api".to_owned()]);
+    let rows = harness
+        .tab
+        .session
+        .properties(harness.host.workspace(&harness.root).documents(), &["api"]);
+    assert_eq!(rows[0].id, "c4.name");
+    assert_eq!(rows[0].value, "API Application");
+
+    // A drag records where the card went in the layout sidecar, one undo away; the body is not touched.
+    let sidecar = harness.root.join("courier.layout.json");
+    let before = fs::read_to_string(&sidecar).unwrap();
+    harness.drag(api, api + egui::vec2(60.0, 30.0), PointerButton::Primary, true);
+    let moved = fs::read_to_string(&sidecar).unwrap();
+    assert!(moved.contains("\"api\""), "{moved}");
+    assert_eq!(harness.written(), harness.original);
+    assert!(harness.workspace().undo().is_done());
+    assert!(!fs::read_to_string(&sidecar).unwrap().contains("\"api\""));
+    assert_eq!(
+        fs::read_to_string(&sidecar).unwrap().replace("\r\n", "\n"),
+        before.replace("\r\n", "\n")
+    );
+
+    // A property edit through the session rewrites the one line, and the canvas draws the new name.
+    let (host, tab, root) = (&mut harness.host, &mut harness.tab, &harness.root);
+    tab.session
+        .set_property(host.workspace(root), &["api"], "c4.name", "Tracking API")
+        .unwrap();
+    assert!(harness.written().contains("api = container \"Tracking API\""));
+    harness.tab.changed();
+    harness.settle();
+    assert!(texts_of(harness.tab.scene().unwrap()).contains(&"Tracking API"));
+
+    harness.screenshot(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/screenshots/c4-container.png"));
 }
 
 impl Harness {

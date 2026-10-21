@@ -15,6 +15,7 @@
 
 pub mod gestures;
 pub mod metrics;
+pub mod module_scene;
 pub mod paint;
 pub mod placement;
 pub mod toolbox;
@@ -60,6 +61,9 @@ const FIT_PADDING: f64 = 40.0;
 const SCROLL_BAR: f32 = 10.0;
 /// The smallest share of its track a thumb takes (`thumbOf`).
 const MIN_THUMB: f64 = 0.05;
+/// What stands in for the notation of a diagram its module draws itself: its scene is built from the module's view
+/// ([`module_scene`]) rather than compiled from a specification.
+pub const MODULE_CANVAS: &str = "This diagram is drawn by its module.";
 
 /// Where the vendored specifications and bindings are: `ADP_VENDOR`, else a `vendor` folder beside the program or
 /// above it, else the source tree's.
@@ -88,10 +92,12 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
-                DislPluginFunctions::none()
-            }))
-            .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module()),
+            tools: adp_diagram_c4::register(
+                adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
+                    DislPluginFunctions::none()
+                }))
+                .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module()),
+            ),
             workspaces: HashMap::new(),
         }
     }
@@ -107,7 +113,10 @@ impl DiagramHost {
     /// the tool type on its first line.
     pub fn claims(&self, path: &Path) -> bool {
         let catalogue = self.tools.catalogue();
-        let usable = |origin: &str| catalogue.by_origin(origin).is_some_and(|t| t.is_usable());
+        // A tool type is usable when its specification loads, or when its module opens its documents itself.
+        let usable = |origin: &str| {
+            catalogue.by_origin(origin).is_some_and(|t| t.is_usable()) || self.tools.opened_by_module(origin)
+        };
         if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
             return std::fs::read(path).is_ok_and(|bytes| usable(&RegistrationDocument::read(bytes).origin));
         }
@@ -360,6 +369,11 @@ impl DiagramTab {
         if self.definition.is_ok() || !self.definition.as_ref().err().is_some_and(String::is_empty) {
             return;
         }
+        if self.session.module_view().is_some() {
+            // A tool type whose module reads, draws and edits its documents itself (C4) has no notation to compile.
+            self.definition = Err(MODULE_CANVAS.to_owned());
+            return;
+        }
         let Some(document) = documents.get(&self.opened.body_path) else {
             self.definition = Err("The diagram is not open.".to_owned());
             return;
@@ -386,6 +400,10 @@ impl DiagramTab {
             resizing,
         };
         if self.cache.as_ref().is_some_and(|c| c.key == key) {
+            return;
+        }
+        if self.session.module_view().is_some() {
+            self.ensure_module_scene(ctx, documents, key);
             return;
         }
         let (Ok(definition), Some(document)) = (&self.definition, documents.get(&self.opened.body_path)) else {
@@ -522,6 +540,39 @@ impl DiagramTab {
         });
     }
 
+    /// Builds the scene of a diagram its module draws itself, from what the module's view renders.
+    fn ensure_module_scene(&mut self, ctx: &egui::Context, documents: &DiagramDocuments, key: SceneKey) {
+        let elements = match self.session.render(documents) {
+            Ok(elements) => elements,
+            Err(reason) => {
+                self.notice = Some(reason);
+                Vec::new()
+            }
+        };
+        let metrics = self.metrics.get_or_insert_with(|| EguiMetrics::new(ctx));
+        // A selected element that is gone is no longer selected.
+        let known: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
+        self.selection.retain(|id| known.contains(id.as_str()));
+        let built = module_scene::build(&elements, &self.selection, self.arbiter.moving());
+        let bounds = built.scene.bounds(metrics);
+        self.cache = Some(Cached {
+            key,
+            scene: built.scene,
+            placed: Placed {
+                rects: built.rects,
+                ..Placed::default()
+            },
+            boxes: built.boxes,
+            lines: built.lines,
+            anchors: Vec::new(),
+            handles: Vec::new(),
+            labels: built.labels,
+            bounds,
+            surface: None,
+            drop_mapping: Mapping::default(),
+        });
+    }
+
     // ---- the view ---------------------------------------------------------------------------------------------------
 
     fn zoom_limits(&self) -> (f64, f64) {
@@ -646,6 +697,10 @@ impl DiagramTab {
         let Some(cache) = &self.cache else { return false };
         if !cache.placed.rects.contains_key(id) {
             return false;
+        }
+        if self.session.module_view().is_some() {
+            // Every card of a module's view drags; where it goes is the module's to record.
+            return true;
         }
         let Ok(definition) = &self.definition else { return false };
         cache
@@ -870,6 +925,39 @@ impl DiagramTab {
 
     /// Drops toolbox entry `tool_id` at a canvas point.
     pub fn drop_tool(&mut self, workspace: &mut DiagramWorkspace, tool_id: &str, at: Point) {
+        if self.session.module_view().is_some() {
+            // The entry carries the module's own action: dropped on an element, that element is the target the
+            // action adds inside; on empty canvas, the canvas (`onElementDropped`).
+            let Some(action) = self
+                .session
+                .toolbox(workspace.documents())
+                .into_iter()
+                .find(|item| item.id == tool_id)
+                .map(|item| item.drop_action_id)
+            else {
+                return;
+            };
+            let target = match self.hit(at) {
+                Hit::Element(id) => ActionTarget::Element(id),
+                _ => ActionTarget::Canvas { x: at.x, y: at.y },
+            };
+            // Asked in a dialog rather than over the card it lands on: what is typed names the new element.
+            self.ensure_ids(workspace.documents());
+            let ids = self.ids.as_deref().expect("made");
+            match self.session.execute(workspace, &target, &action, ids) {
+                ActionOutcome::Done => self.report(Ok(())),
+                ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+                ActionOutcome::Prompt(prompt) => {
+                    self.prompt = Some(PendingPrompt {
+                        target,
+                        action_id: action,
+                        prompt,
+                        value: String::new(),
+                    })
+                }
+            }
+            return;
+        }
         let (x, y) = self
             .cache
             .as_ref()

@@ -1,0 +1,26 @@
+[package]
+name = "adp-diagram-c4"
+description = "The C4 diagram types' residue: the Structurizr DSL reader and writer, and the six views over one workspace (spec 030, T061)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# The layout sidecar keeps its views and elements in the order the file lists them, as System.Text.Json does.
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+adp-disl = { path = "../../../crates/adp-disl" }
+tempfile = "3"
+
+[lints]
+workspace = true
