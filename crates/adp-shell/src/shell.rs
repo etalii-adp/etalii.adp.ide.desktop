@@ -8,6 +8,8 @@ use std::sync::mpsc::Receiver;
 
 use adp_core::state::StateFolder;
 use adp_core::{Event, Outcome, Workspace};
+use adp_documents::reconcile::CONFLICT_NOTICE;
+use adp_documents::{Reconciliation, Resolution, TextFile, reconcile_text};
 use adp_hierarchy::{Change, Hierarchy, Kind, Watcher, validate_name};
 use adp_problems::{ProblemSet, ProblemStore, Scope};
 use adp_projects::{Project, ProjectList};
@@ -212,7 +214,9 @@ impl Shell {
         self.project = None;
     }
 
-    /// Follows changes on disk: the tree is read again, and an open tab without unsaved changes reloads its file.
+    /// Follows changes on disk: the tree is read again, and each open tab of a changed file is reconciled as the
+    /// standalone host does (T058): without unsaved edits the new text takes over, and unsaved edits that differ
+    /// from it wait for the person to choose a side.
     fn follow_disk(&mut self) {
         let Some(project) = &mut self.project else { return };
         let Some(watcher) = &project.watcher else { return };
@@ -225,16 +229,44 @@ impl Shell {
         }
         let root = project.project.path.clone();
         for change in changes {
-            let (Change::Modified(path) | Change::Added(path)) = change else {
-                continue;
-            };
-            if let Some(index) = self.tabs.iter().position(|t| t.file.path() == path)
-                && !self.tabs[index].editor.buffer.is_modified()
-                && let Ok(reloaded) = OpenText::open(&path, &root)
-                && reloaded.file.content() != self.tabs[index].file.content()
-            {
-                self.tabs[index] = reloaded;
+            if let Change::Modified(path) | Change::Added(path) = change {
+                self.reconcile(&path, &root);
             }
+        }
+    }
+
+    /// Reconciles the open tab of `path`, if any, with what the file holds now.
+    fn reconcile(&mut self, path: &Path, root: &Path) {
+        let Some(index) = self.tabs.iter().position(|t| t.file.path() == path) else {
+            return;
+        };
+        let Ok(disk) = TextFile::open(path) else {
+            return;
+        };
+        let open = &mut self.tabs[index];
+        let edited = open.editor.buffer.is_modified().then(|| open.editor.buffer.text());
+        match reconcile_text(open.file.content(), edited.as_deref(), Some(disk.content())) {
+            Reconciliation::Unchanged | Reconciliation::Deleted => {}
+            Reconciliation::TakeOver => {
+                if let Ok(reloaded) = OpenText::open(path, root) {
+                    self.tabs[index] = reloaded;
+                }
+            }
+            Reconciliation::Conflict => open.disk = Some(disk),
+        }
+    }
+
+    /// Settles a tab whose file changed on disk under unsaved edits.
+    fn resolve_conflict(&mut self, index: usize, resolution: Resolution) {
+        let Some(open) = self.tabs.get_mut(index) else { return };
+        let Some(disk) = open.disk.take() else { return };
+        match resolution {
+            Resolution::LoadDisk => {
+                if let Ok(reloaded) = OpenText::open(disk.path(), &open.root) {
+                    self.tabs[index] = reloaded;
+                }
+            }
+            Resolution::KeepMine => open.file = disk,
         }
     }
 
@@ -768,6 +800,28 @@ impl Shell {
                 self.active = self.active.min(self.tabs.len().saturating_sub(1));
             }
         }
+        if self.tabs.get(self.active).is_some_and(|t| t.disk.is_some()) {
+            let mut chosen = None;
+            egui::Panel::top("conflict")
+                .frame(
+                    Frame::NONE
+                        .fill(palette.notification_background)
+                        .inner_margin(Margin::symmetric(12, 6)),
+                )
+                .show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new(CONFLICT_NOTICE).color(palette.notification_foreground));
+                        for resolution in [Resolution::LoadDisk, Resolution::KeepMine] {
+                            if ui.button(resolution.label()).clicked() {
+                                chosen = Some(resolution);
+                            }
+                        }
+                    });
+                });
+            if let Some(resolution) = chosen {
+                self.resolve_conflict(self.active, resolution);
+            }
+        }
         let highlighter = self.highlighter.get_or_insert_with(Highlighter::default);
         let Some(open) = self.tabs.get_mut(self.active) else {
             return;
@@ -927,6 +981,77 @@ mod tests {
             open.editor.marks
         );
         assert!(!open.status.starts_with("No schema"), "{}", open.status);
+    }
+
+    #[test]
+    fn a_file_changed_on_disk_takes_over_a_clean_tab_and_waits_for_a_choice_under_unsaved_edits() {
+        let folder = tempfile::tempdir().unwrap();
+        let path = folder.path().join("notes.md");
+        std::fs::write(
+            &path, "one
+",
+        )
+        .unwrap();
+        let mut shell = Shell::default();
+        shell.open_path(&path);
+        let root = shell.tabs[0].root.clone();
+
+        std::fs::write(
+            &path, "two
+",
+        )
+        .unwrap();
+        shell.reconcile(&path, &root);
+        assert_eq!(
+            shell.tabs[0].editor.buffer.text(),
+            "two
+",
+            "a clean tab takes the new text over"
+        );
+
+        shell.tabs[0].editor.buffer.insert("mine ");
+        std::fs::write(
+            &path, "three
+",
+        )
+        .unwrap();
+        shell.reconcile(&path, &root);
+        assert!(shell.tabs[0].disk.is_some(), "unsaved edits wait for the person");
+        shell.resolve_conflict(0, Resolution::KeepMine);
+        assert!(shell.tabs[0].editor.buffer.is_modified(), "the edits stay, unsaved");
+        assert_eq!(
+            shell.tabs[0].file.content(),
+            "three
+",
+            "over the new text"
+        );
+
+        std::fs::write(
+            &path, "four
+",
+        )
+        .unwrap();
+        shell.reconcile(&path, &root);
+        shell.resolve_conflict(0, Resolution::LoadDisk);
+        assert_eq!(
+            shell.tabs[0].editor.buffer.text(),
+            "four
+"
+        );
+        assert!(!shell.tabs[0].editor.buffer.is_modified());
+
+        std::fs::write(
+            &path, "four
+",
+        )
+        .unwrap();
+        shell.reconcile(&path, &root);
+        assert_eq!(
+            shell.tabs[0].editor.buffer.text(),
+            "four
+",
+            "a clean tab takes over other line endings, so its next save keeps them"
+        );
     }
 
     #[test]
