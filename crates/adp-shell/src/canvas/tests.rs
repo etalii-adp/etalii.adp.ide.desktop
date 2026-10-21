@@ -539,3 +539,26 @@ fn a_body_changed_on_disk_is_drawn_again() {
         .collect();
     assert!(texts.contains(&"Front door"), "{texts:?}");
 }
+
+#[test]
+fn a_c4_registration_is_claimed_and_opened_by_its_module_whose_canvas_is_not_drawn_here_yet() {
+    let folder = tempfile::tempdir().unwrap();
+    let courier = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/c4/container/courier");
+    for name in ["courier.dsl", "courier.containers.adp"] {
+        fs::copy(courier.join(name), folder.path().join(name)).unwrap();
+    }
+    let root = folder.path().to_path_buf();
+    let mut host = DiagramHost::with_vendor(&vendor());
+    let registration = root.join("courier.containers.adp");
+    assert!(host.claims(&registration), "the C4 module opens its registrations");
+    let mut tab = host.open(&registration, &root).unwrap();
+    assert!(tab.session.module_view().is_some());
+    let documents = host.workspace(&root).documents();
+    let elements = tab.session.render(documents).unwrap();
+    assert!(elements.iter().any(|e| e.id == "api"), "{elements:?}");
+    tab.ensure_definition(documents);
+    assert_eq!(
+        tab.definition.as_ref().err().map(String::as_str),
+        Some(super::MODULE_CANVAS)
+    );
+}

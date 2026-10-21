@@ -14,6 +14,9 @@
 //! A session holds no document: the project's [`DiagramDocuments`] does, shared by every view of a body, and every
 //! edit goes through the project's history in [`DiagramWorkspace`], so a gesture is one undo away like every other
 //! edit, and a change to several elements is one undo.
+//!
+//! A view of a tool type whose module reads, draws and edits its documents itself ([`DiagramSession::of_module`])
+//! hands every question and gesture to the module's [`ModuleView`]; the delivery of what it shows is the session's.
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -35,7 +38,7 @@ use crate::definition::ToolboxItem;
 use crate::disl_definition::DislDiagramDefinition;
 use crate::document::{DiagramChange, DiagramDocument, DiagramDocuments, NOT_OPEN};
 use crate::element::{DiagramDelta, DiagramElement, DiagramViewport, ElementKind, Rect};
-use crate::module::DiagramModule;
+use crate::module::{DiagramModule, ModuleView};
 use crate::problems::{DiagramProblem, DiagramProblemLocation, DiagramProblemSeverity};
 use crate::workspace::DiagramWorkspace;
 
@@ -88,7 +91,12 @@ pub struct DiagramSession {
     viewport: DiagramViewport,
     changes: DiagramDocumentChangeHandler,
     env: DislEnv,
+    /// The module's own view, for a tool type whose module reads, draws and edits its documents itself.
+    view: Option<Rc<dyn ModuleView>>,
 }
+
+/// What a gesture a module's own view does not offer answers.
+pub const NOT_OFFERED: &str = "This diagram does not offer that here.";
 
 impl DiagramSession {
     /// A view of the open document whose body is at `body_path`.
@@ -99,7 +107,21 @@ impl DiagramSession {
             body_path,
             viewport: DiagramViewport::UNBOUNDED,
             env: DislEnv::default(),
+            view: None,
         }
+    }
+
+    /// A view of the document whose body is at `body_path`, read, drawn and edited by its module's `view`.
+    pub fn of_module(body_path: impl Into<PathBuf>, view: Rc<dyn ModuleView>) -> Self {
+        DiagramSession {
+            view: Some(view),
+            ..DiagramSession::new(body_path)
+        }
+    }
+
+    /// The module's own view, when the module reads, draws and edits this document itself.
+    pub fn module_view(&self) -> Option<&Rc<dyn ModuleView>> {
+        self.view.as_ref()
     }
 
     pub fn body_path(&self) -> &Path {
@@ -127,6 +149,9 @@ impl DiagramSession {
     /// The elements in view: every node whose box touches the viewport, every relation both of whose ends are in
     /// view, in the model's order.
     pub fn render(&self, documents: &DiagramDocuments) -> Result<Vec<DiagramElement>, String> {
+        if let Some(view) = &self.view {
+            return view.render(documents, self.viewport);
+        }
         let elements = self.document(documents)?.elements();
         if self.viewport == DiagramViewport::UNBOUNDED {
             return Ok(elements);
@@ -179,6 +204,16 @@ impl DiagramSession {
     /// What a selection of `element_id` shows, or none when nothing has that id: its label, else its name, else its
     /// id; a relation without one by its ends.
     pub fn select(&self, documents: &DiagramDocuments, element_id: &str) -> Option<SelectedElement> {
+        if let Some(view) = &self.view {
+            let (path, text) = view.describe(documents, element_id)?;
+            let element = view
+                .render(documents, DiagramViewport::UNBOUNDED)
+                .ok()?
+                .into_iter()
+                .find(|e| e.id == element_id)
+                .unwrap_or_else(|| DiagramElement::node(element_id, ""));
+            return Some(SelectedElement { path, text, element });
+        }
         let element = self
             .document(documents)
             .ok()?
@@ -203,6 +238,9 @@ impl DiagramSession {
 
     /// The palette.
     pub fn toolbox(&self, documents: &DiagramDocuments) -> Vec<ToolboxItem> {
+        if let Some(view) = &self.view {
+            return view.toolbox();
+        }
         self.document(documents)
             .map(|d| d.tool().definition.toolbox().to_vec())
             .unwrap_or_default()
@@ -210,6 +248,9 @@ impl DiagramSession {
 
     /// The findings of the diagram's constraints, each with its severity and where it is.
     pub fn problems(&self, documents: &DiagramDocuments) -> Vec<DiagramProblem> {
+        if let Some(view) = &self.view {
+            return view.problems(documents);
+        }
         let Ok(document) = self.document(documents) else {
             return Vec::new();
         };
@@ -281,6 +322,9 @@ impl DiagramSession {
     /// specification's placement constraints first; the first refusal moves nothing. Where the tool type's module
     /// has coordinates of its own, it says what a move writes.
     pub fn move_elements(&self, workspace: &mut DiagramWorkspace, moves: &[(String, f64, f64)]) -> Result<(), String> {
+        if let Some(view) = &self.view {
+            return view.move_elements(workspace, moves);
+        }
         let document = self.document(workspace.documents())?;
         let positions = document.positions();
         let specification = document.tool().definition.specification();
@@ -355,6 +399,9 @@ impl DiagramSession {
         new_parent_id: Option<&str>,
         index: i64,
     ) -> Result<(), String> {
+        if let Some(view) = &self.view {
+            return view.move_element(workspace, element_id, new_parent_id, index);
+        }
         let document = self.document(workspace.documents())?;
         let element = document.element(element_id).ok_or_else(|| GONE.to_owned())?;
         let parent = match new_parent_id {
@@ -392,6 +439,9 @@ impl DiagramSession {
         y: f64,
         ids: &dyn IdSource,
     ) -> Result<(), String> {
+        if self.view.is_some() {
+            return Err(NOT_OFFERED.to_owned());
+        }
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
         let name = tool_name(document, tool_id).unwrap_or_else(|| tool_id.to_owned());
@@ -406,16 +456,19 @@ impl DiagramSession {
     /// The property rows of the selected elements: one element's form, or for several the rows they share by id,
     /// each with the value they share, empty where they differ, and read-only where any of them is.
     pub fn properties(&self, documents: &DiagramDocuments, element_ids: &[&str]) -> Vec<PropertyRow> {
-        let Ok(document) = self.document(documents) else {
-            return Vec::new();
+        let rows_of = |id: &str| -> Option<Vec<PropertyRow>> {
+            if let Some(view) = &self.view {
+                return Some(view.properties(documents, id));
+            }
+            let document = self.document(documents).ok()?;
+            let element = document.element(id)?;
+            Some(document.tool().definition.rows(&element, &self.env))
         };
-        let definition = &document.tool().definition;
         let mut shared: Option<Vec<PropertyRow>> = None;
         for id in element_ids {
-            let Some(element) = document.element(id) else {
+            let Some(rows) = rows_of(id) else {
                 return Vec::new();
             };
-            let rows = definition.rows(&element, &self.env);
             shared = Some(match shared {
                 None => rows,
                 Some(previous) => previous
@@ -446,6 +499,9 @@ impl DiagramSession {
         property_id: &str,
         value: &str,
     ) -> Result<(), String> {
+        if let Some(view) = &self.view {
+            return view.set_property(workspace, element_ids, property_id, value);
+        }
         let document = self.document(workspace.documents())?;
         let definition = &document.tool().definition;
         let row = definition.row_key(property_id);
@@ -497,6 +553,9 @@ impl DiagramSession {
 
     /// The context menu of `target`, as the shell shows it.
     pub fn actions(&self, documents: &DiagramDocuments, target: &ActionTarget) -> Vec<ActionGroup> {
+        if let Some(view) = &self.view {
+            return view.actions(documents, target);
+        }
         let Ok(document) = self.document(documents) else {
             return Vec::new();
         };
@@ -527,6 +586,9 @@ impl DiagramSession {
         action_id: &str,
         ids: &dyn IdSource,
     ) -> ActionOutcome {
+        if let Some(view) = &self.view {
+            return view.execute(workspace, target, action_id);
+        }
         if let Some(module) = self.module(workspace.documents())
             && let Some(outcome) = module.execute(self, workspace, target, action_id, ids)
         {
@@ -637,6 +699,9 @@ impl DiagramSession {
         action_id: &str,
         value: &str,
     ) -> ActionOutcome {
+        if let Some(view) = &self.view {
+            return view.answer(workspace, target, action_id, value);
+        }
         if let Some(module) = self.module(workspace.documents())
             && let Some(outcome) = module.answer(self, workspace, target, action_id, value)
         {
@@ -688,6 +753,9 @@ impl DiagramSession {
 
     /// The text the inline editor of `element_id`'s label `label` opens on, or none when it has no such label.
     pub fn label_text(&self, documents: &DiagramDocuments, element_id: &str, label: &str) -> Option<String> {
+        if self.view.is_some() {
+            return None;
+        }
         let document = self.document(documents).ok()?;
         let element = document.element(element_id)?;
         form_commit::edit_text(document.tool().definition.specification(), &element, label, &self.env)
@@ -702,6 +770,9 @@ impl DiagramSession {
         label: &str,
         text: &str,
     ) -> Result<(), String> {
+        if self.view.is_some() {
+            return Err(NOT_OFFERED.to_owned());
+        }
         let document = self.document(workspace.documents())?;
         let element = document.element(element_id).ok_or_else(|| GONE.to_owned())?;
         let specification = document.tool().definition.specification();
@@ -728,6 +799,9 @@ impl DiagramSession {
         target: &str,
         ids: &dyn IdSource,
     ) -> Result<(), String> {
+        if self.view.is_some() {
+            return Err(NOT_OFFERED.to_owned());
+        }
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
         let relation = specification
@@ -779,6 +853,9 @@ impl DiagramSession {
         y: f64,
         ids: &dyn IdSource,
     ) -> Result<(), String> {
+        if self.view.is_some() {
+            return Err(NOT_OFFERED.to_owned());
+        }
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
         let working = builder::from(document.fbl(), specification).diagram;

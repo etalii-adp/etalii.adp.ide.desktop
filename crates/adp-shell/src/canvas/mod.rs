@@ -56,6 +56,10 @@ const FIT_PADDING: f64 = 40.0;
 const SCROLL_BAR: f32 = 10.0;
 /// The smallest share of its track a thumb takes (`thumbOf`).
 const MIN_THUMB: f64 = 0.05;
+/// What a tab of a diagram its module draws itself shows: its edits, menus and properties are the module's, and its
+/// canvas (the standalone host's `C4Canvas.tsx`) is not drawn here yet.
+pub const MODULE_CANVAS: &str =
+    "This diagram is read and edited by its module, whose canvas this host does not draw yet. Open its text to see it.";
 
 /// Where the vendored specifications and bindings are: `ADP_VENDOR`, else a `vendor` folder beside the program or
 /// above it, else the source tree's.
@@ -84,10 +88,12 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
-                DislPluginFunctions::none()
-            }))
-            .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module()),
+            tools: adp_diagram_c4::register(
+                adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
+                    DislPluginFunctions::none()
+                }))
+                .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module()),
+            ),
             workspaces: HashMap::new(),
         }
     }
@@ -103,7 +109,10 @@ impl DiagramHost {
     /// the tool type on its first line.
     pub fn claims(&self, path: &Path) -> bool {
         let catalogue = self.tools.catalogue();
-        let usable = |origin: &str| catalogue.by_origin(origin).is_some_and(|t| t.is_usable());
+        // A tool type is usable when its specification loads, or when its module opens its documents itself.
+        let usable = |origin: &str| {
+            catalogue.by_origin(origin).is_some_and(|t| t.is_usable()) || self.tools.opened_by_module(origin)
+        };
         if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
             return std::fs::read(path).is_ok_and(|bytes| usable(&RegistrationDocument::read(bytes).origin));
         }
@@ -351,6 +360,11 @@ impl DiagramTab {
 
     fn ensure_definition(&mut self, documents: &DiagramDocuments) {
         if self.definition.is_ok() || !self.definition.as_ref().err().is_some_and(String::is_empty) {
+            return;
+        }
+        if self.session.module_view().is_some() {
+            // A tool type whose module reads, draws and edits its documents itself (C4) has no notation to compile.
+            self.definition = Err(MODULE_CANVAS.to_owned());
             return;
         }
         let Some(document) = documents.get(&self.opened.body_path) else {

@@ -17,6 +17,7 @@
 //! other it is refused with FBL section 7.2's sentence and nothing is written. Several elements changed by one
 //! gesture are one edit, so one undo.
 
+use std::any::Any;
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
@@ -501,6 +502,9 @@ pub struct DiagramDocuments {
     guard: SelfWriteGuard,
     recent: RecentBodies<Reading>,
     changed: Vec<PathBuf>,
+    /// What the modules that read their documents themselves keep of them, by the key each names
+    /// ([`crate::DiagramModule::opens_documents`]).
+    modules: HashMap<String, Box<dyn Any>>,
 }
 
 impl DiagramDocuments {
@@ -554,6 +558,32 @@ impl DiagramDocuments {
         std::mem::take(&mut self.changed)
     }
 
+    /// Records that the document of the body at `body_path` changed, so its views refresh: a module that keeps its
+    /// documents itself says so after each of its writes, and after a write beside the body that changes what a view
+    /// shows (the standalone host's `IC4DocumentStore.Touch`).
+    pub fn mark_changed(&mut self, body_path: &Path) {
+        if !self.changed.iter().any(|c| same_path(c, body_path)) {
+            self.changed.push(body_path.to_path_buf());
+        }
+    }
+
+    /// What the module keyed `key` keeps of its documents, made empty the first time it is asked for.
+    pub fn module_state<T: Default + 'static>(&mut self, key: &str) -> &mut T {
+        let entry = self
+            .modules
+            .entry(key.to_owned())
+            .or_insert_with(|| Box::new(T::default()));
+        if !entry.is::<T>() {
+            *entry = Box::new(T::default());
+        }
+        entry.downcast_mut::<T>().expect("just made of this type")
+    }
+
+    /// What the module keyed `key` keeps of its documents, or none before it kept anything.
+    pub fn module_state_ref<T: 'static>(&self, key: &str) -> Option<&T> {
+        self.modules.get(key)?.downcast_ref::<T>()
+    }
+
     fn index_of(&self, body_path: &Path) -> Option<usize> {
         self.documents.iter().position(|d| same_path(&d.body_path, body_path))
     }
@@ -604,9 +634,7 @@ impl DiagramDocuments {
         let mut document = self.read(tool, body_path.clone(), registration_path, body, registration);
         document.deleted = deleted;
         self.documents[index] = document;
-        if !self.changed.iter().any(|c| same_path(c, &body_path)) {
-            self.changed.push(body_path);
-        }
+        self.mark_changed(&body_path);
     }
 
     /// Applies `edit` to its document and writes what changed to disk; the edit that reverses it, or the refusal

@@ -192,6 +192,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-c4"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "adp-layout",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-mindmap"
 version = "0.1.0"
 dependencies = [
@@ -313,6 +328,7 @@ dependencies = [
  "adp-context",
  "adp-core",
  "adp-diagram",
+ "adp-diagram-c4",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
  "adp-disl",
@@ -359,6 +375,7 @@ dependencies = [
  "adp-context",
  "adp-core",
  "adp-diagram",
+ "adp-diagram-c4",
  "adp-diagram-mindmap",
  "adp-diagram-timeline",
  "adp-disl",
