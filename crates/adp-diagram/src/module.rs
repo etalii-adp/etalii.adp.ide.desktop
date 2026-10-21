@@ -1,19 +1,28 @@
-//! What a tool type's own code adds to its specification, registered per origin with [`crate::DiagramTools`]
-//! (etalii.adp spec 030, FR-030 and FR-031; plan.md, "Project Structure": `modules/diagrams/*`).
+//! What a tool type's module adds to the host where its specification and binding cannot say it (etalii.adp spec
+//! 030, FR-018, FR-030 and FR-031; plan.md, "Project Structure": `modules/diagrams/*`).
 //!
 //! The standalone host at `8b6ccfc` built every diagram type as a module of its own (`src/diagrams/<type>/backend`),
-//! which the desktop host replaces with one session driven by the specification and its binding. What a module did
-//! that DISL 0.3 cannot state stays the module's, and reaches the session through this hook: the implementations of
-//! the specification's plugin CEL functions (DISL section 13.1.1), the canvas coordinates of a coordinate system
-//! whose placement attributes are not plain numbers (section 5; the timeline's `TimelineScale` and `TimelineRows`),
-//! the plugin layouts its `layout` actions name (section 10), and the attribute an inline rename writes where a
-//! computed label names none (the timeline's `RenameTimelineElementCommand`). Every method has the generic answer as
-//! its default, so a module implements only what it adds.
+//! registered through dependency injection: its document store, its `IContextActionProvider`, its layout. Here one
+//! value per origin carries what is left of it, given to [`crate::DiagramTools::with_module`]: the persistence
+//! plugin its binding names as its reader (FBL section 11), the actions it runs itself, the positions its layout
+//! gives (the mind map's), the implementations of the specification's plugin CEL functions (DISL section 13.1.1),
+//! the canvas coordinates of a coordinate system whose placement attributes are not plain numbers (section 5; the
+//! timeline's `TimelineScale` and `TimelineRows`), the plugin layouts its `layout` actions name (section 10), the
+//! attribute an inline rename writes where a computed label names none, and the changes as its body writes them.
+//! Every hook has the generic answer as its default, so a module implements only what it adds, and a tool type
+//! without a module is drawn and edited from its specification alone.
 
+use std::collections::HashMap;
 use std::fmt;
+use std::rc::Rc;
 
 use adp_cel::Map;
-use adp_disl::{DislChange, DislDiagram, DislElement, DislPluginFunctions, DislSpecification};
+use adp_disl::{DislChange, DislDiagram, DislElement, DislPluginFunctions, DislSpecification, IdSource};
+use adp_fbl::plugins::PersistencePlugin;
+
+use crate::document::DiagramDocument;
+use crate::session::{ActionOutcome, ActionTarget, DiagramSession};
+use crate::workspace::DiagramWorkspace;
 
 /// Where a gesture puts an element, as a module's coordinates say: the attributes to set, and the bounds before and
 /// after that the specification's placement constraints judge (DISL section 8.4, `oldBounds` and `newBounds`).
@@ -26,7 +35,47 @@ pub struct ModulePlacement {
 }
 
 /// A tool type's own code, beside its specification. Each method's default is the session's generic behaviour.
-pub trait DiagramModule: fmt::Debug {
+/// The residue of one tool type: what its module implements beside its specification. Each method's default is the
+/// session's generic behaviour.
+pub trait DiagramModule {
+    /// The persistence plugin with id `plugin_id` (FBL section 11), when the module provides it.
+    fn persistence(&self, plugin_id: &str) -> Option<Rc<dyn PersistencePlugin>> {
+        let _ = plugin_id;
+        None
+    }
+
+    /// Runs action `action_id` of `target`'s menu itself, or none to leave it to the specification's behaviour.
+    fn execute(
+        &self,
+        session: &DiagramSession,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        ids: &dyn IdSource,
+    ) -> Option<ActionOutcome> {
+        let _ = (session, workspace, target, action_id, ids);
+        None
+    }
+
+    /// Answers the prompt action `action_id` of `target` raised, or none to leave it to the session.
+    fn answer(
+        &self,
+        session: &DiagramSession,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        value: &str,
+    ) -> Option<ActionOutcome> {
+        let _ = (session, workspace, target, action_id, value);
+        None
+    }
+
+    /// Where the module's layout puts each element, by id, in the diagram's units; none to keep the registration's.
+    fn positions(&self, document: &DiagramDocument) -> Option<HashMap<String, (f64, f64)>> {
+        let _ = document;
+        None
+    }
+
     /// The host's implementations of the CEL functions the specification's plugins declare.
     fn plugin_functions(&self) -> DislPluginFunctions {
         DislPluginFunctions::none()
@@ -73,5 +122,11 @@ pub trait DiagramModule: fmt::Debug {
     /// gesture, form or operation made it. The changes as they are by default.
     fn written(&self, _diagram: &DislDiagram, changes: Vec<DislChange>) -> Result<Vec<DislChange>, String> {
         Ok(changes)
+    }
+}
+
+impl fmt::Debug for dyn DiagramModule {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("DiagramModule")
     }
 }

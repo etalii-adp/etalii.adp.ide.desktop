@@ -17,6 +17,7 @@
 
 use std::io;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 use adp_cel::{Map, Value};
 use adp_context::{ActionGroup, Prompt, PropertyRow};
@@ -25,15 +26,17 @@ use adp_disl::derivation::{constraints, form_commit, gestures};
 use adp_disl::model::builder;
 use adp_disl::{
     DerivedMenuEntry, DislChange, DislConstraintOptions, DislElement, DislEnv, DislInvocation, DislMenuTarget,
-    DislTransaction, HostAction, IdSource,
+    DislReaderFinding, DislTransaction, HostAction, IdSource,
 };
+use adp_fbl::model::codes;
 
 use crate::change_handler::{DiagramDocumentChangeHandler, DocumentChange};
 use crate::definition::ToolboxItem;
 use crate::disl_definition::DislDiagramDefinition;
 use crate::document::{DiagramChange, DiagramDocument, DiagramDocuments, NOT_OPEN};
 use crate::element::{DiagramDelta, DiagramElement, DiagramViewport, ElementKind, Rect};
-use crate::problems::{DiagramProblem, DiagramProblemLocation};
+use crate::module::DiagramModule;
+use crate::problems::{DiagramProblem, DiagramProblemLocation, DiagramProblemSeverity};
 use crate::workspace::DiagramWorkspace;
 
 /// What a drag answers when the diagram may not be edited.
@@ -114,6 +117,11 @@ impl DiagramSession {
 
     fn document<'a>(&self, documents: &'a DiagramDocuments) -> Result<&'a DiagramDocument, String> {
         documents.get(&self.body_path).ok_or_else(|| NOT_OPEN.to_owned())
+    }
+
+    /// The module of the tool type this view shows, when it has one.
+    fn module(&self, documents: &DiagramDocuments) -> Option<Rc<dyn DiagramModule>> {
+        self.document(documents).ok()?.tool().module.clone()
     }
 
     /// The elements in view: every node whose box touches the viewport, every relation both of whose ends are in
@@ -205,27 +213,55 @@ impl DiagramSession {
         let Ok(document) = self.document(documents) else {
             return Vec::new();
         };
+        // What the reader could not read: a body that does not parse is the specification's `std.unparseable`, and a
+        // body whose reader plugin the host lacks is a problem of its own.
+        let reader_findings = document
+            .fbl()
+            .findings
+            .iter()
+            .filter(|f| f.code == codes::UNPARSEABLE)
+            .map(|f| DislReaderFinding::not_parsed(&f.message, f.location.as_ref().map(|l| l.line as i32), None))
+            .collect();
+        let missing = document
+            .fbl()
+            .findings
+            .iter()
+            .filter(|f| f.code == codes::PLUGIN_MISSING)
+            .map(|f| DiagramProblem {
+                severity: DiagramProblemSeverity::Error,
+                location: f
+                    .location
+                    .as_ref()
+                    .map(|l| DiagramProblemLocation::Line(l.line.max(1) as u32)),
+                message: f.message.clone(),
+                rule_id: f.code.clone(),
+            })
+            .collect::<Vec<_>>();
         let options = DislConstraintOptions {
             env: Some(self.env.clone()),
+            reader_findings,
             ..DislConstraintOptions::default()
         };
-        constraints::evaluate(
-            document.tool().definition.specification(),
-            &document.model().diagram,
-            &options,
-        )
-        .into_iter()
-        .map(|finding| DiagramProblem {
-            severity: DislDiagramDefinition::severity_of(&finding),
-            location: match (finding.element_ids.first(), finding.line) {
-                (Some(id), _) => Some(DiagramProblemLocation::Element(id.clone())),
-                (None, Some(line)) => Some(DiagramProblemLocation::Line(line.max(1) as u32)),
-                (None, None) => None,
-            },
-            message: finding.message,
-            rule_id: finding.code,
-        })
-        .collect()
+        let mut problems = missing;
+        problems.extend(
+            constraints::evaluate(
+                document.tool().definition.specification(),
+                &document.model().diagram,
+                &options,
+            )
+            .into_iter()
+            .map(|finding| DiagramProblem {
+                severity: DislDiagramDefinition::severity_of(&finding),
+                location: match (finding.element_ids.first(), finding.line) {
+                    (Some(id), _) => Some(DiagramProblemLocation::Element(id.clone())),
+                    (None, Some(line)) => Some(DiagramProblemLocation::Line(line.max(1) as u32)),
+                    (None, None) => None,
+                },
+                message: finding.message,
+                rule_id: finding.code,
+            }),
+        );
+        problems
     }
 
     // ---- gestures ------------------------------------------------------------------------------------------------
@@ -491,6 +527,11 @@ impl DiagramSession {
         action_id: &str,
         ids: &dyn IdSource,
     ) -> ActionOutcome {
+        if let Some(module) = self.module(workspace.documents())
+            && let Some(outcome) = module.execute(self, workspace, target, action_id, ids)
+        {
+            return outcome;
+        }
         let document = match self.document(workspace.documents()) {
             Ok(document) => document,
             Err(refusal) => return ActionOutcome::Refused(refusal),
@@ -596,6 +637,11 @@ impl DiagramSession {
         action_id: &str,
         value: &str,
     ) -> ActionOutcome {
+        if let Some(module) = self.module(workspace.documents())
+            && let Some(outcome) = module.answer(self, workspace, target, action_id, value)
+        {
+            return outcome;
+        }
         let Ok(document) = self.document(workspace.documents()) else {
             return ActionOutcome::Refused(NOT_OPEN.to_owned());
         };
@@ -718,6 +764,76 @@ impl DiagramSession {
             }
         };
         self.write(workspace, "Connect", transaction)
+    }
+
+    /// The connect gesture released on empty canvas (DISL sections 6.10 and 7.2): the relation's missing target
+    /// made at (`x`, `y`) in the diagram's units by the tool that creates it, and the relation from `source` to it, as
+    /// one command; refused where no tool makes such a target.
+    #[allow(clippy::too_many_arguments)]
+    pub fn connect_to_new(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        relation_type: &str,
+        source: &str,
+        x: f64,
+        y: f64,
+        ids: &dyn IdSource,
+    ) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        let specification = document.tool().definition.specification();
+        let working = builder::from(document.fbl(), specification).diagram;
+        let existing = working.element_by_id(source).ok_or_else(|| GONE.to_owned())?;
+        let transaction = operations::connect_to_new(
+            specification,
+            relation_type,
+            &working,
+            &existing,
+            "target",
+            &bounds(x, y),
+            ids,
+            Some(&self.env),
+        );
+        self.write(workspace, "Connect", transaction)
+    }
+
+    /// The relation types a connect gesture from `source` may draw to `target`, or towards empty canvas when there
+    /// is none, in the metamodel's order: those whose source end takes the source's type and whose target end takes
+    /// the target's, abstract types left out.
+    pub fn relation_types_between(
+        &self,
+        documents: &DiagramDocuments,
+        source: &str,
+        target: Option<&str>,
+    ) -> Vec<String> {
+        let Ok(document) = self.document(documents) else {
+            return Vec::new();
+        };
+        let Some(from) = document.element(source) else {
+            return Vec::new();
+        };
+        let to = target.and_then(|id| document.element(id));
+        if target.is_some() && to.is_none() {
+            return Vec::new();
+        }
+        let takes = |end: Option<&adp_disl::DislRelationEnd>, element: &DislElement| match end {
+            None => true,
+            Some(end) => {
+                (end.types.is_empty() || end.types.iter().any(|t| element.is_a(t)))
+                    && !end.exclude.iter().any(|t| element.is_a(t))
+            }
+        };
+        document
+            .tool()
+            .definition
+            .specification()
+            .metamodel()
+            .relations
+            .values()
+            .filter(|relation| !relation.is_abstract())
+            .filter(|relation| takes(relation.source.as_ref(), &from))
+            .filter(|relation| to.as_ref().is_none_or(|to| takes(relation.target.as_ref(), to)))
+            .map(|relation| relation.name.clone())
+            .collect()
     }
 
     /// Removes an element; the binding's cascade takes what goes with it, as the standalone host's removal

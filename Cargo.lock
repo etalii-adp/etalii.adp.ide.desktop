@@ -192,6 +192,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-mindmap"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-fbl",
+ "adp-history",
+ "adp-layout",
+ "indexmap",
+ "serde_json",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
 name = "adp-diagram-timeline"
 version = "0.1.0"
 dependencies = [
@@ -295,6 +313,7 @@ dependencies = [
  "adp-context",
  "adp-core",
  "adp-diagram",
+ "adp-diagram-mindmap",
  "adp-diagram-timeline",
  "adp-disl",
  "adp-history",
@@ -336,20 +355,30 @@ dependencies = [
 name = "adp-shell"
 version = "0.1.0"
 dependencies = [
+ "adp-cel",
  "adp-context",
  "adp-core",
+ "adp-diagram",
+ "adp-diagram-mindmap",
+ "adp-diagram-timeline",
+ "adp-disl",
  "adp-documents",
  "adp-editor-json",
  "adp-editor-markdown",
  "adp-editor-xml",
  "adp-editor-yaml",
+ "adp-fbl",
  "adp-hierarchy",
+ "adp-history",
+ "adp-layout",
  "adp-problems",
  "adp-projects",
+ "adp-scene",
  "adp-text",
  "adp-theme",
  "eframe",
  "rfd",
+ "serde_json",
  "syntect",
  "tempfile",
 ]

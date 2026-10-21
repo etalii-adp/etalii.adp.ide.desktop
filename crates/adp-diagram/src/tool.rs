@@ -16,6 +16,8 @@ use adp_disl::model::{attribute_types, natural_ids};
 use adp_fbl::documents::{self, FblBinding};
 use adp_fbl::{FblOptions, RegistrationDocument};
 
+use adp_fbl::plugins::PersistencePlugin;
+
 use crate::definition::DiagramDefinition;
 use crate::disl_definition::DislDiagramDefinition;
 use crate::module::DiagramModule;
@@ -29,7 +31,7 @@ pub struct DiagramTool {
     pub binding: Rc<FblBinding>,
     /// The extensions it opens, lower case with their dot.
     pub extensions: Vec<String>,
-    /// The tool type's own code beside its specification, when it has any.
+    /// What its module adds, when it has one ([`DiagramTools::with_module`]).
     pub module: Option<Rc<dyn DiagramModule>>,
 }
 
@@ -66,6 +68,13 @@ impl DiagramTool {
             extensions: tool_type.extensions.clone(),
             module: None,
         })
+    }
+
+    /// The persistence plugin the binding names as its reader, when the module provides it; none for a binding read
+    /// by its declared rules, and none when the host lacks the plugin.
+    pub fn persistence(&self) -> Option<Rc<dyn PersistencePlugin>> {
+        let reader = self.binding.plugin.as_ref()?;
+        self.module.as_ref()?.persistence(&reader.plugin)
     }
 
     /// The tool type as the host's definition: its origin, its title and the extension of its bodies.
@@ -146,8 +155,8 @@ impl DiagramTools {
         }
     }
 
-    /// Registers the tool type `origin`'s own code: its plugin functions take the place of what `plugins` gives for
-    /// that origin, and its session asks it what the specification cannot state.
+    /// These tool types with `module` added to the tool type of `origin`: its plugin functions take the place of
+    /// what `plugins` gives for that origin, and its session asks it what the specification cannot state.
     pub fn with_module(mut self, origin: &str, module: Rc<dyn DiagramModule>) -> Self {
         self.loaded.remove(origin);
         self.modules.insert(origin.to_owned(), module);

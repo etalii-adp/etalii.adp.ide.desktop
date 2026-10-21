@@ -20,6 +20,9 @@
 //! - [`session::DiagramSession`] is one view: its baseline and viewport deltas, and the gestures, property edits and
 //!   actions it plans as one [`document::DocumentEdit`] each, which the history applies, undoes and redoes as splices.
 //! - [`reload::DiagramDocumentReloadBridge`] says which documents a watcher's event reaches.
+//! - [`module::DiagramModule`] is what a tool type's module adds where its specification cannot say it: the persistence
+//!   plugin its binding reads with, the actions it runs itself and the positions its layout gives. A body whose reader
+//!   plugin the host lacks opens unreadable, with the finding that names the plugin.
 
 pub mod actions;
 pub mod body_edits;
