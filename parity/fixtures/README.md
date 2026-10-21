@@ -11,3 +11,4 @@ The documents the edit scripts under `parity/scripts/` open, copied from the sta
 | `c4/container/courier/` | `src/diagrams/c4/examples/reference/architecture/` (the Courier Tracking model `courier.dsl`, its layout `courier.layout.json`, its seven registrations, and the `docs/` and `decisions/` folders it names) | `parity/scripts/c4/container/courier.json` |
 | `systems/causal-loop-diagram/reference/` | `src/diagrams/causal-loop-diagram/examples/reference/` (`reference.adp`, `reference.cld`) | `parity/scripts/systems/causal-loop-diagram/reference.json` |
 | `systems/causal-loop-diagram/on-call/` | `src/diagrams/causal-loop-diagram/examples/on-call/` (`on-call.adp`, `on-call.cld`) | `parity/scripts/systems/causal-loop-diagram/on-call.json` |
+| `etalii/supply-chain/automotive/` | `src/diagrams/supply-chain/examples/automotive/` (`automotive.adp`, `automotive.supply`) | `parity/scripts/etalii/supply-chain/automotive.json` |

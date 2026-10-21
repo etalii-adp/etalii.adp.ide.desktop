@@ -960,7 +960,7 @@ impl DiagramSession {
         ids: &dyn IdSource,
     ) -> ActionOutcome {
         if let Some(view) = &self.view {
-            return view.execute(workspace, target, action_id);
+            return view.execute_with_ids(workspace, target, action_id, ids);
         }
         if let Some(module) = self.module(workspace.documents())
             && let Some(outcome) = module.execute(self, workspace, target, action_id, ids)
@@ -1076,6 +1076,22 @@ impl DiagramSession {
                 }
             }
             _ => ActionOutcome::Refused(format!("'{}' cannot be run here yet.", entry.label)),
+        }
+    }
+
+    /// Answers the prompt as [`DiagramSession::answer`] does, where what a module's own view creates in answer takes
+    /// the ids `ids` hands out (a supply chain's group put around a node); the specification's answers take their own.
+    pub fn answer_with_ids(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        value: &str,
+        ids: &dyn IdSource,
+    ) -> ActionOutcome {
+        match &self.view {
+            Some(view) => view.answer_with_ids(workspace, target, action_id, value, ids),
+            None => self.answer(workspace, target, action_id, value),
         }
     }
 

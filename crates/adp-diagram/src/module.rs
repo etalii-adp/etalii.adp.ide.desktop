@@ -247,6 +247,33 @@ pub trait ModuleView {
         value: &str,
     ) -> ActionOutcome;
 
+    /// Runs action `action_id` on `target` as [`ModuleView::execute`] does, giving what it creates the ids `ids`
+    /// hands out, as the specification's adds take theirs; by default the view's own.
+    fn execute_with_ids(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        ids: &dyn IdSource,
+    ) -> ActionOutcome {
+        let _ = ids;
+        self.execute(workspace, target, action_id)
+    }
+
+    /// Answers a prompt as [`ModuleView::answer`] does, giving what the answer creates the ids `ids` hands out; by
+    /// default the view's own.
+    fn answer_with_ids(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        value: &str,
+        ids: &dyn IdSource,
+    ) -> ActionOutcome {
+        let _ = ids;
+        self.answer(workspace, target, action_id, value)
+    }
+
     /// The property rows of the element `element_id`.
     fn properties(&self, documents: &DiagramDocuments, element_id: &str) -> Vec<PropertyRow>;
 

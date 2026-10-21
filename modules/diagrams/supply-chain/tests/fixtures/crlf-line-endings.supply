@@ -1,0 +1,36 @@
+supply-chain: 1
+# A small chain, written by hand: a mine, a plant and a shop.
+groups:
+  - id: north
+    name: North
+    description: Where the ore is.
+nodes:
+  - id: mine
+    type: raw-material
+    name: Mine   # a comment the writer must keep
+    group: north
+    quantity: 10
+    unit: t
+  - id: plant
+    type: manufacturer
+    name: Plant
+    group: north
+    quantity: 4
+    step: 0.5
+  - id: shop
+    type: retailer
+    name: Shop
+    x: 800
+    y: 40
+flows:
+  - id: ore
+    from: mine
+    to: plant
+    product: Ore
+    volume: 6
+    unit: t
+  - id: goods
+    from: plant
+    to: shop
+    product: Goods
+    volume: 2

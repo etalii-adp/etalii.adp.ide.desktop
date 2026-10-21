@@ -311,3 +311,19 @@ fn a_causal_loop_diagram_is_written_with_its_bindings_template() {
         "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\nlink population -> births +\r\nlink births -> population +\r\n\r\nloop R1 \"Births beget births\" population births\r\n"
     );
 }
+
+#[test]
+fn a_supply_chain_diagram_is_written_with_its_empty_document() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/supply-chain", "chain")
+        .unwrap();
+    assert_eq!(created, folder.path().join("chain.adp"));
+    assert_eq!(read(&created), "etalii/supply-chain\r\n");
+    // The standalone host's `SupplyChainParser.EmptyDocument`: the header and the three sections, flow-empty, CRLF.
+    assert_eq!(
+        read(&folder.path().join("chain.supply")),
+        "supply-chain: 1\r\ngroups: []\r\nnodes: []\r\nflows: []\r\n"
+    );
+}

@@ -1077,3 +1077,6 @@ mod walk;
 
 // The causal loop diagram with its module (T069), in a file of its own.
 mod causal_loop;
+
+// The supply chain diagram with its module (T076), in a file of its own.
+mod supply_chain;

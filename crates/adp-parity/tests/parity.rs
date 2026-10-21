@@ -32,6 +32,11 @@ fn etalii_knowledge_cities_yaml() {
 }
 
 #[test]
+fn etalii_supply_chain_automotive() {
+    check("etalii/supply-chain/automotive");
+}
+
+#[test]
 fn freeplane_mindmap_example_1() {
     check("freeplane/mindmap/example-1");
 }

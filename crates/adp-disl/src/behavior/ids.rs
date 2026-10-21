@@ -76,6 +76,15 @@ pub fn of(specification: &DislSpecification) -> Result<Uuids, String> {
     }
 }
 
+/// ShortGuids: version 4 GUIDs as 25 characters of base 36, the ids the standalone host's modules minted for what
+/// they created (`ShortGuid.NewShortGuid()`), for a module that mints its own.
+pub fn short_guids() -> Uuids {
+    Uuids {
+        v7: false,
+        encoding: "base36".to_owned(),
+    }
+}
+
 /// The 128-bit value as an unsigned integer in lowercase base 36, left-padded with 0 to 25 characters.
 fn base36(mut value: u128) -> String {
     const ALPHABET: &[u8] = b"0123456789abcdefghijklmnopqrstuvwxyz";

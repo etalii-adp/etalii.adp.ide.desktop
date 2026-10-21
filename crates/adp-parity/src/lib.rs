@@ -424,6 +424,7 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
         .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module());
     let tools = adp_diagram_dependency_graph::register(tools);
+    let tools = adp_diagram_supply_chain::register(tools);
     let mut tools = adp_diagram_c4::register(tools);
     let mut workspace = DiagramWorkspace::new(project.path());
     let (_, mut session) = match workspace.open(&mut tools, &document) {
@@ -615,7 +616,10 @@ impl Replay<'_> {
             // Dismissed, as Escape dismisses it.
             return Ok(());
         };
-        match self.session.answer(&mut self.workspace, &target, action, &answer) {
+        match self
+            .session
+            .answer_with_ids(&mut self.workspace, &target, action, &answer, self.ids)
+        {
             ActionOutcome::Done => Ok(()),
             ActionOutcome::Refused(reason) => Err(reason),
             ActionOutcome::Prompt(_) => Err("the answer asked again".to_owned()),

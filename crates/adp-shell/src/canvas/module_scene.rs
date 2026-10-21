@@ -34,11 +34,11 @@ const BOUNDARY_TYPE: &str = "c4/model+boundary";
 const VIEW_TYPE: &str = "c4/model+view";
 
 /// The selected outline, as the scene builder paints it (`HIGHLIGHT_STROKE`).
-const SELECTED: &str = "#7c3aed";
-const SELECTED_WIDTH: f64 = 3.0;
+pub(super) const SELECTED: &str = "#7c3aed";
+pub(super) const SELECTED_WIDTH: f64 = 3.0;
 
 /// The average advance of a character, as a fraction of the font size (`textMetrics.ts`).
-const AVERAGE_ADVANCE: f64 = 0.55;
+pub(super) const AVERAGE_ADVANCE: f64 = 0.55;
 
 /// A module's view as the canvas draws and hit-tests it.
 pub struct ModuleScene {
@@ -56,9 +56,9 @@ pub struct ModuleScene {
 }
 
 /// The radius of an anchor's dot, in canvas units (the scene builder's `ANCHOR_RADIUS`).
-const ANCHOR_RADIUS: f64 = 5.0;
+pub(super) const ANCHOR_RADIUS: f64 = 5.0;
 
-fn number(element: &DiagramElement, name: &str) -> f64 {
+pub(super) fn number(element: &DiagramElement, name: &str) -> f64 {
     element.attribute(name).parse().unwrap_or_default()
 }
 
@@ -114,7 +114,7 @@ pub fn description_lines(description: &str, width: f64) -> Vec<String> {
     lines
 }
 
-fn font(size: f64, weight: u16, colour: Option<&str>) -> Font {
+pub(super) fn font(size: f64, weight: u16, colour: Option<&str>) -> Font {
     Font {
         family: None,
         size,
@@ -125,7 +125,14 @@ fn font(size: f64, weight: u16, colour: Option<&str>) -> Font {
     }
 }
 
-fn text(owner: &Owner, role: Role, text: String, position: Point, anchor: TextAnchor, font: Font) -> Primitive {
+pub(super) fn text(
+    owner: &Owner,
+    role: Role,
+    text: String,
+    position: Point,
+    anchor: TextAnchor,
+    font: Font,
+) -> Primitive {
     Primitive::Text(TextRun {
         owner: owner.clone(),
         role,
@@ -139,7 +146,7 @@ fn text(owner: &Owner, role: Role, text: String, position: Point, anchor: TextAn
     })
 }
 
-fn stroke(colour: Option<&str>, width: f64, dash: &[f64]) -> Stroke {
+pub(super) fn stroke(colour: Option<&str>, width: f64, dash: &[f64]) -> Stroke {
     Stroke {
         colour: colour.map(Colour::value),
         width,

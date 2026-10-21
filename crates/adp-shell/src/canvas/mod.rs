@@ -18,6 +18,7 @@ pub mod metrics;
 pub mod module_scene;
 pub mod paint;
 pub mod placement;
+pub mod supply_chain_scene;
 pub mod toolbox;
 
 #[cfg(test)]
@@ -94,12 +95,14 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_c4::register(adp_diagram_dependency_graph::register(
-                adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
-                    DislPluginFunctions::none()
-                }))
-                .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
-                .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module()),
+            tools: adp_diagram_supply_chain::register(adp_diagram_c4::register(
+                adp_diagram_dependency_graph::register(
+                    adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
+                        DislPluginFunctions::none()
+                    }))
+                    .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
+                    .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module()),
+                ),
             )),
             workspaces: HashMap::new(),
         }
@@ -609,13 +612,42 @@ impl DiagramTab {
         // A selected element that is gone is no longer selected.
         let known: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
         self.selection.retain(|id| known.contains(id.as_str()));
-        let built = module_scene::build(&elements, &self.selection, self.arbiter.moving());
+        // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
+        let (built, top_left) = if supply_chain_scene::draws(&elements) {
+            (
+                supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                true,
+            )
+        } else {
+            (
+                module_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                false,
+            )
+        };
         let bounds = built.scene.bounds(metrics);
+        let mappings = if top_left {
+            built
+                .rects
+                .keys()
+                .map(|id| {
+                    (
+                        id.clone(),
+                        Mapping {
+                            top_left: true,
+                            ..Mapping::default()
+                        },
+                    )
+                })
+                .collect()
+        } else {
+            HashMap::new()
+        };
         self.cache = Some(Cached {
             key,
             scene: built.scene,
             placed: Placed {
                 rects: built.rects,
+                mappings,
                 ..Placed::default()
             },
             boxes: built.boxes,
@@ -785,6 +817,10 @@ impl DiagramTab {
     // ---- what gestures do -------------------------------------------------------------------------------------------
 
     fn ensure_ids(&mut self, documents: &DiagramDocuments) {
+        if self.ids.is_none() && self.session.module_view().is_some() {
+            // A module that draws its view itself mints what the standalone host's modules minted: ShortGuids.
+            self.ids = Some(Box::new(ids::short_guids()));
+        }
         if self.ids.is_none() {
             let minted = self
                 .definition
@@ -998,10 +1034,31 @@ impl DiagramTab {
 
     fn connect(&mut self, workspace: &mut DiagramWorkspace, source: &str, target: Option<&str>, at: Point) {
         if self.session.module_view().is_some() {
-            // A module that draws its view itself takes no connection from the canvas: the standalone host's C4 canvas
-            // draws its cards' edge anchors and the drag from one, and handles no `connection-drawn`.
-            if target.is_some_and(|t| t != source) {
+            // A module that draws its view itself takes a connection where its own menu for the finished gesture
+            // offers one (the supply chain's `connection-drawn`, `supply-chain.connect`); the standalone host's C4
+            // canvas handles no `connection-drawn`.
+            let Some(target) = target.filter(|t| *t != source) else {
+                return;
+            };
+            let gesture = ActionTarget::Connection {
+                source: Some(source.to_owned()),
+                target: Some(target.to_owned()),
+            };
+            let action = self
+                .session
+                .actions(workspace.documents(), &gesture)
+                .into_iter()
+                .flat_map(|g| g.actions)
+                .find(|a| a.is_available())
+                .map(|a| a.id);
+            let Some(action) = action else {
                 self.notice = Some(adp_diagram::session::NOT_OFFERED.to_owned());
+                return;
+            };
+            self.ensure_ids(workspace.documents());
+            let ids = self.ids.as_deref().expect("made");
+            if let ActionOutcome::Refused(refusal) = self.session.execute(workspace, &gesture, &action, ids) {
+                self.notice = Some(refusal);
             }
             return;
         }
