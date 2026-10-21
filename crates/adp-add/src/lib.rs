@@ -453,6 +453,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_timeline::ORIGIN,
         "timeline: 1\r\nelements: []\r\n",
     )));
+    // `ServiceCollection.AddCausalLoop.cs`: the binding's template.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_causal_loop::ORIGIN,
+        adp_diagram_causal_loop::TEMPLATE,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 

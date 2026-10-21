@@ -206,3 +206,15 @@ fn a_statement_is_worded_by_what_it_starts_like() {
         "'unclosed quote' is not a statement this reading knows."
     );
 }
+
+#[test]
+fn a_new_document_is_the_bindings_template_and_judges_clean() {
+    let binding = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../vendor/etalii.adp.ide.standalone/src/diagrams/causal-loop-diagram/backend/EtAlii.Adp.Diagram.CausalLoopDiagram/causal-loop-diagram.fbl");
+    let binding: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(binding).unwrap()).unwrap();
+    assert_eq!(
+        binding["bindings"]["cld"]["template"]["text"].as_str(),
+        Some(adp_diagram_causal_loop::TEMPLATE)
+    );
+    assert_eq!(open(adp_diagram_causal_loop::TEMPLATE).problems(), []);
+}

@@ -44,6 +44,11 @@ use crate::reading::Model;
 /// The tool type this module serves.
 pub const ORIGIN: &str = "systems/causal-loop-diagram";
 
+/// What a new `.cld` is written with when one is added: the binding's template, the *Births beget births* starter in
+/// CRLF (`causal-loop-diagram.fbl#cld`, finding B9), as the standalone host registered it with
+/// `AddEmptyDocument(CausalLoopOrigin, CausalLoopBody.Template)`.
+pub const TEMPLATE: &str = "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\nlink population -> births +\r\nlink births -> population +\r\n\r\nloop R1 \"Births beget births\" population births\r\n";
+
 /// The wire id of Arrange diagram (`x-cld`).
 pub const ARRANGE: &str = "causal-loop.arrange";
 
