@@ -1,0 +1,31 @@
+sankey: 1
+# A small flow, written by hand: two sources, a middle and two ends.
+format: "{value} t"
+nodes:
+  - id: a
+    name: Source A   # a comment the writer must keep
+    color: blue
+  - id: b
+    name: Source B
+  - id: m
+    name: Middle
+    note: all of it
+  - id: x
+    name: End X
+    color: "#336699"
+  - id: y
+    name: End Y
+flows:
+  - from: a
+    to: m
+    value: 6
+  - from: b
+    to: m
+    value: 4
+  - from: m
+    to: x
+    value: 7
+    step: 0.5
+  - from: m
+    to: y
+    value: 3

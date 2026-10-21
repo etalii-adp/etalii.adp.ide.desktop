@@ -18,6 +18,7 @@ pub mod metrics;
 pub mod module_scene;
 pub mod paint;
 pub mod placement;
+pub mod sankey_scene;
 pub mod toolbox;
 
 #[cfg(test)]
@@ -94,13 +95,13 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_c4::register(adp_diagram_dependency_graph::register(
+            tools: adp_diagram_sankey::register(adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                 adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                     DislPluginFunctions::none()
                 }))
                 .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
                 .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module()),
-            )),
+            ))),
             workspaces: HashMap::new(),
         }
     }
@@ -609,13 +610,18 @@ impl DiagramTab {
         // A selected element that is gone is no longer selected.
         let known: HashSet<&str> = elements.iter().map(|e| e.id.as_str()).collect();
         self.selection.retain(|id| known.contains(id.as_str()));
-        let built = module_scene::build(&elements, &self.selection, self.arbiter.moving());
+        let built = if self.opened.origin == adp_diagram_sankey::ORIGIN {
+            sankey_scene::build(&elements, &self.selection, self.arbiter.moving())
+        } else {
+            module_scene::build(&elements, &self.selection, self.arbiter.moving())
+        };
         let bounds = built.scene.bounds(metrics);
         self.cache = Some(Cached {
             key,
             scene: built.scene,
             placed: Placed {
                 rects: built.rects,
+                mappings: built.mappings,
                 ..Placed::default()
             },
             boxes: built.boxes,
@@ -998,10 +1004,26 @@ impl DiagramTab {
 
     fn connect(&mut self, workspace: &mut DiagramWorkspace, source: &str, target: Option<&str>, at: Point) {
         if self.session.module_view().is_some() {
-            // A module that draws its view itself takes no connection from the canvas: the standalone host's C4 canvas
-            // draws its cards' edge anchors and the drag from one, and handles no `connection-drawn`.
-            if target.is_some_and(|t| t != source) {
-                self.notice = Some(adp_diagram::session::NOT_OFFERED.to_owned());
+            // A module that draws its view itself takes a connection from the canvas only where it offers an action
+            // for the finished gesture, which it runs: the Sankey diagram's Add flow (`onConnectionDrawn`). The
+            // standalone host's C4 canvas draws its cards' edge anchors and the drag from one, and handles no
+            // `connection-drawn`.
+            let Some(target) = target.filter(|t| *t != source) else {
+                return;
+            };
+            let gesture = ActionTarget::Connection {
+                source: Some(source.to_owned()),
+                target: Some(target.to_owned()),
+            };
+            let offered = self
+                .session
+                .actions(workspace.documents(), &gesture)
+                .into_iter()
+                .flat_map(|group| group.actions)
+                .find(|action| action.unavailable_reason.is_empty());
+            match offered {
+                Some(action) => self.run_action(workspace, gesture, &action.id),
+                None => self.notice = Some(adp_diagram::session::NOT_OFFERED.to_owned()),
             }
             return;
         }

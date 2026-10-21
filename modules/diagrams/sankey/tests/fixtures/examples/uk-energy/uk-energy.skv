@@ -1,0 +1,342 @@
+# A possible UK energy system in 2050, in terawatt-hours a year: where the energy comes from,
+# what it is converted into, and where it ends up. From the plotly.js test mock sankey_energy.json
+# (MIT, see LICENSE.md), after the UK DECC 2050 Calculator data in the d3-sankey energy example.
+sankey: 1
+format: "{value} TWh"
+flow-color: source
+nodes:
+  - id: agricultural-waste
+    name: "Agricultural 'waste'"
+    color: green
+  - id: bio-conversion
+    name: Bio-conversion
+    color: green
+  - id: liquid
+    name: Liquid
+    color: slate
+  - id: losses
+    name: Losses
+  - id: solid
+    name: Solid
+    color: brown
+  - id: gas
+    name: Gas
+    color: orange
+  - id: biofuel-imports
+    name: Biofuel imports
+    color: green
+  - id: biomass-imports
+    name: Biomass imports
+    color: green
+  - id: coal-imports
+    name: Coal imports
+    color: brown
+  - id: coal
+    name: Coal
+    color: brown
+  - id: coal-reserves
+    name: Coal reserves
+    color: brown
+  - id: district-heating
+    name: District heating
+    color: pink
+  - id: industry
+    name: Industry
+  - id: heating-and-cooling-commercial
+    name: Heating and cooling - commercial
+  - id: heating-and-cooling-homes
+    name: Heating and cooling - homes
+  - id: electricity-grid
+    name: Electricity grid
+    color: blue
+  - id: over-generation-exports
+    name: Over generation / exports
+  - id: h2-conversion
+    name: H2 conversion
+    color: lime
+  - id: road-transport
+    name: Road transport
+  - id: agriculture
+    name: Agriculture
+  - id: rail-transport
+    name: Rail transport
+  - id: lighting-and-appliances-commercial
+    name: "Lighting & appliances - commercial"
+  - id: lighting-and-appliances-homes
+    name: "Lighting & appliances - homes"
+  - id: gas-imports
+    name: Gas imports
+    color: orange
+  - id: ngas
+    name: Ngas
+    color: orange
+  - id: gas-reserves
+    name: Gas reserves
+    color: orange
+  - id: thermal-generation
+    name: Thermal generation
+    color: purple
+  - id: geothermal
+    name: Geothermal
+    color: teal
+  - id: h2
+    name: H2
+    color: lime
+  - id: hydro
+    name: Hydro
+    color: teal
+  - id: international-shipping
+    name: International shipping
+  - id: domestic-aviation
+    name: Domestic aviation
+  - id: international-aviation
+    name: International aviation
+  - id: national-navigation
+    name: National navigation
+  - id: marine-algae
+    name: Marine algae
+    color: green
+  - id: nuclear
+    name: Nuclear
+    color: red
+  - id: oil-imports
+    name: Oil imports
+    color: slate
+  - id: oil
+    name: Oil
+    color: slate
+  - id: oil-reserves
+    name: Oil reserves
+    color: slate
+  - id: other-waste
+    name: Other waste
+    color: green
+  - id: pumped-heat
+    name: Pumped heat
+    color: pink
+  - id: solar-pv
+    name: Solar PV
+    color: yellow
+  - id: solar-thermal
+    name: Solar Thermal
+    color: yellow
+  - id: solar
+    name: Solar
+    color: yellow
+  - id: tidal
+    name: Tidal
+    color: teal
+  - id: uk-land-based-bioenergy
+    name: UK land based bioenergy
+    color: green
+  - id: wave
+    name: Wave
+    color: teal
+  - id: wind
+    name: Wind
+    color: teal
+flows:
+  - from: agricultural-waste
+    to: bio-conversion
+    value: 124.729
+  - from: bio-conversion
+    to: liquid
+    value: 0.597
+  - from: bio-conversion
+    to: losses
+    value: 26.862
+  - from: bio-conversion
+    to: solid
+    value: 280.322
+  - from: bio-conversion
+    to: gas
+    value: 81.144
+  - from: biofuel-imports
+    to: liquid
+    value: 35
+  - from: biomass-imports
+    to: solid
+    value: 35
+  - from: coal-imports
+    to: coal
+    value: 11.606
+  - from: coal-reserves
+    to: coal
+    value: 63.965
+  - from: coal
+    to: solid
+    value: 75.571
+  - from: district-heating
+    to: industry
+    value: 10.639
+  - from: district-heating
+    to: heating-and-cooling-commercial
+    value: 22.505
+  - from: district-heating
+    to: heating-and-cooling-homes
+    value: 46.184
+  - from: electricity-grid
+    to: over-generation-exports
+    value: 104.453
+  - from: electricity-grid
+    to: heating-and-cooling-homes
+    value: 113.726
+  - from: electricity-grid
+    to: h2-conversion
+    value: 27.14
+  - from: electricity-grid
+    to: industry
+    value: 342.165
+  - from: electricity-grid
+    to: road-transport
+    value: 37.797
+  - from: electricity-grid
+    to: agriculture
+    value: 4.412
+  - from: electricity-grid
+    to: heating-and-cooling-commercial
+    value: 40.858
+  - from: electricity-grid
+    to: losses
+    value: 56.691
+  - from: electricity-grid
+    to: rail-transport
+    value: 7.863
+  - from: electricity-grid
+    to: lighting-and-appliances-commercial
+    value: 90.008
+  - from: electricity-grid
+    to: lighting-and-appliances-homes
+    value: 93.494
+  - from: gas-imports
+    to: ngas
+    value: 40.719
+  - from: gas-reserves
+    to: ngas
+    value: 82.233
+  - from: gas
+    to: heating-and-cooling-commercial
+    value: 0.129
+  - from: gas
+    to: losses
+    value: 1.401
+  - from: gas
+    to: thermal-generation
+    value: 151.891
+  - from: gas
+    to: agriculture
+    value: 2.096
+  - from: gas
+    to: industry
+    value: 48.58
+  - from: geothermal
+    to: electricity-grid
+    value: 7.013
+  - from: h2-conversion
+    to: h2
+    value: 20.897
+  - from: h2-conversion
+    to: losses
+    value: 6.242
+  - from: h2
+    to: road-transport
+    value: 20.897
+  - from: hydro
+    to: electricity-grid
+    value: 6.995
+  - from: liquid
+    to: industry
+    value: 121.066
+  - from: liquid
+    to: international-shipping
+    value: 128.69
+  - from: liquid
+    to: road-transport
+    value: 135.835
+  - from: liquid
+    to: domestic-aviation
+    value: 14.458
+  - from: liquid
+    to: international-aviation
+    value: 206.267
+  - from: liquid
+    to: agriculture
+    value: 3.64
+  - from: liquid
+    to: national-navigation
+    value: 33.218
+  - from: liquid
+    to: rail-transport
+    value: 4.413
+  - from: marine-algae
+    to: bio-conversion
+    value: 14.375
+  - from: ngas
+    to: gas
+    value: 122.952
+  - from: nuclear
+    to: thermal-generation
+    value: 839.978
+  - from: oil-imports
+    to: oil
+    value: 504.287
+  - from: oil-reserves
+    to: oil
+    value: 107.703
+  - from: oil
+    to: liquid
+    value: 611.99
+  - from: other-waste
+    to: solid
+    value: 56.587
+  - from: other-waste
+    to: bio-conversion
+    value: 77.81
+  - from: pumped-heat
+    to: heating-and-cooling-homes
+    value: 193.026
+  - from: pumped-heat
+    to: heating-and-cooling-commercial
+    value: 70.672
+  - from: solar-pv
+    to: electricity-grid
+    value: 59.901
+  - from: solar-thermal
+    to: heating-and-cooling-homes
+    value: 19.263
+  - from: solar
+    to: solar-thermal
+    value: 19.263
+  - from: solar
+    to: solar-pv
+    value: 59.901
+  - from: solid
+    to: agriculture
+    value: 0.882
+  - from: solid
+    to: thermal-generation
+    value: 400.12
+  - from: solid
+    to: industry
+    value: 46.477
+  - from: thermal-generation
+    to: electricity-grid
+    value: 525.531
+  - from: thermal-generation
+    to: losses
+    value: 787.129
+  - from: thermal-generation
+    to: district-heating
+    value: 79.329
+  - from: tidal
+    to: electricity-grid
+    value: 9.452
+  - from: uk-land-based-bioenergy
+    to: bio-conversion
+    value: 182.01
+  - from: wave
+    to: electricity-grid
+    value: 19.013
+  - from: wind
+    to: electricity-grid
+    value: 289.366

@@ -1,0 +1,227 @@
+# Recent US college graduates (under 28, 2010-2012) by major category: how many were working,
+# and whether their job needed a degree. Thousands of people. From FiveThirtyEight's
+# college-majors/recent-grads.csv (CC BY 4.0, see LICENSE.md), from the American Community Survey.
+sankey: 1
+format: "{value}k"
+flow-color: target
+nodes:
+  - id: business
+    name: Business
+    color: purple
+  - id: humanities-and-liberal-arts
+    name: "Humanities & Liberal Arts"
+    color: purple
+  - id: education
+    name: Education
+    color: purple
+  - id: engineering
+    name: Engineering
+    color: purple
+  - id: social-science
+    name: Social Science
+    color: purple
+  - id: psychology-and-social-work
+    name: "Psychology & Social Work"
+    color: purple
+  - id: health
+    name: Health
+    color: purple
+  - id: biology-and-life-science
+    name: "Biology & Life Science"
+    color: purple
+  - id: communications-and-journalism
+    name: "Communications & Journalism"
+    color: purple
+  - id: arts
+    name: Arts
+    color: purple
+  - id: computers-and-mathematics
+    name: "Computers & Mathematics"
+    color: purple
+  - id: industrial-arts-and-consumer-services
+    name: "Industrial Arts & Consumer Services"
+    color: purple
+  - id: physical-sciences
+    name: Physical Sciences
+    color: purple
+  - id: law-and-public-policy
+    name: "Law & Public Policy"
+    color: purple
+  - id: agriculture-and-natural-resources
+    name: "Agriculture & Natural Resources"
+    color: purple
+  - id: interdisciplinary
+    name: Interdisciplinary
+    color: purple
+  - id: employed
+    name: Employed
+    color: green
+  - id: unemployed
+    name: Unemployed
+    color: red
+  - id: not-in-labour-force
+    name: Not in the labour force
+    color: grey
+  - id: degree-job
+    name: Job requiring a degree
+    color: blue
+  - id: non-degree-job
+    name: Job not requiring a degree
+    color: orange
+  - id: unclassified-job
+    name: Job not classified
+    color: grey
+flows:
+  - from: business
+    to: employed
+    value: 1088.7
+  - from: business
+    to: unemployed
+    value: 79.9
+  - from: business
+    to: not-in-labour-force
+    value: 133.8
+  - from: humanities-and-liberal-arts
+    to: employed
+    value: 544.1
+  - from: humanities-and-liberal-arts
+    to: unemployed
+    value: 51.1
+  - from: humanities-and-liberal-arts
+    to: not-in-labour-force
+    value: 118.3
+  - from: education
+    to: employed
+    value: 479.8
+  - from: education
+    to: unemployed
+    value: 25
+  - from: education
+    to: not-in-labour-force
+    value: 54.3
+  - from: engineering
+    to: employed
+    value: 420.4
+  - from: engineering
+    to: unemployed
+    value: 29.8
+  - from: engineering
+    to: not-in-labour-force
+    value: 87.4
+  - from: social-science
+    to: employed
+    value: 401.5
+  - from: social-science
+    to: unemployed
+    value: 43
+  - from: social-science
+    to: not-in-labour-force
+    value: 85.5
+  - from: psychology-and-social-work
+    to: employed
+    value: 380.3
+  - from: psychology-and-social-work
+    to: unemployed
+    value: 33.3
+  - from: psychology-and-social-work
+    to: not-in-labour-force
+    value: 67.4
+  - from: health
+    to: employed
+    value: 372.1
+  - from: health
+    to: unemployed
+    value: 22.2
+  - from: health
+    to: not-in-labour-force
+    value: 68.9
+  - from: biology-and-life-science
+    to: employed
+    value: 302.8
+  - from: biology-and-life-science
+    to: unemployed
+    value: 22.9
+  - from: biology-and-life-science
+    to: not-in-labour-force
+    value: 128.2
+  - from: communications-and-journalism
+    to: employed
+    value: 330.7
+  - from: communications-and-journalism
+    to: unemployed
+    value: 26.9
+  - from: communications-and-journalism
+    to: not-in-labour-force
+    value: 35
+  - from: arts
+    to: employed
+    value: 288.1
+  - from: arts
+    to: unemployed
+    value: 28.2
+  - from: arts
+    to: not-in-labour-force
+    value: 40.8
+  - from: computers-and-mathematics
+    to: employed
+    value: 237.9
+  - from: computers-and-mathematics
+    to: unemployed
+    value: 18.4
+  - from: computers-and-mathematics
+    to: not-in-labour-force
+    value: 42.7
+  - from: industrial-arts-and-consumer-services
+    to: employed
+    value: 189
+  - from: industrial-arts-and-consumer-services
+    to: unemployed
+    value: 11.5
+  - from: industrial-arts-and-consumer-services
+    to: not-in-labour-force
+    value: 29.3
+  - from: physical-sciences
+    to: employed
+    value: 139.2
+  - from: physical-sciences
+    to: unemployed
+    value: 7.9
+  - from: physical-sciences
+    to: not-in-labour-force
+    value: 38.4
+  - from: law-and-public-policy
+    to: employed
+    value: 144.8
+  - from: law-and-public-policy
+    to: unemployed
+    value: 13.5
+  - from: law-and-public-policy
+    to: not-in-labour-force
+    value: 20.8
+  - from: agriculture-and-natural-resources
+    to: employed
+    value: 63.8
+  - from: agriculture-and-natural-resources
+    to: unemployed
+    value: 3.5
+  - from: agriculture-and-natural-resources
+    to: not-in-labour-force
+    value: 8.3
+  - from: interdisciplinary
+    to: employed
+    value: 9.8
+  - from: interdisciplinary
+    to: unemployed
+    value: 0.7
+  - from: interdisciplinary
+    to: not-in-labour-force
+    value: 1.8
+  - from: employed
+    to: degree-job
+    value: 2130.6
+  - from: employed
+    to: non-degree-job
+    value: 2296.9
+  - from: employed
+    to: unclassified-job
+    value: 965.5

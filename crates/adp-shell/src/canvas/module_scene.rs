@@ -53,6 +53,8 @@ pub struct ModuleScene {
     pub labels: Vec<(String, String, Rect)>,
     /// Each card's anchors on the middle of its four edges: element, anchor, area (`anchors: { kind: "edge" }`).
     pub anchors: Vec<(String, String, Rect)>,
+    /// How a moved element's box reads as the position its module takes, by id: none for its centre, in canvas units.
+    pub mappings: HashMap<String, super::placement::Mapping>,
 }
 
 /// The radius of an anchor's dot, in canvas units (the scene builder's `ANCHOR_RADIUS`).
@@ -518,6 +520,7 @@ pub fn build(
         lines,
         labels,
         anchors,
+        mappings: HashMap::new(),
     }
 }
 

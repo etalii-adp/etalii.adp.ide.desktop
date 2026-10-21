@@ -238,6 +238,20 @@ pub trait ModuleView {
     /// Runs action `action_id` on `target`, or asks first.
     fn execute(&self, workspace: &mut DiagramWorkspace, target: &ActionTarget, action_id: &str) -> ActionOutcome;
 
+    /// Runs action `action_id` on `target` as [`ModuleView::execute`] does, taking the id of what it creates from
+    /// `ids`, so a replay can hand out the ids the standalone host generated (the Sankey diagram's new node). By
+    /// default the view mints its own and `ids` is not asked.
+    fn execute_with_ids(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        ids: &dyn IdSource,
+    ) -> ActionOutcome {
+        let _ = ids;
+        self.execute(workspace, target, action_id)
+    }
+
     /// Answers the prompt action `action_id` of `target` raised with `value`.
     fn answer(
         &self,
