@@ -935,6 +935,17 @@ impl DiagramTab {
         }
     }
 
+    /// Whether a right drag from an element draws a connection here (`connectOnRightDrag`): where the module that
+    /// draws the view says so, else where the notation binds a connect gesture to the secondary button on the body.
+    fn connects_on_right_drag(&self) -> bool {
+        match self.session.module_view() {
+            Some(view) => view.connects_on_right_drag(),
+            None => self
+                .active()
+                .is_some_and(|definition| gestures::connects_on_right_drag(&definition.notation)),
+        }
+    }
+
     /// Whether a node may be dragged: it is placed, and its notation lets it move.
     fn movable(&self, id: &str) -> bool {
         let Some(cache) = &self.cache else { return false };
@@ -1003,25 +1014,6 @@ impl DiagramTab {
                     self.select(ids.clone(), SelectMode::Replace);
                 }
                 self.move_by(workspace, &ids, delta);
-            }
-            Intent::BoxSelect { rect, additive } => {
-                let inside: Vec<String> = self
-                    .cache
-                    .as_ref()
-                    .map(|c| {
-                        c.boxes
-                            .iter()
-                            .filter(|(_, b)| {
-                                b.x >= rect.x
-                                    && b.y >= rect.y
-                                    && b.right() <= rect.right()
-                                    && b.bottom() <= rect.bottom()
-                            })
-                            .map(|(id, _)| id.clone())
-                            .collect()
-                    })
-                    .unwrap_or_default();
-                self.select(inside, if additive { SelectMode::Add } else { SelectMode::Replace });
             }
             Intent::Resize { element, edge, delta } => self.resize_by(workspace, &element, edge, delta),
             Intent::Connect { source, target, at } => self.connect(workspace, &source, target.as_deref(), at),
@@ -1696,6 +1688,7 @@ impl DiagramTab {
             let canvas = self.view.to_canvas(surface, pos);
             let hit = self.hit(canvas);
             let moves = self.moves_for(&hit);
+            self.arbiter.connects_on_right_drag = self.connects_on_right_drag();
             self.arbiter
                 .press(button, hit, modifiers, (pos.x, pos.y), canvas, moves, self.view.origin);
         }
@@ -1865,20 +1858,11 @@ impl DiagramTab {
         if !cache.legend.is_empty() {
             self.paint_legend(&painter, palette, &cache.legend);
         }
-        match &self.arbiter.gesture {
-            gestures::Gesture::Boxing { from, to, .. } => {
-                let rect = Rect::around([*from, *to]).unwrap_or_default();
-                let screen = self.view.rect_to_screen(surface, rect);
-                painter.rect_filled(screen, 0.0, palette.focus.gamma_multiply(0.15));
-                painter.rect_stroke(screen, 0.0, Stroke::new(1.0, palette.focus), egui::StrokeKind::Inside);
-            }
-            gestures::Gesture::Connecting { from, to, .. } => {
-                painter.line_segment(
-                    [self.view.to_screen(surface, *from), self.view.to_screen(surface, *to)],
-                    Stroke::new(1.5, palette.focus),
-                );
-            }
-            _ => {}
+        if let gestures::Gesture::Connecting { from, to, .. } = &self.arbiter.gesture {
+            painter.line_segment(
+                [self.view.to_screen(surface, *from), self.view.to_screen(surface, *to)],
+                Stroke::new(1.5, palette.focus),
+            );
         }
     }
 

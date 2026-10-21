@@ -167,6 +167,11 @@ impl ModuleView for SankeyDiagramView {
         self.run(workspace, target, action_id, || ids.next("node"))
     }
 
+    /// A right drag from one element to another draws a connection (`SankeyCanvas.tsx`, `connectOnRightDrag: true`).
+    fn connects_on_right_drag(&self) -> bool {
+        true
+    }
+
     /// A connect gesture between two nodes is Add flow (`onConnectionDrawn`); what it may not join, it refuses.
     fn connect_action(
         &self,
