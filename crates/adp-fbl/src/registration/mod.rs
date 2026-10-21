@@ -4,6 +4,8 @@
 //! written by splices like any body (FBL section 8.4): placing an element writes its layout entry in the ordinal
 //! order of ids, with numbers in `{decimals: 3}` form and the registration's own line ending (FBL section 8.3).
 
+pub mod legacy_sidecar;
+
 use std::collections::{HashMap, HashSet};
 
 use crate::history::{SplicedFile, UndoResult};

@@ -1105,6 +1105,7 @@ impl BodyReading {
                         target: e.target_element.map(|p| self.elements[p].id.clone()),
                         own_span: self.family.entries[e.entry()].own,
                         line: e.line,
+                        file: None,
                     }
                 })
                 .collect(),
