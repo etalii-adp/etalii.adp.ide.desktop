@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "parity.fullname" . }}
+  labels:
+    {{- include "parity.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "parity.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ template "parity.serviceAccount" . }}
