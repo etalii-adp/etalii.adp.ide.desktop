@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:p="urn:example:parties" targetNamespace="urn:example:orders" elementFormDefault="qualified">
+  <xs:import namespace="urn:example:parties" schemaLocation="party.xsd"/>
+  <xs:element name="order">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="number" type="xs:string"/>
+        <xs:element ref="p:party"/>
+        <xs:element name="line" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="item" type="xs:string" use="required"/>
+            <xs:attribute name="quantity" type="xs:positiveInteger" use="required"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

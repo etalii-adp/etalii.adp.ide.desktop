@@ -1,0 +1,145 @@
+{
+  "reason": "Where a schema reference points, decided once for every editor (json-editor Requirement 5.2, 5.3, 5.9 and 9.5). One list of cases held by two implementations: resolveSchemaReference in src/client/src/editors/schemaReference.ts, which the JSON and YAML editors use, and the XML editor's C# twin (xml-editor Requirement 9.6). Each case gives a reference as a document holds it, the document's project path, and the addresses ADP bundles a schema for; it expects either a file of the project by its path, a bundled schema by its address, or no schema with the reason that is said to the user after the reference. A reference that steps above the project root is refused, never clamped: URL arithmetic clamps at the root silently and would read a different file from the one the document names.",
+  "cases": [
+    {
+      "name": "a file in the document's own folder",
+      "reference": "./app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "project", "path": ["settings", "app.schema.json"] }
+    },
+    {
+      "name": "a file in the document's own folder, without ./",
+      "reference": "app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "project", "path": ["settings", "app.schema.json"] }
+    },
+    {
+      "name": "a document at the project root",
+      "reference": "app.schema.json",
+      "document": ["app.json"],
+      "bundled": [],
+      "expected": { "kind": "project", "path": ["app.schema.json"] }
+    },
+    {
+      "name": "a file in a subfolder",
+      "reference": "schemas/app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "project", "path": ["settings", "schemas", "app.schema.json"] }
+    },
+    {
+      "name": "a file in the parent folder",
+      "reference": "../base.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "project", "path": ["base.schema.json"] }
+    },
+    {
+      "name": "a file beside the parent folder",
+      "reference": "../shared/base.schema.json",
+      "document": ["settings", "local", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "project", "path": ["settings", "shared", "base.schema.json"] }
+    },
+    {
+      "name": "a . segment in the middle",
+      "reference": "./schemas/./app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "project", "path": ["settings", "schemas", "app.schema.json"] }
+    },
+    {
+      "name": "a fragment, which names a part of the file and not another file",
+      "reference": "./app.schema.json#/definitions/port",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "project", "path": ["settings", "app.schema.json"] }
+    },
+    {
+      "name": "a reference that steps above the project root",
+      "reference": "../../outside.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "leaves the project" }
+    },
+    {
+      "name": "a reference that steps above the root and back in, which URL arithmetic would clamp",
+      "reference": "../../settings/app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "leaves the project" }
+    },
+    {
+      "name": "a path from the root of a file system",
+      "reference": "/schemas/app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "is an absolute path; ADP reads a schema relative to the document" }
+    },
+    {
+      "name": "an http address",
+      "reference": "http://example.com/app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "is a web address; ADP reads schemas from the project" }
+    },
+    {
+      "name": "an https address",
+      "reference": "https://example.com/app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "is a web address; ADP reads schemas from the project" }
+    },
+    {
+      "name": "an address of another scheme",
+      "reference": "urn:example:app-schema",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "is not a file of the project" }
+    },
+    {
+      "name": "a file: address, which would read outside the project",
+      "reference": "file:///etc/app.schema.json",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "is not a file of the project" }
+    },
+    {
+      "name": "an address ADP bundles a schema for",
+      "reference": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json",
+      "document": ["definitions", "mindmap.dis"],
+      "bundled": ["https://etalii.net/adp/disl/schema/0.2/disl.schema.json"],
+      "expected": { "kind": "bundled", "id": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json" }
+    },
+    {
+      "name": "a bundled address with an empty fragment",
+      "reference": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#",
+      "document": ["definitions", "mindmap.dis"],
+      "bundled": ["https://etalii.net/adp/disl/schema/0.2/disl.schema.json"],
+      "expected": { "kind": "bundled", "id": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json" }
+    },
+    {
+      "name": "an empty reference",
+      "reference": "",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "is empty" }
+    },
+    {
+      "name": "a reference of spaces",
+      "reference": "   ",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "is empty" }
+    },
+    {
+      "name": "a reference to a folder",
+      "reference": "./schemas/",
+      "document": ["settings", "app.json"],
+      "bundled": [],
+      "expected": { "kind": "none", "reason": "names a folder, not a file" }
+    }
+  ]
+}

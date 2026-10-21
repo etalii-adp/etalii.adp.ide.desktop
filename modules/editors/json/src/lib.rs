@@ -68,17 +68,28 @@ pub struct Analysis {
 pub enum SchemaTarget {
     /// A file of the project, by its path segments.
     Project(Vec<String>),
+    /// A schema ADP ships, by the address a document names it with. ADP ships none yet; the rule is kept so the
+    /// standalone host's shared cases hold here too.
+    Bundled(String),
     /// No schema, and why.
     None(String),
 }
 
 /// Resolves a reference against the document's path (file name last), never leaving the project.
 pub fn resolve_schema_reference(reference: &str, document: &[String]) -> SchemaTarget {
+    resolve_schema_reference_with(reference, document, &[])
+}
+
+/// As [`resolve_schema_reference`], with the addresses of the schemas ADP ships.
+pub fn resolve_schema_reference_with(reference: &str, document: &[String], bundled: &[&str]) -> SchemaTarget {
     let trimmed = reference.trim();
     if trimmed.is_empty() {
         return SchemaTarget::None("is empty".into());
     }
     let address = trimmed.split('#').next().unwrap_or_default();
+    if bundled.contains(&address) {
+        return SchemaTarget::Bundled(address.to_owned());
+    }
     let has_scheme = address.split_once(':').is_some_and(|(s, _)| {
         s.chars().next().is_some_and(|c| c.is_ascii_alphabetic())
             && s.chars().all(|c| c.is_ascii_alphanumeric() || "+.-".contains(c))
@@ -147,46 +158,79 @@ pub fn analyse(text: &str, document: &[String], read: ReadFile) -> Analysis {
         };
     };
     let instance = root.to_value();
-    let normalised = normalise(&reference);
-
-    // A document whose `$schema` is a dialect's address is a schema: checked against the dialect.
-    if DIALECTS.contains(&normalised.as_str()) {
-        if let Err(error) = jsonschema::meta::validate(&instance) {
-            findings.push(schema_finding(
-                &root,
-                &error.instance_path().to_string(),
-                error.to_string(),
-            ));
-        }
-        let status = instance
-            .get("title")
-            .and_then(Value::as_str)
-            .map_or_else(|| reference.clone(), str::to_owned);
-        return Analysis {
-            findings,
-            status,
-            schema: None,
-        };
+    let check = check_against_schema(&reference, document, read, instance, true);
+    for (pointer, message) in check.breaks {
+        findings.push(schema_finding(&root, &pointer, message));
     }
-    let mut refuse = |reason: String| {
+    if let Some(reason) = check.refusal {
         findings.push(Finding {
-            span: key_span.clone(),
+            span: key_span,
             severity: Severity::Info,
             message: reason,
         });
-        Analysis {
-            findings: std::mem::take(&mut findings),
-            status: "Schema not used".into(),
+    }
+    Analysis {
+        findings,
+        status: check.status,
+        schema: check.schema,
+    }
+}
+
+/// What checking a value against the schema a reference names found.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SchemaCheck {
+    /// The status line: the schema's title, else its reference, or "Schema not used".
+    pub status: String,
+    /// Each break of the schema, by the JSON pointer of the value it is about.
+    pub breaks: Vec<(String, String)>,
+    /// Why no schema was used, as a sentence, when one was named but could not be.
+    pub refusal: Option<String>,
+    /// The schema that applied, for completion.
+    pub schema: Option<Value>,
+}
+
+/// Checks `instance` against the schema `reference` names, read from the project relative to `document` (its file
+/// name last) by the rules above. With `dialect_is_schema`, a dialect's own address makes the instance a schema, checked
+/// against that dialect, as a JSON file's `$schema` does; the root `$schema` property is not part of the data unless
+/// the schema declares it. The YAML editor checks its documents with this too.
+pub fn check_against_schema(
+    reference: &str,
+    document: &[String],
+    read: ReadFile,
+    instance: Value,
+    dialect_is_schema: bool,
+) -> SchemaCheck {
+    let normalised = normalise(reference);
+    if dialect_is_schema && DIALECTS.contains(&normalised.as_str()) {
+        let breaks = match jsonschema::meta::validate(&instance) {
+            Err(error) => vec![(error.instance_path().to_string(), error.to_string())],
+            Ok(()) => Vec::new(),
+        };
+        let status = instance
+            .get("title")
+            .and_then(Value::as_str)
+            .map_or_else(|| reference.to_owned(), str::to_owned);
+        return SchemaCheck {
+            status,
+            breaks,
+            refusal: None,
             schema: None,
-        }
+        };
+    }
+    let refuse = |reason: String| SchemaCheck {
+        status: "Schema not used".into(),
+        breaks: Vec::new(),
+        refusal: Some(reason),
+        schema: None,
     };
     if normalised.starts_with("https://json-schema.org/") {
         return refuse(format!(
             "The schema '{reference}' is a JSON Schema dialect ADP does not carry."
         ));
     }
-    let path = match resolve_schema_reference(&reference, document) {
+    let path = match resolve_schema_reference(reference, document) {
         SchemaTarget::None(why) => return refuse(format!("The schema '{reference}' {why}.")),
+        SchemaTarget::Bundled(address) => return refuse(format!("The schema '{address}' is not shipped with ADP.")),
         SchemaTarget::Project(path) => path,
     };
     let Some(schema_text) = read(&path) else {
@@ -212,20 +256,18 @@ pub fn analyse(text: &str, document: &[String], read: ReadFile) -> Analysis {
     if let (false, Some(object)) = (declared, instance.as_object_mut()) {
         object.remove("$schema");
     }
-    for error in validator.iter_errors(&instance) {
-        findings.push(schema_finding(
-            &root,
-            &error.instance_path().to_string(),
-            error.to_string(),
-        ));
-    }
+    let breaks = validator
+        .iter_errors(&instance)
+        .map(|e| (e.instance_path().to_string(), e.to_string()))
+        .collect();
     let status = schema
         .get("title")
         .and_then(Value::as_str)
-        .map_or_else(|| reference.clone(), str::to_owned);
-    Analysis {
-        findings,
+        .map_or_else(|| reference.to_owned(), str::to_owned);
+    SchemaCheck {
         status,
+        breaks,
+        refusal: None,
         schema: Some(schema),
     }
 }

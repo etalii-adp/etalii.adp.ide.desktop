@@ -1,0 +1,19 @@
+# Anchors, aliases and a merge key: one definition, reused.
+# The editor reads them as the data they stand for, and writes nothing back.
+defaults: &defaults
+  retries: 3
+  timeout: 30s
+
+development:
+  <<: *defaults
+  url: http://localhost:8080
+
+production:
+  <<: *defaults
+  retries: 5
+  url: https://example.org
+
+notify: &team
+  - alice
+  - bob
+escalate: *team

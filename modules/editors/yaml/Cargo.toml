@@ -1,0 +1,16 @@
+[package]
+name = "adp-editor-yaml"
+description = "The YAML editor's analysis: YAML's own mistakes, documents, and the schema each one's comment names (spec 030, FR-020)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-editor-json = { path = "../json" }
+saphyr-parser = "0.0.6"
+serde_json = "1"
+
+[lints]
+workspace = true

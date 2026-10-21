@@ -1,0 +1,7 @@
+<!-- What a recipe holds: a title, its ingredients, then its steps. -->
+<!ELEMENT recipe (title, ingredient+, step+)>
+<!ATTLIST recipe serves CDATA #REQUIRED>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT ingredient (#PCDATA)>
+<!ATTLIST ingredient amount CDATA #IMPLIED>
+<!ELEMENT step (#PCDATA)>
