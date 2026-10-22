@@ -361,11 +361,21 @@ pub struct Watcher {
 
 impl Watcher {
     pub fn start(root: &Path) -> notify::Result<Self> {
+        Self::start_waking(root, || {})
+    }
+
+    /// Starts watching `root`, calling `wake` on the watcher's thread whenever it has handed over changes, so a
+    /// window waiting for input can draw them without being asked otherwise.
+    pub fn start_waking(root: &Path, wake: impl Fn() + Send + 'static) -> notify::Result<Self> {
         let (send, changes) = mpsc::channel();
         let mut watcher = notify::recommended_watcher(move |event: notify::Result<notify::Event>| {
             let Ok(event) = event else { return };
+            let mut sent = false;
             for change in changes_of(event) {
-                let _ = send.send(change);
+                sent |= send.send(change).is_ok();
+            }
+            if sent {
+                wake();
             }
         })?;
         watcher.watch(root, RecursiveMode::Recursive)?;

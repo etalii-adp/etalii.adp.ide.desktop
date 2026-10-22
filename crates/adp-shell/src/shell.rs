@@ -8,6 +8,7 @@
 
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
+use std::sync::{Arc, OnceLock};
 
 use adp_add::AddTarget;
 use adp_context::{Reference, SelectMode, SelectionSource};
@@ -32,6 +33,9 @@ use crate::theme::{self, Palette};
 /// A project open in the window: its tree, kept in step with the disk, and its findings.
 struct OpenProject {
     project: Project,
+    /// The project's folder as the platform names it, when it is opened through a link: the watcher may report
+    /// changes by this name, and they are mapped back to the folder as it was opened.
+    real_root: Option<PathBuf>,
     tree: Hierarchy,
     watcher: Option<Watcher>,
     explorer: Explorer,
@@ -181,6 +185,10 @@ pub struct Shell {
     diagrams: Option<DiagramHost>,
     side_pane: SidePane,
     pending: Option<Pending>,
+    /// The window's title as last sent: sending it asks for a new frame, so it is sent only when it changes.
+    title: Option<String>,
+    /// The window, known from its first frame, which the watcher wakes when a change on disk arrives.
+    window: Arc<OnceLock<egui::Context>>,
 }
 
 impl Default for Shell {
@@ -201,6 +209,8 @@ impl Default for Shell {
             diagrams: None,
             side_pane: SidePane::Toolbox,
             pending: None,
+            title: None,
+            window: Arc::new(OnceLock::new()),
         }
     }
 }
@@ -256,10 +266,11 @@ impl Shell {
                 Err(reason) => self.notice = Some(reason.0),
             }
         } else {
+            let path = self.as_opened(path);
             let root = self
                 .root()
                 .unwrap_or_else(|| path.parent().map(Path::to_path_buf).unwrap_or_default());
-            self.open_document(path, &root);
+            self.open_document(&path, &root);
         }
     }
 
@@ -333,6 +344,31 @@ impl Shell {
         self.project.as_ref().map(|p| p.project.path.clone())
     }
 
+    /// `path` by the open project's folder as it was opened, so the tabs, the explorer and the watcher name a file
+    /// alike when the folder was opened through a link; a path outside the project as it is.
+    fn as_opened(&self, path: &Path) -> PathBuf {
+        let Some(project) = &self.project else {
+            return path.to_path_buf();
+        };
+        let root = &project.project.path;
+        if path.starts_with(root) {
+            return path.to_path_buf();
+        }
+        let real_root = project.real_root.as_deref().unwrap_or(root);
+        if let Ok(rest) = path.strip_prefix(real_root) {
+            return root.join(rest);
+        }
+        // The path itself may come through a link: its folder as the platform names it, the file's own name kept.
+        let real = match (path.parent().and_then(|p| p.canonicalize().ok()), path.file_name()) {
+            (Some(parent), Some(name)) => parent.join(name),
+            _ => return path.to_path_buf(),
+        };
+        match real.strip_prefix(real_root) {
+            Ok(rest) => root.join(rest),
+            Err(_) => path.to_path_buf(),
+        }
+    }
+
     fn open_project(&mut self, project: Project) {
         let project = match &mut self.projects {
             Some(list) => match list.open(&project.id) {
@@ -351,7 +387,14 @@ impl Shell {
                 return;
             }
         };
-        let watcher = Watcher::start(&project.path).ok();
+        let window = Arc::clone(&self.window);
+        let watcher = Watcher::start_waking(&project.path, move || {
+            if let Some(ctx) = window.get() {
+                ctx.request_repaint_of(egui::ViewportId::ROOT);
+            }
+        })
+        .ok();
+        let real_root = project.path.canonicalize().ok().filter(|real| *real != project.path);
         let problems = self
             .state
             .clone()
@@ -362,6 +405,7 @@ impl Shell {
         explorer.root = project.path.clone();
         self.project = Some(OpenProject {
             project,
+            real_root,
             tree,
             watcher,
             explorer,
@@ -394,6 +438,12 @@ impl Shell {
         }
         let root = project.project.path.clone();
         for change in changes {
+            let change = match change {
+                Change::Modified(path) => Change::Modified(self.as_opened(&path)),
+                Change::Added(path) => Change::Added(self.as_opened(&path)),
+                Change::Removed(path) => Change::Removed(self.as_opened(&path)),
+                other => other,
+            };
             let path = match change {
                 Change::Modified(path) | Change::Added(path) => {
                     self.reconcile(&path, &root);
@@ -869,6 +919,7 @@ impl Shell {
 
     /// Draws one frame.
     pub fn show(&mut self, ui: &mut egui::Ui) {
+        self.window.get_or_init(|| ui.ctx().clone());
         self.drain();
         self.follow_disk();
         self.save(ui);
@@ -892,7 +943,10 @@ impl Shell {
             Some(p) => format!("{} - ADP", p.project.name),
             None => "ADP".to_owned(),
         };
-        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Title(title));
+        if self.title.as_ref() != Some(&title) {
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Title(title.clone()));
+            self.title = Some(title);
+        }
 
         self.status_bar(ui, &theme, &palette);
         egui::Panel::left("activity-bar")
@@ -2120,5 +2174,147 @@ mod tests {
                 theme::color32(expected.color("editor.background").unwrap())
             );
         }
+    }
+
+    /// One headless frame, and how long it asks the window to wait before the next: `Duration::MAX` when it waits
+    /// for input.
+    fn frame_asking(ctx: &egui::Context, shell: &mut Shell) -> std::time::Duration {
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0))),
+            ..Default::default()
+        };
+        let mut output = ctx.run_ui(input, |ui| shell.show(ui));
+        output.textures_delta.clear();
+        output.viewport_output[&egui::ViewportId::ROOT].repaint_delay
+    }
+
+    /// Frames without input until the window waits for input; whether it did within `frames`.
+    fn settles(ctx: &egui::Context, shell: &mut Shell, frames: usize) -> bool {
+        (0..frames).any(|_| frame_asking(ctx, shell) == std::time::Duration::MAX)
+    }
+
+    /// The window's wake-ups from outside a frame: every repaint asked for without delay, as eframe hears of them.
+    fn wakes(ctx: &egui::Context) -> Arc<std::sync::atomic::AtomicUsize> {
+        let wakes = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let counted = Arc::clone(&wakes);
+        ctx.set_request_repaint_callback(move |info| {
+            if info.delay.is_zero() {
+                counted.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            }
+        });
+        wakes
+    }
+
+    /// Draws a frame each time the window is woken, and only then, until `done` holds; whether it did within 5 s.
+    fn drawn_when_woken(
+        ctx: &egui::Context,
+        shell: &mut Shell,
+        wakes: &std::sync::atomic::AtomicUsize,
+        done: impl Fn(&mut Shell) -> bool,
+    ) -> bool {
+        use std::sync::atomic::Ordering;
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        while std::time::Instant::now() < deadline {
+            if wakes.swap(0, Ordering::SeqCst) > 0 {
+                frame_asking(ctx, shell);
+                if done(shell) {
+                    return true;
+                }
+            } else {
+                std::thread::sleep(std::time::Duration::from_millis(5));
+            }
+        }
+        false
+    }
+
+    fn explorer_has(shell: &Shell, name: &str) -> bool {
+        shell
+            .project
+            .as_ref()
+            .is_some_and(|p| p.tree.children.iter().any(|n| n.name == name))
+    }
+
+    #[test]
+    fn an_idle_window_waits_for_input_and_a_change_on_disk_wakes_it() {
+        let folder = tempfile::tempdir().unwrap();
+        let root = folder.path().canonicalize().unwrap();
+        std::fs::write(root.join("notes.md"), "# One\n").unwrap();
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        let mut shell = Shell::default();
+        shell.open_path(&root);
+        shell.handle(Request::Open("notes.md".into()));
+        assert!(
+            settles(&ctx, &mut shell, 20),
+            "an idle window asks for no frame after the first few"
+        );
+        assert_eq!(
+            frame_asking(&ctx, &mut shell),
+            std::time::Duration::MAX,
+            "nor for one in every frame"
+        );
+        // The watcher's first events, of the file just written, come and go.
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        assert!(settles(&ctx, &mut shell, 20));
+
+        let wakes = wakes(&ctx);
+        std::fs::write(root.join("notes.md"), "# Two\n").unwrap();
+        std::fs::write(root.join("added.md"), "added\n").unwrap();
+        assert!(
+            drawn_when_woken(&ctx, &mut shell, &wakes, |shell| {
+                shell.text(0).editor.buffer.text() == "# Two\n" && explorer_has(shell, "added.md")
+            }),
+            "the watcher wakes the window, and the open tab and the explorer follow the disk"
+        );
+        assert!(settles(&ctx, &mut shell, 20), "and the window waits again");
+    }
+
+    /// Makes `link` a link to the folder `target`; false where the platform does not let this process make one.
+    fn link_folder(target: &Path, link: &Path) -> bool {
+        #[cfg(unix)]
+        let made = std::os::unix::fs::symlink(target, link);
+        #[cfg(windows)]
+        let made = std::os::windows::fs::symlink_dir(target, link);
+        made.is_ok()
+    }
+
+    #[test]
+    fn a_project_opened_through_a_link_has_its_tabs_and_explorer_follow_the_disk() {
+        let folder = tempfile::tempdir().unwrap();
+        let real = folder.path().canonicalize().unwrap().join("real");
+        std::fs::create_dir(&real).unwrap();
+        std::fs::write(real.join("notes.md"), "# One\n").unwrap();
+        let link = folder.path().canonicalize().unwrap().join("link");
+        if !link_folder(&real, &link) {
+            eprintln!("skipped: this process may not make a link to a folder here");
+            return;
+        }
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        let mut shell = Shell::default();
+        shell.open_path(&link);
+        shell.handle(Request::Open("notes.md".into()));
+        assert_eq!(
+            shell.tabs[0].path(),
+            link.join("notes.md"),
+            "the tab is named by the folder as opened"
+        );
+        // A file named by the folder's real path is the file the tab has open.
+        assert_eq!(shell.as_opened(&real.join("notes.md")), link.join("notes.md"));
+        shell.open_path(&real.join("notes.md"));
+        assert_eq!(shell.tabs.len(), 1, "the file is not opened twice by its other name");
+        assert!(settles(&ctx, &mut shell, 20));
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        assert!(settles(&ctx, &mut shell, 20));
+
+        let wakes = wakes(&ctx);
+        std::fs::write(real.join("notes.md"), "# Two\n").unwrap();
+        std::fs::write(real.join("added.md"), "added\n").unwrap();
+        assert!(
+            drawn_when_woken(&ctx, &mut shell, &wakes, |shell| {
+                shell.text(0).editor.buffer.text() == "# Two\n" && explorer_has(shell, "added.md")
+            }),
+            "the open tab follows the disk as the explorer does"
+        );
     }
 }
