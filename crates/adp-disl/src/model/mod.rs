@@ -3,10 +3,12 @@
 //! specification tells a binding about ids and attribute types.
 
 pub mod attribute_types;
+pub mod budgets;
 pub mod builder;
 pub(crate) mod cycles;
 pub mod diagram;
 pub mod element;
+pub(crate) mod knots;
 pub mod natural_ids;
 pub(crate) mod type_map;
 pub(crate) mod values;

@@ -76,8 +76,9 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
 /// markdown-backed families of the bullets, behavior-tree and hierarchical-requirement tool types, and the
 /// registration's own blocks (FBL 0.7 sections 7.1 and 8.1). Their bindings are FBL 0.7 documents whose bodies no
 /// family of the library reads. They are out of scope here, not failing: etalii.adp's splice replay
-/// (`fixtures.rs`) still runs every one of them.
-const NOT_SUPPORTED: [&str; 29] = [
+/// (`fixtures.rs`) still runs every one of them. Beside them, the fixtures of FBL 0.8's constants an insert writes (section
+/// 6.2), which this port does not have yet either.
+const NOT_SUPPORTED: [&str; 33] = [
     "behavior-tree-read",
     "behavior-tree-read/first-add",
     "bullets-edits",
@@ -106,6 +107,10 @@ const NOT_SUPPORTED: [&str; 29] = [
     "hierarchical-requirement-structure/no-section",
     "hierarchical-requirement-tag-list",
     "hierarchical-requirement-tags",
+    "insert-constant-json",
+    "insert-constant-json-read",
+    "insert-constant-yaml",
+    "insert-constant-yaml-read",
     "registration-blocks",
 ];
 

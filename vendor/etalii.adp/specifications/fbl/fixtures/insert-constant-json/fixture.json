@@ -1,0 +1,115 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An insert writes its rule's constants (FBL 0.8, section 6.2), in the json family. The body holds a task and a note in one list, told apart by type. An add of a task writes type: task second, as keys names it; its undo and redo; an add of a note writes its three constants after its keys; a set leaves a constant as it is. ../insert-constant-json-read/ reads the body the last step leaves, and ../insert-constant-yaml/ is the same in the yaml family.",
+  "binding": "board.fbl#board",
+  "input": "board.json",
+  "read": {
+    "elements": [
+      {
+        "id": "t1",
+        "type": "Task",
+        "attributes": {
+          "name": "Plan"
+        }
+      },
+      {
+        "id": "n1",
+        "type": "Note",
+        "attributes": {
+          "text": "Remember",
+          "format": "1.0"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A task's constant, type: task, is named by keys, so it is written second, after the id and before the name; nothing in the add gives it (FBL 0.8, section 6.2).",
+      "edit": {
+        "add": {
+          "type": "Task",
+          "id": "t2",
+          "attributes": {
+            "name": "Ship"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 227,
+          "end": 227,
+          "text": ",\r\n    {\r\n      \"id\": \"t2\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Ship\"\r\n    }"
+        }
+      ],
+      "expect": "{\r\n  \"elements\": [\r\n    {\r\n      \"id\": \"t1\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Plan\"\r\n    },\r\n    {\r\n      \"id\": \"n1\",\r\n      \"text\": \"Remember\",\r\n      \"type\": \"note\",\r\n      \"format\": \"1.0\",\r\n      \"pinned\": false\r\n    },\r\n    {\r\n      \"id\": \"t2\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Ship\"\r\n    }\r\n  ]\r\n}\r\n"
+    },
+    {
+      "doc": "The undo removes the new entry, its constant with it; it is listed under the operation of the splice it inverts (section 15.3).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 227,
+          "end": 306,
+          "text": ""
+        }
+      ],
+      "expect": "{\r\n  \"elements\": [\r\n    {\r\n      \"id\": \"t1\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Plan\"\r\n    },\r\n    {\r\n      \"id\": \"n1\",\r\n      \"text\": \"Remember\",\r\n      \"type\": \"note\",\r\n      \"format\": \"1.0\",\r\n      \"pinned\": false\r\n    }\r\n  ]\r\n}\r\n"
+    },
+    {
+      "doc": "The redo writes the same bytes again.",
+      "redo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 227,
+          "end": 227,
+          "text": ",\r\n    {\r\n      \"id\": \"t2\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Ship\"\r\n    }"
+        }
+      ],
+      "expect": "{\r\n  \"elements\": [\r\n    {\r\n      \"id\": \"t1\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Plan\"\r\n    },\r\n    {\r\n      \"id\": \"n1\",\r\n      \"text\": \"Remember\",\r\n      \"type\": \"note\",\r\n      \"format\": \"1.0\",\r\n      \"pinned\": false\r\n    },\r\n    {\r\n      \"id\": \"t2\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Ship\"\r\n    }\r\n  ]\r\n}\r\n"
+    },
+    {
+      "doc": "A note's constants are not named by keys, so they follow its keys in the order the constant lists them: type, format, pinned. format is the string 1.0, which is not plain-safe, so it is written in the binding's quote and reads back as the same text; pinned is the bool false, written as such. The text yes is not plain-safe either (section 6.3).",
+      "edit": {
+        "add": {
+          "type": "Note",
+          "id": "n2",
+          "attributes": {
+            "text": "yes"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 306,
+          "end": 306,
+          "text": ",\r\n    {\r\n      \"id\": \"n2\",\r\n      \"text\": \"yes\",\r\n      \"type\": \"note\",\r\n      \"format\": \"1.0\",\r\n      \"pinned\": false\r\n    }"
+        }
+      ],
+      "expect": "{\r\n  \"elements\": [\r\n    {\r\n      \"id\": \"t1\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Plan\"\r\n    },\r\n    {\r\n      \"id\": \"n1\",\r\n      \"text\": \"Remember\",\r\n      \"type\": \"note\",\r\n      \"format\": \"1.0\",\r\n      \"pinned\": false\r\n    },\r\n    {\r\n      \"id\": \"t2\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Ship\"\r\n    },\r\n    {\r\n      \"id\": \"n2\",\r\n      \"text\": \"yes\",\r\n      \"type\": \"note\",\r\n      \"format\": \"1.0\",\r\n      \"pinned\": false\r\n    }\r\n  ]\r\n}\r\n"
+    },
+    {
+      "doc": "A set of the new task's name replaces that value only; the constant's bytes stay as they are (section 6.4).",
+      "edit": {
+        "set": {
+          "element": "t2",
+          "attributes": {
+            "name": "Ship it"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 293,
+          "end": 299,
+          "text": "\"Ship it\""
+        }
+      ],
+      "expect": "{\r\n  \"elements\": [\r\n    {\r\n      \"id\": \"t1\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Plan\"\r\n    },\r\n    {\r\n      \"id\": \"n1\",\r\n      \"text\": \"Remember\",\r\n      \"type\": \"note\",\r\n      \"format\": \"1.0\",\r\n      \"pinned\": false\r\n    },\r\n    {\r\n      \"id\": \"t2\",\r\n      \"type\": \"task\",\r\n      \"name\": \"Ship it\"\r\n    },\r\n    {\r\n      \"id\": \"n2\",\r\n      \"text\": \"yes\",\r\n      \"type\": \"note\",\r\n      \"format\": \"1.0\",\r\n      \"pinned\": false\r\n    }\r\n  ]\r\n}\r\n"
+    }
+  ]
+}

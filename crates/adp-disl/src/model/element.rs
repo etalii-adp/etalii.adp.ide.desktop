@@ -531,6 +531,8 @@ impl DislElement {
                 state.attributes.insert(name.clone(), value.clone());
             }
         }
+        drop(state);
+        self.forget_budgets();
     }
 
     pub(crate) fn add_child(&self, child: &DislElement) {
@@ -552,6 +554,8 @@ impl DislElement {
         let mut state = self.0.state.borrow_mut();
         state.parent = parent.map(|p| Rc::downgrade(&p.0));
         state.slot = if parent.is_some() { slot } else { None };
+        drop(state);
+        self.forget_budgets();
     }
 
     /// Stores `value` for `name`, or forgets the stored value for null: an action's effect on the working state
@@ -566,7 +570,16 @@ impl DislElement {
         } else {
             state.attributes.insert(name, value);
         }
+        drop(state);
+        self.forget_budgets();
         Ok(())
+    }
+
+    /// What the diagram computed from its elements' values is computed again.
+    fn forget_budgets(&self) {
+        if let Some(diagram) = self.0.diagram.upgrade() {
+            diagram.forget_budgets();
+        }
     }
 
     /// The element as it is now, apart from the diagram: what a hook reads as `old` (section 9.2). Its attributes

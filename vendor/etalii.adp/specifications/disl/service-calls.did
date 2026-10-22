@@ -1,0 +1,17 @@
+{
+  "$schema": "https://etalii.net/adp/did/schema/0.1/did.schema.json#/$defs/Definition",
+  "did": "0.1",
+  "language": { "id": "org.example.service-calls", "version": "1.0.0" },
+  "elements": [
+    { "id": "checkout", "type": "Service", "attributes": { "name": "Checkout" } },
+    { "id": "payments", "type": "Service", "attributes": { "name": "Payments" } },
+    { "id": "ledger", "type": "Service", "attributes": { "name": "Ledger" } }
+  ],
+  "relations": [
+    { "id": "call-1", "type": "SyncCall", "source": "checkout", "target": "payments" },
+    { "id": "call-2", "type": "SyncCall", "source": "checkout", "target": "payments" },
+    { "id": "call-3", "type": "AsyncCall", "source": "checkout", "target": "payments" },
+    { "id": "call-4", "type": "SyncCall", "source": "ledger", "target": "ledger" },
+    { "id": "call-5", "type": "TracedCall", "source": "payments", "target": "payments" }
+  ]
+}

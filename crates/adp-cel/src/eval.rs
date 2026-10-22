@@ -531,7 +531,7 @@ fn absorb(result: Result<Value, String>) -> Result<Result<Value, String>, String
 }
 
 /// CEL's order (`CelValues.Compare`): strings by code point, bools, and numbers as .NET orders doubles, NaN first.
-pub(crate) fn compare(a: &Value, b: &Value) -> Result<Ordering, String> {
+pub fn compare(a: &Value, b: &Value) -> Result<Ordering, String> {
     Ok(match (a, b) {
         (Value::String(x), Value::String(y)) => x.cmp(y),
         (Value::Bool(x), Value::Bool(y)) => x.cmp(y),

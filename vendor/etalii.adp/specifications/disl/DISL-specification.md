@@ -1,10 +1,10 @@
 # DISL — Diagram Specification Language
 
-**Specification, version 0.5 (Draft)**
+**Specification, version 0.6 (Draft)**
 
 |                           |                                                                              |
 |---------------------------|------------------------------------------------------------------------------|
-| Date                      | 2026-10-19                                                                   |
+| Date                      | 2026-10-22                                                                   |
 | Specification schema      | `disl.schema.json` (JSON Schema, draft 2020-12), `$defs/Specification`       |
 | Definition language       | DID, the Diagram Definition Language, in [`../did/`](../did/DID-specification.md) |
 | Expression language       | CEL — Common Expression Language (https://cel.dev)                           |
@@ -16,7 +16,7 @@
 
 ## Status of this document
 
-This is a draft, version 0.5. It is complete enough to implement a conforming validator, a documentation generator and a reference runtime, but individual constructs may still change before version 1.0. DISL 0.1 continued the earlier combined format (DEDL became DISL and DID); section 18 lists the old identifiers that runtimes still read. DISL 0.2 adds declarative constructs to 0.1 (declared identity, findings that point at files, reasons the tool gives, derived elements, gestures and menus, view state, budgets, notation and time details). Every valid 0.1 specification is a valid 0.2 specification and keeps its meaning, except in the places listed in [Changes from 0.1](#changes-from-01), where 0.1 was silent or ambiguous and 0.2 now says what it means. DISL 0.3 adds the constructs that the Gartner hype cycle graph and Agent Behavior Modelling tools needed and 0.2 could not state (neighbour-aware bounds, standard row and tree layouts, a type map for format bindings, part tooltips, form fields that parse their own text, per-case built-in codes, geometric drop placement, typed retyping fields and pointer bindings for connect gestures, and, by the ruling of 2026-10-06, menu groups, form row ids, a declared order of findings, one finding per group of duplicates and the case of an endpoint finding); every valid 0.2 specification is a valid 0.3 specification with the same meaning, apart from the clarifications in [Changes from 0.2](#changes-from-02). DISL 0.4 adds what a diagram that agents write and a person arranges needs (items grouped inside a node with collapse defaults, a kept canvas filter, pinning as standard gestures, a layout in tiers, links that open, and view data kept in a format binding's body); every valid 0.3 specification is a valid 0.4 specification with the same meaning, apart from the clarifications in [Changes from 0.3](#changes-from-03). DISL 0.5 adds a built-in `person` shape, a rounded box with a round head above it, which the C4 diagram tool type needs; every valid 0.4 specification is a valid 0.5 specification with the same meaning, apart from the clarification in [Changes from 0.4](#changes-from-04). Sections and paragraphs marked *(informative)* explain intent and give guidance; everything else is *normative*.
+This is a draft, version 0.6. It is complete enough to implement a conforming validator, a documentation generator and a reference runtime, but individual constructs may still change before version 1.0. DISL 0.1 continued the earlier combined format (DEDL became DISL and DID); section 18 lists the old identifiers that runtimes still read. DISL 0.2 adds declarative constructs to 0.1 (declared identity, findings that point at files, reasons the tool gives, derived elements, gestures and menus, view state, budgets, notation and time details). Every valid 0.1 specification is a valid 0.2 specification and keeps its meaning, except in the places listed in [Changes from 0.1](#changes-from-01), where 0.1 was silent or ambiguous and 0.2 now says what it means. DISL 0.3 adds the constructs that the Gartner hype cycle graph and Agent Behavior Modelling tools needed and 0.2 could not state (neighbour-aware bounds, standard row and tree layouts, a type map for format bindings, part tooltips, form fields that parse their own text, per-case built-in codes, geometric drop placement, typed retyping fields and pointer bindings for connect gestures, and, by the ruling of 2026-10-06, menu groups, form row ids, a declared order of findings, one finding per group of duplicates and the case of an endpoint finding); every valid 0.2 specification is a valid 0.3 specification with the same meaning, apart from the clarifications in [Changes from 0.2](#changes-from-02). DISL 0.4 adds what a diagram that agents write and a person arranges needs (items grouped inside a node with collapse defaults, a kept canvas filter, pinning as standard gestures, a layout in tiers, links that open, and view data kept in a format binding's body); every valid 0.3 specification is a valid 0.4 specification with the same meaning, apart from the clarifications in [Changes from 0.3](#changes-from-03). DISL 0.5 adds a built-in `person` shape, a rounded box with a round head above it, which the C4 diagram tool type needs; every valid 0.4 specification is a valid 0.5 specification with the same meaning, apart from the clarification in [Changes from 0.4](#changes-from-04). DISL 0.6 adds no construct and settles where a relation type's `directed`, `allowSelfLoops` and `allowParallel` come from: they are inherited along its C3 linearisation, else the section 4.9 default; a subtype may only narrow them; and supertypes whose values differ are a specification error unless the subtype states the flag (4.7). DISL 0.5 left this open, and two readings were in use, inheritance and the type's own declaration only; every valid 0.5 specification that neither widens a flag nor inherits two different values of one is a valid 0.6 specification, with the meaning of the first reading, apart from the clarifications in [Changes from 0.5](#changes-from-05). Sections and paragraphs marked *(informative)* explain intent and give guidance; everything else is *normative*.
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY** and **OPTIONAL** are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in bold capitals.
 
@@ -45,6 +45,7 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 - [Changes from 0.2](#changes-from-02)
 - [Changes from 0.3](#changes-from-03)
 - [Changes from 0.4](#changes-from-04)
+- [Changes from 0.5](#changes-from-05)
 18. [Deprecated aliases](#18-deprecated-aliases)
 - [Appendix A — JSON Schema](#appendix-a--json-schema)
 - [Appendix B — Built-in catalogues](#appendix-b--built-in-catalogues)
@@ -352,7 +353,7 @@ Any object in a specification or DID definition MAY contain properties whose nam
 
 ### 2.9 Versioning
 
-- `disl` (required) is the version of DISL the specification targets, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"`, `"0.4"` or `"0.5"`. A runtime MUST refuse a specification with a higher major version than it supports and SHOULD warn for a higher minor version. The deprecated alias of section 18 is still read.
+- `disl` (required) is the version of DISL the specification targets, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"`, `"0.4"`, `"0.5"` or `"0.6"`. A runtime MUST refuse a specification with a higher major version than it supports and SHOULD warn for a higher minor version. The deprecated alias of section 18 is still read.
 - DISL 0.2 is a superset of 0.1. A 0.2 runtime **MUST** read a specification that declares `"disl": "0.1"`, or whose `$schema` names the 0.1 schema (`https://etalii.net/adp/disl/schema/0.1/disl.schema.json`), as a 0.2 specification with the same meaning, apart from the clarifications listed in [Changes from 0.1](#changes-from-01). A validator **MUST** validate such a specification against the 0.2 schema and **MUST NOT** report its 0.1 version or schema address as deprecated.
 - DISL 0.3 is a superset of 0.2. A 0.3 runtime **MUST** read a specification that declares `"disl": "0.1"` or `"disl": "0.2"` with its meaning, apart from the clarifications listed in [Changes from 0.2](#changes-from-02). While 0.3 is a draft, its schema is published at the 0.2 address (`https://etalii.net/adp/disl/schema/0.2/disl.schema.json`), which accepts every 0.2 specification unchanged; a specification that uses a construct new in 0.3 **SHOULD** declare `"disl": "0.3"`, and a 0.2 runtime **SHOULD** warn about it as a newer minor version.
 - `language.version` (required) is the semantic version (SemVer 2.0.0) of the defined language. DID definitions record the language version they were written with; this drives migrations (section 11.9).
@@ -894,6 +895,7 @@ A type inherits all attributes, ports, containment rules and tags from its super
 
 - Multiple inheritance is allowed. The set of supertypes MUST form a directed acyclic graph.
 - A subtype MAY redeclare an inherited attribute to *narrow* it: tighten facets, change `default`, `label` or `doc`, set `required: true`, narrow a reference type to a subtype, or set `fixed` (a constant is the tightest facet; `default` is then dropped). It MUST NOT change the base type or relax facets. Conflicting inherited declarations of the same attribute from two supertypes are a specification error unless the subtype redeclares it.
+- **Relation flags.** A relation type that does not state `directed`, `allowSelfLoops` or `allowParallel` **MUST** be read with the value of the nearest type in its C3 linearisation that states it, and with the default of section 4.9 when none does; this is the value notation, forms and constraints use. A relation type **MAY** state a flag its supertypes have only to *narrow* it: `allowSelfLoops` and `allowParallel` from `true` to `false`. It **MUST NOT** state `true` for `allowSelfLoops` or `allowParallel` where a direct supertype's value is `false`, and **MUST NOT** state a `directed` that differs from a direct supertype's; a supertype's value is its value by the lookup above, the default included, so `directed: false` under a supertype that states nothing differs from its `true`. A relation type whose direct supertypes have different values of a flag by that lookup **MUST** state that flag itself, as for conflicting inherited attributes. A relation type that breaks either rule is a specification error. *(informative)* `abstract` and `derived` make no difference to the lookup or to these rules, and a supertype that states a flag with its default value changes nothing.
 - Notation, forms and constraints are looked up along the linearised supertype chain (C3 linearisation, as in Python): the most specific declaration wins, and a node type without its own notation uses its nearest supertype's notation.
 - Relation types inherit from relation types only; node types from node types only.
 
@@ -960,9 +962,9 @@ A relation type describes a kind of connection, drawn as an edge.
 | `label`, `doc`, `icon` |                                   |                                                                                                                                   |
 | `abstract`, `extends`  |                                   | As for node types.                                                                                                                |
 | `source`, `target`     | TypeRef, TypeRef[] or RelationEnd | Allowed endpoints. **Required.**                                                                                                  |
-| `directed`             | bool                              | Default `true`. Undirected relations treat `source`/`target` as unordered for `allowParallel` and cycle checks.                   |
-| `allowSelfLoops`       | bool                              | Source and target may be the same element. Default `false`.                                                                       |
-| `allowParallel`        | bool                              | More than one relation of this type between the same pair. Default `true`.                                                        |
+| `directed`             | bool                              | Default `true`. Inherited (4.7). Undirected relations treat `source`/`target` as unordered for `allowParallel` and cycle checks.                   |
+| `allowSelfLoops`       | bool                              | Source and target may be the same element. Default `false`. Inherited (4.7).                                                                       |
+| `allowParallel`        | bool                              | More than one relation of this type between the same pair. Default `true`. Inherited (4.7).                                                        |
 | `acyclic`              | bool                              | Shorthand for a built-in constraint (`std.acyclic`) forbidding cycles in the graph formed by all relations whose type is this type or one of its subtypes (below).                                                    |
 | `attributes`           | map → Attribute                   | Relation attributes.                                                                                                              |
 | `bounds`               | `{neighbour}`                     | As for node types (4.3). *(DISL 0.3)* |
@@ -984,7 +986,7 @@ A relation type describes a kind of connection, drawn as an edge.
 
 Connectivity rules that depend on attributes or on the pair of endpoints are written as `connect` constraints (8.4).
 
-**Acyclic over subtypes.** `acyclic` forbids cycles in the graph formed by all relations whose type is this type or one of its subtypes; on an abstract relation type it therefore covers any mix of its subtypes. A subtype of an acyclic type is acyclic and **MUST NOT** set `acyclic: false`. This is the 0.1 meaning made explicit, since a subtype is accepted wherever its supertype is (4.7).
+**Flags over subtypes.** A relation type inherits `directed`, `allowSelfLoops` and `allowParallel` from its supertypes, and may only narrow them (4.7). `acyclic` forbids cycles in the graph formed by all relations whose type is this type or one of its subtypes; on an abstract relation type it therefore covers any mix of its subtypes. A subtype of an acyclic type is acyclic and **MUST NOT** set `acyclic: false`. This is the 0.1 meaning made explicit, since a subtype is accepted wherever its supertype is (4.7).
 
 ```json
 "Owns":     { "abstract": true, "extends": "FdgRelation", "acyclic": true },
@@ -993,6 +995,8 @@ Connectivity rules that depend on attributes or on the pair of endpoints are wri
 ```
 
 In a functional decomposition graph, no mix of `UiChild`, `OwnsData` and the other ownership relations may close a loop.
+
+*(informative)* Which relations `allowParallel` counts is unchanged by its inheritance: they are relations of the same type between the same pair, so two relations of two different subtypes of one type on one pair are not parallel to each other, while two of one subtype that inherits `allowParallel: false` are.
 
 **Relations without a target.** When the `target` end is `optional`, a relation of the type **MAY** be stored without a target; `self.target` is then `null`, the relation is drawn as its edge notation's `stub` (6.10), and `std.endpoints` (8.7) **MUST NOT** report the missing target. A `connect` gesture never creates a relation without a target; reconnecting the free end to an element is a `connect` gesture. DID stores such a relation without its `target` (DID, section 3).
 
@@ -4792,7 +4796,7 @@ An RDF graph shows prefixed names through its Turtle plugin, which knows the fil
 3. **Resolve imports** recursively, verify integrity hashes, detect cycles, apply `include` filters, prefix names with aliases.
 4. **Validate structure** against the JSON Schema `$defs/Specification`.
 5. **Resolve names**: every type, style, shape, marker, icon, form, tool, snap profile, layout, operation, function and plugin reference must resolve.
-6. **Flatten inheritance**: compute C3 linearisations; merge attributes, ports, containment; check narrowing rules (4.7).
+6. **Flatten inheritance**: compute C3 linearisations; merge attributes, ports, containment and relation flags; check narrowing rules and conflicting inherited declarations (4.7).
 7. **Derive built-ins**: generate built-in constraints (8.7), default notations, default forms and the default toolbox where absent.
 8. **Compile CEL**: parse and type-check every expression in its context (12.3); estimate costs against `language.limits.celCost`; check user functions for recursion other than the bounded self-recursion of 3.4, and plugin function names for clashes (13.1.1).
 9. **Check semantic rules** not expressible in JSON Schema: reserved attribute names, placement attribute types compatible with axes, snapping rules compatible with axis kinds, `x2` vs `width` exclusivity, handle parameters exist, label `editable` requires attribute binding, exactly one of `path`/`parts`/`svg`/`plugin` in shapes, *(DISL 0.4)* a compartment's `groupBy` names an enumeration attribute of every item type and its `collapsed` keys are values of that enumeration, a `force` layout's `tiers` name node types, `view.bind` is used only with `format: "fbl"` for kinds `view.store` lists, and all other MUST statements of this document.
@@ -4896,7 +4900,7 @@ Runtimes that do not support a visual feature SHOULD degrade visually rather tha
 
 The three specifications below are complete, and each one validates against the JSON Schema of Appendix A. Every CEL expression in them compiles with a reference CEL implementation (cel-go) configured with the DISL library of section 12. Together they exercise most of the language. They are also distributed as separate files next to this specification.
 
-Beside them, seven trimmed excerpts of real diagram specifications show the constructs added in 0.2, one file each, and two further files show what a validator prints and the DID 0.2 value forms. They validate against the schemas like the three above, but are not reproduced here:
+Beside them, seven trimmed excerpts of real diagram specifications show the constructs added in 0.2, one file each, two further files show what a validator prints and the DID 0.2 value forms, and one example comes with its DID definition and the findings that definition gives. They validate against the schemas like the three above, but are not reproduced here:
 
 | File                            | What it shows |
 |---------------------------------|---------------|
@@ -4908,6 +4912,7 @@ Beside them, seven trimmed excerpts of real diagram specifications show the cons
 | `functional-decomposition.dis`  | The superellipse and a custom shape (6.7, 6.8), a contrast requirement (6.2), a `fixed` attribute (4.3), acyclicity over an abstract relation type (4.9), built-in refusals worded by the specification (8.1, 8.4), a deletion confirmation with a threshold (9.5), the `findings` form item (7.5) and base-36 ids (11.5.1). |
 | `causal-loop.dis`               | Cycle enumeration with `diagram.cycles` and `diagram.knots` (12.4), one finding per cycle with `forEach` (8.2), a hook whose actions run per cycle (9.2, 9.4), drops onto a variable that are refused elsewhere (7.2), view membership (3.5) and the empty-canvas message (6.13). |
 | `databricks-job.dis`            | A simulated run (9.6), rules per item with `forEach` and file locations (8.2), `std.unreadableEntry` (8.7), enum stored forms (4.5), a stub for a relation whose target is optional (4.9, 6.10), Bézier reach (6.10) and context-menu entries generated per item (7.3). |
+| `service-calls.dis`, `service-calls.did`, `service-calls.findings.json` | Relation flags inherited from an abstract relation type, and restated under two supertypes that differ (4.7, 4.9), with a definition and the `std.endpoints` findings its flags give (8.7). |
 | `findings.json`                 | Headless validator output (8.6), in the object form of `$defs/ValidatorOutput`: a parse failure with file, line and column, a finding on an undrawn subject, a finding on elements with a location, and a per-view finding. |
 | `../did/time-values.did`        | The DID 0.2 value forms: signed `yearMonth` values before year 1, `datetime` values kept at their written precision, a relation without a target, and a suppression keyed by `subject` (DID, section 10). |
 
@@ -6151,6 +6156,18 @@ DISL 0.5 (draft, 2026-10-19) adds the construct listed below, ruled by the produ
 | 1 | A shape reference `"person"` with no custom shape of that name | An unknown shape. | The built-in `person`. A custom shape named `person` still shadows it (6.8). | The C4 person needed a shape every host draws alike. | 6.7 |
 
 DISL 0.5 needs no change to DID or FBL: a definition stores no shapes, and a binding binds no notation. The worked example [`c4-container.dis`](c4-container.dis) draws its people with `person`.
+
+## Changes from 0.5
+
+DISL 0.6 (draft, 2026-10-22) adds no construct. It settles what 0.5 left open about a relation type's flags, ruled by the maintainer on 2026-10-22 with the answers to Q1 to Q3 of spec 034-disl-relation-flag-inheritance and the decision "Approve, all hosts". Every valid 0.5 specification that neither widens a flag nor inherits two different values of one is a valid 0.6 specification, with the meaning of the inheriting reading.
+
+| # | Change | 0.5 said | 0.6 says | Reason | Section |
+|---|--------|----------|----------|--------|---------|
+| 1 | A flag a relation type does not state | Nothing; read as inherited by some hosts and as the default by others. | Inherited along the C3 linearisation, else the 4.9 default. | One specification was two tools, depending on the host. | 4.7, 4.9 |
+| 2 | A flag a subtype states differently | Nothing. | Only narrowing; widening, or a different `directed`, is an error. | A subtype is accepted wherever its supertype is. | 4.7 |
+| 3 | Supertypes whose flags differ | Nothing. | An error unless the subtype states the flag. | As for conflicting inherited attributes. | 4.7 |
+
+DISL 0.6 needs no change to DID, DESL or FBL. The worked example [`service-calls.dis`](service-calls.dis) shows the rule, and the specifications in [`refused/`](refused/README.md) show what a validator refuses.
 
 ---
 

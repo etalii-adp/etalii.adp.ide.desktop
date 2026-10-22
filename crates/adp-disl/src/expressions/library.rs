@@ -72,6 +72,31 @@ pub(crate) fn register(environment: &mut Environment, enums: Rc<IndexMap<String,
     environment.add_function(
         Function::receiver("cyclesTruncated", 2, |a| Ok(Value::Bool(cycles(a)?.1))).with_cost(cycles_cost),
     );
+    environment.add_function(
+        Function::receiver("knots", 1, |a| {
+            let diagram = a[0]
+                .downcast::<DiagramData>()
+                .ok_or("knots() is a method of the diagram.")?;
+            Ok(Value::list(
+                diagram
+                    .knots(text(&a[1])?)
+                    .into_iter()
+                    .map(|knot| Value::list(knot.iter().map(|e| e.to_value()).collect()))
+                    .collect(),
+            ))
+        })
+        .with_cost(|a| match a.first().and_then(|d| d.downcast::<DiagramData>()) {
+            Some(diagram) => diagram.size() as i64 + 1,
+            None => 1,
+        }),
+    );
+    environment.add_function(Function::new(
+        "budget",
+        adp_cel::Style::Global,
+        0,
+        1,
+        Some(Rc::new(|call: &adp_cel::Call<'_>| budget(call))),
+    ));
     environment.add_function(Function::global("enumLabel", 2, move |a| {
         let name = text(&a[0])?;
         let enumeration = enums
@@ -164,6 +189,42 @@ pub(crate) fn register(environment: &mut Environment, enums: Rc<IndexMap<String,
 }
 
 type Cycles = (Vec<Vec<crate::DislElement>>, bool);
+
+/// `budget(id)` and `budget()` (section 12.4): the state of a budget of the diagram the calling expression has, or
+/// of every budget at once, truncated and withheld when they are for any, as a map of `shown`, `total`, `truncated`
+/// and `withheld`.
+fn budget(call: &adp_cel::Call<'_>) -> Result<Value, String> {
+    let diagram = call.variables.get("diagram");
+    let diagram = diagram
+        .as_ref()
+        .and_then(|d| d.downcast::<DiagramData>())
+        .ok_or("budget() reads the budgets of the diagram, which this expression has none of.")?;
+    let states = diagram.budgets()?;
+    let state = |shown: i64, total: i64, truncated: bool, withheld: bool| {
+        let mut map = adp_cel::Map::default();
+        map.insert("shown", Value::Int(shown));
+        map.insert("total", Value::Int(total));
+        map.insert("truncated", Value::Bool(truncated));
+        map.insert("withheld", Value::Bool(withheld));
+        Value::map(map)
+    };
+    match call.arguments.first() {
+        None => Ok(state(
+            states.iter().map(|s| s.shown).sum(),
+            states.iter().map(|s| s.total).sum(),
+            states.iter().any(|s| s.truncated),
+            states.iter().any(|s| s.withheld),
+        )),
+        Some(id) => {
+            let id = text(id)?;
+            let found = states
+                .iter()
+                .find(|s| s.id == id)
+                .ok_or_else(|| format!("'{id}' is not a budget of this specification (section 3.2.1)."))?;
+            Ok(state(found.shown, found.total, found.truncated, found.withheld))
+        }
+    }
+}
 
 /// `diagram.cycles(relType, max)` and `diagram.cyclesTruncated(relType, max)` (section 12.4), on the diagram that
 /// receives them.

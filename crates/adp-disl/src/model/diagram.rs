@@ -6,15 +6,17 @@
 //! diagram too.
 
 use std::any::Any;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::rc::{Rc, Weak};
 
 use adp_cel::{Map, Object, Value};
 
+use super::budgets::{self, DislBudgetState};
 use super::cycles;
 use super::element::{DislElement, NewElement, list, type_text};
+use super::knots;
 use super::values;
 use crate::loading::metamodel::DislType;
 use crate::loading::specification::DislSpecification;
@@ -34,6 +36,10 @@ pub(crate) struct DiagramData {
     relations: RefCell<Vec<DislElement>>,
     ends: RefCell<Option<Ends>>,
     cycles: RefCell<HashMap<(String, i64), Cycles>>,
+    knots: RefCell<HashMap<String, Vec<Vec<DislElement>>>>,
+    /// The budgets' states once computed, until the diagram or one of its elements changes.
+    budgets: RefCell<Option<Rc<Vec<DislBudgetState>>>>,
+    computing_budgets: Cell<bool>,
     file: RefCell<Option<String>>,
 }
 
@@ -72,6 +78,19 @@ impl DiagramData {
     pub(crate) fn cycles(&self, relation_type: &str, max: i64) -> Cycles {
         self.handle().cycles(relation_type, max)
     }
+
+    pub(crate) fn knots(&self, relation_type: &str) -> Vec<Vec<DislElement>> {
+        self.handle().knots(relation_type)
+    }
+
+    pub(crate) fn budgets(&self) -> Result<Rc<Vec<DislBudgetState>>, String> {
+        self.handle().try_budgets()
+    }
+
+    /// An element changed: the budgets are computed again when next read.
+    pub(crate) fn forget_budgets(&self) {
+        *self.budgets.borrow_mut() = None;
+    }
 }
 
 impl DislDiagram {
@@ -85,6 +104,9 @@ impl DislDiagram {
             relations: RefCell::new(Vec::new()),
             ends: RefCell::new(None),
             cycles: RefCell::new(HashMap::new()),
+            knots: RefCell::new(HashMap::new()),
+            budgets: RefCell::new(None),
+            computing_budgets: Cell::new(false),
             file: RefCell::new(None),
         }))
     }
@@ -364,6 +386,8 @@ impl DislDiagram {
     fn changed(&self) {
         *self.0.ends.borrow_mut() = None;
         self.0.cycles.borrow_mut().clear();
+        self.0.knots.borrow_mut().clear();
+        self.0.forget_budgets();
     }
 
     /// The children of `parent`, or the top-level nodes, in model order.
@@ -377,6 +401,7 @@ impl DislDiagram {
     /// Sets diagram attribute `name`, as a reader does.
     pub(crate) fn set_attribute(&self, name: &str, value: Value) {
         self.0.attributes.borrow_mut().insert(name, value);
+        self.0.forget_budgets();
     }
 
     /// The value CEL reads for diagram attribute `name`: stored, else its default, else its type's zero value
@@ -423,6 +448,57 @@ impl DislDiagram {
         let found = cycles::find(&self.nodes(), &relations, max.max(0));
         self.0.cycles.borrow_mut().insert(key, found.clone());
         found
+    }
+
+    /// The strongly connected components over the relations that are `relation_type` or one of its subtypes that have
+    /// more than one member or a self-loop (section 12.4, `diagram.knots`): members in model order, components ordered
+    /// by their first member. Memoised until the diagram changes.
+    pub fn knots(&self, relation_type: &str) -> Vec<Vec<DislElement>> {
+        if let Some(known) = self.0.knots.borrow().get(relation_type) {
+            return known.clone();
+        }
+        let found = knots::find(&self.nodes(), &self.relations_of_type(relation_type));
+        self.0
+            .knots
+            .borrow_mut()
+            .insert(relation_type.to_owned(), found.clone());
+        found
+    }
+
+    /// The state of every budget (section 3.2.1), in declaration order: computed when first asked for, and again
+    /// after the diagram or one of its elements changes. A budget whose measure, order or unit reads the budgets has
+    /// none, so its state is empty.
+    pub fn budgets(&self) -> Rc<Vec<DislBudgetState>> {
+        self.try_budgets().unwrap_or_default()
+    }
+
+    fn try_budgets(&self) -> Result<Rc<Vec<DislBudgetState>>, String> {
+        if let Some(known) = self.0.budgets.borrow().as_ref() {
+            return Ok(Rc::clone(known));
+        }
+        if self.0.computing_budgets.replace(true) {
+            return Err("A budget is read while the budgets are computed.".to_owned());
+        }
+        let states = Rc::new(budgets::compute(self));
+        self.0.computing_budgets.set(false);
+        *self.0.budgets.borrow_mut() = Some(Rc::clone(&states));
+        Ok(states)
+    }
+
+    /// The state of the budget `id` (section 3.2.1), or none when the specification declares none by that id.
+    pub fn budget(&self, id: &str) -> Option<DislBudgetState> {
+        self.budgets().iter().find(|budget| budget.id == id).cloned()
+    }
+
+    /// Whether `element` is drawn under the budgets (section 3.2.1): no truncating budget cuts it, and for a
+    /// relation, both its ends are drawn.
+    pub fn is_drawn(&self, element: &DislElement) -> bool {
+        if self.budgets().iter().any(|budget| budget.cuts(element)) {
+            return false;
+        }
+        !element.is_relation()
+            || element.source().is_none_or(|source| self.is_drawn(&source))
+                && element.target().is_none_or(|target| self.is_drawn(&target))
     }
 
     fn ends(&self, node: &DislElement, incoming: bool) -> Vec<DislElement> {

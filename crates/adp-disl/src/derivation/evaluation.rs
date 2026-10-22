@@ -138,6 +138,17 @@ pub(crate) fn first_reason(
     })
 }
 
+/// The text of one Reason (section 2.3) when it applies, as [`first_reason`] judges each of a list.
+pub(crate) fn one_reason(
+    specification: &DislSpecification,
+    reason: &Json,
+    pointer: &str,
+    context: &str,
+    variables: &Vars,
+) -> Option<String> {
+    self::reason(specification, reason, pointer, context, variables)
+}
+
 fn reason(
     specification: &DislSpecification,
     reason: &Json,
