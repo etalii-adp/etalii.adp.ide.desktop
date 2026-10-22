@@ -302,6 +302,14 @@ pub trait ModuleView {
         None
     }
 
+    /// The action a double-click on the element `element_id` runs (the standalone host's `activate` gesture), as the
+    /// view's own [`ModuleView::execute`] takes it: none for a view that declares no double-click, which is the
+    /// default.
+    fn double_click(&self, documents: &DiagramDocuments, element_id: &str) -> Option<String> {
+        let _ = (documents, element_id);
+        None
+    }
+
     /// Whether a right drag from one element to another draws a connection (the standalone host's
     /// `connectOnRightDrag`); without it a right drag on the view does nothing, and its right click opens the menu. No
     /// by default.

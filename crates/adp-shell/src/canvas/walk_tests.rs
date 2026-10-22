@@ -381,6 +381,27 @@ fn f14_delete_with_several_selected_deletes_all_of_them_as_one_undo_or_none() {
     assert_eq!(harness.written(), harness.original, "{:?}", harness.tab.notice);
 }
 
+/// F9 as the re-walk left it: the mind map's node says `doubleClick: "none"`, so a double-click starts no rename
+/// (`compileNotation.ts` declares no `activate` gesture for it), while F2 still renames it in place.
+#[test]
+fn f9_a_double_click_on_a_mind_map_node_starts_no_rename_and_f2_still_renames_it() {
+    let mut harness = Harness::mindmap();
+    harness.double_click(OVERFLOW);
+    assert!(
+        harness.tab.editor.is_none(),
+        "no inline editor: {:?}",
+        harness.tab.editor
+    );
+    assert!(harness.tab.prompt.is_none(), "and nothing asked");
+    assert_eq!(harness.written(), harness.original, "and nothing written");
+
+    assert_eq!(harness.tab.selection, [OVERFLOW], "the double-click selected the node");
+    harness.key(Key::F2, Modifiers::NONE);
+    let editor = harness.tab.editor.as_ref().expect("F2 opens the inline editor");
+    assert_eq!(editor.element, OVERFLOW);
+    assert_eq!(editor.text, "Overflow handling");
+}
+
 // ---- the C4 container view -------------------------------------------------------------------------------------------
 
 #[test]
@@ -524,6 +545,16 @@ fn f5_a_timeline_opens_fitted_in_readable_units_with_its_ruler_and_its_periods_a
     assert!(harness.tab.view.zoom < fitted.zoom);
     harness.key(Key::Num0, Modifiers::NONE);
     assert_eq!(harness.tab.view, fitted);
+}
+
+/// The timeline's period says `doubleClick: "editLabel"`: a double-click renames it in place, through its menu's Rename.
+#[test]
+fn a_double_click_on_a_timeline_period_renames_it_in_place() {
+    let mut harness = Harness::roadmap();
+    harness.double_click("build");
+    let editor = harness.tab.editor.as_ref().expect("the inline editor is open");
+    assert_eq!(editor.element, "build");
+    assert_eq!(editor.text, "Private beta");
 }
 
 #[test]

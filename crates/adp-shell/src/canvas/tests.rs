@@ -223,6 +223,19 @@ impl Harness {
         self.release(at, PointerButton::Primary, modifiers);
     }
 
+    /// Two clicks on the element `id` in quick succession, which egui reads as a double-click.
+    fn double_click(&mut self, id: &str) {
+        self.settle();
+        let at = self.screen_of(id);
+        self.click(at, Modifiers::NONE);
+        self.click(at, Modifiers::NONE);
+        assert!(
+            self.ctx
+                .input(|i| i.pointer.button_double_clicked(PointerButton::Primary)),
+            "the second click on {id} is a double-click"
+        );
+    }
+
     /// A drag in steps from `from` to `to`, released there unless `release` is false.
     fn drag(&mut self, from: Pos2, to: Pos2, button: PointerButton, release: bool) {
         self.press(from, button, Modifiers::NONE);
@@ -1340,3 +1353,5 @@ mod databricks;
 mod wardley_map;
 // Every tool drawn in the active theme and again when it switches (T087), in a file of its own.
 mod themes;
+// A double-click as each notation's `doubleClick` and each module's canvas declares it (P-028), in a file of its own.
+mod double_click;
