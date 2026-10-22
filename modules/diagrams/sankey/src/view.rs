@@ -167,6 +167,13 @@ impl ModuleView for SankeyDiagramView {
         self.run(workspace, target, action_id, || ids.next("node"))
     }
 
+    /// A double-click on a node renames it (`SankeyCanvas.tsx`: the `activate` gesture invokes `sankey.rename`); on
+    /// anything else it does nothing.
+    fn double_click(&self, documents: &DiagramDocuments, element_id: &str) -> Option<String> {
+        self.model(documents)?.node_of(element_id)?;
+        Some(actions::RENAME.to_owned())
+    }
+
     /// A right drag from one element to another draws a connection (`SankeyCanvas.tsx`, `connectOnRightDrag: true`).
     fn connects_on_right_drag(&self) -> bool {
         true

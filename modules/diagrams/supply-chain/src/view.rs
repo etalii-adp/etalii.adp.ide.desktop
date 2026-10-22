@@ -181,6 +181,14 @@ impl ModuleView for SupplyChainView {
         }
     }
 
+    /// A double-click on a stage or a group renames it (`SupplyChainCanvas.tsx`: the `activate` gesture invokes its
+    /// rename on the element types of its stages and its group).
+    fn double_click(&self, documents: &DiagramDocuments, element_id: &str) -> Option<String> {
+        let model = &self.document(documents).ok()?.model;
+        (model.node_of(element_id).is_some() || model.group_of(element_id).is_some())
+            .then(|| actions::RENAME.to_owned())
+    }
+
     /// A right drag from one element to another draws a connection (`SupplyChainCanvas.tsx`, `connectOnRightDrag: true`).
     fn connects_on_right_drag(&self) -> bool {
         true
