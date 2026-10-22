@@ -1,0 +1,295 @@
+{
+  "script": "parity/scripts/azure-devops/pipeline/multi-stage.json",
+  "tool": "azure-devops/pipeline",
+  "fixture": "azure-devops/pipeline/example-1/multi-stage.yml",
+  "registration": "azure-devops/pipeline/example-1/multi-stage.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "windows",
+  "recordedAt": "2026-10-21T14:37:51Z",
+  "edits": 32,
+  "changed": [
+    "multi-stage.yml",
+    "templates/release.adp",
+    "templates/release.yml"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 7,
+      "id": "edge:DeployStaging->DeployProduction",
+      "type": "azure-devops/pipeline+edge",
+      "connection": false
+    },
+    {
+      "step": 8,
+      "id": "edge:Build->DeployProduction",
+      "type": "azure-devops/pipeline+edge",
+      "connection": false
+    },
+    {
+      "step": 12,
+      "id": "NewStage",
+      "type": "azure-devops/pipeline+stage",
+      "connection": false
+    },
+    {
+      "step": 12,
+      "id": "edge:Notify->NewStage",
+      "type": "azure-devops/pipeline+edge",
+      "connection": false
+    },
+    {
+      "step": 29,
+      "id": "Test/Integration",
+      "type": "azure-devops/pipeline+job",
+      "connection": false
+    },
+    {
+      "step": 29,
+      "id": "Test/NewJob",
+      "type": "azure-devops/pipeline+job",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "Build"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename' answered 'Build and package'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "azure-pipeline.display-name = 'Run the tests'"
+    },
+    {
+      "step": 3,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Test/Integration"
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Test/Integration"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Build/Compile/step-1"
+    },
+    {
+      "step": 6,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "azure-pipeline.enabled = 'true'"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on DeployProduction"
+    },
+    {
+      "step": 8,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "azure-pipeline.depends-on = 'Build'"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Notify"
+    },
+    {
+      "step": 10,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 11,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Notify"
+    },
+    {
+      "step": 13,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Test"
+    },
+    {
+      "step": 14,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on DeployStaging"
+    },
+    {
+      "step": 15,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Notify/Announce"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Build/Compile/step-2"
+    },
+    {
+      "step": 17,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Build/Compile/step-0"
+    },
+    {
+      "step": 18,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 19,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Test/Unit"
+    },
+    {
+      "step": 20,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 21,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 22,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on DeployStaging/Staging/step-0"
+    },
+    {
+      "step": 23,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on Notify/Announce/step-0; input 'Rename' answered 'Send: notification'"
+    },
+    {
+      "step": 24,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "azure-pipeline.display-name = '  Ship it  '"
+    },
+    {
+      "step": 25,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "This is edited in the pipeline file. A wrong value here would break the build."
+    },
+    {
+      "step": 26,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "That action is not available for this item."
+    },
+    {
+      "step": 27,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "That would make Notify the team wait for something that is already waiting for it."
+    },
+    {
+      "step": 28,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "This diagram cannot be arranged by dragging."
+    },
+    {
+      "step": 29,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on Test"
+    },
+    {
+      "step": 30,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on NewStage"
+    },
+    {
+      "step": 31,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 32,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry templates; choice 'Add diagram' answered 'azure-devops/pipeline'"
+    },
+    {
+      "step": 33,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

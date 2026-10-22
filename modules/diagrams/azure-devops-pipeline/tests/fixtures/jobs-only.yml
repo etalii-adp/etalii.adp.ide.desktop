@@ -1,0 +1,15 @@
+# No stages key at all: the schema defines one implicit stage around these jobs.
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: Build
+    steps:
+      - bash: echo "Building"
+        displayName: Build
+
+  - job: Test
+    dependsOn: Build
+    steps:
+      - bash: echo "Testing"
+        displayName: Test

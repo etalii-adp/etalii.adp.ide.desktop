@@ -1,0 +1,37 @@
+# A stage, a job and a step, each with a blank line before it and blank lines after it,
+# which a removal takes with it (finding B9).
+stages:
+  - stage: Build
+    jobs:
+      - job: Compile
+        steps:
+          - script: dotnet build
+
+          - script: dotnet pack
+
+
+          - script: dotnet publish
+
+      - job: Lint
+        steps:
+          - script: dotnet format
+
+
+      - job: Docs
+        steps:
+          - script: docfx
+
+  - stage: Test
+    dependsOn: Build
+    jobs:
+      - job: Verify
+        steps:
+          - script: dotnet test
+
+
+  - stage: Ship
+    dependsOn: Test
+    jobs:
+      - job: Push
+        steps:
+          - script: dotnet nuget push

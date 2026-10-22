@@ -1,0 +1,26 @@
+[package]
+name = "adp-diagram-databricks"
+description = "The Databricks family's residue: the bundle, job and pipeline readings of one YAML or JSON file, their layouts, the registration's layout block and every edit (spec 030, T081)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# A Databricks file is YAML (or JSON, a subset of YAML 1.2), read for its structure and the lines each part occupies;
+# never written through it.
+saphyr-parser = "0.0.6"
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+adp-disl = { path = "../../../crates/adp-disl" }
+tempfile = "3"
+
+[lints]
+workspace = true

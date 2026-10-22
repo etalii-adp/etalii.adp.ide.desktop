@@ -1,0 +1,25 @@
+[package]
+name = "adp-diagram-azure-devops-pipeline"
+description = "The Azure DevOps pipeline's residue: the .yml reader that follows templates, its dependency graph and layout, and every edit (spec 030, T078)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+adp-context = { path = "../../../crates/adp-context" }
+adp-diagram = { path = "../../../crates/adp-diagram" }
+adp-documents = { path = "../../../crates/adp-documents" }
+adp-history = { path = "../../../crates/adp-history" }
+adp-layout = { path = "../../../crates/adp-layout" }
+# A pipeline is YAML, read for its structure and the lines each element occupies; never written through it.
+saphyr-parser = "0.0.6"
+
+[dev-dependencies]
+adp-core = { path = "../../../crates/adp-core" }
+adp-disl = { path = "../../../crates/adp-disl" }
+tempfile = "3"
+
+[lints]
+workspace = true

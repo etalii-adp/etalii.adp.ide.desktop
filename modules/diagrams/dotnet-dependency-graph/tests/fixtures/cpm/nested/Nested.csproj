@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Shadowed" />
+    <PackageReference Include="Pinned" Version="9.9.9" />
+    <PackageReference Include="ChildVersion">
+      <Version>3.3.3</Version>
+    </PackageReference>
+    <PackageReference Include="Unknowable" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Root.csproj" />
+  </ItemGroup>
+</Project>

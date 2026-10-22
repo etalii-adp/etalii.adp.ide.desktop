@@ -1,0 +1,8 @@
+trigger:
+  - main
+
+steps:
+  - script: echo tied
+    displayName: As many LF endings as CRLF
+  - script: echo unnamed
+    condition: always()

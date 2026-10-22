@@ -1,0 +1,85 @@
+# A build/test/deploy pipeline with fan-out and fan-in, which is the shape the
+# dependency graph exists to make readable.
+trigger:
+  branches:
+    include:
+      - main
+      - releases/*
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: Release
+
+stages:
+  - stage: Build
+    displayName: Build the solution
+    jobs:
+      - job: Compile
+        displayName: Compile
+        steps:
+          - checkout: self
+            fetchDepth: 1
+          - script: dotnet build --configuration $(buildConfiguration)
+            displayName: Build
+          - publish: $(Build.ArtifactStagingDirectory)
+            artifact: drop
+
+  - stage: Test
+    displayName: Test
+    dependsOn: Build
+    jobs:
+      # These two have no dependsOn, so they run in parallel - the job default,
+      # which is the opposite of the stage default.
+      - job: Unit
+        steps:
+          - script: dotnet test --filter Category=Unit
+            displayName: Unit tests
+      - job: Integration
+        timeoutInMinutes: 30
+        continueOnError: true
+        steps:
+          - script: dotnet test --filter Category=Integration
+            displayName: Integration tests
+
+  - stage: DeployStaging
+    dependsOn: Test
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: Staging
+        environment: staging
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: drop
+                - script: ./deploy.sh staging
+                  displayName: Deploy
+
+  - stage: DeployProduction
+    dependsOn: Test
+    trigger: manual
+    jobs:
+      - deployment: Production
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: ./deploy.sh production
+                  displayName: Deploy
+
+  - stage: Notify
+    displayName: Notify the team
+    # Fan-in: waits for both deployments.
+    dependsOn:
+      - DeployStaging
+      - DeployProduction
+    condition: always()
+    jobs:
+      - job: Announce
+        steps:
+          - script: ./notify.sh
+            displayName: Announce
