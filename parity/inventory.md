@@ -19,7 +19,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-013 | Undo and redo of every change, composite changes as one step, a barrier at a change from outside | diagram-undo-redo, multi-select | 2 | walk: 2/9, 2/4, 2/5 (the toolbar Undo says its refusal since the re-walk; walks.md F13) | checked |
 | P-014 | Errors and warnings panel: validated, cached per project, revalidated at start | errors-and-warnings-panel | 2 |  | planned |
 | P-015 | Search panel (a placeholder at the reference commit) | adp-diagram-ide | 2 |  | planned |
-| P-016 | Light and dark themes following the system, with the contrast the theme tests require | client-centralization | 2 |  | planned |
+| P-016 | Light and dark themes following the system, with the contrast the theme tests require | client-centralization | 2 | adp-theme::contrast | built |
 | P-017 | FBL families YAML, JSON, XML and Lines; plugin bodies; folder subjects; routing | fbl-implementation | 3 |  | planned |
 | P-018 | FBL splices keeping every other byte, the byte order mark and the majority line ending | fbl-implementation, fbl-written-text | 3 |  | planned |
 | P-019 | The registration file (.adp): origin, body, layout, unknown blocks kept | folder-add-registration, adp-file-nesting | 3 |  | planned |

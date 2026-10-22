@@ -5,6 +5,8 @@
 //! from the VS Code release in `vscode/SOURCE.md`; the sizes are those of `vscode/sizes.md`. The shell reads every
 //! colour, stroke width and font size from a [`Theme`]; this crate knows no UI toolkit.
 
+pub mod contrast;
+
 use std::collections::BTreeMap;
 use std::fmt;
 
