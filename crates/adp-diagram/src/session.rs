@@ -371,6 +371,14 @@ impl DiagramSession {
             return view.move_elements(workspace, moves);
         }
         let document = self.document(workspace.documents())?;
+        if let Some(edit) = document
+            .tool()
+            .module
+            .as_ref()
+            .and_then(|m| m.move_elements(document, moves))
+        {
+            return workspace.execute(edit?);
+        }
         let positions = document.positions();
         let specification = document.tool().definition.specification();
         let mut changes = Vec::with_capacity(moves.len());
@@ -822,7 +830,10 @@ impl DiagramSession {
     }
 
     /// Drops toolbox tool `tool_id` on the canvas at a point: what the specification's tool creates there, its point
-    /// stored in the registration in the same step.
+    /// stored in the registration in the same step; or, where the tool type's module runs the action the tool's drop
+    /// names itself, that action on the canvas at the point (the agent behavior model's drop under the nearest node
+    /// above, `AbmContextActionProvider.PlaceDrop`), whose question for the new node's name, if it asks one, is left
+    /// unanswered.
     pub fn drop_tool(
         &self,
         workspace: &mut DiagramWorkspace,
@@ -833,6 +844,22 @@ impl DiagramSession {
     ) -> Result<(), String> {
         if self.view.is_some() {
             return Err(NOT_OFFERED.to_owned());
+        }
+        let document = self.document(workspace.documents())?;
+        let dropped = document
+            .tool()
+            .definition
+            .toolbox()
+            .iter()
+            .find(|item| item.id == tool_id && !item.drop_action_id.is_empty())
+            .map(|item| item.drop_action_id.clone());
+        if let (Some(action), Some(module)) = (dropped, self.module(workspace.documents()))
+            && let Some(outcome) = module.execute(self, workspace, &ActionTarget::Canvas { x, y }, &action, ids)
+        {
+            return match outcome {
+                ActionOutcome::Refused(refusal) => Err(refusal),
+                ActionOutcome::Done | ActionOutcome::Prompt(_) => Ok(()),
+            };
         }
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
@@ -900,6 +927,15 @@ impl DiagramSession {
         let specification = definition.specification();
         let mut changes = Vec::new();
         for id in element_ids {
+            if let Some(written) = document
+                .tool()
+                .module
+                .as_ref()
+                .and_then(|m| m.set_property(document, id, property_id, value))
+            {
+                changes.extend(written?);
+                continue;
+            }
             let element = document.element(id).ok_or_else(|| GONE.to_owned())?;
             if let Some(shown) = definition
                 .rows(&element, &self.env)

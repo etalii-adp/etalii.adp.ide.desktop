@@ -1,0 +1,17 @@
+# A chart whose entry does not start on the first line, and whose version is several lines below it.
+
+apiVersion: v2
+name: finding-lines
+description: >-
+  Where each finding points: the line of version, the line of the entry,
+  a dependency's line, and the lock file with no line.
+type: application
+version: v1
+dependencies:
+  - name: declared
+    version: 1.0.0
+    repository: https://example.org/charts
+    condition: declared.enabled
+  - name: locked
+    version: 1.0.0
+    repository: https://example.org/charts

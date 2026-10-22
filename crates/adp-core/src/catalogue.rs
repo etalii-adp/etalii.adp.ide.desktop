@@ -103,6 +103,9 @@ pub struct ToolType {
     pub binding_files: Vec<PathBuf>,
     /// The extensions it opens, lower case and with their dot, from its specification and its bindings.
     pub extensions: Vec<String>,
+    /// Its first binding's claim is `registrationOnly` (FBL section 3): a body of it opens only through a registration,
+    /// never by its extension (the agent behavior model's `.md`, which every Markdown file shares).
+    pub registration_only: bool,
     pub findings: Vec<CatalogueFinding>,
 }
 
@@ -166,6 +169,7 @@ impl Catalogue {
                     bindings: Vec::new(),
                     binding_files: Vec::new(),
                     extensions: Vec::new(),
+                    registration_only: false,
                     findings: Vec::new(),
                 })
                 .collect(),
@@ -186,6 +190,7 @@ impl Catalogue {
                     tool_type.bindings = loaded.bindings;
                     tool_type.binding_files = loaded.binding_files;
                     tool_type.extensions = loaded.extensions;
+                    tool_type.registration_only = loaded.registration_only;
                     tool_type.findings = loaded.findings;
                 }
                 Some(tool_type) => tool_type.findings.push(CatalogueFinding {
@@ -229,12 +234,15 @@ impl Catalogue {
         groups
     }
 
-    /// The usable tool types that open a file named `name`, by its extension, in catalogue order.
+    /// The usable tool types that open a file named `name`, by its extension, in catalogue order; a tool type whose
+    /// binding claims its bodies only through a registration is not one of them.
     pub fn for_file(&self, name: &str) -> Vec<&ToolType> {
         let lower = name.to_lowercase();
         self.types
             .iter()
-            .filter(|t| t.is_usable() && t.extensions.iter().any(|e| lower.ends_with(e.as_str())))
+            .filter(|t| {
+                t.is_usable() && !t.registration_only && t.extensions.iter().any(|e| lower.ends_with(e.as_str()))
+            })
             .collect()
     }
 }
@@ -261,6 +269,7 @@ struct LoadedSpecification {
     bindings: Vec<String>,
     binding_files: Vec<PathBuf>,
     extensions: Vec<String>,
+    registration_only: bool,
     findings: Vec<CatalogueFinding>,
 }
 
@@ -270,6 +279,7 @@ fn load_specification(file: &Path, vendor: &Path) -> LoadedSpecification {
         bindings: Vec::new(),
         binding_files: Vec::new(),
         extensions: Vec::new(),
+        registration_only: false,
         findings: Vec::new(),
     };
     let finding = |pointer: &str, severity, message: String| CatalogueFinding {
@@ -337,7 +347,12 @@ fn load_specification(file: &Path, vendor: &Path) -> LoadedSpecification {
                 let (problems, document) = adp_fbl::documents::loader::load_file(&path);
                 let name = reference.rsplit_once('#').map(|(_, n)| n).unwrap_or_default();
                 match document.as_ref().and_then(|d| d.binding(name)) {
-                    Some(binding) => extensions.extend(binding.claims.extensions.iter().map(|e| dotted(e))),
+                    Some(binding) => {
+                        extensions.extend(binding.claims.extensions.iter().map(|e| dotted(e)));
+                        if loaded.binding_files.is_empty() {
+                            loaded.registration_only = binding.claims.registration_only;
+                        }
+                    }
                     None => loaded.findings.push(finding(
                         "/persistence",
                         FindingSeverity::Warning,
@@ -376,15 +391,36 @@ fn load_specification(file: &Path, vendor: &Path) -> LoadedSpecification {
 }
 
 /// The file a binding reference names: beside the specification, or the vendored copy of an address in the
-/// standalone host's repository.
+/// standalone host's repository. A file named alone that is not beside the specification is the standalone host's,
+/// which keeps it in its module's folder: the one file of that name in the vendored copy
+/// (`tools/vendor-standalone-bindings.py`; `agent-behavior-modelling.fbl`).
 fn binding_file(reference: &str, specification: &Path, vendor: &Path) -> Option<PathBuf> {
     let (file, _) = reference.rsplit_once('#')?;
+    let standalone = vendor.join("etalii.adp.ide.standalone");
     let path = match file.strip_prefix(STANDALONE_ADDRESS) {
-        Some(path) => vendor.join("etalii.adp.ide.standalone").join(path),
+        Some(path) => standalone.join(path),
         None if file.contains("://") => return None,
-        None => specification.parent()?.join(file),
+        None => {
+            let beside = specification.parent()?.join(file);
+            if beside.is_file() || file.contains('/') {
+                beside
+            } else {
+                named_in(&standalone.join("src"), file)?
+            }
+        }
     };
     path.is_file().then_some(path)
+}
+
+/// The first file named `name` under `folder`, its subfolders read in name order.
+fn named_in(folder: &Path, name: &str) -> Option<PathBuf> {
+    let mut entries: Vec<PathBuf> = fs::read_dir(folder).ok()?.flatten().map(|e| e.path()).collect();
+    entries.sort();
+    entries
+        .iter()
+        .find(|p| p.is_file() && p.file_name().is_some_and(|n| n == name))
+        .cloned()
+        .or_else(|| entries.iter().filter(|p| p.is_dir()).find_map(|p| named_in(p, name)))
 }
 
 fn dotted(extension: &str) -> String {

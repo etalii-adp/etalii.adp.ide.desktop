@@ -1,0 +1,11 @@
+apiVersion: v2
+name: open-ends
+description: An unvendored dependency beside a vendored one, and an include no local partial defines beside one that resolves.
+version: 1.0.0
+dependencies:
+  - name: common
+    version: 2.x.x
+    repository: oci://registry-1.docker.io/bitnamicharts
+  - name: redis
+    version: 17.0.0
+    repository: https://charts.bitnami.com/bitnami

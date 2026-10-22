@@ -12,6 +12,11 @@ use std::fs;
 use adp_parity::{check, repository_root, script_names};
 
 #[test]
+fn ansible_structure_infrastructure() {
+    check("ansible/structure/infrastructure");
+}
+
+#[test]
 fn c4_container_courier() {
     check("c4/container/courier");
 }
@@ -42,6 +47,11 @@ fn etalii_agent_activity_diagram_two_projects() {
 }
 
 #[test]
+fn etalii_agent_behavior_modelling_research_assistant() {
+    check("etalii/agent-behavior-modelling/research-assistant");
+}
+
+#[test]
 fn etalii_knowledge_cities_json() {
     check("etalii/knowledge/cities-json");
 }
@@ -54,6 +64,11 @@ fn etalii_knowledge_cities_xml() {
 #[test]
 fn etalii_knowledge_cities_yaml() {
     check("etalii/knowledge/cities-yaml");
+}
+
+#[test]
+fn azure_devops_pipeline_multi_stage() {
+    check("azure-devops/pipeline/multi-stage");
 }
 
 #[test]
@@ -74,6 +89,11 @@ fn freeplane_mindmap_example_1() {
 #[test]
 fn gartner_hypecycle_graph_coal_technologies() {
     check("gartner/hypecycle-graph/coal-technologies");
+}
+
+#[test]
+fn helm_chart_nginx() {
+    check("helm/chart/nginx");
 }
 
 #[test]

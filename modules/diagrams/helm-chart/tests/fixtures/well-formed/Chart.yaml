@@ -1,0 +1,14 @@
+apiVersion: v2
+name: shop
+version: 1.4.0
+appVersion: "7.2"
+description: A well-formed fixture chart.
+dependencies:
+  - name: redis
+    version: ">=17.0.0"
+    repository: https://charts.example.com
+    condition: cache.enabled
+    alias: cache
+  - name: postgres
+    version: 12.1.0
+    repository: oci://registry.example.com/charts

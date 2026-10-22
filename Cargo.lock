@@ -125,6 +125,8 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-agent-activity",
+ "adp-diagram-agent-behavior-modelling",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-databricks",
@@ -236,6 +238,54 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-agent-behavior-modelling"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-fbl",
+ "adp-history",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-ansible-structure"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "adp-layout",
+ "saphyr-parser",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-azure-devops-pipeline"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "saphyr-parser",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-c4"
 version = "0.1.0"
 dependencies = [
@@ -307,6 +357,24 @@ dependencies = [
  "saphyr-parser",
  "tempfile",
  "uuid",
+]
+
+[[package]]
+name = "adp-diagram-helm-chart"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-fbl",
+ "adp-history",
+ "regex",
+ "saphyr-parser",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -498,11 +566,15 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-agent-activity",
+ "adp-diagram-agent-behavior-modelling",
+ "adp-diagram-ansible-structure",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-databricks",
  "adp-diagram-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-helm-chart",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-sankey",
@@ -557,11 +629,15 @@ dependencies = [
  "adp-desl",
  "adp-diagram",
  "adp-diagram-agent-activity",
+ "adp-diagram-agent-behavior-modelling",
+ "adp-diagram-ansible-structure",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-databricks",
  "adp-diagram-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
+ "adp-diagram-helm-chart",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-sankey",

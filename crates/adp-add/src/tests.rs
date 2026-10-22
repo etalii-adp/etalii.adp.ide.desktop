@@ -346,6 +346,25 @@ fn a_supply_chain_diagram_is_written_with_its_empty_document() {
 }
 
 #[test]
+fn an_azure_devops_pipeline_is_written_as_the_smallest_pipeline_that_runs() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "azure-devops/pipeline", "build")
+        .unwrap();
+    assert_eq!(created, folder.path().join("build.adp"));
+    assert_eq!(read(&created), "azure-devops/pipeline\r\n");
+    // The standalone host's `NewPipeline`: the file's name as its first comment, a trigger, a pool and one job with
+    // one step, in CRLF as its raw string literal is in the standalone host's checkout.
+    assert_eq!(
+        read(&folder.path().join("build.yml")),
+        "# build\r\n\r\ntrigger:\r\n  - main\r\n\r\npool:\r\n  vmImage: ubuntu-latest\r\n\r\njobs:\r\n  - job: Build\r\n    \
+         displayName: Build\r\n    steps:\r\n      - script: echo \"Replace this with your build\"\r\n        \
+         displayName: Build\r\n"
+    );
+}
+
+#[test]
 fn an_agent_activity_diagram_is_written_with_its_empty_document() {
     let folder = tempfile::tempdir().unwrap();
     let target = AddTarget::Folder(folder.path().to_path_buf());
@@ -431,4 +450,27 @@ fn a_hype_cycle_graph_is_written_as_the_standalone_host_writes_an_empty_one() {
         read(&folder.path().join("trends.ghg")),
         "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n"
     );
+}
+
+#[test]
+fn an_agent_behavior_model_is_written_as_the_standalone_host_writes_a_new_one() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/agent-behavior-modelling", "release-notes")
+        .unwrap();
+    assert_eq!(created, folder.path().join("release-notes.adp"));
+    assert_eq!(read(&created), "etalii/agent-behavior-modelling\r\n");
+    // The standalone host's `AbmWriter.EmptyDocument(baseName, "\r\n")`: titled by the name, the legend that tells the
+    // agent how to follow the tree, and a Behavior section with one Do in order.
+    let body = read(&folder.path().join("release-notes.md"));
+    assert!(
+        body.starts_with("# release-notes\r\n\r\nDescribe the agent here: who it works for, and what it is for.\r\n\r\n## How to follow the behavior\r\n"),
+        "{body}"
+    );
+    assert!(
+        body.ends_with("\r\n## Behavior\r\n\r\n- **Do in order:** Handle the request\r\n"),
+        "{body}"
+    );
+    assert!(body.contains("\r\n- **Ask the user** asks its question and waits for the answer.\r\n"));
 }

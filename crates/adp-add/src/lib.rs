@@ -482,6 +482,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_databricks::PIPELINE_ORIGIN,
         adp_diagram_databricks::new_pipeline,
     )));
+    // `ServiceCollection.AddAzurePipeline.cs`: `NewPipeline`, the smallest pipeline that runs, named after its file.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_azure_devops_pipeline::ORIGIN,
+        adp_diagram_azure_devops_pipeline::new_pipeline,
+    )));
     // `ServiceCollection.AddSankey.cs`: `SankeyParser.EmptyDocument`.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_sankey::ORIGIN,
@@ -496,6 +501,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_hype_cycle::ORIGIN,
         adp_diagram_hype_cycle::EMPTY_DOCUMENT,
+    )));
+    // `ServiceCollection.AddAgentBehaviorModelling.cs`: `AbmWriter.EmptyDocument(baseName, "\r\n")`, titled by the name.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_agent_behavior_modelling::ORIGIN,
+        adp_diagram_agent_behavior_modelling::empty_document,
     )));
     // `ServiceCollection.AddAgentActivityDiagram.cs`: `AadBody.EmptyDocument("\r\n")`, the header alone.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
