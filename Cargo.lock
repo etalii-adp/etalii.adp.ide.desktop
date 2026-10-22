@@ -579,6 +579,7 @@ name = "adp-editor-xml"
 version = "0.1.0"
 dependencies = [
  "adp-editor-json",
+ "adp-libxml2",
  "roxmltree",
 ]
 
@@ -620,6 +621,13 @@ name = "adp-layout"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+]
+
+[[package]]
+name = "adp-libxml2"
+version = "0.1.0"
+dependencies = [
+ "cc",
 ]
 
 [[package]]

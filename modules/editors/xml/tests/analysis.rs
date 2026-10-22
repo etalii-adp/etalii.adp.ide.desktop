@@ -1,10 +1,28 @@
 //! The XML editor's analysis (etalii.adp spec 030, FR-020, task T032) against the standalone host's XML editor examples
 //! at `8b6ccfc` (`src/editors/xml/examples/`), copied into `tests/examples/`.
 
-use adp_editor_xml::{NOT_CHECKED, SchemaKind, Severity, analyse};
+use std::sync::Arc;
+
+use adp_editor_xml::{NOT_CHECKED, ReadFile, SchemaKind, Severity, analyse as analyse_with};
 
 fn doc(name: &str) -> Vec<String> {
     vec![name.to_owned()]
+}
+
+/// The examples folder as the project.
+fn examples() -> ReadFile {
+    Arc::new(|path: &[String]| {
+        std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/examples")
+                .join(path.join("/")),
+        )
+        .ok()
+    })
+}
+
+fn analyse(text: &str, document: &[String], stored: &str) -> adp_editor_xml::Analysis {
+    analyse_with(text, document, stored, examples())
 }
 
 #[test]
@@ -61,7 +79,7 @@ fn a_schema_on_the_web_is_named_and_not_followed() {
     assert_eq!(analysis.findings.len(), 1);
     assert_eq!(
         analysis.findings[0].message,
-        "'https://example.com/a.xsd' is not in the project, so no schema is checked from it."
+        "'https://example.com/a.xsd' is a web address; ADP reads schemas from the project."
     );
     assert_eq!(analysis.status, "No schema");
 }

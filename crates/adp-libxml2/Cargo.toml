@@ -1,0 +1,21 @@
+[package]
+name = "adp-libxml2"
+description = "libxml2 2.15.4, built from its sources and linked statically, with the safe calls the XML editor needs: checking a document against an XSD or a DTD, reading every file through the caller (spec 030, FR-020, plan Complexity Tracking)."
+version.workspace = true
+edition.workspace = true
+license = "Apache-2.0 AND MIT"
+repository.workspace = true
+publish = false
+links = "xml2"
+build = "build.rs"
+
+[build-dependencies]
+cc = "1"
+
+# The workspace denies `unsafe_code`; this crate is where the desktop host calls libxml2's C functions, which only
+# `unsafe` can do (plan, Complexity Tracking). Everything else is the workspace's lint table as it is.
+[lints.rust]
+unsafe_code = "allow"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }

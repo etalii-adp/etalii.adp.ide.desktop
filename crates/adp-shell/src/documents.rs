@@ -55,7 +55,7 @@ pub fn analyse(extension: &str, text: &str, root: &Path, document: &[String], st
         }
         "xml" | "xsd" => {
             use adp_editor_xml::Severity::*;
-            let analysis = adp_editor_xml::analyse(text, document, stored);
+            let analysis = adp_editor_xml::analyse(text, document, stored, read);
             let found = analysis
                 .findings
                 .into_iter()
