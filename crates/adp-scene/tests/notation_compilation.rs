@@ -805,3 +805,37 @@ fn what_it_cannot_draw_along_a_line_an_icon_it_has_none_of_and_another_placement
     );
     assert!(compiled(&text(&attribute)).element_types[1].centre_of.is_none());
 }
+
+/// A relation type that states no flag has the ones its supertype states (DISL 0.6, section 4.7): one per pair from
+/// an inherited `allowParallel: false`, per direction or not by an inherited `directed`, a loop by an inherited
+/// `allowSelfLoops: true`.
+#[test]
+fn a_relation_takes_the_flags_its_supertype_states() {
+    let spec = json!({
+        "disl": "0.6",
+        "language": { "id": "test", "version": "1.0.0" },
+        "metamodel": {
+            "types": { "Card": {} },
+            "relations": {
+                "Once": { "abstract": true, "source": "Card", "target": "Card", "allowParallel": false, "allowSelfLoops": true },
+                "Calls": { "extends": "Once" },
+                "Mutual": { "abstract": true, "source": "Card", "target": "Card", "directed": false, "allowParallel": false },
+                "Peers": { "extends": "Mutual" }
+            }
+        },
+        "notation": {
+            "nodes": { "Card": { "shape": "rect" } },
+            "edges": { "Calls": { "targetMarker": "arrow" }, "Peers": {} }
+        }
+    });
+    let definition = compiled(&text(&spec));
+    let (calls, peers) = (&definition.relation_types[0], &definition.relation_types[1]);
+    assert_eq!(
+        (Some(PerPair::Ordered), true),
+        (calls.endpoints.per_pair, calls.endpoints.allow_self)
+    );
+    assert_eq!(
+        (Some(PerPair::Unordered), false, MarkerKind::None),
+        (peers.endpoints.per_pair, peers.endpoints.allow_self, peers.end_marker)
+    );
+}

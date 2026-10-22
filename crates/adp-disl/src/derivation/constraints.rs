@@ -27,7 +27,7 @@ use super::evaluation::{self, Vars};
 use super::finding::{DislConstraintOptions, DislFinding, UNPARSEABLE};
 use crate::expressions::contexts;
 use crate::json::{self, Json};
-use crate::loading::metamodel::{DislRelationEnd, DislType};
+use crate::loading::metamodel::DislRelationEnd;
 use crate::loading::specification::DislSpecification;
 use crate::model::budgets;
 use crate::model::diagram::DislDiagram;
@@ -150,10 +150,6 @@ fn allows(end: Option<&DislRelationEnd>, element: &DislElement) -> bool {
                 && !end.exclude.iter().any(|t| element.is_a(t))
         }
     }
-}
-
-fn flag(t: &DislType, name: &str, fallback: bool) -> bool {
-    json::get(&t.json, name).and_then(Json::as_bool).unwrap_or(fallback)
 }
 
 fn setting_of<'s>(specification: &'s DislSpecification, id: &str) -> BuiltIn<'s> {
@@ -345,11 +341,11 @@ impl Run<'_> {
             if !allows(t.target.as_ref(), &target) {
                 violations.push((relation.clone(), "target"));
             }
-            if source == target && !flag(&t, "allowSelfLoops", true) {
+            if source == target && !t.allow_self_loops {
                 violations.push((relation.clone(), "selfLoop"));
             }
-            if !flag(&t, "allowParallel", true) {
-                let directed = flag(&t, "directed", true);
+            if !t.allow_parallel {
+                let directed = t.directed;
                 let (a, b) = (source.key(), target.key());
                 let key = if directed || a <= b {
                     (t.name.clone(), a, b)

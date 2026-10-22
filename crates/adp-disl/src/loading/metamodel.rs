@@ -113,6 +113,13 @@ pub struct DislType {
     pub source: Option<DislRelationEnd>,
     /// A relation type's target end; none for a node type.
     pub target: Option<DislRelationEnd>,
+    /// A relation type's `directed` (section 4.9): what it states, else what the nearest type of its linearisation
+    /// states, else the default, `true` (DISL 0.6, section 4.7).
+    pub directed: bool,
+    /// A relation type's `allowSelfLoops`, inherited as `directed` is; the default is `false`.
+    pub allow_self_loops: bool,
+    /// A relation type's `allowParallel`, inherited as `directed` is; the default is `true`.
+    pub allow_parallel: bool,
 }
 
 impl DislType {
@@ -128,6 +135,9 @@ impl DislType {
             label_attribute: None,
             source: None,
             target: None,
+            directed: true,
+            allow_self_loops: false,
+            allow_parallel: true,
         }
     }
 
