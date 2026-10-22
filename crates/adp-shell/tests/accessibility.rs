@@ -35,6 +35,7 @@ struct Window {
     shell: Shell,
     nodes: HashMap<NodeId, Node>,
     root: NodeId,
+    focus: NodeId,
     time: f64,
     _folder: tempfile::TempDir,
 }
@@ -60,6 +61,7 @@ impl Window {
             shell,
             nodes: HashMap::new(),
             root: NodeId(0),
+            focus: NodeId(0),
             time: 0.0,
             _folder: folder,
         };
@@ -80,9 +82,10 @@ impl Window {
         let shell = &mut self.shell;
         let mut output = self.ctx.run_ui(input, |ui| shell.show(ui));
         output.textures_delta.clear();
-        let TreeUpdate { nodes, tree, .. } = output.platform_output.accesskit_update.expect("AccessKit is on");
+        let TreeUpdate { nodes, tree, focus, .. } = output.platform_output.accesskit_update.expect("AccessKit is on");
         self.root = tree.expect("every frame sends the whole tree").root;
         self.nodes = nodes.into_iter().collect();
+        self.focus = focus;
         self.assert_controls_are_named();
     }
 
@@ -138,6 +141,29 @@ impl Window {
             self.outline()
         );
         found[0]
+    }
+
+    /// The node a screen reader is told has the keyboard: the focused node, or its active descendant when it names
+    /// one, as AccessKit resolves it.
+    fn focused(&self) -> (Role, String) {
+        let node = &self.nodes[&self.focus];
+        let node = node
+            .active_descendant()
+            .and_then(|id| self.nodes.get(&id))
+            .unwrap_or(node);
+        (node.role(), self.name(node))
+    }
+
+    fn key(&mut self, key: egui::Key) {
+        let event = |pressed| egui::Event::Key {
+            key,
+            physical_key: None,
+            pressed,
+            repeat: false,
+            modifiers: egui::Modifiers::NONE,
+        };
+        self.frame(vec![event(true), event(false)]);
+        self.frames(1);
     }
 
     fn has(&self, role: Role, name: &str) -> bool {
@@ -251,6 +277,28 @@ fn the_explorer_is_a_tree_of_its_entries_with_their_level_selection_and_expansio
     assert_eq!(docs.is_selected(), Some(true), "the entry pressed is the selected one");
     let (_, roadmap) = window.find(Role::TreeItem, "roadmap.md");
     assert_eq!(roadmap.level(), Some(2), "an entry inside a folder is a level deeper");
+
+    // The keyboard moves through the rows, and a screen reader is told which row has it.
+    assert_eq!(
+        window.focused(),
+        (Role::TreeItem, "docs".to_owned()),
+        "the row pressed has the keyboard"
+    );
+    window.key(egui::Key::ArrowDown);
+    assert_eq!(window.focused(), (Role::TreeItem, "roadmap.md".to_owned()));
+    assert_eq!(window.find(Role::TreeItem, "roadmap.md").1.is_selected(), Some(true));
+    window.key(egui::Key::ArrowDown);
+    assert_eq!(window.focused(), (Role::TreeItem, "notes.md".to_owned()));
+    window.key(egui::Key::ArrowUp);
+    window.key(egui::Key::ArrowUp);
+    assert_eq!(window.focused(), (Role::TreeItem, "docs".to_owned()));
+    window.key(egui::Key::ArrowLeft);
+    assert_eq!(window.find(Role::TreeItem, "docs").1.is_expanded(), Some(false));
+    assert_eq!(
+        window.focused(),
+        (Role::TreeItem, "docs".to_owned()),
+        "closing a folder keeps the keyboard on it"
+    );
 
     let (_, back) = window.find(Role::Button, "Back to projects");
     assert!(!back.is_disabled());
@@ -380,7 +428,15 @@ fn the_add_dialog_is_a_dialog_with_a_tree_of_tool_types_a_name_field_and_a_disab
     let (_, add) = window.find(Role::Button, "Add");
     assert!(add.is_disabled(), "nothing is chosen yet, so Add cannot be pressed");
 
+    // The keyboard is on the tree when the dialog opens, on its first row, and the arrows move it.
+    let second = window.name(vendors[1].1);
     let first = window.name(vendors[0].1);
+    assert_eq!(window.focused(), (Role::TreeItem, first.clone()));
+    window.key(egui::Key::ArrowDown);
+    assert_eq!(window.focused(), (Role::TreeItem, second));
+    window.key(egui::Key::ArrowUp);
+    assert_eq!(window.focused(), (Role::TreeItem, first.clone()));
+
     window.click(Role::TreeItem, &first);
     let (_, vendor) = window.find(Role::TreeItem, &first);
     assert_eq!(vendor.is_expanded(), Some(true));

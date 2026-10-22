@@ -41,6 +41,10 @@ pub struct Explorer {
     /// What the add dialog offers, loaded when a context menu first asks.
     adds: Option<std::rc::Rc<AddCatalogue>>,
     id: Option<egui::Id>,
+    /// Where the rows were scrolled to and how much of them showed, in the last frame.
+    view: (f32, f32),
+    /// Whether the keyboard moved the selection, so that it is scrolled into view.
+    reveal: bool,
 }
 
 impl Explorer {
@@ -69,9 +73,42 @@ impl Explorer {
         flatten(&tree.children, 0, &self.expanded, &mut rows);
         let focused = ui.memory(|m| m.has_focus(id));
         if focused {
+            // The tree keeps its arrows while it has the keyboard.
+            ui.memory_mut(|m| {
+                m.set_focus_lock_filter(
+                    id,
+                    egui::EventFilter {
+                        horizontal_arrows: true,
+                        vertical_arrows: true,
+                        ..Default::default()
+                    },
+                )
+            });
+            let before = self.selected.clone();
             self.keyboard(ui, &rows, &mut requests);
+            self.reveal |= self.selected != before;
         }
         let row_height = theme.sizes.row_height;
+        // The row the keyboard moved to is scrolled into view, so that it is drawn and a screen reader can be told it
+        // has the focus.
+        let mut scroll_to = None;
+        if std::mem::take(&mut self.reveal)
+            && let Some(index) = self
+                .selected
+                .as_ref()
+                .and_then(|s| rows.iter().position(|r| &r.node.path == s))
+        {
+            let pitch = row_height + ui.spacing().item_spacing.y;
+            let (offset, height) = self.view;
+            let top = index as f32 * pitch;
+            if top < offset {
+                scroll_to = Some(top);
+            } else if top + row_height > offset + height {
+                scroll_to = Some(top + row_height - height);
+            }
+        }
+        let mut focused_row = None;
+        let mut take_focus = false;
         let selection = color(theme, &["list.activeSelectionBackground"], Color32::DARK_BLUE);
         let inactive_selection = color(theme, &["list.inactiveSelectionBackground"], selection);
         let hover = color(theme, &["list.hoverBackground"], Color32::from_gray(40));
@@ -80,150 +117,168 @@ impl Explorer {
         let focus = color(theme, &["list.focusOutline", "focusBorder"], Color32::LIGHT_BLUE);
         let error = color(theme, &["errorForeground"], Color32::RED);
 
-        // To a screen reader the explorer is a tree named Explorer, each row a tree item (FR-041, T088).
+        // To a screen reader the explorer is a tree named Explorer, each row a tree item (FR-041, T088). The tree is
+        // the one widget the keyboard focuses, as VS Code's is one stop for Tab; the row it is on is the tree's active
+        // descendant, which AccessKit reports as focused. The rows take presses but not the keyboard.
         let tree_scope = egui::UiBuilder::new()
+            .scope_id(id)
+            .sense(Sense::focusable_noninteractive())
             .accessibility_role(egui::accesskit::Role::Tree)
             .accessibility_label("Explorer");
         ui.scope_builder(tree_scope, |ui| {
-            egui::ScrollArea::vertical()
-                .id_salt(id)
-                .auto_shrink([false, false])
-                .show_rows(ui, row_height, rows.len(), |ui, range| {
-                    for row in &rows[range] {
-                        let width = ui.available_width();
-                        let (rect, response) = ui.allocate_exact_size(egui::vec2(width, row_height), Sense::click());
-                        let response = response.on_hover_text(&row.node.path);
-                        let selected = self.selected.as_deref() == Some(row.node.path.as_str());
-                        if selected {
-                            ui.painter()
-                                .rect_filled(rect, 0.0, if focused { selection } else { inactive_selection });
-                            if focused {
-                                ui.painter().rect_stroke(
-                                    rect.shrink(0.5),
-                                    0.0,
-                                    egui::Stroke::new(theme.sizes.focus_outline_width, focus),
-                                    egui::StrokeKind::Inside,
-                                );
-                            }
-                        } else if response.hovered() {
-                            ui.painter().rect_filled(rect, 0.0, hover);
-                        }
-                        let indent = 8.0 + row.depth as f32 * 8.0;
-                        let has_children = !row.node.children.is_empty();
-                        let open = self.expanded.contains(&row.node.path);
-                        let expandable = row.node.kind == Kind::Folder || has_children;
-                        a11y::tree_item(
-                            &response,
-                            &row.node.name,
-                            row.depth + 1,
-                            selected,
-                            expandable.then_some(open),
-                        );
-                        let text_colour = match (row.node.kind, row.node.orphan) {
-                            (_, true) => error,
-                            (Kind::Registration, false) => muted,
-                            _ => foreground,
-                        };
-                        // VS Code's chevron: pointing right when closed, down when open, drawn rather than taken from a font.
-                        if row.node.kind == Kind::Folder || has_children {
-                            let centre = egui::pos2(rect.left() + indent + 4.0, rect.center().y);
-                            let points = if open {
-                                vec![
-                                    centre + egui::vec2(-4.0, -2.0),
-                                    centre + egui::vec2(4.0, -2.0),
-                                    centre + egui::vec2(0.0, 3.0),
-                                ]
-                            } else {
-                                vec![
-                                    centre + egui::vec2(-2.0, -4.0),
-                                    centre + egui::vec2(3.0, 0.0),
-                                    centre + egui::vec2(-2.0, 4.0),
-                                ]
-                            };
-                            ui.painter()
-                                .add(egui::Shape::convex_polygon(points, foreground, egui::Stroke::NONE));
-                        }
-                        ui.painter().text(
-                            egui::pos2(rect.left() + indent + 14.0, rect.center().y),
-                            egui::Align2::LEFT_CENTER,
-                            &row.node.name,
-                            egui::FontId::proportional(theme.sizes.workbench_font),
-                            text_colour,
-                        );
-                        if response.clicked() {
-                            ui.memory_mut(|m| m.request_focus(id));
-                            self.selected = Some(row.node.path.clone());
-                            // A press on the chevron opens or closes the row and does nothing else, as VS Code's twistie;
-                            // a press on the name of a file opens the file.
-                            let on_chevron = response
-                                .interact_pointer_pos()
-                                .is_some_and(|p| p.x < rect.left() + indent + CHEVRON_WIDTH);
-                            if row.node.kind == Kind::Folder || has_children {
-                                self.toggle(&row.node.path);
-                            }
-                            if row.node.kind != Kind::Folder && !(has_children && on_chevron) {
-                                requests.push(Request::Open(row.node.path.clone()));
-                            }
-                        }
-                        egui::Popup::context_menu(&response)
-                            .accessible_name(&row.node.name)
-                            .show(|ui| {
-                                self.selected = Some(row.node.path.clone());
-                                let path = row.node.path.clone();
-                                let folder = if row.node.kind == Kind::Folder {
-                                    path.clone()
-                                } else {
-                                    path.rsplit_once('/').map(|(p, _)| p.to_owned()).unwrap_or_default()
-                                };
-                                // The standalone host's Add… (`AddDiagramContextActionProvider`), offered first.
-                                if let Some(offer) = self.add_offer(&path, row.node.kind) {
-                                    let button = egui::Button::new(RichText::new(offer.label)).shortcut_text("Insert");
-                                    let response = ui.add_enabled(offer.unavailable_reason.is_none(), button);
-                                    a11y::menu_item(&response, offer.label, "Insert");
-                                    if let Some(reason) = offer.unavailable_reason {
-                                        a11y::describe_state(&response, reason);
-                                    }
-                                    let response = match offer.unavailable_reason {
-                                        Some(reason) => response.on_disabled_hover_text(reason),
-                                        None => response,
-                                    };
-                                    if response.clicked() {
-                                        requests.push(Request::Add(path.clone()));
-                                        ui.close();
-                                    }
-                                }
-                                let mut item = |ui: &mut egui::Ui, label: &str, shortcut: &str, request: Request| {
-                                    let button = egui::Button::new(RichText::new(label)).shortcut_text(shortcut);
-                                    let response = ui.add(button);
-                                    a11y::menu_item(&response, label, shortcut);
-                                    if response.clicked() {
-                                        requests.push(request);
-                                        ui.close();
-                                    }
-                                };
-                                item(ui, "New Folder…", "", Request::NewFolder(folder));
-                                if row.node.kind != Kind::Folder {
-                                    item(ui, "Open as Text", "", Request::OpenAsText(path.clone()));
-                                }
-                                // What a module offers on the entry: a knowledge file adds a relation.
-                                for group in adp_designer_knowledge::context_actions::discover(
-                                    &self.root.join(&path),
-                                    row.node.kind == Kind::Folder,
-                                ) {
-                                    for action in group.actions {
-                                        item(ui, &action.label, "", Request::Relate(path.clone()));
-                                    }
-                                }
-                                ui.separator();
-                                item(ui, "Rename…", "F2", Request::Rename(path.clone()));
-                                item(ui, "Delete", "Delete", Request::Delete(path.clone()));
-                                ui.separator();
-                                item(ui, "Validate", "", Request::Validate(path.clone()));
-                                item(ui, "Validate All", "", Request::ValidateAll);
-                            });
+            let mut area = egui::ScrollArea::vertical().id_salt(id).auto_shrink([false, false]);
+            if let Some(offset) = scroll_to {
+                area = area.vertical_scroll_offset(offset);
+            }
+            let output = area.show_rows(ui, row_height, rows.len(), |ui, range| {
+                for row in &rows[range] {
+                    let width = ui.available_width();
+                    let (rect, response) = ui.allocate_exact_size(egui::vec2(width, row_height), Sense::CLICK);
+                    let response = response.on_hover_text(&row.node.path);
+                    let selected = self.selected.as_deref() == Some(row.node.path.as_str());
+                    if selected {
+                        focused_row = Some(response.id);
                     }
-                });
+                    if selected {
+                        ui.painter()
+                            .rect_filled(rect, 0.0, if focused { selection } else { inactive_selection });
+                        if focused {
+                            ui.painter().rect_stroke(
+                                rect.shrink(0.5),
+                                0.0,
+                                egui::Stroke::new(theme.sizes.focus_outline_width, focus),
+                                egui::StrokeKind::Inside,
+                            );
+                        }
+                    } else if response.hovered() {
+                        ui.painter().rect_filled(rect, 0.0, hover);
+                    }
+                    let indent = 8.0 + row.depth as f32 * 8.0;
+                    let has_children = !row.node.children.is_empty();
+                    let open = self.expanded.contains(&row.node.path);
+                    let expandable = row.node.kind == Kind::Folder || has_children;
+                    a11y::tree_item(
+                        &response,
+                        &row.node.name,
+                        row.depth + 1,
+                        selected,
+                        expandable.then_some(open),
+                    );
+                    let text_colour = match (row.node.kind, row.node.orphan) {
+                        (_, true) => error,
+                        (Kind::Registration, false) => muted,
+                        _ => foreground,
+                    };
+                    // VS Code's chevron: pointing right when closed, down when open, drawn rather than taken from a font.
+                    if row.node.kind == Kind::Folder || has_children {
+                        let centre = egui::pos2(rect.left() + indent + 4.0, rect.center().y);
+                        let points = if open {
+                            vec![
+                                centre + egui::vec2(-4.0, -2.0),
+                                centre + egui::vec2(4.0, -2.0),
+                                centre + egui::vec2(0.0, 3.0),
+                            ]
+                        } else {
+                            vec![
+                                centre + egui::vec2(-2.0, -4.0),
+                                centre + egui::vec2(3.0, 0.0),
+                                centre + egui::vec2(-2.0, 4.0),
+                            ]
+                        };
+                        ui.painter()
+                            .add(egui::Shape::convex_polygon(points, foreground, egui::Stroke::NONE));
+                    }
+                    ui.painter().text(
+                        egui::pos2(rect.left() + indent + 14.0, rect.center().y),
+                        egui::Align2::LEFT_CENTER,
+                        &row.node.name,
+                        egui::FontId::proportional(theme.sizes.workbench_font),
+                        text_colour,
+                    );
+                    if response.clicked() {
+                        take_focus = true;
+                        self.selected = Some(row.node.path.clone());
+                        // A press on the chevron opens or closes the row and does nothing else, as VS Code's twistie;
+                        // a press on the name of a file opens the file.
+                        let on_chevron = response
+                            .interact_pointer_pos()
+                            .is_some_and(|p| p.x < rect.left() + indent + CHEVRON_WIDTH);
+                        if row.node.kind == Kind::Folder || has_children {
+                            self.toggle(&row.node.path);
+                        }
+                        if row.node.kind != Kind::Folder && !(has_children && on_chevron) {
+                            requests.push(Request::Open(row.node.path.clone()));
+                        }
+                    }
+                    egui::Popup::context_menu(&response)
+                        .accessible_name(&row.node.name)
+                        .show(|ui| {
+                            self.selected = Some(row.node.path.clone());
+                            let path = row.node.path.clone();
+                            let folder = if row.node.kind == Kind::Folder {
+                                path.clone()
+                            } else {
+                                path.rsplit_once('/').map(|(p, _)| p.to_owned()).unwrap_or_default()
+                            };
+                            // The standalone host's Add… (`AddDiagramContextActionProvider`), offered first.
+                            if let Some(offer) = self.add_offer(&path, row.node.kind) {
+                                let button = egui::Button::new(RichText::new(offer.label)).shortcut_text("Insert");
+                                let response = ui.add_enabled(offer.unavailable_reason.is_none(), button);
+                                a11y::menu_item(&response, offer.label, "Insert");
+                                if let Some(reason) = offer.unavailable_reason {
+                                    a11y::describe_state(&response, reason);
+                                }
+                                let response = match offer.unavailable_reason {
+                                    Some(reason) => response.on_disabled_hover_text(reason),
+                                    None => response,
+                                };
+                                if response.clicked() {
+                                    requests.push(Request::Add(path.clone()));
+                                    ui.close();
+                                }
+                            }
+                            let mut item = |ui: &mut egui::Ui, label: &str, shortcut: &str, request: Request| {
+                                let button = egui::Button::new(RichText::new(label)).shortcut_text(shortcut);
+                                let response = ui.add(button);
+                                a11y::menu_item(&response, label, shortcut);
+                                if response.clicked() {
+                                    requests.push(request);
+                                    ui.close();
+                                }
+                            };
+                            item(ui, "New Folder…", "", Request::NewFolder(folder));
+                            if row.node.kind != Kind::Folder {
+                                item(ui, "Open as Text", "", Request::OpenAsText(path.clone()));
+                            }
+                            // What a module offers on the entry: a knowledge file adds a relation.
+                            for group in adp_designer_knowledge::context_actions::discover(
+                                &self.root.join(&path),
+                                row.node.kind == Kind::Folder,
+                            ) {
+                                for action in group.actions {
+                                    item(ui, &action.label, "", Request::Relate(path.clone()));
+                                }
+                            }
+                            ui.separator();
+                            item(ui, "Rename…", "F2", Request::Rename(path.clone()));
+                            item(ui, "Delete", "Delete", Request::Delete(path.clone()));
+                            ui.separator();
+                            item(ui, "Validate", "", Request::Validate(path.clone()));
+                            item(ui, "Validate All", "", Request::ValidateAll);
+                        });
+                }
+            });
+            self.view = (output.state.clamped_offset().y, output.inner_rect.height());
+            if let Some(row) = focused_row {
+                ui.ctx()
+                    .accesskit_node_builder(id, |node| node.set_active_descendant(row.accesskit_id()));
+            }
         });
+        // Taken once the tree is drawn: the tree is not the widget a press lands on, so a focus taken while it is
+        // drawn would be given up again for that press.
+        if take_focus {
+            ui.memory_mut(|m| m.request_focus(id));
+        }
         requests
     }
 

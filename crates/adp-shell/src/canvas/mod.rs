@@ -2302,13 +2302,22 @@ fn menu_entries(ui: &mut egui::Ui, groups: &[ActionGroup], id: egui::Id, chosen:
                 continue;
             }
             let nested = id.with(&action.id);
-            ui.add_enabled_ui(available, |ui| {
-                egui::CollapsingHeader::new(action.label.as_str())
+            let shown = ui.add_enabled_ui(available, |ui| {
+                let submenu = egui::CollapsingHeader::new(action.label.as_str())
                     .id_salt(nested)
                     .show(ui, |ui| menu_entries(ui, &action.items, nested, chosen));
-            })
-            .response
-            .on_disabled_hover_text(&action.unavailable_reason);
+                // To a screen reader a submenu's heading is a menu item that opens its entries (T088).
+                let heading = &submenu.header_response;
+                crate::a11y::menu_item(heading, &action.label, "");
+                heading.ctx.accesskit_node_builder(heading.id, |node| {
+                    node.set_expanded(!submenu.fully_closed());
+                    node.set_has_popup(egui::accesskit::HasPopup::Menu);
+                });
+                if !available {
+                    crate::a11y::describe_state(heading, &action.unavailable_reason);
+                }
+            });
+            shown.response.on_disabled_hover_text(&action.unavailable_reason);
         }
     }
 }
