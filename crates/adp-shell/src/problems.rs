@@ -101,6 +101,11 @@ pub fn show(ui: &mut egui::Ui, set: &ProblemSet, theme: &Theme) -> Option<(Strin
                     )
                     .sense(egui::Sense::click()),
                 );
+                crate::a11y::describe(
+                    &response,
+                    egui::accesskit::Role::ListItem,
+                    &format!("{mark}: {}  {}{place}{stale}", finding.message, finding.file),
+                );
                 if response.double_clicked() {
                     open = Some((finding.file.clone(), finding.line.unwrap_or(1)));
                 }

@@ -18,8 +18,9 @@ use adp_documents::{Reconciliation, Resolution, TextFile, reconcile_text};
 use adp_hierarchy::{Change, Hierarchy, Kind, Watcher, validate_name};
 use adp_problems::{ProblemSet, ProblemStore, Scope};
 use adp_projects::{Project, ProjectList};
-use eframe::egui::{self, Frame, Margin, RichText};
+use eframe::egui::{self, Frame, Margin, RichText, accesskit::Role};
 
+use crate::a11y;
 use crate::add_dialog::{AddDialog, DialogOutcome};
 use crate::canvas::{DiagramHost, DiagramTab};
 use crate::documents::OpenText;
@@ -918,6 +919,7 @@ impl Shell {
                         ],
                         egui::Stroke::new(2.0, colour),
                     );
+                    a11y::describe(&response, Role::Button, "Back to projects");
                     if response.on_hover_text("Back to projects").clicked() {
                         self.close_project();
                     }
@@ -1092,11 +1094,17 @@ impl Shell {
                             .size(sizes.workbench_font - 2.0)
                             .color(palette.side_bar_title),
                     );
-                    if let Some(set) = &project.problem_set {
-                        jump = crate::problems::show(ui, set, theme);
-                    } else {
-                        ui.label("Findings are kept only for projects in the project list.");
-                    }
+                    // To a screen reader the panel is a list named Problems, each finding an item of it (T088).
+                    let list = egui::UiBuilder::new()
+                        .accessibility_role(Role::List)
+                        .accessibility_label("Problems");
+                    ui.scope_builder(list, |ui| {
+                        if let Some(set) = &project.problem_set {
+                            jump = crate::problems::show(ui, set, theme);
+                        } else {
+                            ui.label("Findings are kept only for projects in the project list.");
+                        }
+                    });
                 });
             if let Some((file, line)) = jump {
                 let root = project.project.path.clone();
@@ -1139,43 +1147,50 @@ impl Shell {
                 palette.side_bar_background,
             )))
             .show(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.spacing_mut().item_spacing.x = 0.0;
-                    for (index, open) in self.tabs.iter().enumerate() {
-                        let active = index == self.active;
-                        let (background, foreground) = if active {
-                            (
-                                theme::color(theme, &["tab.activeBackground"], palette.editor_background),
-                                theme::color(theme, &["tab.activeForeground"], palette.foreground),
-                            )
-                        } else {
-                            (
-                                theme::color(theme, &["tab.inactiveBackground"], palette.side_bar_background),
-                                theme::color(theme, &["tab.inactiveForeground"], palette.foreground),
-                            )
-                        };
-                        Frame::NONE
-                            .fill(background)
-                            .inner_margin(Margin::symmetric(12, 9))
-                            .show(ui, |ui| {
-                                if ui
-                                    .add(
+                let list = egui::UiBuilder::new()
+                    .accessibility_role(Role::TabList)
+                    .accessibility_label("Open editors");
+                ui.scope_builder(list, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.spacing_mut().item_spacing.x = 0.0;
+                        for (index, open) in self.tabs.iter().enumerate() {
+                            let active = index == self.active;
+                            let (background, foreground) = if active {
+                                (
+                                    theme::color(theme, &["tab.activeBackground"], palette.editor_background),
+                                    theme::color(theme, &["tab.activeForeground"], palette.foreground),
+                                )
+                            } else {
+                                (
+                                    theme::color(theme, &["tab.inactiveBackground"], palette.side_bar_background),
+                                    theme::color(theme, &["tab.inactiveForeground"], palette.foreground),
+                                )
+                            };
+                            Frame::NONE
+                                .fill(background)
+                                .inner_margin(Margin::symmetric(12, 9))
+                                .show(ui, |ui| {
+                                    let name = open.name();
+                                    let tab = ui.add(
                                         egui::Label::new(RichText::new(open.title()).color(foreground))
                                             .sense(egui::Sense::click()),
-                                    )
-                                    .clicked()
-                                {
-                                    self.active = index;
-                                }
-                                if ui
-                                    .add(egui::Button::new(RichText::new("×").color(foreground)).frame(false))
-                                    .on_hover_text("Close")
-                                    .clicked()
-                                {
-                                    close = Some(index);
-                                }
-                            });
-                    }
+                                    );
+                                    a11y::tab(&tab, &name, active);
+                                    if open.is_modified() {
+                                        a11y::describe_state(&tab, "Unsaved changes");
+                                    }
+                                    if tab.clicked() {
+                                        self.active = index;
+                                    }
+                                    let closer =
+                                        ui.add(egui::Button::new(RichText::new("×").color(foreground)).frame(false));
+                                    a11y::describe(&closer, Role::Button, &format!("Close {name}"));
+                                    if closer.on_hover_text("Close").clicked() {
+                                        close = Some(index);
+                                    }
+                                });
+                        }
+                    })
                 });
             });
         if let Some(index) = close {
@@ -1381,36 +1396,45 @@ impl Shell {
                     .inner_margin(Margin::symmetric(12, 8)),
             )
             .show(ui, |ui| {
-                ui.horizontal(|ui| {
-                    for (pane, label) in [(SidePane::Toolbox, "TOOLBOX"), (SidePane::Properties, "PROPERTIES")] {
-                        let active = *side_pane == pane;
-                        let colour = if active {
-                            palette.side_bar_title
-                        } else {
-                            palette.side_bar_title.gamma_multiply(0.6)
-                        };
-                        let response = ui.add(
-                            egui::Label::new(RichText::new(label).size(sizes.workbench_font - 2.0).color(colour))
-                                .sense(egui::Sense::click()),
-                        );
-                        if active {
-                            let r = response.rect;
-                            ui.painter().line_segment(
-                                [
-                                    r.left_bottom() + egui::vec2(0.0, 2.0),
-                                    r.right_bottom() + egui::vec2(0.0, 2.0),
-                                ],
-                                egui::Stroke::new(
-                                    1.0,
-                                    theme::color(theme, &["panelTitle.activeBorder"], palette.focus),
-                                ),
+                let list = egui::UiBuilder::new()
+                    .accessibility_role(Role::TabList)
+                    .accessibility_label("Diagram panes");
+                ui.scope_builder(list, |ui| {
+                    ui.horizontal(|ui| {
+                        for (pane, label, name) in [
+                            (SidePane::Toolbox, "TOOLBOX", "Toolbox"),
+                            (SidePane::Properties, "PROPERTIES", "Properties"),
+                        ] {
+                            let active = *side_pane == pane;
+                            let colour = if active {
+                                palette.side_bar_title
+                            } else {
+                                palette.side_bar_title.gamma_multiply(0.6)
+                            };
+                            let response = ui.add(
+                                egui::Label::new(RichText::new(label).size(sizes.workbench_font - 2.0).color(colour))
+                                    .sense(egui::Sense::click()),
                             );
+                            a11y::tab(&response, name, active);
+                            if active {
+                                let r = response.rect;
+                                ui.painter().line_segment(
+                                    [
+                                        r.left_bottom() + egui::vec2(0.0, 2.0),
+                                        r.right_bottom() + egui::vec2(0.0, 2.0),
+                                    ],
+                                    egui::Stroke::new(
+                                        1.0,
+                                        theme::color(theme, &["panelTitle.activeBorder"], palette.focus),
+                                    ),
+                                );
+                            }
+                            if response.clicked() {
+                                *side_pane = pane;
+                            }
+                            ui.add_space(12.0);
                         }
-                        if response.clicked() {
-                            *side_pane = pane;
-                        }
-                        ui.add_space(12.0);
-                    }
+                    })
                 });
                 ui.add_space(8.0);
                 egui::ScrollArea::vertical()
@@ -1435,71 +1459,82 @@ impl Shell {
             Pending::Relate { .. } => "Add relation",
             Pending::Add(_) => "Add",
         };
+        // The dialog is named by its title, as a screen reader announces it when it opens (T088).
+        let name = match &pending {
+            Pending::Add(dialog) => dialog.prompt.title.clone(),
+            _ => title.to_owned(),
+        };
         let theme = theme::current(ctx);
         let adds = self.project.as_mut().map(|p| p.explorer.adds());
-        egui::Modal::new(egui::Id::unique("prompt")).show(ctx, |ui| {
-            ui.set_width(420.0);
-            let enter = ui.input(|i| i.key_pressed(egui::Key::Enter));
-            cancelled = ui.input(|i| i.key_pressed(egui::Key::Escape));
-            match &mut pending {
-                Pending::NewFolder { name, error, .. } | Pending::Rename { name, error, .. } => {
-                    ui.heading(title);
-                    let field = ui.text_edit_singleline(name);
-                    field.request_focus();
-                    if let Some(error) = error {
-                        ui.colored_label(ui.visuals().error_fg_color, error.as_str());
+        let id = egui::Id::unique("prompt");
+        egui::Modal::new(id)
+            .area(egui::Modal::default_area(id).accessible_name(name))
+            .show(ctx, |ui| {
+                ui.set_width(420.0);
+                let enter = ui.input(|i| i.key_pressed(egui::Key::Enter));
+                cancelled = ui.input(|i| i.key_pressed(egui::Key::Escape));
+                match &mut pending {
+                    Pending::NewFolder { name, error, .. } | Pending::Rename { name, error, .. } => {
+                        ui.heading(title);
+                        let field = ui.text_edit_singleline(name).accessible_name(match title {
+                            "Rename" => "New name",
+                            _ => "Folder name",
+                        });
+                        field.request_focus();
+                        if let Some(error) = error {
+                            ui.colored_label(ui.visuals().error_fg_color, error.as_str());
+                        }
+                        ui.horizontal(|ui| {
+                            answered = ui.button("OK").clicked() || enter;
+                            cancelled |= ui.button("Cancel").clicked();
+                        });
                     }
-                    ui.horizontal(|ui| {
-                        answered = ui.button("OK").clicked() || enter;
-                        cancelled |= ui.button("Cancel").clicked();
-                    });
-                }
-                Pending::Delete { question, .. } => {
-                    ui.heading("Delete");
-                    ui.label(question.as_str());
-                    ui.horizontal(|ui| {
-                        answered = ui.button("Delete").clicked();
-                        cancelled |= ui.button("Cancel").clicked();
-                    });
-                }
-                Pending::Relate {
-                    prompt,
-                    value,
-                    text,
-                    error,
-                    ..
-                } => {
-                    let confirm = relate_prompt(ui, prompt, value, text);
-                    if let Some(error) = error {
-                        ui.colored_label(ui.visuals().error_fg_color, error.as_str());
+                    Pending::Delete { question, .. } => {
+                        ui.heading("Delete");
+                        ui.label(question.as_str());
+                        ui.horizontal(|ui| {
+                            answered = ui.button("Delete").clicked();
+                            cancelled |= ui.button("Cancel").clicked();
+                        });
                     }
-                    ui.horizontal(|ui| {
-                        answered = ui.button(confirm).clicked();
-                        cancelled |= ui.button("Cancel").clicked();
-                    });
-                }
-                Pending::Add(dialog) => {
-                    let target = dialog.target.clone();
-                    let validate = |name: &str| adds.as_ref().map_or(Ok(()), |a| a.validate(&target, name));
-                    match dialog.show(ui, &theme, validate) {
-                        Some(DialogOutcome::Submit { .. }) => answered = true,
-                        Some(DialogOutcome::Cancel) => cancelled = true,
-                        None => {}
+                    Pending::Relate {
+                        prompt,
+                        value,
+                        text,
+                        error,
+                        ..
+                    } => {
+                        let confirm = relate_prompt(ui, prompt, value, text);
+                        if let Some(error) = error {
+                            ui.colored_label(ui.visuals().error_fg_color, error.as_str());
+                        }
+                        ui.horizontal(|ui| {
+                            answered = ui.button(confirm).clicked();
+                            cancelled |= ui.button("Cancel").clicked();
+                        });
+                    }
+                    Pending::Add(dialog) => {
+                        let target = dialog.target.clone();
+                        let validate = |name: &str| adds.as_ref().map_or(Ok(()), |a| a.validate(&target, name));
+                        match dialog.show(ui, &theme, validate) {
+                            Some(DialogOutcome::Submit { .. }) => answered = true,
+                            Some(DialogOutcome::Cancel) => cancelled = true,
+                            None => {}
+                        }
+                    }
+                    Pending::CloseUnsaved { index } => {
+                        let name = self.tabs.get(*index).map(Tab::name).unwrap_or_default();
+                        ui.heading("Unsaved changes");
+                        ui.label(format!(
+                            "'{name}' has changes that are not saved. Close it and lose them?"
+                        ));
+                        ui.horizontal(|ui| {
+                            answered = ui.button("Close without saving").clicked();
+                            cancelled |= ui.button("Cancel").clicked();
+                        });
                     }
                 }
-                Pending::CloseUnsaved { index } => {
-                    let name = self.tabs.get(*index).map(Tab::name).unwrap_or_default();
-                    ui.heading("Unsaved changes");
-                    ui.label(format!(
-                        "'{name}' has changes that are not saved. Close it and lose them?"
-                    ));
-                    ui.horizontal(|ui| {
-                        answered = ui.button("Close without saving").clicked();
-                        cancelled |= ui.button("Cancel").clicked();
-                    });
-                }
-            }
-        });
+            });
         if cancelled {
             return;
         }
@@ -1588,8 +1623,8 @@ fn relate_prompt(ui: &mut egui::Ui, prompt: &adp_context::Prompt, value: &mut St
                         ui.label(RichText::new(&option.name_suppressed_reason).small());
                     }
                     None => {
-                        ui.label(&field.label);
-                        ui.text_edit_singleline(text);
+                        let label = ui.label(&field.label);
+                        ui.text_edit_singleline(text).labelled_by(label.id);
                     }
                 }
             }

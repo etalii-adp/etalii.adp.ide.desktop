@@ -1,27 +1,10 @@
 //! The desktop host's window (etalii.adp spec 030, research R2, task T021): one native window per workspace, drawn
 //! with egui on wgpu, exposed to screen readers through AccessKit, in VS Code's default theme following the system.
+//! The window itself is the `adp_shell` library; this is the process that runs it.
 
 #![cfg_attr(not(test), windows_subsystem = "windows")]
 
-mod add_dialog;
-mod canvas;
-mod documents;
-mod editor;
-mod explorer;
-mod highlight;
-mod markdown;
-mod problems;
-mod properties;
-mod shell;
-mod table;
-// The table's tests sit beside it, declared here so that the benchmark, which includes the table module, leaves them out.
-#[cfg(test)]
-mod screenshot;
-#[cfg(test)]
-#[path = "table/tests.rs"]
-mod table_tests;
-mod theme;
-
+use adp_shell::{shell, theme};
 use eframe::egui;
 
 struct App {

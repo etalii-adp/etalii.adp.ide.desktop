@@ -11,6 +11,7 @@ use adp_core::ToolState;
 use adp_theme::Theme;
 use eframe::egui::{self, Color32, Key, RichText, Sense};
 
+use crate::a11y;
 use crate::theme::color;
 
 /// What the person did with the dialog.
@@ -237,9 +238,11 @@ impl AddDialog {
                         ui.label(reason);
                     }
                     None => {
-                        ui.label(self.prompt.name_field.clone().unwrap_or_default());
+                        let label = ui.label(self.prompt.name_field.clone().unwrap_or_default());
                         let mut name = self.name.clone();
-                        let field = ui.add(egui::TextEdit::singleline(&mut name).desired_width(f32::INFINITY));
+                        let field = ui
+                            .add(egui::TextEdit::singleline(&mut name).desired_width(f32::INFINITY))
+                            .labelled_by(label.id);
                         if field.changed() {
                             self.type_name(&name, &validate);
                         }
@@ -284,94 +287,118 @@ impl AddDialog {
         let mut double_clicked: Option<String> = None;
         let mut drawn = Vec::new();
         let rows = self.rows();
-        let scrolled = egui::ScrollArea::vertical()
-            .id_salt(self.tree_id)
-            .max_height(row_height * 14.0)
-            .auto_shrink([false, true])
-            .show(ui, |ui| {
-                for VisibleRow {
-                    id,
-                    label,
-                    depth,
-                    expandable,
-                    open,
-                    selectable,
-                    unavailable,
-                    state,
-                    ..
-                } in &rows
-                {
-                    let width = ui.available_width();
-                    let (rect, response) = ui.allocate_exact_size(egui::vec2(width, row_height), Sense::click());
-                    drawn.push((id.clone(), rect));
-                    if self.selected.as_deref() == Some(id) {
-                        ui.painter().rect_filled(rect, 0.0, selection);
-                    } else if response.hovered() && unavailable.is_empty() {
-                        ui.painter().rect_filled(rect, 0.0, hover);
-                    }
-                    if has_focus && self.focused.as_deref() == Some(id) {
-                        ui.painter().rect_stroke(
-                            rect.shrink(0.5),
-                            0.0,
-                            egui::Stroke::new(theme.sizes.focus_outline_width, focus),
-                            egui::StrokeKind::Inside,
-                        );
-                    }
-                    let indent = 8.0 + *depth as f32 * 16.0;
-                    if *expandable {
-                        let centre = egui::pos2(rect.left() + indent + 4.0, rect.center().y);
-                        let points = if *open {
-                            vec![
-                                centre + egui::vec2(-4.0, -2.0),
-                                centre + egui::vec2(4.0, -2.0),
-                                centre + egui::vec2(0.0, 3.0),
-                            ]
-                        } else {
-                            vec![
-                                centre + egui::vec2(-2.0, -4.0),
-                                centre + egui::vec2(3.0, 0.0),
-                                centre + egui::vec2(-2.0, 4.0),
-                            ]
-                        };
-                        ui.painter()
-                            .add(egui::Shape::convex_polygon(points, foreground, egui::Stroke::NONE));
-                    }
-                    let text_colour = if unavailable.is_empty() { foreground } else { disabled };
-                    let drawn = ui.painter().text(
-                        egui::pos2(rect.left() + indent + 14.0, rect.center().y),
-                        egui::Align2::LEFT_CENTER,
-                        label,
-                        font.clone(),
-                        text_colour,
-                    );
-                    if !unavailable.is_empty() {
-                        ui.painter().text(
-                            egui::pos2(drawn.right() + 8.0, rect.center().y),
-                            egui::Align2::LEFT_CENTER,
+        // To a screen reader the choices are a tree named as the dialog is, each row a tree item (T088).
+        let tree = egui::UiBuilder::new()
+            .accessibility_role(egui::accesskit::Role::Tree)
+            .accessibility_label(self.prompt.title.clone());
+        let scrolled = ui
+            .scope_builder(tree, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt(self.tree_id)
+                    .max_height(row_height * 14.0)
+                    .auto_shrink([false, true])
+                    .show(ui, |ui| {
+                        for VisibleRow {
+                            id,
+                            label,
+                            depth,
+                            expandable,
+                            open,
+                            selectable,
                             unavailable,
-                            font.clone(),
-                            muted,
-                        );
-                    }
-                    if let Some(state) = state {
-                        ui.painter().text(
-                            egui::pos2(rect.right() - 8.0, rect.center().y),
-                            egui::Align2::RIGHT_CENTER,
-                            state.label(),
-                            font.clone(),
-                            muted,
-                        );
-                    }
-                    if response.double_clicked() && unavailable.is_empty() {
-                        double_clicked = Some(id.clone());
-                    } else if response.clicked() {
-                        let on_chevron = response
-                            .interact_pointer_pos()
-                            .is_some_and(|p| p.x < rect.left() + indent + 12.0);
-                        clicked = Some((id.clone(), *expandable && (on_chevron || !*selectable)));
-                    }
-                }
-            });
+                            state,
+                            ..
+                        } in &rows
+                        {
+                            let width = ui.available_width();
+                            let (rect, response) =
+                                ui.allocate_exact_size(egui::vec2(width, row_height), Sense::click());
+                            drawn.push((id.clone(), rect));
+                            let chosen = self.selected.as_deref() == Some(id);
+                            a11y::tree_item(&response, label, depth + 1, chosen, expandable.then_some(*open));
+                            // What the row says beside its name: why it cannot be chosen, and the tool type's state.
+                            let besides: Vec<&str> = [unavailable.as_str(), state.map_or("", |s| s.label())]
+                                .into_iter()
+                                .filter(|t| !t.is_empty())
+                                .collect();
+                            if !besides.is_empty() {
+                                a11y::describe_state(&response, &besides.join(", "));
+                            }
+                            if !unavailable.is_empty() {
+                                response
+                                    .ctx
+                                    .accesskit_node_builder(response.id, |node| node.set_disabled());
+                            }
+                            if self.selected.as_deref() == Some(id) {
+                                ui.painter().rect_filled(rect, 0.0, selection);
+                            } else if response.hovered() && unavailable.is_empty() {
+                                ui.painter().rect_filled(rect, 0.0, hover);
+                            }
+                            if has_focus && self.focused.as_deref() == Some(id) {
+                                ui.painter().rect_stroke(
+                                    rect.shrink(0.5),
+                                    0.0,
+                                    egui::Stroke::new(theme.sizes.focus_outline_width, focus),
+                                    egui::StrokeKind::Inside,
+                                );
+                            }
+                            let indent = 8.0 + *depth as f32 * 16.0;
+                            if *expandable {
+                                let centre = egui::pos2(rect.left() + indent + 4.0, rect.center().y);
+                                let points = if *open {
+                                    vec![
+                                        centre + egui::vec2(-4.0, -2.0),
+                                        centre + egui::vec2(4.0, -2.0),
+                                        centre + egui::vec2(0.0, 3.0),
+                                    ]
+                                } else {
+                                    vec![
+                                        centre + egui::vec2(-2.0, -4.0),
+                                        centre + egui::vec2(3.0, 0.0),
+                                        centre + egui::vec2(-2.0, 4.0),
+                                    ]
+                                };
+                                ui.painter()
+                                    .add(egui::Shape::convex_polygon(points, foreground, egui::Stroke::NONE));
+                            }
+                            let text_colour = if unavailable.is_empty() { foreground } else { disabled };
+                            let drawn = ui.painter().text(
+                                egui::pos2(rect.left() + indent + 14.0, rect.center().y),
+                                egui::Align2::LEFT_CENTER,
+                                label,
+                                font.clone(),
+                                text_colour,
+                            );
+                            if !unavailable.is_empty() {
+                                ui.painter().text(
+                                    egui::pos2(drawn.right() + 8.0, rect.center().y),
+                                    egui::Align2::LEFT_CENTER,
+                                    unavailable,
+                                    font.clone(),
+                                    muted,
+                                );
+                            }
+                            if let Some(state) = state {
+                                ui.painter().text(
+                                    egui::pos2(rect.right() - 8.0, rect.center().y),
+                                    egui::Align2::RIGHT_CENTER,
+                                    state.label(),
+                                    font.clone(),
+                                    muted,
+                                );
+                            }
+                            if response.double_clicked() && unavailable.is_empty() {
+                                double_clicked = Some(id.clone());
+                            } else if response.clicked() {
+                                let on_chevron = response
+                                    .interact_pointer_pos()
+                                    .is_some_and(|p| p.x < rect.left() + indent + 12.0);
+                                clicked = Some((id.clone(), *expandable && (on_chevron || !*selectable)));
+                            }
+                        }
+                    })
+            })
+            .inner;
         // The tree is one widget to the keyboard, which keeps it focused from frame to frame.
         ui.interact(scrolled.inner_rect, self.tree_id, Sense::focusable_noninteractive());
         self.drawn = drawn;
