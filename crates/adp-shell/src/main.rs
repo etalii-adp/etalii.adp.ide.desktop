@@ -59,8 +59,9 @@ fn main() -> eframe::Result {
                 Ok(state) => shell::Shell::with_state(state),
                 Err(_) => shell::Shell::default(),
             };
-            // `adp-desktop <folder>` opens a project and `adp-desktop <file>` a file, as `code <path>` does.
-            if let Some(path) = std::env::args_os().nth(1) {
+            // `adp-desktop <folder>` opens a project and `adp-desktop <file>` a file, as `code <path>` does; and
+            // `adp-desktop <folder> <file>...` the project with those files in tabs, as the memory probe opens it.
+            for path in std::env::args_os().skip(1) {
                 shell.open_path(std::path::Path::new(&path));
             }
             let probe = std::env::var_os("ADP_STARTUP_PROBE").map(|file| (file.into(), 0));
