@@ -676,3 +676,38 @@ pub fn locate_body(
         findings,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A registration with a byte order mark, CRLF endings, a header no one declares and a block after the layout
+    /// that FBL does not know (FBL section 8.1): placing an element writes its one entry in the layout's order, and
+    /// every other byte, the unknown header and block included, stays as it was; undo gives the bytes back.
+    #[test]
+    fn placing_an_element_keeps_the_unknown_header_and_block_and_every_other_byte() {
+        let original = "\u{feff}freeplane/mindmap\r\nbody: ideas.mm\r\nowner: Peter\r\nlayout:\r\n  ID_2: 10 20\r\n\r\nnotes:\r\n  anything: kept as it is\r\n";
+        let mut registration = OpenRegistration::open(original.as_bytes().to_vec());
+        let document = registration.document();
+        assert_eq!(document.origin, "freeplane/mindmap");
+        assert_eq!(document.body(), Some("ideas.mm"));
+        let unknown = document.unknown_headers(&[], "ideas.adp");
+        assert_eq!(unknown.len(), 1);
+        assert_eq!(unknown[0].code, codes::UNKNOWN_HEADER);
+        assert!(unknown[0].message.contains("'owner'"), "{}", unknown[0].message);
+
+        let placed = registration.change(&ModelChange::Place {
+            id: "ID_1".into(),
+            x: 1.5,
+            y: 2.0,
+        });
+        assert!(matches!(placed, PlanResult::Planned(_)), "{placed:?}");
+        assert_eq!(
+            String::from_utf8(registration.bytes().to_vec()).unwrap(),
+            original.replace("layout:\r\n", "layout:\r\n  ID_1: 1.5 2\r\n")
+        );
+
+        assert!(matches!(registration.undo(), UndoResult::Done(_)));
+        assert_eq!(registration.bytes(), original.as_bytes());
+    }
+}
