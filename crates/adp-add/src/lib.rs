@@ -468,6 +468,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_supply_chain::ORIGIN,
         adp_diagram_supply_chain::TEMPLATE,
     )));
+    // `ServiceCollection.AddAzurePipeline.cs`: `NewPipeline`, the smallest pipeline that runs, named after its file.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_azure_devops_pipeline::ORIGIN,
+        adp_diagram_azure_devops_pipeline::new_pipeline,
+    )));
     // `ServiceCollection.AddSankey.cs`: `SankeyParser.EmptyDocument`.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_sankey::ORIGIN,

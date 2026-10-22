@@ -52,7 +52,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-046 | Agent activity diagram (`etalii/agent-activity-diagram`, work-in-progress) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::etalii_agent_activity_diagram_two_projects | checked |
 | P-047 | Supply chain diagram (`etalii/supply-chain`, prototype) | docs/tools.md, 5. Business process & workflow notation | 4 | adp-parity::etalii_supply_chain_automotive | checked |
 | P-048 | Sankey diagram (`etalii/sankey`, prototype) | docs/tools.md, 7. Data-oriented diagrams | 4 | adp-parity::etalii_sankey_brightwater_coffee | checked |
-| P-049 | Azure DevOps pipeline (`azure-devops/pipeline`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |
+| P-049 | Azure DevOps pipeline (`azure-devops/pipeline`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 | adp-parity::azure_devops_pipeline_multi_stage | checked |
 | P-050 | Ansible project structure (`ansible/structure`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 | adp-parity::ansible_structure_infrastructure | checked |
 | P-051 | Helm chart (`helm/chart`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 | adp-parity::helm_chart_nginx | checked |
 | P-052 | .NET dependency graph (`dotnet/dependency-graph`, prototype) | docs/tools.md, 8. Infrastructure, network & cloud diagrams | 4 |  | planned |

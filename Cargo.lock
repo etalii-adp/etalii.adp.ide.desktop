@@ -126,6 +126,7 @@ dependencies = [
  "adp-diagram",
  "adp-diagram-agent-activity",
  "adp-diagram-agent-behavior-modelling",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-functional-decomposition-graph",
@@ -265,6 +266,21 @@ dependencies = [
  "adp-layout",
  "saphyr-parser",
  "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-azure-devops-pipeline"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "saphyr-parser",
  "tempfile",
 ]
 
@@ -536,6 +552,7 @@ dependencies = [
  "adp-diagram-agent-activity",
  "adp-diagram-agent-behavior-modelling",
  "adp-diagram-ansible-structure",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
@@ -597,6 +614,7 @@ dependencies = [
  "adp-diagram-agent-activity",
  "adp-diagram-agent-behavior-modelling",
  "adp-diagram-ansible-structure",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",

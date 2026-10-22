@@ -346,6 +346,25 @@ fn a_supply_chain_diagram_is_written_with_its_empty_document() {
 }
 
 #[test]
+fn an_azure_devops_pipeline_is_written_as_the_smallest_pipeline_that_runs() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "azure-devops/pipeline", "build")
+        .unwrap();
+    assert_eq!(created, folder.path().join("build.adp"));
+    assert_eq!(read(&created), "azure-devops/pipeline\r\n");
+    // The standalone host's `NewPipeline`: the file's name as its first comment, a trigger, a pool and one job with
+    // one step, in CRLF as its raw string literal is in the standalone host's checkout.
+    assert_eq!(
+        read(&folder.path().join("build.yml")),
+        "# build\r\n\r\ntrigger:\r\n  - main\r\n\r\npool:\r\n  vmImage: ubuntu-latest\r\n\r\njobs:\r\n  - job: Build\r\n    \
+         displayName: Build\r\n    steps:\r\n      - script: echo \"Replace this with your build\"\r\n        \
+         displayName: Build\r\n"
+    );
+}
+
+#[test]
 fn an_agent_activity_diagram_is_written_with_its_empty_document() {
     let folder = tempfile::tempdir().unwrap();
     let target = AddTarget::Folder(folder.path().to_path_buf());

@@ -47,6 +47,11 @@ fn etalii_knowledge_cities_yaml() {
 }
 
 #[test]
+fn azure_devops_pipeline_multi_stage() {
+    check("azure-devops/pipeline/multi-stage");
+}
+
+#[test]
 fn etalii_supply_chain_automotive() {
     check("etalii/supply-chain/automotive");
 }
