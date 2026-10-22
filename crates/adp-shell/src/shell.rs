@@ -127,6 +127,18 @@ impl Tab {
     }
 }
 
+/// Which view the side bar shows, chosen on the activity bar as in VS Code; the standalone host's Hierarchy and Search
+/// tabs (`WorkspaceShell.tsx`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SideView {
+    Explorer,
+    Search,
+}
+
+/// What the search view says: the standalone host's placeholder at `8b6ccfc` (`SearchPanel.tsx`), which searches
+/// nothing yet (P-015, T101).
+pub const SEARCH_DESCRIPTION: &str = "Search across your project's files and diagrams.";
+
 /// Which pane beside a diagram is showing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SidePane {
@@ -184,6 +196,7 @@ pub struct Shell {
     /// The diagram tool types and each project's diagrams, loaded when a file is first opened.
     diagrams: Option<DiagramHost>,
     side_pane: SidePane,
+    side_view: SideView,
     pending: Option<Pending>,
     /// The window's title as last sent: sending it asks for a new frame, so it is sent only when it changes.
     title: Option<String>,
@@ -208,6 +221,7 @@ impl Default for Shell {
             active: 0,
             diagrams: None,
             side_pane: SidePane::Toolbox,
+            side_view: SideView::Explorer,
             pending: None,
             title: None,
             window: Arc::new(OnceLock::new()),
@@ -977,8 +991,26 @@ impl Shell {
                     if response.on_hover_text("Back to projects").clicked() {
                         self.close_project();
                     }
+                    for (view, name, shortcut) in [
+                        (SideView::Explorer, "Explorer", "Ctrl+Shift+E"),
+                        (SideView::Search, "Search", "Ctrl+Shift+F"),
+                    ] {
+                        if self.activity(ui, &theme, view, name, shortcut) {
+                            self.side_view = view;
+                        }
+                    }
                 }
             });
+        // VS Code's keys for its views: Ctrl+Shift+E and Ctrl+Shift+F (Cmd on macOS).
+        if self.project.is_some() {
+            let views = egui::Modifiers::COMMAND | egui::Modifiers::SHIFT;
+            if ui.input_mut(|i| i.consume_key(views, egui::Key::E)) {
+                self.side_view = SideView::Explorer;
+            }
+            if ui.input_mut(|i| i.consume_key(views, egui::Key::F)) {
+                self.side_view = SideView::Search;
+            }
+        }
 
         if self.project.is_none() && self.tabs.is_empty() {
             self.projects_page(ui, &theme, &palette);
@@ -986,6 +1018,77 @@ impl Shell {
             self.workspace_view(ui, &theme, &palette);
         }
         self.prompt(ui.ctx());
+    }
+
+    /// One view's entry on the activity bar, its icon drawn rather than taken from a font, the active one marked by
+    /// VS Code's border on its left; whether it was pressed.
+    fn activity(
+        &self,
+        ui: &mut egui::Ui,
+        theme: &adp_theme::Theme,
+        view: SideView,
+        name: &str,
+        shortcut: &str,
+    ) -> bool {
+        let width = theme.sizes.activity_bar_width;
+        let (rect, response) = ui.allocate_exact_size(egui::vec2(width, 44.0), egui::Sense::click());
+        let active = self.side_view == view;
+        let colour = if active || response.hovered() {
+            theme::color(theme, &["activityBar.foreground", "foreground"], egui::Color32::WHITE)
+        } else {
+            theme::color(
+                theme,
+                &["activityBar.inactiveForeground", "foreground"],
+                egui::Color32::GRAY,
+            )
+        };
+        let painter = ui.painter();
+        if active {
+            let border = theme::color(theme, &["activityBar.activeBorder", "focusBorder"], colour);
+            painter.rect_filled(
+                egui::Rect::from_min_size(rect.min, egui::vec2(2.0, rect.height())),
+                0.0,
+                border,
+            );
+        }
+        let c = rect.center();
+        let stroke = egui::Stroke::new(1.5, colour);
+        match view {
+            SideView::Explorer => {
+                // Two pages, one behind the other.
+                painter.rect_stroke(
+                    egui::Rect::from_center_size(c + egui::vec2(2.0, -2.0), egui::vec2(12.0, 15.0)),
+                    1.0,
+                    stroke,
+                    egui::StrokeKind::Middle,
+                );
+                painter.rect_filled(
+                    egui::Rect::from_center_size(c + egui::vec2(-2.0, 2.0), egui::vec2(12.0, 15.0)),
+                    1.0,
+                    theme::color(
+                        theme,
+                        &["activityBar.background", "sideBar.background"],
+                        egui::Color32::BLACK,
+                    ),
+                );
+                painter.rect_stroke(
+                    egui::Rect::from_center_size(c + egui::vec2(-2.0, 2.0), egui::vec2(12.0, 15.0)),
+                    1.0,
+                    stroke,
+                    egui::StrokeKind::Middle,
+                );
+            }
+            SideView::Search => {
+                // A magnifying glass.
+                painter.circle_stroke(c + egui::vec2(-2.0, -2.0), 6.0, stroke);
+                painter.line_segment(
+                    [c + egui::vec2(2.5, 2.5), c + egui::vec2(8.0, 8.0)],
+                    egui::Stroke::new(2.0, colour),
+                );
+            }
+        }
+        a11y::tab(&response, name, active);
+        response.on_hover_text(format!("{name} ({shortcut})")).clicked()
     }
 
     fn status_bar(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
@@ -1112,14 +1215,32 @@ impl Shell {
                         .inner_margin(Margin::symmetric(0, 8)),
                 )
                 .show(ui, |ui| {
+                    let view = self.side_view;
                     ui.horizontal(|ui| {
                         ui.add_space(12.0);
                         ui.label(
-                            RichText::new("EXPLORER")
-                                .color(palette.side_bar_title)
-                                .size(sizes.workbench_font - 2.0),
+                            RichText::new(match view {
+                                SideView::Explorer => "EXPLORER",
+                                SideView::Search => "SEARCH",
+                            })
+                            .color(palette.side_bar_title)
+                            .size(sizes.workbench_font - 2.0),
                         );
                     });
+                    if view == SideView::Search {
+                        // The standalone host's placeholder (`PanelPlaceholder`'s empty state): what the view is for.
+                        ui.add_space(16.0);
+                        ui.vertical_centered(|ui| {
+                            ui.label(RichText::new("Search").strong().size(sizes.workbench_font));
+                            ui.add_space(4.0);
+                            ui.label(
+                                RichText::new(SEARCH_DESCRIPTION)
+                                    .color(palette.side_bar_foreground.gamma_multiply(0.8))
+                                    .size(sizes.workbench_font - 1.0),
+                            );
+                        });
+                        return;
+                    }
                     ui.horizontal(|ui| {
                         ui.add_space(12.0);
                         ui.label(
@@ -1159,6 +1280,9 @@ impl Shell {
                             ui.label("Findings are kept only for projects in the project list.");
                         }
                     });
+                    // The panel keeps the height it was dragged to however little it shows: a panel sized by its
+                    // content would spring back to the height of one sentence (P-009).
+                    ui.allocate_space(ui.available_size());
                 });
             if let Some((file, line)) = jump {
                 let root = project.project.path.clone();
