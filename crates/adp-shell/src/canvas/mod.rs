@@ -1971,14 +1971,15 @@ impl DiagramTab {
                 for intent in self.arbiter.release(canvas, &hit) {
                     self.apply(intent, workspace);
                 }
-                // A double-click edits a label in place; a module that draws its view itself declares no double-click
-                // (`C4Canvas.tsx` declares no `activate` gesture), and its renames are its menu's and F2's.
+                // A double-click runs what the element's notation names in its `doubleClick` (`editLabel`, its
+                // rename, when it names none), or what a module that draws its view itself declares for it; nothing
+                // for `none` (a mind map node) or a view that declares none (`C4Canvas.tsx`).
                 if double
-                    && self.session.module_view().is_none()
                     && let Hit::Element(id) = &hit
+                    && let Some(action) = self.session.double_click(workspace.documents(), id)
                 {
                     let id = id.clone();
-                    self.open_editor(workspace.documents(), &id, Some(canvas));
+                    self.run_action(workspace, ActionTarget::Element(id), &action);
                 }
             }
             if surface.contains(pos)

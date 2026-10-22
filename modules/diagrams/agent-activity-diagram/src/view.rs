@@ -198,6 +198,19 @@ impl ModuleView for AgentActivityView {
         }
     }
 
+    /// A double-click runs the entry the element's node names in its `doubleClick`, `editLabel` when it names none
+    /// (`aadDefinition.ts`, compiled from the notation): its rename, where its menu offers it.
+    fn double_click(&self, documents: &DiagramDocuments, element_id: &str) -> Option<String> {
+        let document = self.document(documents).ok()?;
+        let element = definition::AadDefinition::element_of(&document.body.typed().diagram, element_id)?;
+        let action = definition::get().double_click(&element)?;
+        self.actions(documents, &ActionTarget::Element(element_id.to_owned()))
+            .iter()
+            .flat_map(|group| &group.actions)
+            .any(|offered| offered.id == action)
+            .then_some(action)
+    }
+
     /// A right drag from one element's body to another draws a relation (`aadDefinition.ts`, `extras`:
     /// `connectOnRightDrag: true`): the vendored `agent-activity-diagram.dis` declares no pointer binding, so the
     /// module says it.

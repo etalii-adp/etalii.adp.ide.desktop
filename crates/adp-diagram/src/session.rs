@@ -999,6 +999,48 @@ impl DiagramSession {
         }
     }
 
+    /// The action a double-click on the element `element_id` runs, as [`DiagramSession::execute`] takes it: the
+    /// standalone host's `activate` gesture (`compileNotation.ts`). The element's node names the entry in its
+    /// `doubleClick` (DISL section 6.9; `editLabel` when it names none): the entry of that kind in its context menu,
+    /// else, for an operation of the specification's behaviour (section 9.3), the entry that runs it. None when its
+    /// menu has no such entry, `none` among them, and for a view whose module declares no double-click.
+    pub fn double_click(&self, documents: &DiagramDocuments, element_id: &str) -> Option<String> {
+        if let Some(view) = &self.view {
+            return view.double_click(documents, element_id);
+        }
+        let document = self.document(documents).ok()?;
+        let element = document.element(element_id)?;
+        let specification = document.tool().definition.specification();
+        let root = specification.root();
+        let named = root
+            .get("notation")
+            .and_then(|n| n.get("nodes")?.get(element.type_name())?.get("doubleClick")?.as_str())
+            .unwrap_or("editLabel")
+            .to_owned();
+        let operation = root
+            .get("behavior")
+            .and_then(|b| b.get("operations")?.get(named.as_str()))
+            .is_some();
+        document.bind_views();
+        let menu = Self::menu_target(document, &ActionTarget::Element(element_id.to_owned()))?;
+        let entries: Vec<DerivedMenuEntry> = document
+            .tool()
+            .definition
+            .menu_entries(&menu, &self.env)
+            .into_iter()
+            .flatten()
+            .collect();
+        entries
+            .iter()
+            .find(|e| e.kind == named)
+            .or_else(|| {
+                entries
+                    .iter()
+                    .find(|e| operation && e.operation.as_deref() == Some(named.as_str()))
+            })
+            .map(|e| e.id.clone())
+    }
+
     fn entry(&self, document: &DiagramDocument, target: &ActionTarget, action_id: &str) -> Option<DerivedMenuEntry> {
         document.bind_views();
         let menu = Self::menu_target(document, target)?;

@@ -241,6 +241,12 @@ impl ModuleView for FdgView {
         self.run(workspace, target, action_id, Some(ids))
     }
 
+    /// A double-click on an element renames it (`FdgCanvas.tsx`: the `activate` gesture invokes `fdg.rename`).
+    fn double_click(&self, documents: &DiagramDocuments, element_id: &str) -> Option<String> {
+        self.document(documents).ok()?.model.element_of(element_id)?;
+        Some(actions::RENAME.to_owned())
+    }
+
     /// A right drag from one element to another draws a connection (`FdgCanvas.tsx`, `connectOnRightDrag: true`).
     fn connects_on_right_drag(&self) -> bool {
         true

@@ -348,6 +348,24 @@ impl AadDefinition {
     }
 
     /// The menu the definition derives for an element, a row or a relation.
+    /// The menu entry a double-click on `element` runs: the one of the kind its node names in its `doubleClick`
+    /// (DISL section 6.9), `editLabel` when it names none; none for `none`, and for a type the notation draws as a row.
+    pub fn double_click(&self, element: &DislElement) -> Option<String> {
+        let node = self
+            .definition
+            .specification()
+            .root()
+            .get("notation")?
+            .get("nodes")?
+            .get(element.type_name().as_str())?;
+        let named = node.get("doubleClick").and_then(|d| d.as_str()).unwrap_or("editLabel");
+        self.menus(element)
+            .into_iter()
+            .flatten()
+            .find(|entry| entry.kind == named)
+            .map(|entry| entry.id)
+    }
+
     pub fn menus(&self, element: &DislElement) -> Vec<Vec<DerivedMenuEntry>> {
         self.definition
             .menu_entries(&DislMenuTarget::Element(element.clone()), &self.env())
