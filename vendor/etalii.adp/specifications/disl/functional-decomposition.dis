@@ -8,7 +8,7 @@
     "label": "Functional decomposition graph",
     "doc": {
       "summary": "A trimmed excerpt of the functional decomposition graph definition (definitions/diagrams/functional-decomposition-graph.dis), used to show DISL 0.2 constructs.",
-      "description": "An application broken down into its UI elements, the actions on them, the data they hold and the functions behind them, joined by ownership links. The excerpt keeps the element and relation hierarchies, their notation, the toolbox, the forms and the rules; the `.fdg` file format of the full definition is left out. It shows the superellipse, a custom diode shape, a contrast requirement, a height that is fixed and never stored, acyclicity over an abstract relation type, the built-in refusals worded by the tool, a deletion confirmation that asks only for connected elements, the findings form row and base-36 ShortGuids."
+      "description": "An application broken down into its UI elements, the actions on them, the data they hold and the functions behind them, joined by ownership links. The excerpt keeps the element and relation hierarchies, their notation, the toolbox, the forms and the rules; the `.fdg` file format of the full definition is left out. It shows the superellipse, a custom diode shape, a contrast requirement, a height that is fixed and never stored, acyclicity over an abstract relation type, the built-in refusals worded by the tool, a deletion confirmation that asks only for connected elements, the findings form row and base-36 ShortGuids. It differs from the tool in three ways of its own: it names the ownership relations' common type `Owns` where the full definition says `Ownership`, it shows the fixed height as a read-only row and the findings under the properties, which the tool does not, and it leaves out what DISL 0.3 adds, such as the right-button drag between bodies that connects, the menus and the declared order of findings, which the full definition states."
     }
   },
 
@@ -199,7 +199,7 @@
         "anchors": { "mode": "outline" }
       },
       "Action": {
-        "shape": "rect",
+        "shape": { "type": "trapezoid", "params": { "inset": 0.15, "direction": "down" } },
         "style": "action",
         "size": { "default": [160, 48], "min": [80, 48], "max": [null, 48], "resizable": "horizontal" },
         "labels": [ { "id": "name", "text": { "attribute": "name" }, "editable": "inline", "wrap": "none", "overflow": "ellipsis" } ],
@@ -235,7 +235,7 @@
       "OwnsFunction": { "style": "link", "line": { "routing": "bezier" }, "sourceMarker": "none", "targetMarker": "arrowFilled" },
       "Shows": {
         "style": "link",
-        "line": { "routing": "bezier", "stroke": { "dash": [6, 4] } },
+        "line": { "routing": "bezier" },
         "sourceMarker": "none",
         "targetMarker": "arrowFilled"
       }
@@ -253,8 +253,7 @@
           "items": [
             { "attribute": "name" },
             { "attribute": "description", "widget": "textarea", "rows": 3 },
-            { "attribute": "height", "widget": "readonly", "readOnlyReasons": [ "Every UI element, data element, action and function is 48 high; only a comment's height can change." ] },
-            { "kind": "computed", "label": "Owns, directly or through others", "value": { "cel": "string(self.reachable('Owns').size()) + ' elements'" } }
+            { "attribute": "height", "widget": "readonly", "readOnlyReasons": [ "Only a Comment has its own height; the others share one." ] }
           ]
         },
         { "kind": "findings", "doc": "The findings on this element, listed under its properties (DISL 0.1 called this row kind `problems`)." }
@@ -268,22 +267,11 @@
         "id": "elements",
         "label": "Elements",
         "tools": [
-          { "id": "uiElement", "creates": "UiElement", "label": "UI element", "mode": "click", "after": "select" },
-          { "id": "action", "creates": "Action", "label": "Action", "mode": "click", "after": "select" },
-          { "id": "dataElement", "creates": "DataElement", "label": "Data element", "mode": "click", "after": "select" },
-          { "id": "function", "creates": "Function", "label": "Function", "mode": "click", "after": "select" },
-          { "id": "comment", "creates": "Comment", "label": "Comment", "mode": "click", "after": "select", "initial": { "text": "New comment", "height": 96 } }
-        ]
-      },
-      {
-        "id": "links",
-        "label": "Links",
-        "tools": [
-          { "id": "uiChild", "creates": "UiChild", "mode": "drag" },
-          { "id": "ownsAction", "creates": "OwnsAction", "mode": "drag" },
-          { "id": "ownsData", "creates": "OwnsData", "mode": "drag" },
-          { "id": "ownsFunction", "creates": "OwnsFunction", "mode": "drag" },
-          { "id": "shows", "creates": "Shows", "mode": "drag" }
+          { "id": "uiElement", "creates": "UiElement", "label": "UI element", "mode": "drop", "after": "select" },
+          { "id": "action", "creates": "Action", "label": "Action", "mode": "drop", "after": "select" },
+          { "id": "dataElement", "creates": "DataElement", "label": "Data element", "mode": "drop", "after": "select" },
+          { "id": "function", "creates": "Function", "label": "Function", "mode": "drop", "after": "select" },
+          { "id": "comment", "creates": "Comment", "label": "Comment", "mode": "drop", "after": "select", "initial": { "text": "New comment", "height": 96 } }
         ]
       }
     ]
@@ -296,7 +284,7 @@
       "std.endpoints": { "severity": "error" },
       "std.multiplicity": {
         "severity": "error",
-        "refusal": { "cel": "'Refused by the cardinality check: `' + (target.name != '' ? target.name : target.id) + '` already has its `' + violation.relationType + '` parent, and may have ' + string(violation.max) + '.'" },
+        "refusal": { "cel": "violation.end == 'source' ? 'Refused by the cardinality check: `' + (source.name != '' ? source.name : source.id) + '` already has its `' + {'UiChild': 'ui-child', 'OwnsAction': 'owns-action', 'OwnsData': 'owns-data', 'OwnsFunction': 'owns-function', 'Shows': 'shows'}[violation.relationType] + '` link, and may have ' + string(violation.max) + '.' : 'Refused by the cardinality check: `' + (target.name != '' ? target.name : target.id) + '` already has its `' + {'UiChild': 'ui-child', 'OwnsAction': 'owns-action', 'OwnsData': 'owns-data', 'OwnsFunction': 'owns-function', 'Shows': 'shows'}[violation.relationType] + '` parent, and may have ' + string(violation.max) + '.'" },
         "doc": "The refusal of the connect gesture, which sees `violation`; findings on a stored document keep the runtime's wording. Covers fdg.second-parent and fdg.second-shows."
       },
       "std.acyclic": {
@@ -316,9 +304,9 @@
       "NamedElement": {
         "relations": "delete",
         "confirm": {
-          "count": "self.incoming.size() + self.outgoing.size()",
+          "count": "self.incoming.size() + self.outgoing.filter(r, r.target != self).size()",
           "threshold": 1,
-          "title": "Remove element",
+          "title": "Remove",
           "message": { "cel": "'Removing this element also removes the ' + (count == 1 ? '1 connection' : string(count) + ' connections') + ' to or from it.'" },
           "confirmLabel": "Remove",
           "danger": true,

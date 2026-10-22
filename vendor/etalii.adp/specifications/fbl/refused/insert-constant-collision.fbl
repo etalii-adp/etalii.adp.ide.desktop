@@ -1,0 +1,41 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.8",
+  "doc": "Refused by FBL 0.8, section 14.1, step 6: the rule task writes the key type twice, as its constant and through its writable attribute kind, which the one-place rule (section 3.3) forbids. The rule note reads its constant's key type through a read-only attribute, which is allowed, so this document is refused for the one reason this sentence names.",
+  "bindings": {
+    "board": {
+      "title": "Board, a constant on a key the rule writes",
+      "claims": { "registrationOnly": true },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "task",
+          "type": "Task",
+          "at": "/elements/*",
+          "when": "has(entry.type) && entry.type == 'task'",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "name": { "key": "name" },
+            "kind": { "key": "type" }
+          },
+          "insert": { "place": "end", "container": "/elements", "keys": ["id", "type", "name"], "constant": { "type": "task" } },
+          "remove": {}
+        },
+        {
+          "name": "note",
+          "type": "Note",
+          "at": "/elements/*",
+          "when": "has(entry.type) && entry.type == 'note'",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "text": { "key": "text" },
+            "kind": { "key": "type", "readOnly": true }
+          },
+          "insert": { "place": "end", "container": "/elements", "keys": ["id", "text"], "constant": { "type": "note" } },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

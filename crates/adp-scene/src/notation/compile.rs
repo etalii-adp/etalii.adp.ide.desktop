@@ -998,7 +998,10 @@ impl Compiler<'_> {
         let declared = self.specification.metamodel().relations.get(name).cloned();
         let relation_json = declared.as_ref().map(|r| r.json.clone()).unwrap_or(Json::Null);
         let line = edge.get("line").cloned().unwrap_or(Json::Object(Map::new()));
-        let directed = relation_json.get("directed") != Some(&Json::Bool(false));
+        // The flags as the metamodel reads them: stated, else inherited, else the default (DISL 0.6, section 4.7).
+        let (directed, allow_self, allow_parallel) = declared.as_ref().map_or((true, false, true), |r| {
+            (r.directed, r.allow_self_loops, r.allow_parallel)
+        });
         let target_marker = str_of(edge, "targetMarker").unwrap_or(if directed { "arrowFilled" } else { "none" });
         let source_marker = str_of(edge, "sourceMarker").unwrap_or("none");
         let route = self.route(name, edge, &line)?;
@@ -1024,8 +1027,11 @@ impl Compiler<'_> {
             },
             element_types: types,
         };
-        let per_pair = (derived.is_none() && relation_json.get("allowParallel") == Some(&Json::Bool(false)))
-            .then_some(if directed { PerPair::Ordered } else { PerPair::Unordered });
+        let per_pair = (derived.is_none() && !allow_parallel).then_some(if directed {
+            PerPair::Ordered
+        } else {
+            PerPair::Unordered
+        });
         let (max_from_source, max_into_target) = self.held_once(&relation_json);
 
         let mut style = edge
@@ -1062,7 +1068,7 @@ impl Compiler<'_> {
             endpoints: Endpoints {
                 source: endpoint(source_types, "source", ends[0]),
                 target: endpoint(target_types, "target", ends[1]),
-                allow_self: relation_json.get("allowSelfLoops") == Some(&Json::Bool(true)),
+                allow_self,
                 per_pair,
                 max_from_source,
                 max_into_target,

@@ -1,18 +1,18 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
-  "fbl": "0.1",
-  "doc": "Turtle and N-Triples bodies of the four W3C tool types (definitions/diagrams/w3c-*.dis and their notes): a binding whose reader is a persistence plugin (section 11), shared by four readings. Projecting triples onto cards, rows and badges, prefix compression and Turtle's span rules stay in the plugin; routing, the registration with its language header, the new-document templates, undo and drift are declared here and done by the host.",
+  "fbl": "0.2",
+  "doc": "Turtle and N-Triples bodies of the four W3C tool types (definitions/diagrams/w3c-*.dis and their notes): a binding whose reader is a persistence plugin (section 11), shared by four readings. A bare file opens as the RDF graph and gets no registration from a drag; the siblings are offered in the tool's own order. Projecting triples onto cards, rows and badges, prefix compression and Turtle's span rules stay in the plugin; routing, the registration with its language header, the new-document templates, undo and drift are declared here and done by the host.",
   "bindings": {
     "turtle": {
       "title": "RDF in Turtle or N-Triples",
       "claims": {
         "extensions": [".ttl", ".nt"],
-        "origins": ["w3c/rdf", "w3c/owl", "w3c/shacl", "w3c/skos"],
+        "origins": ["w3c/rdf", "w3c/owl", "w3c/skos", "w3c/shacl"],
         "readings": {
           "w3c/rdf": { "bare": true },
           "w3c/owl": { "suggest": { "contains": ["owl:Ontology", "http://www.w3.org/2002/07/owl#Ontology"] } },
-          "w3c/shacl": { "suggest": { "contains": ["sh:NodeShape", "sh:property", "http://www.w3.org/ns/shacl#NodeShape"] } },
-          "w3c/skos": { "suggest": { "contains": ["skos:ConceptScheme", "http://www.w3.org/2004/02/skos/core#ConceptScheme"] } }
+          "w3c/skos": { "suggest": { "contains": ["skos:ConceptScheme", "http://www.w3.org/2004/02/skos/core#ConceptScheme"] } },
+          "w3c/shacl": { "suggest": { "contains": ["sh:NodeShape", "sh:property", "http://www.w3.org/ns/shacl#NodeShape"] } }
         }
       },
       "body": { "kind": "file" },
@@ -22,13 +22,16 @@
         "headers": {
           "language": { "doc": "w3c/skos: the BCP 47 tag whose skos:prefLabel is shown, such as 'de'." }
         },
-        "createOnFirstPlacement": true
+        "createOnFirstPlacement": false
       },
       "template": {
-        "text": "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n@prefix ex: <http://example.org/> .\r\n\r\nex:{key} rdfs:label \"{base}\" .\r\n",
+        "text": "@prefix ex: <http://example.org/> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\nex:{key} a ex:Resource ;\r\n    rdfs:label \"{base}\" .\r\n",
         "byOrigin": {
-          "w3c/skos": "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\r\n@prefix ex: <http://example.org/> .\r\n\r\nex:{key} a skos:ConceptScheme ;\r\n    skos:prefLabel \"{base}\"@en ;\r\n    skos:hasTopConcept ex:{key}_top .\r\n\r\nex:{key}_top a skos:Concept ;\r\n    skos:prefLabel \"Top concept\"@en ;\r\n    skos:topConceptOf ex:{key} .\r\n"
-        }
+          "w3c/owl": "@prefix : <http://example.org/{key}#> .\r\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\n<http://example.org/{key}> a owl:Ontology ;\r\n    rdfs:label \"{base}\" .\r\n\r\n:Thing1 a owl:Class ;\r\n    rdfs:label \"First class\" .\r\n",
+          "w3c/skos": "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\r\n@prefix ex: <http://example.org/> .\r\n\r\nex:{key} a skos:ConceptScheme ;\r\n    skos:prefLabel \"{base}\"@en ;\r\n    skos:hasTopConcept ex:{key}_top .\r\n\r\nex:{key}_top a skos:Concept ;\r\n    skos:prefLabel \"Top concept\"@en ;\r\n    skos:topConceptOf ex:{key} .\r\n",
+          "w3c/shacl": "@prefix sh: <http://www.w3.org/ns/shacl#> .\r\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\r\n@prefix ex: <http://example.org/> .\r\n\r\nex:{key}Shape a sh:NodeShape ;\r\n    sh:targetClass ex:{key} ;\r\n    sh:name \"{base}\" ;\r\n    sh:property [\r\n        sh:path ex:name ;\r\n        sh:datatype xsd:string ;\r\n        sh:minCount 1 ;\r\n        sh:maxCount 1 ;\r\n    ] .\r\n"
+        },
+        "doc": "The four document factories' bytes. `{key}` folds a base name's '-' to '_' and puts '_' before a leading digit, where the factories keep the name as it is; for such a name a new document differs from today's (w3c-rdf.md)."
       }
     }
   }

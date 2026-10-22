@@ -1,6 +1,7 @@
 //! Step 6 of loading (DISL section 14.1; the standalone host's `DislInheritance`): the metamodel's types with their
 //! supertypes resolved, their C3 linearisations computed, and their attributes, containment and label attribute
-//! merged along them (section 4.7), the relation ends resolved (section 4.9).
+//! merged along them (section 4.7), the relation ends resolved (section 4.9), and the relation flags inherited and
+//! checked (DISL 0.6, section 4.7).
 
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -54,6 +55,7 @@ pub(crate) fn build(metamodel: &Json, diagnostics: &mut Vec<DislDiagnostic>) -> 
     supertypes(&mut relations, "/metamodel/relations", "relation", diagnostics);
     linearise(&mut types, "/metamodel/types", diagnostics);
     linearise(&mut relations, "/metamodel/relations", diagnostics);
+    flags(&mut relations, diagnostics);
 
     let mut all: IndexMap<String, DislType> = IndexMap::new();
     for (name, t) in types.iter().chain(relations.iter()) {
@@ -149,6 +151,68 @@ fn supertypes(
             ));
         }
         t.extends = extends.into_iter().filter(|p| names.contains(p)).collect();
+    }
+}
+
+/// The relation flags (section 4.9) with their defaults.
+const RELATION_FLAGS: [(&str, bool); 3] = [("directed", true), ("allowSelfLoops", false), ("allowParallel", true)];
+
+/// Each relation type's `directed`, `allowSelfLoops` and `allowParallel` (DISL 0.6, section 4.7): the value of the
+/// nearest type of its linearisation that states it, else the section 4.9 default. A stated flag only narrows every
+/// direct supertype's value (`true` to `false`; `directed` never differs), and direct supertypes that differ in a
+/// flag the type does not state are an error, as for conflicting inherited attributes.
+fn flags(relations: &mut IndexMap<String, DislType>, diagnostics: &mut Vec<DislDiagnostic>) {
+    let stated = |t: &DislType, flag: &str| json::get(&t.json, flag).and_then(Json::as_bool);
+    let effective = |relations: &IndexMap<String, DislType>, name: &str, flag: &str, default: bool| {
+        relations[name]
+            .linearisation
+            .iter()
+            .filter_map(|ancestor| relations.get(ancestor).and_then(|t| stated(t, flag)))
+            .next()
+            .unwrap_or(default)
+    };
+    let mut values = Vec::new();
+    for (name, relation) in relations.iter() {
+        let pointer = json::pointer("/metamodel/relations", name);
+        let [directed, allow_self_loops, allow_parallel] = RELATION_FLAGS.map(|(flag, default)| {
+            let inherited: Vec<(&String, bool)> = relation
+                .extends
+                .iter()
+                .map(|parent| (parent, effective(relations, parent, flag, default)))
+                .collect();
+            match stated(relation, flag) {
+                Some(own) => {
+                    for (parent, value) in &inherited {
+                        if flag == "directed" && own != *value {
+                            diagnostics.push(DislDiagnostic::error(
+                                json::pointer(&pointer, flag),
+                                format!("'{name}' states {flag} {own}, which differs from the {value} of its supertype '{parent}' (DISL §4.7)."),
+                            ));
+                        } else if flag != "directed" && own && !value {
+                            diagnostics.push(DislDiagnostic::error(
+                                json::pointer(&pointer, flag),
+                                format!("'{name}' states {flag} true, which widens the false of its supertype '{parent}'; a subtype may only narrow it (DISL §4.7)."),
+                            ));
+                        }
+                    }
+                }
+                None if inherited.iter().any(|(_, value)| *value != inherited[0].1) => {
+                    let given: Vec<String> = inherited.iter().map(|(parent, value)| format!("{value} from '{parent}'")).collect();
+                    diagnostics.push(DislDiagnostic::error(
+                        pointer.clone(),
+                        format!("'{name}' inherits {flag} differently, {}, and does not redeclare it (DISL §4.7).", given.join(", ")),
+                    ));
+                }
+                None => {}
+            }
+            effective(relations, name, flag, default)
+        });
+        values.push((directed, allow_self_loops, allow_parallel));
+    }
+    for (relation, (directed, allow_self_loops, allow_parallel)) in relations.values_mut().zip(values) {
+        relation.directed = directed;
+        relation.allow_self_loops = allow_self_loops;
+        relation.allow_parallel = allow_parallel;
     }
 }
 

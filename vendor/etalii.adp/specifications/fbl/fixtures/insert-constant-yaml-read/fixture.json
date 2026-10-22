@@ -1,0 +1,41 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The body that the last step of ../insert-constant-yaml/ leaves, byte for byte, read through the same binding: each new entry is read by the rule that added it, since its constant is the value that rule's when asks for (FBL 0.8, section 6.2). A constant takes no part in reading; when alone decides.",
+  "binding": "board.fbl#board",
+  "input": "board.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "t1",
+        "type": "Task",
+        "attributes": {
+          "name": "Plan"
+        }
+      },
+      {
+        "id": "n1",
+        "type": "Note",
+        "attributes": {
+          "text": "Remember",
+          "format": "1.0"
+        }
+      },
+      {
+        "id": "t2",
+        "type": "Task",
+        "attributes": {
+          "name": "Ship it"
+        }
+      },
+      {
+        "id": "n2",
+        "type": "Note",
+        "attributes": {
+          "text": "yes",
+          "format": "1.0"
+        }
+      }
+    ]
+  },
+  "steps": []
+}

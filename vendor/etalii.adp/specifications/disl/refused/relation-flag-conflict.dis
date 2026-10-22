@@ -1,0 +1,19 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.6",
+  "doc": "Refused by DISL section 4.7, relation flags: `Both` states no `allowSelfLoops`, and its direct supertypes give it differently, `true` from `Loop` and the default `false` from `Plain`. A relation type whose supertypes differ in a flag must state that flag itself.",
+  "language": {
+    "id": "org.example.refused.relation-flag-conflict",
+    "version": "1.0.0"
+  },
+  "metamodel": {
+    "types": {
+      "Item": {}
+    },
+    "relations": {
+      "Loop": { "source": "Item", "target": "Item", "allowSelfLoops": true },
+      "Plain": { "source": "Item", "target": "Item" },
+      "Both": { "extends": ["Loop", "Plain"] }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.6",
+  "doc": "Refused by DISL section 4.7, relation flags: `Mutual` states `directed: false`, which differs from the `true` its supertype `Link` has by default. A relation type that states `directed` must agree with every direct supertype, whose value includes the default of section 4.9.",
+  "language": {
+    "id": "org.example.refused.relation-flag-directed",
+    "version": "1.0.0"
+  },
+  "metamodel": {
+    "types": {
+      "Item": {}
+    },
+    "relations": {
+      "Link": { "source": "Item", "target": "Item" },
+      "Mutual": { "extends": "Link", "directed": false }
+    }
+  }
+}

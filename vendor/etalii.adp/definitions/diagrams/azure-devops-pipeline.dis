@@ -281,6 +281,7 @@
       },
       "DependsOn": {
         "extends": "Dependency",
+        "allowSelfLoops": true,
         "label": "Depends on",
         "doc": "One per name a stage's or job's dependsOn writes, its target the element that waits. The source is resolved without regard to case, to the first element of that name, among the stages or among the jobs of the same stage (companion, gap 7). A name that names nothing leaves the source unset: the relation is kept and reported, and the standalone tool still draws it as a broken edge (companion, gap 9).",
         "attributes": {
@@ -289,6 +290,7 @@
       },
       "DefaultOrder": {
         "extends": "Dependency",
+        "allowSelfLoops": true,
         "source": "Stage",
         "target": "Stage",
         "derived": "cel.bind(st, diagram.nodesOfType('Stage'), lists.range(st.size()).filter(i, i > 0 && !has(st[i].dependsOn) && st[i - 1].id != st[i].id).map(i, {'source': st[i - 1], 'target': st[i], 'isImplicit': true}))",

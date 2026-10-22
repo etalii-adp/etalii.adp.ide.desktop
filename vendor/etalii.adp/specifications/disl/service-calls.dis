@@ -1,0 +1,81 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.6",
+  "language": {
+    "id": "org.example.service-calls",
+    "version": "1.0.0",
+    "label": "Service calls",
+    "doc": {
+      "summary": "A small map of services and the calls between them, used to show where a relation type's flags come from (DISL 0.6, sections 4.7 and 4.9).",
+      "description": "Every call type inherits `allowParallel: false` and `allowSelfLoops: true` from the abstract `Call`, so one pair of services has at most one call of each kind, and a service may call itself. `TracedCall` has two supertypes whose flags differ, and states both flags itself, as it must. The definition `service-calls.did` beside it gives the two `std.endpoints` findings of `service-calls.findings.json`."
+    }
+  },
+  "metamodel": {
+    "types": {
+      "Service": {
+        "doc": "A service that calls others.",
+        "attributes": {
+          "name": { "type": "string", "required": true, "key": true }
+        }
+      }
+    },
+    "relations": {
+      "Call": {
+        "abstract": true,
+        "doc": "A call from one service to another. It states `allowParallel: false`, so one pair has at most one call of each kind, and `allowSelfLoops: true`, so a service may call itself; every call type below inherits both (4.7). `directed` is the default, `true`.",
+        "source": "Service",
+        "target": "Service",
+        "allowParallel": false,
+        "allowSelfLoops": true
+      },
+      "SyncCall": {
+        "doc": "A call that waits for its answer. It states no flag: `allowParallel: false` and `allowSelfLoops: true` come from `Call`, `directed: true` is the default.",
+        "extends": "Call"
+      },
+      "AsyncCall": {
+        "doc": "A call that does not wait. It states no flag: `allowParallel: false` and `allowSelfLoops: true` come from `Call`, `directed: true` is the default.",
+        "extends": "Call"
+      },
+      "Observation": {
+        "abstract": true,
+        "doc": "One service observing another. It states no flag, so it has the defaults of section 4.9: `directed: true`, `allowSelfLoops: false`, `allowParallel: true`.",
+        "source": "Service",
+        "target": "Service"
+      },
+      "TracedCall": {
+        "doc": "A synchronous call that is also observed. Its supertypes differ in two flags: `SyncCall` has `allowSelfLoops: true` and `allowParallel: false`, `Observation` has `false` and `true`. It must state both (4.7), and states each with the narrower value, `false`; `directed: true` is what both supertypes have.",
+        "extends": ["SyncCall", "Observation"],
+        "allowParallel": false,
+        "allowSelfLoops": false
+      }
+    }
+  },
+  "notation": {
+    "nodes": {
+      "Service": {
+        "shape": "roundedRect",
+        "size": { "default": [140, 48] },
+        "labels": [{ "id": "name", "text": { "attribute": "name" }, "position": "center", "editable": "inline" }]
+      }
+    },
+    "edges": {
+      "SyncCall": { "targetMarker": { "type": "arrowFilled" } },
+      "AsyncCall": { "line": { "stroke": { "dash": [5, 4] } }, "targetMarker": { "type": "arrowOpen" } },
+      "TracedCall": { "line": { "stroke": { "width": 2 } }, "targetMarker": { "type": "arrowFilled" } }
+    }
+  },
+  "toolbox": {
+    "groups": [
+      {
+        "id": "services",
+        "label": "Services",
+        "tools": [
+          { "id": "service", "creates": "Service" },
+          { "id": "syncCall", "creates": "SyncCall", "mode": "drag" },
+          { "id": "asyncCall", "creates": "AsyncCall", "mode": "drag" },
+          { "id": "tracedCall", "creates": "TracedCall", "mode": "drag" }
+        ]
+      }
+    ]
+  }
+}
