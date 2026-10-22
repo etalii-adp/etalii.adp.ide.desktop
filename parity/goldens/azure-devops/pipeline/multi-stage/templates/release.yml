@@ -1,0 +1,14 @@
+# release
+
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: Build
+    displayName: Build
+    steps:
+      - script: echo "Replace this with your build"
+        displayName: Build

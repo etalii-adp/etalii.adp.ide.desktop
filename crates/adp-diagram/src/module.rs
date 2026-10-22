@@ -9,7 +9,9 @@
 //! the canvas coordinates of a coordinate system whose placement attributes are not plain numbers (section 5; the
 //! timeline's `TimelineScale` and `TimelineRows`), the plugin layouts its `layout` actions name (section 10), the
 //! attribute an inline rename writes where a computed label names none, the size a node is drawn at and what a resize
-//! of it writes where its coordinates are not plain numbers, and the changes as its body writes them.
+//! of it writes where its coordinates are not plain numbers, the changes as its body writes them, and what a property
+//! row and a drag write where the module's own commands wrote them (the agent behavior model's Kind row and its drag of
+//! a whole row).
 //! Every hook has the generic answer as its default, so a module implements only what it adds, and a tool type
 //! without a module is drawn and edited from its specification alone.
 //!
@@ -34,7 +36,7 @@ use adp_disl::{
 use adp_fbl::plugins::PersistencePlugin;
 
 use crate::definition::ToolboxItem;
-use crate::document::{DiagramDocument, DiagramDocuments};
+use crate::document::{DiagramChange, DiagramDocument, DiagramDocuments, DocumentEdit};
 use crate::element::{DiagramElement, DiagramViewport};
 use crate::problems::DiagramProblem;
 use crate::session::{ActionOutcome, ActionTarget, DiagramSession};
@@ -191,6 +193,34 @@ pub trait DiagramModule {
     /// gesture, form or operation made it. The changes as they are by default.
     fn written(&self, _diagram: &DislDiagram, changes: Vec<DislChange>) -> Result<Vec<DislChange>, String> {
         Ok(changes)
+    }
+
+    /// The changes that set property `property_id` of `element_id` in `document` to `value`, or why they may not; none
+    /// to commit it through the specification's form. The agent behavior model's module changed a node's kind, label,
+    /// attempts and notes with its own commands (`AbmContextPropertyProvider.Change`), its Kind by the menu name of a
+    /// kind, which a form's `type` item does not commit.
+    fn set_property(
+        &self,
+        document: &DiagramDocument,
+        element_id: &str,
+        property_id: &str,
+        value: &str,
+    ) -> Option<Result<Vec<DiagramChange>, String>> {
+        let _ = (document, element_id, property_id, value);
+        None
+    }
+
+    /// What a drag of the elements of `moves`, each to its point in the diagram's units, writes in `document`, as one
+    /// edit, or why it may not; none to place each where its placement attributes or the registration's `layout:` keep
+    /// it. The agent behavior model's drag moves a whole row and may reorder it, writing the Markdown and the
+    /// registration together (`ArrangeAbmNodeCommand.cs`).
+    fn move_elements(
+        &self,
+        document: &DiagramDocument,
+        moves: &[(String, f64, f64)],
+    ) -> Option<Result<DocumentEdit, String>> {
+        let _ = (document, moves);
+        None
     }
 
     /// The line ending a block the registration does not have yet is created with (its `layout:` on a first

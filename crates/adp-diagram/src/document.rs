@@ -466,6 +466,59 @@ impl DiagramDocument {
     }
 }
 
+impl DiagramDocument {
+    /// The edit, labelled `label`, that turns the registration into `bytes` as one step: the bytes between what the two
+    /// share at their start and at their end replaced, for a module that writes the registration's `layout:` block
+    /// whole (the agent behavior model's drag and Arrange diagram, `RegistrationLayout.Replace`). Refused with
+    /// [`NO_REGISTRATION`] for a diagram opened without one; empty when the bytes are the registration's already.
+    pub fn rewrite_registration(&self, label: &str, bytes: &[u8]) -> Result<DocumentEdit, String> {
+        let Some(before) = self.registration.as_deref() else {
+            return Err(NO_REGISTRATION.to_owned());
+        };
+        let mut steps = Vec::new();
+        if let Some(splice) = whole_text_splice(before, bytes) {
+            steps.push(EditStep {
+                file: EditedFile::Registration,
+                splices: vec![splice],
+                before: Fingerprint::of(before),
+            });
+        }
+        Ok(DocumentEdit {
+            label: label.to_owned(),
+            body_path: self.body_path.clone(),
+            steps,
+        })
+    }
+}
+
+/// The one splice that turns `before` into `after`: the bytes between their common start and their common end,
+/// widened to whole characters; none when they are the same.
+fn whole_text_splice(before: &[u8], after: &[u8]) -> Option<Splice> {
+    if before == after {
+        return None;
+    }
+    let limit = before.len().min(after.len());
+    let mut prefix = before.iter().zip(after).take_while(|(a, b)| a == b).count();
+    let mut suffix = 0;
+    while suffix < limit - prefix && before[before.len() - 1 - suffix] == after[after.len() - 1 - suffix] {
+        suffix += 1;
+    }
+    // A UTF-8 continuation byte is never where a character starts.
+    let continues = |bytes: &[u8], at: usize| at < bytes.len() && (bytes[at] & 0xC0) == 0x80;
+    while prefix > 0 && continues(after, prefix) {
+        prefix -= 1;
+    }
+    while suffix > 0 && continues(after, after.len() - suffix) {
+        suffix -= 1;
+    }
+    Some(Splice {
+        operation: adp_fbl::splice::Operation::ReEmitLine,
+        start: prefix,
+        end: before.len() - suffix,
+        text: String::from_utf8_lossy(&after[prefix..after.len() - suffix]).into_owned(),
+    })
+}
+
 /// A body opened to be read or planned against: through its binding's declared rules, through the persistence plugin
 /// the binding names as its reader (FBL section 11.3), or, when the host lacks that plugin, as unreadable with the
 /// finding that says so, so it opens with a problem and refuses every edit rather than opening empty.

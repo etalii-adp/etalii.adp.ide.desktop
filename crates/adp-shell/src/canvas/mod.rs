@@ -22,6 +22,7 @@ pub mod helm_scene;
 pub mod metrics;
 pub mod module_scene;
 pub mod paint;
+pub mod pipeline_scene;
 pub mod placement;
 pub mod sankey_scene;
 pub mod supply_chain_scene;
@@ -103,10 +104,10 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_dotnet_dependency_graph::register(adp_diagram_ansible_structure::register(
-                adp_diagram_agent_activity::register(adp_diagram_wardley_map::register(
-                    adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
-                        adp_diagram_dependency_graph::register(
+            tools: adp_diagram_dotnet_dependency_graph::register(adp_diagram_azure_devops_pipeline::register(
+                adp_diagram_ansible_structure::register(adp_diagram_agent_activity::register(
+                    adp_diagram_wardley_map::register(adp_diagram_supply_chain::register(
+                        adp_diagram_sankey::register(adp_diagram_c4::register(adp_diagram_dependency_graph::register(
                             adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
                                 DislPluginFunctions::none()
                             }))
@@ -117,9 +118,13 @@ impl DiagramHost {
                             .with_module(
                                 adp_diagram_functional_decomposition_graph::ORIGIN,
                                 adp_diagram_functional_decomposition_graph::module(),
+                            )
+                            .with_module(
+                                adp_diagram_agent_behavior_modelling::ORIGIN,
+                                adp_diagram_agent_behavior_modelling::module(),
                             ),
-                        ),
-                    ))),
+                        ))),
+                    )),
                 )),
             )),
             workspaces: HashMap::new(),
@@ -784,6 +789,9 @@ impl DiagramTab {
                 dotnet_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
                 HashMap::new(),
             )
+        } else if self.opened.origin == adp_diagram_azure_devops_pipeline::ORIGIN {
+            // A pipeline arranges itself from its dependencies: nothing on it is dragged.
+            (pipeline_scene::build(&elements, &self.selection), HashMap::new())
         } else if self.opened.origin == adp_diagram_agent_activity::ORIGIN {
             // An activity file's cards are laid out on their rings by the module, and locked by their centre.
             (
