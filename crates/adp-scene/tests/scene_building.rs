@@ -842,3 +842,30 @@ fn a_node_at_the_centre_of_its_members_is_drawn_again_with_them() {
         earlier.iter().zip(&later).map(|(a, b)| a == b).collect::<Vec<_>>()
     );
 }
+
+// ---- budgets --------------------------------------------------------------------------------------------------------
+
+/// What a truncating budget cuts is not drawn (DISL section 3.2.1): a node it leaves out, and a line one of whose ends
+/// it leaves out; what it keeps is drawn as before.
+#[test]
+fn a_truncating_budget_leaves_out_what_it_cuts_and_the_lines_to_it() {
+    let mut spec = common::curved_spec();
+    spec["language"]["limits"] = json!({ "budgets": { "nodes": { "measure": { "count": ["Node"] }, "max": 2 } } });
+    let definition = definition_of(&spec);
+    let diagram = DislDiagram::new(&definition.specification);
+    for id in ["a", "b", "c"] {
+        diagram.add_node("Node", id, attrs(&[("name", id.into())])).unwrap();
+    }
+    arrow(&diagram, "a", "b", &[]);
+    arrow(&diagram, "b", "c", &[]);
+    let c = Rect::new(500.0, 0.0, 100.0, 40.0);
+    let scene = scene(&definition, &diagram, &[("a", A), ("b", B), ("c", c)]);
+    assert!(scene.of(&element("a")).next().is_some());
+    assert!(scene.of(&element("b")).next().is_some());
+    assert!(scene.of(&element("c")).next().is_none(), "c is cut");
+    assert!(scene.of(&relation("a-b")).next().is_some());
+    assert!(
+        scene.of(&relation("b-c")).next().is_none(),
+        "a line to what is cut is not drawn"
+    );
+}
