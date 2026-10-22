@@ -38,6 +38,13 @@ name = "canvas"
 path = "../../benches/canvas.rs"
 harness = false
 
+# The memory probe of SC-007 (spec 030, T091): the program left idle, its memory read; the standalone host is measured
+# on the same inputs by parity/memory/standalone.mjs.
+[[bench]]
+name = "memory"
+path = "../../benches/memory.rs"
+harness = false
+
 [lints]
 workspace = true
 

@@ -1863,6 +1863,26 @@ mod tests {
     }
 
     #[test]
+    fn a_command_line_of_a_folder_and_files_opens_the_project_with_the_files_in_tabs() {
+        // As `adp-desktop <folder> <file>...` opens it, which the memory probe of SC-007 does (spec 030, T091).
+        let state = tempfile::tempdir().unwrap();
+        let folder = tempfile::tempdir().unwrap();
+        std::fs::write(folder.path().join("a.md"), "# A\n").unwrap();
+        std::fs::write(folder.path().join("b.json"), "{}\n").unwrap();
+        let mut shell = Shell::with_state(StateFolder::at(state.path()));
+        for path in [
+            folder.path().to_path_buf(),
+            folder.path().join("a.md"),
+            folder.path().join("b.json"),
+        ] {
+            shell.open_path(&path);
+        }
+        assert!(shell.project.is_some());
+        assert_eq!(shell.tabs.len(), 2);
+        assert_eq!(shell.active, 1);
+    }
+
+    #[test]
     fn new_folder_rename_and_delete_follow_the_standalone_hosts_rules() {
         let folder = tempfile::tempdir().unwrap();
         std::fs::write(folder.path().join("ideas.mm"), "<map/>").unwrap();
