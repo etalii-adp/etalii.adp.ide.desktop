@@ -4,9 +4,10 @@
 //! (`C4Commands.cs`, `AddC4ElementCommand.cs`, `AddC4ViewCommand.cs`, `C4ViewMembershipCommands.cs`) and the core's
 //! `EtAlii.Adp.History/DocumentEditRun.cs`. A command names what it changes by the body's path and the element's id,
 //! never by a live object, so it is plain data a history can hold; it is run against the project's documents, on a
-//! copy of the body's lines, and its inverse is the command that puts the old value back, as the standalone host's
-//! were. An edit rewrites the one argument of the one line it changes, and every other byte of the document stays as
-//! it arrived. A move is not an edit of the body at all: a position is view state, written to the layout sidecar.
+//! copy of the body's lines. An edit rewrites the one argument of the one line it changes, and every other byte of the
+//! document stays as it arrived; its inverse puts that line back exactly as it was ([`RestoreC4Line`]), so an undone
+//! description added to an element that had none leaves no `""` behind, and an undone rename finds its line by number
+//! where the element's id changed with its name. A move is not an edit of the body at all: a position is view state, written to the layout sidecar.
 
 use std::path::{Path, PathBuf};
 
@@ -80,7 +81,7 @@ fn edit_element(
     element_id: &str,
     argument: usize,
     value: &str,
-    inverse: impl FnOnce(&crate::model::C4Element) -> Box<dyn Command<DiagramDocuments>>,
+    body_path: &Path,
 ) -> Edit {
     let Some(element) = workspace.find(element_id) else {
         return Edit::Refused(format!("'{element_id}' is not in this model any more."));
@@ -94,7 +95,7 @@ fn edit_element(
             element.line
         ));
     };
-    let undo = inverse(element);
+    let undo = RestoreC4Line::of(body_path, element.line, &line);
     match document.replace_line(element.line, &tokens::replace_argument(&line, keyword, argument, value)) {
         Ok(()) => Edit::UndoneBy(undo),
         Err(reason) => Edit::Refused(reason),
@@ -108,7 +109,7 @@ fn edit_relationship(
     relationship_id: &str,
     argument: usize,
     value: &str,
-    inverse: impl FnOnce(&crate::model::C4Relationship) -> Box<dyn Command<DiagramDocuments>>,
+    body_path: &Path,
 ) -> Edit {
     let Some(relationship) = workspace.relationship(relationship_id) else {
         return Edit::Refused("That relationship is not in this model any more.".to_owned());
@@ -129,7 +130,7 @@ fn edit_relationship(
             relationship.line
         ));
     };
-    let undo = inverse(relationship);
+    let undo = RestoreC4Line::of(body_path, relationship.line, &line);
     match document.replace_line(
         relationship.line,
         &tokens::replace_argument(&line, arrow + 1, argument, value),
@@ -154,12 +155,7 @@ impl Command<DiagramDocuments> for SetElementName {
 
     fn apply(&self, documents: &mut DiagramDocuments) -> Result<Applied<DiagramDocuments>, Refusal> {
         run(documents, &self.body_path, |document, workspace| {
-            edit_element(document, workspace, &self.element_id, 0, &self.name, |was| {
-                Box::new(SetElementName {
-                    name: was.name.clone(),
-                    ..self.clone()
-                })
-            })
+            edit_element(document, workspace, &self.element_id, 0, &self.name, &self.body_path)
         })
     }
 }
@@ -179,12 +175,14 @@ impl Command<DiagramDocuments> for SetElementDescription {
 
     fn apply(&self, documents: &mut DiagramDocuments) -> Result<Applied<DiagramDocuments>, Refusal> {
         run(documents, &self.body_path, |document, workspace| {
-            edit_element(document, workspace, &self.element_id, 1, &self.description, |was| {
-                Box::new(SetElementDescription {
-                    description: was.description.clone(),
-                    ..self.clone()
-                })
-            })
+            edit_element(
+                document,
+                workspace,
+                &self.element_id,
+                1,
+                &self.description,
+                &self.body_path,
+            )
         })
     }
 }
@@ -214,12 +212,14 @@ impl Command<DiagramDocuments> for SetElementTechnology {
                     element.kind.lower()
                 ));
             }
-            edit_element(document, workspace, &self.element_id, 2, &self.technology, |was| {
-                Box::new(SetElementTechnology {
-                    technology: was.technology.clone(),
-                    ..self.clone()
-                })
-            })
+            edit_element(
+                document,
+                workspace,
+                &self.element_id,
+                2,
+                &self.technology,
+                &self.body_path,
+            )
         })
     }
 }
@@ -245,12 +245,7 @@ impl Command<DiagramDocuments> for SetRelationshipDescription {
                 &self.relationship_id,
                 0,
                 &self.description,
-                |was| {
-                    Box::new(SetRelationshipDescription {
-                        description: was.description.clone(),
-                        ..self.clone()
-                    })
-                },
+                &self.body_path,
             )
         })
     }
@@ -271,12 +266,51 @@ impl Command<DiagramDocuments> for SetRelationshipTechnology {
 
     fn apply(&self, documents: &mut DiagramDocuments) -> Result<Applied<DiagramDocuments>, Refusal> {
         run(documents, &self.body_path, |document, workspace| {
-            edit_relationship(document, workspace, &self.relationship_id, 1, &self.technology, |was| {
-                Box::new(SetRelationshipTechnology {
-                    technology: was.technology.clone(),
-                    ..self.clone()
-                })
-            })
+            edit_relationship(
+                document,
+                workspace,
+                &self.relationship_id,
+                1,
+                &self.technology,
+                &self.body_path,
+            )
+        })
+    }
+}
+
+/// Puts one line of the body back exactly as it was: the inverse of an edit of one element or relationship. Its own
+/// inverse puts back what it replaced.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RestoreC4Line {
+    pub body_path: PathBuf,
+    pub line: u32,
+    pub text: String,
+}
+
+impl RestoreC4Line {
+    fn of(body_path: &Path, line: u32, text: &str) -> Box<dyn Command<DiagramDocuments>> {
+        Box::new(RestoreC4Line {
+            body_path: body_path.to_path_buf(),
+            line,
+            text: text.to_owned(),
+        })
+    }
+}
+
+impl Command<DiagramDocuments> for RestoreC4Line {
+    fn label(&self) -> String {
+        "Restore line".to_owned()
+    }
+
+    fn apply(&self, documents: &mut DiagramDocuments) -> Result<Applied<DiagramDocuments>, Refusal> {
+        run(documents, &self.body_path, |document, _| {
+            let Some(replaced) = document.lines().get(self.line as usize - 1).map(|l| l.text.clone()) else {
+                return Edit::Refused("That line is no longer in this model.".to_owned());
+            };
+            match document.replace_line(self.line, &self.text) {
+                Ok(()) => Edit::UndoneBy(RestoreC4Line::of(&self.body_path, self.line, &replaced)),
+                Err(reason) => Edit::Refused(reason),
+            }
         })
     }
 }

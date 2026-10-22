@@ -294,12 +294,6 @@ fn set_dependencies(
                 .to_owned(),
         );
     }
-    let (previous, was_declared) = if location.kind == LocationKind::Stage {
-        (location.stage.depends_on.clone(), location.stage.depends_on_declared)
-    } else {
-        let job = location.job.expect("a job's location has its job");
-        (job.depends_on.clone(), job.depends_on_declared)
-    };
     let target = location.target();
     let mut writer = PipelineWriter::new(body);
     let result = if declared {
@@ -307,14 +301,13 @@ fn set_dependencies(
     } else {
         writer.clear_depends_on(&target)
     };
-    written(
-        result,
-        PipelineEdit::SetDependencies {
-            element_id: id.to_owned(),
-            depends_on: previous,
-            declared: was_declared,
-        },
-    )
+    // Undone by the restore of the whole text: writing the old dependencies again would put a cleared `dependsOn`
+    // back after the keys that followed it, and would refuse one that names what the pipeline does not have.
+    match result {
+        Err(reason) => EditOutcome::Refused(reason),
+        Ok(true) => EditOutcome::Applied(None),
+        Ok(false) => EditOutcome::Unchanged,
+    }
 }
 
 fn set_enabled(body: &mut LineDocument, model: &PipelineModel, id: &str, enabled: bool) -> EditOutcome {

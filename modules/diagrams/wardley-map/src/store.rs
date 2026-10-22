@@ -272,9 +272,14 @@ pub fn save(documents: &mut DiagramDocuments, body_path: &Path, lines: &LineDocu
 /// standalone host's `RestoreDocumentCommandHandler` wrote it with `AdpFileWriter.Save` and reloaded: the identities
 /// are reconciled, the sidecar is not written.
 pub fn restore(documents: &mut DiagramDocuments, body_path: &Path, text: &str) -> Result<(), String> {
-    adp_documents::text::write_atomically(body_path, text.as_bytes())
-        .map_err(|e| format!("Could not restore the file: {e}"))?;
-    get_or_load(documents, body_path);
+    // The text is kept without its byte order mark; the file gets it back as an edit's write gives it.
+    let bom = get_or_load(documents, body_path).bom;
+    let mut bytes = Vec::with_capacity(text.len() + 3);
+    if bom {
+        bytes.extend_from_slice(BOM.as_bytes());
+    }
+    bytes.extend_from_slice(text.as_bytes());
+    adp_documents::text::write_atomically(body_path, &bytes).map_err(|e| format!("Could not restore the file: {e}"))?;
     if documents.module_state::<WardleyStore>(STATE_KEY).reload(body_path) {
         documents.mark_changed(body_path);
     }

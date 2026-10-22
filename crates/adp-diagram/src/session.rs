@@ -925,6 +925,9 @@ impl DiagramSession {
         let definition = &document.tool().definition;
         let row = definition.row_key(property_id);
         let specification = definition.specification();
+        // The form commit runs on a copy of the reading: it assigns as it goes, and the reading is shared by every
+        // document that holds the same bytes.
+        let working = builder::from(document.fbl(), specification).diagram;
         let mut changes = Vec::new();
         for id in element_ids {
             if let Some(written) = document
@@ -936,12 +939,17 @@ impl DiagramSession {
                 changes.extend(written?);
                 continue;
             }
-            let element = document.element(id).ok_or_else(|| GONE.to_owned())?;
+            let element = working.element_by_id(id).ok_or_else(|| GONE.to_owned())?;
             if let Some(shown) = definition
                 .rows(&element, &self.env)
                 .iter()
                 .find(|r| r.id == property_id)
             {
+                // A value set to what the row shows is no change, so nothing is written: a label `yes` stays unquoted
+                // and a row written `"3"` keeps its quotes, as the standalone host's handlers left them.
+                if shown.value == value {
+                    continue;
+                }
                 // A row with a `parse` also takes a value as the document writes it, which its `accepts` judges
                 // below rather than its options (DISL 0.3, 6.12), as the standalone host's form commit did.
                 if !form_commit::parses(specification, &element, &row, "inspector") {

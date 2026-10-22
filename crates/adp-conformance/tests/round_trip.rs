@@ -655,7 +655,6 @@ fn c4_container() {
 }
 
 #[test]
-#[ignore = "pending: undoing a description or technology added to an element without one leaves an empty \"\" behind"]
 fn c4_component() {
     diagram_round_trips("diagrams/c4", "c4/component", false);
 }
@@ -671,13 +670,11 @@ fn c4_dynamic() {
 }
 
 #[test]
-#[ignore = "pending: undoing a description or technology added to an element without one leaves an empty \"\" behind, and a renamed container instance cannot be undone"]
 fn c4_deployment() {
     diagram_round_trips("diagrams/c4", "c4/deployment", false);
 }
 
 #[test]
-#[ignore = "pending: a label that YAML reads as another type (yes, 1.0, null) or a quoted row set to what it holds is rewritten, and an unreadable document takes edits"]
 fn generic_timeline() {
     diagram_round_trips("diagrams/timeline", "generic/timeline", true);
 }
@@ -725,7 +722,6 @@ fn etalii_sankey() {
 }
 
 #[test]
-#[ignore = "pending: undoing 'Use the default order' moves dependsOn after a merge key, and undoing a dependency of a broken graph is refused"]
 fn azure_devops_pipeline() {
     diagram_round_trips("diagrams/azure-devops-pipeline", "azure-devops/pipeline", false);
 }
@@ -746,7 +742,6 @@ fn dotnet_dependency_graph() {
 }
 
 #[test]
-#[ignore = "pending: undoing an edit drops the byte order mark"]
 fn wardley_map() {
     diagram_round_trips("diagrams/wardley-map", "wardley/map", false);
 }
