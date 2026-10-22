@@ -1,0 +1,24 @@
+dependencies: 1
+elements:
+  - id: src00001
+    label: Order service
+    x: 200
+    row: 0
+  - id: dst00001
+    label: Payment service
+    x: 520
+    row: 1
+relations:
+  # Two dependencies between the same pair are legal: the label carries the meaning.
+  - id: conn0001
+    from: src00001
+    to: dst00001
+    label: authorises through
+  - id: conn0002
+    from: src00001
+    to: dst00001
+    label: refunds through
+  # A dependency need not carry a label at all.
+  - id: conn0003
+    from: dst00001
+    to: src00001

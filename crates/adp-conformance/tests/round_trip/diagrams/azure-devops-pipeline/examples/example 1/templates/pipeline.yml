@@ -1,0 +1,13 @@
+parameters:
+  - name: buildConfiguration
+    type: string
+  - name: deployTo
+    type: object
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Compile
+        steps:
+          - script: dotnet build -c ${{ parameters.buildConfiguration }}
+            displayName: Build

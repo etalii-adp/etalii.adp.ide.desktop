@@ -1,0 +1,21 @@
+timeline: 1
+# Date-only and date-time both appear, but never within one element.
+elements:
+  - id: dateonly1
+    label: Whole days
+    begin: 2026-03-02
+    end: 2026-03-06
+    row: 0
+  - id: datetime1
+    label: To the minute
+    begin: 2026-03-02T09:30:00
+    end: 2026-03-02T17:15:00
+    row: 1
+  - id: moment01
+    label: A moment, date-only
+    begin: 2026-03-04
+    row: 2
+  - id: moment02
+    label: A moment, to the second
+    begin: 2026-03-04T13:45:07
+    row: 3

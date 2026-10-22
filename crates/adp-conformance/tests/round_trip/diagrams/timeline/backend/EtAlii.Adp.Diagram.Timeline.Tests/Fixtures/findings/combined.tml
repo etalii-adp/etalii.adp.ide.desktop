@@ -1,0 +1,30 @@
+timeline: 1
+# Every kind of finding at once, interleaved, so the order they are reported in is pinned.
+elements:
+  - id: alpha
+    label: Alpha
+    begin: 2026-03-10
+    end: 2026-03-01
+    row: 0
+  - label: Nameless
+    begin: whenever
+    row: 1
+  - id: alpha
+    label: Alpha again
+    begin: 2026-04-01
+    end: 2026-04-02T10:00:00
+    row: 2
+  - id: beta
+    begin: 2026-05-01
+    end: never
+    row: 3
+  - not a mapping
+connections:
+  - id: c1
+    from: alpha
+    to: missing
+  - id: beta
+    from: ghost
+    to: alpha
+  - from: alpha
+    to: beta

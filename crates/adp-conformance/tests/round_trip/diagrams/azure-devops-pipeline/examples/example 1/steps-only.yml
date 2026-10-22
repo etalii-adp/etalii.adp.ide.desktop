@@ -1,0 +1,12 @@
+# Neither stages nor jobs: one implicit stage containing one implicit job.
+trigger:
+  - main
+
+pool:
+  vmImage: windows-latest
+
+steps:
+  - script: echo Building
+    displayName: Build
+  - script: echo Testing
+    displayName: Test

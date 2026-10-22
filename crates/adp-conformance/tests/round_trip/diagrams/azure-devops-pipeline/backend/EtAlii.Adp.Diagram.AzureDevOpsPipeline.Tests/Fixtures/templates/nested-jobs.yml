@@ -1,0 +1,5 @@
+# A jobs template that names a steps template, from template-in-template.yml.
+jobs:
+  - job: Package
+    steps:
+      - template: test-steps.yml

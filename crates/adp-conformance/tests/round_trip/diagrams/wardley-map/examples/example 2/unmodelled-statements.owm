@@ -1,0 +1,14 @@
+title Unmodelled statements
+anchor Customer [0.95, 0.63]
+component Cup of Tea [0.79, 0.61]
+Customer->Cup of Tea
+
+// Everything below this line is either a construct this module does not model, a construct
+// from a newer DSL version, or something the parser itself rejects. Requirement 3.3 says all
+// of it survives a round trip verbatim regardless, so this file's whole job is to be written
+// back byte-for-byte after ADP has opened it.
+y_axis Value chain->Invisible->Visible
+style handwritten
+size [850,650]
+component Future Thing [0.5, 0.5] (someDecoratorFromLater)
+totallyUnknownKeyword Whatever [0.1, 0.2]

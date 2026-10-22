@@ -1,0 +1,13 @@
+timeline: 1
+# Times in forms .NET reads and ISO 8601 does not. The edit script moves every element whose id
+# starts with "move": one row down, then one day on.
+elements:
+  - id: moveslashes
+    label: Slashed
+    begin: 2026/07/01
+    end: 2026/07/04
+    row: 0
+  - id: movewords
+    label: Written out
+    begin: July 5, 2026
+    row: 1

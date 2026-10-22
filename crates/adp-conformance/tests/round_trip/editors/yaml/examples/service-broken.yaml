@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=service.schema.json
+# A service that breaks its schema in the ways the YAML editor marks:
+# a value of the wrong type, a value outside its list, a deprecated key,
+# a key the schema does not allow, an item missing its required key,
+# and a value that is wrong only where an alias brings it in.
+# "image" is missing too, so the mapping itself is marked.
+name: invoices
+replicas: many
+restart: sometimes
+memory: 1Gi
+colour: green
+defaults: &port-defaults
+  protocol: http
+ports:
+  - port: 8080
+  - protocol: tcp
+  - *port-defaults

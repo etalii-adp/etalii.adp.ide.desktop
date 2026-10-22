@@ -1,0 +1,45 @@
+graph TB
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["System Landscape View"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Line Operator</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Runs a filling line, confirms<br />setup, and reports downtime<br />against a reason code.</div>"]
+    style 1 fill:#08427b,stroke:#052e56,color:#ffffff
+    2["<div style='font-weight: bold'>Shift Supervisor</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Sequences works orders across<br />the three lines and signs off<br />shift handover.</div>"]
+    style 2 fill:#08427b,stroke:#052e56,color:#ffffff
+    29("<div style='font-weight: bold'>SCADA and PLC Layer</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Ignition SCADA and the<br />Siemens S7 PLCs that actually<br />run the fillers, cappers and<br />palletisers.</div>")
+    style 29 fill:#b8860b,stroke:#805d07,color:#ffffff
+    3["<div style='font-weight: bold'>Quality Engineer</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Reviews in-process checks and<br />releases or quarantines a<br />batch.</div>"]
+    style 3 fill:#08427b,stroke:#052e56,color:#ffffff
+    30("<div style='font-weight: bold'>Process Historian</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Long-term tag history for<br />every sensor on the plant.</div>")
+    style 30 fill:#b8860b,stroke:#805d07,color:#ffffff
+    31("<div style='font-weight: bold'>SAP S/4HANA</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Demand, works orders, stock<br />and financials.</div>")
+    style 31 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    32("<div style='font-weight: bold'>LIMS</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Laboratory results for<br />samples taken off the line.</div>")
+    style 32 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    33("<div style='font-weight: bold'>CMMS</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Maintenance work orders and<br />asset history.</div>")
+    style 33 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    34("<div style='font-weight: bold'>Warehouse Management System</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Where the materials are and<br />what has been picked.</div>")
+    style 34 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    4["<div style='font-weight: bold'>Maintenance Technician</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Responds to breakdowns and<br />records what was done.</div>"]
+    style 4 fill:#08427b,stroke:#052e56,color:#ffffff
+    5["<div style='font-weight: bold'>Production Planner</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Turns demand into a weekly<br />plan in the ERP.</div>"]
+    style 5 fill:#6b6b6b,stroke:#4a4a4a,color:#ffffff
+    6("<div style='font-weight: bold'>Manufacturing Execution System</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Turns works orders into<br />executed batches, and records<br />what actually happened on the<br />line.</div>")
+    style 6 fill:#1168bd,stroke:#0b4884,color:#ffffff
+
+    1-. "<div>Runs the line using</div><div style='font-size: 70%'>[HTTPS]</div>" .->6
+    2-. "<div>Sequences orders and signs<br />off shifts using</div><div style='font-size: 70%'>[HTTPS]</div>" .->6
+    3-. "<div>Releases or quarantines<br />batches using</div><div style='font-size: 70%'>[HTTPS]</div>" .->6
+    4-. "<div>Records downtime causes using</div><div style='font-size: 70%'>[HTTPS]</div>" .->6
+    5-. "<div>Plans production in</div><div style='font-size: 70%'>[SAP GUI]</div>" .->31
+    6-. "<div>Receives works orders from<br />and confirms production back<br />to</div><div style='font-size: 70%'>[IDoc over HTTPS]</div>" .->31
+    6-. "<div>Subscribes to line tags and<br />downloads recipes to</div><div style='font-size: 70%'>[OPC UA]</div>" .->29
+    6-. "<div>Writes tag history to and<br />reads it back from</div><div style='font-size: 70%'>[OPC UA HDA]</div>" .->30
+    6-. "<div>Requests sample results from</div><div style='font-size: 70%'>[REST/HTTPS]</div>" .->32
+    6-. "<div>Raises maintenance work<br />orders in</div><div style='font-size: 70%'>[REST/HTTPS]</div>" .->33
+    6-. "<div>Checks material availability<br />against</div><div style='font-size: 70%'>[REST/HTTPS]</div>" .->34
+    29-. "<div>Logs tag values to</div><div style='font-size: 70%'>[OPC UA]</div>" .->30
+
+  end

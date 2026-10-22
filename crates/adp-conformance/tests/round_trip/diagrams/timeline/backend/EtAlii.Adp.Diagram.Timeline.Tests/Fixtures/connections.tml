@@ -1,0 +1,26 @@
+timeline: 1
+elements:
+  - id: src00001
+    label: Source
+    begin: 2026-05-01
+    end: 2026-05-10
+    row: 0
+  - id: dst00001
+    label: Target
+    begin: 2026-05-20
+    end: 2026-05-30
+    row: 1
+connections:
+  # Two connections between the same pair is legal: the label carries the meaning.
+  - id: conn0001
+    from: src00001
+    to: dst00001
+    label: hands over
+  - id: conn0002
+    from: src00001
+    to: dst00001
+    label: also blocks
+  # A connection need not carry a label at all.
+  - id: conn0003
+    from: dst00001
+    to: src00001

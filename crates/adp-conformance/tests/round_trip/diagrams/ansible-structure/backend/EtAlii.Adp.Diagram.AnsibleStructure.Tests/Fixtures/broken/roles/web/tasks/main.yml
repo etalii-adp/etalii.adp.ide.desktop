@@ -1,0 +1,9 @@
+---
+- name: Install the web server
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+# ansible.dangling-import: tls.yml is not in this role.
+- name: Configure TLS
+  ansible.builtin.include_tasks: tls.yml

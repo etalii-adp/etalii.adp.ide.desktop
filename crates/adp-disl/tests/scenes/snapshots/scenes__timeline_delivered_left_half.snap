@@ -1,0 +1,97 @@
+---
+source: crates/adp-disl/tests/scenes/main.rs
+expression: half
+---
+node Period discovery at (1732147200, 540) placed
+    label: Discovery
+    begin: 2024-11-21
+    end: 2025-02-04
+    row: 9
+node Period build at (1757635200, 600) placed
+    label: Private beta
+    begin: 2025-09-12
+    end: 2025-10-27
+    row: 10
+node Moment launch at (1767657600, 660) placed
+    label: Launch
+    begin: 2026-01-06
+    row: 11
+node Period 467lu0vgaiudevamnkpl6k052 at (1780790400, 480) placed
+    label: Enterprise tier
+    begin: 2026-06-07
+    end: 2026-08-11
+    row: 8
+node Period a0p2gj4xxf8feve0nn8cxd1tz at (1747785600, 360) placed
+    label: Connector framework
+    begin: 2025-05-21
+    end: 2025-08-31
+    row: 6
+node Period 6ez55ypjmbp2zawzfvphb4rbr at (1739404800, 960) placed
+    label: Architecture spike
+    begin: 2025-02-13
+    end: 2025-05-18
+    row: 16
+node Period 9s462vri4qn9ww06akis5rqli at (1763510400, 480) placed
+    label: Performance tuning
+    begin: 2025-11-19
+    end: 2026-02-16
+    row: 8
+node Period f04p21twx6o8vgy6vkxq12oru at (1761177600, 240) placed
+    label: Access controls
+    begin: 2025-10-23
+    end: 2026-01-08
+    row: 4
+node Period blxyj64aqw2gv7mo51khc0pup at (1760054400, 420) placed
+    label: Query engine
+    begin: 2025-10-10
+    end: 2026-01-10
+    row: 7
+node Period 1yoofipmb80poy0knnhwmn3r0 at (1746057600, 120) placed
+    label: Ingestion prototype
+    begin: 2025-05-01
+    end: 2025-07-05
+    row: 2
+node Period 7qp4wkg8ez95o53xqfbtcvsi9 at (1754092800, 180) placed
+    label: Streaming pipeline
+    begin: 2025-08-02
+    end: 2025-09-28
+    row: 3
+node Period ao5vz88mqzrxap6rff1vfhup6 at (1771718400, 240) placed
+    label: Self-service portal
+    begin: 2026-02-22
+    end: 2026-05-16
+    row: 4
+node Period 1bvqv3kk00uwn15axvimuy77k at (1772409600, 120) placed
+    label: Workflow automation
+    begin: 2026-03-02
+    end: 2026-06-14
+    row: 2
+node Period 4khjd4qzeirw1y94ufnbop8f9 at (1752105600, 480) placed
+    label: Compliance review
+    begin: 2025-07-10
+    end: 2025-09-30
+    row: 8
+node Moment 3vhbnpa7zzitrxc6t93nc584v at (1727136000, 420) placed
+    label: Project kick-off
+    begin: 2024-09-24
+    row: 7
+node Period 3wcctm69gg5exkr4ofyct04bv at (1745971200, 660) placed
+    label: Data model design
+    begin: 2025-04-30
+    end: 2025-07-09
+    row: 11
+relation Connection c1 from discovery to build
+    label: informs
+relation Connection c2 from build to launch
+relation Connection ckim9ho6d05mhdj0q6aia2ztp from discovery to a0p2gj4xxf8feve0nn8cxd1tz
+relation Connection bp8ydo6526jaxdia0ex1bybpo from 6ez55ypjmbp2zawzfvphb4rbr to build
+relation Connection ew3s2dk0a2ofjrudpnps654ua from 9s462vri4qn9ww06akis5rqli to 467lu0vgaiudevamnkpl6k052
+relation Connection 26qja1ig5zfwiuqx8dquvkplx from 1yoofipmb80poy0knnhwmn3r0 to 7qp4wkg8ez95o53xqfbtcvsi9
+relation Connection 7gqk3gkj6igeqs0ndbk134g07 from f04p21twx6o8vgy6vkxq12oru to ao5vz88mqzrxap6rff1vfhup6
+relation Connection 2kzr76coaoxanjgun8bltpf95 from 7qp4wkg8ez95o53xqfbtcvsi9 to f04p21twx6o8vgy6vkxq12oru
+relation Connection 0vw8h6p4u9t4a1iamyk26rv6z from a0p2gj4xxf8feve0nn8cxd1tz to blxyj64aqw2gv7mo51khc0pup
+relation Connection 9e5gludv70pddpl3s5v7n7xx7 from 7qp4wkg8ez95o53xqfbtcvsi9 to 1bvqv3kk00uwn15axvimuy77k
+relation Connection 0yy7kvgf2ovde1npa0bu4rg3p from discovery to 4khjd4qzeirw1y94ufnbop8f9
+relation Connection 0grweqcalsr4gjj73h3crbuz9 from 3vhbnpa7zzitrxc6t93nc584v to discovery
+relation Connection 2xdrbq0lbdpueg5f20an070pt from 3vhbnpa7zzitrxc6t93nc584v to 1yoofipmb80poy0knnhwmn3r0
+relation Connection 9dm7zb9l5tm8il668fzxthlvg from discovery to 3wcctm69gg5exkr4ofyct04bv

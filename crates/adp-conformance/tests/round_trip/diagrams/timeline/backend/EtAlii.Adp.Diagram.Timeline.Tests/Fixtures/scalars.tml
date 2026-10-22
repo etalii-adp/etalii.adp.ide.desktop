@@ -1,0 +1,25 @@
+timeline: 1
+# Quoting is the author's choice and survives a round trip untouched.
+elements:
+  - id: scalar01
+    label: "Quoted: because it contains a colon"
+    begin: 2026-11-03
+    end: 2026-11-07
+    row: 0
+  - id: scalar02
+    label: 'Single quoted, with an apostrophe''s worth of trouble'
+    begin: 2026-11-10
+    row: 1
+  - id: scalar03
+    label: Plain, unquoted, with trailing spaces preserved   
+    begin: 2026-11-12
+    end: 2026-11-14
+    row: 2
+  - id: scalar04
+    label: "A label with \"escaped\" quotes in it"
+    begin: 2026-11-20
+    row: 3
+  - id: scalar05
+    label: "Unicode: naïve café — em dash, ünlaut"
+    begin: 2026-11-25
+    row: 4

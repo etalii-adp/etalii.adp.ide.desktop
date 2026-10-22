@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Service settings",
+  "description": "How one service of the example runs: where it listens, how much it logs and what it depends on.",
+  "type": "object",
+  "required": ["name", "port"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The service's name, as the other services address it.",
+      "minLength": 1
+    },
+    "port": {
+      "type": "integer",
+      "description": "The TCP port the service listens on.",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "logLevel": {
+      "description": "How much the service writes to its log.",
+      "enum": ["error", "warning", "information", "debug"]
+    },
+    "secure": {
+      "type": "boolean",
+      "description": "Whether the service accepts only TLS connections."
+    },
+    "verbose": {
+      "type": "boolean",
+      "description": "Replaced by logLevel; still read for older settings.",
+      "deprecated": true
+    },
+    "dependsOn": {
+      "type": "array",
+      "description": "The services this one needs before it starts.",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "limits": {
+      "type": "object",
+      "description": "What one request may cost.",
+      "required": ["timeoutSeconds"],
+      "additionalProperties": false,
+      "properties": {
+        "timeoutSeconds": {
+          "type": "number",
+          "description": "How long a request may take before it is cancelled.",
+          "exclusiveMinimum": 0
+        },
+        "maxBodyKilobytes": {
+          "type": "integer",
+          "description": "The largest request body accepted.",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

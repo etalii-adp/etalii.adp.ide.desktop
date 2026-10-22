@@ -1,0 +1,18 @@
+timeline: 1
+# Valid YAML, but not the indentation a generator would choose: four spaces at the
+# sequence level, and the dash indented under its key. A writer that reformats this
+# has broken Requirement 2.2 even though the model is unchanged.
+elements:
+    -   id: indent01
+        label: Deeply indented
+        begin: 2026-10-01
+        end: 2026-10-15
+        row: 0
+    -   id: indent02
+        label: Second, same shape
+        begin: 2026-10-20
+        row: 1
+connections:
+    -   id: indentcn
+        from: indent01
+        to: indent02

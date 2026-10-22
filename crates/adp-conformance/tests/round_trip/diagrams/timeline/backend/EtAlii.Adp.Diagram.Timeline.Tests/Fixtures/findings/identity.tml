@@ -1,0 +1,41 @@
+timeline: 1
+# Ids: missing, repeated across elements, repeated by a relation, and three holders of one id.
+elements:
+  - id: first
+    label: First
+    begin: 2026-01-05
+    end: 2026-01-20
+    row: 0
+  - label: No id at all
+    begin: 2026-02-01
+    row: 1
+  - id: first
+    label: First again
+    begin: 2026-03-01
+    row: 2
+  - id: ''
+    label: ''
+    begin: 2026-03-10
+    row: 3
+  - id: twice
+    begin: 2026-04-01
+    end: 2026-04-09
+    row: 4
+  - id: first
+    label: First, a third time
+    begin: 2026-05-01
+    row: 5
+connections:
+  - id: twice
+    from: first
+    to: twice
+    label: shares its id with an element
+  - from: twice
+    to: first
+  - id: link
+    from: first
+    to: twice
+  - id: link
+    from: twice
+    to: first
+    label: repeated

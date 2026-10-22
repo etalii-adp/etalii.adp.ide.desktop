@@ -1,0 +1,22 @@
+dependencies: 1
+# A coordinate is a plain number, and how it was written is the author's choice: whole,
+# fractional, negative, or zero. None of them may come back in another form - a whole 320
+# returning as 320.0 renders identically on a canvas, so this failure is silent unless a
+# fixture catches it in the bytes.
+elements:
+  - id: whole001
+    label: Edge router
+    x: 320
+    row: 0
+  - id: fract001
+    label: Rate limiter
+    x: 412.5
+    row: 1
+  - id: negat001
+    label: Legacy billing, off to the left
+    x: -180
+    row: 2
+  - id: zeroo001
+    label: Config service at the origin
+    x: 0
+    row: 3

@@ -1,0 +1,9 @@
+---
+- name: Set the timezone
+  ansible.builtin.timezone:
+    name: "{{ common_timezone }}"
+
+- name: Install the base packages
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present

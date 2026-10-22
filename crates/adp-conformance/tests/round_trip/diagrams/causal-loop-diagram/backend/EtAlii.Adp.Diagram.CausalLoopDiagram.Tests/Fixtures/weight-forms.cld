@@ -1,0 +1,19 @@
+causal-loop 1
+
+# Finding B11: weights in the forms where .NET and ECMAScript may write
+# a number differently.
+
+variable a "A"
+variable b "B"
+variable c "C"
+variable d "D"
+
+link a -> b + weight=1e21
+link b -> c + weight=1E-7
+link c -> d + weight=0.1
+link d -> a + weight=-3
+link a -> c - weight=1.0
+link c -> a - weight=+2
+link b -> d + weight=.5
+link d -> b + weight=123456789012345678901234567890
+link b -> a + weight=0.000001

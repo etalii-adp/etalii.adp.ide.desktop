@@ -1,0 +1,7 @@
+# A jobs template, resolvable from templates.yml by relative path.
+jobs:
+  - job: Compile
+    displayName: Compile from the template
+    steps:
+      - script: dotnet build
+        displayName: Build

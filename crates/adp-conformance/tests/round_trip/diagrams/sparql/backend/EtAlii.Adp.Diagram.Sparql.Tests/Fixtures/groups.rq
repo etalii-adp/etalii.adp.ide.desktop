@@ -1,0 +1,18 @@
+PREFIX ex: <http://example.org/>
+
+SELECT ?s ?x
+WHERE {
+  ?s ex:p ?x .
+  OPTIONAL { ?s ex:q ?x . FILTER(?x > 3) }
+  OPTIONAL { ?s ex:r ?y }
+  { ?s ex:t1 ?x } UNION { ?s ex:t2 ?x } UNION { ?s ex:t3 ?x }
+  MINUS { ?s ex:banned true }
+  GRAPH ?g { ?s ex:in ?g2 }
+  SERVICE SILENT <http://example.org/sparql> { ?s ex:remote ?r }
+  FILTER NOT EXISTS { ?s ex:hidden true }
+  BIND(?x * 2 AS ?doubled)
+  VALUES ?x { 1 2 3 }
+  {
+    SELECT ?s (MAX(?v) AS ?best) WHERE { ?s ex:v ?v } GROUP BY ?s
+  }
+}

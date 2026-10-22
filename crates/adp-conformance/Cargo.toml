@@ -14,3 +14,34 @@ workspace = true
 adp-cel = { path = "../adp-cel" }
 adp-fbl = { path = "../adp-fbl" }
 serde_json = "1"
+
+[dev-dependencies]
+# The round trips of every tool type (round_trip.rs, T051): the diagrams composed as the shell composes them
+# (`adp-shell`'s `DiagramHost::with_vendor`), the Knowledge designer, and the text file every editor saves through.
+adp-context = { path = "../adp-context" }
+adp-core = { path = "../adp-core" }
+adp-diagram = { path = "../adp-diagram" }
+adp-disl = { path = "../adp-disl" }
+adp-documents = { path = "../adp-documents" }
+adp-history = { path = "../adp-history" }
+adp-designer-knowledge = { path = "../../modules/designers/knowledge" }
+adp-diagram-agent-activity = { path = "../../modules/diagrams/agent-activity-diagram" }
+adp-diagram-agent-behavior-modelling = { path = "../../modules/diagrams/agent-behavior-modelling" }
+adp-diagram-ansible-structure = { path = "../../modules/diagrams/ansible-structure" }
+adp-diagram-azure-devops-pipeline = { path = "../../modules/diagrams/azure-devops-pipeline" }
+adp-diagram-c4 = { path = "../../modules/diagrams/c4" }
+adp-diagram-causal-loop = { path = "../../modules/diagrams/causal-loop-diagram" }
+adp-diagram-databricks = { path = "../../modules/diagrams/databricks" }
+adp-diagram-dependency-graph = { path = "../../modules/diagrams/dependency-graph" }
+adp-diagram-dotnet-dependency-graph = { path = "../../modules/diagrams/dotnet-dependency-graph" }
+adp-diagram-functional-decomposition-graph = { path = "../../modules/diagrams/functional-decomposition-graph" }
+adp-diagram-helm-chart = { path = "../../modules/diagrams/helm-chart" }
+adp-diagram-hype-cycle = { path = "../../modules/diagrams/gartner-hype-cycle-graph" }
+adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap" }
+adp-diagram-rdf = { path = "../../modules/diagrams/rdf" }
+adp-diagram-sankey = { path = "../../modules/diagrams/sankey" }
+adp-diagram-sparql = { path = "../../modules/diagrams/sparql" }
+adp-diagram-supply-chain = { path = "../../modules/diagrams/supply-chain" }
+adp-diagram-timeline = { path = "../../modules/diagrams/timeline" }
+adp-diagram-wardley-map = { path = "../../modules/diagrams/wardley-map" }
+tempfile = "3"

@@ -1,0 +1,53 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Dynamic View: Manufacturing Execution System"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 6 ["Manufacturing Execution System"]
+      style 6 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph group1 ["Execution services"]
+        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        20("<div style='font-weight: bold'>Batch Execution Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Follows a batch from first<br />fill to last pallet, and<br />holds the electronic batch<br />record.</div>")
+        style 20 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        21("<div style='font-weight: bold'>Quality Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>In-process checks, sampling<br />plans, and the release or<br />quarantine decision.</div>")
+        style 21 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      subgraph group2 ["Plant integration"]
+        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        23("<div style='font-weight: bold'>OPC UA Gateway</div><div style='font-size: 70%; margin-top: 0px'>[Container: C# and OPC UA SDK]</div><div style='font-size: 80%; margin-top:10px'>The only thing that talks to<br />the control network:<br />subscribes to line tags and<br />issues recipe downloads.</div>")
+        style 23 fill:#d94f00,stroke:#973700,color:#ffffff
+        24("<div style='font-weight: bold'>ERP Adapter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Pulls works orders down and<br />posts confirmations back.</div>")
+        style 24 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      subgraph group3 ["Stores"]
+        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        27[("<div style='font-weight: bold'>Batch Record Archive</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Signed, immutable electronic<br />batch records kept for the<br />retention period.</div>")]
+        style 27 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        28["<div style='font-weight: bold'>Plant Event Bus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Apache Kafka]</div><div style='font-size: 80%; margin-top:10px'>Carries line events so slow<br />consumers cannot stall the<br />line.</div>"]
+        style 28 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+    end
+
+    31("<div style='font-weight: bold'>SAP S/4HANA</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Demand, works orders, stock<br />and financials.</div>")
+    style 31 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    32("<div style='font-weight: bold'>LIMS</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Laboratory results for<br />samples taken off the line.</div>")
+    style 32 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    23-. "<div>1. Publishes the last-pallet<br />event</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->28
+    28-. "<div>2. Delivers the event</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->20
+    20-. "<div>3. Asks whether all<br />in-process checks passed</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->21
+    21-. "<div>4. Fetches the outstanding<br />sample results</div><div style='font-size: 70%'>[REST/HTTPS]</div>" .->32
+    21-. "<div>5. Confirms the batch may be<br />released</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->20
+    20-. "<div>6. Writes the signed batch<br />record</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->27
+    20-. "<div>7. Hands over the production<br />confirmation</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->24
+    24-. "<div>8. Posts the confirmation</div><div style='font-size: 70%'>[IDoc over HTTPS]</div>" .->31
+
+  end

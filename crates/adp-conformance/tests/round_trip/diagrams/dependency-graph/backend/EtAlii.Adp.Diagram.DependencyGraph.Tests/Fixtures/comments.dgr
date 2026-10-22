@@ -1,0 +1,26 @@
+# A leading comment, before anything else.
+
+dependencies: 1
+
+# Between the marker and the elements.
+elements:
+  # Before the first node.
+  - id: cmt00001   # trailing, on the id line
+    label: Notification service
+    # Between two keys.
+    x: 140
+    row: 0
+  # Between two nodes.
+  - id: cmt00002
+    label: Message broker
+    x: 420
+    row: 1
+
+# After the elements, before the relations.
+relations:
+  - id: cmt0conn
+    from: cmt00001
+    to: cmt00002
+
+# A trailing comment, after everything.
+

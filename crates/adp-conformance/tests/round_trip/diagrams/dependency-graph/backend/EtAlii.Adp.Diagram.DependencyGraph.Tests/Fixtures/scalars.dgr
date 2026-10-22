@@ -1,0 +1,23 @@
+dependencies: 1
+# Quoting is the author's choice and survives a round trip untouched.
+elements:
+  - id: scalar01
+    label: "Quoted: because it contains a colon"
+    x: 60
+    row: 0
+  - id: scalar02
+    label: 'Single quoted, with an apostrophe''s worth of trouble'
+    x: 220
+    row: 1
+  - id: scalar03
+    label: Plain, unquoted, with trailing spaces preserved   
+    x: 380
+    row: 2
+  - id: scalar04
+    label: "A label with \"escaped\" quotes in it"
+    x: 540
+    row: 3
+  - id: scalar05
+    label: "Unicode: naïve café — em dash, ünlaut"
+    x: 700
+    row: 4

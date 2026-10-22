@@ -1,0 +1,22 @@
+# Sequence entries not indented under their key - valid YAML, and a shape a
+# reformatter would silently "fix".
+trigger:
+- main
+- develop
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: Build
+  jobs:
+  - job: Compile
+    steps:
+    - script: echo build
+      displayName: Build
+- stage: Test
+  dependsOn: Build
+  jobs:
+  - job: Verify
+    steps:
+    - script: echo test

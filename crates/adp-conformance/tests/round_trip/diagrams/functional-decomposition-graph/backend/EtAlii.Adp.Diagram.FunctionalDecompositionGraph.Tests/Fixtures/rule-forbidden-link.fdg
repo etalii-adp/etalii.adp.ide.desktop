@@ -1,0 +1,19 @@
+functional-decomposition-graph: 1
+elements:
+  - id: a1
+    type: action
+    name: a1
+    x: 0
+    y: 0
+    width: 100
+  - id: a2
+    type: action
+    name: a2
+    x: 0
+    y: 100
+    width: 100
+connections:
+  - id: c1
+    type: owns-action
+    from: a1
+    to: a2

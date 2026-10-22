@@ -1,0 +1,3656 @@
+@base <http://zbw.eu/stw/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix stw: <> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix zbwext: <../namespaces/zbw-extensions/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix gbv: <http://purl.org/ontology/gbv/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix sh: <http://purl.org/skos-history/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix cc: <http://creativecommons.org/ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix dsv: <http://purl.org/iso25964/DataSet/Versioning#> .
+@prefix waiver: <http://vocab.org/waiver/terms/> .
+
+<../stw>
+    cc:attributionName "ZBW - Leibniz Information Centre for Economics"@en, "ZBW - Leibniz-Informationszentrum Wirtschaft"@de ;
+    cc:attributionURL "http://zbw.eu" ;
+    cc:license <https://creativecommons.org/licenses/by/4.0/> ;
+    cc:morePermissions "http://www.zbw.eu/e_imprint.htm"@en, "http://www.zbw.eu/impressum.htm"@de ;
+    dc:creator """Deutsche Zentralbibliothek für Wirtschaftswissenschaften (Kiel) / 
+    Hamburgisches Welt-Wirtschafts-Archiv (Hamburg) / ifo-Institut (München) / 
+    Gesellschaft für Betriebswirtschaftliche Information GBI-Genios (München) 
+    (für die 1995-1997 erstellte und mit öffentlichen Mitteln geförderte 
+    deutschsprachige Version des STW)"""@de, """German National Library of Economics (Kiel) / 
+    Hamburgisches Welt-Wirtschafts-Archiv (Hamburg) / ifo Institute (Munich) / 
+    GBI-Genios German Business Information (Munich) (for the 1995-1997 built 
+    und publicly funded german version of the STW)"""@en, """ZBW - Leibniz Information Centre for Economics 
+    (for the current german-english version of the STW)"""@en, """ZBW - Leibniz-Informationszentrum Wirtschaft (für die 
+    aktuelle deutsch-englische Version des STW)"""@de ;
+    dc:publisher "ZBW - Leibniz Information Centre for Economics"@en, "ZBW - Leibniz-Informationszentrum Wirtschaft"@de ;
+    dcterms:description """Der Thesaurus enthält Vokabular zu allen ökonomischen
+    Themenstellungen: ungefähr 6.000 Schlagwörter und über 20.000 zusätzliche
+    Synonyme als Zugangshilfe, um individuelle Formulierungen bei der Suche
+    aufzufangen. Auch Fachbegriffe aus benachbarten Bereichen wie z.B. Recht,
+    Soziologie oder Politik sowie Geobegriffe sind dort zu finden. Eine
+    Systematik erleichtert den Zugang zu den Schlagwörtern. Zusätzlich werden
+    Links zu den Beständen der ZBW angeboten."""@de, """The thesaurus provides vocabulary on any 
+    economic subject: about 6,000 standardized subject headings and 
+    about 20,000 additional entry terms to support individual keywords. You can 
+    also find technical terms used in law, sociology, or politics, 
+    and geographic names. A system of subject categories faclitates access to the 
+    descriptors. Links to the ZBW library holdings are provided, too."""@en ;
+    dcterms:identifier "stw" ;
+    dcterms:issued "2025-12-16"^^xsd:date ;
+    dcterms:rights "see cc:license"@en, "siehe cc:license"@de ;
+    dcterms:subject <http://dbpedia.org/resource/Economics>, <http://dbpedia.org/resource/Thesaurus> ;
+    dcterms:title "STW Thesaurus for Economics"@en, "Standard-Thesaurus Wirtschaft"@de ;
+    dcterms:type <http://purl.org/nkos/terms/thesaurus> ;
+    <http://purl.org/nkos/sizeNote> "About 6,000 descriptors, organized in more than 500 subject categories."@en, "Ungefähr 6.000 Deskriptoren, die in gut 500 Systematikstellen organisiert sind."@de ;
+    <http://purl.org/nkos/updateFrequency> "Currently, new versions roughly once a year."@en, "Neue Versionen derzeit ungefähr einmal jährlich."@de ;
+    void:exampleResource <descriptor/19664-4>, <thsys/71098> ;
+    void:feature <http://www.w3.org/ns/formats/N-Triples>, <http://www.w3.org/ns/formats/RDF_XML>, <http://www.w3.org/ns/formats/RDFa>, <http://www.w3.org/ns/formats/Turtle> ;
+    void:rootResource <../stw> ;
+    void:sparqlEndpoint <../beta/sparql/stw/query> ;
+    void:uriRegexPattern "^http://zbw\\.eu/stw/((descriptor|thsys|mapping)/([0-9a-z]|-)+)$" ;
+    void:vocabulary <http://creativecommons.org/ns#>, <http://purl.org/dc/terms/>, <http://purl.org/ontology/gbv/>, <http://www.w3.org/2004/02/skos/core#>, <../namespaces/zbw-extensions/> ;
+    a void:Dataset, skos:ConceptScheme ;
+    owl:versionInfo "9.20" ;
+    skos:hasTopConcept <thsys/g> ;
+    skos:prefLabel "STW Thesaurus for Economics"@en, "Standard-Thesaurus Wirtschaft"@de ;
+    foaf:homepage <../stw> ;
+    foaf:page <versions/latest/download> .
+
+<thsys/g>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Geographic names"@en, "Geographische Begriffe"@de ;
+    skos:inScheme <../stw> ;
+    skos:narrower <thsys/70002>, <thsys/70026>, <thsys/70076>, <thsys/70128>, <thsys/70148>, <thsys/70198>, <thsys/70307>;
+    skos:notation "G"^^xsd:string ;
+    skos:prefLabel "G  Geographic names"@en, "G  Geographische Begriffe"@de ;
+    skos:topConceptOf <../stw> .
+
+<thsys/70002>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Europa"@de, "Europe"@en ;
+    skos:broader <thsys/g>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16815-3>, <descriptor/16825-0>, <descriptor/17964-2>, <descriptor/17967-3>, <descriptor/29739-0>, <descriptor/30082-3>, <descriptor/30083-1>, <descriptor/30109-2>, <thsys/70130>, <thsys/70131>, <thsys/70174>, <thsys/70505>, <thsys/70557>;
+    skos:notation "G.01"^^xsd:string ;
+    skos:prefLabel "G.01  Europa"@de, "G.01  Europe"@en .
+
+<thsys/70026>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "America"@en, "Amerika"@de ;
+    skos:broader <thsys/g>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17758-5>, <descriptor/17990-1>, <thsys/70080>, <thsys/70086>, <thsys/71030>;
+    skos:notation "G.04"^^xsd:string ;
+    skos:prefLabel "G.04  America"@en, "G.04  Amerika"@de .
+
+<thsys/70076>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Africa"@en, "Afrika"@de ;
+    skos:broader <thsys/g>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17642-3>, <descriptor/17652-0>, <descriptor/17978-5>, <descriptor/30094-3>, <descriptor/30095-1>, <thsys/70085>, <thsys/70429>, <thsys/70445>, <thsys/70560>, <thsys/71031>;
+    skos:notation "G.03"^^xsd:string ;
+    skos:prefLabel "G.03  Africa"@en, "G.03  Afrika"@de .
+
+<thsys/70128>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Australia and Oceania"@en, "Australien und Ozeanien"@de ;
+    skos:broader <thsys/g>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17935-2>, <descriptor/17937-5>, <descriptor/17938-3>, <descriptor/17940-2>, <descriptor/17941-0>, <descriptor/17942-5>, <descriptor/17943-3>, <descriptor/17946-4>, <descriptor/17947-2>, <descriptor/17948-0>, <descriptor/17949-5>, <descriptor/17950-6>, <descriptor/17951-4>, <descriptor/19168-2>, <descriptor/19169-0>, <descriptor/20987-5>, <descriptor/24788-5>, <descriptor/30102-2>;
+    skos:notation "G.05"^^xsd:string ;
+    skos:prefLabel "G.05  Australia and Oceania"@en, "G.05  Australien und Ozeanien"@de .
+
+<thsys/70148>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Asia"@en, "Asien"@de ;
+    skos:broader <thsys/g>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17553-2>, <descriptor/17978-5>, <descriptor/30084-6>, <descriptor/30088-5>, <thsys/70147>, <thsys/70253>, <thsys/70327>, <thsys/70561>, <thsys/71032>;
+    skos:notation "G.02"^^xsd:string ;
+    skos:prefLabel "G.02  Asia"@en, "G.02  Asien"@de .
+
+<thsys/70198>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Welt"@de, "World"@en ;
+    skos:broader <thsys/g>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/15895-5>, <descriptor/16805-6>, <descriptor/16806-4>, <descriptor/16808-0>, <descriptor/16809-5>, <descriptor/17954-5>, <descriptor/17959-2>, <descriptor/17962-6>, <descriptor/17968-1>, <descriptor/17972-3>, <descriptor/18054-1>, <descriptor/19172-4>, <descriptor/29738-2>, <descriptor/30074-2>, <descriptor/30087-0>;
+    skos:notation "G.00"^^xsd:string ;
+    skos:prefLabel "G.00  Welt"@de, "G.00  World"@en .
+
+<thsys/70307>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Political and economic regions"@en, "Politische und ökonomische Staatengruppen"@de ;
+    skos:broader <thsys/g>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/10492-3>, <descriptor/10499-3>, <descriptor/10506-4>, <descriptor/10508-0>, <descriptor/10568-3>, <descriptor/11123-1>, <descriptor/16417-1>, <descriptor/17980-4>, <descriptor/17984-3>, <descriptor/17986-6>, <descriptor/17988-2>, <descriptor/17991-6>, <descriptor/17999-4>, <descriptor/19078-3>, <descriptor/19178-6>, <descriptor/19837-6>, <descriptor/29740-1>, <descriptor/29742-4>, <descriptor/29744-0>, <descriptor/29746-3>, <descriptor/29747-1>, <descriptor/29749-4>, <descriptor/30222-6>, <descriptor/30277-2>, <descriptor/30349-3>, <descriptor/30380-2>, <descriptor/30409-4>, <thsys/189012>;
+    skos:notation "G.06"^^xsd:string ;
+    skos:prefLabel "G.06  Political and economic regions"@en, "G.06  Politische und ökonomische Staatengruppen"@de .
+
+<descriptor/16815-3>
+    gbv:gvkppn "091358523"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Europäische Länder"@de, "Europäische Staaten"@de ;
+    skos:broader <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16825-0>, <descriptor/16990-6>, <descriptor/17016-0>, <descriptor/17179-0>, <descriptor/17199-1>, <descriptor/19077-5>, <descriptor/19084-1>, <descriptor/29739-0>, <descriptor/30082-3>, <descriptor/30083-1>;
+    skos:prefLabel "Europa"@de, "Europe"@en ;
+    skos:related <descriptor/17982-0>, <descriptor/17983-5>, <descriptor/29743-2>.
+
+<descriptor/16825-0>
+    gbv:gvkppn "09137832X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Zentraleuropa"@de ;
+    skos:broader <descriptor/16815-3>, <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Central Europe"@en, "Mitteleuropa"@de ;
+    skos:related <descriptor/19084-1>, <descriptor/26021-6>.
+
+<descriptor/17964-2>
+    gbv:gvkppn "091380448"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "EG-Meer"@de, "EU-Meer"@de ;
+    skos:broader <descriptor/17954-5>, <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nordsee"@de, "North Sea"@en .
+
+<descriptor/17967-3>
+    gbv:gvkppn "091382025"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Baltisches Meer"@de ;
+    skos:broader <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Baltic Sea"@en, "Ostsee"@de ;
+    skos:related <descriptor/29739-0>.
+
+<descriptor/29739-0>
+    gbv:gvkppn "091414393"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Baltic Sea area"@en, "Ostseeregion"@de ;
+    skos:broader <descriptor/16815-3>, <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Baltic Sea region"@en, "Ostseeraum"@de ;
+    skos:related <descriptor/17967-3>.
+
+<descriptor/30082-3>
+    gbv:gvkppn "091403375"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Alpen"@de, "Alpine Region"@de, "Alps"@en ;
+    skos:broader <descriptor/16815-3>, <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Alpenraum"@de, "Alpine region"@en ;
+    skos:related <descriptor/30083-1>.
+
+<descriptor/30083-1>
+    gbv:gvkppn "091404843"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Bodensee"@de, "Lake Constance"@en ;
+    skos:broader <descriptor/16815-3>, <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bodenseeraum"@de, "Lake Constance region"@en ;
+    skos:related <descriptor/30082-3>.
+
+<descriptor/30109-2>
+    gbv:gvkppn "091414318"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Austria-Hungary"@en, "Österreich-Ungarn"@de ;
+    skos:related <descriptor/16950-4>, <descriptor/17181-6>;
+    skos:scopeNote "Austria from 1867 until 1918."@en, "Österreich von 1867 bis 1918."@de .
+
+<thsys/70130>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Southeastern Europe"@en, "Südosteuropa"@de ;
+    skos:broader <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17171-2>, <descriptor/17175-1>, <descriptor/17176-6>, <descriptor/17177-4>, <descriptor/17179-0>, <descriptor/17184-0>, <descriptor/17480-3>, <descriptor/17641-5>, <descriptor/18226-5>, <descriptor/18227-3>, <descriptor/18228-1>, <descriptor/19086-4>, <descriptor/19087-2>, <descriptor/30078-1>, <descriptor/30079-6>, <descriptor/30080-0>, <descriptor/30081-5>;
+    skos:notation "G.01.04"^^xsd:string ;
+    skos:prefLabel "G.01.04  Southeastern Europe"@en, "G.01.04  Südosteuropa"@de .
+
+<thsys/70131>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Southern Europe"@en, "Südeuropa"@de ;
+    skos:broader <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17011-3>, <descriptor/17013-6>, <descriptor/17014-4>, <descriptor/17015-2>, <descriptor/17016-0>, <descriptor/17017-5>, <descriptor/17039-2>, <descriptor/17104-3>, <descriptor/17161-5>;
+    skos:notation "G.01.03"^^xsd:string ;
+    skos:prefLabel "G.01.03  Southern Europe"@en, "G.01.03  Südeuropa"@de .
+
+<thsys/70174>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Eastern Europe"@en, "Osteuropa"@de ;
+    skos:broader <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16826-5>, <descriptor/16828-1>, <descriptor/17181-6>, <descriptor/17461-0>, <descriptor/17465-6>, <descriptor/17485-0>, <descriptor/17534-6>, <descriptor/18224-2>, <descriptor/18225-0>, <descriptor/19077-5>, <descriptor/19084-1>, <descriptor/30085-4>, <descriptor/30097-4>;
+    skos:notation "G.01.02"^^xsd:string ;
+    skos:prefLabel "G.01.02  Eastern Europe"@en, "G.01.02  Osteuropa"@de .
+
+<thsys/70505>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Nordeuropa"@de, "Northern Europe"@en ;
+    skos:broader <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16982-5>, <descriptor/16984-1>, <descriptor/16985-6>, <descriptor/16989-5>, <descriptor/16990-6>, <descriptor/16995-3>, <descriptor/17471-4>, <descriptor/17476-1>, <descriptor/17477-6>, <descriptor/19083-3>, <descriptor/30076-5>, <descriptor/30077-3>;
+    skos:notation "G.01.01"^^xsd:string ;
+    skos:prefLabel "G.01.01  Nordeuropa"@de, "G.01.01  Northern Europe"@en .
+
+<thsys/70557>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Western Europe"@en, "Westeuropa"@de ;
+    skos:broader <thsys/70002>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16824-2>, <descriptor/17198-3>, <descriptor/17199-1>, <descriptor/17201-5>, <descriptor/17255-3>, <descriptor/17374-2>, <descriptor/17413-4>, <descriptor/17433-5>, <descriptor/30103-0>, <thsys/70003>, <thsys/70361>, <thsys/70438>;
+    skos:notation "G.01.05"^^xsd:string ;
+    skos:prefLabel "G.01.05  Western Europe"@en, "G.01.05  Westeuropa"@de .
+
+<descriptor/17758-5>
+    gbv:gvkppn "091346843"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Amerikanische Länder"@de, "Amerikanische Staaten"@de, "The Americas"@en ;
+    skos:broader <thsys/70026>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17791-0>, <descriptor/17806-6>, <descriptor/17931-3>, <descriptor/17990-1>;
+    skos:prefLabel "America"@en, "Amerika"@de .
+
+<descriptor/17990-1>
+    gbv:gvkppn "091374464"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "ALADI-Staaten"@de, "Iberoamerica"@en, "LAIA countries"@en, "Lateinamerikanische Länder"@de, "Lateinamerikanische Staaten"@de ;
+    skos:broader <descriptor/17758-5>, <thsys/70026>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/19179-4>, <descriptor/30214-5>;
+    skos:prefLabel "Lateinamerika"@de, "Latin America"@en ;
+    skos:related <descriptor/17791-0>, <descriptor/17931-3>, <descriptor/17989-0>.
+
+<thsys/70080>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Nordamerika"@de, "North America"@en ;
+    skos:broader <thsys/70026>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17806-6>, <descriptor/17811-6>, <descriptor/17829-1>, <descriptor/30098-2>, <descriptor/30101-4>, <descriptor/30104-5>, <descriptor/30156-0>;
+    skos:notation "G.04.02"^^xsd:string ;
+    skos:prefLabel "G.04.02  Nordamerika"@de, "G.04.02  North America"@en .
+
+<thsys/70086>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Central America"@en, "Mittelamerika"@de ;
+    skos:broader <thsys/70026>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17770-1>, <descriptor/17771-6>, <descriptor/17772-4>, <descriptor/17773-2>, <descriptor/17777-1>, <descriptor/17778-6>, <descriptor/17779-4>, <descriptor/17780-5>, <descriptor/17781-3>, <descriptor/17782-1>, <descriptor/17783-6>, <descriptor/17784-4>, <descriptor/17785-2>, <descriptor/17787-5>, <descriptor/17790-2>, <descriptor/17791-0>, <descriptor/17792-5>, <descriptor/17793-3>, <descriptor/17799-5>, <descriptor/17800-4>, <descriptor/17801-2>, <descriptor/17804-3>, <descriptor/17989-0>, <descriptor/30099-0>;
+    skos:notation "G.04.01"^^xsd:string ;
+    skos:prefLabel "G.04.01  Central America"@en, "G.04.01  Mittelamerika"@de .
+
+<thsys/71030>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "South America"@en, "Südamerika"@de ;
+    skos:broader <thsys/70026>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17911-2>, <descriptor/17914-3>, <descriptor/17915-1>, <descriptor/17919-0>, <descriptor/17920-1>, <descriptor/17922-4>, <descriptor/17923-2>, <descriptor/17927-1>, <descriptor/17928-6>, <descriptor/17931-3>, <descriptor/17932-1>, <descriptor/17933-6>, <descriptor/17934-4>, <descriptor/30100-6>, <descriptor/30653-0>;
+    skos:notation "G.04.03"^^xsd:string ;
+    skos:prefLabel "G.04.03  South America"@en, "G.04.03  Südamerika"@de .
+
+<descriptor/17642-3>
+    gbv:gvkppn "091345790"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Afrikanische Länder"@de, "Afrikanische Staaten"@de ;
+    skos:broader <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17652-0>, <descriptor/17672-1>, <descriptor/17687-2>, <descriptor/17724-1>, <descriptor/17743-4>, <descriptor/17750-0>, <descriptor/17984-3>, <descriptor/17986-6>, <descriptor/30094-3>, <descriptor/30095-1>, <descriptor/30409-4>;
+    skos:prefLabel "Africa"@en, "Afrika"@de ;
+    skos:related <descriptor/17977-0>.
+
+<descriptor/17652-0>
+    gbv:gvkppn "091345804"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Africa South of Sahara"@en, "Afrika südlich der Sahara"@de, "Schwarzafrika"@de ;
+    skos:broader <descriptor/17642-3>, <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sub-Saharan Africa"@en, "Subsahara-Afrika"@de .
+
+<descriptor/17978-5>
+    gbv:gvkppn "091347327"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Arabische Länder"@de, "Arabische Welt"@de ;
+    skos:broader <thsys/70076>, <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17616-4>, <descriptor/30656-1>;
+    skos:prefLabel "Arab countries"@en, "Arabische Staaten"@de ;
+    skos:related <descriptor/17608-3>, <descriptor/17750-0>, <descriptor/17988-2>.
+
+<descriptor/30094-3>
+    gbv:gvkppn "091416329"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17642-3>, <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sahara"@de, "Sahara"@en ;
+    skos:related <descriptor/30095-1>.
+
+<descriptor/30095-1>
+    gbv:gvkppn "091416337"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Sahelian countries"@en, "Sahelländer"@de, "Sahelzone"@de ;
+    skos:broader <descriptor/17642-3>, <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sahel"@de, "Sahel"@en ;
+    skos:related <descriptor/30094-3>.
+
+<thsys/70085>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Nordafrika"@de, "North Africa"@en ;
+    skos:broader <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17677-5>, <descriptor/17745-0>, <descriptor/17746-5>, <descriptor/17748-1>, <descriptor/17749-6>, <descriptor/17750-0>, <descriptor/17753-1>, <descriptor/17754-6>, <descriptor/27291-0>;
+    skos:notation "G.03.01"^^xsd:string ;
+    skos:prefLabel "G.03.01  Nordafrika"@de, "G.03.01  North Africa"@en .
+
+<thsys/70429>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Southern Africa"@en, "Südliches Afrika"@de ;
+    skos:broader <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17680-2>, <descriptor/17682-5>, <descriptor/17684-1>, <descriptor/17686-4>, <descriptor/17687-2>, <descriptor/17688-0>, <descriptor/17689-5>;
+    skos:notation "G.03.03"^^xsd:string ;
+    skos:prefLabel "G.03.03  Southern Africa"@en, "G.03.03  Südliches Afrika"@de .
+
+<thsys/70445>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "East Africa"@en, "Ostafrika"@de ;
+    skos:broader <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17654-3>, <descriptor/17658-2>, <descriptor/17660-1>, <descriptor/17662-4>, <descriptor/17665-5>, <descriptor/17666-3>, <descriptor/17668-6>, <descriptor/17669-4>, <descriptor/17672-1>, <descriptor/17674-4>, <descriptor/17675-2>, <descriptor/17676-0>, <descriptor/17678-3>, <descriptor/17679-1>, <descriptor/17731-4>, <descriptor/17738-4>, <descriptor/18284-5>, <descriptor/30096-6>;
+    skos:notation "G.03.02"^^xsd:string ;
+    skos:prefLabel "G.03.02  East Africa"@en, "G.03.02  Ostafrika"@de .
+
+<thsys/70560>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "West Africa"@en, "Westafrika"@de ;
+    skos:broader <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17695-3>, <descriptor/17696-1>, <descriptor/17700-1>, <descriptor/17703-2>, <descriptor/17704-0>, <descriptor/17705-5>, <descriptor/17706-3>, <descriptor/17707-1>, <descriptor/17709-4>, <descriptor/17712-1>, <descriptor/17713-6>, <descriptor/17716-0>, <descriptor/17717-5>, <descriptor/17721-0>, <descriptor/17722-5>, <descriptor/17723-3>, <descriptor/17724-1>;
+    skos:notation "G.03.04"^^xsd:string ;
+    skos:prefLabel "G.03.04  West Africa"@en, "G.03.04  Westafrika"@de .
+
+<thsys/71031>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Central Africa"@en, "Zentralafrika"@de ;
+    skos:broader <thsys/70076>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17702-4>, <descriptor/17726-4>, <descriptor/17727-2>, <descriptor/17732-2>, <descriptor/17735-3>, <descriptor/17739-2>, <descriptor/17740-3>, <descriptor/17742-6>, <descriptor/17743-4>, <descriptor/17744-2>;
+    skos:notation "G.03.05"^^xsd:string ;
+    skos:prefLabel "G.03.05  Central Africa"@en, "G.03.05  Zentralafrika"@de .
+
+<descriptor/17935-2>
+    gbv:gvkppn "091349044"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Australia"@en, "Australien"@de ;
+    skos:related <descriptor/17948-0>.
+
+<descriptor/17937-5>
+    gbv:gvkppn "091359767"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Fidschiinseln"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Fidschi"@de, "Fiji"@en .
+
+<descriptor/17938-3>
+    gbv:gvkppn "091370698"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Gilbertinseln"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Kiribati"@de, "Kiribati"@en .
+
+<descriptor/17940-2>
+    gbv:gvkppn "091377781"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Micronesia"@en, "Mikronesien"@de .
+
+<descriptor/17941-0>
+    gbv:gvkppn "091379679"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nauru"@de, "Nauru"@en .
+
+<descriptor/17942-5>
+    gbv:gvkppn "091379989"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Neuseeland"@de, "New Zealand"@en .
+
+<descriptor/17943-3>
+    gbv:gvkppn "091382289"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Neuguinea"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Papua New Guinea"@en, "Papua-Neuguinea"@de .
+
+<descriptor/17946-4>
+    gbv:gvkppn "091387582"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Britische Salomonen"@de, "Salomoninseln"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Salomonen"@de, "Solomon Islands"@en .
+
+<descriptor/17947-2>
+    gbv:gvkppn "091387639"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Westsamoa"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Samoa"@de, "Samoa"@en .
+
+<descriptor/17948-0>
+    gbv:gvkppn "091393590"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Südpazifischer Inselraum"@de ;
+    skos:broader <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17937-5>, <descriptor/17938-3>, <descriptor/17940-2>, <descriptor/17941-0>, <descriptor/17942-5>, <descriptor/17943-3>, <descriptor/17946-4>, <descriptor/17947-2>, <descriptor/17949-5>, <descriptor/17950-6>, <descriptor/17951-4>, <descriptor/19168-2>, <descriptor/19169-0>, <descriptor/20987-5>, <descriptor/24788-5>, <descriptor/30102-2>;
+    skos:prefLabel "Oceania"@en, "Ozeanien"@de ;
+    skos:related <descriptor/17935-2>, <descriptor/19172-4>.
+
+<descriptor/17949-5>
+    gbv:gvkppn "091395208"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Freundschaftsinseln"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tonga"@de, "Tonga"@en .
+
+<descriptor/17950-6>
+    gbv:gvkppn "091395666"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ellice Islands"@en, "Elliceinseln"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tuvalu"@de, "Tuvalu"@en .
+
+<descriptor/17951-4>
+    gbv:gvkppn "091396921"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Neue Hebriden"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Vanuatu"@de, "Vanuatu"@en .
+
+<descriptor/19168-2>
+    gbv:gvkppn "091376564"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Marshall Islands"@en, "Marshallinseln"@de .
+
+<descriptor/19169-0>
+    gbv:gvkppn "091382130"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Palau Islands"@en ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Palau"@de, "Palau"@en .
+
+<descriptor/20987-5>
+    gbv:gvkppn "091380278"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Niue"@de, "Niue"@en .
+
+<descriptor/24788-5>
+    gbv:gvkppn "091377277"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Melanesia"@en, "Melanesien"@de .
+
+<descriptor/30102-2>
+    gbv:gvkppn "091407664"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Französisch-Polynesien"@de, "Gesellschaftsinseln"@de, "Marquesasinseln"@de, "Tahiti"@de ;
+    skos:broader <descriptor/17948-0>, <thsys/70128>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Polynesia"@en, "Polynesien"@de .
+
+<descriptor/17553-2>
+    gbv:gvkppn "091348161"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Asiatische Länder"@de, "Asiatische Staaten"@de ;
+    skos:broader <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17571-0>, <descriptor/17589-2>, <descriptor/17595-0>, <descriptor/17608-3>, <descriptor/19167-4>, <descriptor/30084-6>, <descriptor/30088-5>;
+    skos:prefLabel "Asia"@en, "Asien"@de ;
+    skos:related <descriptor/30085-4>.
+
+<descriptor/30084-6>
+    gbv:gvkppn "091408717"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17553-2>, <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Himalaya"@de, "Himalayas"@en ;
+    skos:related <descriptor/19167-4>.
+
+<descriptor/30088-5>
+    gbv:gvkppn "09141007X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kaspi-Region"@de, "Kaspi-See"@de ;
+    skos:broader <descriptor/17553-2>, <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Caspian Sea"@en, "Kaspisches Meer"@de ;
+    skos:related <descriptor/17608-3>, <descriptor/30087-0>.
+
+<thsys/70147>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "East Asia"@en, "Ostasien"@de ;
+    skos:broader <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17565-2>, <descriptor/17567-5>, <descriptor/17568-3>, <descriptor/17569-1>, <descriptor/17570-2>, <descriptor/17571-0>, <descriptor/19166-6>, <descriptor/30089-3>, <descriptor/30092-0>, <descriptor/30106-1>, <descriptor/30107-6>;
+    skos:notation "G.02.01"^^xsd:string ;
+    skos:prefLabel "G.02.01  East Asia"@en, "G.02.01  Ostasien"@de .
+
+<thsys/70253>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "West Asia"@en, "Westasien"@de ;
+    skos:broader <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17464-1>, <descriptor/17608-3>, <descriptor/17616-4>, <descriptor/17618-0>, <descriptor/17621-4>, <descriptor/17622-2>, <descriptor/17623-0>, <descriptor/17624-5>, <descriptor/17626-1>, <descriptor/17627-6>, <descriptor/17628-4>, <descriptor/17630-3>, <descriptor/17632-6>, <descriptor/17634-2>, <descriptor/17636-5>, <descriptor/17638-1>, <descriptor/17639-6>, <descriptor/18285-3>, <descriptor/30090-4>, <descriptor/30091-2>, <descriptor/30093-5>;
+    skos:notation "G.02.04"^^xsd:string ;
+    skos:prefLabel "G.02.04  West Asia"@en, "G.02.04  Westasien"@de .
+
+<thsys/70327>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Southeast Asia"@en, "Südostasien"@de ;
+    skos:broader <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17576-4>, <descriptor/17578-0>, <descriptor/17580-6>, <descriptor/17583-0>, <descriptor/17584-5>, <descriptor/17586-1>, <descriptor/17588-4>, <descriptor/17589-2>, <descriptor/17590-3>, <descriptor/17592-6>, <descriptor/17599-6>, <descriptor/21042-2>, <descriptor/30086-2>, <descriptor/30108-4>;
+    skos:notation "G.02.03"^^xsd:string ;
+    skos:prefLabel "G.02.03  Southeast Asia"@en, "G.02.03  Südostasien"@de .
+
+<thsys/70561>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "South Asia"@en, "Südasien"@de ;
+    skos:broader <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17596-5>, <descriptor/17597-3>, <descriptor/17598-1>, <descriptor/17602-1>, <descriptor/17607-5>, <descriptor/17609-1>, <descriptor/17610-2>, <descriptor/17612-5>, <descriptor/19167-4>;
+    skos:notation "G.02.02"^^xsd:string ;
+    skos:prefLabel "G.02.02  South Asia"@en, "G.02.02  Südasien"@de .
+
+<thsys/71032>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Central Asia"@en, "Zentralasien"@de ;
+    skos:broader <thsys/70148>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17472-2>, <descriptor/17491-5>, <descriptor/17496-2>, <descriptor/17497-0>, <descriptor/17500-2>, <descriptor/17502-5>, <descriptor/17503-3>, <descriptor/17593-4>, <descriptor/17595-0>;
+    skos:notation "G.02.05"^^xsd:string ;
+    skos:prefLabel "G.02.05  Central Asia"@en, "G.02.05  Zentralasien"@de .
+
+<descriptor/15895-5>
+    gbv:gvkppn "091395518"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Subtropen"@de, "Subtropics"@en, "Tropische Länder"@de, "Tropische Staaten"@de ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tropen"@de, "Tropics"@en .
+
+<descriptor/16805-6>
+    gbv:gvkppn "091347157"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "South Pole"@en, "Südpol"@de, "Südpolargebiet"@de ;
+    skos:broader <descriptor/16808-0>, <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Antarctica"@en, "Antarktis"@de .
+
+<descriptor/16806-4>
+    gbv:gvkppn "091348013"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Arctic Ocean"@en, "Circumpolar North"@en, "Nordpol"@de, "Nordpolargebiet"@de, "Nordpolarmeer"@de ;
+    skos:broader <descriptor/16808-0>, <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Arctic"@en, "Arktis"@de .
+
+<descriptor/16808-0>
+    gbv:gvkppn "091383358"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16805-6>, <descriptor/16806-4>;
+    skos:prefLabel "Polar region"@en, "Polargebiet"@de .
+
+<descriptor/16809-5>
+    gbv:gvkppn "09140004X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Welt"@de, "World"@en .
+
+<descriptor/17954-5>
+    gbv:gvkppn "091348242"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Atlantik"@de ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17964-2>;
+    skos:prefLabel "Atlantic Ocean"@en, "Atlantischer Ozean"@de ;
+    skos:related <descriptor/30074-2>.
+
+<descriptor/17959-2>
+    gbv:gvkppn "091366925"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Indik"@de ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Indian Ocean"@en, "Indischer Ozean"@de ;
+    skos:related <descriptor/29745-5>.
+
+<descriptor/17962-6>
+    gbv:gvkppn "091378346"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mediterranean Sea"@en, "Mittelmeer"@de ;
+    skos:related <descriptor/18054-1>.
+
+<descriptor/17968-1>
+    gbv:gvkppn "091382572"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Pazifik"@de, "Stiller Ozean"@de ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Pacific Ocean"@en, "Pazifischer Ozean"@de ;
+    skos:related <descriptor/19172-4>.
+
+<descriptor/17972-3>
+    gbv:gvkppn "091388678"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Black Sea"@en, "Schwarzes Meer"@de ;
+    skos:related <descriptor/17179-0>, <descriptor/30087-0>.
+
+<descriptor/18054-1>
+    gbv:gvkppn "091378354"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Mediterranean countries"@en, "Mittelmeerländer"@de, "Mittelmeerstaaten"@de ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mediterranean region"@en, "Mittelmeerraum"@de ;
+    skos:related <descriptor/17962-6>, <descriptor/27291-0>, <descriptor/29746-3>, <descriptor/29749-4>.
+
+<descriptor/19172-4>
+    gbv:gvkppn "091348153"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Asien-Pazifik"@de, "Pacific basin"@en, "Pacific rim"@en, "Pazifikregion"@de, "Pazifische Länder"@de, "Pazifische Staaten"@de, "Pazifischer Raum"@de, "Pazifisches Becken"@de ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17979-3>, <descriptor/19171-6>, <descriptor/30255-5>;
+    skos:prefLabel "Asia-Pacific region"@en, "Asiatisch-pazifischer Raum"@de ;
+    skos:related <descriptor/17948-0>, <descriptor/17968-1>.
+
+<descriptor/29738-2>
+    gbv:gvkppn "091418828"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Outlying areas"@en, "Overseas countries"@en, "Overseas departments"@en, "Overseas territory"@en, "Überseeische Departements"@de, "Überseeische Gebiete und Länder"@de, "Überseeterritorien"@de, "Überseeterritorium"@de ;
+    skos:broader <descriptor/17999-4>, <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Overseas territories"@en, "Überseegebiete"@de .
+
+<descriptor/30074-2>
+    gbv:gvkppn "091403979"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Transatlantic relations"@en, "Transatlantische Beziehungen"@de ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30066-1>;
+    skos:prefLabel "Atlantic World"@en, "Atlantischer Raum"@de ;
+    skos:related <descriptor/17954-5>, <descriptor/17999-4>.
+
+<descriptor/30087-0>
+    gbv:gvkppn "091410169"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Caucasian countries"@en, "Kaukasien"@de, "Kaukasus-Staaten"@de ;
+    skos:broader <thsys/70198>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Caucasus"@en, "Kaukasus"@de ;
+    skos:related <descriptor/17972-3>, <descriptor/30088-5>.
+
+<descriptor/10492-3>
+    gbv:gvkppn "09135742X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Arme Länder"@de, "Dritte Welt"@de, "LDC (Less Developed Countries)"@en, "Less developed countries"@en, "Low-income countries"@en, "Niedrigeinkommensländer"@de, "Underdeveloped countries"@en, "Unterentwickelte Länder"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/10506-4>, <descriptor/17977-0>, <descriptor/19173-2>, <descriptor/19174-0>, <descriptor/19176-3>, <descriptor/19180-5>, <descriptor/30380-2>;
+    skos:prefLabel "Developing countries"@en, "Entwicklungsländer"@de ;
+    skos:related <descriptor/10508-0>, <descriptor/30277-2>.
+
+<descriptor/10499-3>
+    gbv:gvkppn "091367263"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Advanced countries"@en, "Advanced economies"@en, "Developed countries"@en, "Entwickelte Volkswirtschaften"@de, "High-income countries"@en, "High-income economy"@en, "Industriestaaten"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/10568-3>, <descriptor/17993-2>, <descriptor/19178-6>;
+    skos:prefLabel "Industrialized countries"@en, "Industrieländer"@de .
+
+<descriptor/10506-4>
+    gbv:gvkppn "091398738"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Am wenigsten entwickelte Länder"@de, "LLDCs"@en ;
+    skos:broader <descriptor/10492-3>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Least developed countries"@en, "Vierte Welt"@de .
+
+<descriptor/10508-0>
+    gbv:gvkppn "091388821"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Aufstrebende Entwicklungsländer"@de, "Aufstrebende Märkte"@de, "Aufstrebende Volkswirtschaften"@de, "Emerging market economies"@en, "Emerging markets"@en, "Halbindustrialisierte Länder"@de, "NIC (Newly Industrializing Countries)"@en, "Newly industrialized economies"@en, "Newly industrializing countries"@en, "Semi-industrialized economies"@en ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/29740-1>, <descriptor/30380-2>;
+    skos:prefLabel "Emerging economies"@en, "Schwellenländer"@de ;
+    skos:related <descriptor/10492-3>, <descriptor/30277-2>;
+    zbwext:altLabelNarrower "Lower-middle income economies"@en, "Middle income economies"@en, "Newly industrialised countries"@en, "Newly-industrialized countries"@en, "Upper-middle income economies"@en .
+
+<descriptor/10568-3>
+    gbv:gvkppn "091361958"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Geberland"@de ;
+    skos:broader <descriptor/10499-3>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Donor countries"@en, "Geberländer"@de .
+
+<descriptor/11123-1>
+    gbv:gvkppn "091390338"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kommunistische Länder"@de, "Kommunistische Staaten"@de, "Ostblockstaaten"@de, "Socialist economies"@en, "Sozialistische Länder"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17994-0>;
+    skos:prefLabel "Socialist countries"@en, "Sozialistische Staaten"@de ;
+    skos:related <descriptor/19837-6>.
+
+<descriptor/16417-1>
+    gbv:gvkppn "091379997"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Bewegung Blockfreier Staaten"@de, "Blockfreie Staaten"@de, "Blockfreienbewegung"@de, "Blockfreiheit"@de, "Dauernde Neutralität"@de, "Movement of nonaligned countries"@en, "Neutrality of states"@en, "Neutralität von Staaten"@de, "Non-aligned movement"@en ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Neutral countries"@en, "Neutrale Staaten"@de .
+
+<descriptor/17980-4>
+    gbv:gvkppn "091350247"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Benelux-Länder"@de ;
+    skos:broader <descriptor/17983-5>, <descriptor/17999-4>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Benelux countries"@en, "Benelux-Staaten"@de ;
+    skos:related <descriptor/17199-1>.
+
+<descriptor/17984-3>
+    gbv:gvkppn "091346975"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Anglophone East Africa"@en, "Anglophones Afrika"@de, "Britisch-Afrika"@de, "British Africa"@en, "Commonwealth Africa"@en, "Englischsprachiges Afrika"@de, "Englischsprachiges Ostafrika"@de, "English-speaking Africa"@en ;
+    skos:broader <descriptor/17642-3>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Anglofones Afrika"@de, "Anglophone Africa"@en ;
+    skos:related <descriptor/17374-2>, <descriptor/29742-4>;
+    zbwext:altLabelNarrower "Anglophone West Africa"@en, "Anglophones Ostafrika"@de, "Anglophones Westafrika"@de .
+
+<descriptor/17986-6>
+    gbv:gvkppn "091361052"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Francophone Sub-Saharan Africa"@en, "Frankophones Afrika"@de, "Frankophones Schwarzafrika"@de, "Französisch-Afrika"@de, "Französischsprachiges Afrika"@de, "French Africa"@en ;
+    skos:broader <descriptor/17642-3>, <descriptor/30222-6>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/29674-2>;
+    skos:prefLabel "Francophone Africa"@en, "Frankofones Afrika"@de ;
+    skos:related <descriptor/17255-3>, <descriptor/27291-0>.
+
+<descriptor/17988-2>
+    gbv:gvkppn "091369185"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Islamische Länder"@de, "Muslim countries"@en, "OIC Countries"@en ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Islamic countries"@en, "Islamische Staaten"@de ;
+    skos:related <descriptor/17978-5>.
+
+<descriptor/17991-6>
+    gbv:gvkppn "091379512"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "NATO-Länder"@de ;
+    skos:broader <descriptor/17999-4>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "NATO countries"@en, "NATO-Staaten"@de .
+
+<descriptor/17999-4>
+    gbv:gvkppn "091400570"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Westliche Länder"@de, "Westliche Welt"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17980-4>, <descriptor/17982-0>, <descriptor/17991-6>, <descriptor/17993-2>, <descriptor/29738-2>;
+    skos:prefLabel "Western countries"@en, "Westliche Staaten"@de ;
+    skos:related <descriptor/30074-2>.
+
+<descriptor/19078-3>
+    gbv:gvkppn "091364779"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Former Soviet Union countries"@en, "Former Soviet republics"@en, "GUS-Länder"@de, "Nachfolgestaaten der Sowjetunion"@de, "Sowjetische Nachfolgestaaten"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "CIS countries"@en, "GUS-Staaten"@de ;
+    skos:related <descriptor/17461-0>, <descriptor/19837-6>.
+
+<descriptor/19178-6>
+    gbv:gvkppn "091364892"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "G-7-Länder"@de, "G-7-Staaten"@de, "G-8-Staaten"@de, "G7-Länder"@de, "G8 countries"@en, "G8-Länder"@de, "G8-Staaten"@de, "Group of Eight"@de, "Gruppe der Acht"@de ;
+    skos:broader <descriptor/10499-3>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "G7 countries"@en, "G7-Staaten"@de .
+
+<descriptor/19837-6>
+    gbv:gvkppn "091395348"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ehemalige sozialistische Länder"@de, "Ehemalige sozialistische Staaten"@de, "Former socialist countries"@en, "Post-communist countries"@en, "Post-transition countries"@en, "Transformationsländer"@de, "Transition economies"@en ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Transformationsstaaten"@de, "Transition countries"@en ;
+    skos:related <descriptor/11123-1>, <descriptor/19077-5>, <descriptor/19078-3>.
+
+<descriptor/29740-1>
+    gbv:gvkppn "605992126"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "BRIC countries"@en, "BRIC-Länder"@de, "BRIC-Staaten"@de, "BRICS-Länder"@de ;
+    skos:broader <descriptor/10508-0>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "BRICS countries"@en, "BRICS-Staaten"@de .
+
+<descriptor/29742-4>
+    gbv:gvkppn "091406013"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Commonwealth countries"@en, "Commonwealth-Staaten"@de ;
+    skos:related <descriptor/17374-2>, <descriptor/17984-3>, <descriptor/17989-0>.
+
+<descriptor/29744-0>
+    gbv:gvkppn "601471830"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "G-20-Staaten"@de, "G20-Länder"@de, "Group of Twenty"@en, "Gruppe der Zwanzig"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "G20 countries"@en, "G20-Staaten"@de .
+
+<descriptor/29746-3>
+    gbv:gvkppn "091412331"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "MENA states"@de, "MENA-Länder"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "MENA countries"@en, "MENA-Staaten"@de ;
+    skos:related <descriptor/17608-3>, <descriptor/17750-0>, <descriptor/18054-1>.
+
+<descriptor/29747-1>
+    gbv:gvkppn "570968372"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "DACH-Staaten"@de, "Deutscher Sprachraum"@de, "Deutsches Sprachgebiet"@de, "Deutschsprachige Länder"@de, "Deutschsprachiges Gebiet"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Deutschsprachiger Raum"@de, "German-speaking countries"@en ;
+    skos:related <descriptor/16950-4>, <descriptor/16972-1>, <descriptor/18012-3>.
+
+<descriptor/29749-4>
+    gbv:gvkppn "091407265"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Barcelona process"@en, "ENP (European neighbourhood policy)"@de, "EU Eastern Partnership"@en, "EU's Northern Dimension"@en, "EU-Nachbarschaftspolitik"@de, "Euro-Mediterrane Partnerschaft"@de, "Euro-Mediterranean Partnership"@en, "European neighbourhood policy"@en, "Europäische Nachbarschaftspolitik"@de, "Nördliche Dimension der EU"@de, "Östliche Partnerschaft der EU"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "EU neighbour countries"@en, "EU-Nachbarstaaten"@de ;
+    skos:related <descriptor/16990-6>, <descriptor/17983-5>, <descriptor/18054-1>, <descriptor/19077-5>;
+    skos:scopeNote "Partnerschaften mit Nachbarstaaten der Europäischen Union."@de, "Partnerships with neighbour countries of the European Union."@en .
+
+<descriptor/30222-6>
+    gbv:gvkppn "1724378163"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Francophone countries"@en, "Frankofone Länder"@de, "Frankophone Länder"@de, "Frankophonie"@de, "Französischer Sprachraum"@de, "Französisches Sprachgebiet"@de, "Französischsprachige Welt"@de, "French-speaking countries"@en ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17986-6>;
+    skos:prefLabel "Francophonie"@en, "Frankofonie"@de .
+
+<descriptor/30277-2>
+    gbv:gvkppn "1766007473"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30380-2>;
+    skos:prefLabel "Global South"@en, "Globaler Süden"@de ;
+    skos:related <descriptor/10492-3>, <descriptor/10508-0>;
+    skos:scopeNote "Begriff für die Ländergruppe der sog. Entwicklungs- und Schwellenländer, mit dem sich. gegen eine Hierarchisierung unterschiedlicher Regionen ausgesprochen wird."@de, "Concept for the group of countries known as developing and emerging countries, which is used to speak out against a hierarchization of different regions and which attempts to examine and describe inequalities between regions worldwide without any judgement."@en ;
+    zbwext:useInsteadNote [
+        rdf:value "Im Sinne von Schwellenländer"@de ;
+        rdfs:seeAlso <descriptor/10508-0>
+    ], [
+        rdf:value "Referring to countries that are no longer classified as developing countries due to their economic performance, but are not yet classified as industrialized countries either"@en ;
+        rdfs:seeAlso <descriptor/10508-0>
+    ] .
+
+<descriptor/30349-3>
+    gbv:gvkppn "091411602"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Afrika (Lusophon)"@de, "Afrika (Portugiesisch)"@de, "Lusophones Afrika"@de, "Portugiesisch-Afrika"@de, "Portugiesisch-sprachiges Afrika"@de ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Lusofones Afrika"@de, "Portuguese-speaking Africa"@en ;
+    skos:related <descriptor/17104-3>, <descriptor/17669-4>, <descriptor/17706-3>, <descriptor/17707-1>, <descriptor/17727-2>, <descriptor/17739-2>.
+
+<descriptor/30380-2>
+    gbv:gvkppn "1867587688"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Inselentwicklungsländer"@de, "SIDS"@en ;
+    skos:broader <descriptor/10492-3>, <descriptor/10508-0>, <descriptor/30277-2>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/15879-3>;
+    skos:prefLabel "Kleine Inselentwicklungsländer"@de, "Small Island Developing States"@en ;
+    skos:scopeNote "According to a United Nations definition, a group of small island states and shallow coastal states in Africa, the Caribbean, and Oceania that share a similar socioeconomic situation and face similar sustainable development challenges."@en, "Nach einer Definition der Vereinten Nationen eine Gruppe von kleinen Inselstaaten und flachen Küstenanrainerstaaten in Afrika, der Karibik und Ozeanien, die eine vergleichbare sozialökonomische Situation teilen und ähnlichen Herausforderungen im Bereich der nachhaltigen Entwicklung ausgesetzt sind."@de .
+
+<descriptor/30409-4>
+    gbv:gvkppn "1866173278"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Continental Free Trade Area"@en ;
+    skos:broader <descriptor/17642-3>, <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "AfCFTA-Staaten"@de, "AfCTA countries"@en ;
+    skos:scopeNote "African Union member states that joined the African Free Trade Agreement."@en, "Mitgliedstaaten der Afrikanischen Union, die dem afrikanischen Freihandelsabkommen beigetreten sind."@de ;
+    zbwext:altLabelRelated "African Continental Free Trade Area Agreement"@en .
+
+<thsys/189012>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Organisationen für wirtschaftliche Zusammenarbeit"@de, "Organizations for economic cooperation"@en ;
+    skos:broader <thsys/70307>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17977-0>, <descriptor/17979-3>, <descriptor/17982-0>, <descriptor/17983-5>, <descriptor/17985-1>, <descriptor/17987-4>, <descriptor/17993-2>, <descriptor/17994-0>, <descriptor/19085-6>, <descriptor/19130-6>, <descriptor/19170-1>, <descriptor/19171-6>, <descriptor/19173-2>, <descriptor/19174-0>, <descriptor/19175-5>, <descriptor/19176-3>, <descriptor/19179-4>, <descriptor/19180-5>, <descriptor/19336-0>, <descriptor/26021-6>, <descriptor/29674-2>, <descriptor/29741-6>, <descriptor/29743-2>, <descriptor/29745-5>, <descriptor/30066-1>, <descriptor/30115-0>, <descriptor/30135-1>, <descriptor/30214-5>, <descriptor/30255-5>, <descriptor/30654-5>, <descriptor/30655-3>, <descriptor/30656-1>;
+    skos:notation "G.06.01"^^xsd:string ;
+    skos:prefLabel "G.06.01  Organisationen für wirtschaftliche Zusammenarbeit"@de, "G.06.01  Organizations for economic cooperation"@en .
+
+<descriptor/16990-6>
+    gbv:gvkppn "091380405"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nordic countries"@en, "Scandinavia"@en, "Skandinavien"@de ;
+    skos:broader <descriptor/16815-3>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16982-5>, <descriptor/16984-1>, <descriptor/16985-6>, <descriptor/16989-5>, <descriptor/16995-3>, <descriptor/19083-3>;
+    skos:prefLabel "Nordeuropa"@de, "Northern Europe"@en ;
+    skos:related <descriptor/29749-4>.
+
+<descriptor/17016-0>
+    gbv:gvkppn "09139354X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Südeuropäische Länder"@de, "Südeuropäische Staaten"@de ;
+    skos:broader <descriptor/16815-3>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17011-3>, <descriptor/17013-6>, <descriptor/17014-4>, <descriptor/17015-2>, <descriptor/17017-5>, <descriptor/17039-2>, <descriptor/17104-3>, <descriptor/17161-5>;
+    skos:prefLabel "Southern Europe"@en, "Südeuropa"@de ;
+    skos:related <descriptor/17179-0>.
+
+<descriptor/17179-0>
+    gbv:gvkppn "091393582"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Balkanländer"@de, "Balkanstaaten"@de, "Südosteuropäische Länder"@de, "Südosteuropäische Staaten"@de ;
+    skos:broader <descriptor/16815-3>, <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Southeastern Europe"@en, "Südosteuropa"@de ;
+    skos:related <descriptor/17016-0>, <descriptor/17972-3>, <descriptor/19077-5>.
+
+<descriptor/17199-1>
+    gbv:gvkppn "091400562"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Westeuropäische Länder"@de, "Westeuropäische Staaten"@de ;
+    skos:broader <descriptor/16815-3>, <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Western Europe"@en, "Westeuropa"@de ;
+    skos:related <descriptor/17980-4>.
+
+<descriptor/19077-5>
+    gbv:gvkppn "091382009"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "CEE (Central and East Europe)"@en, "CEEC (Central and Eastern European Countries)"@en, "Central and Eastern European Countries"@de, "Ehemals sozialistische Staaten Europas"@de, "European Transformation Countries"@de, "European Transformation States"@de, "Europäische Transformationsländer"@de, "Europäische Transformationsstaaten"@de, "Mittel- und Osteuropa"@de, "Ost-, Mittel- und Südosteuropa"@de, "Osteuropäische Länder"@de, "Osteuropäische Staaten"@de, "Post-Socialist European Economies"@de, "Postsocialist European Economies"@de, "Postsozialistische Länder Europas"@de, "Transformationsländer Osteuropas"@de ;
+    skos:broader <descriptor/16815-3>, <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Eastern Europe"@en, "Osteuropa"@de ;
+    skos:related <descriptor/17179-0>, <descriptor/19084-1>, <descriptor/19837-6>, <descriptor/29749-4>.
+
+<descriptor/19084-1>
+    gbv:gvkppn "091382017"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "MOE (Mittel-Osteuropäische Staaten)"@de, "MOEL (Mittel-Osteuropäische Länder)"@de, "Mittel-Osteuropäische Staaten"@de, "Mittelosteuropa"@de, "Ostmitteleuropäische Länder"@de, "Ostmitteleuropäische Staaten"@de ;
+    skos:broader <descriptor/16815-3>, <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Central-Eastern Europe"@en, "Ostmitteleuropa"@de ;
+    skos:related <descriptor/16825-0>, <descriptor/19077-5>, <descriptor/19085-6>, <descriptor/26021-6>;
+    skos:scopeNote "Nur wenn im Text explizit erwähnt oder im engeren Sinne verwendet (Kernländer Polen, Tschechien, Slowakei, Ungarn)."@de .
+
+<descriptor/17171-2>
+    gbv:gvkppn "09134641X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Albania"@en, "Albanien"@de .
+
+<descriptor/17175-1>
+    gbv:gvkppn "091353068"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bulgaria"@en, "Bulgarien"@de .
+
+<descriptor/17176-6>
+    gbv:gvkppn "091369509"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Jugoslawien (bis 1990)"@de, "Yugoslavia (until 1990)"@en ;
+    skos:related <descriptor/18226-5>, <descriptor/18227-3>, <descriptor/18228-1>, <descriptor/19086-4>, <descriptor/19087-2>.
+
+<descriptor/17177-4>
+    gbv:gvkppn "091387248"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Romania"@en, "Rumänien"@de ;
+    skos:related <descriptor/17480-3>.
+
+<descriptor/17184-0>
+    gbv:gvkppn "091364418"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Greece"@en, "Griechenland"@de .
+
+<descriptor/17480-3>
+    gbv:gvkppn "091378575"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Republik Moldau"@de ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Moldawien"@de, "Moldova"@en ;
+    skos:related <descriptor/17177-4>.
+
+<descriptor/17641-5>
+    gbv:gvkppn "091402964"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Republik Zypern"@de ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30081-5>;
+    skos:prefLabel "Cyprus"@en, "Zypern"@de .
+
+<descriptor/18226-5>
+    gbv:gvkppn "091389496"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Slovenia"@en, "Slowenien"@de ;
+    skos:related <descriptor/17176-6>.
+
+<descriptor/18227-3>
+    gbv:gvkppn "091373069"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Croatia"@en, "Kroatien"@de ;
+    skos:related <descriptor/17176-6>.
+
+<descriptor/18228-1>
+    gbv:gvkppn "091376882"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ehemalige Jugoslawische Republik Mazedonien"@de, "FYROM"@en, "Macedonia"@en, "Makedonien"@de, "Mazedonien"@de ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nordmazedonien"@de, "North Macedonia"@en ;
+    skos:related <descriptor/17176-6>.
+
+<descriptor/19086-4>
+    gbv:gvkppn "091352649"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Bosnien und Herzegowina"@de, "Herzegowina"@de ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bosnia and Herzegovina"@en, "Bosnien-Herzegowina"@de ;
+    skos:related <descriptor/17176-6>.
+
+<descriptor/19087-2>
+    gbv:gvkppn "091389216"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "BR Jugoslawien"@de, "Bundesrepublik Jugoslawien"@de, "FR Yugoslavia"@en, "Föderative Republik Jugoslawien"@de, "Jugoslawien (Bundesrepublik)"@de, "Yugoslavia (Federal Republic)"@en ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Serbia-Montenegro"@en, "Serbien-Montenegro"@de ;
+    skos:related <descriptor/17176-6>, <descriptor/30078-1>, <descriptor/30079-6>, <descriptor/30080-0>.
+
+<descriptor/30078-1>
+    gbv:gvkppn "091417007"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Serbia"@en, "Serbien"@de ;
+    skos:related <descriptor/19087-2>, <descriptor/30080-0>.
+
+<descriptor/30079-6>
+    gbv:gvkppn "091412757"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Montenegro"@de, "Montenegro"@en ;
+    skos:related <descriptor/19087-2>.
+
+<descriptor/30080-0>
+    gbv:gvkppn "091410568"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kosovo und Metohija"@de, "Metohija"@de ;
+    skos:broader <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Kosovo"@de, "Kosovo"@en ;
+    skos:related <descriptor/19087-2>, <descriptor/30078-1>.
+
+<descriptor/30081-5>
+    gbv:gvkppn "091422744"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nord-Zypern"@de, "Turkish Republic of Northern Cyprus"@en, "Türkische Republik Nordzypern"@de ;
+    skos:broader <descriptor/17641-5>, <thsys/70130>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nordzypern"@de, "Northern Cyprus"@en .
+
+<descriptor/17011-3>
+    gbv:gvkppn "091346916"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17016-0>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Andorra"@de, "Andorra"@en .
+
+<descriptor/17013-6>
+    gbv:gvkppn "091376157"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17016-0>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Malta"@de, "Malta"@en .
+
+<descriptor/17014-4>
+    gbv:gvkppn "091378605"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17016-0>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Monaco"@de, "Monaco"@en .
+
+<descriptor/17015-2>
+    gbv:gvkppn "091387647"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17016-0>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "San Marino"@de, "San Marino"@en .
+
+<descriptor/17017-5>
+    gbv:gvkppn "091396972"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Heiliger Stuhl"@de, "Holy See"@en, "Vatikanstaat"@de ;
+    skos:broader <descriptor/17016-0>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Vatican City State"@en, "Vatikanstadt"@de ;
+    skos:related <descriptor/17039-2>.
+
+<descriptor/17039-2>
+    gbv:gvkppn "091369223"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17016-0>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Italien"@de, "Italy"@en ;
+    skos:related <descriptor/17017-5>.
+
+<descriptor/17104-3>
+    gbv:gvkppn "091383730"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17016-0>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Portugal"@de, "Portugal"@en ;
+    skos:related <descriptor/30349-3>.
+
+<descriptor/17161-5>
+    gbv:gvkppn "091390672"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17016-0>, <thsys/70131>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Spain"@en, "Spanien"@de .
+
+<descriptor/16826-5>
+    gbv:gvkppn "091383366"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Poland"@en, "Polen"@de .
+
+<descriptor/16828-1>
+    gbv:gvkppn "091395607"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "CSSR"@de, "Tschechische und Slowakische Föderative Republik"@de, "Tschechoslowakische Sozialistische Republik"@de ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Czechoslovakia"@en, "Tschechoslowakei"@de ;
+    skos:related <descriptor/18224-2>, <descriptor/18225-0>.
+
+<descriptor/17181-6>
+    gbv:gvkppn "091396271"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Hungary"@en, "Ungarn"@de ;
+    skos:related <descriptor/30109-2>.
+
+<descriptor/17461-0>
+    gbv:gvkppn "091389798"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "SSSR"@de, "Soviet Union"@en, "UdSSR"@de, "Union der Sozialistischen Sowjetrepubliken"@de ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sowjetunion"@de, "USSR"@en ;
+    skos:related <descriptor/17534-6>, <descriptor/19078-3>.
+
+<descriptor/17465-6>
+    gbv:gvkppn "091399971"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Belorussland"@de, "Weißrussland"@de, "Weißrußland"@de ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Belarus"@de, "Belarus"@en .
+
+<descriptor/17485-0>
+    gbv:gvkppn "091395763"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Ukraine"@de, "Ukraine"@en .
+
+<descriptor/17534-6>
+    gbv:gvkppn "091387329"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Russische Föderation"@de, "Russische SFSR"@de, "Russisches Reich"@de, "Rußland"@de ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30085-4>;
+    skos:prefLabel "Russia"@en, "Russland"@de ;
+    skos:related <descriptor/17461-0>.
+
+<descriptor/18224-2>
+    gbv:gvkppn "091395593"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Czechia"@en, "Tschechische Republik"@de ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Czech Republic"@en, "Tschechien"@de ;
+    skos:related <descriptor/16828-1>.
+
+<descriptor/18225-0>
+    gbv:gvkppn "091389488"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Slovakia"@en, "Slowakei"@de ;
+    skos:related <descriptor/16828-1>.
+
+<descriptor/30085-4>
+    gbv:gvkppn "091417147"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17534-6>, <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30097-4>;
+    skos:prefLabel "Siberia"@en, "Sibirien"@de ;
+    skos:related <descriptor/17553-2>.
+
+<descriptor/30097-4>
+    gbv:gvkppn "091404177"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Baikalmeer"@de ;
+    skos:broader <descriptor/30085-4>, <thsys/70174>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Baikalsee"@de, "Lake Baikal"@en .
+
+<descriptor/16982-5>
+    gbv:gvkppn "091360080"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16990-6>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Finland"@en, "Finnland"@de .
+
+<descriptor/16984-1>
+    gbv:gvkppn "091369193"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16990-6>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Iceland"@en, "Island"@de .
+
+<descriptor/16985-6>
+    gbv:gvkppn "091380502"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16990-6>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Norway"@en, "Norwegen"@de .
+
+<descriptor/16989-5>
+    gbv:gvkppn "091388708"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16990-6>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Schweden"@de, "Sweden"@en .
+
+<descriptor/16995-3>
+    gbv:gvkppn "09135434X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16990-6>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30076-5>, <descriptor/30077-3>;
+    skos:prefLabel "Denmark"@en, "Dänemark"@de .
+
+<descriptor/17471-4>
+    gbv:gvkppn "091358175"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/19083-3>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Estland"@de, "Estonia"@en .
+
+<descriptor/17476-1>
+    gbv:gvkppn "09137510X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/19083-3>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Latvia"@en, "Lettland"@de .
+
+<descriptor/17477-6>
+    gbv:gvkppn "091375355"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/19083-3>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Litauen"@de, "Lithuania"@en .
+
+<descriptor/19083-3>
+    gbv:gvkppn "091380421"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Baltic states"@en, "Baltikum"@de, "Baltische Länder"@de ;
+    skos:broader <descriptor/16990-6>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17471-4>, <descriptor/17476-1>, <descriptor/17477-6>;
+    skos:prefLabel "Baltic countries"@en, "Baltische Staaten"@de .
+
+<descriptor/30076-5>
+    gbv:gvkppn "091408164"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16995-3>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Greenland"@en, "Grönland"@de .
+
+<descriptor/30077-3>
+    gbv:gvkppn "091407397"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16995-3>, <thsys/70505>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Faroe Islands"@en, "Färöer"@de .
+
+<descriptor/16824-2>
+    gbv:gvkppn "091375193"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Liechtenstein"@de, "Liechtenstein"@en .
+
+<descriptor/17198-3>
+    gbv:gvkppn "091375924"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Luxembourg"@en, "Luxemburg"@de .
+
+<descriptor/17201-5>
+    gbv:gvkppn "091350212"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Belgien"@de, "Belgium"@en .
+
+<descriptor/17255-3>
+    gbv:gvkppn "091361060"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "France"@en, "Frankreich"@de ;
+    skos:related <descriptor/17986-6>.
+
+<descriptor/17374-2>
+    gbv:gvkppn "091364442"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Great Britain"@en, "UK (United Kingdom)"@en, "Vereinigtes Königreich"@de ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30103-0>;
+    skos:prefLabel "Großbritannien"@de, "United Kingdom"@en ;
+    skos:related <descriptor/17984-3>, <descriptor/29742-4>.
+
+<descriptor/17413-4>
+    gbv:gvkppn "091369134"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Republic of Ireland"@en, "Republik Irland"@de ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Ireland"@en, "Irland"@de .
+
+<descriptor/17433-5>
+    gbv:gvkppn "091380170"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Netherlands"@en, "Niederlande"@de .
+
+<descriptor/30103-0>
+    gbv:gvkppn "091411440"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17374-2>, <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "London"@de, "London"@en .
+
+<thsys/70003>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Schweiz"@de, "Switzerland"@en ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16956-6>, <descriptor/16957-4>, <descriptor/16958-2>, <descriptor/16959-0>, <descriptor/16960-1>, <descriptor/16961-6>, <descriptor/16962-4>, <descriptor/16963-2>, <descriptor/16964-0>, <descriptor/16966-3>, <descriptor/16967-1>, <descriptor/16968-6>, <descriptor/16969-4>, <descriptor/16970-5>, <descriptor/16971-3>, <descriptor/16972-1>, <descriptor/16973-6>, <descriptor/16974-4>, <descriptor/16975-2>, <descriptor/16976-0>, <descriptor/16977-5>, <descriptor/16978-3>, <descriptor/16979-1>, <descriptor/16980-2>, <descriptor/16981-0>, <descriptor/30075-0>, <descriptor/30350-4>;
+    skos:notation "G.01.05.03"^^xsd:string ;
+    skos:prefLabel "G.01.05.03  Schweiz"@de, "G.01.05.03  Switzerland"@en .
+
+<thsys/70361>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Deutschland"@de, "Germany"@en ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16830-0>, <descriptor/16834-6>, <descriptor/16841-2>, <descriptor/16842-0>, <descriptor/16849-0>, <descriptor/16853-2>, <descriptor/16868-3>, <descriptor/16874-1>, <descriptor/16896-5>, <descriptor/16898-1>, <descriptor/16909-1>, <descriptor/16912-5>, <descriptor/16914-1>, <descriptor/16927-6>, <descriptor/18012-3>, <descriptor/18131-2>, <descriptor/18132-0>, <descriptor/18133-5>, <descriptor/18134-3>, <descriptor/18135-1>, <descriptor/18136-6>, <descriptor/19075-2>, <descriptor/19076-0>, <descriptor/30105-3>, <descriptor/30111-1>, <descriptor/30112-6>;
+    skos:notation "G.01.05.01"^^xsd:string ;
+    skos:prefLabel "G.01.05.01  Deutschland"@de, "G.01.05.01  Germany"@en .
+
+<thsys/70438>
+    a skos:Concept, zbwext:Thsys ;
+    rdfs:label "Austria"@en, "Österreich"@de ;
+    skos:broader <thsys/70557>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16943-1>, <descriptor/16946-2>, <descriptor/16948-5>, <descriptor/16949-3>, <descriptor/16950-4>, <descriptor/16951-2>, <descriptor/16952-0>, <descriptor/16953-5>, <descriptor/16954-3>, <descriptor/16955-1>;
+    skos:notation "G.01.05.02"^^xsd:string ;
+    skos:prefLabel "G.01.05.02  Austria"@en, "G.01.05.02  Österreich"@de .
+
+<descriptor/17791-0>
+    gbv:gvkppn "091378311"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Mittelamerikanische Länder"@de, "Mittelamerikanische Staaten"@de, "Zentralamerika"@de ;
+    skos:broader <descriptor/17758-5>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17770-1>, <descriptor/17771-6>, <descriptor/17772-4>, <descriptor/17773-2>, <descriptor/17777-1>, <descriptor/17778-6>, <descriptor/17779-4>, <descriptor/17780-5>, <descriptor/17781-3>, <descriptor/17782-1>, <descriptor/17783-6>, <descriptor/17784-4>, <descriptor/17785-2>, <descriptor/17787-5>, <descriptor/17790-2>, <descriptor/17792-5>, <descriptor/17793-3>, <descriptor/17799-5>, <descriptor/17800-4>, <descriptor/17801-2>, <descriptor/17804-3>;
+    skos:prefLabel "Central America"@en, "Mittelamerika"@de ;
+    skos:related <descriptor/17989-0>, <descriptor/17990-1>, <descriptor/19173-2>, <descriptor/29741-6>, <descriptor/30099-0>.
+
+<descriptor/17806-6>
+    gbv:gvkppn "091380383"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nordamerikanische Länder"@de, "Nordamerikanische Staaten"@de ;
+    skos:broader <descriptor/17758-5>, <thsys/70080>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17811-6>, <descriptor/17829-1>, <descriptor/30098-2>, <descriptor/30101-4>;
+    skos:prefLabel "Nordamerika"@de, "North America"@en ;
+    skos:related <descriptor/19130-6>.
+
+<descriptor/17931-3>
+    gbv:gvkppn "091393507"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Südamerikanische Länder"@de, "Südamerikanische Staaten"@de ;
+    skos:broader <descriptor/17758-5>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17911-2>, <descriptor/17914-3>, <descriptor/17915-1>, <descriptor/17919-0>, <descriptor/17920-1>, <descriptor/17922-4>, <descriptor/17923-2>, <descriptor/17927-1>, <descriptor/17928-6>, <descriptor/17932-1>, <descriptor/17933-6>, <descriptor/17934-4>, <descriptor/19170-1>, <descriptor/30100-6>;
+    skos:prefLabel "South America"@en, "Südamerika"@de ;
+    skos:related <descriptor/17990-1>, <descriptor/30653-0>.
+
+<descriptor/19179-4>
+    gbv:gvkppn "091377323"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Mercosul countries"@en, "Mercosul-Staaten"@de ;
+    skos:broader <descriptor/17990-1>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mercosur countries"@en, "Mercosur-Staaten"@de ;
+    skos:related <descriptor/30214-5>.
+
+<descriptor/30214-5>
+    gbv:gvkppn "1682550362"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Pacific Alliance"@en, "Pazifik-Allianz"@de, "Pazifische Allianz"@de ;
+    skos:broader <descriptor/17990-1>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Pacific Alliance countries"@en, "Pazifik Allianz-Staaten"@de ;
+    skos:related <descriptor/19179-4>.
+
+<descriptor/17811-6>
+    gbv:gvkppn "091369797"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17806-6>, <thsys/70080>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Canada"@en, "Kanada"@de .
+
+<descriptor/17829-1>
+    gbv:gvkppn "091396867"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "United States of America"@en, "Vereinigte Staaten"@de, "Vereinigte Staaten von Amerika"@de ;
+    skos:broader <descriptor/17806-6>, <thsys/70080>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30104-5>;
+    skos:prefLabel "USA"@de, "United States"@en .
+
+<descriptor/30098-2>
+    gbv:gvkppn "091408172"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17806-6>, <thsys/70080>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Great Lakes"@en, "Große Seen"@de .
+
+<descriptor/30101-4>
+    gbv:gvkppn "091416027"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17806-6>, <thsys/70080>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Rocky Mountains"@de, "Rocky Mountains"@en .
+
+<descriptor/30104-5>
+    gbv:gvkppn "091413346"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "New York City"@de ;
+    skos:broader <descriptor/17829-1>, <thsys/70080>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "New York"@de, "New York"@en ;
+    zbwext:useInsteadNote [
+        rdf:value "Ab 2017 für New York (Staat)"@de ;
+        rdfs:seeAlso <descriptor/30156-0>
+    ] .
+
+<descriptor/30156-0>
+    gbv:gvkppn "889536821"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70080>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "New York (Staat)"@de, "New York (State)"@en ;
+    zbwext:useInsteadNote [
+        rdf:value "Ab 2017 für New York City"@de ;
+        rdfs:seeAlso <descriptor/30104-5>
+    ] .
+
+<descriptor/17770-1>
+    gbv:gvkppn "09134719X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Barbuda"@de ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Antigua and Barbuda"@en, "Antigua und Barbuda"@de .
+
+<descriptor/17771-6>
+    gbv:gvkppn "091349281"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Bahama Islands"@en ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bahamas"@de, "Bahamas"@en .
+
+<descriptor/17772-4>
+    gbv:gvkppn "091349605"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Barbados"@de, "Barbados"@en .
+
+<descriptor/17773-2>
+    gbv:gvkppn "091350220"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Britisch-Honduras"@de ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Belize"@de, "Belize"@en .
+
+<descriptor/17777-1>
+    gbv:gvkppn "091354250"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Costa Rica"@de, "Costa Rica"@en .
+
+<descriptor/17778-6>
+    gbv:gvkppn "091355281"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Dominica"@de, "Dominica"@en .
+
+<descriptor/17779-4>
+    gbv:gvkppn "09135529X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Dominican Republic"@en, "Dominikanische Republik"@de ;
+    skos:related <descriptor/17783-6>.
+
+<descriptor/17780-5>
+    gbv:gvkppn "091356490"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "El Salvador"@de, "El Salvador"@en .
+
+<descriptor/17781-3>
+    gbv:gvkppn "091364272"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Grenada"@de, "Grenada"@en .
+
+<descriptor/17782-1>
+    gbv:gvkppn "091364728"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Guatemala"@de, "Guatemala"@en .
+
+<descriptor/17783-6>
+    gbv:gvkppn "091365031"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Haiti"@de, "Haiti"@en ;
+    skos:related <descriptor/17779-4>.
+
+<descriptor/17784-4>
+    gbv:gvkppn "091366356"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Honduras"@de, "Honduras"@en .
+
+<descriptor/17785-2>
+    gbv:gvkppn "091369274"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Jamaica"@en, "Jamaika"@de .
+
+<descriptor/17787-5>
+    gbv:gvkppn "091373077"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Cuba"@en, "Kuba"@de .
+
+<descriptor/17790-2>
+    gbv:gvkppn "091377633"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mexico"@en, "Mexiko"@de .
+
+<descriptor/17792-5>
+    gbv:gvkppn "091380030"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nikaragua"@de ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nicaragua"@de, "Nicaragua"@en .
+
+<descriptor/17793-3>
+    gbv:gvkppn "091382165"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Panama"@de, "Panama"@en .
+
+<descriptor/17799-5>
+    gbv:gvkppn "091391180"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Föderation St. Christoph und Nevis"@de, "Föderation St. Kitts und Nevis"@de, "Saint Kitts and Nevis"@en, "St. Christoph und Nevis"@de ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "St. Kitts and Nevis"@en, "St. Kitts und Nevis"@de .
+
+<descriptor/17800-4>
+    gbv:gvkppn "091391199"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Saint Lucia"@en ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "St. Lucia"@de, "St. Lucia"@en .
+
+<descriptor/17801-2>
+    gbv:gvkppn "091391202"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nordgrenadinen"@de, "Saint Vincent and the Grenadines"@en, "St. Vincent"@de ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "St. Vincent and the Grenadines"@en, "St. Vincent und die Grenadinen"@de .
+
+<descriptor/17804-3>
+    gbv:gvkppn "091395461"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Tobago"@de ;
+    skos:broader <descriptor/17791-0>, <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Trinidad and Tobago"@en, "Trinidad und Tobago"@de .
+
+<descriptor/17989-0>
+    gbv:gvkppn "091370159"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Commonwealth Caribbean"@en, "Karibik"@de, "Karibik-Staaten"@de, "Karibische Länder"@de, "Karibische Staaten"@de ;
+    skos:broader <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/19174-0>;
+    skos:prefLabel "Caribbean countries"@en, "Karibischer Raum"@de ;
+    skos:related <descriptor/17791-0>, <descriptor/17977-0>, <descriptor/17990-1>, <descriptor/29742-4>, <descriptor/30099-0>.
+
+<descriptor/30099-0>
+    gbv:gvkppn "091403626"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Antillen"@de, "Große Antillen"@de, "Inseln unter dem Winde"@de, "Inseln über dem Winde"@de, "Kleine Antillen"@de, "Leeward Islands"@en, "Lesser Antilles"@de, "Turks- und Caicosinseln"@de, "Windward Islands"@en ;
+    skos:broader <thsys/70086>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "West Indies"@en, "Westindische Inseln"@de ;
+    skos:related <descriptor/17791-0>, <descriptor/17989-0>.
+
+<descriptor/17911-2>
+    gbv:gvkppn "091348005"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Argentina"@en, "Argentinien"@de .
+
+<descriptor/17914-3>
+    gbv:gvkppn "091352495"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bolivia"@en, "Bolivien"@de .
+
+<descriptor/17915-1>
+    gbv:gvkppn "091352789"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Brasilien"@de, "Brazil"@en .
+
+<descriptor/17919-0>
+    gbv:gvkppn "091353769"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Chile"@de, "Chile"@en .
+
+<descriptor/17920-1>
+    gbv:gvkppn "091355753"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ekuador"@de ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Ecuador"@de, "Ecuador"@en .
+
+<descriptor/17922-4>
+    gbv:gvkppn "091364876"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Britisch-Guayana"@de, "Guayana"@de ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Guyana"@de, "Guyana"@en .
+
+<descriptor/17923-2>
+    gbv:gvkppn "091371120"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Colombia"@en, "Kolumbien"@de .
+
+<descriptor/17927-1>
+    gbv:gvkppn "091382300"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Paraguay"@de, "Paraguay"@en .
+
+<descriptor/17928-6>
+    gbv:gvkppn "091382920"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Peru"@de, "Peru"@en .
+
+<descriptor/17932-1>
+    gbv:gvkppn "091393655"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Niederländisch-Guayana"@de, "Surinam"@de ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Suriname"@de, "Suriname"@en .
+
+<descriptor/17933-6>
+    gbv:gvkppn "091396859"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Uruguay"@de, "Uruguay"@en .
+
+<descriptor/17934-4>
+    gbv:gvkppn "091396980"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Venezuela"@de, "Venezuela"@en .
+
+<descriptor/30100-6>
+    gbv:gvkppn "09140343X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Amazon basin"@en, "Amazonasbecken"@de, "Amazonastiefland"@de, "Amazonien"@de ;
+    skos:broader <descriptor/17931-3>, <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Amazon region"@en, "Amazonasgebiet"@de .
+
+<descriptor/30653-0>
+    gbv:gvkppn "1937378578"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/71030>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Anden"@de, "Andes"@en ;
+    skos:related <descriptor/17931-3>, <descriptor/19170-1>;
+    zbwext:useInsteadNote [
+        rdf:value "Bis 2024 für Literaturrecherche"@de ;
+        rdfs:seeAlso <descriptor/19170-1>
+    ], [
+        rdf:value "Until 2024 to search for literature"@en ;
+        rdfs:seeAlso <descriptor/19170-1>
+    ] .
+
+<descriptor/17672-1>
+    gbv:gvkppn "091381959"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ostafrikanische Länder"@de, "Ostafrikanische Staaten"@de ;
+    skos:broader <descriptor/17642-3>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17654-3>, <descriptor/17658-2>, <descriptor/17660-1>, <descriptor/17662-4>, <descriptor/17665-5>, <descriptor/17666-3>, <descriptor/17668-6>, <descriptor/17669-4>, <descriptor/17674-4>, <descriptor/17675-2>, <descriptor/17676-0>, <descriptor/17678-3>, <descriptor/17679-1>, <descriptor/17731-4>, <descriptor/17738-4>, <descriptor/18284-5>;
+    skos:prefLabel "East Africa"@en, "Ostafrika"@de ;
+    skos:related <descriptor/19175-5>.
+
+<descriptor/17687-2>
+    gbv:gvkppn "091393566"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17642-3>, <thsys/70429>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17680-2>, <descriptor/17682-5>, <descriptor/17684-1>, <descriptor/17686-4>, <descriptor/17688-0>, <descriptor/17689-5>;
+    skos:prefLabel "Southern Africa"@en, "Südliches Afrika"@de ;
+    skos:related <descriptor/17987-4>, <descriptor/19175-5>.
+
+<descriptor/17724-1>
+    gbv:gvkppn "091400554"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Westafrikanische Länder"@de, "Westafrikanische Staaten"@de ;
+    skos:broader <descriptor/17642-3>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17695-3>, <descriptor/17696-1>, <descriptor/17700-1>, <descriptor/17703-2>, <descriptor/17704-0>, <descriptor/17705-5>, <descriptor/17706-3>, <descriptor/17707-1>, <descriptor/17709-4>, <descriptor/17712-1>, <descriptor/17713-6>, <descriptor/17716-0>, <descriptor/17717-5>, <descriptor/17721-0>, <descriptor/17722-5>, <descriptor/17723-3>;
+    skos:prefLabel "West Africa"@en, "Westafrika"@de ;
+    skos:related <descriptor/19176-3>.
+
+<descriptor/17743-4>
+    gbv:gvkppn "091402220"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Zentralafrikanische Länder"@de, "Zentralafrikanische Staaten"@de, "Äquatorialafrika"@de ;
+    skos:broader <descriptor/17642-3>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17726-4>, <descriptor/17727-2>, <descriptor/17732-2>, <descriptor/17735-3>, <descriptor/17739-2>, <descriptor/17740-3>, <descriptor/17742-6>, <descriptor/17744-2>;
+    skos:prefLabel "Central Africa"@en, "Zentralafrika"@de .
+
+<descriptor/17750-0>
+    gbv:gvkppn "091380375"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nordafrikanische Länder"@de, "Nordafrikanische Staaten"@de ;
+    skos:broader <descriptor/17642-3>, <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17677-5>, <descriptor/17745-0>, <descriptor/17746-5>, <descriptor/17748-1>, <descriptor/17749-6>, <descriptor/17753-1>, <descriptor/17754-6>;
+    skos:prefLabel "Nordafrika"@de, "North Africa"@en ;
+    skos:related <descriptor/17978-5>, <descriptor/27291-0>, <descriptor/29746-3>.
+
+<descriptor/17616-4>
+    gbv:gvkppn "091347319"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Arab Gulf states"@en, "Arabische Golfstaaten"@de, "Golfregion"@de, "Gulf region"@en ;
+    skos:broader <descriptor/17978-5>, <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Arabische Golf-Staaten"@de, "Gulf countries"@en ;
+    skos:related <descriptor/17985-1>, <descriptor/30654-5>, <descriptor/30655-3>.
+
+<descriptor/30656-1>
+    gbv:gvkppn "1937402835"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Greater Arab Free Trade Area"@en ;
+    skos:broader <descriptor/17978-5>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "GAFTA countries"@en, "GAFTA-Staaten"@de ;
+    zbwext:useInsteadNote [
+        rdf:value "Bis 2024 für Literaturrecherche"@de ;
+        rdfs:seeAlso <descriptor/17978-5>
+    ], [
+        rdf:value "Until 2024 to search for literature"@en ;
+        rdfs:seeAlso <descriptor/17978-5>
+    ] .
+
+<descriptor/17677-5>
+    gbv:gvkppn "091393515"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17750-0>, <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sudan"@de, "Sudan"@en ;
+    skos:related <descriptor/30096-6>.
+
+<descriptor/17745-0>
+    gbv:gvkppn "091346207"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17750-0>, <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Egypt"@en, "Ägypten"@de .
+
+<descriptor/17746-5>
+    gbv:gvkppn "091346428"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17750-0>, <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Algeria"@en, "Algerien"@de .
+
+<descriptor/17748-1>
+    gbv:gvkppn "091375177"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17750-0>, <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Libya"@en, "Libyen"@de .
+
+<descriptor/17749-6>
+    gbv:gvkppn "091376556"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Maroc"@en ;
+    skos:broader <descriptor/17750-0>, <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Marokko"@de, "Morocco"@en ;
+    skos:related <descriptor/17753-1>.
+
+<descriptor/17753-1>
+    gbv:gvkppn "091400589"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Demokratische Arabische Republik Sahara"@de, "Spanische Sahara"@de ;
+    skos:broader <descriptor/17750-0>, <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Western Sahara"@en, "Westsahara"@de ;
+    skos:related <descriptor/17749-6>.
+
+<descriptor/17754-6>
+    gbv:gvkppn "091395615"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17750-0>, <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tunesien"@de, "Tunisia"@en .
+
+<descriptor/27291-0>
+    gbv:gvkppn "091411750"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70085>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Maghreb"@de, "Maghreb"@en ;
+    skos:related <descriptor/17750-0>, <descriptor/17986-6>, <descriptor/18054-1>.
+
+<descriptor/17680-2>
+    gbv:gvkppn "091352657"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Betschuanaland"@de ;
+    skos:broader <descriptor/17687-2>, <thsys/70429>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Botsuana"@de, "Botswana"@en .
+
+<descriptor/17682-5>
+    gbv:gvkppn "091375096"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Basutoland"@de ;
+    skos:broader <descriptor/17687-2>, <thsys/70429>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Lesotho"@de, "Lesotho"@en .
+
+<descriptor/17684-1>
+    gbv:gvkppn "091379393"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Südwestafrika"@de ;
+    skos:broader <descriptor/17687-2>, <thsys/70429>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Namibia"@de, "Namibia"@en .
+
+<descriptor/17686-4>
+    gbv:gvkppn "091389402"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Rhodesien"@de, "Simbabwe-Rhodesien"@de, "Südrhodesien"@de ;
+    skos:broader <descriptor/17687-2>, <thsys/70429>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Simbabwe"@de, "Zimbabwe"@en .
+
+<descriptor/17688-0>
+    gbv:gvkppn "091393493"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Republik Südafrika"@de ;
+    skos:broader <descriptor/17687-2>, <thsys/70429>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "South Africa"@en, "Südafrika"@de ;
+    zbwext:altLabelRelated "Südafrikanische Union"@de, "Union of South Africa"@en .
+
+<descriptor/17689-5>
+    gbv:gvkppn "091393728"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kingdom of eSwatini"@en, "Swasiland"@de, "Swaziland"@en ;
+    skos:broader <descriptor/17687-2>, <thsys/70429>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Eswatini"@de, "eSwatini"@en .
+
+<descriptor/17654-3>
+    gbv:gvkppn "091348234"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Abessinien"@de ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Ethiopia"@en, "Äthiopien"@de ;
+    skos:related <descriptor/18284-5>.
+
+<descriptor/17658-2>
+    gbv:gvkppn "091355494"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Französische Somaliküste"@de, "Französisches Afar- und Issa-Territorium"@de ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Djibouti"@en, "Dschibuti"@de .
+
+<descriptor/17660-1>
+    gbv:gvkppn "091370434"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Kenia"@de, "Kenya"@en .
+
+<descriptor/17662-4>
+    gbv:gvkppn "091371503"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Comoro Islands"@en ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Comoros"@en, "Komoren"@de .
+
+<descriptor/17665-5>
+    gbv:gvkppn "091375975"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Madagascar"@en, "Madagaskar"@de .
+
+<descriptor/17666-3>
+    gbv:gvkppn "091376114"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Njassaland"@de, "Nyasaland"@de ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Malawi"@de, "Malawi"@en .
+
+<descriptor/17668-6>
+    gbv:gvkppn "091376866"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mauritius"@de, "Mauritius"@en .
+
+<descriptor/17669-4>
+    gbv:gvkppn "09137880X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Portugiesisch-Ostafrika"@de ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mosambik"@de, "Mozambique"@en ;
+    skos:related <descriptor/30349-3>.
+
+<descriptor/17674-4>
+    gbv:gvkppn "091387612"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nordrhodesien"@de ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sambia"@de, "Zambia"@en .
+
+<descriptor/17675-2>
+    gbv:gvkppn "091389267"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Seychellen"@de, "Seychelles"@en .
+
+<descriptor/17676-0>
+    gbv:gvkppn "091389682"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Somaliland"@de ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Somalia"@de, "Somalia"@en .
+
+<descriptor/17678-3>
+    gbv:gvkppn "09139399X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tansania"@de, "Tanzania"@en .
+
+<descriptor/17679-1>
+    gbv:gvkppn "091395739"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Uganda"@de, "Uganda"@en .
+
+<descriptor/17731-4>
+    gbv:gvkppn "091353297"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Burundi"@de, "Burundi"@en .
+
+<descriptor/17738-4>
+    gbv:gvkppn "091387140"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Ruanda"@de, "Rwanda"@en .
+
+<descriptor/18284-5>
+    gbv:gvkppn "091357853"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17672-1>, <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Eritrea"@de, "Eritrea"@en ;
+    skos:related <descriptor/17654-3>.
+
+<descriptor/30096-6>
+    gbv:gvkppn "091422329"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Southern Sudan"@en ;
+    skos:broader <thsys/70445>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "South Sudan"@en, "Südsudan"@de ;
+    skos:related <descriptor/17677-5>.
+
+<descriptor/17695-3>
+    gbv:gvkppn "091350255"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Dahome"@de ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Benin"@de, "Benin"@en .
+
+<descriptor/17696-1>
+    gbv:gvkppn "091353173"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Obervolta"@de ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Burkina Faso"@de, "Burkina Faso"@en .
+
+<descriptor/17700-1>
+    gbv:gvkppn "091356873"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ivory Coast"@en ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Cote d'Ivoire"@en, "Elfenbeinküste"@de .
+
+<descriptor/17703-2>
+    gbv:gvkppn "091361753"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Gambia"@de, "Gambia"@en .
+
+<descriptor/17704-0>
+    gbv:gvkppn "09136387X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Ghana"@de, "Ghana"@en .
+
+<descriptor/17705-5>
+    gbv:gvkppn "091364736"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Guinea"@de, "Guinea"@en .
+
+<descriptor/17706-3>
+    gbv:gvkppn "091364744"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Portugiesisch-Guinea"@de ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Guinea-Bissau"@de, "Guinea-Bissau"@en ;
+    skos:related <descriptor/30349-3>.
+
+<descriptor/17707-1>
+    gbv:gvkppn "091369827"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kapverdische Inseln"@de ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Cape Verde"@en, "Kap Verde"@de ;
+    skos:related <descriptor/30349-3>.
+
+<descriptor/17709-4>
+    gbv:gvkppn "091375169"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Liberien"@de ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Liberia"@de, "Liberia"@en .
+
+<descriptor/17712-1>
+    gbv:gvkppn "091376149"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mali"@de, "Mali"@en .
+
+<descriptor/17713-6>
+    gbv:gvkppn "091376858"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mauretanien"@de, "Mauritania"@en .
+
+<descriptor/17716-0>
+    gbv:gvkppn "091380243"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Niger"@de, "Niger"@en .
+
+<descriptor/17717-5>
+    gbv:gvkppn "091380251"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nigeria"@de, "Nigeria"@en .
+
+<descriptor/17721-0>
+    gbv:gvkppn "091389178"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Senegal"@de, "Senegal"@en .
+
+<descriptor/17722-5>
+    gbv:gvkppn "091389364"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sierra Leone"@de, "Sierra Leone"@en .
+
+<descriptor/17723-3>
+    gbv:gvkppn "091395178"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17724-1>, <thsys/70560>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Togo"@de, "Togo"@en .
+
+<descriptor/17702-4>
+    gbv:gvkppn "091361737"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Gabon"@en, "Gabun"@de .
+
+<descriptor/17726-4>
+    gbv:gvkppn "091347297"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Rio Muni und Fernando Poo"@de, "Spanisch-Guinea"@de ;
+    skos:broader <descriptor/17743-4>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Equatorial Guinea"@en, "Äquatorialguinea"@de .
+
+<descriptor/17727-2>
+    gbv:gvkppn "091346983"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Portugiesisch-Westafrika"@de ;
+    skos:broader <descriptor/17743-4>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Angola"@de, "Angola"@en ;
+    skos:related <descriptor/30349-3>.
+
+<descriptor/17732-2>
+    gbv:gvkppn "091369789"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17743-4>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Cameroon"@en, "Kamerun"@de .
+
+<descriptor/17735-3>
+    gbv:gvkppn "091420342"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Französisch-Kongo"@de, "Kongo-Brazzaville"@de, "Republik Kongo"@de ;
+    skos:broader <descriptor/17743-4>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Congo (Republic)"@en, "Kongo (Republik)"@de .
+
+<descriptor/17739-2>
+    gbv:gvkppn "091387701"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17743-4>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sao Tome and Principe"@en, "Sao Tome und Principe"@de ;
+    skos:related <descriptor/30349-3>.
+
+<descriptor/17740-3>
+    gbv:gvkppn "091395585"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17743-4>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Chad"@en, "Tschad"@de .
+
+<descriptor/17742-6>
+    gbv:gvkppn "091371627"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Belgisch-Kongo"@de, "Congo-Kinshasa"@en, "Demokratische Republik Kongo"@de, "Kongo-Kinshasa"@de, "Kongo-Leopoldville"@de, "Kongo-Zaire"@de, "Zaire"@de ;
+    skos:broader <descriptor/17743-4>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Congo (Democratic Republic)"@en, "Kongo (Demokratische Republik)"@de ;
+    skos:scopeNote "Ehemals Zaire"@de .
+
+<descriptor/17744-2>
+    gbv:gvkppn "091402239"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Zentralafrikanisches Kaiserreich"@de ;
+    skos:broader <descriptor/17743-4>, <thsys/71031>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Central African Republic"@en, "Zentralafrikanische Republik"@de .
+
+<descriptor/17571-0>
+    gbv:gvkppn "091381967"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Far East"@en, "Ferner Osten"@de, "Ostasiatische Länder"@de, "Ostasiatische Staaten"@de ;
+    skos:broader <descriptor/17553-2>, <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "East Asia"@en, "Ostasien"@de ;
+    skos:related <descriptor/17589-2>.
+
+<descriptor/17589-2>
+    gbv:gvkppn "091393574"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Südostasiatische Länder"@de, "Südostasiatische Staaten"@de ;
+    skos:broader <descriptor/17553-2>, <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30108-4>;
+    skos:prefLabel "Southeast Asia"@en, "Südostasien"@de ;
+    skos:related <descriptor/17571-0>, <descriptor/17979-3>, <descriptor/19167-4>, <descriptor/30086-2>.
+
+<descriptor/17595-0>
+    gbv:gvkppn "091402247"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Innerasien"@de, "Zentralasiatische Länder"@de, "Zentralasiatische Staaten"@de ;
+    skos:broader <descriptor/17553-2>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17472-2>, <descriptor/17491-5>, <descriptor/17496-2>, <descriptor/17497-0>, <descriptor/17500-2>, <descriptor/17502-5>, <descriptor/17503-3>, <descriptor/17593-4>;
+    skos:prefLabel "Central Asia"@en, "Zentralasien"@de ;
+    skos:related <descriptor/17565-2>.
+
+<descriptor/17608-3>
+    gbv:gvkppn "091378419"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Naher Osten"@de, "Nahost"@de, "Vorderasien"@de, "Vorderer Orient"@de, "West Asia"@en, "Westasien"@de, "Western Asia"@en ;
+    skos:broader <descriptor/17553-2>, <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Middle East"@en, "Mittlerer Osten"@de ;
+    skos:related <descriptor/17978-5>, <descriptor/29746-3>, <descriptor/30088-5>.
+
+<descriptor/19167-4>
+    gbv:gvkppn "091393523"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Südasiatische Länder"@de, "Südasiatische Staaten"@de ;
+    skos:broader <descriptor/17553-2>, <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "South Asia"@en, "Südasien"@de ;
+    skos:related <descriptor/17589-2>, <descriptor/19180-5>, <descriptor/30084-6>.
+
+<descriptor/17565-2>
+    gbv:gvkppn "091353777"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Festlandchina"@de, "Greater China"@en, "Mainland China"@en, "Volksrepublik China"@de ;
+    skos:broader <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30089-3>, <descriptor/30092-0>, <descriptor/30107-6>;
+    skos:prefLabel "China"@de, "China"@en ;
+    skos:related <descriptor/17567-5>, <descriptor/17595-0>.
+
+<descriptor/17567-5>
+    gbv:gvkppn "091393914"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Formosa"@de, "Nationalchina"@de, "Republic of China"@en ;
+    skos:broader <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Taiwan"@de, "Taiwan"@en ;
+    skos:related <descriptor/17565-2>.
+
+<descriptor/17568-3>
+    gbv:gvkppn "091369282"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30106-1>;
+    skos:prefLabel "Japan"@de, "Japan"@en .
+
+<descriptor/17569-1>
+    gbv:gvkppn "091380413"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Democratic People's Republic of Korea"@en, "Demokratische Volksrepublik Korea"@de ;
+    skos:broader <descriptor/19166-6>, <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nordkorea"@de, "North Korea"@en .
+
+<descriptor/17570-2>
+    gbv:gvkppn "091393558"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Republic of Korea"@en, "Republik Korea"@de ;
+    skos:broader <descriptor/19166-6>, <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "South Korea"@en, "Südkorea"@de .
+
+<descriptor/19166-6>
+    gbv:gvkppn "091372151"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17569-1>, <descriptor/17570-2>;
+    skos:prefLabel "Korea"@de, "Korea"@en .
+
+<descriptor/30089-3>
+    gbv:gvkppn "091408806"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kowloon"@en ;
+    skos:broader <descriptor/17565-2>, <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Hong Kong"@en, "Hongkong"@de .
+
+<descriptor/30092-0>
+    gbv:gvkppn "091411661"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Macao"@de ;
+    skos:broader <descriptor/17565-2>, <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Macau"@de, "Macau"@en .
+
+<descriptor/30106-1>
+    gbv:gvkppn "091418399"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Edo"@de ;
+    skos:broader <descriptor/17568-3>, <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tokio"@de, "Tokyo"@en .
+
+<descriptor/30107-6>
+    gbv:gvkppn "091416671"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17565-2>, <thsys/70147>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Shanghai"@de, "Shanghai"@en .
+
+<descriptor/17464-1>
+    gbv:gvkppn "091348048"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Armenia"@en, "Armenien"@de .
+
+<descriptor/17618-0>
+    gbv:gvkppn "091349303"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Bahrein"@de ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bahrain"@de, "Bahrain"@en .
+
+<descriptor/17621-4>
+    gbv:gvkppn "091369118"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Irak"@de, "Iraq"@en .
+
+<descriptor/17622-2>
+    gbv:gvkppn "091369126"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Persien"@de ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Iran"@de, "Iran"@en .
+
+<descriptor/17623-0>
+    gbv:gvkppn "091369215"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Israel"@de, "Israel"@en ;
+    skos:related <descriptor/30090-4>, <descriptor/30091-2>.
+
+<descriptor/17624-5>
+    gbv:gvkppn "091369290"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Arabische Republik Jemen"@de, "Demokratische Volksrepublik Jemen"@de, "Nordjemen"@de, "Republik Jemen"@de, "Südjemen"@de ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Jemen"@de, "Yemen"@en .
+
+<descriptor/17626-1>
+    gbv:gvkppn "091369363"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Jordan"@en, "Jordanien"@de ;
+    skos:related <descriptor/18285-3>.
+
+<descriptor/17627-6>
+    gbv:gvkppn "091370302"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Quatar"@de ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Katar"@de, "Qatar"@en .
+
+<descriptor/17628-4>
+    gbv:gvkppn "09137362X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Kuwait"@de, "Kuwait"@en .
+
+<descriptor/17630-3>
+    gbv:gvkppn "091375134"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Lebanon"@en, "Libanon"@de .
+
+<descriptor/17632-6>
+    gbv:gvkppn "091381495"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Maskat und Oman"@de ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Oman"@de, "Oman"@en .
+
+<descriptor/17634-2>
+    gbv:gvkppn "091387736"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Saudi Arabia"@en, "Saudi-Arabien"@de .
+
+<descriptor/17636-5>
+    gbv:gvkppn "091393752"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Syria"@en, "Syrien"@de .
+
+<descriptor/17638-1>
+    gbv:gvkppn "091395631"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Türkiye"@en ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Turkey"@en, "Türkei"@de ;
+    skos:related <descriptor/30093-5>.
+
+<descriptor/17639-6>
+    gbv:gvkppn "091397251"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Abu Dhabi"@de, "Adschman"@de, "Dubai"@de, "Dubaij"@de, "Fudschaira"@de, "Schardscha"@de, "UAE (United Arab Emirates)"@en ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "United Arab Emirates"@en, "Vereinigte Arabische Emirate"@de .
+
+<descriptor/18285-3>
+    gbv:gvkppn "091382122"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30090-4>, <descriptor/30091-2>;
+    skos:prefLabel "Palestine"@en, "Palästina"@de ;
+    skos:related <descriptor/17626-1>.
+
+<descriptor/30090-4>
+    gbv:gvkppn "091419794"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Judäa"@de, "Samaria"@en, "Westjordanien"@de ;
+    skos:broader <descriptor/18285-3>, <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "West Bank"@en, "Westjordanland"@de ;
+    skos:related <descriptor/17623-0>.
+
+<descriptor/30091-2>
+    gbv:gvkppn "091407818"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Gaza-Streifen"@de ;
+    skos:broader <descriptor/18285-3>, <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Gaza Strip"@en, "Gazastreifen"@de ;
+    skos:related <descriptor/17623-0>.
+
+<descriptor/30093-5>
+    gbv:gvkppn "091414261"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70253>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Osmanisches Reich"@de, "Ottoman Empire"@en ;
+    skos:related <descriptor/17638-1>.
+
+<descriptor/17576-4>
+    gbv:gvkppn "091352916"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Brunei Darussalam"@de ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Brunei"@de, "Brunei"@en .
+
+<descriptor/17578-0>
+    gbv:gvkppn "091366941"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Indonesia"@en, "Indonesien"@de ;
+    skos:related <descriptor/21042-2>.
+
+<descriptor/17580-6>
+    gbv:gvkppn "091369770"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kamputschea"@de, "Khmer-Republik"@de ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Cambodia"@en, "Kambodscha"@de .
+
+<descriptor/17583-0>
+    gbv:gvkppn "091374375"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Laos"@de, "Laos"@en .
+
+<descriptor/17584-5>
+    gbv:gvkppn "091376122"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Malaysia"@de, "Malaysia"@en .
+
+<descriptor/17586-1>
+    gbv:gvkppn "091383161"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Philippinen"@de, "Philippines"@en .
+
+<descriptor/17588-4>
+    gbv:gvkppn "091389445"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Singapore"@en, "Singapur"@de .
+
+<descriptor/17590-3>
+    gbv:gvkppn "091394872"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Siam"@de ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Thailand"@de, "Thailand"@en .
+
+<descriptor/17592-6>
+    gbv:gvkppn "091398746"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nordvietnam"@de, "Südvietnam"@de ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Viet Nam"@en, "Vietnam"@de .
+
+<descriptor/17599-6>
+    gbv:gvkppn "091379075"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Birma"@de, "Burma"@en ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Myanmar"@de, "Myanmar"@en .
+
+<descriptor/21042-2>
+    gbv:gvkppn "091395100"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ost-Timor"@de, "Osttimor"@de ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "East Timor"@en, "Timor Leste"@de ;
+    skos:related <descriptor/17578-0>.
+
+<descriptor/30086-2>
+    gbv:gvkppn "09140908X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Indochina"@de, "Indochina"@en ;
+    skos:related <descriptor/17589-2>.
+
+<descriptor/30108-4>
+    gbv:gvkppn "091412315"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Mekongbecken"@de ;
+    skos:broader <descriptor/17589-2>, <thsys/70327>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mekong"@de, "Mekong"@en ;
+    skos:scopeNote "Includes the entire Mekong River basin."@en, "Umfasst das gesamte Einzugsbecken des Mekong."@de ;
+    zbwext:altLabelNarrower "Mekong Delta"@en .
+
+<descriptor/17596-5>
+    gbv:gvkppn "091345782"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Afghanistan"@de, "Afghanistan"@en .
+
+<descriptor/17597-3>
+    gbv:gvkppn "091349346"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bangladesch"@de, "Bangladesh"@en .
+
+<descriptor/17598-1>
+    gbv:gvkppn "091351618"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bhutan"@de, "Bhutan"@en .
+
+<descriptor/17602-1>
+    gbv:gvkppn "091366895"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "India"@en, "Indien"@de .
+
+<descriptor/17607-5>
+    gbv:gvkppn "091376130"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Maldives"@en, "Malediven"@de .
+
+<descriptor/17609-1>
+    gbv:gvkppn "091379806"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nepal"@de, "Nepal"@en .
+
+<descriptor/17610-2>
+    gbv:gvkppn "091382114"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Pakistan"@de, "Pakistan"@en .
+
+<descriptor/17612-5>
+    gbv:gvkppn "091391172"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ceylon"@de ;
+    skos:broader <thsys/70561>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sri Lanka"@de, "Sri Lanka"@en .
+
+<descriptor/17472-2>
+    gbv:gvkppn "091362857"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Grusinien"@de ;
+    skos:broader <descriptor/17595-0>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Georgia (Country)"@en, "Georgien"@de .
+
+<descriptor/17491-5>
+    gbv:gvkppn "091348145"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17595-0>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Aserbaidschan"@de, "Azerbaijan"@en .
+
+<descriptor/17496-2>
+    gbv:gvkppn "091370256"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17595-0>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Kasachstan"@de, "Kazakhstan"@en .
+
+<descriptor/17497-0>
+    gbv:gvkppn "09137068X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kirgisien"@de, "Kirgisische Republik"@de, "Kirgistan"@de ;
+    skos:broader <descriptor/17595-0>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Kirgisistan"@de, "Kyrgyzstan"@en .
+
+<descriptor/17500-2>
+    gbv:gvkppn "091393892"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17595-0>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tadschikistan"@de, "Tajikistan"@en .
+
+<descriptor/17502-5>
+    gbv:gvkppn "09139564X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Turkmenien"@de ;
+    skos:broader <descriptor/17595-0>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Turkmenistan"@de, "Turkmenistan"@en .
+
+<descriptor/17503-3>
+    gbv:gvkppn "091396875"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17595-0>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Usbekistan"@de, "Uzbekistan"@en .
+
+<descriptor/17593-4>
+    gbv:gvkppn "091378702"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/17595-0>, <thsys/71032>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mongolei"@de, "Mongolia"@en .
+
+<descriptor/17979-3>
+    gbv:gvkppn "091348137"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "ASEAN-Länder"@de ;
+    skos:broader <descriptor/19172-4>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "ASEAN countries"@en, "ASEAN-Staaten"@de ;
+    skos:related <descriptor/17589-2>, <descriptor/30255-5>.
+
+<descriptor/19171-6>
+    gbv:gvkppn "091347238"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "APEC-Länder"@de ;
+    skos:broader <descriptor/19172-4>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "APEC countries"@en, "APEC-Staaten"@de .
+
+<descriptor/30255-5>
+    gbv:gvkppn "1764295862"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/19172-4>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "RCEP countries"@en, "RCEP-Staaten"@de ;
+    skos:related <descriptor/17979-3>.
+
+<descriptor/30066-1>
+    gbv:gvkppn "812579739"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "TTIP"@en, "TTIP-Länder"@de, "Transatlantic free trade area"@en, "Transatlantic trade and investment partnership"@en, "Transatlantische Freihandelszone"@de, "Transatlantische Handels- und Investitionspartnerschaft"@de ;
+    skos:broader <descriptor/30074-2>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "TTIP countries"@en, "TTIP-Staaten"@de .
+
+<descriptor/17977-0>
+    gbv:gvkppn "091346266"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "AKP-Länder"@de, "Cotonou-Abkommen"@de, "Group of African, Caribbean and Pacific states"@en, "Lomé-Abkommen"@de ;
+    skos:broader <descriptor/10492-3>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "ACP countries"@en, "AKP-Staaten"@de ;
+    skos:related <descriptor/17642-3>, <descriptor/17989-0>.
+
+<descriptor/19173-2>
+    gbv:gvkppn "091353335"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "CACM countries"@en, "CACM-Staaten"@de, "MCCA-Länder"@de ;
+    skos:broader <descriptor/10492-3>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Central American Integration System"@en, "Zentralamerikanisches Integrationssystem"@de ;
+    skos:related <descriptor/17791-0>.
+
+<descriptor/19174-0>
+    gbv:gvkppn "091353424"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "CARICOM-Länder"@de ;
+    skos:broader <descriptor/10492-3>, <descriptor/17989-0>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "CARICOM countries"@en, "CARICOM-Staaten"@de .
+
+<descriptor/19176-3>
+    gbv:gvkppn "091355737"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "ECOWAS-Länder"@de ;
+    skos:broader <descriptor/10492-3>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "ECOWAS countries"@en, "ECOWAS-Staaten"@de ;
+    skos:related <descriptor/17724-1>.
+
+<descriptor/19180-5>
+    gbv:gvkppn "091387418"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "SAARC-Länder"@de ;
+    skos:broader <descriptor/10492-3>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "SAARC countries"@en, "SAARC-Staaten"@de ;
+    skos:related <descriptor/19167-4>.
+
+<descriptor/17993-2>
+    gbv:gvkppn "091380731"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "High-income OECD countries"@en, "OECD-Länder"@de, "Westliche Industrieländer"@de, "Westliche Industriestaaten"@de ;
+    skos:broader <descriptor/10499-3>, <descriptor/17999-4>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "OECD countries"@en, "OECD-Staaten"@de .
+
+<descriptor/17994-0>
+    gbv:gvkppn "091386756"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Comecon countries"@en, "Comecon-Länder"@de, "RGW-Länder"@de ;
+    skos:broader <descriptor/11123-1>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "CMEA countries"@en, "RGW-Staaten"@de .
+
+<descriptor/29674-2>
+    gbv:gvkppn "091407583"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "CEMAC countries"@en, "CEMAC-Staaten"@de, "Franc zone"@en, "Franc-Zone"@de, "UEMOA countries"@en, "UEMOA-Staaten"@de, "WAEMU countries"@en, "WAEMU-Staaten"@de ;
+    skos:broader <descriptor/17986-6>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "CFA franc zone"@en, "CFA-Franc-Zone"@de .
+
+<descriptor/17982-0>
+    gbv:gvkppn "091355885"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "EFTA-Länder"@de ;
+    skos:broader <descriptor/17999-4>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "EFTA countries"@en, "EFTA-Staaten"@de ;
+    skos:related <descriptor/16815-3>, <descriptor/29743-2>.
+
+<descriptor/15879-3>
+    gbv:gvkppn "091367913"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Hallig"@de, "Inselstaat"@de, "Schären"@de ;
+    skos:broader <descriptor/30380-2>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Insel"@de, "Island"@en .
+
+<descriptor/17983-5>
+    gbv:gvkppn "091358639"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "EG-Länder"@de, "EG-Staaten"@de, "EU-Länder"@de ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/17980-4>, <descriptor/19085-6>, <descriptor/19336-0>;
+    skos:prefLabel "EU countries"@en, "EU-Staaten"@de ;
+    skos:related <descriptor/16815-3>, <descriptor/29743-2>, <descriptor/29749-4>.
+
+<descriptor/17985-1>
+    gbv:gvkppn "09138155X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Erdölexportierende Staaten"@de, "OPEC-Länder"@de ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "OPEC countries"@en, "OPEC-Staaten"@de ;
+    skos:related <descriptor/17616-4>, <descriptor/30654-5>, <descriptor/30655-3>.
+
+<descriptor/17987-4>
+    gbv:gvkppn "091387531"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Front-line states"@en, "SADC-Länder"@de, "SADCC-Staaten"@de ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "SADC countries"@en, "SADC-Staaten"@de ;
+    skos:related <descriptor/17687-2>.
+
+<descriptor/19085-6>
+    gbv:gvkppn "091398789"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Visegrad Group"@en, "Visegrad states"@en, "Visegrad-Gruppe"@de, "Visegrad-Länder"@de ;
+    skos:broader <descriptor/17983-5>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Visegrad countries"@en, "Visegrad-Staaten"@de ;
+    skos:related <descriptor/19084-1>.
+
+<descriptor/19130-6>
+    gbv:gvkppn "091379199"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "NAFTA-Länder"@de, "NAFTA-Staaten"@de ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "USMCA countries"@en, "USMCA-Staaten"@de ;
+    skos:related <descriptor/17806-6>.
+
+<descriptor/19170-1>
+    gbv:gvkppn "091346908"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Andean Community states"@en, "Andengemeinschaft"@de, "Andenpakt-Länder"@de, "Andenpakt-Staaten"@de ;
+    skos:broader <descriptor/17931-3>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Andean countries"@en, "Anden-Staaten"@de ;
+    skos:related <descriptor/30653-0>.
+
+<descriptor/19175-5>
+    gbv:gvkppn "091353920"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "COMESA-Länder"@de, "PTA-Länder"@de, "PTA-Staaten"@de ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "COMESA countries"@en, "COMESA-Staaten"@de ;
+    skos:related <descriptor/17672-1>, <descriptor/17687-2>;
+    skos:scopeNote "Mitgliedsländer des Common Market for Eastern and Southern Africa"@de .
+
+<descriptor/19336-0>
+    gbv:gvkppn "091358566"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "EEMU"@en, "EMU (European Monetary Union)"@en, "EWU (Europäische Währungsunion)"@de, "EWWU"@de, "Euroland"@de, "European Currency Union"@en, "European Economic and Monetary Union"@en, "European Monetary Union"@en, "Europäische Wirtschafts- und Währungsunion"@de, "Europäische Währungsunion"@de, "Euroraum"@de, "Maastricht-Vertrag"@de ;
+    skos:broader <descriptor/17983-5>, <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Euro area"@en, "Eurozone"@de .
+
+<descriptor/26021-6>
+    gbv:gvkppn "594124212"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "CEFTA-Länder"@de ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "CEFTA countries"@en, "CEFTA-Staaten"@de ;
+    skos:related <descriptor/16825-0>, <descriptor/19084-1>.
+
+<descriptor/29741-6>
+    gbv:gvkppn "519725840"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "CAFTA-DR countries"@en, "DR-CAFTA countries"@en ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "CAFTA countries"@en, "CAFTA-Staaten"@de ;
+    skos:related <descriptor/17791-0>.
+
+<descriptor/29743-2>
+    gbv:gvkppn "091407354"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "EEA countries"@en, "EWR-Staaten"@de ;
+    skos:related <descriptor/16815-3>, <descriptor/17982-0>, <descriptor/17983-5>.
+
+<descriptor/29745-5>
+    gbv:gvkppn "091409225"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "IOR-ARC countries"@en ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "IOR-ARC-Staaten"@de, "Indian Ocean Rim countries"@en ;
+    skos:related <descriptor/17959-2>.
+
+<descriptor/30115-0>
+    gbv:gvkppn "838320635"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "EAEU"@en, "EAWU"@de ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Eurasian Economic Union"@en, "Eurasische Wirtschaftsunion"@de .
+
+<descriptor/30135-1>
+    gbv:gvkppn "861860772"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "UNASUL-Staaten"@de, "UNASUR-Länder"@de, "USAN"@en ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "UNASUR-Staaten"@de, "USAN countries"@en .
+
+<descriptor/30654-5>
+    gbv:gvkppn "1937400379"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "GCC countries"@en, "GCC-Staaten"@de ;
+    skos:related <descriptor/17616-4>, <descriptor/17985-1>, <descriptor/30655-3>;
+    zbwext:useInsteadNote [
+        rdf:value "Bis 2024 für Literaturrecherche"@de ;
+        rdfs:seeAlso <descriptor/17616-4>
+    ], [
+        rdf:value "Until 2024 to search for literature"@en ;
+        rdfs:seeAlso <descriptor/17616-4>
+    ] .
+
+<descriptor/30655-3>
+    gbv:gvkppn "1937401510"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Arab petroleum-exporting countries"@en, "OAPEC-Länder"@de ;
+    skos:broader <thsys/189012>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "OAPEC countries"@en, "OAPEC-Staaten"@de ;
+    skos:related <descriptor/17616-4>, <descriptor/17985-1>, <descriptor/30654-5>;
+    zbwext:useInsteadNote [
+        rdf:value "Bis 2024 für Literaturrecherche"@de ;
+        rdfs:seeAlso <descriptor/17616-4>
+    ], [
+        rdf:value "Until 2024 to search for literature"@en ;
+        rdfs:seeAlso <descriptor/17978-5>
+    ] .
+
+<descriptor/16956-6>
+    gbv:gvkppn "091345375"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Aargau"@de, "Aargau"@en .
+
+<descriptor/16957-4>
+    gbv:gvkppn "091347270"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Appenzell Außerrhoden"@de, "Appenzell Innerrhoden"@de ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Appenzell"@de, "Appenzell"@en .
+
+<descriptor/16958-2>
+    gbv:gvkppn "09134963X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Basel-Land"@de, "Basel-Landschaft"@de, "Basel-Stadt"@de ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Basel"@de, "Basel"@en .
+
+<descriptor/16959-0>
+    gbv:gvkppn "091350433"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kanton Bern"@de ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bern"@de, "Bern"@en .
+
+<descriptor/16960-1>
+    gbv:gvkppn "091361184"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Freiburg (Kanton)"@de, "Fribourg"@en .
+
+<descriptor/16961-6>
+    gbv:gvkppn "091362695"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Geneva"@en, "Genf"@de .
+
+<descriptor/16962-4>
+    gbv:gvkppn "091363942"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Glarus"@de, "Glarus"@en .
+
+<descriptor/16963-2>
+    gbv:gvkppn "091364248"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Graubünden"@de, "Graubünden"@en .
+
+<descriptor/16964-0>
+    gbv:gvkppn "091369517"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Jura (Canton)"@en, "Jura (Kanton)"@de .
+
+<descriptor/16966-3>
+    gbv:gvkppn "091375959"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Lucerne"@en, "Luzern"@de .
+
+<descriptor/16967-1>
+    gbv:gvkppn "091379954"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Neuchatel"@en, "Neuenburg"@de .
+
+<descriptor/16968-6>
+    gbv:gvkppn "091380162"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Nidwalden"@de, "Nidwalden"@en .
+
+<descriptor/16969-4>
+    gbv:gvkppn "091380723"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Obwalden"@de, "Obwalden"@en .
+
+<descriptor/16970-5>
+    gbv:gvkppn "09138768X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sankt Gallen"@de, "St. Gallen"@en .
+
+<descriptor/16971-3>
+    gbv:gvkppn "091387825"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Schaffhausen"@de, "Schaffhausen"@en .
+
+<descriptor/16972-1>
+    gbv:gvkppn "091388805"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16956-6>, <descriptor/16957-4>, <descriptor/16958-2>, <descriptor/16959-0>, <descriptor/16960-1>, <descriptor/16961-6>, <descriptor/16962-4>, <descriptor/16963-2>, <descriptor/16964-0>, <descriptor/16966-3>, <descriptor/16967-1>, <descriptor/16968-6>, <descriptor/16969-4>, <descriptor/16970-5>, <descriptor/16971-3>, <descriptor/16973-6>, <descriptor/16974-4>, <descriptor/16975-2>, <descriptor/16976-0>, <descriptor/16977-5>, <descriptor/16978-3>, <descriptor/16979-1>, <descriptor/16980-2>, <descriptor/16981-0>, <descriptor/30075-0>, <descriptor/30350-4>;
+    skos:prefLabel "Schweiz"@de, "Switzerland"@en ;
+    skos:related <descriptor/29747-1>.
+
+<descriptor/16973-6>
+    gbv:gvkppn "091388856"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Schwyz"@de, "Schwyz"@en .
+
+<descriptor/16974-4>
+    gbv:gvkppn "091389674"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Solothurn"@de, "Solothurn"@en .
+
+<descriptor/16975-2>
+    gbv:gvkppn "09139497X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Thurgau"@de, "Thurgau"@en .
+
+<descriptor/16976-0>
+    gbv:gvkppn "091394708"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tessin"@de, "Ticino"@en .
+
+<descriptor/16977-5>
+    gbv:gvkppn "091396816"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Uri"@de, "Uri"@en .
+
+<descriptor/16978-3>
+    gbv:gvkppn "091399440"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Valais"@en, "Wallis"@de .
+
+<descriptor/16979-1>
+    gbv:gvkppn "091399068"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Vaud"@en, "Waadt"@de .
+
+<descriptor/16980-2>
+    gbv:gvkppn "091402832"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Kanton Zürich"@de ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Zurich"@en, "Zürich"@de .
+
+<descriptor/16981-0>
+    gbv:gvkppn "091402794"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Zug"@en, "Zug (Kanton)"@de .
+
+<descriptor/30075-0>
+    gbv:gvkppn "094416052"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Französische Schweiz"@de, "Romandie"@de ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Western Switzerland"@en, "Westschweiz"@de .
+
+<descriptor/30350-4>
+    gbv:gvkppn "1822515580"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16972-1>, <thsys/70003>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Eastern Switzerland"@en, "Ostschweiz"@de ;
+    zbwext:useInsteadNote [
+        rdf:value "Bis 2022 für Literaturrecherche"@de ;
+        rdfs:seeAlso <descriptor/16972-1>
+    ] .
+
+<descriptor/16830-0>
+    gbv:gvkppn "091350425"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Berlin"@de, "Berlin"@en .
+
+<descriptor/16834-6>
+    gbv:gvkppn "091420334"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Deutscher Bund"@de, "Deutsches Reich"@de, "Heiliges Römisches Reich Deutscher Nation"@de, "Norddeutscher Bund"@de, "Rheinbund"@de, "Römisch-Deutsches Reich"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30111-1>;
+    skos:prefLabel "Deutschland (bis 1945)"@de, "Germany (until 1945)"@en .
+
+<descriptor/16841-2>
+    gbv:gvkppn "091349257"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Baden-Württemberg"@de, "Baden-Württemberg"@en .
+
+<descriptor/16842-0>
+    gbv:gvkppn "091350050"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Niederbayern"@de, "Nordbayern"@de, "Nordost-Bayern"@de, "Oberbayern"@de, "Ostbayern"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bavaria"@en, "Bayern"@de .
+
+<descriptor/16849-0>
+    gbv:gvkppn "091352843"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Land Bremen"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Bremen"@de, "Bremen"@en .
+
+<descriptor/16853-2>
+    gbv:gvkppn "091346622"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Alte Bundesländer"@de, "Früheres Bundesgebiet"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "West Germany"@en, "Westdeutsche Bundesländer"@de .
+
+<descriptor/16868-3>
+    gbv:gvkppn "091365082"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Metropolregion Hamburg"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Hamburg"@de, "Hamburg"@en .
+
+<descriptor/16874-1>
+    gbv:gvkppn "091365929"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Mittelhessen"@de, "Nordhessen"@de, "Osthessen"@de, "Südhessen"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30105-3>;
+    skos:prefLabel "Hesse"@en, "Hessen"@de .
+
+<descriptor/16896-5>
+    gbv:gvkppn "091380200"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Südniedersachsen"@de, "Südost-Niedersachsen"@de, "Südwest-Niedersachsen"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Lower Saxony"@en, "Niedersachsen"@de .
+
+<descriptor/16898-1>
+    gbv:gvkppn "09138043X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ostwestfalen"@de, "Westfalen"@de, "Westfalen-Lippe"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/30112-6>;
+    skos:prefLabel "Nordrhein-Westfalen"@de, "North Rhine-Westphalia"@en .
+
+<descriptor/16909-1>
+    gbv:gvkppn "091386764"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Pfalz"@de, "Südpfalz"@de, "Westpfalz"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Rheinland-Pfalz"@de, "Rhineland-Palatinate"@en .
+
+<descriptor/16912-5>
+    gbv:gvkppn "091387426"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Saarland"@de, "Saarland"@en .
+
+<descriptor/16914-1>
+    gbv:gvkppn "091388260"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Holstein"@de, "Landesteil Schleswig"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Schleswig-Holstein"@de, "Schleswig-Holstein"@en .
+
+<descriptor/16927-6>
+    gbv:gvkppn "09135451X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Deutsche Demokratische Republik"@de, "SBZ (Sowjetisch-besetzte Zone)"@de, "Sowjetzone"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "DDR"@de, "German Democratic Republic"@en ;
+    skos:related <descriptor/18131-2>.
+
+<descriptor/18012-3>
+    gbv:gvkppn "091354749"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Amerikanische Zone Deutschlands"@de, "BRD"@de, "Britische Zone Deutschlands"@de, "Bundesrepublik Deutschland"@de, "Französische Zone Deutschlands"@de, "Vereinigtes Wirtschaftsgebiet Deutschlands"@de ;
+    skos:broader <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16830-0>, <descriptor/16834-6>, <descriptor/16841-2>, <descriptor/16842-0>, <descriptor/16849-0>, <descriptor/16853-2>, <descriptor/16868-3>, <descriptor/16874-1>, <descriptor/16896-5>, <descriptor/16898-1>, <descriptor/16909-1>, <descriptor/16912-5>, <descriptor/16914-1>, <descriptor/16927-6>, <descriptor/18131-2>, <descriptor/18132-0>, <descriptor/18133-5>, <descriptor/18134-3>, <descriptor/18135-1>, <descriptor/18136-6>, <descriptor/19075-2>, <descriptor/19076-0>;
+    skos:prefLabel "Deutschland"@de, "Germany"@en ;
+    skos:related <descriptor/29747-1>;
+    zbwext:useInsteadNote [
+        rdf:value "Für Deutschland bis 1945"@de ;
+        rdfs:seeAlso <descriptor/16834-6>
+    ] .
+
+<descriptor/18131-2>
+    gbv:gvkppn "09137989X"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ehemalige DDR"@de, "Mitteldeutschland"@de, "Neue Bundesländer"@de, "Ostdeutsche Bundesländer"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "East Germany"@en, "Ostdeutschland"@de ;
+    skos:related <descriptor/16927-6>.
+
+<descriptor/18132-0>
+    gbv:gvkppn "091352762"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ostbrandenburg"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Brandenburg"@de, "Brandenburg"@en ;
+    skos:related <descriptor/30111-1>.
+
+<descriptor/18133-5>
+    gbv:gvkppn "091376912"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Vorpommern"@de, "West Pomerania"@en ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Mecklenburg-Vorpommern"@de, "Mecklenburg-Vorpommern"@en .
+
+<descriptor/18134-3>
+    gbv:gvkppn "091387485"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ost-Sachsen"@de, "West-Sachsen"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sachsen"@de, "Saxony"@en .
+
+<descriptor/18135-1>
+    gbv:gvkppn "091387493"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Sachsen-Anhalt"@de, "Saxony-Anhalt"@en .
+
+<descriptor/18136-6>
+    gbv:gvkppn "091394988"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Ost-Thüringen"@de, "Süd-Thüringen"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Thuringia"@en, "Thüringen"@de .
+
+<descriptor/19075-2>
+    gbv:gvkppn "091380391"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Nordostdeutschland"@de, "Nordwestdeutschland"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Norddeutschland"@de, "Northern Germany"@en .
+
+<descriptor/19076-0>
+    gbv:gvkppn "091393531"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Südwestdeutschland"@de ;
+    skos:broader <descriptor/18012-3>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Southern Germany"@en, "Süddeutschland"@de .
+
+<descriptor/30105-3>
+    gbv:gvkppn "091407605"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16874-1>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Frankfurt (Main)"@de, "Frankfurt (Main)"@en .
+
+<descriptor/30111-1>
+    gbv:gvkppn "091415233"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16834-6>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Preußen"@de, "Prussia"@en ;
+    skos:related <descriptor/18132-0>.
+
+<descriptor/30112-6>
+    gbv:gvkppn "091416191"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Rhein-Ruhr-Gebiet"@de, "Ruhrrevier"@de ;
+    skos:broader <descriptor/16898-1>, <thsys/70361>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Ruhr district"@en, "Ruhrgebiet"@de .
+
+<descriptor/16943-1>
+    gbv:gvkppn "091353084"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Burgenland"@de, "Burgenland"@en .
+
+<descriptor/16946-2>
+    gbv:gvkppn "091370167"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Carinthia"@en, "Kärnten"@de .
+
+<descriptor/16948-5>
+    gbv:gvkppn "091380197"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Lower Austria"@en, "Niederösterreich"@de ;
+    skos:related <descriptor/16955-1>.
+
+<descriptor/16949-3>
+    gbv:gvkppn "091380669"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Oberösterreich"@de, "Upper Austria"@en .
+
+<descriptor/16950-4>
+    gbv:gvkppn "091381975"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:narrower <descriptor/16943-1>, <descriptor/16946-2>, <descriptor/16948-5>, <descriptor/16949-3>, <descriptor/16951-2>, <descriptor/16952-0>, <descriptor/16953-5>, <descriptor/16954-3>, <descriptor/16955-1>;
+    skos:prefLabel "Austria"@en, "Österreich"@de ;
+    skos:related <descriptor/29747-1>, <descriptor/30109-2>.
+
+<descriptor/16951-2>
+    gbv:gvkppn "091387604"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Bundesland Salzburg"@de ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Salzburg"@de, "Salzburg"@en .
+
+<descriptor/16952-0>
+    gbv:gvkppn "091392209"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Steiermark"@de, "Styria"@en .
+
+<descriptor/16953-5>
+    gbv:gvkppn "091395119"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Tirol"@de, "Tyrol"@en .
+
+<descriptor/16954-3>
+    gbv:gvkppn "091398940"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Vorarlberg"@de, "Vorarlberg"@en .
+
+<descriptor/16955-1>
+    gbv:gvkppn "091400732"^^xsd:string ;
+    a skos:Concept, zbwext:Descriptor ;
+    skos:altLabel "Bundesland Wien"@de ;
+    skos:broader <descriptor/16950-4>, <thsys/70438>;
+    skos:inScheme <../stw> ;
+    skos:prefLabel "Vienna"@en, "Wien"@de ;
+    skos:related <descriptor/16948-5>.

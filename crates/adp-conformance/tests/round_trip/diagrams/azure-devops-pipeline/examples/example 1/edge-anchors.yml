@@ -1,0 +1,21 @@
+# YAML anchors and aliases: a serialiser would expand these and lose the author's
+# intent. The writer must leave them exactly as written.
+.defaults: &defaults
+  pool:
+    vmImage: ubuntu-latest
+
+stages:
+  - stage: One
+    <<: *defaults
+    jobs:
+      - job: A
+        steps:
+          - script: echo one
+
+  - stage: Two
+    <<: *defaults
+    dependsOn: []
+    jobs:
+      - job: B
+        steps:
+          - script: echo two

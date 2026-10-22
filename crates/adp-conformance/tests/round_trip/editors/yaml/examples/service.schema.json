@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Service",
+  "description": "How one service of an example system is run.",
+  "type": "object",
+  "required": ["name", "image", "ports"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string", "description": "The name the service is known by in logs and dashboards." },
+    "image": { "type": "string", "description": "The container image, with its tag." },
+    "replicas": { "type": "integer", "minimum": 1, "maximum": 10, "description": "How many copies run at once." },
+    "restart": { "enum": ["always", "on-failure", "never"], "description": "What happens when the service stops." },
+    "ports": {
+      "type": "array",
+      "description": "The ports the service listens on.",
+      "items": {
+        "type": "object",
+        "required": ["port"],
+        "additionalProperties": false,
+        "properties": {
+          "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+          "protocol": { "enum": ["tcp", "udp"] }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "description": "Variables set in the service's environment.",
+      "additionalProperties": { "type": "string" }
+    },
+    "memory": { "type": "string", "deprecationMessage": "Use limits instead.", "description": "The memory a copy may use." },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "memory": { "type": "string", "description": "The memory a copy may use, such as 512Mi." },
+        "cpu": { "type": "number", "description": "The share of a processor a copy may use." }
+      }
+    }
+  }
+}

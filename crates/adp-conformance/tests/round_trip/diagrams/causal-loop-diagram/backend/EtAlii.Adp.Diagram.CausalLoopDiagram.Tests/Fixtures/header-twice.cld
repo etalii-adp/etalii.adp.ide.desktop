@@ -1,0 +1,14 @@
+causal-loop 1
+
+# Finding B8: the header again, in the middle, and not first.
+
+variable a "A"
+variable b "B"
+
+causal-loop 2
+
+link a -> b +
+link b -> a +
+causal-loop
+
+loop R1 "Header twice" a b
