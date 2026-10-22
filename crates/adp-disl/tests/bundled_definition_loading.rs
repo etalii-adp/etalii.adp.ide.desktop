@@ -1,7 +1,7 @@
 //! Both bundled definitions load with this runtime: nothing refused and nothing warned about, every expression
 //! compiled in its own context; a function either calls that the runtime lacks fails the load by name, wherever the
 //! call is (the standalone host's `BundledDefinitionLoadingTests`). Beside them, every vendored `.dis` loads with the
-//! diagnostics the standalone host's loader gives it, recorded in `fixtures/standalone-diagnostics.txt`.
+//! diagnostics the standalone host's loader gives it at `bea7007`, recorded in `fixtures/standalone-diagnostics.txt`.
 
 mod common;
 
@@ -258,7 +258,7 @@ fn a_call_of_a_function_the_runtime_lacks_refuses_the_definition() {
 }
 
 /// The standalone host's diagnostics this runtime does not give, because its library has a function DISL section 12.4
-/// defines and the standalone host's `DislCelLibrary` at `8b6ccfc` lacks: `formatNumber(n, pattern)`, `l.sum()` and `l.max()`.
+/// defines and the standalone host's `DislCelLibrary` at `bea7007` lacks: `formatNumber(n, pattern)`, `l.sum()` and `l.max()`.
 /// Each is the refusal of a call to one of them, or of a call to a function that called one.
 const BEYOND_THE_STANDALONE_LIBRARY: [&str; 22] = [
     "error at /functions/formatNumber2/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
@@ -289,15 +289,22 @@ const BEYOND_THE_STANDALONE_LIBRARY: [&str; 22] = [
 /// where the standalone host's loader refused a call of one of them, this one loads it.
 const BEYOND_THE_STANDALONE_HOST: [&str; 4] = ["inCycle", "reachable", "successors", "predecessors"];
 
+/// What the standalone host's loader reports since it reads constraints, hooks and names typed at load (its spec 025,
+/// T224) and this runtime does not yet: a value the loader compiles no expression at, written as a quoted CEL string.
+const NOT_YET_HERE: [&str; 1] = [
+    "error at /behavior/operations/addToPipeline/actions/0/then/0/create/attributes/form: ''nested'' is read here as an expression, but the loader compiles none at this position (DISL §2.5, step 8 of §14.1).",
+];
+
 /// The recorded diagnostics of the standalone host's loader, less its refusals of a call to a function of
-/// [`BEYOND_THE_STANDALONE_HOST`] and the refusals [`BEYOND_THE_STANDALONE_LIBRARY`] names; a definition those were
-/// the only errors of loads here.
+/// [`BEYOND_THE_STANDALONE_HOST`], the refusals [`BEYOND_THE_STANDALONE_LIBRARY`] names and what [`NOT_YET_HERE`]
+/// names; a definition those were the only errors of loads here.
 fn expected_here(recorded: &str) -> String {
     let refused = |line: &str| {
         BEYOND_THE_STANDALONE_HOST
             .iter()
             .any(|f| line.contains(&format!("The function '{f}' is not supported by this CEL evaluator.")))
             || BEYOND_THE_STANDALONE_LIBRARY.contains(&line)
+            || NOT_YET_HERE.contains(&line)
     };
     let mut out = String::new();
     let mut lines = recorded.lines().peekable();

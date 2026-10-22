@@ -1,47 +1,246 @@
 {
-  "$schema": "https://etalii.net/adp/disl/schema/0.1/disl.schema.json#/$defs/Specification",
-  "disl": "0.1",
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.3",
   "language": {
     "id": "net.etalii.adp.w3c.skos",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "label": "SKOS concept scheme",
-    "icon": "mdi:file-tree",
+    "icon": "mdi-file-tree",
     "fileExtension": "ttl",
     "license": "Apache-2.0",
     "homepage": "https://www.w3.org/TR/skos-reference/",
-    "authors": [ { "name": "Peter Vrenken" } ],
-    "limits": { "maxElements": 1000 },
-    "requires": { "conformance": "standard" },
+    "authors": [
+      {
+        "name": "Peter Vrenken"
+      }
+    ],
+    "limits": {
+      "maxElements": 1000,
+      "budgets": {
+        "terms": {
+          "measure": {
+            "count": [
+              "ConceptScheme",
+              "Concept",
+              "Collection"
+            ]
+          },
+          "max": 1000,
+          "order": "skosOrder().indexOf(self.id)",
+          "withhold": {
+            "edits": "model",
+            "reason": {
+              "reason": "truncated"
+            }
+          },
+          "notice": {
+            "text": {
+              "cel": "'Showing ' + string(budget('terms').shown) + ' of ' + string(budget('terms').total) + ' terms — edits are withheld on this truncated view'"
+            },
+            "severity": "warning",
+            "position": "top"
+          },
+          "doc": "At most 1000 schemes, concepts and collections are drawn, in the order the tool meets the vocabulary, so a cut view is the top of the hierarchy rather than a slice of the file; an edge is drawn only when both its ends are."
+        }
+      }
+    },
+    "requires": {
+      "conformance": "standard",
+      "features": [
+        "limits.budgets",
+        "persistence.fbl"
+      ]
+    },
     "doc": {
       "summary": "A thesaurus or controlled vocabulary: concepts under their schemes, broader and narrower drawn as a hierarchy, related links across it.",
-      "description": "A reading of a SKOS vocabulary stored as Turtle (`.ttl`) or N-Triples (`.nt`). Every concept scheme, concept and collection the file *asserts* is drawn: schemes head their bands, concepts sit in layers below their broader concepts, `skos:related` and in-file mapping links cross the hierarchy. Nothing is inferred: an edge exists because a triple states it, and the inverse of `skos:broader` is never written back.\n\nThe diagram is stored in the vocabulary's own file, which other tools own; ADP writes only minimal splices into it, and keeps positions in the `.adp` registration beside it. What this specification cannot express - the triple projection, the label chooser's tie-breaks, the splice discipline, the registration header - is written down in `w3c-skos.md` beside this file.",
-      "tags": [ "skos", "thesaurus", "taxonomy", "controlled vocabulary", "rdf", "semantic web" ],
+      "description": "A reading of a SKOS vocabulary stored as Turtle (`.ttl`) or N-Triples (`.nt`). Every concept scheme, concept and collection the file *asserts* is drawn: schemes head their bands, concepts sit in layers below their broader concepts, `skos:related` and in-file mapping links cross the hierarchy. Nothing is inferred: an edge exists because a triple states it, and the inverse of `skos:broader` is never written back.\n\nThe turtle plugin reads the file into stored `Triple`, `Prefix` and `Base` elements, which every reading of it shares; every node and edge here is derived from them (4.11). Positions are kept in the `.adp` registration beside the file. What this specification cannot express is written down in `w3c-skos.md` beside this file.",
+      "tags": [
+        "skos",
+        "thesaurus",
+        "taxonomy",
+        "controlled vocabulary",
+        "rdf",
+        "semantic web"
+      ],
       "seeAlso": [
-        { "title": "W3C SKOS reference", "href": "https://www.w3.org/TR/skos-reference/" },
-        { "title": "SKOS Play", "href": "https://skos-play.sparna.fr/" }
+        {
+          "title": "W3C SKOS reference",
+          "href": "https://www.w3.org/TR/skos-reference/"
+        },
+        {
+          "title": "SKOS Play",
+          "href": "https://skos-play.sparna.fr/"
+        }
       ]
-    }
+    },
+    "origin": "w3c/skos"
   },
-
   "functions": {
+    "typeTriple": {
+      "params": [
+        {
+          "name": "t",
+          "type": "Element"
+        }
+      ],
+      "returns": "bool",
+      "cel": "t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && t.oKind == 'iri'",
+      "doc": "An `rdf:type` triple with an IRI object: a type, never an edge."
+    },
+    "isCell": {
+      "params": [
+        {
+          "name": "ordinal",
+          "type": "string"
+        }
+      ],
+      "returns": "bool",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType('Triple').exists(t, t.sKind == 'blank' && t.s == ordinal && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')",
+      "doc": "Whether a blank node is a cons cell of an RDF collection: one with an `rdf:first` triple."
+    },
+    "isPlumbing": {
+      "params": [
+        {
+          "name": "t",
+          "type": "Element"
+        }
+      ],
+      "returns": "bool",
+      "cel": "t.sKind == 'blank' && (t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first' || t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest') && isCell(t.s)",
+      "doc": "A collection's `rdf:first` or `rdf:rest` triple, which is folded into its members and never drawn itself."
+    },
+    "collectionMembers": {
+      "params": [
+        {
+          "name": "cell",
+          "type": "string"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "recursion": {
+        "maxDepth": 1000,
+        "atMaxDepth": "[]"
+      },
+      "cel": "cel.bind(f, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))",
+      "doc": "The `rdf:first` triples of the collection starting at `cell`, in order, walked through `rdf:rest` until `rdf:nil` or a node that is no cons cell."
+    },
+    "repeatSuffix": {
+      "params": [
+        {
+          "name": "e",
+          "type": "Element"
+        }
+      ],
+      "returns": "string",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').filter(u, u.s == e.s && u.p == e.p && u.o == e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))",
+      "doc": "The repeat counter of a stored triple or prefix declaration (11.5.2): '' for the first with its parts, '|1' for the second and so on, in reading order."
+    },
+    "withRepeat": {
+      "params": [
+        {
+          "name": "xs",
+          "type": "list"
+        }
+      ],
+      "returns": "list",
+      "cel": "lists.range(xs.size()).map(i, xs[i] + [lists.range(i).filter(j, xs[j][0] == xs[i][0]).size()])",
+      "doc": "Each item of `xs`, whose first entry is its key, with the number of earlier items of the same key appended: the repeat counter of a derived edge id (11.5.2), 0 for the first."
+    },
+    "cardId": {
+      "params": [
+        {
+          "name": "term",
+          "type": "string"
+        },
+        {
+          "name": "kind",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "(kind == 'blank' ? 'blank:' : 'res:') + term",
+      "doc": "The id of the card the RDF graph reading draws a subject or object term as."
+    },
+    "cardTerms": {
+      "params": [
+        {
+          "name": "t",
+          "type": "Element"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "isPlumbing(t) ? [] : ([[t.s, t.sKind, t.sLabel, t]] + (typeTriple(t) || t.oKind == 'literal' ? [] : (t.oKind == 'blank' && isCell(t.o) ? collectionMembers(t.o).filter(m, m.oKind != 'literal').map(m, [m.o, m.oKind, m.oLabel, t]) : [[t.o, t.oKind, t.oLabel, t]])))",
+      "doc": "The terms a triple draws an RDF graph card for, in the order the tool meets them: its subject, then its object or its collection's members, each with its kind, its written label and the triple. A type's IRI and a literal are no card; a cons cell is folded away."
+    },
+    "familyTruncated": {
+      "params": [],
+      "returns": "bool",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).distinct().size() > 1000",
+      "doc": "Whether the RDF graph reading of this body is cut by its budget of 1000 cards. Every reading withholds its edits while it is, because the tool gates every reading's edits on that one count."
+    },
     "textsIn": {
-      "params": [ { "name": "labels", "type": "list(LangString)" }, { "name": "tag", "type": "string" } ],
-      "returns": "list(string)",
+      "params": [
+        {
+          "name": "labels",
+          "type": "list"
+        },
+        {
+          "name": "tag",
+          "type": "string"
+        }
+      ],
+      "returns": "list",
       "cel": "labels.filter(l, l.language == tag).map(l, l.text).sort()",
       "doc": "The texts of the labels carrying exactly one language tag ('' for untagged), ordinally sorted, so the first one is the S14 tie-break."
     },
     "tagFor": {
-      "params": [ { "name": "labels", "type": "list(LangString)" }, { "name": "display", "type": "string" } ],
+      "params": [
+        {
+          "name": "labels",
+          "type": "list"
+        },
+        {
+          "name": "display",
+          "type": "string"
+        }
+      ],
       "returns": "string",
       "cel": "size(textsIn(labels, display)) > 0 ? display : (size(textsIn(labels, 'en')) > 0 ? 'en' : (size(textsIn(labels, '')) > 0 ? '' : (size(labels) > 0 ? labels.map(l, l.language).filter(t, t != '').sort()[0] : '')))",
       "doc": "The language tag the chooser settles on within one label kind: the display language, then English, then untagged, then the ordinally smallest remaining tag."
     },
     "chooseLabel": {
       "params": [
-        { "name": "pref", "type": "list(LangString)" },
-        { "name": "alt", "type": "list(LangString)" },
-        { "name": "display", "type": "string" },
-        { "name": "fallback", "type": "string" }
+        {
+          "name": "pref",
+          "type": "list"
+        },
+        {
+          "name": "alt",
+          "type": "list"
+        },
+        {
+          "name": "display",
+          "type": "string"
+        },
+        {
+          "name": "fallback",
+          "type": "string"
+        }
       ],
       "returns": "string",
       "cel": "size(pref) > 0 ? textsIn(pref, tagFor(pref, display))[0] : (size(alt) > 0 ? textsIn(alt, tagFor(alt, display))[0] : fallback)",
@@ -49,106 +248,540 @@
     },
     "chosenTag": {
       "params": [
-        { "name": "pref", "type": "list(LangString)" },
-        { "name": "alt", "type": "list(LangString)" },
-        { "name": "display", "type": "string" }
+        {
+          "name": "pref",
+          "type": "list"
+        },
+        {
+          "name": "alt",
+          "type": "list"
+        },
+        {
+          "name": "display",
+          "type": "string"
+        }
       ],
       "returns": "string",
       "cel": "size(pref) > 0 ? tagFor(pref, display) : (size(alt) > 0 ? tagFor(alt, display) : '')",
       "doc": "The language tag of the chosen label, or '' for an untagged label or the IRI fallback."
+    },
+    "skosTyped": {
+      "params": [
+        {
+          "name": "type",
+          "type": "string"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType('Triple').filter(t, typeTriple(t) && t.o == type && t.sKind != 'literal').map(t, cardId(t.s, t.sKind)).distinct()",
+      "doc": "The ids of every term the file types as `type`, in document order: `res:` and the IRI, or `blank:` and the ordinal."
+    },
+    "skosDrawable": {
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "bool",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') || id in skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme') || id in skosTyped('http://www.w3.org/2004/02/skos/core#Collection') || id in skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection')",
+      "doc": "Whether the id is a concept, scheme or collection, the only terms this reading draws."
+    },
+    "skosMember": {
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "scheme",
+          "type": "string"
+        }
+      ],
+      "returns": "bool",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType('Triple').exists(t, t.oKind != 'literal' && ((cardId(t.s, t.sKind) == id && cardId(t.o, t.oKind) == scheme && (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf')) || (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' && cardId(t.s, t.sKind) == scheme && cardId(t.o, t.oKind) == id)))",
+      "doc": "Whether the file files the term in the scheme: `skos:inScheme`, `skos:topConceptOf`, or the scheme's `skos:hasTopConcept`."
+    },
+    "skosTops": {
+      "params": [
+        {
+          "name": "scheme",
+          "type": "string"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType('Triple').filter(t, t.oKind != 'literal' && ((t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf' && cardId(t.o, t.oKind) == scheme) || (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' && cardId(t.s, t.sKind) == scheme))).map(t, t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf' ? cardId(t.s, t.sKind) : cardId(t.o, t.oKind)).distinct()",
+      "doc": "The scheme's asserted top concepts, either direction, in document order."
+    },
+    "skosPairs": {
+      "params": [],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType('Triple').filter(t, (t.p == 'http://www.w3.org/2004/02/skos/core#broader' || t.p == 'http://www.w3.org/2004/02/skos/core#narrower') && t.oKind != 'literal').map(t, t.p == 'http://www.w3.org/2004/02/skos/core#broader' ? [cardId(t.o, t.oKind), cardId(t.s, t.sKind), t] : [cardId(t.s, t.sKind), cardId(t.o, t.oKind), t])",
+      "doc": "Every hierarchy assertion as `[broader, narrower, triple]`, in document order: `n skos:broader b` and `b skos:narrower n` alike."
+    },
+    "skosChildren": {
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "skosPairs().filter(p, p[0] == id).map(p, p[1]).distinct()",
+      "doc": "The narrower ends of every hierarchy pair whose broader end is the id."
+    },
+    "skosConcepts": {
+      "params": [
+        {
+          "name": "scheme",
+          "type": "string"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "skosTyped('http://www.w3.org/2004/02/skos/core#Concept').filter(c, skosMember(c, scheme))",
+      "doc": "The concepts filed in the scheme."
+    },
+    "skosLayers": {
+      "params": [
+        {
+          "name": "scheme",
+          "type": "string"
+        },
+        {
+          "name": "layer",
+          "type": "list"
+        },
+        {
+          "name": "seen",
+          "type": "list"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "recursion": {
+        "maxDepth": 1000,
+        "atMaxDepth": "seen"
+      },
+      "cel": "layer.size() == 0 ? seen : cel.bind(taken, (seen + layer.filter(id, skosDrawable(id) && (skosMember(id, scheme) || id in skosTops(scheme)))).distinct(), skosLayers(scheme, layer.map(id, skosChildren(id)).flatten().filter(c, skosMember(c, scheme) && skosDrawable(c) && !(c in taken)).distinct().sort(), taken))",
+      "doc": "The scheme's concepts breadth first by layer, each layer in ordinal order, appended to `seen` without repeats."
+    },
+    "skosWalk": {
+      "params": [
+        {
+          "name": "schemes",
+          "type": "list"
+        },
+        {
+          "name": "i",
+          "type": "int"
+        },
+        {
+          "name": "seen",
+          "type": "list"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "recursion": {
+        "maxDepth": 1000,
+        "atMaxDepth": "seen"
+      },
+      "cel": "i >= schemes.size() ? seen : cel.bind(s, schemes[i], cel.bind(members, skosConcepts(s), cel.bind(after, skosLayers(s, (skosTops(s) + members.filter(m, !skosPairs().exists(p, p[1] == m && p[0] in members))).distinct().sort(), (seen + [s]).distinct()), skosWalk(schemes, i + 1, (after + members.sort()).distinct()))))",
+      "doc": "Each scheme in ordinal order, then its top concepts and broaderless members and their descendants breadth first, then the members no layer reached."
+    },
+    "skosOrder": {
+      "params": [],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "(skosWalk(skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme').sort(), 0, []) + skosTyped('http://www.w3.org/2004/02/skos/core#Concept').sort() + (skosTyped('http://www.w3.org/2004/02/skos/core#Collection') + skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection')).distinct().sort()).distinct()",
+      "doc": "The order the tool meets the vocabulary in, which is the order its budget cuts: schemes with their hierarchies, then unfiled concepts, then collections, ties by id."
+    },
+    "skosLabels": {
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "predicate",
+          "type": "string"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == id && t.p == predicate && t.oKind == 'literal').map(t, {'text': t.o, 'language': t.language.lowerAscii()})",
+      "doc": "The label literals of one kind, in document order, their tags lowercased."
+    },
+    "skosNode": {
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "id.startsWith('res:') ? id.substring(4) : ''",
+      "doc": "The IRI an id names, or '' for a blank node."
+    },
+    "skosShort": {
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "cel.bind(iri, id.startsWith('res:') ? id.substring(4) : id, cel.bind(cut, math.greatest(iri.lastIndexOf('#'), iri.lastIndexOf('/')), cut >= 0 && cut < iri.size() - 1 ? iri.substring(cut + 1) : iri))",
+      "doc": "An id's IRI after its last '#' or '/', as the findings name a term."
+    },
+    "skosFindingName": {
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') ? chooseLabel(skosLabels(id, 'http://www.w3.org/2004/02/skos/core#prefLabel'), skosLabels(id, 'http://www.w3.org/2004/02/skos/core#altLabel'), 'en', skosShort(id)) : skosShort(id)",
+      "doc": "A term as the findings name it: a concept by its label chosen for English, anything else by its short IRI."
+    },
+    "skosReached": {
+      "params": [
+        {
+          "name": "frontier",
+          "type": "list"
+        },
+        {
+          "name": "seen",
+          "type": "list"
+        }
+      ],
+      "returns": "list",
+      "uses": [
+        "diagram"
+      ],
+      "recursion": {
+        "maxDepth": 1000,
+        "atMaxDepth": "seen"
+      },
+      "cel": "frontier.size() == 0 ? seen : cel.bind(more, frontier.filter(id, !(id in seen)), skosReached(more.map(id, skosChildren(id).filter(c, skosDrawable(c))).flatten().distinct(), (seen + more).distinct()))",
+      "doc": "Every term reachable down the drawn hierarchy from the frontier."
     }
   },
-
   "metamodel": {
-    "doc": "Only resources the file types `skos:ConceptScheme`, `skos:Concept`, `skos:Collection` or `skos:OrderedCollection` become elements. Typing is read from `rdf:type` triples with an IRI object and never inferred.",
+    "doc": "Only resources the file types `skos:ConceptScheme`, `skos:Concept`, `skos:Collection` or `skos:OrderedCollection` become elements. Typing is read from `rdf:type` triples with an IRI object and never inferred. The turtle plugin reads the triples into stored `Triple`, `Prefix` and `Base` elements, which every reading of the file shares; every node and edge here is derived from them (4.11), in the order the tool meets the vocabulary.",
     "diagram": {
       "attributes": {
         "language": {
-          "type": "string", "default": "en", "readOnly": true, "pattern": "^[a-z]{2,8}(-[a-z0-9]{1,8})*$",
-          "doc": "The display language labels are chosen in. Read from the registration's `language:` header, lower-cased; English when absent."
-        },
-        "languageHeaderLine": {
-          "type": "int", "default": 0, "readOnly": true,
-          "doc": "The registration line of a `language:` header placed above `body:` or `view:`, where it is ignored; 0 when the header is absent or well placed."
-        },
-        "usesSkosXl": {
-          "type": "bool", "default": false, "readOnly": true,
-          "doc": "The file labels something through SKOS-XL (`skosxl:prefLabel`, `altLabel`, `hiddenLabel`), which this reading detects but never resolves."
-        },
-        "truncated": {
-          "type": "bool", "default": false, "readOnly": true,
-          "doc": "The file holds more than the drawn-element budget; edits through the diagram are withheld."
-        },
-        "shown": { "type": "int", "readOnly": true, "doc": "Elements drawn under the budget." },
-        "total": { "type": "int", "readOnly": true, "doc": "Schemes, concepts and collections the file asserts." }
+          "type": "string",
+          "default": "en",
+          "readOnly": true,
+          "pattern": "^[a-z]{2,8}(-[a-z0-9]{1,8})*$",
+          "doc": "The display language labels are chosen in: the registration's `language:` header, lowercased; English when absent. No CEL context reads a registration and the plugin is not told its headers (`w3c-skos.md`, gap 5), so the module supplies this value and stands in for that gap."
+        }
       }
     },
     "dataTypes": {
       "LangString": {
         "doc": "One label literal: its lexical form and its language tag, lower-cased, '' when untagged.",
         "fields": {
-          "text": { "type": "string", "required": true },
-          "language": { "type": "string", "default": "" }
+          "text": {
+            "type": "string",
+            "required": true
+          },
+          "language": {
+            "type": "string",
+            "default": ""
+          }
         },
-        "display": { "cel": "value.language == '' ? value.text : value.text + ' @' + value.language" }
+        "display": {
+          "cel": "value.language == '' ? value.text : value.text + ' @' + value.language"
+        }
       },
       "OutOfFileMapping": {
         "doc": "A mapping triple whose object is not a concept this file types, shown in the property grid rather than drawn.",
         "fields": {
-          "predicate": { "type": "MappingKind", "required": true },
-          "target": { "type": "uri", "required": true }
+          "predicate": {
+            "type": "MappingKind",
+            "required": true
+          },
+          "target": {
+            "type": "uri",
+            "required": true
+          }
         },
-        "display": { "cel": "value.predicate + ' ' + value.target" }
+        "display": {
+          "cel": "value.predicate + ' ' + value.target"
+        }
       }
     },
     "enums": {
+      "TermKind": {
+        "values": {
+          "iri": {
+            "label": "IRI"
+          },
+          "blank": {
+            "label": "Blank node"
+          },
+          "literal": {
+            "label": "Literal"
+          }
+        }
+      },
+      "PrefixForm": {
+        "values": {
+          "turtle": {
+            "label": "@prefix"
+          },
+          "sparql": {
+            "label": "PREFIX"
+          }
+        }
+      },
       "LabelKind": {
         "doc": "Which kind of label the drawn name came from.",
         "values": {
-          "preferred": { "label": "Preferred label" },
-          "alternate": { "label": "Alternate label", "doc": "No prefLabel exists in any language, so an altLabel stands in." },
-          "iriFallback": { "label": "IRI", "doc": "No prefLabel or altLabel exists, so the IRI's local name stands in." }
+          "preferred": {
+            "label": "Preferred label"
+          },
+          "alternate": {
+            "label": "Alternate label",
+            "doc": "No prefLabel exists in any language, so an altLabel stands in."
+          },
+          "iriFallback": {
+            "label": "IRI",
+            "doc": "No prefLabel or altLabel exists, so the IRI's local name stands in."
+          }
         }
       },
       "MappingKind": {
         "doc": "The five SKOS mapping properties.",
         "values": {
-          "exactMatch": {}, "closeMatch": {}, "broadMatch": {}, "narrowMatch": {}, "relatedMatch": {}
+          "exactMatch": {},
+          "closeMatch": {},
+          "broadMatch": {},
+          "narrowMatch": {},
+          "relatedMatch": {}
         }
       }
     },
     "types": {
+      "Triple": {
+        "doc": "One triple of the file as the plugin reads it, with the line it starts on. Never drawn: every drawn element is derived from these.",
+        "attributes": {
+          "s": {
+            "type": "string",
+            "required": true,
+            "doc": "The subject: an IRI, or for a blank node its ordinal, the zero-based order of first appearance in this parse."
+          },
+          "sKind": {
+            "type": "TermKind",
+            "required": true
+          },
+          "sLabel": {
+            "type": "string",
+            "default": "",
+            "doc": "A blank subject's label as written (`_:x` is `x`); '' for an IRI or an anonymous blank node."
+          },
+          "p": {
+            "type": "uri",
+            "required": true
+          },
+          "o": {
+            "type": "string",
+            "required": true,
+            "doc": "The object: an IRI, a blank node's ordinal, or a literal's lexical form."
+          },
+          "oKind": {
+            "type": "TermKind",
+            "required": true
+          },
+          "oLabel": {
+            "type": "string",
+            "default": "",
+            "doc": "A blank object's label as written; '' otherwise."
+          },
+          "language": {
+            "type": "string",
+            "default": ""
+          },
+          "datatype": {
+            "type": "string",
+            "default": ""
+          },
+          "line": {
+            "type": "int",
+            "readOnly": true,
+            "doc": "The 1-based line the triple's subject is written on."
+          }
+        }
+      },
+      "Prefix": {
+        "doc": "One `@prefix` or `PREFIX` directive, re-declarations included, in document order. Never drawn.",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "required": true,
+            "doc": "The prefix without its colon; '' for the default prefix."
+          },
+          "iri": {
+            "type": "uri",
+            "required": true
+          },
+          "form": {
+            "type": "PrefixForm",
+            "default": "turtle"
+          },
+          "line": {
+            "type": "int",
+            "readOnly": true
+          }
+        }
+      },
+      "Base": {
+        "doc": "The file's last `@base` or `BASE` directive; at most one. Never drawn.",
+        "multiplicity": {
+          "max": 1
+        },
+        "attributes": {
+          "iri": {
+            "type": "uri",
+            "required": true,
+            "readOnly": true
+          }
+        }
+      },
       "Labelled": {
         "abstract": true,
         "doc": "What schemes, concepts and collections share: an IRI, their labels, notations and documentation properties.",
         "labelAttribute": "label",
         "attributes": {
           "iri": {
-            "type": "uri", "key": true, "unique": "diagram", "readOnly": true, "label": "IRI", "group": "Identity",
-            "doc": { "summary": "The resource's IRI; empty for a blank node.", "description": "Rename through the context menu, so every reference follows the name." }
+            "type": "uri",
+            "readOnly": true,
+            "label": "IRI",
+            "group": "Identity",
+            "doc": {
+              "summary": "The resource's IRI; empty for a blank node.",
+              "description": "Rename through the context menu, so every reference follows the name."
+            }
           },
-          "blank": { "type": "bool", "default": false, "readOnly": true, "doc": "The resource is a blank node: drawn, but never positioned or edited." },
-          "prefLabel": { "type": "LangString", "many": true, "label": "Preferred", "group": "Labels", "doc": "`skos:prefLabel` literals. Editable per language." },
-          "altLabel": { "type": "LangString", "many": true, "readOnly": true, "label": "Alternate", "group": "Labels", "doc": "`skos:altLabel` literals. Alternate and hidden labels are edited as triples." },
-          "hiddenLabel": { "type": "LangString", "many": true, "readOnly": true, "label": "Hidden", "group": "Labels", "doc": "`skos:hiddenLabel` literals; never displayed." },
-          "xlLabelled": { "type": "bool", "default": false, "readOnly": true, "doc": "Labelled through SKOS-XL, which this reading does not resolve; preferred labels then refuse edits." },
+          "blank": {
+            "type": "bool",
+            "default": false,
+            "readOnly": true,
+            "doc": "The resource is a blank node: drawn, but never positioned or edited."
+          },
+          "prefLabel": {
+            "type": "LangString",
+            "many": true,
+            "label": "Preferred",
+            "group": "Labels",
+            "doc": "`skos:prefLabel` literals. Editable per language."
+          },
+          "altLabel": {
+            "type": "LangString",
+            "many": true,
+            "readOnly": true,
+            "label": "Alternate",
+            "group": "Labels",
+            "doc": "`skos:altLabel` literals. Alternate and hidden labels are edited as triples."
+          },
+          "hiddenLabel": {
+            "type": "LangString",
+            "many": true,
+            "readOnly": true,
+            "label": "Hidden",
+            "group": "Labels",
+            "doc": "`skos:hiddenLabel` literals; never displayed."
+          },
+          "xlLabelled": {
+            "type": "bool",
+            "default": false,
+            "readOnly": true,
+            "doc": "Labelled through SKOS-XL, which this reading does not resolve; preferred labels then refuse edits."
+          },
           "notation": {
-            "type": "string", "many": true, "readOnly": true, "group": "Identity",
-            "doc": { "summary": "`skos:notation` codes in document order; the first is badged on the canvas.", "description": "Notations are codes other systems key off; edit them as triples." }
+            "type": "string",
+            "many": true,
+            "readOnly": true,
+            "group": "Identity",
+            "doc": {
+              "summary": "`skos:notation` codes in document order; the first is badged on the canvas.",
+              "description": "Notations are codes other systems key off; edit them as triples."
+            }
           },
-          "definition": { "type": "text", "group": "Documentation", "doc": "The first `skos:definition` literal, in any language." },
-          "scopeNote": { "type": "text", "group": "Documentation" },
-          "example": { "type": "text", "group": "Documentation" },
-          "note": { "type": "text", "group": "Documentation" },
-          "historyNote": { "type": "text", "group": "Documentation" },
-          "editorialNote": { "type": "text", "group": "Documentation" },
-          "changeNote": { "type": "text", "group": "Documentation" },
+          "definition": {
+            "type": "text",
+            "group": "Documentation",
+            "doc": "The first `skos:definition` literal, in any language."
+          },
+          "scopeNote": {
+            "type": "text",
+            "group": "Documentation"
+          },
+          "example": {
+            "type": "text",
+            "group": "Documentation"
+          },
+          "note": {
+            "type": "text",
+            "group": "Documentation"
+          },
+          "historyNote": {
+            "type": "text",
+            "group": "Documentation"
+          },
+          "editorialNote": {
+            "type": "text",
+            "group": "Documentation"
+          },
+          "changeNote": {
+            "type": "text",
+            "group": "Documentation"
+          },
           "label": {
             "type": "string",
             "derived": "chooseLabel(self.prefLabel, self.altLabel, diagram.language, self.blank ? '' : rdfLocalName(self.iri))",
             "doc": "The drawn name, chosen by the label chooser; never recomputed from anything but the file."
           },
-          "labelTag": { "type": "string", "derived": "chosenTag(self.prefLabel, self.altLabel, diagram.language)" },
+          "labelTag": {
+            "type": "string",
+            "derived": "chosenTag(self.prefLabel, self.altLabel, diagram.language)"
+          },
           "labelKind": {
             "type": "LabelKind",
             "derived": "size(self.prefLabel) > 0 ? 'preferred' : (size(self.altLabel) > 0 ? 'alternate' : 'iriFallback')"
@@ -157,50 +790,190 @@
       },
       "ConceptScheme": {
         "extends": "Labelled",
-        "icon": "mdi:file-tree",
-        "doc": { "summary": "A `skos:ConceptScheme`: the head of a band holding the concepts filed in it.", "rationale": "One registration draws every scheme in the file, each as its own band." },
+        "icon": "mdi-file-tree",
+        "doc": {
+          "summary": "A `skos:ConceptScheme`: the head of a band holding the concepts filed in it.",
+          "rationale": "One registration draws every scheme in the file, each as its own band."
+        },
         "attributes": {
           "topConcepts": {
-            "type": "Concept", "many": true, "readOnly": true, "group": "Membership",
+            "type": "Concept",
+            "many": true,
+            "readOnly": true,
+            "group": "Membership",
             "doc": "Objects of `skos:hasTopConcept` from the scheme plus subjects of `skos:topConceptOf` to it, in document order."
           },
           "memberCount": {
-            "type": "int", "label": "Members",
+            "type": "int",
+            "label": "Members",
             "derived": "diagram.nodesOfType('Concept').filter(c, self in c.inScheme).size()"
+          }
+        },
+        "derived": {
+          "from": "skosOrder().filter(id, id in skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme'))",
+          "key": "item",
+          "id": "item",
+          "attributes": {
+            "iri": "skosNode(item)",
+            "blank": "item.startsWith('blank:')",
+            "prefLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel')",
+            "altLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel')",
+            "hiddenLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel')",
+            "xlLabelled": "diagram.nodesOfType('Triple').exists(t, cardId(t.s, t.sKind) == item && t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel'])",
+            "notation": "diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o)",
+            "definition": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "scopeNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "example": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "note": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "historyNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "editorialNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "changeNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "topConcepts": "skosTops(item).filter(c, c in skosTyped('http://www.w3.org/2004/02/skos/core#Concept')).map(c, diagram.elementById(c)).filter(e, e != null)"
+          },
+          "sources": "diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item || (t.oKind != 'literal' && cardId(t.o, t.oKind) == item))",
+          "reason": "Vocabulary terms are read from the triples; add, rename or remove them through the context menu.",
+          "edits": {
+            "delete": "removeResource",
+            "rename": "renameResource"
           }
         }
       },
       "Concept": {
         "extends": "Labelled",
-        "icon": "mdi:tag-outline",
-        "doc": { "summary": "A `skos:Concept`, drawn once however many broader concepts it has.", "description": "A polyhierarchical concept is placed once, below its deepest broader concept, with one hierarchy edge per parent." },
+        "icon": "mdi-tag-outline",
+        "doc": {
+          "summary": "A `skos:Concept`, drawn once however many broader concepts it has.",
+          "description": "A polyhierarchical concept is placed once, below its deepest broader concept, with one hierarchy edge per parent."
+        },
         "attributes": {
           "inScheme": {
-            "type": "ConceptScheme", "many": true, "readOnly": true, "label": "In schemes", "group": "Membership",
-            "doc": { "summary": "Schemes named by `skos:inScheme`, `skos:topConceptOf` or a scheme's `skos:hasTopConcept`, restricted to IRIs the file types as schemes.", "description": "Membership is stated by triples; file and unfile concepts on the canvas." }
+            "type": "ConceptScheme",
+            "many": true,
+            "readOnly": true,
+            "label": "In schemes",
+            "group": "Membership",
+            "doc": {
+              "summary": "Schemes named by `skos:inScheme`, `skos:topConceptOf` or a scheme's `skos:hasTopConcept`, restricted to IRIs the file types as schemes.",
+              "description": "Membership is stated by triples; file and unfile concepts on the canvas."
+            }
           },
           "mappings": {
-            "type": "OutOfFileMapping", "many": true, "readOnly": true, "group": "Mappings",
+            "type": "OutOfFileMapping",
+            "many": true,
+            "readOnly": true,
+            "group": "Mappings",
             "doc": "The mapped concept lives outside this file, so the mapping shows here rather than drawing."
           },
           "languageChip": {
             "type": "bool",
             "derived": "self.labelTag != '' && self.labelTag != diagram.language",
             "doc": "The chosen label is in another language than the display language, so the node wears the tag."
+          },
+          "schemesText": {
+            "type": "string",
+            "label": "In schemes",
+            "group": "Membership",
+            "derived": "cel.bind(s, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf') && t.oKind == 'iri').map(t, rdfDisplayName(t.o)).distinct(), s.size() > 0 ? s.join(', ') : '(unfiled)')",
+            "doc": "The schemes the concept's own `skos:inScheme` and `skos:topConceptOf` triples name, as the grid lists them."
           }
         },
         "ports": {
-          "file": { "label": "File under", "direction": "out", "accepts": [ "Broader" ], "doc": "Dragging from here files this concept under the one dropped on." },
-          "relate": { "label": "Relate", "direction": "inout", "accepts": [ "Related" ], "doc": "Dragging from here relates this concept to the one dropped on." }
+          "file": {
+            "label": "File under",
+            "direction": "out",
+            "accepts": [
+              "Broader"
+            ],
+            "doc": "Dragging from here files this concept under the one dropped on."
+          },
+          "relate": {
+            "label": "Relate",
+            "direction": "inout",
+            "accepts": [
+              "Related"
+            ],
+            "doc": "Dragging from here relates this concept to the one dropped on."
+          }
+        },
+        "derived": {
+          "from": "skosOrder().filter(id, id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept'))",
+          "key": "item",
+          "id": "item",
+          "attributes": {
+            "iri": "skosNode(item)",
+            "blank": "item.startsWith('blank:')",
+            "prefLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel')",
+            "altLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel')",
+            "hiddenLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel')",
+            "xlLabelled": "diagram.nodesOfType('Triple').exists(t, cardId(t.s, t.sKind) == item && t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel'])",
+            "notation": "diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o)",
+            "definition": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "scopeNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "example": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "note": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "historyNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "editorialNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "changeNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "inScheme": "diagram.nodesOfType('Triple').filter(t, t.oKind != 'literal' && ((cardId(t.s, t.sKind) == item && (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf')) || (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' && cardId(t.o, t.oKind) == item))).map(t, t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' ? cardId(t.s, t.sKind) : cardId(t.o, t.oKind)).filter(s, s in skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme')).distinct().map(s, diagram.elementById(s)).filter(e, e != null)",
+            "mappings": "diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && cardId(t.s, t.sKind) == item && t.p in ['http://www.w3.org/2004/02/skos/core#exactMatch', 'http://www.w3.org/2004/02/skos/core#closeMatch', 'http://www.w3.org/2004/02/skos/core#broadMatch', 'http://www.w3.org/2004/02/skos/core#narrowMatch', 'http://www.w3.org/2004/02/skos/core#relatedMatch'] && t.oKind == 'iri' && !(cardId(t.o, t.oKind) in skosTyped('http://www.w3.org/2004/02/skos/core#Concept'))).map(t, {'predicate': t.p.substring(36), 'target': t.o})"
+          },
+          "sources": "diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item || (t.oKind != 'literal' && cardId(t.o, t.oKind) == item))",
+          "reason": "Vocabulary terms are read from the triples; add, rename or remove them through the context menu.",
+          "edits": {
+            "delete": "removeResource",
+            "rename": "renameResource"
+          }
         }
       },
       "Collection": {
         "extends": "Labelled",
-        "icon": "mdi:format-list-bulleted",
-        "doc": { "summary": "A `skos:Collection` or `skos:OrderedCollection`: a labelled grouping, never part of the hierarchy (SKOS S13's disjoint families)." },
+        "icon": "mdi-format-list-bulleted",
+        "doc": {
+          "summary": "A `skos:Collection` or `skos:OrderedCollection`: a labelled grouping, never part of the hierarchy (SKOS S13's disjoint families)."
+        },
         "attributes": {
-          "ordered": { "type": "bool", "default": false, "readOnly": true, "doc": "Typed `skos:OrderedCollection`; members come from the `skos:memberList` RDF list in list order." },
-          "members": { "type": "Concept", "many": true, "readOnly": true, "group": "Membership", "doc": "`skos:member` objects in document order, or the `skos:memberList` walk for an ordered collection." }
+          "ordered": {
+            "type": "bool",
+            "default": false,
+            "readOnly": true,
+            "doc": "Typed `skos:OrderedCollection`; members come from the `skos:memberList` RDF list in list order."
+          },
+          "members": {
+            "type": "Concept",
+            "many": true,
+            "readOnly": true,
+            "group": "Membership",
+            "doc": "`skos:member` objects in document order, or the `skos:memberList` walk for an ordered collection."
+          }
+        },
+        "derived": {
+          "from": "skosOrder().filter(id, id in skosTyped('http://www.w3.org/2004/02/skos/core#Collection') || id in skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection'))",
+          "key": "item",
+          "id": "item",
+          "attributes": {
+            "iri": "skosNode(item)",
+            "blank": "item.startsWith('blank:')",
+            "prefLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel')",
+            "altLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel')",
+            "hiddenLabel": "skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel')",
+            "xlLabelled": "diagram.nodesOfType('Triple').exists(t, cardId(t.s, t.sKind) == item && t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel'])",
+            "notation": "diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o)",
+            "definition": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "scopeNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "example": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "note": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "historyNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "editorialNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "changeNote": "cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : '')",
+            "ordered": "item in skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection')",
+            "members": "(item in skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection') ? diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#memberList' && t.oKind == 'blank').map(t, collectionMembers(t.o).filter(x, x.oKind != 'literal').map(x, cardId(x.o, x.oKind))).flatten() : diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#member' && t.oKind != 'literal').map(t, cardId(t.o, t.oKind))).map(c, diagram.elementById(c)).filter(e, e != null)"
+          },
+          "sources": "diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item || (t.oKind != 'literal' && cardId(t.o, t.oKind) == item))",
+          "reason": "Vocabulary terms are read from the triples; add, rename or remove them through the context menu.",
+          "edits": {
+            "delete": "removeResource",
+            "rename": "renameResource"
+          }
         }
       }
     },
@@ -211,42 +984,147 @@
           "summary": "One edge per (narrower, broader) pair, whether the file states `skos:broader`, `skos:narrower` or both.",
           "description": "The source is the narrower concept (the subject of `skos:broader`), the target the broader. The inverse is never synthesised and never written. Drawn without an arrowhead: the layering carries the direction."
         },
-        "source": { "types": [ "Concept" ], "ports": [ "file" ], "role": "narrower" },
-        "target": { "types": [ "Concept" ], "role": "broader" },
+        "source": {
+          "types": [
+            "Labelled"
+          ],
+          "ports": [
+            "file"
+          ],
+          "role": "narrower"
+        },
+        "target": {
+          "types": [
+            "Labelled"
+          ],
+          "role": "broader"
+        },
         "directed": true,
-        "allowSelfLoops": false,
+        "allowSelfLoops": true,
         "allowParallel": false,
         "attributes": {
-          "assertedBothWays": { "type": "bool", "default": false, "readOnly": true, "doc": "The pair is stated by more than one triple (both directions, or repeated); disconnecting removes them all as one undo." }
+          "assertedBothWays": {
+            "type": "bool",
+            "default": false,
+            "readOnly": true,
+            "doc": "The pair is stated by more than one triple (both directions, or repeated); disconnecting removes them all as one undo."
+          },
+          "direct": {
+            "type": "bool",
+            "derived": "self.source.id.startsWith('res:') && self.target.id.startsWith('res:')",
+            "doc": "Both ends are named, which is what the edge's menu needs to name its triples."
+          }
+        },
+        "derived": {
+          "from": "skosPairs().filter(p, skosDrawable(p[0]) && skosDrawable(p[1])).map(p, [p[1], p[0], p[2]])",
+          "key": "[item[0], item[1]]",
+          "id": "'edge:' + item[0] + '|http://www.w3.org/2004/02/skos/core#broader|' + item[1]",
+          "source": "diagram.elementById(item[0])",
+          "target": "diagram.elementById(item[1])",
+          "sources": "group.map(g, g[2])",
+          "reason": "A hierarchy or related link is stated by triples; disconnect it from its menu.",
+          "edits": {
+            "delete": "disconnect"
+          },
+          "attributes": {
+            "assertedBothWays": "group.map(g, g[2].p).distinct().size() > 1 || group.map(g, cardId(g[2].s, g[2].sKind)).distinct().size() > 1"
+          },
+          "doc": "One edge per pair, keyed `[narrower, broader]` and drawn under the id of the broader-direction triple whichever directions the file asserts, every stating triple among its sources."
         }
       },
       "Related": {
         "label": "Related",
         "doc": "`skos:related` between two concepts, in either direction; does not affect layering.",
-        "source": { "types": [ "Concept" ], "ports": [ "relate" ] },
-        "target": { "types": [ "Concept" ] },
+        "source": {
+          "types": [
+            "Labelled"
+          ],
+          "ports": [
+            "relate"
+          ]
+        },
+        "target": {
+          "types": [
+            "Labelled"
+          ]
+        },
         "directed": false,
-        "allowSelfLoops": false,
+        "allowSelfLoops": true,
         "allowParallel": false,
         "attributes": {
-          "assertedBothWays": { "type": "bool", "default": false, "readOnly": true }
+          "assertedBothWays": {
+            "type": "bool",
+            "default": false,
+            "readOnly": true
+          },
+          "direct": {
+            "type": "bool",
+            "derived": "self.source.id.startsWith('res:') && self.target.id.startsWith('res:')",
+            "doc": "Both ends are named, which is what the edge's menu needs to name its triples."
+          }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Triple').filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#related' && t.oKind != 'literal' && skosDrawable(cardId(t.s, t.sKind)) && skosDrawable(cardId(t.o, t.oKind))).map(t, cel.bind(a, cardId(t.s, t.sKind), cel.bind(b, cardId(t.o, t.oKind), a <= b ? [a, b, t] : [b, a, t])))",
+          "key": "[item[0], item[1]]",
+          "id": "'edge:' + item[0] + '|http://www.w3.org/2004/02/skos/core#related|' + item[1]",
+          "source": "diagram.elementById(item[0])",
+          "target": "diagram.elementById(item[1])",
+          "sources": "group.map(g, g[2])",
+          "reason": "A hierarchy or related link is stated by triples; disconnect it from its menu.",
+          "edits": {
+            "delete": "disconnect"
+          },
+          "attributes": {
+            "assertedBothWays": "group.map(g, cardId(g[2].s, g[2].sKind)).distinct().size() > 1"
+          },
+          "doc": "One edge per unordered pair, from the end whose id sorts first."
         }
       },
       "Mapping": {
         "label": "Mapping",
         "doc": "A mapping triple whose subject and object are both concepts typed in this file; one edge per triple. Read-only: no gesture creates one.",
-        "source": { "types": [ "Concept" ] },
-        "target": { "types": [ "Concept" ] },
+        "source": {
+          "types": [
+            "Concept"
+          ]
+        },
+        "target": {
+          "types": [
+            "Concept"
+          ]
+        },
         "directed": true,
         "allowSelfLoops": true,
         "allowParallel": true,
         "attributes": {
-          "predicate": { "type": "MappingKind", "required": true, "readOnly": true }
+          "predicate": {
+            "type": "MappingKind",
+            "required": true,
+            "readOnly": true
+          },
+          "direct": {
+            "type": "bool",
+            "derived": "self.source.id.startsWith('res:') && self.target.id.startsWith('res:')",
+            "doc": "Both ends are named, which is what the edge's menu needs to name its triples."
+          }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Triple').filter(t, t.p in ['http://www.w3.org/2004/02/skos/core#exactMatch', 'http://www.w3.org/2004/02/skos/core#closeMatch', 'http://www.w3.org/2004/02/skos/core#broadMatch', 'http://www.w3.org/2004/02/skos/core#narrowMatch', 'http://www.w3.org/2004/02/skos/core#relatedMatch'] && t.oKind != 'literal' && cardId(t.s, t.sKind) in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') && cardId(t.o, t.oKind) in skosTyped('http://www.w3.org/2004/02/skos/core#Concept'))",
+          "id": "'edge:' + cardId(item.s, item.sKind) + '|' + item.p + '|' + cardId(item.o, item.oKind)",
+          "source": "diagram.elementById(cardId(item.s, item.sKind))",
+          "target": "diagram.elementById(cardId(item.o, item.oKind))",
+          "attributes": {
+            "predicate": "item.p.substring(36)"
+          },
+          "sources": "[item]",
+          "reason": "A mapping is a triple of the file; remove it as a statement.",
+          "edits": {
+            "delete": "removeStatement"
+          }
         }
       }
     }
   },
-
   "notation": {
     "doc": "Concepts are plain boxes, not VOWL circles; schemes and collections are unfilled header boxes. Colours come from the host's theme: the tokens copy standalone's theme variables (`src/client/src/index.css`), light and dark.",
     "theme": {
@@ -262,275 +1140,1377 @@
         "font.mono": "ui-monospace, monospace"
       },
       "modes": {
-        "dark": { "color.surface": "#1e293b", "color.text": "#f1f5f9", "color.text.muted": "#94a3b8", "color.border": "#334155", "color.warning": "#fbbf24" }
+        "dark": {
+          "color.surface": "#1e293b",
+          "color.text": "#f1f5f9",
+          "color.text.muted": "#94a3b8",
+          "color.border": "#334155",
+          "color.warning": "#fbbf24"
+        }
       },
       "followSystem": true
     },
     "styles": {
-      "node": { "fill": { "token": "color.surface" }, "stroke": { "color": { "token": "color.border" }, "width": 1.5 }, "font": { "size": 12, "color": { "token": "color.text" } } },
-      "region": { "extends": "node", "fill": "none" },
-      "small": { "font": { "size": 10 } },
-      "muted": { "extends": "small", "font": { "color": { "token": "color.text.muted" } } }
+      "node": {
+        "fill": {
+          "token": "color.surface"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1.5
+        },
+        "font": {
+          "size": 12,
+          "color": {
+            "token": "color.text"
+          }
+        }
+      },
+      "region": {
+        "extends": "node",
+        "fill": "none"
+      },
+      "small": {
+        "font": {
+          "size": 10
+        }
+      },
+      "muted": {
+        "extends": "small",
+        "font": {
+          "color": {
+            "token": "color.text.muted"
+          }
+        }
+      }
     },
     "nodes": {
       "Concept": {
         "shape": "rect",
         "style": "node",
-        "size": { "fixed": [ 200, 44 ] },
+        "size": {
+          "fixed": [
+            200,
+            44
+          ]
+        },
         "labels": [
-          { "id": "name", "text": { "cel": "self.label" }, "position": { "anchor": [ 0.5, 0.68 ] }, "overflow": "ellipsis", "maxLines": 1, "editable": false },
-          { "id": "notation", "text": { "cel": "size(self.notation) > 0 ? self.notation[0] : ''" }, "position": { "anchor": [ 0, 0 ], "offset": [ 8, 14 ], "align": "start" },
-            "style": { "extends": "small", "font": { "color": { "token": "color.primary" } } }, "visible": { "cel": "size(self.notation) > 0" } },
-          { "id": "chip", "text": { "cel": "self.labelTag" }, "position": { "anchor": [ 1, 0 ], "offset": [ -8, 14 ], "align": "end" },
-            "style": "muted", "visible": { "cel": "self.languageChip" }, "tooltip": "The chosen label is in another language than the display language." }
+          {
+            "id": "name",
+            "text": {
+              "cel": "self.label"
+            },
+            "position": {
+              "anchor": [
+                0.5,
+                0.68
+              ]
+            },
+            "overflow": "ellipsis",
+            "maxLines": 1,
+            "editable": false
+          },
+          {
+            "id": "notation",
+            "text": {
+              "cel": "size(self.notation) > 0 ? self.notation[0] : ''"
+            },
+            "position": {
+              "anchor": [
+                0,
+                0
+              ],
+              "offset": [
+                8,
+                14
+              ],
+              "align": "start"
+            },
+            "style": {
+              "extends": "small",
+              "font": {
+                "color": {
+                  "token": "color.primary"
+                }
+              }
+            },
+            "visible": {
+              "cel": "size(self.notation) > 0"
+            }
+          },
+          {
+            "id": "chip",
+            "text": {
+              "cel": "self.labelTag"
+            },
+            "position": {
+              "anchor": [
+                1,
+                0
+              ],
+              "offset": [
+                -8,
+                14
+              ],
+              "align": "end"
+            },
+            "style": "muted",
+            "visible": {
+              "cel": "self.languageChip"
+            },
+            "tooltip": "The chosen label is in another language than the display language."
+          }
         ],
         "ports": {
-          "file": { "shape": "none", "side": "top", "position": 0.5 },
-          "relate": { "shape": "none", "side": "right", "position": 0.5 }
+          "file": {
+            "shape": "none",
+            "side": "top",
+            "position": 0.5
+          },
+          "relate": {
+            "shape": "none",
+            "side": "right",
+            "position": 0.5
+          }
         },
         "conditions": [
-          { "when": "self.labelKind == 'alternate'", "style": { "font": { "style": "italic" } }, "doc": "An alternate label stands in: italic." },
-          { "when": "self.labelKind == 'iriFallback'", "style": { "font": { "family": { "token": "font.mono" }, "size": 11 }, "opacity": 0.7 }, "doc": "The IRI stands in: dimmed monospace." },
-          { "when": "self.blank", "style": { "stroke": { "dash": [ 5, 3 ], "dashScale": "absolute" }, "opacity": 0.75 }, "doc": "A blank node is visibly provisional." }
+          {
+            "when": "self.labelKind == 'alternate'",
+            "style": {
+              "font": {
+                "style": "italic"
+              }
+            },
+            "doc": "An alternate label stands in: italic."
+          },
+          {
+            "when": "self.labelKind == 'iriFallback'",
+            "style": {
+              "font": {
+                "family": {
+                  "token": "font.mono"
+                },
+                "size": 11
+              },
+              "opacity": 0.7
+            },
+            "doc": "The IRI stands in: dimmed monospace."
+          },
+          {
+            "when": "self.blank",
+            "style": {
+              "stroke": {
+                "dash": [
+                  5,
+                  3
+                ],
+                "dashScale": "absolute"
+              },
+              "opacity": 0.75
+            },
+            "doc": "A blank node is visibly provisional."
+          }
         ],
         "doubleClick": "openForm",
-        "tooltip": { "cel": "self.blank ? 'Blank node' : self.iri" }
+        "tooltip": {
+          "cel": "self.blank ? 'Blank node' : self.iri"
+        }
       },
       "ConceptScheme": {
         "shape": "rect",
         "style": "region",
-        "size": { "fixed": [ 260, 40 ] },
+        "size": {
+          "fixed": [
+            260,
+            40
+          ]
+        },
         "labels": [
-          { "id": "name", "text": { "cel": "self.label + ' (' + string(self.memberCount) + ')'" }, "position": { "anchor": [ 0.5, 0.625 ] }, "overflow": "ellipsis", "maxLines": 1, "editable": false }
+          {
+            "id": "name",
+            "text": {
+              "cel": "self.label + ' (' + string(self.memberCount) + ')'"
+            },
+            "position": {
+              "anchor": [
+                0.5,
+                0.625
+              ]
+            },
+            "overflow": "ellipsis",
+            "maxLines": 1,
+            "editable": false
+          }
         ],
         "doubleClick": "openForm"
       },
       "Collection": {
         "shape": "rect",
         "style": "region",
-        "size": { "fixed": [ 260, 40 ] },
+        "size": {
+          "fixed": [
+            260,
+            40
+          ]
+        },
         "labels": [
-          { "id": "name", "text": { "cel": "self.label" }, "position": { "anchor": [ 0.5, 0.625 ] }, "overflow": "ellipsis", "maxLines": 1, "editable": false },
-          { "id": "kind", "text": "ordered", "position": { "anchor": [ 0, 0 ], "offset": [ 8, 34 ], "align": "start" }, "style": "muted", "visible": { "cel": "self.ordered" } }
+          {
+            "id": "name",
+            "text": {
+              "cel": "self.label"
+            },
+            "position": {
+              "anchor": [
+                0.5,
+                0.625
+              ]
+            },
+            "overflow": "ellipsis",
+            "maxLines": 1,
+            "editable": false
+          },
+          {
+            "id": "kind",
+            "text": "ordered",
+            "position": {
+              "anchor": [
+                0,
+                0
+              ],
+              "offset": [
+                8,
+                34
+              ],
+              "align": "start"
+            },
+            "style": "muted",
+            "visible": {
+              "cel": "self.ordered"
+            }
+          }
         ],
         "doubleClick": "openForm"
       }
     },
     "edges": {
       "Broader": {
-        "line": { "stroke": { "color": { "token": "color.border" }, "width": 1 }, "routing": "straight" },
+        "line": {
+          "stroke": {
+            "color": {
+              "token": "color.border"
+            },
+            "width": 1
+          },
+          "routing": "straight"
+        },
         "sourceMarker": "none",
         "targetMarker": "none",
         "reconnectable": false,
         "doc": "Solid and arrowless: the broader concept sits above."
       },
       "Related": {
-        "line": { "stroke": { "color": { "token": "color.border" }, "width": 1, "dash": [ 6, 4 ], "dashScale": "absolute" }, "routing": "straight" },
+        "line": {
+          "stroke": {
+            "color": {
+              "token": "color.border"
+            },
+            "width": 1,
+            "dash": [
+              6,
+              4
+            ],
+            "dashScale": "absolute"
+          },
+          "routing": "straight"
+        },
         "sourceMarker": "none",
         "targetMarker": "none",
         "reconnectable": false
       },
       "Mapping": {
-        "line": { "stroke": { "color": { "token": "color.border" }, "width": 1, "dash": [ 2, 3 ], "dashScale": "absolute" }, "routing": "straight" },
+        "line": {
+          "stroke": {
+            "color": {
+              "token": "color.border"
+            },
+            "width": 1,
+            "dash": [
+              2,
+              3
+            ],
+            "dashScale": "absolute"
+          },
+          "routing": "straight"
+        },
         "sourceMarker": "none",
         "targetMarker": "arrow",
-        "labels": [ { "id": "predicate", "text": { "cel": "self.predicate" }, "at": "middle", "side": "above", "distance": 6, "editable": false } ],
+        "labels": [
+          {
+            "id": "predicate",
+            "text": {
+              "cel": "self.predicate"
+            },
+            "at": "middle",
+            "side": "above",
+            "distance": 6,
+            "editable": false
+          }
+        ],
         "reconnectable": false,
         "deletable": false
       }
-    },
-    "canvas": {
-      "watermark": { "id": "truncation", "text": { "cel": "'Showing ' + string(diagram.shown) + ' of ' + string(diagram.total) + ' terms — edits are withheld on this truncated view'" }, "visible": { "cel": "diagram.truncated" } }
     }
   },
-
   "forms": {
     "labelledInspector": {
-      "for": [ "ConceptScheme", "Concept", "Collection" ],
-      "usage": [ "inspector" ],
+      "for": [
+        "ConceptScheme",
+        "Concept",
+        "Collection"
+      ],
+      "usage": [
+        "inspector"
+      ],
       "items": [
-        { "kind": "section", "title": "Identity", "items": [
-          { "attribute": "iri", "widget": "readonly" },
-          { "attribute": "notation", "widget": "readonly", "visible": "size(self.notation) > 0" }
-        ] },
-        { "kind": "section", "title": "Labels", "items": [
-          { "attribute": "prefLabel", "widget": "table", "readOnly": { "cel": "self.xlLabelled || diagram.truncated" },
-            "doc": "Editing a preferred label rewrites only its lexical form; the language tag is kept. A language without a label gets a new `skos:prefLabel` triple." },
-          { "attribute": "altLabel", "widget": "table" },
-          { "attribute": "hiddenLabel", "widget": "table" }
-        ] },
-        { "kind": "section", "title": "Documentation", "items": [
-          { "attribute": "definition", "widget": "textarea", "readOnly": { "cel": "diagram.truncated" } },
-          { "attribute": "scopeNote", "widget": "textarea", "readOnly": { "cel": "diagram.truncated" } },
-          { "attribute": "example", "widget": "textarea", "readOnly": { "cel": "diagram.truncated" } },
-          { "attribute": "note", "widget": "textarea", "readOnly": { "cel": "diagram.truncated" } },
-          { "attribute": "historyNote", "widget": "textarea", "readOnly": { "cel": "diagram.truncated" } },
-          { "attribute": "editorialNote", "widget": "textarea", "readOnly": { "cel": "diagram.truncated" } },
-          { "attribute": "changeNote", "widget": "textarea", "readOnly": { "cel": "diagram.truncated" } }
-        ] },
-        { "kind": "section", "title": "Membership", "visible": "self.isA('Concept')", "items": [
-          { "attribute": "inScheme", "widget": "readonly" }
-        ] },
-        { "kind": "section", "title": "Mappings", "visible": "self.isA('Concept')", "items": [
-          { "attribute": "mappings", "widget": "readonly" }
-        ] },
-        { "kind": "problems" }
-      ]
+        {
+          "kind": "section",
+          "items": [
+            {
+              "attribute": "iri",
+              "widget": "readonly",
+              "id": "iri",
+              "readOnlyReasons": [
+                "Rename through the context menu, so every reference follows the name."
+              ]
+            },
+            {
+              "attribute": "notation",
+              "widget": "readonly",
+              "visible": "size(self.notation) > 0",
+              "id": "notation",
+              "readOnlyReasons": [
+                "Notations are codes other systems key off; edit them as triples."
+              ]
+            }
+          ],
+          "label": "Identity",
+          "visible": "!self.blank"
+        },
+        {
+          "kind": "section",
+          "items": [
+            {
+              "attribute": "prefLabel",
+              "widget": "table",
+              "doc": "Editing a preferred label rewrites only its lexical form; the language tag is kept. A language without a label gets a new `skos:prefLabel` triple.",
+              "id": "prefLabel",
+              "readOnlyReasons": [
+                {
+                  "when": "self.xlLabelled",
+                  "message": "This concept's labels are stated through SKOS-XL, which this reading does not resolve (Requirement 3.6). Edit them as triples in the graph reading."
+                },
+                {
+                  "reason": "truncated"
+                }
+              ]
+            },
+            {
+              "attribute": "altLabel",
+              "widget": "table",
+              "id": "altLabel",
+              "readOnlyReasons": [
+                {
+                  "when": "self.xlLabelled",
+                  "message": "This concept's labels are stated through SKOS-XL, which this reading does not resolve (Requirement 3.6). Edit them as triples in the graph reading."
+                },
+                "Alternate and hidden labels are edited as triples."
+              ],
+              "visible": "size(self.altLabel) > 0"
+            },
+            {
+              "attribute": "hiddenLabel",
+              "widget": "table",
+              "id": "hiddenLabel",
+              "readOnlyReasons": [
+                {
+                  "when": "self.xlLabelled",
+                  "message": "This concept's labels are stated through SKOS-XL, which this reading does not resolve (Requirement 3.6). Edit them as triples in the graph reading."
+                },
+                "Alternate and hidden labels are edited as triples."
+              ],
+              "visible": "size(self.hiddenLabel) > 0"
+            }
+          ],
+          "label": "Labels",
+          "visible": "!self.blank"
+        },
+        {
+          "kind": "section",
+          "items": [
+            {
+              "attribute": "definition",
+              "widget": "textarea",
+              "id": "definition",
+              "label": "Definition",
+              "readOnlyReasons": [
+                {
+                  "reason": "truncated"
+                }
+              ]
+            },
+            {
+              "attribute": "scopeNote",
+              "widget": "textarea",
+              "id": "scopeNote",
+              "label": "ScopeNote",
+              "readOnlyReasons": [
+                {
+                  "reason": "truncated"
+                }
+              ]
+            },
+            {
+              "attribute": "example",
+              "widget": "textarea",
+              "id": "example",
+              "label": "Example",
+              "readOnlyReasons": [
+                {
+                  "reason": "truncated"
+                }
+              ]
+            },
+            {
+              "attribute": "note",
+              "widget": "textarea",
+              "id": "note",
+              "label": "Note",
+              "readOnlyReasons": [
+                {
+                  "reason": "truncated"
+                }
+              ]
+            },
+            {
+              "attribute": "historyNote",
+              "widget": "textarea",
+              "id": "historyNote",
+              "label": "HistoryNote",
+              "readOnlyReasons": [
+                {
+                  "reason": "truncated"
+                }
+              ]
+            },
+            {
+              "attribute": "editorialNote",
+              "widget": "textarea",
+              "id": "editorialNote",
+              "label": "EditorialNote",
+              "readOnlyReasons": [
+                {
+                  "reason": "truncated"
+                }
+              ]
+            },
+            {
+              "attribute": "changeNote",
+              "widget": "textarea",
+              "id": "changeNote",
+              "label": "ChangeNote",
+              "readOnlyReasons": [
+                {
+                  "reason": "truncated"
+                }
+              ]
+            }
+          ],
+          "label": "Documentation",
+          "visible": "!self.blank"
+        },
+        {
+          "kind": "section",
+          "visible": "!self.blank && self.isA('Concept')",
+          "items": [
+            {
+              "attribute": "schemesText",
+              "widget": "readonly",
+              "id": "schemes",
+              "readOnlyReasons": [
+                "Membership is stated by triples; file and unfile concepts on the canvas."
+              ]
+            }
+          ],
+          "label": "Membership"
+        },
+        {
+          "kind": "section",
+          "visible": "!self.blank && self.isA('Concept')",
+          "items": [
+            {
+              "attribute": "mappings",
+              "widget": "readonly",
+              "id": "mappings",
+              "visible": "size(self.mappings) > 0",
+              "readOnlyReasons": [
+                "The mapped concept lives outside this file, so the mapping shows here rather than drawing."
+              ]
+            }
+          ],
+          "label": "Mappings"
+        }
+      ],
+      "doc": "A blank-node term shows no rows: the grid answers for named terms only. Each label row is keyed by its kind and language and each mapping row by its predicate and target (`x-skos`)."
     },
     "addConceptDialog": {
       "for": "diagram",
-      "usage": [ "create" ],
+      "usage": [
+        "popover"
+      ],
       "label": "Add concept",
-      "icon": "mdi:tag-plus-outline",
-      "items": [ { "attribute": "label", "label": "Preferred label" } ]
+      "icon": "mdi-tag-plus-outline",
+      "submitLabel": "Add",
+      "items": [
+        {
+          "attribute": "label",
+          "label": "Preferred label",
+          "validate": [
+            {
+              "rule": "value.trim() != ''",
+              "message": "A concept needs a preferred label."
+            },
+            {
+              "rule": "rdfMintIri(value) != ''",
+              "message": {
+                "cel": "rdfMintRefusal(value)"
+              }
+            },
+            {
+              "rule": "!diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == rdfMintIri(value)) || (t.oKind == 'iri' && t.o == rdfMintIri(value)))",
+              "message": {
+                "cel": "rdfMintIri(value) + ' already names something in this document. Choose a different label, or rename the existing resource first.'"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "addResourceDialog": {
+      "for": "diagram",
+      "usage": [
+        "popover"
+      ],
+      "label": "Add resource",
+      "icon": "mdi-card-plus-outline",
+      "submitLabel": "Add",
+      "items": [
+        {
+          "attribute": "iri",
+          "label": "IRI or prefixed name",
+          "validate": [
+            {
+              "rule": "rdfResolveTerm(value) != ''",
+              "message": {
+                "cel": "rdfTermRefusal(value)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "declarePrefixDialog": {
+      "for": "diagram",
+      "usage": [
+        "popover"
+      ],
+      "label": "Declare prefix",
+      "icon": "mdi-at",
+      "submitLabel": "Declare",
+      "items": [
+        {
+          "attribute": "declaration",
+          "label": "Declaration, e.g. ex: http://example.org/",
+          "validate": [
+            {
+              "rule": "value.matches('^\\\\s*[^:\\\\s]+\\\\s*:\\\\s*<?[A-Za-z][A-Za-z0-9+.-]*:[^\\\\s<>]*>?\\\\s*$')",
+              "message": "Write the declaration as 'prefix: iri', e.g. ex: http://example.org/."
+            }
+          ]
+        }
+      ]
+    },
+    "relateDialog": {
+      "for": "diagram",
+      "usage": [
+        "popover"
+      ],
+      "label": "Relate",
+      "icon": "mdi-ray-start-arrow",
+      "submitLabel": "Relate",
+      "items": [
+        {
+          "attribute": "predicate",
+          "label": "Predicate (IRI or prefixed name)",
+          "validate": [
+            {
+              "rule": "rdfResolveTerm(value) != ''",
+              "message": {
+                "cel": "rdfTermRefusal(value)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "renameDialog": {
+      "for": [
+        "ConceptScheme",
+        "Concept",
+        "Collection"
+      ],
+      "usage": [
+        "popover"
+      ],
+      "label": "Rename resource",
+      "icon": "mdi-pencil-outline",
+      "submitLabel": "Rename",
+      "items": [
+        {
+          "attribute": "newName",
+          "label": "New IRI or prefixed name",
+          "initial": "rdfCompress(self.iri)",
+          "validate": [
+            {
+              "rule": "rdfResolveTerm(value) != ''",
+              "message": {
+                "cel": "rdfTermRefusal(value)"
+              }
+            },
+            {
+              "rule": "!diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == rdfResolveTerm(value)) || (t.oKind == 'iri' && t.o == rdfResolveTerm(value)))",
+              "message": {
+                "cel": "rdfResolveTerm(value) + ' already names something in this document; renaming onto it would silently merge two resources.'"
+              }
+            }
+          ]
+        }
+      ]
     }
   },
-
   "toolbox": {
-    "generic": { "select": true, "pan": true },
+    "generic": {
+      "select": true,
+      "pan": true
+    },
     "groups": [
-      { "id": "vocabulary", "label": "SKOS", "tools": [
-        { "id": "concept", "kind": "operation", "operation": "addConcept", "label": "Concept", "icon": "mdi:tag-plus-outline",
-          "enabled": "size(diagram.nodesOfType('ConceptScheme')) > 0 && !diagram.truncated",
-          "doc": { "summary": "A concept, filed into the file's first scheme. Drop it where it should sit; you will be asked for its preferred label.", "rationale": "Schemes and collections are modeled deliberately, not dropped." } }
-      ] }
-    ],
-    "contextTools": [
-      { "for": [ "Concept" ], "placement": "around", "tools": [
-        { "kind": "connect", "via": "Broader", "label": "File under (broader)", "icon": "mdi:file-tree", "position": "top" },
-        { "kind": "connect", "via": "Related", "label": "Relate (skos:related)", "icon": "mdi:swap-horizontal", "position": "right" }
-      ] }
+      {
+        "id": "vocabulary",
+        "label": "SKOS",
+        "tools": [
+          {
+            "id": "concept",
+            "kind": "operation",
+            "operation": "addConcept",
+            "label": "Concept",
+            "icon": "mdi-tag-plus-outline",
+            "doc": "A concept, filed into the file's first scheme. Drop it where it should sit; you will be asked for its preferred label.",
+            "mode": "drop"
+          }
+        ]
+      }
     ],
     "contextMenus": [
-      { "for": [ "ConceptScheme", "Concept", "Collection" ], "placement": "menu", "when": "!self.blank && !diagram.truncated", "tools": [
-        { "kind": "operation", "operation": "rename", "label": "Rename…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
-        { "kind": "delete", "label": "Remove", "icon": "mdi:delete-outline", "shortcut": "Delete" }
-      ] },
-      { "for": [ "Broader" ], "placement": "menu", "when": "!diagram.truncated", "tools": [
-        { "kind": "delete", "label": "Disconnect", "icon": "mdi:link-off", "shortcut": "Delete" }
-      ] },
-      { "for": [ "Related" ], "placement": "menu", "when": "!diagram.truncated", "tools": [
-        { "kind": "delete", "label": "Remove related link", "icon": "mdi:link-off", "shortcut": "Delete" }
-      ] }
-    ]
-  },
-
-  "constraints": {
-    "doc": "Facts about the file, never a reasoner's opinion: nothing is fetched and nothing is inferred. Parse failures and serialization refusals are reported by the Turtle plugin as one finding that replaces all of these.",
-    "builtIn": {
-      "std.endpoints": { "severity": "warning", "enabled": true }
-    },
-    "rules": [
-      { "id": "hierarchyCycle", "label": "Hierarchy cycle", "scope": "Concept",
-        "rule": "!self.inCycle('Broader')", "severity": "error", "cost": "expensive",
-        "message": { "cel": "'The broader/narrower hierarchy runs in a circle through ' + self.label + '. The diagram draws every edge and breaks the circle for layering only.'" },
-        "doc": { "summary": "skos.hierarchy-cycle", "rationale": "SKOS does not forbid a cycle, but a thesaurus with one is almost always wrong; the layout has to break it to layer at all." } },
-      { "id": "duplicatePrefLabel", "label": "Two preferred labels in one language", "scope": "Concept",
-        "rule": "self.prefLabel.map(l, l.language).isUnique()", "severity": "error", "attribute": "prefLabel",
-        "message": { "cel": "self.label + ' has more than one preferred label in one language; SKOS allows one (S14). The lexicographically first is drawn.'" },
-        "doc": { "summary": "skos.duplicate-preflabel", "rationale": "SKOS integrity condition S14." } },
-      { "id": "missingPrefLabel", "label": "No preferred label", "scope": "Concept",
-        "rule": "size(self.prefLabel) > 0", "severity": "warning", "attribute": "prefLabel",
-        "message": { "cel": "self.label + ' has no skos:prefLabel in any language, so the diagram falls back to ' + (size(self.altLabel) + size(self.hiddenLabel) > 0 ? 'an alternate label' : 'its IRI') + '.'" },
-        "doc": "skos.missing-preflabel" },
-      { "id": "relatedOverlap", "label": "Related and hierarchical", "scope": "Related",
-        "rule": "!(self.target in self.source.successors('Broader') || self.source in self.target.successors('Broader'))", "severity": "warning",
-        "message": { "cel": "self.source.label() + ' and ' + self.target.label() + ' are both hierarchy-linked and skos:related, which SKOS S27 forbids. Only this direct case is checked: the transitive case would need inference, which this diagram never does.'" },
-        "doc": { "summary": "skos.related-overlap", "rationale": "SKOS integrity condition S27, direct case only." } },
-      { "id": "unfiledConcept", "label": "Unfiled concept", "scope": "Concept",
-        "rule": "size(self.inScheme) > 0 || diagram.nodesOfType('ConceptScheme').exists(s, s.topConcepts.exists(t, t == self || t in self.reachable('Broader')))",
-        "severity": "info", "cost": "expensive",
-        "message": { "cel": "rdfLocalName(self.iri) + ' is in no concept scheme and under no top concept - legal SKOS, and usually a mistake. It draws in the unfiled band.'" },
-        "doc": "skos.unfiled-concept" },
-      { "id": "xlLabels", "label": "SKOS-XL labels", "scope": "diagram",
-        "rule": "!diagram.usesSkosXl", "severity": "info",
-        "message": "This file labels concepts through SKOS-XL, which this reading does not resolve; the plain-SKOS fallbacks apply (Requirement 3.6).",
-        "doc": "skos.xl-labels" },
-      { "id": "misplacedHeader", "label": "Misplaced language header", "scope": "diagram",
-        "rule": "diagram.languageHeaderLine == 0", "severity": "warning",
-        "message": { "cel": "'The registration\\'s language: header (line ' + string(diagram.languageHeaderLine) + ') sits above a body: or view: line, where core\\'s header scan would stop before reaching them. It is ignored; move it below body:/view: and above layout:.'" },
-        "doc": "skos.misplaced-header" },
-      { "id": "gestureEndsAreConcepts", "kind": "connect", "when": "relationType in ['Broader', 'Related']",
-        "rule": "source.isA('Concept') && target.isA('Concept') && !source.blank && !target.blank",
-        "message": "Both ends of this gesture must be concepts the file types as skos:Concept." },
-      { "id": "gestureNotToSelf", "kind": "connect",
-        "rule": "source != target", "message": "A concept cannot be filed under or related to itself." },
-      { "id": "mappingsAreRead", "kind": "connect",
-        "rule": "relationType != 'Mapping'", "message": "Mapping links are read from the file; write them as triples." },
-      { "id": "blankNotPositioned", "kind": "placement", "scope": "Labelled",
-        "rule": "!self.blank",
-        "message": "That is a blank node, whose identity does not survive a reparse, so a stored position could not be trusted. Name it with an IRI to arrange it." },
-      { "id": "noReparentByDrag", "kind": "placement", "scope": "Concept",
-        "rule": "newParent == self.parent",
-        "message": "A concept is filed under a parent with the hierarchy gesture; dragging changes where it sits on the canvas." },
-      { "id": "truncatedCreate", "kind": "create", "rule": "!diagram.truncated",
-        "message": "The diagram shows only the first part of this file under the drawn-element budget, so edits through it are withheld - an edit through a partial view could touch what the view does not show. Edit the file as text instead." },
-      { "id": "truncatedConnect", "kind": "connect", "rule": "!diagram.truncated",
-        "message": "The diagram shows only the first part of this file under the drawn-element budget, so edits through it are withheld - an edit through a partial view could touch what the view does not show. Edit the file as text instead." },
-      { "id": "truncatedDelete", "kind": "delete", "rule": "!diagram.truncated",
-        "message": "The diagram shows only the first part of this file under the drawn-element budget, so edits through it are withheld - an edit through a partial view could touch what the view does not show. Edit the file as text instead." },
-      { "id": "truncatedChange", "kind": "change", "rule": "!diagram.truncated",
-        "message": "The diagram shows only the first part of this file under the drawn-element budget, so edits through it are withheld - an edit through a partial view could touch what the view does not show. Edit the file as text instead." },
-      { "id": "xlPrefLabelLocked", "kind": "change", "scope": "Labelled", "when": "attribute == 'prefLabel'",
-        "rule": "!self.xlLabelled",
-        "message": "This concept's labels are stated through SKOS-XL, which this reading does not resolve (Requirement 3.6). Edit them as triples in the graph reading." }
-    ]
-  },
-
-  "behavior": {
-    "operations": {
-      "addConcept": {
-        "label": "Add concept here…",
-        "icon": "mdi:tag-plus-outline",
-        "for": "diagram",
-        "doc": "Writes three triples as one undo: `rdf:type skos:Concept`, a `skos:prefLabel` tagged `@en`, and `skos:inScheme` the file's first scheme. The IRI is minted under the namespace the file's subjects already use.",
-        "params": { "label": { "type": "string", "label": "Preferred label" } },
-        "enabled": "size(diagram.nodesOfType('ConceptScheme')) > 0 && !diagram.truncated",
-        "actions": [
-          { "if": "p.label.trim() == ''", "then": [ { "abort": { "message": "'A concept needs a preferred label.'" } } ] },
-          { "let": { "iri": "rdfMintIri(p.label.trim())" } },
-          { "if": "iri == ''", "then": [ { "abort": { "message": "rdfMintRefusal(p.label.trim())" } } ] },
-          { "if": "rdfTermExists(iri)", "then": [ { "abort": { "message": "iri + ' already names something in this document. Choose a different label, or rename the existing resource first.'" } } ] },
-          { "create": { "type": "'Concept'", "attributes": {
-              "iri": "iri",
-              "prefLabel": "[{'text': p.label.trim(), 'language': 'en'}]",
-              "inScheme": "[diagram.nodesOfType('ConceptScheme')[0]]"
-            } }, "as": "concept" },
-          { "select": "concept" }
+      {
+        "for": [
+          "ConceptScheme",
+          "Concept",
+          "Collection"
+        ],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "renameResource",
+            "label": "Rename…",
+            "icon": "mdi-pencil-outline",
+            "shortcut": "F2"
+          },
+          {
+            "kind": "operation",
+            "operation": "removeResource",
+            "icon": "mdi-delete-outline",
+            "shortcut": "Delete"
+          }
+        ],
+        "when": "!self.blank"
+      },
+      {
+        "for": [
+          "Broader",
+          "Related"
+        ],
+        "when": "self.direct",
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "disconnect",
+            "icon": "mdi-link-off",
+            "shortcut": "Delete"
+          }
         ]
       },
-      "rename": {
-        "label": "Rename…",
-        "icon": "mdi:pencil-outline",
-        "shortcut": "F2",
-        "for": [ "Labelled" ],
-        "enabled": "!self.blank && !diagram.truncated",
-        "params": { "newName": { "type": "string", "label": "New IRI or prefixed name", "required": true } },
-        "doc": "Rewrites every occurrence of the IRI - subject, predicate and object positions, prefixed or full - as one command; a collision is refused before anything is written.",
-        "plugin": { "name": "net.etalii.adp.w3c.turtle", "args": { "action": "renameTerm" } }
+      {
+        "for": [
+          "Mapping"
+        ],
+        "placement": "menu",
+        "standardEntries": false,
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "removeStatement",
+            "label": "Remove statement",
+            "icon": "mdi-vector-polyline-remove",
+            "shortcut": "Delete"
+          }
+        ],
+        "when": "self.direct"
+      },
+      {
+        "for": [
+          "diagram"
+        ],
+        "placement": "menu",
+        "standardEntries": false,
+        "doc": "A placement: the empty canvas at a point.",
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "addConcept",
+            "label": "Add concept here…",
+            "icon": "mdi-tag-plus-outline",
+            "group": "vocabulary",
+            "visible": "diagram.nodesOfType('Triple').exists(t, typeTriple(t) && t.o == 'http://www.w3.org/2004/02/skos/core#ConceptScheme')"
+          },
+          {
+            "kind": "operation",
+            "operation": "addResource",
+            "label": "Add resource here…",
+            "icon": "mdi-card-plus-outline",
+            "group": "family"
+          },
+          {
+            "kind": "operation",
+            "operation": "declarePrefix",
+            "label": "Declare prefix…",
+            "icon": "mdi-at",
+            "group": "family"
+          }
+        ]
+      },
+      {
+        "for": [
+          "connection"
+        ],
+        "placement": "menu",
+        "standardEntries": false,
+        "doc": "A finished connect gesture between two elements.",
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "fileUnder",
+            "label": "File under (broader)",
+            "icon": "mdi-file-tree",
+            "group": "vocabulary",
+            "visible": "source.id.startsWith('res:') && target.id.startsWith('res:') && source.id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') && target.id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept')",
+            "args": {
+              "from": "source",
+              "to": "target"
+            }
+          },
+          {
+            "kind": "operation",
+            "operation": "relateConcepts",
+            "label": "Relate (skos:related)",
+            "icon": "mdi-swap-horizontal",
+            "group": "vocabulary",
+            "visible": "source.id.startsWith('res:') && target.id.startsWith('res:') && source.id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') && target.id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept')",
+            "args": {
+              "from": "source",
+              "to": "target"
+            }
+          },
+          {
+            "kind": "operation",
+            "operation": "relate",
+            "label": "Relate…",
+            "icon": "mdi-ray-start-arrow",
+            "args": {
+              "from": "source",
+              "to": "target"
+            },
+            "group": "family"
+          }
+        ]
+      }
+    ]
+  },
+  "constraints": {
+    "doc": "What makes a vocabulary lie, all by assertion: no inference, no network. The five `rdf.*` findings are the plugin's, raised as it reads the body and shared by every reading (FBL 9.1); a parse failure replaces every other finding. `skos.misplaced-header` is about the registration, which no CEL context reads, so it stays module code (design, *Amendments ruled*, option A).",
+    "builtIn": {
+      "std.unparseable": {
+        "code": "rdf.unparseable",
+        "message": {
+          "cel": "'This is not RDF that can be read: ' + detail.reason"
+        }
       }
     },
-    "deletion": {
-      "Labelled": { "relations": "delete", "confirm": "Removing this resource also removes the statements it appears in." },
-      "Broader": { "confirm": "This pair is asserted in both directions; disconnecting removes both statements as one undo." }
-    },
-    "undo": { "mergeWindowMs": 0 }
+    "rules": [
+      {
+        "id": "hierarchyCycle",
+        "code": "skos.hierarchy-cycle",
+        "label": "Hierarchy cycle",
+        "scope": "diagram",
+        "forEach": "diagram.knots('Broader')",
+        "severity": "error",
+        "cost": "expensive",
+        "message": {
+          "cel": "'The broader/narrower hierarchy runs in a circle through ' + item.map(c, c.id).sort().map(id, skosFindingName(id)).join(', ') + '. The diagram draws every edge and breaks the circle for layering only.'"
+        },
+        "location": "{'line': diagram.relationsOfType('Broader').filter(r, r.source in item && r.target in item)[0].sources[0].line}",
+        "doc": "One finding per knot of the drawn hierarchy, its members named in id order, at the first triple stating one of its edges."
+      },
+      {
+        "id": "duplicatePrefLabel",
+        "code": "skos.duplicate-preflabel",
+        "label": "Duplicate preferred label",
+        "scope": "diagram",
+        "forEach": "diagram.nodesOfType('Concept').map(c, c.prefLabel.map(l, l.language).distinct().filter(lang, c.prefLabel.filter(l, l.language == lang).size() > 1).map(lang, [c, lang])).flatten()",
+        "severity": "error",
+        "message": {
+          "cel": "skosFindingName(item[0].id) + ' has ' + string(item[0].prefLabel.filter(l, l.language == item[1]).size()) + ' preferred labels with ' + (item[1] == '' ? 'no language tag' : \"language '\" + item[1] + \"'\") + '; SKOS allows one (S14). The lexicographically first is drawn.'"
+        },
+        "location": "{'line': diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item[0].id && t.p == 'http://www.w3.org/2004/02/skos/core#prefLabel' && t.oKind == 'literal' && t.language.lowerAscii() == item[1])[0].line}"
+      },
+      {
+        "id": "missingPrefLabel",
+        "code": "skos.missing-preflabel",
+        "label": "Missing preferred label",
+        "scope": "Concept",
+        "rule": "size(self.prefLabel) > 0",
+        "severity": "warning",
+        "message": {
+          "cel": "skosFindingName(self.id) + ' has no skos:prefLabel in any language, so the diagram falls back to ' + (size(self.altLabel) + size(self.hiddenLabel) > 0 ? 'an alternate label' : 'its IRI') + '.'"
+        }
+      },
+      {
+        "id": "relatedOverlap",
+        "code": "skos.related-overlap",
+        "label": "Related and hierarchy-linked",
+        "scope": "Related",
+        "rule": "!diagram.relationsOfType('Broader').exists(b, (b.source == self.source && b.target == self.target) || (b.source == self.target && b.target == self.source))",
+        "severity": "warning",
+        "message": {
+          "cel": "skosFindingName(self.source.id) + ' and ' + skosFindingName(self.target.id) + ' are both hierarchy-linked and skos:related, which SKOS S27 forbids. Only this direct case is checked: the transitive case would need inference, which this diagram never does.'"
+        },
+        "location": "{'line': self.sources[0].line}",
+        "doc": "Only the direct case: the transitive one would need inference."
+      },
+      {
+        "id": "unfiledConcept",
+        "code": "skos.unfiled-concept",
+        "label": "Unfiled concept",
+        "scope": "Concept",
+        "rule": "size(self.inScheme) > 0 || self.id in skosReached(diagram.nodesOfType('ConceptScheme').map(s, skosTops(s.id)).flatten(), [])",
+        "severity": "info",
+        "message": {
+          "cel": "skosShort(self.iri) + ' is in no concept scheme and under no top concept - legal SKOS, and usually a mistake. It draws in the unfiled band.'"
+        }
+      },
+      {
+        "id": "nonConceptTarget",
+        "code": "skos.nonconcept-target",
+        "label": "Not typed skos:Concept",
+        "scope": "diagram",
+        "forEach": "diagram.nodesOfType('Triple').map(t, (t.p in ['http://www.w3.org/2004/02/skos/core#broader', 'http://www.w3.org/2004/02/skos/core#narrower', 'http://www.w3.org/2004/02/skos/core#related'] ? [[t, cardId(t.s, t.sKind)], [t, cardId(t.o, t.oKind)]] : (t.p in ['http://www.w3.org/2004/02/skos/core#inScheme', 'http://www.w3.org/2004/02/skos/core#topConceptOf'] ? [[t, cardId(t.s, t.sKind)]] : (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' ? [[t, cardId(t.o, t.oKind)]] : []))).filter(x, x[0].oKind != 'literal' || x[1] == cardId(x[0].s, x[0].sKind))).flatten().filter(x, !(x[1] in skosTyped('http://www.w3.org/2004/02/skos/core#Concept')))",
+        "severity": "warning",
+        "message": {
+          "cel": "skosShort(item[1]) + ' takes part in a ' + rdfDisplayName(item[0].p) + ' assertion but is not typed skos:Concept. Typing is never inferred, so only the file\\'s own silence is reported.'"
+        },
+        "location": "{'line': item[0].line}"
+      },
+      {
+        "id": "xlLabels",
+        "code": "skos.xl-labels",
+        "label": "SKOS-XL labels",
+        "scope": "diagram",
+        "rule": "!diagram.nodesOfType('Triple').exists(t, t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel'])",
+        "severity": "info",
+        "message": "This file labels concepts through SKOS-XL, which this reading does not resolve; the plain-SKOS fallbacks apply (Requirement 3.6)."
+      }
+    ]
   },
-
+  "behavior": {
+    "reasons": {
+      "truncated": {
+        "when": "familyTruncated()",
+        "message": "The diagram shows only the first part of this file under the drawn-element budget, so edits through it are withheld - an edit through a partial view could touch what the view does not show. Edit the file as text instead.",
+        "doc": "The truncation gate: one sentence, shown on every withheld gesture, menu entry and property row. Today every reading gates its edits on the RDF graph reading's count of cards, not on its own drawn count, so this reason reads that count."
+      }
+    },
+    "editGate": [
+      {
+        "reason": "truncated"
+      }
+    ],
+    "messages": {
+      "std.notApplicable": {
+        "cel": "'\\'' + operationId + '\\' does not apply to this selection.'"
+      }
+    },
+    "operations": {
+      "addResource": {
+        "label": "Add resource here…",
+        "icon": "mdi-card-plus-outline",
+        "for": "diagram",
+        "params": {
+          "iri": {
+            "type": "string",
+            "label": "IRI or prefixed name",
+            "required": true
+          }
+        },
+        "paramsForm": "addResourceDialog",
+        "doc": "Writes one triple, `{iri} a rdfs:Resource`; the card follows from it.",
+        "actions": [
+          {
+            "if": "rdfResolveTerm(p.iri) == ''",
+            "then": [
+              {
+                "abort": {
+                  "message": "rdfTermRefusal(p.iri)"
+                }
+              }
+            ]
+          },
+          {
+            "create": {
+              "type": "'Triple'",
+              "attributes": {
+                "s": "rdfResolveTerm(p.iri)",
+                "sKind": "'iri'",
+                "p": "'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'",
+                "o": "'http://www.w3.org/2000/01/rdf-schema#Resource'",
+                "oKind": "'iri'"
+              }
+            }
+          }
+        ]
+      },
+      "declarePrefix": {
+        "label": "Declare prefix…",
+        "icon": "mdi-at",
+        "for": "diagram",
+        "params": {
+          "declaration": {
+            "type": "string",
+            "label": "Declaration, e.g. ex: http://example.org/",
+            "required": true
+          }
+        },
+        "paramsForm": "declarePrefixDialog",
+        "doc": "Writes one `@prefix` directive from `prefix: iri`, brackets tolerated. A plugin action: the directive is written where the tool writes it, after the last declaration, which no change of one stored element says (`w3c-rdf.md`, gap 2).",
+        "plugin": {
+          "name": "net.etalii.adp.w3c.turtle",
+          "args": {
+            "action": "addPrefix"
+          }
+        }
+      },
+      "renameResource": {
+        "label": "Rename…",
+        "for": "Labelled",
+        "params": {
+          "newName": {
+            "type": "string",
+            "label": "New IRI or prefixed name",
+            "required": true
+          }
+        },
+        "paramsForm": "renameDialog",
+        "doc": "Rewrites every token that names the IRI, in subject, predicate, object and datatype position, bracketed or prefixed under the prefixes in force where it stands. A plugin action, since no change of one stored element says it (`w3c-rdf.md`, gap 2).",
+        "plugin": {
+          "name": "net.etalii.adp.w3c.turtle",
+          "args": {
+            "action": "renameTerm"
+          }
+        }
+      },
+      "removeResource": {
+        "for": "Labelled",
+        "label": {
+          "cel": "self.sources.size() == 1 ? 'Remove' : 'Remove (with ' + string(self.sources.size()) + ' statements)'"
+        },
+        "confirm": {
+          "count": "self.sources.size()",
+          "threshold": 2,
+          "title": "Remove resource",
+          "message": {
+            "cel": "'Removing this resource also removes the ' + string(count) + ' statements it appears in.'"
+          },
+          "confirmLabel": "Remove",
+          "danger": true
+        },
+        "doc": "Removes every triple whose subject or object is the IRI; the element disappears on recomputation. A resource in one statement goes without a question.",
+        "actions": [
+          {
+            "delete": "self.sources"
+          }
+        ]
+      },
+      "removeStatement": {
+        "label": "Remove statement",
+        "for": [
+          "Mapping"
+        ],
+        "actions": [
+          {
+            "delete": "self.sources"
+          }
+        ]
+      },
+      "relate": {
+        "label": "Relate…",
+        "icon": "mdi-ray-start-arrow",
+        "for": "diagram",
+        "params": {
+          "from": {
+            "type": "Labelled",
+            "required": true
+          },
+          "to": {
+            "type": "Labelled",
+            "required": true
+          },
+          "predicate": {
+            "type": "string",
+            "label": "Predicate (IRI or prefixed name)",
+            "required": true
+          }
+        },
+        "paramsForm": "relateDialog",
+        "actions": [
+          {
+            "if": "p.from.blank || p.to.blank",
+            "then": [
+              {
+                "abort": {
+                  "message": "'A blank node\\'s identity does not survive a reparse, so relations to it cannot land in the file. Name it with an IRI first.'"
+                }
+              }
+            ]
+          },
+          {
+            "if": "rdfResolveTerm(p.predicate) == ''",
+            "then": [
+              {
+                "abort": {
+                  "message": "rdfTermRefusal(p.predicate)"
+                }
+              }
+            ]
+          },
+          {
+            "create": {
+              "type": "'Triple'",
+              "attributes": {
+                "s": "p.from.iri",
+                "sKind": "'iri'",
+                "p": "rdfResolveTerm(p.predicate)",
+                "o": "p.to.iri",
+                "oKind": "'iri'"
+              }
+            }
+          }
+        ]
+      },
+      "setLabel": {
+        "label": "Label",
+        "for": "Labelled",
+        "params": {
+          "value": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "doc": "Rewrites the lexical form of the first `rdfs:label` literal, keeping its language and datatype, or adds a plain one when there is none.",
+        "actions": [
+          {
+            "if": "diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal').size() > 0",
+            "then": [
+              {
+                "target": "diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal')[0]",
+                "set": {
+                  "o": "p.value"
+                }
+              }
+            ],
+            "else": [
+              {
+                "create": {
+                  "type": "'Triple'",
+                  "attributes": {
+                    "s": "self.iri",
+                    "sKind": "'iri'",
+                    "p": "'http://www.w3.org/2000/01/rdf-schema#label'",
+                    "o": "p.value",
+                    "oKind": "'literal'"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "setComment": {
+        "label": "Comment",
+        "for": "Labelled",
+        "params": {
+          "value": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "doc": "Rewrites the lexical form of the first `rdfs:comment` literal, keeping its language and datatype, or adds a plain one when there is none.",
+        "actions": [
+          {
+            "if": "diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal').size() > 0",
+            "then": [
+              {
+                "target": "diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal')[0]",
+                "set": {
+                  "o": "p.value"
+                }
+              }
+            ],
+            "else": [
+              {
+                "create": {
+                  "type": "'Triple'",
+                  "attributes": {
+                    "s": "self.iri",
+                    "sKind": "'iri'",
+                    "p": "'http://www.w3.org/2000/01/rdf-schema#comment'",
+                    "o": "p.value",
+                    "oKind": "'literal'"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "addConcept": {
+        "label": "Add concept here…",
+        "icon": "mdi-tag-plus-outline",
+        "for": "diagram",
+        "params": {
+          "label": {
+            "type": "string",
+            "label": "Preferred label",
+            "required": true
+          }
+        },
+        "paramsForm": "addConceptDialog",
+        "doc": "Writes the concept's type, its preferred label tagged with the default display language, and its filing into the file's first scheme, as one edit.",
+        "actions": [
+          {
+            "let": {
+              "iri": "rdfMintIri(p.label.trim())",
+              "scheme": "diagram.nodesOfType('Triple').filter(t, typeTriple(t) && t.o == 'http://www.w3.org/2004/02/skos/core#ConceptScheme' && t.sKind == 'iri').map(t, t.s)"
+            }
+          },
+          {
+            "create": {
+              "type": "'Triple'",
+              "attributes": {
+                "s": "iri",
+                "sKind": "'iri'",
+                "p": "'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'",
+                "o": "'http://www.w3.org/2004/02/skos/core#Concept'",
+                "oKind": "'iri'"
+              }
+            }
+          },
+          {
+            "create": {
+              "type": "'Triple'",
+              "attributes": {
+                "s": "iri",
+                "sKind": "'iri'",
+                "p": "'http://www.w3.org/2004/02/skos/core#prefLabel'",
+                "o": "p.label.trim()",
+                "oKind": "'literal'",
+                "language": "'en'"
+              }
+            }
+          },
+          {
+            "if": "scheme.size() > 0",
+            "then": [
+              {
+                "create": {
+                  "type": "'Triple'",
+                  "attributes": {
+                    "s": "iri",
+                    "sKind": "'iri'",
+                    "p": "'http://www.w3.org/2004/02/skos/core#inScheme'",
+                    "o": "scheme[0]",
+                    "oKind": "'iri'"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "fileUnder": {
+        "label": "File under (broader)",
+        "icon": "mdi-file-tree",
+        "for": "diagram",
+        "params": {
+          "from": {
+            "type": "Concept",
+            "required": true
+          },
+          "to": {
+            "type": "Concept",
+            "required": true
+          }
+        },
+        "doc": "One `skos:broader` triple on the dragged concept, naming the one dropped on; the inverse is never written.",
+        "actions": [
+          {
+            "if": "p.from.id == p.to.id",
+            "then": [
+              {
+                "abort": {
+                  "message": "'A concept cannot be filed under or related to itself.'"
+                }
+              }
+            ]
+          },
+          {
+            "create": {
+              "type": "'Triple'",
+              "attributes": {
+                "s": "p.from.iri",
+                "sKind": "'iri'",
+                "p": "'http://www.w3.org/2004/02/skos/core#broader'",
+                "o": "p.to.iri",
+                "oKind": "'iri'"
+              }
+            }
+          }
+        ]
+      },
+      "relateConcepts": {
+        "label": "Relate (skos:related)",
+        "icon": "mdi-swap-horizontal",
+        "for": "diagram",
+        "params": {
+          "from": {
+            "type": "Concept",
+            "required": true
+          },
+          "to": {
+            "type": "Concept",
+            "required": true
+          }
+        },
+        "doc": "One `skos:related` triple from the dragged concept to the one dropped on.",
+        "actions": [
+          {
+            "if": "p.from.id == p.to.id",
+            "then": [
+              {
+                "abort": {
+                  "message": "'A concept cannot be filed under or related to itself.'"
+                }
+              }
+            ]
+          },
+          {
+            "create": {
+              "type": "'Triple'",
+              "attributes": {
+                "s": "p.from.iri",
+                "sKind": "'iri'",
+                "p": "'http://www.w3.org/2004/02/skos/core#related'",
+                "o": "p.to.iri",
+                "oKind": "'iri'"
+              }
+            }
+          }
+        ]
+      },
+      "disconnect": {
+        "for": [
+          "Broader",
+          "Related"
+        ],
+        "label": {
+          "cel": "self.isA('Related') ? 'Remove related link' : (self.sources.size() > 1 ? 'Disconnect (both directions)' : 'Disconnect')"
+        },
+        "confirm": {
+          "count": "self.sources.size()",
+          "threshold": 2,
+          "title": "Disconnect",
+          "message": "This pair is asserted in both directions; disconnecting removes both statements as one undo.",
+          "confirmLabel": "Disconnect",
+          "danger": false
+        },
+        "doc": "Removes every triple that states the pair, as one edit.",
+        "actions": [
+          {
+            "delete": "self.sources"
+          }
+        ]
+      }
+    },
+    "doc": "An edit writes triples, and every node and edge follows from recomputation; no hook fires for a derived element."
+  },
   "layout": {
     "doc": "Pure and deterministic, no physics: the same file always opens the same way. Authored positions from the registration override computed ones element by element.",
     "algorithms": {
       "schemeBands": {
         "algorithm": "plugin:net.etalii.adp.w3c.skosBands",
         "direction": "down",
-        "spacing": { "node": 40, "layer": 66, "component": 90 },
-        "options": { "columnWidth": 240, "rowHeight": 110, "regionGap": 90, "regionHeader": 60 },
+        "spacing": {
+          "node": 40,
+          "layer": 66,
+          "component": 90
+        },
+        "options": {
+          "columnWidth": 240,
+          "rowHeight": 110,
+          "regionGap": 90,
+          "regionHeader": 60
+        },
         "doc": "One band per scheme in IRI order, then an unfiled band, then a row of collections; inside a band every concept sits one row below its deepest broader concept, rows filled left to right in id order."
       },
       "fallback": {
         "algorithm": "layered",
         "direction": "down",
-        "spacing": { "node": 40, "layer": 66 },
+        "spacing": {
+          "node": 40,
+          "layer": 66
+        },
         "doc": "What a runtime without the plugin uses: a layered layout over the hierarchy edges."
       }
     },
@@ -539,50 +2519,260 @@
     "respect": "all",
     "incremental": true
   },
-
   "persistence": {
-    "doc": "The vocabulary's own Turtle or N-Triples file is the model; ADP writes only minimal splices into it. Positions live in the `.adp` registration's `layout:` block, keyed by element id, and nothing of ADP's is ever written into the RDF.",
-    "format": "plugin:net.etalii.adp.w3c.turtle",
-    "files": { "mode": "split", "model": "{name}.ttl", "view": "{name}.adp" },
-    "ids": { "strategy": "natural", "stable": false, "pattern": "^(res:.+|blank:[0-9]+|edge:.+)$" },
-    "view": { "store": [ "bounds" ], "styleOverrides": "none" },
-    "import": [ { "format": "plugin:net.etalii.adp.w3c.turtle", "label": "N-Triples (.nt)" } ]
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/rdf/backend/EtAlii.Adp.Diagram.Rdf/w3c-turtle.fbl#turtle",
+    "doc": "The RDF file itself is the model, read and written through the module's FBL binding and the turtle plugin; positions live in the `.adp` registration, keyed by element id.",
+    "ids": {
+      "strategy": "natural",
+      "stable": false,
+      "types": {
+        "Triple": {
+          "strategy": "derived",
+          "expression": "'triple:' + self.s + '|' + self.p + '|' + self.o + repeatSuffix(self)",
+          "ephemeral": {
+            "cel": "self.sKind == 'blank' || self.oKind == 'blank'"
+          },
+          "doc": "A triple by its three parts and a repeat counter. One that names a blank node is ephemeral, since the blank's label is the parse's own."
+        },
+        "Prefix": {
+          "strategy": "derived",
+          "expression": "'prefix:' + self.name + repeatSuffix(self)",
+          "doc": "A declaration by its prefix and a repeat counter for a re-declaration."
+        },
+        "Base": {
+          "strategy": "derived",
+          "expression": "'base'",
+          "doc": "A fixed singleton id."
+        },
+        "ConceptScheme": {
+          "ephemeral": {
+            "cel": "self.blank"
+          },
+          "reason": "That is a blank node, whose identity does not survive a reparse, so a stored position could not be trusted. Name it with an IRI to arrange it.",
+          "doc": "A blank-node term's id restarts with every parse; a named term's is its IRI."
+        },
+        "Concept": {
+          "ephemeral": {
+            "cel": "self.blank"
+          },
+          "reason": "That is a blank node, whose identity does not survive a reparse, so a stored position could not be trusted. Name it with an IRI to arrange it.",
+          "doc": "A blank-node term's id restarts with every parse; a named term's is its IRI."
+        },
+        "Collection": {
+          "ephemeral": {
+            "cel": "self.blank"
+          },
+          "reason": "That is a blank node, whose identity does not survive a reparse, so a stored position could not be trusted. Name it with an IRI to arrange it.",
+          "doc": "A blank-node term's id restarts with every parse; a named term's is its IRI."
+        }
+      },
+      "pattern": "^(res:.+|blank:[0-9]+|edge:.+|triple:.+|prefix:.*|base|truncation)$"
+    },
+    "view": {
+      "store": [
+        "bounds"
+      ],
+      "styleOverrides": "none"
+    }
   },
-
+  "viewpoints": {
+    "scheme": {
+      "label": "Scheme",
+      "exclude": [
+        "Triple",
+        "Prefix",
+        "Base"
+      ],
+      "default": true
+    }
+  },
   "plugins": {
     "net.etalii.adp.w3c.turtle": {
       "version": "^0.1.0",
-      "provides": [ "persistenceFormat", "import", "action", "celFunctions" ],
       "required": true,
-      "doc": "The RDF family's shared engine: one store per file parsing Turtle and N-Triples into triples plus a line-level concrete syntax, byte-identical round trips, edits as minimal splices, the drawn-element budget, and the projection of triples onto this specification's elements. Shared with the w3c/rdf, w3c/owl and w3c/shacl specifications.",
+      "provides": [
+        "persistenceFormat",
+        "celFunctions",
+        "action"
+      ],
+      "plans": [
+        "add",
+        "set",
+        "remove"
+      ],
+      "doc": "The RDF family's engine: it reads a `.ttl` or `.nt` body into the stored `Triple`, `Prefix` and `Base` elements and the five `rdf.*` findings, plans the splices of an added, set or removed triple, carries out the two edits that are not a change of one triple (renaming a term everywhere it is written, declaring a prefix; gap 2 of `w3c-rdf.md`), and provides the naming functions. Every function is called by its bare name.",
       "celFunctions": [
-        {"name": "rdfLocalName", "params": ["string"], "returns": "string", "cost": 1, "doc": "The part of an IRI after its last '#' or '/', or the whole IRI."},
-        {"name": "rdfMintIri", "params": ["string"], "returns": "string", "cost": 10, "doc": "An IRI for a new resource: the label slugged to [A-Za-z0-9_-] under the namespace of the file's first prefixed subject, else its first declared prefix; '' when neither exists or nothing usable is left."},
-        {"name": "rdfMintRefusal", "params": ["string"], "returns": "string", "cost": 10, "doc": "The sentence explaining why rdfMintIri returned ''."},
-        {"name": "rdfTermExists", "params": ["string"], "returns": "bool", "cost": 10, "doc": "The IRI appears as a subject or object anywhere in the file."},
-        {"name": "rdfCompress", "params": ["string"], "returns": "string", "cost": 10, "doc": "An IRI as the writer spells it: `prefix:local` under the longest declared namespace whose remainder is a clean local name, else the bracketed `<iri>`."},
-        {"name": "rdfDisplayName", "params": ["string"], "returns": "string", "cost": 10, "doc": "An IRI as drawn: rdfCompress's prefixed name when there is one, else rdfLocalName when it is not empty, else the whole IRI unbracketed."},
-        {"name": "rdfResolveTerm", "params": ["string"], "returns": "string", "cost": 10, "doc": "The full IRI a typed term names: a bracketed `<iri>`, a text containing '://', or `prefix:local` under a declared prefix; '' when it names nothing."},
-        {"name": "rdfTermRefusal", "params": ["string"], "returns": "string", "cost": 10, "doc": "The sentence explaining why rdfResolveTerm returned ''."}
+        {
+          "name": "rdfLocalName",
+          "params": [
+            {
+              "name": "iri",
+              "type": "string"
+            }
+          ],
+          "returns": "string",
+          "cost": 1,
+          "fallback": "iri.substring(math.greatest(iri.lastIndexOf('#'), iri.lastIndexOf('/')) + 1)",
+          "doc": "The part of an IRI after its last '#' or '/', or the whole IRI."
+        },
+        {
+          "name": "rdfDisplayName",
+          "params": [
+            {
+              "name": "iri",
+              "type": "string"
+            }
+          ],
+          "returns": "string",
+          "cost": 10,
+          "uses": [
+            "diagram"
+          ],
+          "fallback": "rdfLocalName(iri) != '' ? rdfLocalName(iri) : iri",
+          "doc": "An IRI as drawn: a prefixed name under the file's prefixes, else the local name, else the IRI."
+        },
+        {
+          "name": "rdfCompress",
+          "params": [
+            {
+              "name": "iri",
+              "type": "string"
+            }
+          ],
+          "returns": "string",
+          "cost": 10,
+          "uses": [
+            "diagram"
+          ],
+          "fallback": "'<' + iri + '>'",
+          "doc": "An IRI as the writer spells it: `prefix:local`, else the bracketed `<iri>`."
+        },
+        {
+          "name": "rdfResolveTerm",
+          "params": [
+            {
+              "name": "term",
+              "type": "string"
+            }
+          ],
+          "returns": "string",
+          "cost": 10,
+          "uses": [
+            "diagram"
+          ],
+          "doc": "The full IRI a typed term names; '' when it names nothing. No fallback: without the engine a typed term cannot be resolved, so the dialogs refuse."
+        },
+        {
+          "name": "rdfMintIri",
+          "params": [
+            {
+              "name": "label",
+              "type": "string"
+            }
+          ],
+          "returns": "string",
+          "cost": 10,
+          "uses": [
+            "diagram"
+          ],
+          "doc": "The IRI a new term labelled `label` starts life under: the namespace of the prefix the file's first prefixed subject is written under, else the first declared prefix, then the label with every character but ASCII letters, digits, '-' and '_' replaced by '_' and '_' trimmed from both ends; '' when there is no prefix or nothing usable is left. No fallback: the written form of a subject is the engine's."
+        },
+        {
+          "name": "rdfMintRefusal",
+          "params": [
+            {
+              "name": "label",
+              "type": "string"
+            }
+          ],
+          "returns": "string",
+          "cost": 10,
+          "uses": [
+            "diagram"
+          ],
+          "fallback": "'\\'' + label + '\\' cannot be turned into an IRI without the RDF engine.'",
+          "doc": "The sentence explaining why rdfMintIri returned ''."
+        },
+        {
+          "name": "rdfTermRefusal",
+          "params": [
+            {
+              "name": "term",
+              "type": "string"
+            }
+          ],
+          "returns": "string",
+          "cost": 10,
+          "uses": [
+            "diagram"
+          ],
+          "fallback": "'\\'' + term + '\\' cannot be resolved without the RDF engine.'",
+          "doc": "The sentence explaining why rdfResolveTerm returned ''."
+        }
       ]
-    },
-    "net.etalii.adp.w3c.skosBands": {
-      "version": "^0.1.0",
-      "provides": [ "layout" ],
-      "required": false,
-      "fallback": { "layout": "layered" },
-      "doc": "The scheme-band layout with deterministic cycle breaking; see w3c-skos.md."
     }
   },
-
+  "x-skos": {
+    "doc": "Today's wire ids, which the standalone client and backend share, mapped from this specification's names. A tool is keyed by its id, an action by its operation, a property by its form item's id; a label row's id names its kind and language, a documentation row's its property, a mapping row's its predicate and target.",
+    "tools": {
+      "concept": {
+        "id": "skos.toolbox.concept",
+        "drop": "skos.add-concept"
+      }
+    },
+    "actions": {
+      "addResource": "rdf.add-resource",
+      "declarePrefix": "rdf.add-prefix",
+      "relate": "rdf.connect",
+      "renameResource": "rdf.rename-resource",
+      "removeResource": "rdf.remove-resource",
+      "removeStatement": "rdf.remove-edge",
+      "addConcept": "skos.add-concept",
+      "fileUnder": "skos.file-under",
+      "relateConcepts": "skos.relate",
+      "disconnect": "skos.disconnect"
+    },
+    "properties": {
+      "iri": "skos.iri",
+      "notation": "skos.notation",
+      "prefLabel": "skos.label:prefLabel:{language}",
+      "altLabel": "skos.label:altLabel:{language}",
+      "hiddenLabel": "skos.label:hiddenLabel:{language}",
+      "definition": "skos.doc:definition",
+      "scopeNote": "skos.doc:scopeNote",
+      "example": "skos.doc:example",
+      "note": "skos.doc:note",
+      "historyNote": "skos.doc:historyNote",
+      "editorialNote": "skos.doc:editorialNote",
+      "changeNote": "skos.doc:changeNote",
+      "schemes": "skos.schemes",
+      "mappings": "skos.mapping:{predicate}:{target}"
+    }
+  },
   "x-adp": {
     "origin": "w3c/skos",
     "state": "prototype",
-    "extensions": [ ".ttl", ".nt" ],
+    "extensions": [
+      ".ttl",
+      ".nt"
+    ],
     "claimsBareFiles": false,
-    "suggestWhenBodyContains": [ "skos:ConceptScheme", "http://www.w3.org/2004/02/skos/core#ConceptScheme" ],
-    "registrationHeaders": { "language": "The display language; after body:/view:, before layout:." },
-    "family": [ "w3c/rdf", "w3c/owl", "w3c/skos", "w3c/shacl" ],
-    "implementations": { "standalone": "etalii.adp.ide.standalone src/diagrams/rdf (Skos/)" }
+    "suggestWhenBodyContains": [
+      "skos:ConceptScheme",
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "registrationHeaders": {
+      "language": "The display language; after body:/view:, before layout:."
+    },
+    "family": [
+      "w3c/rdf",
+      "w3c/owl",
+      "w3c/skos",
+      "w3c/shacl"
+    ],
+    "implementations": {
+      "standalone": "etalii.adp.ide.standalone src/diagrams/rdf (Skos/)"
+    }
   }
 }

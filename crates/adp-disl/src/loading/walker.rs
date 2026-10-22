@@ -212,6 +212,12 @@ impl Walk<'_> {
             };
         }
 
+        // A type map (section 11.2) holds names only: its attributes map a binding's attribute names to the
+        // metamodel's, so a binding attribute that happens to be called like an Expression property is still a name.
+        if self.section == "persistence" && path.iter().any(|p| p == "typeMap") {
+            return None;
+        }
+
         if frame.mode == Mode::Geometry
             && GEOMETRY_KEYS.contains(&key)
             && let Some(text) = value.as_str()
@@ -232,13 +238,7 @@ impl Walk<'_> {
             "behavior" => behavior(frame, key, path),
             "notation" | "viewpoints" => notation(frame, key, path),
             "coordinates" => coordinates(frame, key),
-            "language" => {
-                if matches!(key, "order" | "unit" | "measure") && path.iter().any(|p| p == "budgets") {
-                    frame.as_mode(Mode::Expression)
-                } else {
-                    frame.clone()
-                }
-            }
+            "language" if path.iter().any(|p| p == "budgets") => budget(frame, key, path),
             _ => frame.clone(),
         };
 
@@ -434,6 +434,22 @@ fn forms(frame: &Frame, key: &str, value: &Json) -> Frame {
     }
 }
 
+/// A budget's members (section 3.2.1): its order and unit Expressions and a `cel` measure in the budget context, the
+/// types a `count` measure names being literal; its notice's text in the chrome context, its finding's message in the
+/// constraint context and its withheld reason in the element context, as the standalone host's walker reads them.
+fn budget(frame: &Frame, key: &str, path: &[String]) -> Frame {
+    match key {
+        "order" | "unit" if path.last().map(String::as_str) != Some("measure") => {
+            frame.within(contexts::BUDGET).as_mode(Mode::Expression)
+        }
+        "measure" => frame.within(contexts::BUDGET).as_mode(Mode::Literal),
+        "notice" => frame.within(contexts::CHROME).as_mode(Mode::Literal),
+        "finding" => frame.within(contexts::CONSTRAINT).as_mode(Mode::Literal),
+        "withhold" => frame.within(contexts::ELEMENT).as_mode(Mode::Literal),
+        _ => frame.clone(),
+    }
+}
+
 fn behavior(frame: &Frame, key: &str, path: &[String]) -> Frame {
     if path.len() == 1 {
         return match key {
@@ -445,6 +461,10 @@ fn behavior(frame: &Frame, key: &str, path: &[String]) -> Frame {
             "messages" | "reasons" | "editGate" => frame.within(contexts::ELEMENT),
             _ => frame.clone(),
         };
+    }
+    // std.notApplicable is worded in the operation context, with operationId bound (sections 9.1, 12.3).
+    if key == "std.notApplicable" && path.len() == 2 && path[1] == "messages" {
+        return frame.within(contexts::OPERATION).binding(["operationId".to_owned()]);
     }
     match key {
         // A confirmation sees count besides its context (section 9.5); its count is an Expression.

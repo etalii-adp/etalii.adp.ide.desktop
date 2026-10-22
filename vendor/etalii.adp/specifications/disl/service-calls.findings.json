@@ -1,0 +1,19 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/ValidatorOutput",
+  "findings": [
+    {
+      "constraintId": "std.endpoints",
+      "severity": "error",
+      "message": "A SyncCall already connects these two elements.",
+      "elementId": "call-2",
+      "pointer": "/relations/1"
+    },
+    {
+      "constraintId": "std.endpoints",
+      "severity": "error",
+      "message": "A TracedCall cannot connect an element to itself.",
+      "elementId": "call-5",
+      "pointer": "/relations/4"
+    }
+  ]
+}

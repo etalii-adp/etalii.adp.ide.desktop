@@ -217,6 +217,7 @@
       },
       "UsesRole": {
         "extends": "AnsibleRelation",
+        "allowSelfLoops": true,
         "label": "Uses role",
         "source": [ "Playbook", "Play", "Role" ],
         "target": { "types": [ "Role" ], "optional": true },
@@ -224,6 +225,7 @@
       },
       "ImportsPlaybook": {
         "extends": "AnsibleRelation",
+        "allowSelfLoops": true,
         "label": "Imports playbook",
         "source": [ "Playbook" ],
         "target": { "types": [ "Playbook" ], "optional": true },
@@ -231,6 +233,7 @@
       },
       "IncludesTasks": {
         "extends": "AnsibleRelation",
+        "allowSelfLoops": true,
         "label": "Includes tasks",
         "source": [ "Role" ],
         "target": { "types": [ "TaskFile" ], "optional": true },
@@ -238,6 +241,7 @@
       },
       "DependsOn": {
         "extends": "AnsibleRelation",
+        "allowSelfLoops": true,
         "label": "Depends on",
         "source": [ "Role" ],
         "target": { "types": [ "Role" ], "optional": true },
@@ -245,6 +249,7 @@
       },
       "Targets": {
         "extends": "AnsibleRelation",
+        "allowSelfLoops": true,
         "label": "Targets",
         "source": [ "Playbook", "Play" ],
         "target": [ "Inventory" ],

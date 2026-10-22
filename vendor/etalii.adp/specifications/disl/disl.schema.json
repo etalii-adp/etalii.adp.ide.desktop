@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json",
-  "title": "DISL 0.5 (draft) — Diagram Specification Language",
+  "title": "DISL 0.6 (draft) — Diagram Specification Language",
   "description": "Specifications of diagram types ($defs/Specification), written by tool engineers. The root validates specifications. Stored diagrams are DID definitions, validated by did.schema.json, which references this schema's QualifiedId, SemVer and Point.",
   "$ref": "#/$defs/Specification",
   "$defs": {
@@ -1365,7 +1365,7 @@
         "disl": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+$",
-          "description": "The DISL version the specification targets, as major.minor: 0.1, 0.2, 0.3, 0.4 or 0.5. A 0.5 runtime reads 0.1, 0.2, 0.3 and 0.4 specifications with their meaning. See DISL 0.5, section 2.9."
+          "description": "The DISL version the specification targets, as major.minor: 0.1, 0.2, 0.3, 0.4, 0.5 or 0.6. A 0.6 runtime reads 0.1, 0.2, 0.3, 0.4 and 0.5 specifications with their meaning. See DISL 0.6, section 2.9."
         },
         "dedl": {
           "type": "string",
@@ -2352,7 +2352,7 @@
       ]
     },
     "RelationType": {
-      "description": "A relation type describes a kind of connection drawn as an edge, declared in the metamodel's relations map. Its source and target say which elements may be connected; directed defaults to true, self-loops are disallowed and parallel relations allowed by default, and acyclic forbids cycles. Like node types it may be abstract, extend other relation types and carry attributes; it may also connect relations, be derived by an expression or be view-only. See section 4.9.",
+      "description": "A relation type describes a kind of connection drawn as an edge, declared in the metamodel's relations map. Its source and target say which elements may be connected; directed defaults to true, self-loops are disallowed and parallel relations allowed by default, and a relation type that does not state one of these three flags inherits it from its supertypes, which it may only narrow (DISL 0.6, section 4.7); acyclic forbids cycles. Like node types it may be abstract, extend other relation types and carry attributes; it may also connect relations, be derived by an expression or be view-only. See section 4.9.",
       "type": "object",
       "properties": {
         "label": {
@@ -2374,12 +2374,15 @@
           "$ref": "#/$defs/RelationEnd"
         },
         "directed": {
+          "description": "Whether the relation is directed. Default true. A relation type that does not state it inherits it along its supertypes, and one that states it must agree with every direct supertype (DISL 0.6, section 4.7).",
           "type": "boolean"
         },
         "allowSelfLoops": {
+          "description": "Whether source and target may be the same element. Default false. A relation type that does not state it inherits it along its supertypes, and may narrow it to false but not widen it to true (DISL 0.6, section 4.7).",
           "type": "boolean"
         },
         "allowParallel": {
+          "description": "Whether more than one relation of this type may connect the same pair. Default true. A relation type that does not state it inherits it along its supertypes, and may narrow it to false but not widen it to true (DISL 0.6, section 4.7).",
           "type": "boolean"
         },
         "acyclic": {

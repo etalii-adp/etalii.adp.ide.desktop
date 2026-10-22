@@ -1,0 +1,90 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.8",
+  "doc": "The binding of this fixture alone (FBL 0.8, section 6.2): one list, elements, whose entries are tasks or notes, told apart by the value of their key type; each rule's insert writes that value as a constant. A task's constant is named by keys, so it is written second; a note's three constants are not, so they follow its keys in the order the constant lists them. The note's format, a constant, is also read by a read-only attribute, which section 14.1 allows. The binding in ../insert-constant-yaml/ is the same in the yaml family.",
+  "bindings": {
+    "board": {
+      "title": "Board, JSON",
+      "claims": {
+        "registrationOnly": true
+      },
+      "body": {
+        "kind": "file",
+        "family": "json"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "crlf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "task",
+          "type": "Task",
+          "at": "/elements/*",
+          "when": "has(entry.type) && entry.type == 'task'",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "empty": "keep"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "/elements",
+            "keys": [
+              "id",
+              "type",
+              "name"
+            ],
+            "constant": {
+              "type": "task"
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "note",
+          "type": "Note",
+          "at": "/elements/*",
+          "when": "has(entry.type) && entry.type == 'note'",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "text": {
+              "key": "text",
+              "empty": "keep"
+            },
+            "format": {
+              "key": "format",
+              "readOnly": true
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "/elements",
+            "keys": [
+              "id",
+              "text"
+            ],
+            "constant": {
+              "type": "note",
+              "format": "1.0",
+              "pinned": false
+            }
+          },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

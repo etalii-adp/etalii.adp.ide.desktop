@@ -32,7 +32,7 @@
           "type": "string"
         },
         "fbl": {
-          "description": "The FBL version the document is written in: 0.1, 0.2, 0.3, 0.4, 0.5, or 0.6 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. See FBL 0.7, section 2.7.",
+          "description": "The FBL version the document is written in: 0.1 to 0.8 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. See FBL 0.8, section 2.7.",
           "enum": [
             "0.1",
             "0.2",
@@ -40,7 +40,8 @@
             "0.4",
             "0.5",
             "0.6",
-            "0.7"
+            "0.7",
+            "0.8"
           ]
         },
         "doc": {
@@ -184,6 +185,60 @@
                 ]
               }
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "body"
+            ],
+            "properties": {
+              "body": {
+                "required": [
+                  "family"
+                ],
+                "properties": {
+                  "family": {
+                    "not": {
+                      "enum": [
+                        "yaml",
+                        "json"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "elements": {
+                "items": {
+                  "properties": {
+                    "insert": {
+                      "not": {
+                        "required": [
+                          "constant"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "relations": {
+                "items": {
+                  "properties": {
+                    "insert": {
+                      "not": {
+                        "required": [
+                          "constant"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       ]
@@ -1442,6 +1497,19 @@
         "emit": {
           "type": "string"
         },
+        "constant": {
+          "description": "FBL 0.8, section 6.2: keys every new entry of the rule is written with, each with its scalar value, that no attribute supplies; placed by keys, else after the other keys in this map's order. yaml and json only, and not with emit (section 14.1, step 6).",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          }
+        },
         "skeleton": {
           "type": "string"
         },
@@ -1455,7 +1523,13 @@
       },
       "required": [
         "place"
-      ]
+      ],
+      "not": {
+        "required": [
+          "constant",
+          "emit"
+        ]
+      }
     },
     "Remove": {
       "description": "How an element is removed: which other rules' entries go with it, and whether a container left empty is removed. Without remove, removing is refused. See section 6.2.",
