@@ -129,6 +129,7 @@ dependencies = [
  "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
+ "adp-diagram-dotnet-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
@@ -324,6 +325,24 @@ dependencies = [
  "adp-diagram",
  "adp-disl",
  "adp-fbl",
+ "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-dotnet-dependency-graph"
+version = "0.1.0"
+dependencies = [
+ "adp-cel",
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "regex",
+ "roxmltree",
+ "serde_json",
  "tempfile",
 ]
 
@@ -556,6 +575,7 @@ dependencies = [
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
+ "adp-diagram-dotnet-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
  "adp-diagram-helm-chart",
  "adp-diagram-hype-cycle",
@@ -618,6 +638,7 @@ dependencies = [
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-dependency-graph",
+ "adp-diagram-dotnet-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
  "adp-diagram-helm-chart",
  "adp-diagram-hype-cycle",

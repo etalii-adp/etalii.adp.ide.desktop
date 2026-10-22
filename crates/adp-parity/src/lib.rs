@@ -440,6 +440,7 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
     let tools = adp_diagram_agent_behavior_modelling::register(tools);
     let tools = adp_diagram_helm_chart::register(tools);
     let tools = adp_diagram_ansible_structure::register(tools);
+    let tools = adp_diagram_dotnet_dependency_graph::register(tools);
     let tools = adp_diagram_agent_activity::register(tools);
     let mut tools = adp_diagram_c4::register(tools);
     let mut workspace = DiagramWorkspace::new(project.path());

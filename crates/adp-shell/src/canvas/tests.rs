@@ -59,7 +59,7 @@ impl Harness {
     fn open_from(source: &Path, files: &[&str], open: &str, body: &str) -> Harness {
         let folder = tempfile::tempdir().unwrap();
         for name in files {
-            // A folder subject's files sit in folders of their own.
+            // A solution's or a folder subject's files sit in folders of their own.
             if let Some(parent) = folder.path().join(name).parent() {
                 fs::create_dir_all(parent).unwrap();
             }
@@ -1218,6 +1218,8 @@ mod causal_loop;
 mod supply_chain;
 // The Ansible structure diagram with its module (T079), in a file of its own.
 mod ansible;
+// The .NET dependency graph with its module (T082), in a file of its own.
+mod dotnet;
 // The Sankey diagram with its module (T077), in a file of its own.
 mod sankey;
 // The Helm chart diagram with its module (T080), in a file of its own.

@@ -498,6 +498,12 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_agent_activity::ORIGIN,
         adp_diagram_agent_activity::TEMPLATE,
     )));
+    // `ServiceCollection.AddDotNetDependencyGraph.cs`: an empty solution in the newer serialization, written at the
+    // definition's extension.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_dotnet_dependency_graph::ORIGIN,
+        adp_diagram_dotnet_dependency_graph::EMPTY_DOCUMENT,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 
