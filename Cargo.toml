@@ -11,6 +11,7 @@ members = [
     "crates/adp-context",
     "crates/adp-problems",
     "crates/adp-layout",
+    "crates/adp-libxml2",
     "crates/adp-fbl",
     "crates/adp-disl",
     "crates/adp-scene",
@@ -56,6 +57,8 @@ repository = "https://github.com/etalii-adp/etalii.adp.ide.desktop"
 
 # Principle VI: no clippy warnings. CI runs clippy with -D warnings; a lint that does not fit is allowed here, with its reason.
 [workspace.lints.rust]
+# Denied everywhere but in adp-libxml2, the one crate that calls C (libxml2, plan Complexity Tracking): its own lint
+# table allows it, and is otherwise this one.
 unsafe_code = "deny"
 
 [workspace.lints.clippy]

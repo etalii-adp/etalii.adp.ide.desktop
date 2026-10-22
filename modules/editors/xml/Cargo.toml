@@ -1,6 +1,6 @@
 [package]
 name = "adp-editor-xml"
-description = "The XML editor's analysis: well-formedness, the declared encoding, and the schemas a document names (spec 030, FR-020)."
+description = "The XML editor's analysis: well-formedness, the declared encoding, and checking a document against the XSD or DTD it names (spec 030, FR-020)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,6 +9,7 @@ publish = false
 
 [dependencies]
 adp-editor-json = { path = "../json" }
+adp-libxml2 = { path = "../../../crates/adp-libxml2" }
 roxmltree = "0.20"
 
 [lints]
