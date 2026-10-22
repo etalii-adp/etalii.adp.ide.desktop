@@ -1746,6 +1746,34 @@ mod tests {
     }
 
     #[test]
+    fn ctrl_s_saves_the_active_tab_with_its_line_endings_and_says_so() {
+        let folder = tempfile::tempdir().unwrap();
+        let path = folder.path().join("notes.md");
+        std::fs::write(&path, "one\r\ntwo\r\n").unwrap();
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        let mut shell = Shell::default();
+        shell.open_path(&path);
+        shell.text(0).editor.buffer.insert("zero\r\n");
+        assert!(
+            shell.text(0).editor.buffer.is_modified(),
+            "the tab shows its unsaved edit"
+        );
+        assert_eq!(
+            std::fs::read(&path).unwrap(),
+            b"one\r\ntwo\r\n",
+            "nothing is written before Ctrl+S"
+        );
+
+        ctx.run_ui(ctrl(egui::Key::S), |ui| shell.show(ui))
+            .textures_delta
+            .clear();
+        assert_eq!(std::fs::read(&path).unwrap(), b"zero\r\none\r\ntwo\r\n");
+        assert!(!shell.text(0).editor.buffer.is_modified(), "the tab is saved");
+        assert_eq!(shell.notice, Some(format!("Saved {}", path.display())));
+    }
+
+    #[test]
     fn a_json_file_is_checked_against_its_schema_and_its_findings_are_marked() {
         let examples = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../modules/editors/json/tests/examples");
         let mut shell = Shell::default();

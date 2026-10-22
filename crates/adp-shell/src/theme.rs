@@ -238,6 +238,29 @@ mod tests {
         }
     }
 
+    /// The window follows the system's light or dark setting, also when it changes while the window is open.
+    #[test]
+    fn the_window_follows_the_systems_light_or_dark_setting() {
+        let ctx = egui::Context::default();
+        install(&ctx);
+        for system in [egui::Theme::Light, egui::Theme::Dark, egui::Theme::Light] {
+            let input = egui::RawInput {
+                system_theme: Some(system),
+                ..Default::default()
+            };
+            let mut panel = None;
+            ctx.run_ui(input, |ui| panel = Some(ui.visuals().panel_fill))
+                .textures_delta
+                .clear();
+            let expected = match system {
+                egui::Theme::Dark => Theme::dark(),
+                egui::Theme::Light => Theme::light(),
+            };
+            assert_eq!(current(&ctx).kind, expected.kind, "{system:?}");
+            assert_eq!(panel, Some(color32(expected.color("editor.background").unwrap())));
+        }
+    }
+
     #[test]
     fn the_palette_names_vscodes_roles() {
         let theme = Theme::dark();

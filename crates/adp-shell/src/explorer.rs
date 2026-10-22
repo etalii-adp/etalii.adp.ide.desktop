@@ -423,6 +423,72 @@ mod tests {
         );
     }
 
+    fn key(ctx: &egui::Context, explorer: &mut Explorer, tree: &Hierarchy, key: Key) -> Vec<Request> {
+        let event = egui::Event::Key {
+            key,
+            physical_key: None,
+            pressed: true,
+            repeat: false,
+            modifiers: egui::Modifiers::NONE,
+        };
+        frame(ctx, explorer, tree, vec![event])
+    }
+
+    /// The standalone host's `ExplorerTreePanel.tsx` keys: the arrows move and open, Enter opens, F2 renames and
+    /// Delete deletes the entry the keyboard is on.
+    #[test]
+    fn the_keyboard_moves_through_the_tree_opens_renames_and_deletes() {
+        let tree = Hierarchy {
+            root: std::path::PathBuf::new(),
+            children: vec![
+                node("docs", Kind::Folder, vec![node("docs/a.md", Kind::File, Vec::new())]),
+                node("b.md", Kind::File, Vec::new()),
+            ],
+        };
+        let ctx = egui::Context::default();
+        let mut explorer = Explorer::default();
+        frame(&ctx, &mut explorer, &tree, Vec::new());
+        let row = theme_row_height();
+        let second = egui::pos2(8.0 + 60.0, 8.0 + row * 1.5);
+        assert_eq!(
+            click(&ctx, &mut explorer, &tree, second),
+            vec![Request::Open("b.md".into())],
+            "a press opens the file and gives the tree the keyboard"
+        );
+
+        assert!(key(&ctx, &mut explorer, &tree, Key::ArrowUp).is_empty());
+        assert_eq!(explorer.selected.as_deref(), Some("docs"));
+        key(&ctx, &mut explorer, &tree, Key::ArrowRight);
+        assert!(explorer.expanded.contains("docs"), "the right arrow opens a folder");
+        key(&ctx, &mut explorer, &tree, Key::ArrowDown);
+        assert_eq!(
+            explorer.selected.as_deref(),
+            Some("docs/a.md"),
+            "into the folder just opened"
+        );
+        assert_eq!(
+            key(&ctx, &mut explorer, &tree, Key::Enter),
+            vec![Request::Open("docs/a.md".into())]
+        );
+        assert_eq!(
+            key(&ctx, &mut explorer, &tree, Key::F2),
+            vec![Request::Rename("docs/a.md".into())]
+        );
+        assert_eq!(
+            key(&ctx, &mut explorer, &tree, Key::Delete),
+            vec![Request::Delete("docs/a.md".into())]
+        );
+
+        key(&ctx, &mut explorer, &tree, Key::ArrowUp);
+        key(&ctx, &mut explorer, &tree, Key::ArrowLeft);
+        assert!(!explorer.expanded.contains("docs"), "the left arrow closes it");
+        assert!(key(&ctx, &mut explorer, &tree, Key::Enter).is_empty());
+        assert!(
+            explorer.expanded.contains("docs"),
+            "Enter on a folder opens or closes it"
+        );
+    }
+
     fn theme_row_height() -> f32 {
         Theme::dark().sizes.row_height
     }
