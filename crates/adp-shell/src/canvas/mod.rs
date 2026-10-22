@@ -16,6 +16,7 @@
 pub mod aad_scene;
 pub mod ansible_scene;
 pub mod databricks_scene;
+pub mod dotnet_scene;
 pub mod fdg_scene;
 pub mod gestures;
 pub mod helm_scene;
@@ -104,24 +105,26 @@ impl DiagramHost {
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
-            tools: adp_diagram_databricks::register(adp_diagram_azure_devops_pipeline::register(
-                adp_diagram_ansible_structure::register(adp_diagram_agent_activity::register(
-                    adp_diagram_wardley_map::register(adp_diagram_supply_chain::register(
-                        adp_diagram_sankey::register(adp_diagram_c4::register(adp_diagram_dependency_graph::register(
-                            adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
-                                DislPluginFunctions::none()
-                            }))
-                            .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
-                            .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
-                            .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
-                            .with_module(adp_diagram_helm_chart::ORIGIN, adp_diagram_helm_chart::module())
-                            .with_module(
-                                adp_diagram_functional_decomposition_graph::ORIGIN,
-                                adp_diagram_functional_decomposition_graph::module(),
-                            )
-                            .with_module(
-                                adp_diagram_agent_behavior_modelling::ORIGIN,
-                                adp_diagram_agent_behavior_modelling::module(),
+            tools: adp_diagram_databricks::register(adp_diagram_dotnet_dependency_graph::register(
+                adp_diagram_azure_devops_pipeline::register(adp_diagram_ansible_structure::register(
+                    adp_diagram_agent_activity::register(adp_diagram_wardley_map::register(
+                        adp_diagram_supply_chain::register(adp_diagram_sankey::register(adp_diagram_c4::register(
+                            adp_diagram_dependency_graph::register(
+                                adp_diagram_mindmap::register(DiagramTools::new(Catalogue::load(vendor), |_| {
+                                    DislPluginFunctions::none()
+                                }))
+                                .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
+                                .with_module(adp_diagram_hype_cycle::ORIGIN, adp_diagram_hype_cycle::module())
+                                .with_module(adp_diagram_causal_loop::ORIGIN, adp_diagram_causal_loop::module())
+                                .with_module(adp_diagram_helm_chart::ORIGIN, adp_diagram_helm_chart::module())
+                                .with_module(
+                                    adp_diagram_functional_decomposition_graph::ORIGIN,
+                                    adp_diagram_functional_decomposition_graph::module(),
+                                )
+                                .with_module(
+                                    adp_diagram_agent_behavior_modelling::ORIGIN,
+                                    adp_diagram_agent_behavior_modelling::module(),
+                                ),
                             ),
                         ))),
                     )),
@@ -786,6 +789,12 @@ impl DiagramTab {
         } else if adp_diagram_databricks::ORIGINS.contains(&self.opened.origin.as_str()) {
             // A Databricks box or frame is moved by the top-left its registration's `layout:` block stores.
             (databricks_scene::build(&elements, &self.selection), HashMap::new())
+        } else if self.opened.origin == adp_diagram_dotnet_dependency_graph::ORIGIN {
+            // A .NET dependency graph's boxes are moved by the top-left the registration stores (`onElementMoved`).
+            (
+                dotnet_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                HashMap::new(),
+            )
         } else if self.opened.origin == adp_diagram_azure_devops_pipeline::ORIGIN {
             // A pipeline arranges itself from its dependencies: nothing on it is dragged.
             (pipeline_scene::build(&elements, &self.selection), HashMap::new())
