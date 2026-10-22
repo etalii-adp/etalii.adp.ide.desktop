@@ -22,8 +22,38 @@ fn c4_container_courier() {
 }
 
 #[test]
+fn databricks_job_nightly_ingest() {
+    check("databricks/job/nightly-ingest");
+}
+
+#[test]
+fn databricks_bundle_lakehouse() {
+    check("databricks/bundle/lakehouse");
+}
+
+#[test]
+fn databricks_pipeline_lakehouse() {
+    check("databricks/pipeline/lakehouse");
+}
+
+#[test]
+fn databricks_pipeline_settings() {
+    check("databricks/pipeline/settings");
+}
+
+#[test]
+fn dotnet_dependency_graph_pipeline_toolkit() {
+    check("dotnet/dependency-graph/pipeline-toolkit");
+}
+
+#[test]
 fn etalii_agent_activity_diagram_two_projects() {
     check("etalii/agent-activity-diagram/two-projects");
+}
+
+#[test]
+fn etalii_agent_behavior_modelling_research_assistant() {
+    check("etalii/agent-behavior-modelling/research-assistant");
 }
 
 #[test]
@@ -39,6 +69,11 @@ fn etalii_knowledge_cities_xml() {
 #[test]
 fn etalii_knowledge_cities_yaml() {
     check("etalii/knowledge/cities-yaml");
+}
+
+#[test]
+fn azure_devops_pipeline_multi_stage() {
+    check("azure-devops/pipeline/multi-stage");
 }
 
 #[test]
@@ -99,6 +134,16 @@ fn systems_causal_loop_diagram_reference() {
 #[test]
 fn wardley_map_strategy_vocabulary() {
     check("wardley/map/strategy-vocabulary");
+}
+
+#[test]
+fn w3c_sparql_groups() {
+    check("w3c/sparql/groups");
+}
+
+#[test]
+fn w3c_sparql_proteome_location_of_gene() {
+    check("w3c/sparql/proteome-location-of-gene");
 }
 
 /// Every script has its test here and its row in `parity/README.md`, so none is skipped silently.

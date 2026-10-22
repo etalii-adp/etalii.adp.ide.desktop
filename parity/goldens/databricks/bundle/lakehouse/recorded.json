@@ -1,0 +1,178 @@
+{
+  "script": "parity/scripts/databricks/bundle/lakehouse.json",
+  "tool": "databricks/bundle",
+  "fixture": "databricks/lakehouse/databricks.yml",
+  "registration": "databricks/lakehouse/databricks.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T21:17:28Z",
+  "edits": 20,
+  "changed": [
+    "databricks.adp",
+    "databricks.yml"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 4,
+      "id": "resource:jobs/nightly_ingest_v2",
+      "type": "databricks/bundle+resource",
+      "connection": false
+    },
+    {
+      "step": 5,
+      "id": "resource:pipelines/silver_only",
+      "type": "databricks/bundle+resource",
+      "connection": false
+    },
+    {
+      "step": 6,
+      "id": "resource:jobs/audit",
+      "type": "databricks/bundle+resource",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "bundle"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename bundle' answered 'lakehouse_core'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.bundle-name = 'lake house: main'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "A bundle needs a name."
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on bundle; input 'Add resource' answered 'nightly_ingest_v2'"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on bundle; input 'Add resource' answered 'silver_only'"
+    },
+    {
+      "step": 6,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on bundle; input 'Add resource' answered ' audit '"
+    },
+    {
+      "step": 7,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "A pipelines resource named 'silver_only' is already there."
+    },
+    {
+      "step": 8,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 9,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on target:dev"
+    },
+    {
+      "step": 11,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "The target's key is the file's structure."
+    },
+    {
+      "step": 12,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "bundle to (0, -40)"
+    },
+    {
+      "step": 13,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "target:prod to (300, 520)"
+    },
+    {
+      "step": 14,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "resource:jobs/audit to (520,25, 180)"
+    },
+    {
+      "step": 15,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 16,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "resource:pipelines/bronze_to_gold by (10, 10) to (274,095, 293,29)"
+    },
+    {
+      "step": 17,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 18,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 19,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "That element is not something this diagram can move."
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+{
+  "script": "parity/scripts/w3c/sparql/groups.json",
+  "tool": "w3c/sparql",
+  "fixture": "w3c/sparql/groups/groups.rq",
+  "registration": "w3c/sparql/groups/groups.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T23:01:47Z",
+  "edits": 30,
+  "changed": [
+    "groups.adp"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "region:where/union.0 by (20, 40) to (362, 424)"
+    },
+    {
+      "step": 1,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:x to (900, 60)"
+    },
+    {
+      "step": 2,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "region:where/union.0/branch.1 by (-10,5, 12,25) to (689,5, 502,25)"
+    },
+    {
+      "step": 3,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:s by (0, -50) to (500, 40)"
+    },
+    {
+      "step": 4,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 5,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 6,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "region:where/optional.1"
+    },
+    {
+      "step": 7,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "region:where/optional.1 to (10, 1000)"
+    },
+    {
+      "step": 8,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:y by (15, 15) to (61, 1081)"
+    },
+    {
+      "step": 9,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "sub:where.0 by (100,0004, -0,0006) to (370,0004, 201,9994)"
+    },
+    {
+      "step": 10,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "3 time(s)"
+    },
+    {
+      "step": 11,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 12,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "An edge is drawn between its endpoints; move one of those instead."
+    },
+    {
+      "step": 13,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "An annotation stays with what it constrains; move that instead."
+    },
+    {
+      "step": 14,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "The header band states the query's form and modifiers, and stays at the top of the diagram."
+    },
+    {
+      "step": 15,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+    },
+    {
+      "step": 16,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+    },
+    {
+      "step": 17,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "lit:true^boolean by (-36, 0) to (1320, 450)"
+    },
+    {
+      "step": 18,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "region:where/service.0 to (-200,125, 0,5)"
+    },
+    {
+      "step": 19,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:r by (1, 1) to (-163,125, 67,5)"
+    },
+    {
+      "step": 20,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "region:where/graph.0 by (0, 0) to (40, 668)"
+    },
+    {
+      "step": 21,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 22,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:doubled to (270, 90)"
+    },
+    {
+      "step": 23,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "region:where/minus.0 by (300, -300) to (1620, 84)"
+    },
+    {
+      "step": 24,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 25,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 26,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

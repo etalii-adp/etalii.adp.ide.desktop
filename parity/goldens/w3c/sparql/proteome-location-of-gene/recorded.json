@@ -1,0 +1,200 @@
+{
+  "script": "parity/scripts/w3c/sparql/proteome-location-of-gene.json",
+  "tool": "w3c/sparql",
+  "fixture": "w3c/sparql/proteome-location-of-gene/proteome-location-of-gene.rq",
+  "registration": "w3c/sparql/proteome-location-of-gene/proteome-location-of-gene.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T23:02:08Z",
+  "edits": 28,
+  "changed": [
+    "proteome-location-of-gene.adp"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:protein to (60, 120)"
+    },
+    {
+      "step": 1,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:proteomeData by (40, -20) to (540, 70)"
+    },
+    {
+      "step": 2,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "iri:http://purl.uniprot.org/taxonomy/9606 by (12,3456, -7,8912) to (512,3456, 194,1088)"
+    },
+    {
+      "step": 3,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 4,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 5,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "var:replicon"
+    },
+    {
+      "step": 6,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:replicon to (800,5, -40,25)"
+    },
+    {
+      "step": 7,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:protein by (30, 30) to (90, 150)"
+    },
+    {
+      "step": 8,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 9,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 10,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "An edge is drawn between its endpoints; move one of those instead."
+    },
+    {
+      "step": 11,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "An annotation stays with what it constrains; move that instead."
+    },
+    {
+      "step": 12,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "The header band states the query's form and modifiers, and stays at the top of the diagram."
+    },
+    {
+      "step": 13,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+    },
+    {
+      "step": 14,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+    },
+    {
+      "step": 15,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "lit:true^boolean to (0,0001, 3,33333)"
+    },
+    {
+      "step": 16,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:proteome to (-120,5, -60,0625)"
+    },
+    {
+      "step": 17,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 18,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:proteome by (5, 5) to (275, 95)"
+    },
+    {
+      "step": 19,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:proteomeData to (0, 0)"
+    },
+    {
+      "step": 20,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:replicon by (0, 300) to (800,5, 259,75)"
+    },
+    {
+      "step": 21,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "lit:true^boolean by (181,6, 0) to (181,6, 3,333)"
+    },
+    {
+      "step": 22,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "3 time(s)"
+    },
+    {
+      "step": 23,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 24,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "var:protein by (-0,0005, 0,0005) to (59,9995, 120,0005)"
+    },
+    {
+      "step": 25,
+      "kind": "save",
+      "rpc": "none",
+      "outcome": "accepted",
+      "detail": "every command is written by the history as it runs; nothing is sent"
+    }
+  ]
+}

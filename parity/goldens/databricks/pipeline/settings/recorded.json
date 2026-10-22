@@ -1,0 +1,156 @@
+{
+  "script": "parity/scripts/databricks/pipeline/settings.json",
+  "tool": "databricks/pipeline",
+  "fixture": "databricks/settings/pipeline.json",
+  "registration": "databricks/settings/pipeline.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T21:18:50Z",
+  "edits": 16,
+  "changed": [
+    "pipeline.adp",
+    "pipeline.json"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 0,
+      "id": "library:transformations/platinum",
+      "type": "databricks/pipeline+node",
+      "connection": false
+    },
+    {
+      "step": 0,
+      "id": "flow:transformations/platinum->pipeline",
+      "type": "databricks/pipeline+edge",
+      "connection": false
+    },
+    {
+      "step": 8,
+      "id": "library:a/b.py",
+      "type": "databricks/pipeline+node",
+      "connection": false
+    },
+    {
+      "step": 8,
+      "id": "flow:a/b.py->pipeline",
+      "type": "databricks/pipeline+edge",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on pipeline; input 'Add library' answered 'transformations/platinum'"
+    },
+    {
+      "step": 1,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.pipeline:name = 'bronze \"to\" gold'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.pipeline:catalog = 'main'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.pipeline:channel = 'PREVIEW'"
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on library:transformations/platinum"
+    },
+    {
+      "step": 5,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on library:transformations/silver.py"
+    },
+    {
+      "step": 6,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 7,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on pipeline; input 'Add library' answered 'a/b.py'"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on library:transformations/bronze"
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on library:a/b.py"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "A pipeline needs at least one library; removing the last one is not allowed."
+    },
+    {
+      "step": 12,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "pipeline to (320, 40)"
+    },
+    {
+      "step": 13,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "target to (640, 40)"
+    },
+    {
+      "step": 14,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 15,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "compute to (0,125, 300,5)"
+    }
+  ]
+}

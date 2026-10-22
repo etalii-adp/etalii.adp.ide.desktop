@@ -59,7 +59,7 @@ impl Harness {
     fn open_from(source: &Path, files: &[&str], open: &str, body: &str) -> Harness {
         let folder = tempfile::tempdir().unwrap();
         for name in files {
-            // A folder subject's files sit in folders of their own.
+            // A solution's or a folder subject's files sit in folders of their own.
             if let Some(parent) = folder.path().join(name).parent() {
                 fs::create_dir_all(parent).unwrap();
             }
@@ -1218,15 +1218,25 @@ mod causal_loop;
 mod supply_chain;
 // The Ansible structure diagram with its module (T079), in a file of its own.
 mod ansible;
+// The .NET dependency graph with its module (T082), in a file of its own.
+mod dotnet;
 // The Sankey diagram with its module (T077), in a file of its own.
 mod sankey;
 // The Helm chart diagram with its module (T080), in a file of its own.
 mod helm;
 // The RDF family's four readings with their module (T083), in a file of its own.
 mod rdf;
+// The SPARQL query diagram with its module (T084), in a file of its own.
+mod sparql;
 // The functional decomposition graph with its module (T072), in a file of its own.
 mod fdg;
+// The Azure DevOps pipeline with its module (T078), in a file of its own.
+mod pipeline;
+// The agent behavior model with its module (T074), in a file of its own.
+mod abm;
 // The agent activity diagram with its module (T075), in a file of its own.
 mod agent_activity;
+// The Databricks job with its module (T081), in a file of its own.
+mod databricks;
 // The Wardley map with its module (T070), in a file of its own.
 mod wardley_map;

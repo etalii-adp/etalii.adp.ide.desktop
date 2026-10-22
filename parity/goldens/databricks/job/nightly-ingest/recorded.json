@@ -1,0 +1,324 @@
+{
+  "script": "parity/scripts/databricks/job/nightly-ingest.json",
+  "tool": "databricks/job",
+  "fixture": "databricks/lakehouse/resources/nightly-ingest.yml",
+  "registration": "databricks/lakehouse/resources/nightly-ingest.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T21:16:39Z",
+  "edits": 33,
+  "changed": [
+    "nightly-ingest.adp",
+    "nightly-ingest.yml"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 1,
+      "id": "task:gate",
+      "type": "databricks/job+task",
+      "connection": false
+    },
+    {
+      "step": 1,
+      "id": "edge:land_raw->gate",
+      "type": "databricks/job+edge",
+      "connection": false
+    },
+    {
+      "step": 1,
+      "id": "edge:gate->publish",
+      "type": "databricks/job+edge",
+      "connection": false
+    },
+    {
+      "step": 1,
+      "id": "edge:gate->alert_on_empty",
+      "type": "databricks/job+edge",
+      "connection": false
+    },
+    {
+      "step": 8,
+      "id": "edge:land_raw->refresh_dashboard",
+      "type": "databricks/job+edge",
+      "connection": false
+    },
+    {
+      "step": 10,
+      "id": "task:notebook_1",
+      "type": "databricks/job+task",
+      "connection": false
+    },
+    {
+      "step": 11,
+      "id": "edge:refresh_dashboard->notebook_1",
+      "type": "databricks/job+edge",
+      "connection": false
+    },
+    {
+      "step": 12,
+      "id": "task:condition_1",
+      "type": "databricks/job+task",
+      "connection": false
+    },
+    {
+      "step": 13,
+      "id": "task:python_1",
+      "type": "databricks/job+task",
+      "connection": false
+    },
+    {
+      "step": 14,
+      "id": "task:notebook_2",
+      "type": "databricks/job+task",
+      "connection": false
+    },
+    {
+      "step": 31,
+      "id": "task:report",
+      "type": "databricks/job+task",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "task:quality_gate"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Rename task' answered 'gate'"
+    },
+    {
+      "step": 2,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on task:publish; input 'Set run if' answered 'ALL_DONE'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.run-if = ''"
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on task:publish; input 'Assign cluster' answered 'ingest_cluster'"
+    },
+    {
+      "step": 5,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.cluster = ''"
+    },
+    {
+      "step": 6,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "There is no cluster named 'warp_core' in this job."
+    },
+    {
+      "step": 7,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "Rename through the context menu, so every depends_on reference follows the key."
+    },
+    {
+      "step": 8,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:task:land_raw->task:refresh_dashboard"
+    },
+    {
+      "step": 9,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "refused",
+      "detail": "'refresh_dashboard' already depends on 'land_raw'."
+    },
+    {
+      "step": 10,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:600,400"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on rel:task:refresh_dashboard->task:notebook_1"
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:860,400"
+    },
+    {
+      "step": 13,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:860,520"
+    },
+    {
+      "step": 14,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on new:600,520"
+    },
+    {
+      "step": 15,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on task:refresh_dashboard"
+    },
+    {
+      "step": 16,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on edge:refresh_dashboard->notebook_1"
+    },
+    {
+      "step": 17,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 18,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 19,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "A task named 'land_raw' is already there."
+    },
+    {
+      "step": 20,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + CancelInteraction",
+      "outcome": "accepted",
+      "detail": "on task:gate; confirmation 'Remove task' dismissed"
+    },
+    {
+      "step": 21,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on task:gate; confirmation 'Remove task' answered ''"
+    },
+    {
+      "step": 22,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 23,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on task:python_1"
+    },
+    {
+      "step": 24,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on task:publish"
+    },
+    {
+      "step": 25,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "task:land_raw to (40, 20)"
+    },
+    {
+      "step": 26,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "cluster:ingest_cluster to (12,5, -30)"
+    },
+    {
+      "step": 27,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 28,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "task:publish to (520, 260,25)"
+    },
+    {
+      "step": 29,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "task:notebook_1 by (30, -15) to (30, 105)"
+    },
+    {
+      "step": 30,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 31,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on task:notebook_2; input 'Rename task' answered '  report  '"
+    },
+    {
+      "step": 32,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on task:report; input 'Set run if' answered 'AT_LEAST_ONE_SUCCESS'"
+    },
+    {
+      "step": 33,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.run-if = 'ALL_DONE'"
+    }
+  ]
+}

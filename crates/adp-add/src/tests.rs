@@ -239,7 +239,10 @@ fn what_the_standalone_host_refuses_is_refused_with_its_words() {
         adds.commit(&target, "generic/timeline", "map"),
         Err("An item named 'map.adp' already exists in this folder.".into())
     );
-    assert_eq!(adds.commit(&target, "w3c/sparql", "query"), Err(INCOMPLETE.into()));
+    assert_eq!(
+        adds.commit(&target, "generic/dependencies", "query"),
+        Err(INCOMPLETE.into())
+    );
     assert_eq!(
         adds.commit(&target, "nobody/nothing", "x"),
         Err("That diagram type is not available.".into())
@@ -346,6 +349,25 @@ fn a_supply_chain_diagram_is_written_with_its_empty_document() {
 }
 
 #[test]
+fn an_azure_devops_pipeline_is_written_as_the_smallest_pipeline_that_runs() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "azure-devops/pipeline", "build")
+        .unwrap();
+    assert_eq!(created, folder.path().join("build.adp"));
+    assert_eq!(read(&created), "azure-devops/pipeline\r\n");
+    // The standalone host's `NewPipeline`: the file's name as its first comment, a trigger, a pool and one job with
+    // one step, in CRLF as its raw string literal is in the standalone host's checkout.
+    assert_eq!(
+        read(&folder.path().join("build.yml")),
+        "# build\r\n\r\ntrigger:\r\n  - main\r\n\r\npool:\r\n  vmImage: ubuntu-latest\r\n\r\njobs:\r\n  - job: Build\r\n    \
+         displayName: Build\r\n    steps:\r\n      - script: echo \"Replace this with your build\"\r\n        \
+         displayName: Build\r\n"
+    );
+}
+
+#[test]
 fn an_agent_activity_diagram_is_written_with_its_empty_document() {
     let folder = tempfile::tempdir().unwrap();
     let target = AddTarget::Folder(folder.path().to_path_buf());
@@ -356,6 +378,33 @@ fn an_agent_activity_diagram_is_written_with_its_empty_document() {
     assert_eq!(read(&created), "etalii/agent-activity-diagram\r\n");
     // The standalone host's `AadBody.EmptyDocument("\r\n")`: the header alone, no list written empty, in CRLF.
     assert_eq!(read(&folder.path().join("team.aad")), "agent-activity-diagram: 1\r\n");
+}
+
+#[test]
+fn a_databricks_diagram_is_written_with_its_empty_document_its_keys_made_from_the_name() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let catalogue = AddCatalogue::standalone();
+    let created = catalogue.commit(&target, "databricks/job", "Nightly Ingest").unwrap();
+    assert_eq!(created, folder.path().join("Nightly Ingest.adp"));
+    assert_eq!(read(&created), "databricks/job\r\n");
+    // The standalone host's `EmptyDocument`: one job with one notebook task, in CRLF.
+    assert_eq!(
+        read(&folder.path().join("Nightly Ingest.yml")),
+        "resources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly Ingest\r\n      tasks:\r\n        - \
+         task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/nightly_ingest\r\n"
+    );
+    catalogue.commit(&target, "databricks/pipeline", "gold").unwrap();
+    assert_eq!(
+        read(&folder.path().join("gold.json")),
+        "{\r\n  \"name\": \"gold\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"transformations/gold\" \
+         } }\r\n  ]\r\n}\r\n"
+    );
+    catalogue.commit(&target, "databricks/bundle", "lake").unwrap();
+    assert_eq!(
+        read(&folder.path().join("lake.yml")),
+        "bundle:\r\n  name: lake\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n"
+    );
 }
 
 #[test]
@@ -450,4 +499,57 @@ fn every_reading_of_the_rdf_family_is_written_with_its_starter_body() {
         assert_eq!(read(&created), format!("{origin}\r\n"));
         assert_eq!(read(&folder.path().join(format!("{name}.ttl"))), body, "{origin}");
     }
+}
+
+#[test]
+fn a_sparql_query_is_written_with_the_starter_query() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "w3c/sparql", "query")
+        .unwrap();
+    assert_eq!(created, folder.path().join("query.adp"));
+    assert_eq!(read(&created), "w3c/sparql\r\n");
+    // The standalone host's `AddEmptyDocument`: a `SELECT` that parses and validates clean, in CRLF.
+    assert_eq!(
+        read(&folder.path().join("query.rq")),
+        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\r\n\r\nSELECT ?subject ?label\r\nWHERE {\r\n  ?subject rdfs:label ?label .\r\n}\r\nLIMIT 100\r\n"
+    );
+}
+
+#[test]
+fn a_dotnet_dependency_graph_is_written_with_an_empty_solution() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "dotnet/dependency-graph", "build")
+        .unwrap();
+    assert_eq!(created, folder.path().join("build.adp"));
+    assert_eq!(read(&created), "dotnet/dependency-graph\r\n");
+    // The standalone host's `AddEmptyDocument`: an empty solution in the newer serialization, at the definition's
+    // extension, which a registration without a `body:` header derives its body by.
+    assert_eq!(read(&folder.path().join("build.sln")), "<Solution>\r\n</Solution>\r\n");
+}
+
+#[test]
+fn an_agent_behavior_model_is_written_as_the_standalone_host_writes_a_new_one() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "etalii/agent-behavior-modelling", "release-notes")
+        .unwrap();
+    assert_eq!(created, folder.path().join("release-notes.adp"));
+    assert_eq!(read(&created), "etalii/agent-behavior-modelling\r\n");
+    // The standalone host's `AbmWriter.EmptyDocument(baseName, "\r\n")`: titled by the name, the legend that tells the
+    // agent how to follow the tree, and a Behavior section with one Do in order.
+    let body = read(&folder.path().join("release-notes.md"));
+    assert!(
+        body.starts_with("# release-notes\r\n\r\nDescribe the agent here: who it works for, and what it is for.\r\n\r\n## How to follow the behavior\r\n"),
+        "{body}"
+    );
+    assert!(
+        body.ends_with("\r\n## Behavior\r\n\r\n- **Do in order:** Handle the request\r\n"),
+        "{body}"
+    );
+    assert!(body.contains("\r\n- **Ask the user** asks its question and waits for the answer.\r\n"));
 }

@@ -1,0 +1,9 @@
+trigger:
+  - main
+
+pool:
+  vmImage: windows-latest
+
+steps:
+  - script: echo crlf
+    displayName: A CRLF file, byte for byte

@@ -468,6 +468,25 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_supply_chain::ORIGIN,
         adp_diagram_supply_chain::TEMPLATE,
     )));
+    // `ServiceCollection.AddDatabricks.cs`: `EmptyDocument`, one per type of the family, its keys made from the file's
+    // name.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_databricks::BUNDLE_ORIGIN,
+        adp_diagram_databricks::new_bundle,
+    )));
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_databricks::JOB_ORIGIN,
+        adp_diagram_databricks::new_job,
+    )));
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_databricks::PIPELINE_ORIGIN,
+        adp_diagram_databricks::new_pipeline,
+    )));
+    // `ServiceCollection.AddAzurePipeline.cs`: `NewPipeline`, the smallest pipeline that runs, named after its file.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_azure_devops_pipeline::ORIGIN,
+        adp_diagram_azure_devops_pipeline::new_pipeline,
+    )));
     // `ServiceCollection.AddSankey.cs`: `SankeyParser.EmptyDocument`.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_sankey::ORIGIN,
@@ -482,6 +501,11 @@ pub fn document_factories() -> DiagramDocumentFactories {
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_hype_cycle::ORIGIN,
         adp_diagram_hype_cycle::EMPTY_DOCUMENT,
+    )));
+    // `ServiceCollection.AddAgentBehaviorModelling.cs`: `AbmWriter.EmptyDocument(baseName, "\r\n")`, titled by the name.
+    factories.push(Box::new(EmptyDocumentFactory::from_base_name(
+        adp_diagram_agent_behavior_modelling::ORIGIN,
+        adp_diagram_agent_behavior_modelling::empty_document,
     )));
     // `ServiceCollection.AddAgentActivityDiagram.cs`: `AadBody.EmptyDocument("\r\n")`, the header alone.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
@@ -501,6 +525,17 @@ pub fn document_factories() -> DiagramDocumentFactories {
     ] {
         factories.push(Box::new(EmptyDocumentFactory::from_base_name(origin, template)));
     }
+    // `ServiceCollection.AddSparql.cs`: the starter query, a `SELECT` that parses and validates clean, in CRLF.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_sparql::ORIGIN,
+        adp_diagram_sparql::EMPTY_DOCUMENT,
+    )));
+    // `ServiceCollection.AddDotNetDependencyGraph.cs`: an empty solution in the newer serialization, written at the
+    // definition's extension.
+    factories.push(Box::new(EmptyDocumentFactory::fixed(
+        adp_diagram_dotnet_dependency_graph::ORIGIN,
+        adp_diagram_dotnet_dependency_graph::EMPTY_DOCUMENT,
+    )));
     DiagramDocumentFactories::new(factories)
 }
 
