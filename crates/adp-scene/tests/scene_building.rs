@@ -747,3 +747,98 @@ fn a_custom_shape_is_drawn_from_its_own_geometry() {
         PathCommand::MoveTo(_)
     ));
 }
+
+// ---- a scene drawn again from its pieces -------------------------------------------------------------------------------
+
+/// The scene of `diagram` at `before` and then at `after`, the second drawn again from the first's pieces, with the
+/// numbers of the second's pieces; and the scene `after` draws when drawn from nothing.
+fn drawn_twice(
+    definition: &DiagramDefinition,
+    diagram: &DislDiagram,
+    before: &[(&str, Rect)],
+    after: &[(&str, Rect)],
+    selection: &[&str],
+) -> (Vec<u64>, Vec<u64>, adp_scene::Scene, adp_scene::Scene) {
+    let evaluator = common::evaluator(definition);
+    let folding = Default::default();
+    let selection: Vec<String> = selection.iter().map(|s| (*s).to_owned()).collect();
+    let options = adp_scene::SceneOptions {
+        selection: &selection,
+        folding: &folding,
+        metrics: &EstimatedMetrics,
+        plugins: &adp_scene::scene::StandardRoutePlugins,
+    };
+    let positions = |at: &[(&str, Rect)]| at.iter().map(|(id, r)| ((*id).to_owned(), *r)).collect();
+    let first =
+        adp_scene::scene::build_scene_pieces(definition, &evaluator, diagram, &positions(before), &options, None);
+    let numbers = |pieces: &adp_scene::scene::ScenePieces| pieces.iter().map(|(n, _)| n).collect::<Vec<_>>();
+    let earlier = numbers(&first);
+    let second = adp_scene::scene::build_scene_pieces(
+        definition,
+        &evaluator,
+        diagram,
+        &positions(after),
+        &options,
+        Some(first),
+    );
+    let redrawn = second.scene(definition, &evaluator, diagram, &EstimatedMetrics);
+    let fresh = adp_scene::build_scene(definition, &evaluator, diagram, &positions(after), &options);
+    (earlier, numbers(&second), redrawn, fresh)
+}
+
+#[test]
+fn a_scene_drawn_again_with_an_element_moved_draws_again_only_it_and_its_lines_and_is_the_scene_drawn_from_nothing() {
+    // The cards: a background round everything, a line between the two, a stub from the second, the first selected.
+    let (definition, diagram) = cards();
+    let moved = Rect::new(320.0, 180.0, 160.0, 40.0);
+    let (earlier, later, redrawn, fresh) = drawn_twice(
+        &definition,
+        &diagram,
+        &[("c1", C1), ("c2", C2)],
+        &[("c1", C1), ("c2", moved)],
+        &["c1"],
+    );
+    assert_eq!(fresh, redrawn);
+    // The pieces: l1, l2, c1, c2. The first card is taken over; both lines and the second card are drawn again.
+    assert_eq!(4, later.len());
+    assert_eq!(
+        vec![false, false, true, false],
+        earlier.iter().zip(&later).map(|(a, b)| a == b).collect::<Vec<_>>()
+    );
+
+    // Nothing moved: every piece is taken over.
+    let (earlier, later, redrawn, fresh) = drawn_twice(
+        &definition,
+        &diagram,
+        &[("c1", C1), ("c2", C2)],
+        &[("c1", C1), ("c2", C2)],
+        &[],
+    );
+    assert_eq!(fresh, redrawn);
+    assert_eq!(earlier, later);
+}
+
+#[test]
+fn a_node_at_the_centre_of_its_members_is_drawn_again_with_them() {
+    let (definition, diagram) = curved();
+    diagram
+        .add_node(
+            "Hub",
+            "h1",
+            attrs(&[
+                ("caption", "h1".into()),
+                ("members", Value::list(vec!["a".into(), "b".into()])),
+                ("turn", "on".into()),
+            ]),
+        )
+        .unwrap();
+    arrow(&diagram, "a", "b", &[]);
+    let (earlier, later, redrawn, fresh) =
+        drawn_twice(&definition, &diagram, &[("a", A), ("b", B)], &[("a", A), ("b", A)], &[]);
+    assert_eq!(fresh, redrawn);
+    // The pieces: the arrow, a, b and the hub; only a is taken over.
+    assert_eq!(
+        vec![false, true, false, false],
+        earlier.iter().zip(&later).map(|(a, b)| a == b).collect::<Vec<_>>()
+    );
+}

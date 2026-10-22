@@ -13,6 +13,7 @@
 //! has no target and its relation states one.
 
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use adp_cel::Value;
 use adp_disl::expressions::contexts;
@@ -247,6 +248,109 @@ pub fn build_scene(
     positions: &HashMap<String, Rect>,
     options: &SceneOptions<'_>,
 ) -> Scene {
+    build_scene_pieces(definition, evaluator, diagram, positions, options, None).scene(
+        definition,
+        evaluator,
+        diagram,
+        options.metrics,
+    )
+}
+
+/// A scene in its pieces: what each line and each element draws, in painting order, with the box each element was
+/// drawn in. Kept so that the scene of the same diagram with some of its elements elsewhere, as a drag or a resize in
+/// flight previews it, is built again from the pieces that changed alone (etalii.adp spec 030, SC-006): a line is
+/// drawn from its two ends' boxes and an element from its own, so the others are what they were.
+#[derive(Debug, Clone, Default)]
+pub struct ScenePieces {
+    pieces: Vec<Piece>,
+    /// The box each element was drawn in.
+    bounds: HashMap<String, Rect>,
+}
+
+/// What one line or one element draws, and the number it was drawn under: a piece taken over from earlier pieces
+/// keeps its number, so what a host derived from it holds as long as the number does.
+#[derive(Debug, Clone)]
+struct Piece {
+    serial: u64,
+    owner: Owner,
+    primitives: Vec<Primitive>,
+}
+
+/// The number the next piece drawn is drawn under.
+static NEXT_PIECE: AtomicU64 = AtomicU64::new(0);
+
+impl ScenePieces {
+    /// The scene of these pieces: the background, where the definition draws one round what the pieces draw, then
+    /// the pieces in their order.
+    pub fn scene(
+        &self,
+        definition: &DiagramDefinition,
+        evaluator: &Evaluator,
+        diagram: &DislDiagram,
+        metrics: &dyn TextMetrics,
+    ) -> Scene {
+        let mut primitives: Vec<Primitive> =
+            Vec::with_capacity(self.pieces.iter().map(|p| p.primitives.len()).sum::<usize>() + 1);
+        for piece in &self.pieces {
+            primitives.extend(piece.primitives.iter().cloned());
+        }
+        if let Some(background) = &definition.background {
+            let vars = evaluator.diagram_vars(diagram);
+            let resolver = StyleResolver { evaluator, vars: &vars };
+            let content = primitives
+                .iter()
+                .filter_map(|p| p.bounds(metrics))
+                .reduce(|a, b| a.union(&b))
+                .unwrap_or_default()
+                .inflate(40.0);
+            if let Some(fill) = resolver.paint(background) {
+                primitives.insert(
+                    0,
+                    Primitive::Shape(ShapePrimitive {
+                        owner: Owner::Canvas,
+                        role: Role::Background,
+                        path: Path::polygon(&[
+                            Point::new(content.x, content.y),
+                            Point::new(content.right(), content.y),
+                            Point::new(content.right(), content.bottom()),
+                            Point::new(content.x, content.bottom()),
+                        ]),
+                        fill: Some(fill),
+                        stroke: None,
+                        opacity: 1.0,
+                        tooltip: None,
+                    }),
+                );
+            }
+        }
+        Scene {
+            primitives,
+            empty_text: if diagram.nodes().is_empty() {
+                definition.empty_text.clone()
+            } else {
+                None
+            },
+        }
+    }
+
+    /// Each piece in painting order, the background left out: the number it was drawn under and what it draws. A
+    /// piece keeps its number while it is taken over unchanged, and one drawn again gets a new one.
+    pub fn iter(&self) -> impl Iterator<Item = (u64, &[Primitive])> {
+        self.pieces.iter().map(|p| (p.serial, p.primitives.as_slice()))
+    }
+}
+
+/// The pieces of the scene of `diagram` as `definition` draws it, with its elements at `positions`. Where `previous`
+/// holds the pieces of the same diagram, definition, evaluator and options with other positions, an element drawn in
+/// the box it was drawn in there and a line whose two ends are are taken from it rather than drawn again.
+pub fn build_scene_pieces(
+    definition: &DiagramDefinition,
+    evaluator: &Evaluator,
+    diagram: &DislDiagram,
+    positions: &HashMap<String, Rect>,
+    options: &SceneOptions<'_>,
+    previous: Option<ScenePieces>,
+) -> ScenePieces {
     let mut builder = Builder {
         definition,
         evaluator,
@@ -255,57 +359,73 @@ pub fn build_scene(
     };
     let placed = builder.place(diagram, positions);
     let by_id: HashMap<String, usize> = placed.iter().enumerate().map(|(i, p)| (p.element.id(), i)).collect();
+    let bounds: HashMap<String, Rect> = placed.iter().map(|p| (p.element.id(), p.bounds)).collect();
+    // The piece `previous` has at `index`, where it is `owner`'s: the pieces come in the same order for the same
+    // diagram.
+    let (mut earlier_pieces, earlier_bounds) = match previous {
+        Some(p) => (p.pieces, Some(p.bounds)),
+        None => (Vec::new(), None),
+    };
+    let mut earlier = |index: usize, owner: &Owner| {
+        earlier_pieces
+            .get_mut(index)
+            .filter(|p| &p.owner == owner)
+            .map(|p| (p.serial, std::mem::take(&mut p.primitives)))
+    };
+    let fresh = |builder: &mut Builder| {
+        (
+            NEXT_PIECE.fetch_add(1, Ordering::Relaxed),
+            std::mem::take(&mut builder.primitives),
+        )
+    };
+    let unmoved = |id: Option<String>| {
+        earlier_bounds.as_ref().is_some_and(|p| match id {
+            Some(id) => bounds.get(&id) == p.get(&id),
+            None => true,
+        })
+    };
+    let mut pieces: Vec<Piece> = Vec::new();
 
     for relation in diagram.relations() {
-        builder.relation(&relation, &placed, &by_id);
+        let owner = Owner::Relation(relation.id());
+        let reused = (unmoved(relation.source().map(|e| e.id())) && unmoved(relation.target().map(|e| e.id())))
+            .then(|| earlier(pieces.len(), &owner))
+            .flatten();
+        let (serial, primitives) = match reused {
+            Some(piece) => piece,
+            None => {
+                builder.relation(&relation, &placed, &by_id);
+                fresh(&mut builder)
+            }
+        };
+        pieces.push(Piece {
+            serial,
+            owner,
+            primitives,
+        });
     }
     // Frames first, so enclosures draw under their members; then the rest in model order.
     let (frames, others): (Vec<&Placed>, Vec<&Placed>) = placed
         .iter()
         .partition(|p| p.element_type.shape == ShapeKind::BuiltIn(BuiltInShape::Frame));
     for element in frames.into_iter().chain(others) {
-        builder.element(element);
+        let id = element.element.id();
+        let owner = Owner::Element(id.clone());
+        let reused = unmoved(Some(id)).then(|| earlier(pieces.len(), &owner)).flatten();
+        let (serial, primitives) = match reused {
+            Some(piece) => piece,
+            None => {
+                builder.element(element);
+                fresh(&mut builder)
+            }
+        };
+        pieces.push(Piece {
+            serial,
+            owner,
+            primitives,
+        });
     }
-
-    let mut primitives = builder.primitives;
-    let metrics = options.metrics;
-    if let Some(background) = &definition.background {
-        let vars = evaluator.diagram_vars(diagram);
-        let resolver = StyleResolver { evaluator, vars: &vars };
-        let content = primitives
-            .iter()
-            .filter_map(|p| p.bounds(metrics))
-            .reduce(|a, b| a.union(&b))
-            .unwrap_or_default()
-            .inflate(40.0);
-        if let Some(fill) = resolver.paint(background) {
-            primitives.insert(
-                0,
-                Primitive::Shape(ShapePrimitive {
-                    owner: Owner::Canvas,
-                    role: Role::Background,
-                    path: Path::polygon(&[
-                        Point::new(content.x, content.y),
-                        Point::new(content.right(), content.y),
-                        Point::new(content.right(), content.bottom()),
-                        Point::new(content.x, content.bottom()),
-                    ]),
-                    fill: Some(fill),
-                    stroke: None,
-                    opacity: 1.0,
-                    tooltip: None,
-                }),
-            );
-        }
-    }
-    Scene {
-        primitives,
-        empty_text: if diagram.nodes().is_empty() {
-            definition.empty_text.clone()
-        } else {
-            None
-        },
-    }
+    ScenePieces { pieces, bounds }
 }
 
 impl<'a> Builder<'a> {

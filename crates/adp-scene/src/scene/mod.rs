@@ -11,7 +11,8 @@ mod builder;
 mod markers;
 
 pub use builder::{
-    RouteEnds, RoutePlugins, SceneOptions, StandardRoutePlugins, attachment_point, build_scene, default_size,
+    RouteEnds, RoutePlugins, SceneOptions, ScenePieces, StandardRoutePlugins, attachment_point, build_scene,
+    build_scene_pieces, default_size,
 };
 pub use markers::marker_shape;
 
