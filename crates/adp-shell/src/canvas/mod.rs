@@ -527,6 +527,8 @@ pub struct DiagramTab {
     pub session: DiagramSession,
     definition: Result<DiagramDefinition, String>,
     /// The viewpoint a switch of the canvas toggles (the hype cycle graph's Compact), when the specification has one.
+    /// Whether the tab draws its own Zoom In, Zoom Out, Fit to View, Undo and Redo; the shell's ribbon has them.
+    pub toolbar_buttons: bool,
     pub toggle: Option<viewpoint::Toggle>,
     /// Whether the toggled viewpoint is on: the viewer's, never saved.
     pub toggled: bool,
@@ -577,6 +579,7 @@ impl DiagramTab {
             opened,
             session,
             definition: Err(String::new()),
+            toolbar_buttons: true,
             toggle: None,
             toggled: false,
             variant: None,
@@ -1729,6 +1732,31 @@ impl DiagramTab {
         self.arbiter.cancel()
     }
 
+    /// The menu of the selection's most recent element, as its context menu and the ribbon's contextual groups show
+    /// it; none with nothing selected.
+    pub fn selection_actions(&self, workspace: &DiagramWorkspace) -> Vec<ActionGroup> {
+        match self.selection.last() {
+            Some(primary) => self
+                .session
+                .actions(workspace.documents(), &ActionTarget::Element(primary.clone())),
+            None => Vec::new(),
+        }
+    }
+
+    /// Runs action `action_id` of the selection's menu, as the context menu runs it: a deletion with several selected
+    /// deletes all of them as one edit.
+    pub fn run_selection_action(&mut self, workspace: &mut DiagramWorkspace, action_id: &str) {
+        let Some(primary) = self.selection.last().cloned() else {
+            return;
+        };
+        let target = ActionTarget::Element(primary);
+        if self.selection.len() > 1 && self.session.is_deletion(workspace.documents(), &target, action_id) {
+            self.delete_selection(workspace, action_id, false);
+            return;
+        }
+        self.run_action(workspace, target, action_id);
+    }
+
     /// A declared shortcut of the selected element: Tab, Enter, Delete, Space, F2 and the rest, by the menus. With
     /// several selected, a deletion deletes all of them as one edit, or none (the multi-select specification's
     /// Requirement 7.3).
@@ -1792,33 +1820,44 @@ impl DiagramTab {
                         .on_hover_text(hint)
                         .clicked()
                     };
-                    if button(ui, "Zoom In", "Zoom in (+)") {
-                        zoom = Some(ZOOM_STEP);
-                    }
-                    if button(ui, "Zoom Out", "Zoom out (-)") {
-                        zoom = Some(1.0 / ZOOM_STEP);
-                    }
-                    if button(ui, "Fit to View", "Fit the diagram to the view (0)") {
-                        fit = true;
-                    }
-                    ui.separator();
-                    if button(ui, "Undo", "Undo (Ctrl+Z)") {
-                        history = Some(true);
-                    }
-                    if button(ui, "Redo", "Redo (Ctrl+Y)") {
-                        history = Some(false);
+                    if self.toolbar_buttons {
+                        if button(ui, "Zoom In", "Zoom in (+)") {
+                            zoom = Some(ZOOM_STEP);
+                        }
+                        if button(ui, "Zoom Out", "Zoom out (-)") {
+                            zoom = Some(1.0 / ZOOM_STEP);
+                        }
+                        if button(ui, "Fit to View", "Fit the diagram to the view (0)") {
+                            fit = true;
+                        }
+                        ui.separator();
+                        if button(ui, "Undo", "Undo (Ctrl+Z)") {
+                            history = Some(true);
+                        }
+                        if button(ui, "Redo", "Redo (Ctrl+Y)") {
+                            history = Some(false);
+                        }
                     }
                     if let Some(toggle) = &self.toggle {
                         ui.separator();
-                        let mut on = self.toggled;
-                        if ui
-                            .checkbox(
-                                &mut on,
-                                RichText::new(&toggle.label).size(theme.sizes.workbench_font - 1.0),
-                            )
-                            .changed()
-                        {
-                            switched = Some(on);
+                        let size = theme.sizes.workbench_font - 1.0;
+                        match &toggle.modes {
+                            // The standalone host's layout switcher: one button per mode, the active one selected.
+                            Some((default, variant)) => {
+                                for (on, mode) in [(false, default), (true, variant)] {
+                                    let response =
+                                        ui.selectable_label(self.toggled == on, RichText::new(mode).size(size));
+                                    if response.clicked() && self.toggled != on {
+                                        switched = Some(on);
+                                    }
+                                }
+                            }
+                            None => {
+                                let mut on = self.toggled;
+                                if ui.checkbox(&mut on, RichText::new(&toggle.label).size(size)).changed() {
+                                    switched = Some(on);
+                                }
+                            }
                         }
                     }
                     ui.label(RichText::new(format!("{:.0}%", self.view.zoom * 100.0)).color(muted));
@@ -2506,7 +2545,7 @@ fn selection_token(
     (mode == Some("dark") && !declared).then_some(("color.selected", module_scene::SELECTED_DARK))
 }
 
-fn menu_entries(ui: &mut egui::Ui, groups: &[ActionGroup], id: egui::Id, chosen: &mut Option<String>) {
+pub(crate) fn menu_entries(ui: &mut egui::Ui, groups: &[ActionGroup], id: egui::Id, chosen: &mut Option<String>) {
     for (index, group) in groups.iter().enumerate() {
         if index > 0 && !group.actions.is_empty() {
             ui.separator();

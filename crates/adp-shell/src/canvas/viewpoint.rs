@@ -9,6 +9,9 @@
 //!   (a trend at 24 units a phase with even phases) is drawn so, and one its placement does not let move or resize
 //!   does neither. Where the viewpoint's layout places the elements is the tool type's: the hype cycle graph's
 //!   row-packed layout is `adp_diagram_hype_cycle::compact`.
+//! - **A switched viewpoint** (`variantOf` without a `toggle`): the standalone host's layout switcher
+//!   (`DiagramCanvas.tsx`, `layout-switcher`), one button per layout mode, the default viewpoint's and the variant's,
+//!   each named by its layout. No tool type at `8b6ccfc` declares one; it draws and switches as the toggle does.
 //! - **The legend** (`notation.canvas.legend`): one swatch per value of each enumeration it names, painted with the
 //!   value's colour token in the theme's mode, under its label, at the top left of the canvas.
 
@@ -16,29 +19,65 @@ use adp_disl::{DislLoader, DislPluginFunctions, DislSpecification};
 use adp_scene::{DiagramDefinition, Theme as NotationTheme, compile_notation};
 use serde_json::Value as Json;
 
-/// A viewpoint the person toggles: its id and the label of its switch.
+/// A viewpoint the person toggles: its id and the label of its switch, and, for one switched rather than toggled,
+/// the names of the two layout modes the switcher offers, the default's first.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Toggle {
     pub id: String,
     pub label: String,
+    pub modes: Option<(String, String)>,
 }
 
-/// The first viewpoint of `specification` a switch toggles (`toggle`), when it varies another (`variantOf`).
+/// The first viewpoint of `specification` that varies another (`variantOf`): toggled where it declares a `toggle`,
+/// else switched between its layout mode and the default viewpoint's.
 pub fn toggle_of(specification: &DislSpecification) -> Option<Toggle> {
-    let viewpoints = specification.root().get("viewpoints")?.as_object()?;
+    let root = specification.root();
+    let viewpoints = root.get("viewpoints")?.as_object()?;
     viewpoints.iter().find_map(|(id, viewpoint)| {
-        viewpoint.get("variantOf")?;
-        let toggle = viewpoint.get("toggle")?;
-        let label = toggle
-            .get("label")
-            .or_else(|| viewpoint.get("label"))
-            .and_then(Json::as_str)
-            .unwrap_or(id);
+        let varies = viewpoint.get("variantOf")?.as_str()?;
+        let label = |toggle: Option<&Json>| {
+            toggle
+                .and_then(|t| t.get("label"))
+                .or_else(|| viewpoint.get("label"))
+                .and_then(Json::as_str)
+                .unwrap_or(id)
+                .to_owned()
+        };
+        if let Some(toggle) = viewpoint.get("toggle") {
+            return Some(Toggle {
+                id: id.clone(),
+                label: label(Some(toggle)),
+                modes: None,
+            });
+        }
+        let default_layout = viewpoints
+            .get(varies)
+            .and_then(|v| v.get("layout"))
+            .or_else(|| root.get("layout").and_then(|l| l.get("default")));
         Some(Toggle {
             id: id.clone(),
-            label: label.to_owned(),
+            label: label(None),
+            modes: Some((
+                mode_name(root, default_layout),
+                mode_name(root, viewpoint.get("layout")),
+            )),
         })
     })
+}
+
+/// A layout's mode as the switcher names it: the algorithm the named layout uses, else manual.
+fn mode_name(root: &Json, layout: Option<&Json>) -> String {
+    layout
+        .and_then(Json::as_str)
+        .and_then(|name| {
+            root.get("layout")?
+                .get("algorithms")?
+                .get(name)?
+                .get("algorithm")?
+                .as_str()
+        })
+        .unwrap_or("manual")
+        .to_owned()
 }
 
 /// `into` with `over` merged into it: an object key by key, anything else replaced.
@@ -160,7 +199,31 @@ mod tests {
             toggle_of(&hype_cycle()),
             Some(Toggle {
                 id: "compact".into(),
-                label: "Compact".into()
+                label: "Compact".into(),
+                modes: None,
+            })
+        );
+    }
+
+    /// A variant without a toggle is switched between its layout mode and the default's, as the standalone host's
+    /// layout switcher offers them.
+    #[test]
+    fn a_variant_without_a_toggle_is_switched_between_two_layout_modes() {
+        let json = r#"{
+          "disl": "0.3",
+          "language": { "id": "org.example.switch", "version": "1.0.0" },
+          "metamodel": { "types": { "Item": {} } },
+          "notation": { "nodes": { "Item": { "shape": "rect" } } },
+          "layout": { "default": "free", "algorithms": { "free": { "algorithm": "manual" }, "rows": { "algorithm": "rowPacked" } } },
+          "viewpoints": { "main": { "label": "Main" }, "packed": { "label": "Packed", "variantOf": "main", "layout": "rows" } }
+        }"#;
+        let specification = DislLoader::load(json).specification.expect("it loads");
+        assert_eq!(
+            toggle_of(&specification),
+            Some(Toggle {
+                id: "packed".into(),
+                label: "Packed".into(),
+                modes: Some(("manual".into(), "rowPacked".into())),
             })
         );
     }
