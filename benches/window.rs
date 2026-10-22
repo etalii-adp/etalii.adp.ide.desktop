@@ -6,6 +6,8 @@
 
 #![allow(dead_code)]
 
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use adp_core::state::StateFolder;
@@ -27,6 +29,9 @@ pub struct Window {
     /// When the last frame asked for the next one, as eframe reads it: `None` when it asked for none, and the window
     /// then waits for input.
     pub repaint_after: Option<Duration>,
+    /// Whether something outside a frame, such as the watcher, asked for a frame without delay since the last one
+    /// began, as eframe hears of it through egui's repaint callback.
+    woken: Arc<AtomicBool>,
 }
 
 impl Window {
@@ -35,6 +40,13 @@ impl Window {
         let ctx = egui::Context::default();
         theme::install(&ctx);
         ctx.set_theme(egui::Theme::Dark);
+        let woken = Arc::new(AtomicBool::new(false));
+        let wake = Arc::clone(&woken);
+        ctx.set_request_repaint_callback(move |info| {
+            if info.delay.is_zero() {
+                wake.store(true, Ordering::SeqCst);
+            }
+        });
         Window {
             ctx,
             shell: Shell::with_state(StateFolder::at(state)),
@@ -42,6 +54,7 @@ impl Window {
             texts: Vec::new(),
             outlines: Vec::new(),
             repaint_after: None,
+            woken,
         }
     }
 
@@ -53,6 +66,7 @@ impl Window {
             events,
             ..Default::default()
         };
+        self.woken.store(false, Ordering::SeqCst);
         let began = Instant::now();
         let shell = &mut self.shell;
         let mut output = self.ctx.run_ui(input, |ui| shell.show(ui));
@@ -72,6 +86,11 @@ impl Window {
             painted(&clipped.shape, &mut self.texts, &mut self.outlines);
         }
         took
+    }
+
+    /// Whether the window was woken from outside a frame since the last frame began.
+    pub fn woken(&self) -> bool {
+        self.woken.load(Ordering::SeqCst)
     }
 
     /// `count` frames without input.

@@ -4,8 +4,8 @@
 //!
 //! Run with `cargo bench -p adp-shell --bench workspace`. The window is headless, so these are the shell's own parts of
 //! SC-005; the start-up probe (`benches/startup.rs`) times the same from the process's start, window and all. A change
-//! on disk is timed as the window shows it: frames are drawn when the window asks for one, as eframe draws them, and,
-//! separately, at 60 frames a second, as they are while a person moves the pointer.
+//! on disk is timed as the window shows it: frames are drawn when the window asks for one or the watcher wakes it, as
+//! eframe draws them, and, separately, at 60 frames a second, as they are while a person moves the pointer.
 
 #[path = "generated.rs"]
 mod generated;
@@ -28,13 +28,9 @@ const GIVE_UP: Duration = Duration::from_secs(5);
 
 fn main() {
     let folder = tempfile::tempdir().expect("a temporary folder");
-    // The folder as the platform names it: the watcher reports changes by that name (macOS's temporary folder is a
-    // link, `/var` to `/private/var`).
-    let root = folder
-        .path()
-        .canonicalize()
-        .expect("the temporary folder")
-        .join("workspace");
+    // The folder as the temporary folder names it, which on macOS is through a link (`/var` to `/private/var`): the
+    // watcher reports changes by the real name there, and the window maps them back.
+    let root = folder.path().join("workspace");
     let files = generated::workspace(&root, generated::FILES);
     let state = folder.path().join("state");
     ProjectList::load(StateFolder::at(&state))
@@ -105,6 +101,11 @@ fn main() {
         let mut added = Vec::new();
         for run in 0..RUNS {
             let marker = format!("Changed on disk {run} {paced}");
+            // Between changes the window waits for input: only the watcher can have it draw the change.
+            assert!(
+                paced || window.repaint_after.is_none(),
+                "the window asks for no frame while nothing happens"
+            );
             edited.push(shown_after(&mut window, paced, &marker, || {
                 fs::write(open, format!("# {marker}\n")).expect("the file is changed")
             }));
@@ -142,7 +143,8 @@ fn main() {
 }
 
 /// How long after `change` the window first painted `text`, or `None` when it did not within [`GIVE_UP`]. With `paced`
-/// a frame is drawn every 16.7 ms; without, only when the last frame asked for one, after the delay it asked for.
+/// a frame is drawn every 16.7 ms; without, only when the last frame asked for one, after the delay it asked for, or
+/// when the watcher woke the window.
 fn shown_after(window: &mut Window, paced: bool, text: &str, change: impl FnOnce()) -> Option<Duration> {
     let began = Instant::now();
     change();
@@ -153,15 +155,15 @@ fn shown_after(window: &mut Window, paced: bool, text: &str, change: impl FnOnce
         } else {
             window.repaint_after
         };
-        match due {
-            Some(due) if asked_at.elapsed() >= due => {
-                window.frame(Vec::new());
-                asked_at = Instant::now();
-                if window.shows(text) {
-                    return Some(began.elapsed());
-                }
+        let woken = !paced && window.woken();
+        if woken || due.is_some_and(|due| asked_at.elapsed() >= due) {
+            window.frame(Vec::new());
+            asked_at = Instant::now();
+            if window.shows(text) {
+                return Some(began.elapsed());
             }
-            _ => std::thread::sleep(Duration::from_millis(1)),
+        } else {
+            std::thread::sleep(Duration::from_millis(1));
         }
     }
     None
