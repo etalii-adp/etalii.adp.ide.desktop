@@ -390,6 +390,91 @@ fn a_drag_of_two_selected_nodes_moves_both_as_one_undo_and_a_vertical_drag_lands
     assert_eq!(harness.written(), harness.original, "one undo reverts both");
 }
 
+/// What the gestures hit-test against and what the view fits, as the tab's scene holds them.
+#[allow(clippy::type_complexity)]
+fn hit_tested(
+    tab: &DiagramTab,
+) -> (
+    Vec<(String, Point, Point)>,
+    Vec<(String, Vec<Point>, f64)>,
+    Vec<(String, String, adp_scene::Rect)>,
+    Vec<(String, adp_diagram::ResizedEdge, adp_scene::Rect)>,
+    Vec<(String, String, adp_scene::Rect)>,
+    Option<adp_scene::Rect>,
+) {
+    let cache = tab.cache.as_ref().expect("a scene");
+    (
+        cache
+            .boxes
+            .iter()
+            .map(|(id, r)| (id.clone(), Point::new(r.x, r.y), Point::new(r.width, r.height)))
+            .collect(),
+        cache.lines.clone(),
+        cache.anchors.clone(),
+        cache.handles.clone(),
+        cache.labels.clone(),
+        cache.bounds,
+    )
+}
+
+/// The number each piece of the tab's scene was drawn under, with whose it is.
+fn pieces(tab: &DiagramTab) -> Vec<(u64, Option<Owner>)> {
+    let drawn = tab
+        .cache
+        .as_ref()
+        .and_then(|c| c.drawn.as_ref())
+        .expect("a drawn scene");
+    drawn
+        .pieces
+        .iter()
+        .map(|(number, primitives)| (number, primitives.first().map(|p| p.owner().clone())))
+        .collect()
+}
+
+#[test]
+fn a_drag_in_flight_draws_again_only_the_node_it_moves_and_its_lines_and_draws_what_a_scene_from_nothing_draws() {
+    let mut harness = Harness::dependency_graph();
+    let at = harness.screen_of("api-gateway");
+    harness.click(at, Modifiers::NONE);
+    harness.press(at, PointerButton::Primary, Modifiers::NONE);
+    harness.frame(vec![Event::PointerMoved(at + egui::vec2(20.0, 10.0))]);
+    assert!(harness.tab.arbiter.moving().is_some(), "the drag is in flight");
+    let before = pieces(&harness.tab);
+    harness.frame(vec![Event::PointerMoved(at + egui::vec2(80.0, 40.0))]);
+    let after = pieces(&harness.tab);
+    assert_eq!(before.len(), after.len());
+    let gateway = Some(Owner::Element("api-gateway".into()));
+    let mut drawn_again = Vec::new();
+    for ((earlier, owner), (later, _)) in before.iter().zip(&after) {
+        if earlier != later {
+            drawn_again.push(owner.clone());
+        }
+    }
+    assert!(drawn_again.contains(&gateway), "the node dragged is drawn again");
+    assert!(
+        drawn_again
+            .iter()
+            .all(|o| o == &gateway || matches!(o, Some(Owner::Relation(_)))),
+        "and nothing but it and its lines: {drawn_again:?}"
+    );
+    assert!(drawn_again.len() < after.len() / 2, "most of the scene is taken over");
+
+    // The same frame drawn from nothing draws the same scene and hit-tests the same.
+    let scene = harness.tab.scene().unwrap().clone();
+    let hits = hit_tested(&harness.tab);
+    harness.tab.cache = None;
+    harness.frame(Vec::new());
+    assert!(harness.tab.arbiter.moving().is_some(), "the drag is still in flight");
+    assert_eq!(&scene, harness.tab.scene().unwrap());
+    assert_eq!(hits, hit_tested(&harness.tab));
+    harness.release(at + egui::vec2(80.0, 40.0), PointerButton::Primary, Modifiers::NONE);
+    assert_ne!(
+        harness.written(),
+        harness.original,
+        "the drop writes the node's new place"
+    );
+}
+
 #[test]
 fn escape_cancels_a_drag_and_nothing_is_written() {
     let mut harness = Harness::dependency_graph();

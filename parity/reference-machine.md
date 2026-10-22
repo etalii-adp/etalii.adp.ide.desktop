@@ -6,7 +6,7 @@ The machines etalii.adp spec 030's performance criteria are measured on, and wha
 
 | Machine | Processor | Memory | System | Measured |
 | --- | --- | --- | --- | --- |
-| Mac mini | Apple M2, 8 cores | 16 GB | macOS 27.0.1 (26A434) | 2026-10-22, at `57b858f` with this change, Rust 1.99.1 |
+| Mac mini | Apple M2, 8 cores | 16 GB | macOS 27.0.1 (26A434) | 2026-10-22, at `57b858f` with the change that added the benchmarks, Rust 1.99.1; the canvas (SC-006) again at `7724dd4` with the change that redraws only what a drag moves |
 | GitHub `windows-latest` runner | as GitHub provides it | as GitHub provides it | Windows Server, as GitHub provides it | to be measured: by the commands below, in a job of the Build workflow run by hand (see below) |
 | Fractal, the maintainer's development machine | to be recorded | to be recorded | Windows | to be measured: the machine is offline |
 
@@ -40,10 +40,10 @@ Mac mini, 2026-10-22. A number that misses its criterion says so.
 | SC-005 | Project list, headless window made to first frame | median 1.4 ms | 2 s | meets |
 | SC-005 | Workspace of 5,000 files, headless, opened to first frame | median 11.1 ms | 3 s | meets |
 | SC-005 | Workspace tree read from 5,000 files (criterion) | 6.14 ms (6.11 to 6.18) | 3 s | meets |
-| SC-006 | Canvas of 1,000 elements opened and first drawn | 125.1 ms (first frame 23.3 ms) | none | |
-| SC-006 | Pan, 122 frames, all 1,000 elements drawn | mean 3.6 ms, 95th percentile 4.1 ms, slowest 5.0 ms | 16.7 ms | meets |
-| SC-006 | Zoom, 150 frames | mean 3.1 ms, 95th percentile 4.1 ms, slowest 4.2 ms | 16.7 ms | meets |
-| SC-006 | Drag of an element, 133 frames, all 1,000 elements drawn | mean 20.0 ms, 95th percentile 21.8 ms, slowest 66.4 ms (the drop, which writes the file) | 16.7 ms | **misses** |
+| SC-006 | Canvas of 1,000 elements opened and first drawn | 105.2 ms (first frame 21.1 ms) | none | |
+| SC-006 | Pan, 122 frames, all 1,000 elements drawn | mean 3.8 ms, 95th percentile 4.4 ms, slowest 5.2 ms | 16.7 ms | meets |
+| SC-006 | Zoom, 150 frames | mean 3.4 ms, 95th percentile 4.5 ms, slowest 11.0 ms | 16.7 ms | meets |
+| SC-006 | Drag of an element, 133 frames, all 1,000 elements drawn | mean 6.5 ms, 95th percentile 6.6 ms, slowest 67.0 ms (the drop, which writes the file); before the change that redraws only what a drag moves, mean 20.0 ms, 95th percentile 21.8 ms, slowest 66.4 ms | 16.7 ms | meets |
 | SC-006 | Table of 10,000 rows scrolled top to bottom, 552 screens | mean 5.61 ms, 95th percentile 5.79 ms, slowest 7.00 ms (opened in 531 ms) | 16.7 ms | meets |
 | SC-007 | Memory while idle with the workspace and three documents open | measured by hand in T091 | half the standalone host's | |
 | SC-008 | Open tab's text changed on disk, frames as the window asks | median 28.7 ms, slowest 30.3 ms of 5 | 1 s | meets |
@@ -54,6 +54,6 @@ Mac mini, 2026-10-22. A number that misses its criterion says so.
 
 ## Findings
 
-- **Dragging an element on a canvas of 1,000 elements misses SC-006**: a frame of the drag takes about 20 ms when every element is drawn, about 50 frames a second rather than 60, while a pan or a zoom of the same canvas takes about 4 ms. What a drag adds to a frame, the moved element's preview, costs about 16 ms there; it is the place to look.
+- **Dragging an element on a canvas of 1,000 elements meets SC-006 since its frame draws again only what the drag moves**: it missed at first, a frame of the drag taking about 20 ms, about 50 frames a second, while a pan or a zoom of the same canvas took about 4 ms. A drag changes the scene in every frame, and every frame built it again from nothing: the layout and the placement of all 1,000 elements (about 4.5 ms), the scene's primitives for every element and line (about 6 ms), and what the gestures hit-test against, found with a search through every box drawn so far for each primitive and every text measured twice (about 5 ms). Now the scene is kept in pieces, one per line and per element (`adp_scene::scene::ScenePieces`), and a frame of a drag or a resize keeps what was placed, draws again only the elements whose box changed and the lines ending at them, and measures only those pieces for the hit tests, so a frame of the drag takes about 6.6 ms. The drop still takes about 67 ms, one frame, as it writes the file and builds the scene of the changed diagram from nothing. What is written is unchanged.
 - **SC-008 holds because the window never goes idle**: the shell sends the window's title to eframe in every frame, and egui asks for a new frame whenever a viewport command is sent, so the window draws continuously and picks up the watcher's changes on the next frame. Were the title sent only when it changes, the window would wait for input, and a change on disk would not appear until the pointer moved: the watcher would then have to wake the window.
 - **The watcher names changed files by their real path**: on macOS a project opened through a link (the temporary folder `/var` is one, to `/private/var`) has its explorer follow the disk, but its open tabs do not, as the changes the watcher reports do not match their paths. The benchmarks open the workspace by its real path.

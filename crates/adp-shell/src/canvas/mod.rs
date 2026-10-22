@@ -9,7 +9,8 @@
 //! `src/client/src/canvas/scroll/` (scroll bars over an unbounded plane: the content's extent with half its span
 //! again on either side, a thumb at least 5% of its track), and `src/client/src/shell/panels/ToolTabsPanel.tsx`
 //! (a diagram opens in a tab of its own, its text still a choice away). A scene is rebuilt only when what it shows
-//! changes: the document, the selection, the theme or the drag in flight. A selected element's resize handles, the
+//! changes: the document, the selection, the theme or the drag in flight, and under a drag or a resize in flight only
+//! the elements it moves and their lines are drawn again (SC-006). A selected element's resize handles, the
 //! scene's [`HookKind::ResizeHandle`] hooks, carry one edge each (`DiagramCanvas.tsx`, the `resize` gesture, and
 //! `gestureFrame.ts`: the preview is the frame's, the edit is written once, at the release, and Escape reverts it).
 
@@ -51,7 +52,9 @@ use adp_disl::{DislEnv, DislPluginFunctions, IdSource};
 use adp_fbl::RegistrationDocument;
 use adp_scene::connectors::Edge;
 use adp_scene::definition::compartments::Folding;
-use adp_scene::scene::{HookKind, Owner, Primitive, Role, SceneOptions, StandardRoutePlugins, build_scene};
+use adp_scene::scene::{
+    HookKind, Owner, Primitive, Role, SceneOptions, ScenePieces, StandardRoutePlugins, build_scene_pieces,
+};
 use adp_scene::text::TextMetrics;
 use adp_scene::{DiagramDefinition, Evaluator, Point, Rect, Scene, Theme as NotationTheme, compile_notation};
 use adp_theme::{Kind, Theme};
@@ -299,6 +302,26 @@ struct SceneKey {
     resizing: Option<(String, u8, u64)>,
 }
 
+impl SceneKey {
+    /// Whether a scene built for `other` draws the same diagram, selection and theme, whatever gesture is in flight:
+    /// what is placed is then what it placed, and only what the gesture moves is drawn again.
+    fn same_but_gesture(&self, other: &SceneKey) -> bool {
+        self.generation == other.generation
+            && self.selection == other.selection
+            && self.dark == other.dark
+            && self.viewpoint == other.viewpoint
+    }
+}
+
+/// What a scene of a definition was drawn with, kept so that a gesture in flight draws again only what it moves.
+struct Drawn {
+    definition: DiagramDefinition,
+    evaluator: Evaluator,
+    pieces: ScenePieces,
+    /// What the gestures hit-test against in each piece, by its number.
+    measured: HashMap<u64, PieceHits>,
+}
+
 /// A scene and what the gestures hit-test against, as of one [`SceneKey`].
 struct Cached {
     key: SceneKey,
@@ -315,6 +338,8 @@ struct Cached {
     /// The editable labels: element, label id, box.
     labels: Vec<(String, String, Rect)>,
     bounds: Option<Rect>,
+    /// What a scene of a definition was drawn with; none for a module's own.
+    drawn: Option<Drawn>,
     /// The canvas's own fill where the scene draws no background.
     surface: Option<Color32>,
     drop_mapping: Mapping,
@@ -324,6 +349,173 @@ struct Cached {
     month_ruler: Option<adp_diagram_hype_cycle::scale::TimeUnit>,
     /// The legend at the top left of the canvas (`notation.canvas.legend`).
     legend: Vec<viewpoint::LegendEntry>,
+}
+
+/// Where each node is drawn with the gesture in flight: placed, then moved by the drag or resized by the resize.
+fn gesture_rects(arbiter: &Arbiter, placed: &Placed, definition: &DiagramDefinition) -> HashMap<String, Rect> {
+    let mut rects = placed.rects.clone();
+    if let Some((ids, (dx, dy))) = arbiter.moving() {
+        for id in ids {
+            if let Some(rect) = rects.get_mut(id) {
+                *rect = Rect::new(rect.x + dx, rect.y + dy, rect.width, rect.height);
+            }
+        }
+    }
+    if let Some((id, edge, delta)) = arbiter.resizing()
+        && let Some(element_type) = placed.types.get(id).and_then(|t| definition.element_type(t))
+        && let Some(rect) = rects.get_mut(id)
+    {
+        *rect = placement::resized(*rect, edge, delta, &element_type.size);
+    }
+    rects
+}
+
+/// What the gestures hit-test against in a scene.
+struct Hits {
+    boxes: Vec<(String, Rect)>,
+    lines: Vec<(String, Vec<Point>, f64)>,
+    anchors: Vec<(String, String, Rect)>,
+    handles: Vec<(String, ResizedEdge, Rect)>,
+    labels: Vec<(String, String, Rect)>,
+    /// What the scene draws but its background holds: what fitting the view fits.
+    bounds: Option<Rect>,
+}
+
+/// A primitive of an element that gives its box: a shape, which widens it where it is the body, and a text, which
+/// gives a box to an element with no shape before it.
+#[derive(Clone)]
+struct BoxPart {
+    element: String,
+    shape: bool,
+    body: bool,
+    bounds: Rect,
+}
+
+/// What the gestures hit-test against in one piece of a scene, measured once while the piece is unchanged.
+#[derive(Clone, Default)]
+struct PieceHits {
+    parts: Vec<BoxPart>,
+    lines: Vec<(String, Vec<Point>, f64)>,
+    anchors: Vec<(String, String, Rect)>,
+    handles: Vec<(String, ResizedEdge, Rect)>,
+    labels: Vec<(String, String, Rect)>,
+    bounds: Option<Rect>,
+}
+
+impl PieceHits {
+    fn of(primitives: &[Primitive], metrics: &dyn TextMetrics) -> PieceHits {
+        let identity = View::default();
+        let origin = egui::Rect::from_min_size(Pos2::ZERO, egui::vec2(1.0, 1.0));
+        let mut hits = PieceHits::default();
+        for primitive in primitives {
+            let bounds = (primitive.owner() != &Owner::Canvas)
+                .then(|| primitive.bounds(metrics))
+                .flatten();
+            if let Some(bounds) = bounds {
+                hits.bounds = Some(hits.bounds.map_or(bounds, |b| b.union(&bounds)));
+            }
+            match (primitive, primitive.owner()) {
+                (Primitive::Shape(shape), Owner::Element(id)) => {
+                    if let Some(bounds) = bounds {
+                        hits.parts.push(BoxPart {
+                            element: id.clone(),
+                            shape: true,
+                            body: matches!(shape.role, Role::Body | Role::BodyPart | Role::Part(_)),
+                            bounds,
+                        });
+                    }
+                }
+                (Primitive::Text(text), Owner::Element(id)) => {
+                    if let Some(bounds) = bounds {
+                        if let (true, Role::Label { id: label, .. }) = (text.editable, &text.role) {
+                            hits.labels.push((id.clone(), label.clone(), bounds));
+                        }
+                        hits.parts.push(BoxPart {
+                            element: id.clone(),
+                            shape: false,
+                            body: false,
+                            bounds,
+                        });
+                    }
+                }
+                (Primitive::Edge(edge), Owner::Relation(id)) if edge.selectable => {
+                    let points = paint::flatten(&edge.path, &identity, origin)
+                        .into_iter()
+                        .flat_map(|(points, _)| points)
+                        .map(|p| Point::new(p.x as f64, p.y as f64))
+                        .collect();
+                    hits.lines
+                        .push((id.clone(), points, edge.hit_width.max(edge.stroke.width) / 2.0));
+                }
+                (Primitive::Hook(hook), Owner::Element(id)) => match &hook.kind {
+                    HookKind::Anchor { name, .. } => hits.anchors.push((id.clone(), name.clone(), hook.area)),
+                    HookKind::ResizeHandle(edge) => {
+                        let edge = match edge {
+                            Edge::Left => ResizedEdge::Left,
+                            Edge::Right => ResizedEdge::Right,
+                            Edge::Top => ResizedEdge::Top,
+                            Edge::Bottom => ResizedEdge::Bottom,
+                        };
+                        hits.handles.push((id.clone(), edge, hook.area));
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
+        hits
+    }
+}
+
+impl Hits {
+    /// What the gestures hit-test against in the scene of `pieces`, its nodes at `rects`: each element's box in
+    /// painting order, each selectable line, each anchor, resize handle and editable label. A piece measured in
+    /// `measured` under its number is not measured again; `measured` is left holding the pieces of this scene.
+    fn of(
+        pieces: &ScenePieces,
+        measured: &mut HashMap<u64, PieceHits>,
+        rects: &HashMap<String, Rect>,
+        metrics: &dyn TextMetrics,
+    ) -> Hits {
+        let mut earlier = std::mem::take(measured);
+        let mut hits = Hits {
+            boxes: Vec::new(),
+            lines: Vec::new(),
+            anchors: Vec::new(),
+            handles: Vec::new(),
+            labels: Vec::new(),
+            bounds: None,
+        };
+        // Where each element's box is in `boxes`.
+        let mut boxed: HashMap<String, usize> = HashMap::new();
+        for (serial, primitives) in pieces.iter() {
+            let piece = earlier
+                .remove(&serial)
+                .unwrap_or_else(|| PieceHits::of(primitives, metrics));
+            for part in &piece.parts {
+                match boxed.get(&part.element) {
+                    Some(&at) if part.shape && (part.body || !rects.contains_key(&part.element)) => {
+                        hits.boxes[at].1 = hits.boxes[at].1.union(&part.bounds);
+                    }
+                    Some(_) => {}
+                    None => {
+                        boxed.insert(part.element.clone(), hits.boxes.len());
+                        let rect = rects.get(&part.element).copied().unwrap_or(part.bounds);
+                        hits.boxes.push((part.element.clone(), rect));
+                    }
+                }
+            }
+            hits.lines.extend(piece.lines.iter().cloned());
+            hits.anchors.extend(piece.anchors.iter().cloned());
+            hits.handles.extend(piece.handles.iter().cloned());
+            hits.labels.extend(piece.labels.iter().cloned());
+            if let Some(bounds) = piece.bounds {
+                hits.bounds = Some(hits.bounds.map_or(bounds, |b| b.union(&bounds)));
+            }
+            measured.insert(serial, piece);
+        }
+        hits
+    }
 }
 
 /// A diagram open in a tab.
@@ -570,6 +762,14 @@ impl DiagramTab {
         let Some(document) = documents.get(&self.opened.body_path) else {
             return;
         };
+        if self
+            .cache
+            .as_ref()
+            .is_some_and(|c| c.drawn.is_some() && c.key.same_but_gesture(&key))
+        {
+            self.redraw_gesture(ctx, document, key);
+            return;
+        }
         let variant_positions = self.variant_positions(document);
         let Some(definition) = self.active() else {
             return;
@@ -641,20 +841,7 @@ impl DiagramTab {
             module,
             time_scale,
         );
-        let mut rects = placed.rects.clone();
-        if let Some((ids, (dx, dy))) = self.arbiter.moving() {
-            for id in ids {
-                if let Some(rect) = rects.get_mut(id) {
-                    *rect = Rect::new(rect.x + dx, rect.y + dy, rect.width, rect.height);
-                }
-            }
-        }
-        if let Some((id, edge, delta)) = self.arbiter.resizing()
-            && let Some(element_type) = placed.types.get(id).and_then(|t| definition.element_type(t))
-            && let Some(rect) = rects.get_mut(id)
-        {
-            *rect = placement::resized(*rect, edge, delta, &element_type.size);
-        }
+        let rects = gesture_rects(&self.arbiter, &placed, definition);
         // A selected element that is gone is no longer selected.
         let known: HashSet<String> = diagram.elements().iter().map(|e| e.id()).collect();
         self.selection.retain(|id| known.contains(id));
@@ -665,64 +852,17 @@ impl DiagramTab {
             metrics,
             plugins: &StandardRoutePlugins,
         };
-        let scene = build_scene(definition, &evaluator, diagram, &rects, &options);
-        let identity = View::default();
-        let origin = egui::Rect::from_min_size(Pos2::ZERO, egui::vec2(1.0, 1.0));
-        let mut boxes: Vec<(String, Rect)> = Vec::new();
-        let mut lines = Vec::new();
-        let mut anchors = Vec::new();
-        let mut handles = Vec::new();
-        let mut labels = Vec::new();
-        for primitive in &scene.primitives {
-            match (primitive, primitive.owner()) {
-                (Primitive::Shape(shape), Owner::Element(id)) => {
-                    let Some(bounds) = primitive.bounds(metrics) else {
-                        continue;
-                    };
-                    let body = matches!(shape.role, Role::Body | Role::BodyPart | Role::Part(_));
-                    match boxes.iter_mut().find(|(e, _)| e == id) {
-                        Some((_, rect)) if body || !rects.contains_key(id) => *rect = rect.union(&bounds),
-                        Some(_) => {}
-                        None => boxes.push((id.clone(), rects.get(id).copied().unwrap_or(bounds))),
-                    }
-                }
-                (Primitive::Text(text), Owner::Element(id)) => {
-                    if let (true, Role::Label { id: label, .. }) = (text.editable, &text.role)
-                        && let Some(bounds) = primitive.bounds(metrics)
-                    {
-                        labels.push((id.clone(), label.clone(), bounds));
-                    }
-                    if !boxes.iter().any(|(e, _)| e == id)
-                        && let Some(bounds) = primitive.bounds(metrics)
-                    {
-                        boxes.push((id.clone(), rects.get(id).copied().unwrap_or(bounds)));
-                    }
-                }
-                (Primitive::Edge(edge), Owner::Relation(id)) if edge.selectable => {
-                    let points = paint::flatten(&edge.path, &identity, origin)
-                        .into_iter()
-                        .flat_map(|(points, _)| points)
-                        .map(|p| Point::new(p.x as f64, p.y as f64))
-                        .collect();
-                    lines.push((id.clone(), points, edge.hit_width.max(edge.stroke.width) / 2.0));
-                }
-                (Primitive::Hook(hook), Owner::Element(id)) => match &hook.kind {
-                    HookKind::Anchor { name, .. } => anchors.push((id.clone(), name.clone(), hook.area)),
-                    HookKind::ResizeHandle(edge) => {
-                        let edge = match edge {
-                            Edge::Left => ResizedEdge::Left,
-                            Edge::Right => ResizedEdge::Right,
-                            Edge::Top => ResizedEdge::Top,
-                            Edge::Bottom => ResizedEdge::Bottom,
-                        };
-                        handles.push((id.clone(), edge, hook.area));
-                    }
-                    _ => {}
-                },
-                _ => {}
-            }
-        }
-        let bounds = scene.bounds(metrics);
+        let pieces = build_scene_pieces(definition, &evaluator, diagram, &rects, &options, None);
+        let scene = pieces.scene(definition, &evaluator, diagram, metrics);
+        let mut measured = HashMap::new();
+        let Hits {
+            boxes,
+            lines,
+            anchors,
+            handles,
+            labels,
+            bounds,
+        } = Hits::of(&pieces, &mut measured, &rects, metrics);
         let drop_mapping = placement::drop_mapping(
             specification,
             diagram,
@@ -748,12 +888,60 @@ impl DiagramTab {
             handles,
             labels,
             bounds,
+            drawn: Some(Drawn {
+                definition: definition.clone(),
+                evaluator,
+                pieces,
+                measured,
+            }),
             surface,
             drop_mapping,
             ruler,
             month_ruler,
             legend,
         });
+    }
+
+    /// Draws the scene again for a gesture in flight over the one built for the same diagram, selection and theme
+    /// (SC-006): what is placed is what was placed then, and only the elements the gesture moves and the lines ending
+    /// at them are drawn again; every other piece is the last scene's.
+    fn redraw_gesture(&mut self, ctx: &egui::Context, document: &adp_diagram::DiagramDocument, key: SceneKey) {
+        let Some(mut cache) = self.cache.take() else {
+            return;
+        };
+        let Some(mut drawn) = cache.drawn.take() else {
+            return;
+        };
+        let rects = gesture_rects(&self.arbiter, &cache.placed, &drawn.definition);
+        let metrics = self.metrics.get_or_insert_with(|| EguiMetrics::new(ctx));
+        let diagram = &document.model().diagram;
+        let folding = Folding::default();
+        let options = SceneOptions {
+            selection: &self.selection,
+            folding: &folding,
+            metrics: &*metrics,
+            plugins: &StandardRoutePlugins,
+        };
+        let pieces = build_scene_pieces(
+            &drawn.definition,
+            &drawn.evaluator,
+            diagram,
+            &rects,
+            &options,
+            Some(drawn.pieces),
+        );
+        let scene = pieces.scene(&drawn.definition, &drawn.evaluator, diagram, &*metrics);
+        let hits = Hits::of(&pieces, &mut drawn.measured, &rects, &*metrics);
+        cache.bounds = hits.bounds;
+        cache.key = key;
+        cache.scene = scene;
+        cache.boxes = hits.boxes;
+        cache.lines = hits.lines;
+        cache.anchors = hits.anchors;
+        cache.handles = hits.handles;
+        cache.labels = hits.labels;
+        cache.drawn = Some(Drawn { pieces, ..drawn });
+        self.cache = Some(cache);
     }
 
     /// Builds the scene of a diagram its module draws itself, from what the module's view renders.
@@ -865,6 +1053,7 @@ impl DiagramTab {
             handles: Vec::new(),
             labels: built.labels,
             bounds,
+            drawn: None,
             surface: None,
             drop_mapping: Mapping::default(),
             ruler: None,
