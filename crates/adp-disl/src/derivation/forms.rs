@@ -19,6 +19,8 @@ use crate::expressions::{contexts, year_month};
 use crate::json::{self, Json};
 use crate::loading::metamodel::DislAttribute;
 use crate::loading::specification::DislSpecification;
+use crate::model::budgets;
+use crate::model::diagram::DislDiagram;
 use crate::model::element::DislElement;
 use crate::model::values;
 
@@ -247,6 +249,11 @@ impl Walk<'_> {
                 variables,
             )
         });
+        if reason.is_none()
+            && let Some(diagram) = variables.get("diagram").and_then(DislDiagram::from_value)
+        {
+            reason = budgets::withheld_reason(&diagram, false);
+        }
         if reason.is_none() && self.env.read_only {
             reason = Some(evaluation::standard_message(
                 specification,

@@ -29,6 +29,7 @@ use crate::expressions::contexts;
 use crate::json::{self, Json};
 use crate::loading::metamodel::DislRelationEnd;
 use crate::loading::specification::DislSpecification;
+use crate::model::budgets;
 use crate::model::diagram::DislDiagram;
 use crate::model::element::DislElement;
 use crate::model::written::WrittenElement;
@@ -58,6 +59,7 @@ pub fn evaluate(
         run.endpoints();
         run.references();
         run.rules();
+        run.budgets();
     }
     run.ordered()
 }
@@ -160,6 +162,46 @@ fn setting_of<'s>(specification: &'s DislSpecification, id: &str) -> BuiltIn<'s>
 }
 
 impl Run<'_> {
+    /// A budget's `finding` (section 3.2.1): one diagram-level finding while it is exceeded, with the budget's id as
+    /// the finding's constraint and `budget:<id>` as its code.
+    fn budgets(&mut self) {
+        let states = self.diagram.budgets();
+        for ((id, budget, pointer), state) in budgets::declared(self.diagram).iter().zip(states.iter()) {
+            let Some(finding) = json::get(budget, "finding").filter(|f| f.is_object()) else {
+                continue;
+            };
+            if !state.exceeded {
+                continue;
+            }
+            let severity = json::string_of(finding, "severity").unwrap_or("info").to_owned();
+            let message = match json::get(finding, "message") {
+                Some(message) => evaluation::message(
+                    self.specification,
+                    message,
+                    &json::pointer(&json::pointer(pointer, "finding"), "message"),
+                    contexts::CONSTRAINT,
+                    &self.variables(Value::Null, None),
+                    id,
+                ),
+                None => id.clone(),
+            };
+            self.found.push((
+                DislFinding {
+                    code: format!("budget:{id}"),
+                    constraint_id: id.clone(),
+                    severity,
+                    message,
+                    element_ids: Vec::new(),
+                    line: None,
+                    file: None,
+                    subject: None,
+                },
+                -1,
+                None,
+            ));
+        }
+    }
+
     fn variables(&self, self_value: Value, detail: Option<Map>) -> Vars {
         let mut variables = evaluation::vars([
             ("self", self_value),

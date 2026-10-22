@@ -17,6 +17,7 @@ use crate::derivation::evaluation::{self, Vars};
 use crate::expressions::contexts;
 use crate::json::{self, Json};
 use crate::loading::specification::DislSpecification;
+use crate::model::budgets;
 use crate::model::diagram::DislDiagram;
 use crate::model::element::DislElement;
 use crate::model::values;
@@ -496,6 +497,11 @@ fn unavailable(
         {
             return Some(reason);
         }
+    }
+    if let Some(changes) = budgets::changes(operation)
+        && let Some(withheld) = budgets::withheld_reason(diagram, changes == "view")
+    {
+        return Some(withheld);
     }
     if let Some(reasons) = json::get(operation, "unavailable")
         && let Some(reason) = evaluation::first_reason(

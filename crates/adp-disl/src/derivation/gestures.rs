@@ -14,6 +14,7 @@ use super::finding::DislFinding;
 use crate::expressions::contexts;
 use crate::json::{self, Json};
 use crate::loading::specification::DislSpecification;
+use crate::model::budgets;
 use crate::model::element::DislElement;
 
 /// A change of `attribute` of `element` from its value to `new_value`.
@@ -109,6 +110,23 @@ fn refusals(
     gesture: Vars,
     env: Option<&DislEnv>,
 ) -> Vec<DislFinding> {
+    // A withheld edit is refused before every constraint (section 3.2.1); a move or a resize writes view data only.
+    let view_data =
+        kind == "placement" && matches!(gesture.get("gesture"), Some(Value::String(g)) if g == "move" || g == "resize");
+    if let Some(diagram) = element.try_diagram()
+        && let Some(reason) = budgets::withheld_reason(&diagram, view_data)
+    {
+        return vec![DislFinding {
+            code: budgets::WITHHELD.to_owned(),
+            constraint_id: "budget".to_owned(),
+            severity: "error".to_owned(),
+            message: reason,
+            element_ids: vec![element.id()],
+            line: element.line(),
+            file: None,
+            subject: None,
+        }];
+    }
     let mut refusals = Vec::new();
     let Some(rules) = json::items(json::member(specification.root(), "constraints"), "rules") else {
         return refusals;

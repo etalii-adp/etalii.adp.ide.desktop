@@ -76,8 +76,15 @@ fn a_tool_type_claims_the_extensions_of_its_specification_and_bindings() {
     );
     let knowledge = catalogue.by_origin("etalii/knowledge").unwrap();
     assert_eq!(knowledge.bindings.len(), 3);
+    // Since etalii.adp 4aa0522 the RDF graph is bound by the standalone host's declarative Turtle binding, which the
+    // standalone host vendored here at 8b6ccfc does not have yet: the desktop host's RDF module reads Turtle itself.
     let rdf = catalogue.by_origin("w3c/rdf").unwrap();
-    assert_eq!(rdf.bindings, ["plugin:net.etalii.adp.w3c.turtle"]);
+    assert_eq!(
+        rdf.bindings,
+        [
+            "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/rdf/backend/EtAlii.Adp.Diagram.Rdf/w3c-turtle.fbl#turtle"
+        ]
+    );
     assert!(rdf.extensions.contains(&".ttl".to_owned()));
     let opening: Vec<&str> = catalogue
         .for_file("ideas.mm")
@@ -88,23 +95,13 @@ fn a_tool_type_claims_the_extensions_of_its_specification_and_bindings() {
 }
 
 /// The vendored diagram specifications that do not load here yet, each for a DISL library function or a variable the CEL
-/// evaluator ported from the standalone host at 8b6ccfc does not have. The standalone host reads these tool types with
-/// its modules' own code; their modules are ported in phase 7. A specification that starts or stops loading changes
-/// this list: the Azure DevOps pipeline, the Databricks job, the functional decomposition graph and the OWL ontology
-/// load since the graph functions `successors`, `predecessors`, `reachable` and `inCycle` (DISL section 12.4) are
-/// `adp-disl`'s.
-const NOT_LOADING: [&str; 10] = [
-    "c4/component",
-    "c4/container",
-    "c4/context",
-    "c4/deployment",
-    "c4/dynamic",
-    "c4/system-landscape",
-    "etalii/sankey",
-    "w3c/rdf",
-    "w3c/skos",
-    "wardley/map",
-];
+/// evaluator ported from the standalone host does not have. The standalone host reads these tool types with its modules'
+/// own code; their modules are ported in phase 7. A specification that starts or stops loading changes this list: the
+/// Azure DevOps pipeline, the Databricks job, the functional decomposition graph and the OWL ontology load since the
+/// graph functions `successors`, `predecessors`, `reachable` and `inCycle` (DISL section 12.4) are `adp-disl`'s; the
+/// C4 views since a type map holds names only (section 11.2); and the RDF graph and SKOS thesaurus since budgets
+/// (section 3.2.1) and `diagram.knots` are.
+const NOT_LOADING: [&str; 2] = ["etalii/sankey", "wardley/map"];
 
 #[test]
 fn the_vendored_specifications_that_do_not_load_are_listed_with_their_errors() {
@@ -119,16 +116,20 @@ fn the_vendored_specifications_that_do_not_load_are_listed_with_their_errors() {
     let mut expected = NOT_LOADING.to_vec();
     expected.sort_unstable();
     assert_eq!(refused, expected);
-    for origin in ["freeplane/mindmap", "generic/timeline", "generic/dependencies"] {
+    for origin in [
+        "freeplane/mindmap",
+        "generic/timeline",
+        "generic/dependencies",
+        "c4/container",
+        "w3c/rdf",
+    ] {
         let tool_type = catalogue.by_origin(origin).unwrap();
         assert!(tool_type.is_usable(), "{origin}: {:?}", tool_type.findings);
     }
-    let c4 = catalogue.by_origin("c4/container").unwrap();
+    let sankey = catalogue.by_origin("etalii/sankey").unwrap();
     assert!(
-        c4.findings
-            .iter()
-            .any(|f| f.severity == FindingSeverity::Error && f.message.contains("'includes'")),
+        sankey.findings.iter().any(|f| f.severity == FindingSeverity::Error),
         "{:?}",
-        c4.findings
+        sankey.findings
     );
 }

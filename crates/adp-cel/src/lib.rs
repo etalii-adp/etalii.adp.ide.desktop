@@ -17,7 +17,7 @@ mod value;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-pub use eval::{Program, Variables};
+pub use eval::{Program, Variables, compare};
 pub use function::{Body, Budget, Call, Cost, Function, Macro, Style};
 pub use regex_subset::BoundedRegex;
 pub use value::{Map, Object, Value};

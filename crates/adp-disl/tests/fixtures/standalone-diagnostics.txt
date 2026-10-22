@@ -2,38 +2,26 @@
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.4 adds is not read (DISL §2.9).
 # diagrams/agent-behavior-modelling.dis loaded=True
 # diagrams/ansible-structure.dis loaded=True
-# diagrams/azure-devops-pipeline.dis loaded=False
-error at /constraints/rules/5/when: The function 'inCycle' is not supported by this CEL evaluator. (context constraint)
-error at /constraints/rules/5/rule: The function 'reachable' is not supported by this CEL evaluator. (context constraint)
-error at /constraints/rules/13/rule: The function 'reachable' is not supported by this CEL evaluator. (context gesture:change)
-# diagrams/c4-component.dis loaded=False
+# diagrams/azure-devops-pipeline.dis loaded=True
+# diagrams/c4-component.dis loaded=True
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
-error at /persistence/typeMap/ViewInclude/attributes/members: 'includes' is not a variable here; available: self, diagram, env. (context element)
-# diagrams/c4-container.dis loaded=False
+# diagrams/c4-container.dis loaded=True
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
-error at /persistence/typeMap/ViewInclude/attributes/members: 'includes' is not a variable here; available: self, diagram, env. (context element)
-# diagrams/c4-context.dis loaded=False
+# diagrams/c4-context.dis loaded=True
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
-error at /persistence/typeMap/ViewInclude/attributes/members: 'includes' is not a variable here; available: self, diagram, env. (context element)
-# diagrams/c4-deployment.dis loaded=False
+# diagrams/c4-deployment.dis loaded=True
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
-error at /persistence/typeMap/ViewInclude/attributes/members: 'includes' is not a variable here; available: self, diagram, env. (context element)
-# diagrams/c4-dynamic.dis loaded=False
+# diagrams/c4-dynamic.dis loaded=True
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
-error at /persistence/typeMap/ViewInclude/attributes/members: 'includes' is not a variable here; available: self, diagram, env. (context element)
-# diagrams/c4-system-landscape.dis loaded=False
+# diagrams/c4-system-landscape.dis loaded=True
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
-error at /persistence/typeMap/ViewInclude/attributes/members: 'includes' is not a variable here; available: self, diagram, env. (context element)
 # diagrams/causal-loop-diagram.dis loaded=True
 # diagrams/databricks-bundle.dis loaded=True
-# diagrams/databricks-job.dis loaded=False
-error at /constraints/rules/2/rule: The function 'inCycle' is not supported by this CEL evaluator. (context constraint)
+# diagrams/databricks-job.dis loaded=True
 # diagrams/databricks-pipeline.dis loaded=True
 # diagrams/dependency-graph.dis loaded=True
 # diagrams/dotnet-dependency-graph.dis loaded=True
-# diagrams/functional-decomposition-graph.dis loaded=False
-error at /constraints/rules/0/rule: The function 'inCycle' is not supported by this CEL evaluator. (context constraint)
-error at /constraints/rules/1/rule: The function 'reachable' is not supported by this CEL evaluator. (context gesture:connect)
+# diagrams/functional-decomposition-graph.dis loaded=True
 # diagrams/gartner-hype-cycle-graph.dis loaded=True
 # diagrams/helm-chart.dis loaded=True
 # diagrams/mindmap.dis loaded=True
@@ -64,21 +52,14 @@ error at /notation/edges/Flow/targetMarker/params/length/cel: The function 'band
 error at /notation/edges/Flow/targetMarker/params/width/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)
 error at /notation/edges/Flow/labels/1/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)
 # diagrams/timeline.dis loaded=True
-# diagrams/w3c-owl.dis loaded=False
-error at /constraints/rules/0/rule: The function 'inCycle' is not supported by this CEL evaluator. (context constraint)
-error at /constraints/rules/0/message/cel: The function 'reachable' is not supported by this CEL evaluator. (context constraint)
-error at /constraints/rules/6/rule: The function 'successors' is not supported by this CEL evaluator. (context gesture:connect)
-# diagrams/w3c-rdf.dis loaded=False
-error at /constraints/rules/0/rule: The function 'isUnique' is not supported by this CEL evaluator. (context constraint)
+# diagrams/w3c-owl.dis loaded=True
+# diagrams/w3c-rdf.dis loaded=True
 # diagrams/w3c-shacl.dis loaded=True
-# diagrams/w3c-skos.dis loaded=False
-error at /constraints/rules/0/rule: The function 'inCycle' is not supported by this CEL evaluator. (context constraint)
-error at /constraints/rules/1/rule: The function 'isUnique' is not supported by this CEL evaluator. (context constraint)
-error at /constraints/rules/3/rule: The function 'successors' is not supported by this CEL evaluator. (context constraint)
-error at /constraints/rules/4/rule: The function 'reachable' is not supported by this CEL evaluator. (context constraint)
+# diagrams/w3c-skos.dis loaded=True
 # diagrams/wardley-map.dis loaded=False
 error at /notation/nodes/Component/badges/0/visible/attribute: 'inertia' is not a variable here; available: self, diagram, env. (context element)
 error at /toolbox/groups/0/tools/7/initial/number/cel: The function 'max' is not supported by this CEL evaluator. (context create)
+error at /behavior/operations/addToPipeline/actions/0/then/0/create/attributes/form: ''nested'' is read here as an expression, but the loader compiles none at this position (DISL §2.5, step 8 of §14.1).
 # disl/c4-container.dis loaded=False
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
 error at /functions/inView/cel: The function 'matchesGlob' is not supported by this CEL evaluator.
@@ -94,8 +75,7 @@ error at /constraints/rules/3/rule: 'view' is not a variable here; available: se
 error at /constraints/rules/3/message/cel: 'view' is not a variable here; available: self, diagram, env. (context constraint)
 error at /constraints/rules/5/location: The function 'location' takes 0 arguments, not 1, in 'self.location('description').orValue(self.location().orValue(null))'. (context constraint)
 error at /viewpoints/container/members: The function 'inView' is not supported by this CEL evaluator. (context element)
-# disl/causal-loop.dis loaded=False
-error at /constraints/rules/3/forEach: The function 'knots' is not supported by this CEL evaluator. (context constraint)
+# disl/causal-loop.dis loaded=True
 # disl/databricks-job.dis loaded=False
 error at /notation/nodes/Task/badges/4/text/cel: The function 'findingSeverity' is not supported by this CEL evaluator. (context element)
 error at /notation/nodes/Task/badges/4/visible/cel: The function 'findingSeverity' is not supported by this CEL evaluator. (context element)
@@ -103,8 +83,7 @@ error at /notation/nodes/Task/badges/4/tooltip/cel: The function 'findings' is n
 error at /toolbox/contextMenus/0/tools/2/candidateLabel/cel: 'item' is not a variable here; available: self, diagram, env. (context element)
 error at /constraints/rules/1/location: The function 'location' takes 0 arguments, not 1, in 'self.location('clusterKey').orValue(null)'. (context constraint)
 # disl/erd.dis loaded=True
-# disl/functional-decomposition.dis loaded=False
-error at /forms/namedElement/items/0/items/3/value/cel: The function 'reachable' is not supported by this CEL evaluator. (context form)
+# disl/functional-decomposition.dis loaded=True
 # disl/gartner-hype-cycle.dis loaded=False
 error at /metamodel/types/Trend/attributes/stop/outOfRange/message/cel: 'newValue' is not a variable here; available: self, diagram, env. (context element)
 error at /metamodel/types/Trend/attributes/peakEnd/outOfRange/message/cel: 'min' is not a variable here; available: self, diagram, env. (context element)
@@ -121,17 +100,11 @@ error at /notation/canvas/notices/0/actions/0/operation: 'clearTagFilter' is not
 error at /notation/nodes/Node/size/width/cel: The function 'textWidth' is not supported by this CEL evaluator. (context element)
 error at /notation/nodes/Node/size/height/cel: The function 'textHeight' is not supported by this CEL evaluator. (context element)
 error at /constraints/rules/1/rule: The function 'isDirectory' is not supported by this CEL evaluator. (context constraint)
-# disl/rdf-graph.dis loaded=False
-error at /language/limits/budgets/cards/measure/count/0: 'Resource' is not a variable here; available: self, index, diagram, env. (context budget)
-error at /language/limits/budgets/cards/measure/count/1: 'BlankNode' is not a variable here; available: self, index, diagram, env. (context budget)
-error at /language/limits/budgets/cards/finding/message/cel: The function 'budget' is not supported by this CEL evaluator. (context budget)
-error at /notation/canvas/notices/0/text/cel: The function 'budget' is not supported by this CEL evaluator. (context chrome)
-error at /behavior/reasons/truncated/when: The function 'budget' is not supported by this CEL evaluator. (context element)
-error at /behavior/reasons/tooLarge/message/cel: The function 'budget' is not supported by this CEL evaluator. (context element)
-error at /behavior/messages/std.notApplicable/cel: 'operationId' is not a variable here; available: self, diagram, env. (context element)
+# disl/rdf-graph.dis loaded=True
+# disl/service-calls.dis loaded=True
+warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.6 adds is not read (DISL §2.9).
 # disl/statemachine.dis loaded=False
 error at /behavior/operations/extractComposite/for: 'selection' is not a type of this specification (DISL §2.7).
-error at /constraints/rules/3/rule: The function 'reachable' is not supported by this CEL evaluator. (context constraint)
 error at /constraints/rules/4/rule: The function 'isUnique' is not supported by this CEL evaluator. (context constraint)
 error at /persistence/migrations/1/steps/2/transform/cel: The function 'with' is not supported by this CEL evaluator. (context migration)
 # disl/timeline.dis loaded=False

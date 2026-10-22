@@ -14,6 +14,7 @@ use super::wire_ids::WireIdMap;
 use crate::expressions::contexts;
 use crate::json::{self, Json};
 use crate::loading::specification::DislSpecification;
+use crate::model::budgets;
 use crate::model::diagram::DislDiagram;
 use crate::model::element::DislElement;
 
@@ -451,6 +452,20 @@ impl Menu<'_> {
             )
         {
             return Some(reason);
+        }
+        let changes = if matches!(
+            kind,
+            "delete" | "duplicate" | "create-connected" | "create-child" | "connect"
+        ) {
+            Some("model")
+        } else {
+            operation.and_then(budgets::changes)
+        };
+        if let Some(changes) = changes
+            && let Some(diagram) = variables.get("diagram").and_then(DislDiagram::from_value)
+            && let Some(withheld) = budgets::withheld_reason(&diagram, changes == "view")
+        {
+            return Some(withheld);
         }
         if matches!(kind, "moveUp" | "moveDown")
             && let DislMenuTarget::Element(element) = self.target
