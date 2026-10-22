@@ -1,0 +1,25 @@
+{
+  "tool": "w3c/skos",
+  "fixture": "w3c/skos/geographic-names/geographic-names.ttl",
+  "registration": "w3c/skos/geographic-names/geographic-names.adp",
+  "steps": [
+    { "select": ["res:http://zbw.eu/stw/thsys/70002"] },
+    { "property": { "row": "skos.label:prefLabel:en", "value": "G.01  Europe (continent)" } },
+    { "property": { "row": "skos.doc:definition", "value": "The European continent.", "target": "res:http://zbw.eu/stw/thsys/70002" } },
+    { "property": { "row": "skos.notation", "value": "G.99", "target": "res:http://zbw.eu/stw/thsys/70002" }, "expect": "refused" },
+    { "action": "skos.file-under", "args": { "target": "rel:res:http://zbw.eu/stw/thsys/70026->res:http://zbw.eu/stw/thsys/70002" } },
+    { "action": "skos.relate", "args": { "target": "rel:res:http://zbw.eu/stw/thsys/70076->res:http://zbw.eu/stw/thsys/70002" } },
+    { "action": "skos.file-under", "args": { "target": "rel:res:http://zbw.eu/stw/thsys/70076->res:http://zbw.eu/stw/thsys/70076" }, "expect": "refused" },
+    { "action": "skos.disconnect", "args": { "target": "edge:res:http://zbw.eu/stw/thsys/70002|http://www.w3.org/2004/02/skos/core#broader|res:http://zbw.eu/stw/thsys/g", "confirm": true } },
+    { "undo": 1 },
+    { "redo": 1 },
+    { "action": "skos.disconnect", "args": { "target": "edge:res:http://zbw.eu/stw/thsys/70026|http://www.w3.org/2004/02/skos/core#broader|res:http://zbw.eu/stw/thsys/70002" } },
+    { "action": "skos.add-concept", "args": { "target": "new:120,40", "value": "Antarctica" } },
+    { "action": "rdf.rename-resource", "args": { "target": "res:http://zbw.eu/stw/thsys/70198", "value": "<http://zbw.eu/stw/thsys/70198b>" } },
+    { "move": { "refs": ["res:http://zbw.eu/stw/thsys/70128"], "to": { "x": 3480, "y": 400 } } },
+    { "move": { "refs": ["res:http://zbw.eu/stw/thsys/70148"], "dx": -240, "dy": 0 } },
+    { "undo": 2 },
+    { "redo": 1 },
+    { "save": true }
+  ]
+}

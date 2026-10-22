@@ -1,0 +1,1001 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix wikibase: <http://wikiba.se/ontology#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <http://schema.org/> .
+@prefix cc: <http://creativecommons.org/ns#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix data: <https://www.wikidata.org/wiki/Special:EntityData/> .
+@prefix wds: <http://www.wikidata.org/entity/statement/> .
+@prefix wdref: <http://www.wikidata.org/reference/> .
+@prefix wdv: <http://www.wikidata.org/value/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+@prefix wdtn: <http://www.wikidata.org/prop/direct-normalized/> .
+@prefix p: <http://www.wikidata.org/prop/> .
+@prefix ps: <http://www.wikidata.org/prop/statement/> .
+@prefix psv: <http://www.wikidata.org/prop/statement/value/> .
+@prefix psn: <http://www.wikidata.org/prop/statement/value-normalized/> .
+@prefix pq: <http://www.wikidata.org/prop/qualifier/> .
+@prefix pqv: <http://www.wikidata.org/prop/qualifier/value/> .
+@prefix pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/> .
+@prefix pr: <http://www.wikidata.org/prop/reference/> .
+@prefix prv: <http://www.wikidata.org/prop/reference/value/> .
+@prefix prn: <http://www.wikidata.org/prop/reference/value-normalized/> .
+@prefix wdno: <http://www.wikidata.org/prop/novalue/> .
+
+data:Q7186 a schema:Dataset ;
+	schema:about wd:Q7186 ;
+	cc:license <http://creativecommons.org/publicdomain/zero/1.0/> ;
+	schema:softwareVersion "1.0.0" ;
+	schema:version "2536684361"^^xsd:integer ;
+	schema:dateModified "2026-08-26T13:02:16Z"^^xsd:dateTime .
+
+wd:Q7186 a wikibase:Item .
+wd:Q7186 wdt:P31 wd:Q5 ;
+	wdt:P1477 "Marya Salomea Skłodowska"@pl ;
+	wdt:P21 wd:Q6581072 ;
+	wdt:P26 wd:Q37463 ;
+	wdt:P40 wd:Q7504,
+		wd:Q230068 ;
+	wdt:P69 wd:Q3064332,
+		wd:Q1048461,
+		wd:Q209842,
+		wd:Q9383191,
+		wd:Q209842,
+		wd:Q209842 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Marie%20Curie%20%281900%29%20%28cropped%29.jpg> ;
+	wdt:P101 wd:Q11448,
+		wd:Q2329,
+		wd:Q413,
+		wd:Q1128,
+		wd:Q979 ;
+	wdt:P106 wd:Q169470,
+		wd:Q593644,
+		wd:Q1622272 ;
+	wdt:P119 wd:Q188856 ;
+	wdt:P549 "177944" ;
+	wdt:P214 "76353174" ;
+	wdtn:P214 <http://viaf.org/viaf/76353174> ;
+	wdt:P269 "029924960" ;
+	wdtn:P269 <http://www.idref.fr/029924960/id> ;
+	wdt:P268 "121447141" ;
+	wdtn:P268 <http://data.bnf.fr/ark:/12148/cb121447141#about> ;
+	wdt:P244 "n80155913" ;
+	wdtn:P244 <http://id.loc.gov/authorities/names/n80155913> ;
+	wdt:P227 "118523023" ;
+	wdtn:P227 <https://d-nb.info/gnd/118523023> ;
+	wdt:P213 "0000000368644542",
+		"0000000368644534",
+		"0000000121401274" ;
+	wdt:P373 "Marie Curie" ;
+	wdt:P109 <http://commons.wikimedia.org/wiki/Special:FilePath/Marie%20Curie%20Sk%C5%82odowska%20Signature%20Polish.svg> ;
+	wdt:P569 "1867-11-07T00:00:00Z"^^xsd:dateTime ;
+	wdt:P570 "1934-07-04T00:00:00Z"^^xsd:dateTime ;
+	wdt:P166 wd:Q44585,
+		wd:Q38104,
+		wd:Q902788,
+		wd:Q20853550,
+		wd:Q3332215,
+		wd:Q1332315,
+		wd:Q220842,
+		wd:Q1419938,
+		wd:Q4677703,
+		wd:Q4710826,
+		wd:Q46636944,
+		wd:Q4888659,
+		wd:Q84020,
+		wd:Q29026864,
+		wd:Q10855271,
+		wd:Q125121451,
+		wd:Q137915278 ;
+	wdt:P349 "00437030" ;
+	wdtn:P349 <http://id.ndl.go.jp/auth/ndlna/00437030> ;
+	wdt:P19 wd:Q270 ;
+	wdt:P691 "jn20000601235" ;
+	wdt:P646 "/m/053_d" ;
+	wdt:P910 wd:Q6898030 ;
+	wdt:P949 "000036050" ;
+	wdt:P950 "XX899975" ;
+	wdtn:P950 <https://datos.bne.es/resource/XX899975> ;
+	wdt:P906 "182625" ;
+	wdtn:P906 <http://libris.kb.se/resource/auth/182625> ;
+	wdt:P409 "35032691" ;
+	wdt:P1207 "n94301302" ;
+	wdt:P1005 "153684" ;
+	wdt:P1017 "ADV10184155" ;
+	wdt:P396 "VIAV099896" ;
+	wdt:P1006 "068951698" ;
+	wdtn:P1006 <http://data.bibliotheken.nl/id/thes/p068951698> ;
+	wdt:P735 wd:Q632104,
+		wd:Q325872,
+		wd:Q20088057 ;
+	wdt:P463 wd:Q543804,
+		wd:Q4345832,
+		wd:Q2370801,
+		wd:Q191583,
+		wd:Q83172,
+		wd:Q337555,
+		wd:Q6706991,
+		wd:Q253439,
+		wd:Q2761462,
+		wd:Q466089,
+		wd:Q1575786,
+		wd:Q15647945,
+		wd:Q3603955,
+		wd:Q11297474 ;
+	wdt:P1430 "7318" ;
+	wdt:P1284 "00000001995" ;
+	wdt:P1711 "146156" ;
+	wdt:P1741 "90987" ;
+	wdtn:P1741 <http://data.beeldengeluid.nl/gtaa/90987> ;
+	wdt:P1263 "718/000029631" ;
+	wdt:P1816 "mp146878" ;
+	wdt:P22 wd:Q4021169 ;
+	wdt:P184 wd:Q133232 ;
+	wdt:P185 wd:Q468371,
+		wd:Q3593654,
+		wd:Q241822,
+		wd:Q9663423,
+		wd:Q67180509,
+		wd:Q9031531,
+		wd:Q103167056,
+		wd:Q18507270 ;
+	wdt:P1938 "39174" ;
+	wdtn:P1938 <http://www.gutenberg.org/ebooks/author/39174> ;
+	wdt:P2021 "+7"^^xsd:decimal ;
+	wdt:P1343 wd:Q602358,
+		wd:Q17378135,
+		wd:Q2041543,
+		wd:Q51157080,
+		wd:Q51955019,
+		wd:Q1485141,
+		wd:Q113116304,
+		wd:Q19180675,
+		wd:Q126178049,
+		wd:Q130615764,
+		wd:Q130615770,
+		wd:Q20078554 ;
+	wdt:P1559 "Marie Curie"@fr,
+		"Maria Skłodowska-Curie"@pl ;
+	wdt:P648 "OL58151A" ;
+	wdtn:P648 <http://openlibrary.org/works/OL58151A> ;
+	wdt:P1412 wd:Q7737,
+		wd:Q809,
+		wd:Q150,
+		wd:Q188,
+		wd:Q1860 ;
+	wdt:P734 wd:Q21429443,
+		wd:Q112192994,
+		wd:Q112081452 ;
+	wdt:P1315 "805333" ;
+	wdt:P935 "Maria Skłodowska-Curie" ;
+	wdt:P345 "nm1792513" ;
+	wdt:P2163 "64685" ;
+	wdtn:P2163 <http://id.worldcat.org/fast/64685> ;
+	wdt:P1472 "Marie Curie" ;
+	wdt:P1417 "biography/Marie-Curie" ;
+	wdt:P2949 "Skłodowska-2" ;
+	wdt:P1899 "1551" ;
+	wdt:P1411 wd:Q38104,
+		wd:Q38104,
+		wd:Q44585 ;
+	wdt:P3348 "267352" ;
+	wdtn:P3348 <http://data.nlg.gr/resource/authority/A267352> ;
+	wdt:P2188 "70850" ;
+	wdt:P3373 wd:Q8861061,
+		wd:Q11731365,
+		wd:Q8861668 ;
+	wdt:P551 wd:Q270,
+		wd:Q90 ;
+	wdt:P3430 "w6bh3fxq" ;
+	wdt:P2454 "PE00004733" ;
+	wdt:P103 wd:Q809 ;
+	wdt:P3762 "23106" ;
+	wdt:P108 wd:Q209842,
+		wd:Q214654,
+		wd:Q2451973 ;
+	wdt:P2381 "51878" ;
+	wdt:P3956 "886" ;
+	wdt:P3360 "2051" ;
+	wdt:P793 wd:Q201676 ;
+	wdt:P3222 "marie-curie" ;
+	wdt:P1015 "90528061" ;
+	wdtn:P1015 <https://livedata.bibsys.no/authority/90528061> ;
+	wdt:P2924 "3623632" ;
+	wdt:P4293 "pe/003593" ;
+	wdt:P4359 "mariecurie" ;
+	wdt:P4389 "cp37187" ;
+	wdt:P4431 "marie-curies-144th-birthday" ;
+	wdt:P4104 "42358" ;
+	wdtn:P4104 <https://data.carnegiehall.org/names/42358/about> ;
+	wdt:P4539 "11301" ;
+	wdt:P4590 "marie-curie" ;
+	wdt:P3630 "114344" ;
+	wdt:P4629 "Curie, Marie, 1867-1934" ;
+	wdt:P1225 "10568903" ;
+	wdt:P1368 "000072141" ;
+	wdt:P1280 "45000803" ;
+	wdt:P3154 "curiemar" ;
+	wdt:P1296 "0021092" ;
+	wdt:P5008 wd:Q5460604,
+		wd:Q85319493,
+		wd:Q103505599,
+		wd:Q6173448,
+		wd:Q60687720 ;
+	wdt:P3029 "F68733" ;
+	wdt:P509 wd:Q846316 ;
+	wdt:P20 wd:Q2364887 ;
+	wdt:P5375 "5089" ;
+	wdt:P898 "ˈmarja salɔˈmɛa skwɔˈdɔfska" ;
+	wdt:P5541 "8674" ;
+	wdt:P1580 "a1028099" ;
+	wdt:P1556 "curie.marie" ;
+	wdt:P5587 "zw9cc7dh3h9vk0k" ;
+	wdtn:P5587 <https://libris.kb.se/zw9cc7dh3h9vk0k#it> ;
+	wdt:P140 wd:Q288928 ;
+	wdt:P271 "DA03311404" ;
+	wdtn:P271 <https://ci.nii.ac.jp/author/DA03311404#entity> ;
+	wdt:P1441 wd:Q26963166,
+		wd:Q98553891,
+		wd:Q105582867 ;
+	wdt:P6234 "marie-curie" ;
+	wdt:P1196 wd:Q3739104 ;
+	wdt:P5361 "CurieMarie1867-1934" ;
+	wdtn:P5361 <https://bnb.data.bl.uk/doc/person/CurieMarie1867-1934> ;
+	wdt:P6488 "maria-sklodowska-curie" ;
+	wdt:P6551 "11709001" ;
+	wdt:P6573 "Marie_Curie" ;
+	wdt:P485 wd:Q193563 ;
+	wdt:P3417 "Marie-Curie-scientist" ;
+	wdt:P6722 "6741" ;
+	wdt:P53 wd:Q63531961 ;
+	wdt:P6844 "78834" ;
+	wdt:P6821 "alvin-person:1063" ;
+	wdtn:P6821 <http://www.alvin-portal.org/alvin/view.jsf?pid=alvin-person:1063> ;
+	wdt:P5905 "4005-4135" ;
+	wdt:P6886 wd:Q150,
+		wd:Q809 ;
+	wdt:P1344 wd:Q63430342,
+		wd:Q63430346,
+		wd:Q63430344 ;
+	wdt:P7142 "615" ;
+	wdt:P7029 "7787911" ;
+	wdt:P7293 "9810637196505606" ;
+	wdt:P1695 "a0000001180392" ;
+	wdt:P3065 "A003147692",
+		"A010070805" ;
+	wdt:P989 <http://commons.wikimedia.org/wiki/Special:FilePath/Fr-Spoken%20Wikipedia-Marie%20Curie.oga>,
+		<http://commons.wikimedia.org/wiki/Special:FilePath/Wikipedia%20-%20Marie%20Curie.mp3> ;
+	wdt:P7466 "2430" ;
+	wdt:P5034 "KAC199606134" ;
+	wdtn:P5034 <http://lod.nl.go.kr/resource/KAC199606134> ;
+	wdt:P5019 "curie-marie-marya" ;
+	wdt:P7578 "marie-curie" ;
+	wdt:P535 "1613" ;
+	wdt:P1442 <http://commons.wikimedia.org/wiki/Special:FilePath/Marie%20Curie%2C%20Panth%C3%A9on%20de%20Paris%202012-10-11.jpg> ;
+	wdt:P6482 "Q7186" ;
+	wdt:P2600 "4754071530090030120" ;
+	wdt:P8024 "6" ;
+	wdtn:P8024 <http://data.nobelprize.org/resource/laureate/6> ;
+	wdt:P7865 "95a5yja38danynj985b5yc1t74w3jdg" ;
+	wdt:P800 wd:Q24041517 ;
+	wdt:P1185 "72152" ;
+	wdt:P8172 "psb.30118.12" ;
+	wdtn:P8172 <https://www.sejm-wielki.pl/b/psb.30118.12> ;
+	wdt:P7902 "118523023" ;
+	wdt:P8223 "P2011105880" ;
+	wdt:P8234 "22899" ;
+	wdt:P1309 "vtls002792362" ;
+	wdt:P8130 "maria-salomea-sklodowska-curie-1867-1934-fizyczka-profesor" ;
+	wdt:P39 wd:Q121594 ;
+	wdt:P3280 "0000017197" ;
+	wdt:P4619 "000170472" ;
+	wdt:P7369 "000027431" ;
+	wdt:P8179 "ncf10291874" ;
+	wdt:P3846 "87097919073289" ;
+	wdt:P8189 "987007260035105171" ;
+	wdt:P7699 "LNB:Juo;=B+" ;
+	wdt:P1375 "000270951" ;
+	wdt:P7024 "000035213" ;
+	wdt:P1670 "0061A1254" ;
+	wdt:P1890 "000071431" ;
+	wdt:P8034 "495/241949" ;
+	wdt:P8547 "000002051" ;
+	wdt:P5063 "i94830" ;
+	wdtn:P5063 <https://globalwordnet.github.io/cili/i94830> ;
+	wdt:P8094 "curiemarie" ;
+	wdt:P3569 "natuurkunde-scheikunde-en-sterrenkunde/marie-curie" ;
+	wdt:P1953 "2064516" ;
+	wdt:P5306 "3223" ;
+	wdt:P7929 "p=marie;n=sklodowska" ;
+	wdt:P8750 "48017" ;
+	wdt:P7700 "vtls005609728" ;
+	wdt:P1819 "I00726128" ;
+	wdt:P8899 "Curie,-Marie" ;
+	wdt:P8349 "16341" ;
+	wdt:P8914 "19785" ;
+	wdt:P8947 "18692" ;
+	wdt:P9037 "1eb724ab-cfc8-406a-8384-279ae0439efa" ;
+	wdt:P9097 "12381004" ;
+	wdt:P4342 "Marie_Curie" ;
+	wdt:P8814 "10937455-n" ;
+	wdtn:P8814 <http://wordnet-rdf.princeton.edu/rdf/id/10937455-n> ;
+	wdt:P9160 "82975" ;
+	wdt:P9164 "64324" ;
+	wdt:P5421 "69794" ;
+	wdt:P9251 "93615" ;
+	wdt:P8902 "people/79239" ;
+	wdt:P9287 "3806" ;
+	wdt:P3987 "618053" ;
+	wdt:P5617 "marie-curie-3133" ;
+	wdt:P8730 "dr-marie-curie" ;
+	wdt:P2383 "111098" ;
+	wdt:P9371 "74731396" ;
+	wdt:P4985 "1672629" ;
+	wdt:P7039 "000105025" ;
+	wdt:P6683 "162151" ;
+	wdt:P7666 "marie-curie" ;
+	wdt:P8851 "35525223" ;
+	wdt:P270 "n2004347578" ;
+	wdt:P1213 "051984014" ;
+	wdt:P9807 "156016" ;
+	wdt:P1889 wd:Q6762812,
+		wd:Q61774983 ;
+	wdt:P9918 "PE00062659" ;
+	wdt:P7305 "3975962" ;
+	wdt:P3365 "pierre-e-marie-curie" ;
+	wdt:P9984 "981058525750106706" ;
+	wdt:P973 <https://history.aip.org/exhibits/curie/romleg.htm> ;
+	wdt:P10069 "75209" ;
+	wdt:P10242 "01350/eu_c_1200/c1200" ;
+	wdt:P10141 "114042" ;
+	wdt:P7982 "12996" ;
+	wdt:P8313 "Marie_Curie" ;
+	wdt:P10297 "m053_d" ;
+	wdt:P10283 "C2993243194" ;
+	wdt:P10227 "vtls001104416" ;
+	wdt:P3368 "1694334",
+		"731942" ;
+	wdt:P9247 "6724" ;
+	wdt:P7400 "curiemarie-1" ;
+	wdt:P4223 "marie-curie" ;
+	wdt:P10553 "134539028" ;
+	wdt:P434 "73f235f9-98b7-4092-a219-85ad031bcd6d" ;
+	wdtn:P434 <http://musicbrainz.org/artist/73f235f9-98b7-4092-a219-85ad031bcd6d> ;
+	wdt:P10565 "117093",
+		"352043",
+		"330450",
+		"334212" ;
+	wdt:P10757 "1732" ;
+	wdt:P10299 "marie-curie-sklodowska" ;
+	wdt:P6385 "nauka_i_tehnika/fizika/SKLODOVSKAYA-KYURI_MARIYA.html" ;
+	wdt:P7502 "Marie_Curie-BD3Y" ;
+	wdt:P11173 "198" ;
+	wdt:P11194 "people/madame-curie" ;
+	wdt:P2533 "af6d1f01-01c4-4e3d-b3f3-97ae0bf33742" ;
+	wdt:P11496 "1140563741510573824" ;
+	wdtn:P11496 <https://cir.nii.ac.jp/crid/1140563741510573824.rdf> ;
+	wdt:P11249 "14668640" ;
+	wdt:P11686 "981058525750106706" ;
+	wdt:P3847 "person:marie_curie_(1867-1934)" ;
+	wdt:P10832 "E39PBJkp8hYcCWGyc7YmTgjV4q" ;
+	wdt:P4272 "Curie, Marie, 1867-1934" ;
+	wdt:P237 wd:Q2672465 ;
+	wdt:P10017 "curie-nata-sklodowska-marie" ;
+	wdt:P552 wd:Q789447 ;
+	wdt:P1617 "9a3ee39a-8c33-404a-b287-43c1fa7678da" ;
+	wdtn:P1617 <http://www.bbc.co.uk/things/9a3ee39a-8c33-404a-b287-43c1fa7678da#id> ;
+	wdt:P11870 "12594" ;
+	wdt:P11180 "50408" ;
+	wdt:P11158 "30135" ;
+	wdt:P11182 "55212" ;
+	wdt:P6900 "マリ・キュリー" ;
+	wdt:P8885 "마리 퀴리" ;
+	wdt:P6104 wd:Q4913761,
+		wd:Q15884639,
+		wd:Q21829616,
+		wd:Q21829613,
+		wd:Q21830624,
+		wd:Q7160149,
+		wd:Q10816832,
+		wd:Q8487193,
+		wd:Q8487234,
+		wd:Q21830354,
+		wd:Q21830356,
+		wd:Q21830346,
+		wd:Q4099686,
+		wd:Q15884861,
+		wd:Q20963430,
+		wd:Q18377637,
+		wd:Q14544312,
+		wd:Q21712210,
+		wd:Q135106469,
+		wd:Q21830391,
+		wd:Q10656655,
+		wd:Q8487137 ;
+	wdt:P2581 "00024482n" ;
+	wdtn:P2581 <http://babelnet.org/rdf/s00024482n> ;
+	wdt:P10780 "marie-curie" ;
+	wdt:P6781 "Mathematician:Maria_Salomea_Curie" ;
+	wdt:P12098 "1202985" ;
+	wdt:P25 wd:Q110932341 ;
+	wdt:P1038 wd:Q9287322,
+		wd:Q4162667,
+		wd:Q950605,
+		wd:Q20968820,
+		wd:Q20968821,
+		wd:Q4180245 ;
+	wdt:P12086 "Marie_Curie" ;
+	wdt:P11386 "marie-curie" ;
+	wdt:P12385 "marie-curie" ;
+	wdt:P94 <http://commons.wikimedia.org/wiki/Special:FilePath/POL%20COA%20Do%C5%82%C4%99ga.svg> ;
+	wdt:P12483 "150449" ;
+	wdt:P12458 "17333",
+		"662029" ;
+	wdt:P1026 wd:Q19226650 ;
+	wdt:P8168 "Q885188" ;
+	wdtn:P8168 <https://database.factgrid.de/entity/Q885188> ;
+	wdt:P12153 "826824064" ;
+	wdt:P512 wd:Q749020,
+		wd:Q849697 ;
+	wdt:P12582 "20110803095654800" ;
+	wdt:P12597 "59807" ;
+	wdt:P6621 "Marie-Curie" ;
+	wdt:P172 wd:Q1026 ;
+	wdt:P12800 "en:Marie_Curie",
+		"it:Marie_Curie",
+		"es:Marie_Curie",
+		"eu:Marie_Curie",
+		"ca:Marie_Curie",
+		"fr:Marie_Curie",
+		"ru:Мария_Кюри" ;
+	wdt:P1153 "22987484400" ;
+	wdt:P13030 "person/3782" ;
+	wdt:P802 wd:Q433169,
+		wd:Q7504 ;
+	wdt:P13049 "118523023" ;
+	wdt:P2889 "LC5H-V1Z" ;
+	wdt:P13022 "64526" ;
+	wdt:P13019 "124946" ;
+	wdt:P9964 "118523023" ;
+	wdt:P13204 "gfpk7u8a" ;
+	wdt:P11408 "キュリー夫人" ;
+	wdt:P11818 "ayzkiicvvwzfwci" ;
+	wdt:P6640 "166011" ;
+	wdt:P13455 "38111" ;
+	wdt:P10133 "52145" ;
+	wdt:P8445 "184375" ;
+	wdt:P27 wd:Q207272,
+		wd:Q142,
+		wd:Q34266 ;
+	wdt:P13591 "person/e916478a-b188-423f-8d7d-b184a0a6ed43" ;
+	wdt:P7184 "053_d" ;
+	wdt:P13818 "876b9325-bfad-491b-a638-c20a71768d56" ;
+	wdt:P2650 wd:Q18366 ;
+	wdt:P13951 "161126" ;
+	wdt:P1801 <http://commons.wikimedia.org/wiki/Special:FilePath/Plaque%20Pierre%20%26%20Marie%20Curie%2C%2024%20rue%20de%20la%20Glaci%C3%A8re%2C%20Paris%2013.jpg>,
+		<http://commons.wikimedia.org/wiki/Special:FilePath/Pam%C4%9Btn%C3%AD%20deska%20Marie%20Curie%20%E2%80%93%20City%20Hall%20Park%2C%20NYC.jpg> ;
+	wdt:P14177 "jn20000601235" ;
+	wdt:P14178 "jn20000601235" ;
+	wdt:P14225 "981005780355509366" ;
+	wdt:P9322 "0244839-SklodowskaCurie-Maria-18671934" ;
+	wdt:P13772 "marie-curie" ;
+	wdt:P14536 "365272" ;
+	wdt:P14541 "64p0p",
+		"4ETQ5M",
+		"OgLtu" ;
+	wdt:P13613 "186929" ;
+	wdt:P12451 "151059345" ;
+	rdfs:label "ماري كوري"@ar ;
+	skos:prefLabel "ماري كوري"@ar ;
+	schema:name "ماري كوري"@ar ;
+	rdfs:label "مارى كورى"@arz ;
+	skos:prefLabel "مارى كورى"@arz ;
+	schema:name "مارى كورى"@arz ;
+	rdfs:label "Mariya Küri"@az ;
+	skos:prefLabel "Mariya Küri"@az ;
+	schema:name "Mariya Küri"@az ;
+	rdfs:label "Марыя Кюры"@be ;
+	skos:prefLabel "Марыя Кюры"@be ;
+	schema:name "Марыя Кюры"@be ;
+	rdfs:label "Мария Кюри"@bg ;
+	skos:prefLabel "Мария Кюри"@bg ;
+	schema:name "Мария Кюри"@bg ;
+	rdfs:label "মারি ক্যুরি"@bn ;
+	skos:prefLabel "মারি ক্যুরি"@bn ;
+	schema:name "মারি ক্যুরি"@bn ;
+	rdfs:label "ماری کووری"@ckb ;
+	skos:prefLabel "ماری کووری"@ckb ;
+	schema:name "ماری کووری"@ckb ;
+	rdfs:label "Marie Curie-Skłodowská"@cs ;
+	skos:prefLabel "Marie Curie-Skłodowská"@cs ;
+	schema:name "Marie Curie-Skłodowská"@cs ;
+	rdfs:label "Кюри Мария"@cv ;
+	skos:prefLabel "Кюри Мария"@cv ;
+	schema:name "Кюри Мария"@cv ;
+	rdfs:label "Μαρία Κιουρί"@el ;
+	skos:prefLabel "Μαρία Κιουρί"@el ;
+	schema:name "Μαρία Κιουρί"@el ;
+	rdfs:label "ماری کوری"@fa ;
+	skos:prefLabel "ماری کوری"@fa ;
+	schema:name "ماری کوری"@fa ;
+	rdfs:label "Maria Curie-Skłodowska"@fy ;
+	skos:prefLabel "Maria Curie-Skłodowska"@fy ;
+	schema:name "Maria Curie-Skłodowska"@fy ;
+	rdfs:label "居里夫人"@gan ;
+	skos:prefLabel "居里夫人"@gan ;
+	schema:name "居里夫人"@gan ;
+	rdfs:label "מארי קירי"@he ;
+	skos:prefLabel "מארי קירי"@he ;
+	schema:name "מארי קירי"@he ;
+	rdfs:label "मेरी क्युरी"@hi ;
+	skos:prefLabel "मेरी क्युरी"@hi ;
+	schema:name "मेरी क्युरी"@hi ;
+	rdfs:label "Maria Skłodowska-Curie"@hr ;
+	skos:prefLabel "Maria Skłodowska-Curie"@hr ;
+	schema:name "Maria Skłodowska-Curie"@hr ;
+	rdfs:label "Մարի Կյուրի"@hy ;
+	skos:prefLabel "Մարի Կյուրի"@hy ;
+	schema:name "Մարի Կյուրի"@hy ;
+	rdfs:label "マリ・キュリー"@ja ;
+	skos:prefLabel "マリ・キュリー"@ja ;
+	schema:name "マリ・キュリー"@ja ;
+	rdfs:label "მარი სკლოდოვსკა-კიური"@ka ;
+	skos:prefLabel "მარი სკლოდოვსკა-კიური"@ka ;
+	schema:name "მარი სკლოდოვსკა-კიური"@ka ;
+	rdfs:label "Мария Склодовская – Кюри"@kk ;
+	skos:prefLabel "Мария Склодовская – Кюри"@kk ;
+	schema:name "Мария Склодовская – Кюри"@kk ;
+	rdfs:label "ម៉ារី គុយរី"@km ;
+	skos:prefLabel "ម៉ារី គុយរី"@km ;
+	schema:name "ម៉ារី គុយរី"@km ;
+	rdfs:label "ಮೇರಿ ಕ್ಯೂರಿ"@kn ;
+	skos:prefLabel "ಮೇರಿ ಕ್ಯೂರಿ"@kn ;
+	schema:name "ಮೇರಿ ಕ್ಯೂರಿ"@kn ;
+	rdfs:label "마리 퀴리"@ko ;
+	skos:prefLabel "마리 퀴리"@ko ;
+	schema:name "마리 퀴리"@ko ;
+	rdfs:label "Maria Curie"@la ;
+	skos:prefLabel "Maria Curie"@la ;
+	schema:name "Maria Curie"@la ;
+	rdfs:label "Marija Kirī"@lv ;
+	skos:prefLabel "Marija Kirī"@lv ;
+	schema:name "Marija Kirī"@lv ;
+	rdfs:label "Марија Склодовска - Кири"@mk ;
+	skos:prefLabel "Марија Склодовска - Кири"@mk ;
+	schema:name "Марија Склодовска - Кири"@mk ;
+	rdfs:label "മേരി ക്യൂറി"@ml ;
+	skos:prefLabel "മേരി ക്യൂറി"@ml ;
+	schema:name "മേരി ക്യൂറി"@ml ;
+	rdfs:label "Мари Кюри"@mn ;
+	skos:prefLabel "Мари Кюри"@mn ;
+	schema:name "Мари Кюри"@mn ;
+	rdfs:label "मेरी क्युरी"@mr ;
+	skos:prefLabel "मेरी क्युरी"@mr ;
+	schema:name "मेरी क्युरी"@mr ;
+	rdfs:label "မာရီ ကျူရီ"@my ;
+	skos:prefLabel "မာရီ ကျူရီ"@my ;
+	schema:name "မာရီ ကျူရီ"@my ;
+	rdfs:label "ماری کوری"@mzn ;
+	skos:prefLabel "ماری کوری"@mzn ;
+	schema:name "ماری کوری"@mzn ;
+	rdfs:label "मारिया क्युरी"@ne ;
+	skos:prefLabel "मारिया क्युरी"@ne ;
+	schema:name "मारिया क्युरी"@ne ;
+	rdfs:label "मेरी क्युरी"@new ;
+	skos:prefLabel "मेरी क्युरी"@new ;
+	schema:name "मेरी क्युरी"@new ;
+	rdfs:label "ମେରୀ କ୍ୟୁରୀ"@or ;
+	skos:prefLabel "ମେରୀ କ୍ୟୁରୀ"@or ;
+	schema:name "ମେରୀ କ୍ୟୁରୀ"@or ;
+	rdfs:label "ਮੈਰੀ ਕਿਉਰੀ"@pa ;
+	skos:prefLabel "ਮੈਰੀ ਕਿਉਰੀ"@pa ;
+	schema:name "ਮੈਰੀ ਕਿਉਰੀ"@pa ;
+	rdfs:label "Maria Skłodowska-Curie"@pl ;
+	skos:prefLabel "Maria Skłodowska-Curie"@pl ;
+	schema:name "Maria Skłodowska-Curie"@pl ;
+	rdfs:label "میری کیوری"@pnb ;
+	skos:prefLabel "میری کیوری"@pnb ;
+	schema:name "میری کیوری"@pnb ;
+	rdfs:label "Мария Склодовская-Кюри"@ru ;
+	skos:prefLabel "Мария Склодовская-Кюри"@ru ;
+	schema:name "Мария Склодовская-Кюри"@ru ;
+	rdfs:label "Марія Кюрі"@rue ;
+	skos:prefLabel "Марія Кюрі"@rue ;
+	schema:name "Марія Кюрі"@rue ;
+	rdfs:label "मेरी क्युरी"@sa ;
+	skos:prefLabel "मेरी क्युरी"@sa ;
+	schema:name "मेरी क्युरी"@sa ;
+	rdfs:label "Кюри Мария"@sah ;
+	skos:prefLabel "Кюри Мария"@sah ;
+	schema:name "Кюри Мария"@sah ;
+	rdfs:label "මාරි කියුරි"@si ;
+	skos:prefLabel "මාරි කියුරි"@si ;
+	schema:name "මාරි කියුරි"@si ;
+	rdfs:label "Marie Curiová"@sk ;
+	skos:prefLabel "Marie Curiová"@sk ;
+	schema:name "Marie Curiová"@sk ;
+	rdfs:label "Marie Skłodowska-Curie"@sl ;
+	skos:prefLabel "Marie Skłodowska-Curie"@sl ;
+	schema:name "Marie Skłodowska-Curie"@sl ;
+	rdfs:label "Марија Кири"@sr ;
+	skos:prefLabel "Марија Кири"@sr ;
+	schema:name "Марија Кири"@sr ;
+	rdfs:label "மேரி கியூரி"@ta ;
+	skos:prefLabel "மேரி கியூரி"@ta ;
+	schema:name "மேரி கியூரி"@ta ;
+	rdfs:label "మేరీ క్యూరీ"@te ;
+	skos:prefLabel "మేరీ క్యూరీ"@te ;
+	schema:name "మేరీ క్యూరీ"@te ;
+	rdfs:label "มารี กูว์รี"@th ;
+	skos:prefLabel "มารี กูว์รี"@th ;
+	schema:name "มารี กูว์รี"@th ;
+	rdfs:label "Марія Склодовська-Кюрі"@uk ;
+	skos:prefLabel "Марія Склодовська-Кюрі"@uk ;
+	schema:name "Марія Склодовська-Кюрі"@uk ;
+	rdfs:label "میری کیوری"@ur ;
+	skos:prefLabel "میری کیوری"@ur ;
+	schema:name "میری کیوری"@ur ;
+	rdfs:label "მარი სკლოდოვსკა-კიური"@xmf ;
+	skos:prefLabel "მარი სკლოდოვსკა-კიური"@xmf ;
+	schema:name "მარი სკლოდოვსკა-კიური"@xmf ;
+	rdfs:label "מארי קירי"@yi ;
+	skos:prefLabel "מארי קירי"@yi ;
+	schema:name "מארי קירי"@yi ;
+	rdfs:label "玛丽·居里"@zh ;
+	skos:prefLabel "玛丽·居里"@zh ;
+	schema:name "玛丽·居里"@zh ;
+	rdfs:label "居里夫人"@yue ;
+	skos:prefLabel "居里夫人"@yue ;
+	schema:name "居里夫人"@yue ;
+	rdfs:label "玛丽·居里"@zh-hans ;
+	skos:prefLabel "玛丽·居里"@zh-hans ;
+	schema:name "玛丽·居里"@zh-hans ;
+	rdfs:label "Мария Склодовская-Кюри"@ba ;
+	skos:prefLabel "Мария Склодовская-Кюри"@ba ;
+	schema:name "Мария Склодовская-Кюри"@ba ;
+	rdfs:label "Мария Склодовская-Кюри"@tt ;
+	skos:prefLabel "Мария Склодовская-Кюри"@tt ;
+	schema:name "Мария Склодовская-Кюри"@tt ;
+	rdfs:label "মেডাম কুৰী"@as ;
+	skos:prefLabel "মেডাম কুৰী"@as ;
+	schema:name "মেডাম কুৰী"@as ;
+	rdfs:label "Марыя Складоўская-Кюры"@be-tarask ;
+	skos:prefLabel "Марыя Складоўская-Кюры"@be-tarask ;
+	schema:name "Марыя Складоўская-Кюры"@be-tarask ;
+	rdfs:label "Склодовская-Кюри, Мария"@ce ;
+	skos:prefLabel "Склодовская-Кюри, Мария"@ce ;
+	schema:name "Склодовская-Кюри, Мария"@ce ;
+	rdfs:label "Mari Sklodovska-Küri"@crh-latn ;
+	skos:prefLabel "Mari Sklodovska-Küri"@crh-latn ;
+	schema:name "Mari Sklodovska-Küri"@crh-latn ;
+	rdfs:label "Marėjė Skluoduovska-Kiorė"@sgs ;
+	skos:prefLabel "Marėjė Skluoduovska-Kiorė"@sgs ;
+	schema:name "Marėjė Skluoduovska-Kiorė"@sgs ;
+	rdfs:label "Marie Curie"@nan ;
+	skos:prefLabel "Marie Curie"@nan ;
+	schema:name "Marie Curie"@nan ;
+	rdfs:label "Мари Кюри"@bxr ;
+	skos:prefLabel "Мари Кюри"@bxr ;
+	schema:name "Мари Кюри"@bxr ;
+	rdfs:label "maris.kuris"@jbo ;
+	skos:prefLabel "maris.kuris"@jbo ;
+	schema:name "maris.kuris"@jbo ;
+	rdfs:label "ማሪ ኩሪ"@am ;
+	skos:prefLabel "ማሪ ኩሪ"@am ;
+	schema:name "ማሪ ኩሪ"@am ;
+	rdfs:label "Marii Kurii"@om ;
+	skos:prefLabel "Marii Kurii"@om ;
+	schema:name "Marii Kurii"@om ;
+	rdfs:label "ماري کیوري"@ps ;
+	skos:prefLabel "ماري کیوري"@ps ;
+	schema:name "ماري کیوري"@ps ;
+	rdfs:label "瑪麗·居里"@zh-hant ;
+	skos:prefLabel "瑪麗·居里"@zh-hant ;
+	schema:name "瑪麗·居里"@zh-hant ;
+	rdfs:label "ماریا کوری"@azb ;
+	skos:prefLabel "ماریا کوری"@azb ;
+	schema:name "ماریا کوری"@azb ;
+	rdfs:label "मारिया क्युरी"@mai ;
+	skos:prefLabel "मारिया क्युरी"@mai ;
+	schema:name "मारिया क्युरी"@mai ;
+	rdfs:label "玛丽·居里"@wuu ;
+	skos:prefLabel "玛丽·居里"@wuu ;
+	schema:name "玛丽·居里"@wuu ;
+	rdfs:label "मेरी क्युरी"@dty ;
+	skos:prefLabel "मेरी क्युरी"@dty ;
+	schema:name "मेरी क्युरी"@dty ;
+	rdfs:label "Мария Склодовская-Кюри"@ky ;
+	skos:prefLabel "Мария Склодовская-Кюри"@ky ;
+	schema:name "Мария Склодовская-Кюри"@ky ;
+	rdfs:label "مادام ڪیوري"@sd ;
+	skos:prefLabel "مادام ڪیوري"@sd ;
+	schema:name "مادام ڪیوري"@sd ;
+	rdfs:label "瑪麗居禮"@lzh ;
+	skos:prefLabel "瑪麗居禮"@lzh ;
+	schema:name "瑪麗居禮"@lzh ;
+	rdfs:label "ಮೇರಿ ಕ್ಯೂರಿ"@tcy ;
+	skos:prefLabel "ಮೇರಿ ಕ್ಯೂರಿ"@tcy ;
+	schema:name "ಮೇರಿ ಕ್ಯೂರಿ"@tcy ;
+	rdfs:label "Mari Sklodovska-Küri"@crh ;
+	skos:prefLabel "Mari Sklodovska-Küri"@crh ;
+	schema:name "Mari Sklodovska-Küri"@crh ;
+	rdfs:label "ᱢᱮᱨᱤ ᱠᱭᱩᱨᱤ"@sat ;
+	skos:prefLabel "ᱢᱮᱨᱤ ᱠᱭᱩᱨᱤ"@sat ;
+	schema:name "ᱢᱮᱨᱤ ᱠᱭᱩᱨᱤ"@sat ;
+	rdfs:label "Maria Skłodowska-Curie"@csb ;
+	skos:prefLabel "Maria Skłodowska-Curie"@csb ;
+	schema:name "Maria Skłodowska-Curie"@csb ;
+	rdfs:label "मैरी क्यूरी"@bho ;
+	skos:prefLabel "मैरी क्यूरी"@bho ;
+	schema:name "मैरी क्यूरी"@bho ;
+	rdfs:label "瑪麗·居禮"@zh-tw ;
+	skos:prefLabel "瑪麗·居禮"@zh-tw ;
+	schema:name "瑪麗·居禮"@zh-tw ;
+	rdfs:label "Sklodovskaja-Küri Marija"@vep ;
+	skos:prefLabel "Sklodovskaja-Küri Marija"@vep ;
+	schema:name "Sklodovskaja-Küri Marija"@vep ;
+	rdfs:label "મેરી ક્યુરી"@gu ;
+	skos:prefLabel "મેરી ક્યુરી"@gu ;
+	schema:name "મેરી ક્યુરી"@gu ;
+	rdfs:label "Склодовская-Кюри, Мария"@tyv ;
+	skos:prefLabel "Склодовская-Кюри, Мария"@tyv ;
+	schema:name "Склодовская-Кюри, Мария"@tyv ;
+	rdfs:label "ꯃꯦꯔꯤ ꯀꯨꯔꯤ"@mni ;
+	skos:prefLabel "ꯃꯦꯔꯤ ꯀꯨꯔꯤ"@mni ;
+	schema:name "ꯃꯦꯔꯤ ꯀꯨꯔꯤ"@mni ;
+	rdfs:label "Склодовская-Кюри, Мария"@alt ;
+	skos:prefLabel "Склодовская-Кюри, Мария"@alt ;
+	schema:name "Склодовская-Кюри, Мария"@alt ;
+	rdfs:label "Maria Skłodowska-Curie"@sc ;
+	skos:prefLabel "Maria Skłodowska-Curie"@sc ;
+	schema:name "Maria Skłodowska-Curie"@sc ;
+	rdfs:label "میرِی کیوری"@ks ;
+	skos:prefLabel "میرِی کیوری"@ks ;
+	schema:name "میرِی کیوری"@ks ;
+	rdfs:label "Marie Curie"@hak ;
+	skos:prefLabel "Marie Curie"@hak ;
+	schema:name "Marie Curie"@hak ;
+	rdfs:label "玛丽·居里"@zh-cn ;
+	skos:prefLabel "玛丽·居里"@zh-cn ;
+	schema:name "玛丽·居里"@zh-cn ;
+	rdfs:label "Кюри, Мария"@udm ;
+	skos:prefLabel "Кюри, Мария"@udm ;
+	schema:name "Кюри, Мария"@udm ;
+	rdfs:label "Mari Kuri"@kab ;
+	skos:prefLabel "Mari Kuri"@kab ;
+	schema:name "Mari Kuri"@kab ;
+	rdfs:label "Mariah Kiri-Sklodowska"@bew ;
+	skos:prefLabel "Mariah Kiri-Sklodowska"@bew ;
+	schema:name "Mariah Kiri-Sklodowska"@bew ;
+	rdfs:label "Marie Kurie"@ann ;
+	skos:prefLabel "Marie Kurie"@ann ;
+	schema:name "Marie Kurie"@ann ;
+	rdfs:label "Мария Склодовская-Кюри"@os ;
+	skos:prefLabel "Мария Склодовская-Кюри"@os ;
+	schema:name "Мария Склодовская-Кюри"@os ;
+	rdfs:label "ມາຣີ ຄູຣີ"@lo ;
+	skos:prefLabel "ມາຣີ ຄູຣີ"@lo ;
+	schema:name "ມາຣີ ຄູຣີ"@lo ;
+	rdfs:label "jan Mali Kuli"@tok ;
+	skos:prefLabel "jan Mali Kuli"@tok ;
+	schema:name "jan Mali Kuli"@tok ;
+	rdfs:label "ماري كوري"@ary ;
+	skos:prefLabel "ماري كوري"@ary ;
+	schema:name "ماري كوري"@ary ;
+	rdfs:label "Մարի Քիւրի"@hyw ;
+	skos:prefLabel "Մարի Քիւրի"@hyw ;
+	schema:name "Մարի Քիւրի"@hyw ;
+	rdfs:label "Мария Склодовска-Кюри"@tg ;
+	skos:prefLabel "Мария Склодовска-Кюри"@tg ;
+	schema:name "Мария Склодовска-Кюри"@tg ;
+	rdfs:label "Marie Curie"@mul ;
+	skos:prefLabel "Marie Curie"@mul ;
+	schema:name "Marie Curie"@mul ;
+	rdfs:label "Marie Curie"@nb ;
+	skos:prefLabel "Marie Curie"@nb ;
+	schema:name "Marie Curie"@nb ;
+	rdfs:label "မာရဳ ကျူရဳ"@mnw ;
+	skos:prefLabel "မာရဳ ကျူရဳ"@mnw ;
+	schema:name "မာရဳ ကျူရဳ"@mnw ;
+	rdfs:label "Maria Kuri"@tly ;
+	skos:prefLabel "Maria Kuri"@tly ;
+	schema:name "Maria Kuri"@tly ;
+	rdfs:label "Maria Skłodowska-Curie"@gd ;
+	skos:prefLabel "Maria Skłodowska-Curie"@gd ;
+	schema:name "Maria Skłodowska-Curie"@gd ;
+	schema:description "Polish-born French physicist and chemist (1867–1934)"@en,
+		"fisica, chimica e matematica franco-polacca (1867–1934)"@it,
+		"physicienne et chimiste polonaise et française"@fr,
+		"in Frankreich lebende polnische Physikerin, zweifache Nobelpreisträgerin"@de,
+		"Pranses-Polako a pisiko ken kimiko"@ilo,
+		"física y química polaca nacionalizada francesa"@es,
+		"波兰裔法国籍物理学家、化学家"@zh-hans,
+		"polsk-fransk fysiker (1867-1934)"@da,
+		"Πολωνή φυσικός και χημικός, διάσημη για την καινοτόμο έρευνά της για τη ραδιενέργεια"@el,
+		"французско-польский физик и химик (1867—1934)"@ru,
+		"Pools-Frans schei- en natuurkundige, Nobelprijswinnares (1867–1934)"@nl,
+		"puolalainen fyysikko ja kemisti"@fi,
+		"polsko-francuska uczona, noblistka z fizyki i chemii"@pl,
+		"fransk-polsk fysiker og kjemiker"@nb,
+		"fransk-polsk fysiker och kemist"@sv,
+		"פיזיקאית וכימאית צרפתיה־פולניה"@he,
+		"química e física franco-polonesa"@gl,
+		"física e química polonesa naturalizada francesa (1867–1934)"@pt,
+		"فیزیکدان و شیمیدان فرانسوی-لهستانی"@fa,
+		"física polonesa-francesa (1867–1934)"@ca,
+		"波蘭裔法國物理學家、化學家"@zh,
+		"Ahli fizik dan kimia"@ms,
+		"റേഡിയോ ആക്റ്റീവ് മൂലകമായ റേഡിയം കണ്ടു പിടിച്ച പോളിഷ് ശാസ്ത്രജ്ഞയാണ്‌ മേരി ക്യൂറി."@ml,
+		"폴란드 태생 프랑스의 화학자 (1867~1934)"@ko,
+		"fransk-polsk fysiker og kjemiker"@nn,
+		"química y física polaco-francesa"@ast,
+		"Ahli fisika dan ahli kimia berkebangsaan perancis-polandia"@id,
+		"polsko-francouzská vědkyně"@cs,
+		"ポーランド・フランスの物理学者・化学者 (1867-1934)"@ja,
+		"(1867–1934) lengyel származású francia fizikus"@hu,
+		"物理學家，化學家"@zh-hant,
+		"французька фізик, хімік, освітянка, громадська діячка польського походження"@uk,
+		"ଫରାସୀ ଭୌତିକବିଦ ଓ ରସାୟନବିଦ"@or,
+		"عالمة كيمياء بولندية"@ar,
+		"世稱居禮夫人，兩奪諾貝爾獎。"@lzh,
+		"polnesch-franséisch Cheemikerin a Physikerin"@lb,
+		"ఫ్రెంచి, పోలిష్ ఫిజిసిస్టు, కెమిస్టు"@te,
+		"француска физичарка и хемичарка пољског порекла"@sr,
+		"Френско-полски физик и химик"@bg,
+		"poľská vedkyňa"@sk,
+		"Fraans-Poolse fisikus en chemikus (1867-1934)"@af,
+		"Fransız-Polonyalı fizikçi ve kimyager"@tr,
+		"波蘭裔法國物理與化學家"@zh-tw,
+		"pola Francia fizikisto kaj kemiisto"@eo,
+		"zientzialaria, fisikaria, kimikaria"@eu,
+		"নোবেল পুরস্কার প্রাপ্ত প্রথম মহিলা বিজ্ঞানী"@bn,
+		"פויליש-פראנצויזישע פיזיקערין"@yi,
+		"પોલિશ-ફ્રેન્ચ ભૌતિક અને રસાયણવિજ્ઞાની"@gu,
+		"पोलिश-फ्रांसीसी भौतिक विज्ञानी और केमिस्ट"@hi,
+		"fiziciană și chimistă polono-franceză (1867–1934)"@ro,
+		"physico"@ia,
+		"fisiko franses"@pap,
+		"poola päritolu Prantsuse füüsik ja keemik"@et,
+		"France karimba ŋun nyɛ paɣa"@dag,
+		"poljsko-francuska hemičarka i fizičarka"@bs,
+		"fisiceoir agus ceimiceoir Polannach (1867–1934)"@ga,
+		"ပိုလန်လူမျိုး ရူပဗေဒပညာရှင်နှင့် ပြင်သစ်နိုင်ငံသား ဓာတုဗေဒပညာရှင် (၁၈၆၇-၁၉၃၄)"@my,
+		"Польшийн физикч, химич"@mn,
+		"puolalâš fysikkár já kemist"@smn,
+		"Mwanafizikia na mkemia wa Kipolishi mwenye uraia wa Kifaransa (1867-1934)"@sw,
+		"польский ле француз билимчи-шиҥжӱчи (физик, химик)"@alt,
+		"nhà hoá học, vật lý học người Pháp (1867–1934)"@vi,
+		"ꯄꯣꯂꯤꯁꯀꯤ ꯐꯤꯖꯤꯁꯤꯁ꯭ꯠ"@mni,
+		"pólskur eðlisfræðingur og efnafræðingur (1867-1934)"@is,
+		"போலந்து-பிரெஞ்சு இயற்பியலாளர், வேதியியலாளர் (1867 –1934)"@ta,
+		"francuska kemičarka i fizičarka"@hr,
+		"franču-poļu fiziķe un ķīmiķe"@lv,
+		"poljsko-francoska fizičarka in kemičarka; dvakratna Nobelova nagrajenka (1867–1934)"@sl,
+		"Ahali fisika wawu kimia berkebangsaan Prancis wawu Polandia"@gor,
+		"jan li sona wawa li tan ma Polaka"@tok,
+		"польска-француская фізык"@be-tarask,
+		"Polako at Pranses na pisiko at kemist (1867–1934)"@tl,
+		"شيميست پولونية"@ary,
+		"Polish-French physicist den chemist (1867–1934)"@gpe,
+		"পদাৰ্থবিজ্ঞানী তথা ৰসায়নবিদ (১৮৬৭–১৯৩৪)"@as,
+		"francuz alımı"@kaa,
+		"物理学家, 波兰第二共和国"@zh-cn,
+		"物理學家, 波蘭第二共和國"@zh-hk,
+		"物理學家, 波蘭第二共和國"@yue,
+		"物理学家, 波兰第二共和国"@zh-sg,
+		"นักฟิสิกส์ จาก สาธารณรัฐโปแลนด์ที่ 2"@th,
+		"físico, Segunda República Polonesa"@pt-br,
+		"füsüdan, Repüblikän Polänik Telid"@vo,
+		"fizik, Polşa Respublikası"@az,
+		"Physiker, Zweite Polnische Republik"@de-ch,
+		"физикдон, Ҷумҳурии дувуми Лаҳистон"@tg,
+		"physicus, Res Publica Polonica Secunda"@la,
+		"физик, Польшæйы Республикæ"@os,
+		"fizikas iš Antroji Lenkijos Respublika"@lt,
+		"физичар од Втора Полска Република"@mk,
+		"fizičar, Druga poljska republika"@sh,
+		"طبیعیات دان, دوسری پولش جمہوریہ"@ur,
+		"fizikacı, Lehistan Cumhuriyeti"@crh,
+		"fizîknas, Komara Polonî ya Duyem"@ku-latn,
+		"fìzego, Seconda Repùblega de Połònia"@vec,
+		"fiosaigiche, Dàrna Poblachd na Pòlainne"@gd,
+		"fizîknas, Komara Polonî ya Duyem"@ku,
+		"فيزيائى, الجمهوريه البولنديه التانيه"@arz,
+		"فزيک پوه, د پولنډ دویم جمهوریت"@ps,
+		"ֆիզիկոս, Լեհաստանի Երկրորդ Հանրապետություն"@hy,
+		"ffisegydd o Ail Weriniaeth Gwlad Pwyl"@cy,
+		"физик, Польша Республикаһы"@ba,
+		"fishigagh, Pobblaght ny Polynn"@gv,
+		"фізік з Польская Рэспубліка"@be,
+		"füüsiker, Naist Poolsk Republiik 1918-1945"@frr,
+		"فیزیکزان, کۆماری دووەمی پۆڵەندا"@ckb,
+		"ფიზიკოსი, პოლონეთის მეორე რესპუბლიკა"@ka,
+		"fizikacı, Lehistan Cumhuriyeti"@crh-latn,
+		"fiżiku, Tieni Repubblika Pollakka"@mt ;
+	skos:altLabel "居禮夫人"@zh,
+		"居里夫人"@zh,
+		"瑪麗·居禮"@zh,
+		"キューリー夫人"@ja,
+		"マリア・スクウォドフスカ＝キュリー"@ja,
+		"マリ・キューリー"@ja,
+		"キュリー夫人"@ja,
+		"マリー・キュリー"@ja,
+		"マリー・キューリー"@ja,
+		"Marya Skłodowska-Curie"@pl,
+		"Marie Sklodowska-Curie"@pl,
+		"Marya Curie ze Skłodowskich"@pl,
+		"มารี กูรี"@th,
+		"Marie Curieová"@cs,
+		"Pierre Curie"@cs,
+		"S. Curie"@cs,
+		"P. Curie"@cs,
+		"Maria Curie"@hr,
+		"Μαρία Κιρί"@el,
+		"居里夫人"@zh-hant,
+		"Maria Curiová"@sk,
+		"Марія Кюрі"@uk,
+		"Марія Склодовська"@uk,
+		"Meerii Kurii"@om,
+		"ମେରୀ କ୍ୟୁରି"@or,
+		"എം. ക്യൂറി"@ml,
+		"居禮夫人"@zh-tw,
+		"Maria Kurio"@eo,
+		"مادام کوری"@fa,
+		"ماریا سالومیا کوری"@fa,
+		"ماریا اسکودوسکا کوری"@fa,
+		"Madam Curie"@tr,
+		"মেৰী কুৰী"@as,
+		"Марыя Складоўская-Кюры"@be,
+		"Склодовски-Кюри, Мари"@ce,
+		"Mari Küri"@crh,
+		"मारिया क्युरी"@dty,
+		"Marii Kiuri"@jam,
+		"Мария Кюри"@kk,
+		"ម៉ារី ស្កូដូស្កា គុយរី"@km,
+		"Мария Кюри"@ky,
+		"Марија Кири"@mk,
+		"မာရီ ကျူးရီး"@my,
+		"ਮੈਰੀ ਕਿਊਰੀ"@pa,
+		"Кюри, Мария"@ru,
+		"Склодовская"@ru,
+		"Мария Кюри"@ru,
+		"Мари Кюри"@ru,
+		"Кюри-Склодовская, Мария"@ru,
+		"Склодовская-Кюри, Мария"@ru,
+		"Мария Саломея Склодовская"@ru,
+		"मेरी क्यूरी"@sa,
+		"Maria Curie"@sw,
+		"Marie Curie-Sklodowska"@sw,
+		"М.Кюри"@mn,
+		"Мария Склодовская-Кюри"@alt,
+		"Мария Кюри"@alt,
+		"મેડમ ક્યુરી"@gu,
+		"ꯑꯦꯝ.ꯀꯨꯔꯤ"@mni,
+		"Mariah Sklodowska"@bew,
+		"Mariah Kiri"@bew,
+		"Мария Кюри"@os,
+		"Мари Кюри"@os,
+		"jan Makikuki"@tok,
+		"jan Malija Kuli"@tok,
+		"jan Marie Curie"@tok,
+		"jan Malijakuli"@tok,
+		"jan Malikuli"@tok,
+		"jan Maki Kuki"@tok,
+		"Marie Salomée Skłodowska Curie"@mul,
+		"Maria Salomea Skłodowska"@mul,
+		"Mme Curie"@mul,
+		"Madame Pierre Curie"@mul,
+		"Maria Skłodowska-Curie"@mul,
+		"Marie Curie-Skłodowska"@mul,
+		"Marie Skłodowska-Curie"@mul,
+		"Maria Curie-Skłodowska"@mul,
+		"Madame Curie"@mul,
+		"मारिया सलोमीया स्कोलोडोव्स्का"@hi,
+		"మరియా సలోమియా స్క్లోడోవ్స్కా"@te .

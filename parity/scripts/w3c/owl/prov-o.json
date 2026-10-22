@@ -1,0 +1,29 @@
+{
+  "tool": "w3c/owl",
+  "fixture": "w3c/owl/prov-o/prov-o.ttl",
+  "registration": "w3c/owl/prov-o/prov-o.adp",
+  "steps": [
+    { "select": ["res:http://www.w3.org/ns/prov#Plan"] },
+    { "property": { "row": "Label", "value": "Plan (prescriptive)" } },
+    { "action": "owl.subclass", "args": { "target": "rel:res:http://www.w3.org/ns/prov#Plan->res:http://www.w3.org/ns/prov#Bundle" } },
+    { "action": "owl.subclass", "args": { "target": "rel:res:http://www.w3.org/ns/prov#Person->res:http://www.w3.org/ns/prov#Agent" }, "expect": "refused" },
+    { "action": "owl.add-class", "args": { "target": "new:200,1800", "value": ":Recipe" } },
+    { "action": "owl.add-object-property", "args": { "target": "new:400,1800", "value": ":followedRecipe" } },
+    { "action": "owl.add-datatype-property", "args": { "target": "new:600,1800", "value": ":servings" } },
+    { "action": "owl.add-individual", "args": { "target": "new:800,1800", "value": ":grandmasPie" } },
+    { "action": "owl.subclass", "args": { "target": "rel:res:http://www.w3.org/ns/prov#Recipe->res:http://www.w3.org/ns/prov#Plan" } },
+    { "action": "rdf.connect", "args": { "target": "rel:res:http://www.w3.org/ns/prov#Recipe->res:http://www.w3.org/ns/prov#Role", "value": "rdfs:seeAlso" } },
+    { "action": "rdf.rename-resource", "args": { "target": "res:http://www.w3.org/ns/prov#Role", "value": ":Part" } },
+    { "undo": 1 },
+    { "property": { "row": "rdf.comment", "value": "A plan written down to be followed.", "target": "res:http://www.w3.org/ns/prov#Recipe" } },
+    { "action": "rdf.remove-resource", "args": { "target": "res:http://www.w3.org/ns/prov#servings" } },
+    { "action": "rdf.remove-resource", "args": { "target": "res:http://www.w3.org/ns/prov#Recipe", "confirm": true } },
+    { "undo": 1 },
+    { "redo": 1 },
+    { "move": { "refs": ["res:http://www.w3.org/ns/prov#Activity"], "to": { "x": -300, "y": 250 } } },
+    { "move": { "refs": ["res:http://www.w3.org/ns/prov#Entity"], "dx": 12.5, "dy": 40 } },
+    { "move": { "refs": ["expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1"], "to": { "x": 0, "y": 0 } }, "expect": "refused" },
+    { "undo": 1 },
+    { "save": true }
+  ]
+}

@@ -1224,6 +1224,8 @@ mod dotnet;
 mod sankey;
 // The Helm chart diagram with its module (T080), in a file of its own.
 mod helm;
+// The RDF family's four readings with their module (T083), in a file of its own.
+mod rdf;
 // The SPARQL query diagram with its module (T084), in a file of its own.
 mod sparql;
 // The functional decomposition graph with its module (T072), in a file of its own.

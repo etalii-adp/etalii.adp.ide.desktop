@@ -512,6 +512,19 @@ pub fn document_factories() -> DiagramDocumentFactories {
         adp_diagram_agent_activity::ORIGIN,
         adp_diagram_agent_activity::TEMPLATE,
     )));
+    // `ServiceCollection.AddRdf.cs` (`EmptyRdfDocument`, `EmptyOwlDocument`), `ServiceCollection.AddSkos.cs` and
+    // `ServiceCollection.AddShacl.cs` (`EmptyDocument`): one starter body per reading of the RDF family, in CRLF.
+    for (origin, template) in [
+        (
+            adp_diagram_rdf::graph::ORIGIN,
+            adp_diagram_rdf::empty_rdf_document as fn(&str) -> String,
+        ),
+        (adp_diagram_rdf::owl::ORIGIN, adp_diagram_rdf::empty_owl_document),
+        (adp_diagram_rdf::skos::ORIGIN, adp_diagram_rdf::empty_skos_document),
+        (adp_diagram_rdf::shacl::ORIGIN, adp_diagram_rdf::empty_shacl_document),
+    ] {
+        factories.push(Box::new(EmptyDocumentFactory::from_base_name(origin, template)));
+    }
     // `ServiceCollection.AddSparql.cs`: the starter query, a `SELECT` that parses and validates clean, in CRLF.
     factories.push(Box::new(EmptyDocumentFactory::fixed(
         adp_diagram_sparql::ORIGIN,

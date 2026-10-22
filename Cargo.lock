@@ -134,6 +134,7 @@ dependencies = [
  "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-rdf",
  "adp-diagram-sankey",
  "adp-diagram-sparql",
  "adp-diagram-supply-chain",
@@ -430,6 +431,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-rdf"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "indexmap",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-sankey"
 version = "0.1.0"
 dependencies = [
@@ -612,6 +628,7 @@ dependencies = [
  "adp-diagram-helm-chart",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-rdf",
  "adp-diagram-sankey",
  "adp-diagram-sparql",
  "adp-diagram-supply-chain",
@@ -677,6 +694,7 @@ dependencies = [
  "adp-diagram-helm-chart",
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
+ "adp-diagram-rdf",
  "adp-diagram-sankey",
  "adp-diagram-sparql",
  "adp-diagram-supply-chain",
