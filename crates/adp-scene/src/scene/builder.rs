@@ -387,6 +387,10 @@ pub fn build_scene_pieces(
     let mut pieces: Vec<Piece> = Vec::new();
 
     for relation in diagram.relations() {
+        // A relation a budget cuts, or one an end of which it cuts, is not drawn (DISL section 3.2.1).
+        if !diagram.is_drawn(&relation) {
+            continue;
+        }
         let owner = Owner::Relation(relation.id());
         let reused = (unmoved(relation.source().map(|e| e.id())) && unmoved(relation.target().map(|e| e.id())))
             .then(|| earlier(pieces.len(), &owner))
@@ -451,6 +455,10 @@ impl<'a> Builder<'a> {
             let Some(element_type) = self.definition.element_type(&element.type_name()) else {
                 continue;
             };
+            // A node a truncating budget cuts is not drawn (DISL section 3.2.1).
+            if !diagram.is_drawn(&element) {
+                continue;
+            }
             let vars = self.evaluator.element_vars(&element);
             match positions.get(&element.id()) {
                 Some(rect) => {

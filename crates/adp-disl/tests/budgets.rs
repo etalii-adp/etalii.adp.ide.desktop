@@ -338,3 +338,37 @@ fn a_count_measure_names_types_and_its_texts_compile_in_their_own_contexts() {
         at("/language/limits/budgets/items/finding/message/cel")
     );
 }
+
+#[test]
+fn a_truncating_budget_shows_its_notice_with_its_text_or_the_runtimes_sentence() {
+    let specification = specification(
+        r#"{ "items": { "measure": { "count": ["Item"] }, "max": 1, "withhold": { "edits": "none" },
+            "notice": { "text": { "cel": "'Showing ' + string(budget('items').shown) + ' of ' + string(budget('items').total) + ' items'" }, "severity": "warning", "position": "top" } },
+          "plain": { "measure": { "count": ["Item"] }, "max": 1 },
+          "silent": { "measure": { "count": ["Item"] }, "max": 1, "notice": false } }"#,
+        "",
+    );
+    let diagram = diagram(&specification, &[("a", 0, "x"), ("b", 0, "x")]);
+
+    let notices: Vec<String> = budgets::notices(&diagram, &DislEnv::default())
+        .into_iter()
+        .map(|n| format!("{} {} {} {}", n.id, n.severity, n.position.unwrap_or_default(), n.text))
+        .collect();
+
+    assert_eq!(
+        vec![
+            "budget:items warning top Showing 1 of 2 items",
+            "budget:plain info  Showing 1 of 2. Edits are withheld while the view is partial."
+        ],
+        notices
+    );
+    let small = diagram_with_one(&specification);
+    assert!(
+        budgets::notices(&small, &DislEnv::default()).is_empty(),
+        "no notice while nothing is cut"
+    );
+}
+
+fn diagram_with_one(specification: &DislSpecification) -> DislDiagram {
+    diagram(specification, &[("a", 0, "x")])
+}

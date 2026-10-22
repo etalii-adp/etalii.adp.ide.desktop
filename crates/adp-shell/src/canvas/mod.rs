@@ -349,6 +349,8 @@ struct Cached {
     month_ruler: Option<adp_diagram_hype_cycle::scale::TimeUnit>,
     /// The legend at the top left of the canvas (`notation.canvas.legend`).
     legend: Vec<viewpoint::LegendEntry>,
+    /// The notices of the budgets that cut what is drawn (DISL sections 3.2.1, 6.13), at the top of the canvas.
+    notices: Vec<adp_disl::model::budgets::DislNotice>,
 }
 
 /// Where each node is drawn with the gesture in flight: placed, then moved by the drag or resized by the resize.
@@ -881,6 +883,7 @@ impl DiagramTab {
         let month_ruler = (self.opened.origin == adp_diagram_hype_cycle::ORIGIN && !self.toggled)
             .then(|| adp_diagram_hype_cycle::reading::unit_of(diagram));
         let legend = viewpoint::legend_of(specification, mode);
+        let notices = adp_disl::model::budgets::notices(diagram, &adp_disl::DislEnv::default());
         self.cache = Some(Cached {
             key,
             scene,
@@ -902,6 +905,7 @@ impl DiagramTab {
             ruler,
             month_ruler,
             legend,
+            notices,
         });
     }
 
@@ -1062,6 +1066,7 @@ impl DiagramTab {
             ruler: None,
             month_ruler: None,
             legend: Vec::new(),
+            notices: Vec::new(),
         });
     }
 
@@ -1904,6 +1909,14 @@ impl DiagramTab {
         self.input(ui, workspace, &response);
         self.ensure_scene(ui.ctx(), workspace.documents(), dark);
         self.follow_fit();
+        // A budget's notice is read as a status (DISL 6.13): after the tool type, politely, as it changes.
+        if let Some(cache) = self.cache.as_ref().filter(|c| !c.notices.is_empty()) {
+            let notices: Vec<&str> = cache.notices.iter().map(|n| n.text.as_str()).collect();
+            crate::a11y::describe_state(&response, &format!("{}. {}", self.opened.origin, notices.join(" ")));
+            response
+                .ctx
+                .accesskit_node_builder(response.id, |node| node.set_live(egui::accesskit::Live::Polite));
+        }
         self.paint(ui, palette);
         self.scroll_bars(ui, palette, theme);
         self.show_editor(ui, workspace);
@@ -2162,6 +2175,9 @@ impl DiagramTab {
         if !cache.legend.is_empty() {
             self.paint_legend(&painter, palette, &cache.legend);
         }
+        if !cache.notices.is_empty() {
+            self.paint_notices(&painter, palette, &cache.notices);
+        }
         if let gestures::Gesture::Connecting { from, to, .. } = &self.arbiter.gesture {
             painter.line_segment(
                 [self.view.to_screen(surface, *from), self.view.to_screen(surface, *to)],
@@ -2236,6 +2252,32 @@ impl DiagramTab {
     }
 
     /// The legend at the top left of the canvas: one swatch per entry, in its colour, beside its label.
+    /// The budgets' notices, stacked at the top of the canvas in declaration order (DISL 6.13), each on a band in its
+    /// severity's colour.
+    fn paint_notices(
+        &self,
+        painter: &egui::Painter,
+        palette: &Palette,
+        notices: &[adp_disl::model::budgets::DislNotice],
+    ) {
+        let font = egui::FontId::proportional(12.0);
+        let mut top = self.surface.min.y + 8.0;
+        for notice in notices {
+            let accent = match notice.severity.as_str() {
+                "error" => Color32::from_rgb(0xf1, 0x4c, 0x4c),
+                "warning" => Color32::from_rgb(0xcc, 0xa7, 0x00),
+                _ => palette.focus,
+            };
+            let galley = painter.layout_no_wrap(notice.text.clone(), font.clone(), palette.foreground);
+            let size = galley.size() + egui::vec2(20.0, 8.0);
+            let frame = egui::Rect::from_min_size(Pos2::new(self.surface.center().x - size.x / 2.0, top), size);
+            painter.rect_filled(frame, 3.0, palette.editor_background.gamma_multiply(0.95));
+            painter.rect_stroke(frame, 3.0, Stroke::new(1.0, accent), egui::StrokeKind::Inside);
+            painter.galley(frame.min + egui::vec2(10.0, 4.0), galley, palette.foreground);
+            top = frame.bottom() + 4.0;
+        }
+    }
+
     fn paint_legend(&self, painter: &egui::Painter, palette: &Palette, legend: &[viewpoint::LegendEntry]) {
         let font = egui::FontId::proportional(12.0);
         let origin = self.surface.min + egui::vec2(8.0, 8.0);

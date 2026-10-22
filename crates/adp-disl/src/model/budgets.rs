@@ -320,3 +320,59 @@ fn actions_change(actions: &Json) -> Option<&'static str> {
     }
     changes
 }
+
+/// A budget's notice (DISL sections 3.2.1 and 6.13): `budget:<id>`, its text, its severity, and where it is shown,
+/// none for the host's place.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DislNotice {
+    pub id: String,
+    pub text: String,
+    pub severity: String,
+    pub position: Option<String>,
+}
+
+/// The notice of each budget that truncates now and shows one, in declaration order (the standalone host's
+/// `CanvasChromeDerivation.Notices`): its `text` in the chrome context, or a sentence naming how many of how many
+/// are shown and, while they are, that edits are withheld.
+pub fn notices(diagram: &DislDiagram, env: &DislEnv) -> Vec<DislNotice> {
+    let specification = diagram.specification();
+    let states = diagram.budgets();
+    let variables = evaluation::vars([("diagram", diagram.to_value()), ("env", Value::map(env.to_cel()))]);
+    declared(diagram)
+        .iter()
+        .zip(states.iter())
+        .filter_map(|((id, budget, pointer), state)| {
+            let notice = json::member(budget, "notice");
+            if !state.truncated || matches!(notice, Json::Bool(false)) {
+                return None;
+            }
+            let fallback = format!(
+                "Showing {} of {}.{}",
+                state.shown,
+                state.total,
+                if state.withheld {
+                    " Edits are withheld while the view is partial."
+                } else {
+                    ""
+                }
+            );
+            let text = match json::get(notice, "text") {
+                Some(text) => evaluation::message(
+                    &specification,
+                    text,
+                    &json::pointer(&json::pointer(pointer, "notice"), "text"),
+                    contexts::CHROME,
+                    &variables,
+                    &fallback,
+                ),
+                None => fallback,
+            };
+            Some(DislNotice {
+                id: format!("budget:{id}"),
+                text,
+                severity: json::string_of(notice, "severity").unwrap_or("info").to_owned(),
+                position: json::string_of(notice, "position").map(str::to_owned),
+            })
+        })
+        .collect()
+}
