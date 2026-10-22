@@ -27,7 +27,7 @@ fn files_under(root: &Path, folder: &Path, out: &mut Vec<String>) {
     }
 }
 
-fn infrastructure() -> Harness {
+pub(super) fn infrastructure() -> Harness {
     let folder: PathBuf =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/ansible/structure/infrastructure");
     let mut files = Vec::new();

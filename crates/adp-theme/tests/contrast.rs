@@ -10,10 +10,11 @@
 //! <b>Why the colours are read from the files that draw with them.</b> The standalone host read `index.css` rather
 //! than a rendered component, because jsdom applies no CSS and a rendered assertion measured nothing. The same holds
 //! here for another reason: a copy of a colour in this test would be checked while the drawn one drifted. So each
-//! tool's colours are read where the desktop host declares them: the hand-written scenes of `adp-shell` (until task
-//! T087 moves them into each module's `theme.rs`, when the paths below move with them) and, for the tools drawn from
-//! their notation, the vendored specification's `notation.theme`. Every family is counted before a ratio is taken, so
-//! a renamed or moved declaration makes this test say "found none" loudly instead of passing over an empty set.
+//! tool's colours are read where the desktop host declares them: each module's `theme.rs`, which gives the tool its
+//! colours in the light and the dark theme (task T087, FR-045), the selection colour of `adp-shell`'s canvas and, for
+//! the tools drawn from their notation, the vendored specification's `notation.theme` with the tokens its module adds
+//! over it. Every family is counted before a ratio is taken, so a renamed or moved declaration makes this test say
+//! "found none" loudly instead of passing over an empty set.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -45,6 +46,22 @@ fn file(path: &str) -> String {
 
 fn scene(name: &str) -> String {
     file(&format!("crates/adp-shell/src/canvas/{name}"))
+}
+
+/// The `theme.rs` of a diagram's module, where the tool's colours per theme are declared.
+fn module_theme(module: &str) -> String {
+    file(&format!("modules/diagrams/{module}/src/theme.rs"))
+}
+
+/// The body of the palette a `theme.rs` declares for `kind`.
+fn palette_of(source: &str, kind: Kind) -> &str {
+    item(
+        source,
+        match kind {
+            Kind::Light => "const LIGHT: Palette",
+            Kind::Dark => "const DARK: Palette",
+        },
+    )
 }
 
 fn rgba(text: &str) -> Rgba {
@@ -137,15 +154,46 @@ fn notation(name: &str) -> serde_json::Value {
 /// declares one, else the token's base value.
 fn token(notation: &serde_json::Value, kind: Kind, name: &str) -> Rgba {
     let theme = &notation["notation"]["theme"];
-    let mode = match kind {
-        Kind::Light => "light",
-        Kind::Dark => "dark",
-    };
-    let value = theme["modes"][mode][name]
+    let value = theme["modes"][mode_of(kind)][name]
         .as_str()
         .or_else(|| theme["tokens"][name].as_str())
         .unwrap_or_else(|| panic!("the notation declares no {name}"));
     rgba(value)
+}
+
+fn mode_of(kind: Kind) -> &'static str {
+    match kind {
+        Kind::Light => "light",
+        Kind::Dark => "dark",
+    }
+}
+
+/// The tokens a module's `theme.rs` adds over its notation in `kind` (`fn tokens`, one arm per theme).
+fn module_tokens(module: &str, kind: Kind) -> BTreeMap<String, Rgba> {
+    let source = module_theme(module);
+    let body = item(&source, "fn tokens(");
+    let arm = match kind {
+        Kind::Light => "Kind::Light =>",
+        Kind::Dark => "Kind::Dark =>",
+    };
+    let start = body.find(arm).unwrap_or_else(|| panic!("{module} names no {arm} arm"));
+    let rest = &body[start + arm.len()..];
+    let end = rest.find("Kind::").unwrap_or(rest.len());
+    rest[..end]
+        .lines()
+        .filter_map(|line| match literals(line)[..] {
+            [name, value] => Some((name.to_owned(), rgba(value))),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The token `name` a notation-drawn tool paints with in `kind`: what its module adds, else the notation's own.
+fn drawn_token(notation: &serde_json::Value, module: &str, kind: Kind, name: &str) -> Rgba {
+    module_tokens(module, kind)
+        .get(name)
+        .copied()
+        .unwrap_or_else(|| token(notation, kind, name))
 }
 
 // ---- what VS Code gives -----------------------------------------------------------------------------------------------
@@ -174,16 +222,10 @@ fn at_least(ratio: f64, line: f64, what: impl FnOnce() -> String) {
 
 // ---- theme.contrast.test.ts ---------------------------------------------------------------------------------------------
 
-/// The functional decomposition graph's five fills, in light and dark (`fdg_scene.rs`).
+/// The functional decomposition graph's five fills, in light and dark (its module's `theme.rs`).
 fn fdg(kind: Kind) -> (Rgba, Vec<(String, Rgba)>) {
-    let source = scene("fdg_scene.rs");
-    let body = item(
-        &source,
-        match kind {
-            Kind::Light => "const LIGHT: Palette",
-            Kind::Dark => "const DARK: Palette",
-        },
-    );
+    let source = module_theme("functional-decomposition-graph");
+    let body = palette_of(&source, kind);
     let fills: Vec<(String, Rgba)> = entries(body)
         .into_iter()
         .filter(|e| e.key != "text" && e.key != "border")
@@ -328,13 +370,19 @@ fn causal_loops_variable_pill_carries_a_readable_label() {
 
 #[test]
 fn azure_pipelines_stage_carries_a_readable_name() {
-    // The scene draws a stage the same in both themes.
-    let source = scene("pipeline_scene.rs");
-    let (fill, name) = (constant(&source, "STAGE_FILL"), constant(&source, "TEXT"));
-    assert!(source.contains("Some(STAGE_FILL)"), "a stage is filled with STAGE_FILL");
-    at_least(contrast_ratio(name, fill), AA, || {
-        format!("the stage name ({name}) on the stage box ({fill})")
-    });
+    // The scene draws a stage in the palette of the active theme.
+    assert!(
+        scene("pipeline_scene.rs").contains("Some(palette.stage_fill)"),
+        "a stage is filled with the palette's stage_fill"
+    );
+    let source = module_theme("azure-devops-pipeline");
+    for kind in KINDS {
+        let body = palette_of(&source, kind);
+        let (fill, name) = (field(body, "stage_fill"), field(body, "text"));
+        at_least(contrast_ratio(name, fill), AA, || {
+            format!("the stage name ({name}) on the stage box ({fill}) in {kind:?}")
+        });
+    }
 }
 
 #[test]
@@ -352,14 +400,14 @@ fn the_hype_cycles_chevrons_read_against_every_phase() {
     }
 }
 
-/// The agent activity diagram's fill per kind of element, in `kind`'s mode (`aad_scene.rs`, `fn fill`); the arm that
-/// catches the rest is the environment's.
+/// The agent activity diagram's fill per kind of element, in `kind`'s mode (its module's `theme.rs`, `fn fill`); the
+/// arm that catches the rest is the environment's.
 fn aad_fills(kind: Kind) -> Vec<(String, Rgba)> {
-    let source = scene("aad_scene.rs");
-    let dark = matches!(kind, Kind::Dark);
+    let source = module_theme("agent-activity-diagram");
+    let arm = format!("Kind::{kind:?})");
     let fills: Vec<(String, Rgba)> = entries(item(&source, "fn fill("))
         .into_iter()
-        .filter(|e| e.line.contains("true") == dark)
+        .filter(|e| e.line.contains(&arm))
         .map(|e| {
             let name = if e.key == "_" { "environment".to_owned() } else { e.key };
             (name, e.colours[0])
@@ -376,18 +424,9 @@ fn aad_fills(kind: Kind) -> Vec<(String, Rgba)> {
 
 #[test]
 fn agent_activitys_text_reads_on_every_kind_of_element() {
-    let source = scene("aad_scene.rs");
+    let source = module_theme("agent-activity-diagram");
     for kind in KINDS {
-        let own = field(
-            item(
-                &source,
-                match kind {
-                    Kind::Light => "const LIGHT: Palette",
-                    Kind::Dark => "const DARK: Palette",
-                },
-            ),
-            "text",
-        );
+        let own = field(palette_of(&source, kind), "text");
         for (name, fill) in aad_fills(kind) {
             for (reference, label) in [
                 (text(kind), "VS Code's editor.foreground"),
@@ -417,10 +456,10 @@ fn agent_activity_writes_on_an_element_in_the_text_colour_never_the_muted_one_or
     }
 }
 
-/// The supply chain's seven stage hues (`supply_chain_scene.rs`, `fn stage_colour`); the arm that catches the rest is
-/// the consumer's.
+/// The supply chain's seven stage hues (its module's `theme.rs`, `fn stage_colour`), one set for both themes; the arm
+/// that catches the rest is the consumer's.
 fn stages() -> Vec<(String, Rgba)> {
-    let found: Vec<(String, Rgba)> = entries(item(&scene("supply_chain_scene.rs"), "fn stage_colour("))
+    let found: Vec<(String, Rgba)> = entries(item(&module_theme("supply-chain"), "fn stage_colour("))
         .into_iter()
         .map(|e| {
             let name = if e.key == "_" { "Consumer".to_owned() } else { e.key };
@@ -443,14 +482,18 @@ fn stages() -> Vec<(String, Rgba)> {
     found
 }
 
-/// The colour a selected element is outlined in on the canvas.
-fn selected() -> Rgba {
-    constant(&scene("module_scene.rs"), "SELECTED")
+/// The colour a selected element is outlined in on the canvas in `kind`.
+fn selected(kind: Kind) -> Rgba {
+    let source = scene("module_scene.rs");
+    match kind {
+        Kind::Light => constant(&source, "SELECTED"),
+        Kind::Dark => constant(&source, "SELECTED_DARK"),
+    }
 }
 
-/// The pairs of `colours` closer than [`DISTINCT`], to each other or to the selection.
-fn too_close(colours: &[(String, Rgba)]) -> Vec<String> {
-    let selection = selected();
+/// The pairs of `colours` closer than [`DISTINCT`], to each other or to the selection in `kind`.
+fn too_close(colours: &[(String, Rgba)], kind: Kind) -> Vec<String> {
+    let selection = selected(kind);
     let mut close = Vec::new();
     for (at, (one, a)) in colours.iter().enumerate() {
         for (other, b) in &colours[at + 1..] {
@@ -469,26 +512,33 @@ fn too_close(colours: &[(String, Rgba)]) -> Vec<String> {
 
 #[test]
 fn supply_chains_stages_are_seven_distinct_readable_hues() {
-    // The scene draws the stages the same in both themes.
+    // The stage hues are the same in both themes; what is written on them is each theme's own.
     let stages = stages();
-    assert_eq!(too_close(&stages), Vec::<String>::new());
     let source = scene("supply_chain_scene.rs");
     let title_line = source
         .lines()
         .find(|l| l.contains("(\"stage\", node.attribute(\"stageTitle\")"))
         .expect("the stage title is written");
-    let title = rgba(literals(title_line).into_iter().rfind(|l| l.starts_with('#')).unwrap());
-    for (stage, hue) in &stages {
-        at_least(contrast_ratio(title, *hue), AA, || {
-            format!("the title ({title}) on {stage} ({hue})")
-        });
+    assert!(
+        title_line.contains("palette.on_stage"),
+        "the stage title is written in on_stage"
+    );
+    let theme = module_theme("supply-chain");
+    for kind in KINDS {
+        assert_eq!(too_close(&stages, kind), Vec::<String>::new(), "{kind:?}");
+        let title = field(palette_of(&theme, kind), "on_stage");
+        for (stage, hue) in &stages {
+            at_least(contrast_ratio(title, *hue), AA, || {
+                format!("the title ({title}) on {stage} ({hue}) in {kind:?}")
+            });
+        }
     }
 }
 
-/// Sankey's twelve palette words in `kind`'s mode (`sankey_scene.rs`, `fn palette`, light then dark on each line);
-/// the arm that catches the rest is grey, the word a node that names none is drawn in.
+/// Sankey's twelve palette words in `kind`'s mode (its module's `theme.rs`, `fn palette`, light then dark on each
+/// line); the arm that catches the rest is grey, the word a node that names none is drawn in.
 fn sankey(kind: Kind) -> Vec<(String, Rgba)> {
-    let found: Vec<(String, Rgba)> = entries(item(&scene("sankey_scene.rs"), "fn palette("))
+    let found: Vec<(String, Rgba)> = entries(item(&module_theme("sankey"), "fn palette("))
         .into_iter()
         .map(|e| {
             assert_eq!(e.colours.len(), 2, "`{}` gives a light and a dark colour", e.line);
@@ -515,7 +565,7 @@ fn sankeys_twelve_words_read_as_text_on_the_canvas_in_both_themes() {
 #[test]
 fn sankeys_twelve_words_stay_apart_and_away_from_the_selection_in_both_themes() {
     for kind in KINDS {
-        assert_eq!(too_close(&sankey(kind)), Vec::<String>::new(), "{kind:?}");
+        assert_eq!(too_close(&sankey(kind), kind), Vec::<String>::new(), "{kind:?}");
     }
 }
 
@@ -556,4 +606,205 @@ fn neither_causal_loop_nor_azure_pipeline_reads_a_token_its_theme_does_not_decla
         let missing: Vec<&String> = read.iter().filter(|t| declared.get(t.as_str()).is_none()).collect();
         assert!(missing.is_empty(), "{name} reads {missing:?}");
     }
+}
+
+// ---- every tool's colours per theme (task T087, FR-045) ---------------------------------------------------------------
+
+/// Each canvas `adp-shell` draws by hand, with the module whose `theme.rs` gives it its colours.
+const SCENES: [(&str, &str); 13] = [
+    ("aad_scene.rs", "agent-activity-diagram"),
+    ("ansible_scene.rs", "ansible-structure"),
+    ("databricks_scene.rs", "databricks"),
+    ("dotnet_scene.rs", "dotnet-dependency-graph"),
+    ("fdg_scene.rs", "functional-decomposition-graph"),
+    ("helm_scene.rs", "helm-chart"),
+    ("pipeline_scene.rs", "azure-devops-pipeline"),
+    ("rdf_scene.rs", "rdf"),
+    ("sankey_scene.rs", "sankey"),
+    ("sparql_scene.rs", "sparql"),
+    ("supply_chain_scene.rs", "supply-chain"),
+    ("wardley_scene.rs", "wardley-map"),
+    ("module_scene.rs", "c4"),
+];
+
+/// The crate name of a diagram module, as `adp-shell` uses it.
+fn crate_of(module: &str) -> String {
+    match module {
+        "agent-activity-diagram" => "agent_activity".to_owned(),
+        other => other.replace('-', "_"),
+    }
+}
+
+/// Every colour literal of `source` outside its tests.
+fn hex_literals(source: &str) -> Vec<String> {
+    let code = source.split("#[cfg(test)]").next().unwrap_or_default();
+    code.lines()
+        .filter(|l| !l.trim_start().starts_with("//"))
+        .flat_map(|l| literals(l).into_iter().filter(|x| Rgba::parse(x).is_some()))
+        .map(str::to_owned)
+        .collect()
+}
+
+#[test]
+fn every_canvas_drawn_by_hand_takes_its_colours_from_its_modules_theme_in_both_themes() {
+    for (name, module) in SCENES {
+        let source = scene(name);
+        let found = hex_literals(&source);
+        let allowed: &[&str] = if name == "module_scene.rs" {
+            // The selection colour of every canvas, light and dark.
+            &["#7c3aed", "#a78bfa"]
+        } else {
+            &[]
+        };
+        let stray: Vec<&String> = found.iter().filter(|c| !allowed.contains(&c.as_str())).collect();
+        assert!(stray.is_empty(), "{name} draws in colours of its own: {stray:?}");
+        assert!(
+            source.contains(&format!("adp_diagram_{}::theme", crate_of(module))),
+            "{name} reads its module's theme"
+        );
+        if module == "c4" {
+            // A C4 element is painted in its model's colours, the same in both themes, as Structurizr paints it.
+            continue;
+        }
+        let theme = module_theme(module);
+        let both = (theme.contains("const LIGHT: Palette") && theme.contains("const DARK: Palette"))
+            || (theme.contains("Kind::Light") && theme.contains("Kind::Dark"));
+        assert!(
+            both,
+            "{module}'s theme.rs gives a value for the light and the dark theme"
+        );
+        let mut per_theme = KINDS.map(|kind| {
+            if theme.contains("const LIGHT: Palette") {
+                entries(palette_of(&theme, kind))
+                    .into_iter()
+                    .flat_map(|e| e.colours)
+                    .collect::<Vec<_>>()
+            } else {
+                Vec::new()
+            }
+        });
+        if per_theme[0].is_empty() {
+            // A theme written as functions: light then dark on each line, or one arm per theme.
+            let all = hex_literals(&theme);
+            assert!(all.len() >= 2, "{module}'s theme.rs declares its colours");
+            per_theme = [vec![rgba(&all[0])], vec![rgba(&all[1])]];
+        }
+        assert!(!per_theme[0].is_empty(), "{module} has light colours");
+        assert_ne!(per_theme[0], per_theme[1], "{module}'s dark colours are its own");
+    }
+}
+
+#[test]
+fn a_tools_text_reads_on_its_own_surface_in_both_themes() {
+    for (module, pairs) in [
+        (
+            "azure-devops-pipeline",
+            &[("text", "surface"), ("muted", "surface"), ("text", "deployment_fill")][..],
+        ),
+        ("databricks", &[("text", "surface"), ("muted", "surface")][..]),
+        ("supply-chain", &[("text", "surface"), ("muted", "surface")][..]),
+        ("wardley-map", &[("text", "surface"), ("muted", "surface")][..]),
+        ("rdf", &[("text", "surface"), ("muted", "surface")][..]),
+        ("sparql", &[("text", "surface"), ("muted", "surface")][..]),
+        ("ansible-structure", &[("text", "surface"), ("muted", "surface")][..]),
+    ] {
+        let source = module_theme(module);
+        for kind in KINDS {
+            let body = palette_of(&source, kind);
+            for (fore, back) in pairs {
+                let (f, b) = (field(body, fore), field(body, back));
+                at_least(contrast_ratio(f, b), AA, || {
+                    format!("{module}'s {fore} ({f}) on its {back} ({b}) in {kind:?}")
+                });
+            }
+        }
+    }
+}
+
+#[test]
+fn a_tools_muted_writing_on_the_canvas_reads_on_editor_background_in_both_themes() {
+    // A Wardley map's stage labels and a pipeline's job counts are written straight on the canvas.
+    for (module, name) in [
+        ("wardley-map", "muted"),
+        ("azure-devops-pipeline", "muted"),
+        ("databricks", "muted"),
+    ] {
+        let source = module_theme(module);
+        for kind in KINDS {
+            let colour = field(palette_of(&source, kind), name);
+            at_least(contrast_ratio(colour, surface(kind)), AA, || {
+                format!("{module}'s {name} ({colour}) on editor.background in {kind:?}")
+            });
+        }
+    }
+}
+
+#[test]
+fn a_sankey_note_reads_on_the_canvas_in_both_themes() {
+    let source = module_theme("sankey");
+    let notes: Vec<Rgba> = entries(item(&source, "fn note("))
+        .into_iter()
+        .flat_map(|e| e.colours)
+        .collect();
+    assert_eq!(notes.len(), 2, "a note's colour, light and dark");
+    for (kind, note) in KINDS.into_iter().zip(notes) {
+        at_least(contrast_ratio(note, surface(kind)), AA, || {
+            format!("a note ({note}) on editor.background in {kind:?}")
+        });
+    }
+}
+
+#[test]
+fn a_causal_loops_caption_reads_on_the_canvas_in_both_themes() {
+    let cld = notation("causal-loop-diagram.dis");
+    for kind in KINDS {
+        for loop_kind in ["reinforcing", "balancing"] {
+            let name = format!("color.loop.{loop_kind}");
+            let caption = drawn_token(&cld, "causal-loop-diagram", kind, &name);
+            at_least(contrast_ratio(caption, surface(kind)), AA, || {
+                format!("a {loop_kind} loop's caption ({caption}) on editor.background in {kind:?}")
+            });
+        }
+    }
+    assert!(
+        !module_tokens("causal-loop-diagram", Kind::Dark).is_empty(),
+        "the dark theme has loop colours of its own"
+    );
+}
+
+#[test]
+fn the_notation_drawn_tools_without_a_dark_mode_get_one_from_their_module() {
+    for (spec, module) in [
+        ("dependency-graph.dis", "dependency-graph"),
+        ("timeline.dis", "timeline"),
+    ] {
+        let declared = notation(spec);
+        assert!(
+            declared["notation"]["theme"]["modes"]["dark"].is_null(),
+            "{spec} declares a dark mode of its own: its module need not"
+        );
+        let added = module_tokens(module, Kind::Dark);
+        assert!(
+            added.contains_key("color.surface"),
+            "{module} gives the dark theme a surface"
+        );
+        assert!(
+            module_tokens(module, Kind::Light).is_empty(),
+            "{module} leaves the light theme to its notation"
+        );
+    }
+    let graph = notation("dependency-graph.dis");
+    for kind in KINDS {
+        let back = drawn_token(&graph, "dependency-graph", kind, "color.surface");
+        for fore in ["color.text", "color.text.muted"] {
+            let colour = drawn_token(&graph, "dependency-graph", kind, fore);
+            at_least(contrast_ratio(colour, back), AA, || {
+                format!("the dependency graph's {fore} ({colour}) on its surface ({back}) in {kind:?}")
+            });
+        }
+    }
+    let moment = module_tokens("timeline", Kind::Dark)["color.accent"];
+    at_least(contrast_ratio(moment, surface(Kind::Dark)), GRAPHICAL, || {
+        format!("a timeline's moment ({moment}) on editor.background in the dark theme")
+    });
 }

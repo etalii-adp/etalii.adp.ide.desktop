@@ -12,7 +12,7 @@ use adp_scene::scene::Primitive;
 
 use super::{Harness, texts_of};
 
-fn automotive() -> Harness {
+pub(super) fn automotive() -> Harness {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/etalii/supply-chain/automotive");
     Harness::open_from(
         &folder,

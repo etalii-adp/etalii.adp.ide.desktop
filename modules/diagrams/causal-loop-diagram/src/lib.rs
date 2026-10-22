@@ -28,6 +28,7 @@ pub mod metrics;
 pub mod reading;
 pub mod ring;
 pub mod self_organizing;
+pub mod theme;
 pub mod unreadable;
 
 use std::collections::HashMap;

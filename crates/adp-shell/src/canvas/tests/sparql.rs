@@ -12,7 +12,7 @@ use adp_scene::scene::{Owner, Primitive};
 
 use super::{Harness, texts_of};
 
-fn groups() -> Harness {
+pub(super) fn groups() -> Harness {
     let folder: PathBuf = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/w3c/sparql/groups");
     Harness::open_from(&folder, &["groups.adp", "groups.rq"], "groups.adp", "groups.adp")
 }

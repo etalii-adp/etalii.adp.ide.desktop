@@ -27,6 +27,7 @@ pub mod row_context;
 pub mod session;
 pub mod store;
 pub mod target_rename;
+pub mod theme;
 pub mod validator;
 pub mod values;
 pub mod vocabulary;

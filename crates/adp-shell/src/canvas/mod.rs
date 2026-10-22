@@ -587,14 +587,19 @@ impl DiagramTab {
                 .and_then(|m| m.get(mode))
                 .is_some()
         };
-        let mode = if dark && has_mode("dark") {
+        // The tokens the tool's module gives the notation in the active theme, where the notation declares none.
+        let kind = if dark { Kind::Dark } else { Kind::Light };
+        let tool_tokens = tool_tokens(&self.opened.origin, kind);
+        let mode = if dark && (has_mode("dark") || !tool_tokens.is_empty()) {
             Some("dark")
         } else if !dark && has_mode("light") {
             Some("light")
         } else {
             None
         };
-        let notation_theme = NotationTheme::of(specification, mode);
+        let notation_theme = NotationTheme::of(specification, mode)
+            .with_tokens(tool_tokens.iter().copied())
+            .with_tokens(selection_token(specification, mode));
         let surface = (dark && mode.is_none())
             .then(|| notation_theme.text_of("color.surface"))
             .flatten()
@@ -766,29 +771,31 @@ impl DiagramTab {
         self.selection.retain(|id| known.contains(id.as_str()));
         // A Wardley map is drawn in its 0..1 space on a square of 1000 canvas units (T070), its marks mapped back by
         // that scale.
+        // Every module draws in the colours of the active theme (FR-045).
+        let theme = if key.dark { Kind::Dark } else { Kind::Light };
         let (built, scaled) = if self.opened.origin == adp_diagram_wardley_map::ORIGIN {
-            wardley_scene::build(&elements, &self.selection, self.arbiter.moving())
+            wardley_scene::build(&elements, &self.selection, self.arbiter.moving(), theme)
         } else if self.opened.origin == adp_diagram_sankey::ORIGIN {
             (
-                sankey_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                sankey_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_helm_chart::ORIGIN {
             // A Helm chart's boxes are moved by the top-left the registration stores (`onElementMoved`).
             (
-                helm_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                helm_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_sparql::ORIGIN {
             // A query's nodes and frames are moved by the top-left the registration stores (`onElementMoved`).
             (
-                sparql_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                sparql_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_ansible_structure::ORIGIN {
             // An Ansible structure's boxes are moved by the top-left the registration stores (`onElementMoved`).
             (
-                ansible_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                ansible_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
                 HashMap::new(),
             )
         } else if rdf_scene::is_rdf(&self.opened.origin) {
@@ -799,37 +806,40 @@ impl DiagramTab {
                     &elements,
                     &self.selection,
                     self.arbiter.moving(),
-                    key.dark,
+                    theme,
                 ),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_supply_chain::ORIGIN {
             // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
             (
-                supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
                 HashMap::new(),
             )
         } else if adp_diagram_databricks::ORIGINS.contains(&self.opened.origin.as_str()) {
             // A Databricks box or frame is moved by the top-left its registration's `layout:` block stores.
-            (databricks_scene::build(&elements, &self.selection), HashMap::new())
+            (
+                databricks_scene::build(&elements, &self.selection, theme),
+                HashMap::new(),
+            )
         } else if self.opened.origin == adp_diagram_dotnet_dependency_graph::ORIGIN {
             // A .NET dependency graph's boxes are moved by the top-left the registration stores (`onElementMoved`).
             (
-                dotnet_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                dotnet_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_azure_devops_pipeline::ORIGIN {
             // A pipeline arranges itself from its dependencies: nothing on it is dragged.
-            (pipeline_scene::build(&elements, &self.selection), HashMap::new())
+            (pipeline_scene::build(&elements, &self.selection, theme), HashMap::new())
         } else if self.opened.origin == adp_diagram_agent_activity::ORIGIN {
             // An activity file's cards are laid out on their rings by the module, and locked by their centre.
             (
-                aad_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                aad_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
                 HashMap::new(),
             )
         } else {
             (
-                module_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
+                module_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
                 HashMap::new(),
             )
         };
@@ -2282,6 +2292,30 @@ impl DiagramTab {
 /// The entries of a context menu, a separator between groups; a submenu is a heading that opens its entries beneath
 /// it, indented, inside the same menu, so a press on them is a press on the menu (an action with `items` instead of a
 /// run, as the standalone host's menus nest them). The action chosen is put in `chosen`.
+/// The notation tokens a tool's module gives a value of its own in the active theme, `kind`, where the notation it is
+/// drawn from declares none for that theme (FR-045, each module's `theme.rs`).
+fn tool_tokens(origin: &str, kind: Kind) -> &'static [(&'static str, &'static str)] {
+    match origin {
+        adp_diagram_causal_loop::ORIGIN => adp_diagram_causal_loop::theme::tokens(kind),
+        adp_diagram_dependency_graph::ORIGIN => adp_diagram_dependency_graph::theme::tokens(kind),
+        adp_diagram_timeline::ORIGIN => adp_diagram_timeline::theme::tokens(kind),
+        _ => &[],
+    }
+}
+
+/// The selected colour of the dark theme where the notation's dark mode gives none, so a selection drawn from a
+/// notation is lifted on the dark canvas as a module's is (`module_scene::SELECTED_DARK`).
+fn selection_token(
+    specification: &adp_disl::DislSpecification,
+    mode: Option<&str>,
+) -> Option<(&'static str, &'static str)> {
+    let declared = specification
+        .root()
+        .pointer("/notation/theme/modes/dark/color.selected")
+        .is_some();
+    (mode == Some("dark") && !declared).then_some(("color.selected", module_scene::SELECTED_DARK))
+}
+
 fn menu_entries(ui: &mut egui::Ui, groups: &[ActionGroup], id: egui::Id, chosen: &mut Option<String>) {
     for (index, group) in groups.iter().enumerate() {
         if index > 0 && !group.actions.is_empty() {

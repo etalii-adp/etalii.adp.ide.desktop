@@ -27,13 +27,17 @@ use adp_diagram::DiagramElement;
 use adp_diagram_sparql::mapper::{
     ANNOTATION_TYPE, EDGE_TYPE, HEADER_TYPE, REGION_TYPE, TERM_TYPE, TRUNCATION_TYPE, VARIABLE_TYPE, modifier_rows,
 };
+use adp_diagram_sparql::theme::palette;
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::notation::catalog::MarkerKind;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, marker_shape};
 use adp_scene::style::{Colour, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::{AVERAGE_ADVANCE, ModuleScene, SELECTED, SELECTED_WIDTH, edge_point, font, number, text};
+use super::module_scene::{
+    AVERAGE_ADVANCE, ModuleScene, SELECTED_WIDTH, edge_point, font, number, selection_colour, text,
+};
 
 /// A node's drawn size, in the module's canvas units (`NODE_WIDTH`, `NODE_HEIGHT`).
 const NODE_WIDTH: f64 = 170.0;
@@ -45,34 +49,6 @@ const ANNOTATION_HEIGHT: f64 = 14.0;
 
 /// Where the header band's line sits, above the root grid the layout starts below it.
 const HEADER_Y: f64 = 24.0;
-
-/// The theme's tokens.
-struct Palette {
-    surface: &'static str,
-    text: &'static str,
-    muted: &'static str,
-    border: &'static str,
-    primary: &'static str,
-    warning: &'static str,
-}
-
-const LIGHT: Palette = Palette {
-    surface: "#ffffff",
-    text: "#1f1e1c",
-    muted: "#6b6a65",
-    border: "#8a8880",
-    primary: "#2f6fb2",
-    warning: "#b7791f",
-};
-
-const DARK: Palette = Palette {
-    surface: "#1f1e1c",
-    text: "#f1efe8",
-    muted: "#a9a79f",
-    border: "#b4b2a9",
-    primary: "#2f6fb2",
-    warning: "#b7791f",
-};
 
 fn stroke(colour: &str, width: f64, dash: &[f64], opacity: f64) -> Stroke {
     Stroke {
@@ -112,14 +88,15 @@ fn is_node(element: &DiagramElement) -> bool {
 }
 
 /// The scene of `elements`, a SPARQL query view's rendering, with `selection` outlined, the elements `moving` carried
-/// by the drag in flight, in the dark palette when `dark`.
+/// by the drag in flight, in the palette of the active theme, `theme`.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let palette = if dark { &DARK } else { &LIGHT };
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let mut rects: HashMap<String, Rect> = HashMap::new();
     for element in elements.iter().filter(|e| e.element_type == REGION_TYPE || is_node(e)) {
@@ -187,7 +164,7 @@ pub fn build(
             _ => &[],
         };
         let outline = if selected.contains(region.id.as_str()) {
-            stroke(SELECTED, SELECTED_WIDTH, dash, 1.0)
+            stroke(highlight, SELECTED_WIDTH, dash, 1.0)
         } else {
             stroke(palette.border, 1.0, dash, 1.0)
         };
@@ -239,7 +216,7 @@ pub fn build(
         };
         let is_selected = selected.contains(edge.id.as_str());
         let line = if is_selected {
-            stroke(SELECTED, SELECTED_WIDTH, dash, 1.0)
+            stroke(highlight, SELECTED_WIDTH, dash, 1.0)
         } else {
             stroke(palette.border, 1.5, dash, 1.0)
         };
@@ -281,7 +258,7 @@ pub fn build(
         let subquery = !variable && node.attribute("annotation") == "subquery";
         let dash: &[f64] = if variable { &[5.0, 3.0] } else { &[] };
         let outline = if selected.contains(node.id.as_str()) {
-            stroke(SELECTED, SELECTED_WIDTH, dash, 1.0)
+            stroke(highlight, SELECTED_WIDTH, dash, 1.0)
         } else {
             stroke(palette.border, if subquery { 2.0 } else { 1.0 }, dash, 1.0)
         };
@@ -385,7 +362,7 @@ pub fn build(
             font(
                 11.0,
                 if is_selected { 600 } else { 400 },
-                Some(if is_selected { SELECTED } else { palette.muted }),
+                Some(if is_selected { highlight } else { palette.muted }),
             ),
         ));
         // The badge is centred on its anchor, as the canvas library centres an element on its position.

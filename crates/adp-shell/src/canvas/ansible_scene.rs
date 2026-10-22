@@ -22,53 +22,21 @@ use adp_diagram::{DiagramElement, ElementKind};
 use adp_diagram_ansible_structure::mapper::{
     EDGE_TYPE, INVENTORY_TYPE, PLAY_TYPE, PLAYBOOK_TYPE, ROLE_TYPE, TASK_FILE_TYPE, VARIABLE_FOLDER_TYPE,
 };
+use adp_diagram_ansible_structure::theme::palette;
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::notation::catalog::MarkerKind;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, marker_shape};
 use adp_scene::style::{Colour, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::{ModuleScene, SELECTED, SELECTED_WIDTH, font, number, text};
+use super::module_scene::{ModuleScene, SELECTED_WIDTH, font, number, selection_colour, text};
 
 /// What the canvas says of a folder holding nothing recognised (`canvas.empty`).
 const EMPTY: &str = "Nothing here is laid out the way Ansible expects, so there is nothing to draw. Playbooks at the folder root or under playbooks/, roles under roles/, inventories under inventories/.";
 
 /// The length of a missing target's stub.
 const STUB: f64 = 48.0;
-
-/// The theme's tokens (`notation.theme`).
-struct Palette {
-    surface: &'static str,
-    raised: &'static str,
-    text: &'static str,
-    muted: &'static str,
-    border: &'static str,
-    primary: &'static str,
-    warning: &'static str,
-    hues: [&'static str; 6],
-}
-
-const LIGHT: Palette = Palette {
-    surface: "#ffffff",
-    raised: "#0000000f",
-    text: "#1f1e1c",
-    muted: "#6b6a65",
-    border: "#8a8880",
-    primary: "#2f6fb2",
-    warning: "#b7791f",
-    hues: ["#4f8cc9", "#57a773", "#c96f4f", "#8a6fc9", "#c9a84f", "#4fb5c9"],
-};
-
-const DARK: Palette = Palette {
-    surface: "#1f1e1c",
-    raised: "#ffffff0f",
-    text: "#f1efe8",
-    muted: "#a9a79f",
-    border: "#b4b2a9",
-    primary: "#2f6fb2",
-    warning: "#b7791f",
-    hues: ["#7fb0e0", "#7fc79a", "#e0947a", "#ab96e0", "#e0c87f", "#7fd0e0"],
-};
 
 fn stroke(colour: &str, width: f64, dash: &[f64], opacity: f64) -> Stroke {
     Stroke {
@@ -90,14 +58,15 @@ pub fn rect_of(element: &DiagramElement) -> Rect {
 }
 
 /// The scene of `elements`, an Ansible structure view's rendering, with `selection` outlined, the elements `moving`
-/// carried by the drag in flight, in the dark palette when `dark`.
+/// carried by the drag in flight, in the palette of the active theme, `theme`.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let palette = if dark { &DARK } else { &LIGHT };
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let mut rects: HashMap<String, Rect> = HashMap::new();
     for element in elements.iter().filter(|e| e.kind == ElementKind::Node) {
@@ -135,7 +104,7 @@ pub fn build(
                 1.5
             };
             let line = if is_selected {
-                stroke(SELECTED, SELECTED_WIDTH, &[3.0, 3.0], 1.0)
+                stroke(highlight, SELECTED_WIDTH, &[3.0, 3.0], 1.0)
             } else {
                 stroke(palette.warning, width, &[3.0, 3.0], 1.0)
             };
@@ -178,7 +147,7 @@ pub fn build(
             _ => (palette.muted, 1.5, &[], 1.0),
         };
         let line = if is_selected {
-            stroke(SELECTED, SELECTED_WIDTH, dash, 1.0)
+            stroke(highlight, SELECTED_WIDTH, dash, 1.0)
         } else {
             stroke(colour, width, dash, opacity)
         };
@@ -243,7 +212,7 @@ pub fn build(
             _ => (palette.raised.to_owned(), stroke(palette.border, 1.5, &[], 1.0), 4.0),
         };
         let outline = if selected.contains(node.id.as_str()) {
-            stroke(SELECTED, SELECTED_WIDTH, &outline.dash, 1.0)
+            stroke(highlight, SELECTED_WIDTH, &outline.dash, 1.0)
         } else {
             outline
         };

@@ -23,24 +23,20 @@ use std::collections::{HashMap, HashSet};
 
 use adp_diagram::DiagramElement;
 use adp_diagram_wardley_map::mapper;
+use adp_diagram_wardley_map::theme::palette;
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, TextRun};
 use adp_scene::style::{Colour, Font, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::ModuleScene;
+use super::module_scene::{ModuleScene, selection_colour};
 use super::placement::Mapping;
 
 /// The side of the square the map's 0..1 space is drawn on, in canvas units (`SPACE`).
 pub const SPACE: f64 = 1000.0;
 /// The radius of a mark (`DOT`).
 const DOT: f64 = 9.0;
-/// The selected outline, as the scene builder paints it.
-const SELECTED: &str = "#7c3aed";
-/// The muted colour of a dependency, a stage label and a decorator line.
-const MUTED: &str = "#6b7280";
-/// The band colour, drawn at each stage's opacity.
-const BAND: &str = "#9ca3af";
 /// The opacity of each stage's band, genesis first (`wardley.css`), over a faint tint so a label stays legible in
 /// either theme.
 const BAND_OPACITY: [f64; 4] = [0.35, 0.5, 0.65, 0.8];
@@ -122,12 +118,16 @@ fn line(owner: &Owner, from: Point, to: Point, line: Stroke) -> Primitive {
 }
 
 /// The scene of `elements`, a Wardley view's rendering, with `selection` outlined and the elements `moving` carried
-/// by the drag in flight; with it, how each dragged mark's centre maps back onto the map's 0..1 space.
+/// by the drag in flight, in the palette of the active theme, `theme`; with it, how each dragged mark's centre maps
+/// back onto the map's 0..1 space.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
+    theme: Kind,
 ) -> (ModuleScene, HashMap<String, Mapping>) {
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let offset = |id: &str| -> (f64, f64) {
         match moving {
@@ -155,7 +155,7 @@ pub fn build(
                 &canvas,
                 Role::Background,
                 Path::rounded_rect(Rect::new(start * SPACE, 0.0, (end - start) * SPACE, SPACE), 0.0),
-                Some(BAND),
+                Some(palette.band),
                 None,
                 opacity * BAND_TINT,
             ));
@@ -164,7 +164,7 @@ pub fn build(
                     &canvas,
                     at(start, 0.0),
                     at(start, 1.0),
-                    stroke(Some(MUTED), 1.0, &[6.0, 6.0]),
+                    stroke(Some(palette.muted), 1.0, &[6.0, 6.0]),
                 ));
             }
             primitives.push(text(
@@ -173,7 +173,7 @@ pub fn build(
                 name.to_owned(),
                 Point::new((start + end) / 2.0 * SPACE, SPACE + 30.0),
                 TextAnchor::Middle,
-                font(20.0, 400, Some(MUTED)),
+                font(20.0, 400, Some(palette.muted)),
             ));
         }
         primitives.push(line(&canvas, at(0.0, 0.0), at(0.0, 1.0), stroke(None, 2.0, &[])));
@@ -222,9 +222,9 @@ pub fn build(
             &owner,
             Role::Body,
             Path::rounded_rect(area, 0.0),
-            Some(MUTED),
+            Some(palette.muted),
             Some(stroke(
-                is_selected.then_some(SELECTED),
+                is_selected.then_some(highlight),
                 if is_selected { 3.0 } else { 1.0 },
                 &[4.0, 4.0],
             )),
@@ -236,7 +236,7 @@ pub fn build(
             Path::rounded_rect(area, 0.0),
             None,
             Some(stroke(
-                is_selected.then_some(SELECTED),
+                is_selected.then_some(highlight),
                 if is_selected { 3.0 } else { 1.0 },
                 &[4.0, 4.0],
             )),
@@ -248,7 +248,7 @@ pub fn build(
             attitude.attribute("kind").to_owned(),
             Point::new(area.x + 6.0, area.y + 16.0),
             TextAnchor::Start,
-            font(12.0, 600, Some(MUTED)),
+            font(12.0, 600, Some(palette.muted)),
         ));
         boxes.push((attitude.id.clone(), area));
     }
@@ -281,7 +281,7 @@ pub fn build(
             if flow {
                 stroke(None, 3.0, &[])
             } else {
-                stroke(Some(MUTED), 1.5, &[])
+                stroke(Some(palette.muted), 1.5, &[])
             },
         ));
         let context = link.attribute("context");
@@ -292,7 +292,7 @@ pub fn build(
                 context.to_owned(),
                 Point::new((from.x + to.x) / 2.0, (from.y + to.y) / 2.0 - 6.0),
                 TextAnchor::Middle,
-                font(11.0, 400, Some(MUTED)),
+                font(11.0, 400, Some(palette.muted)),
             ));
         }
     }
@@ -304,20 +304,25 @@ pub fn build(
         let centre = marks[element.id.as_str()];
         let is_selected = selected.contains(element.id.as_str());
         let outline = if is_selected {
-            stroke(Some(SELECTED), 3.0, &[])
+            stroke(Some(highlight), 3.0, &[])
         } else {
             stroke(None, 2.0, &[])
         };
         let mark = Rect::centred(centre, 2.0 * DOT, 2.0 * DOT);
         if !element.attribute("evolveMaturity").is_empty() {
             let target = Point::new(number(element, "evolveMaturity") * SPACE, centre.y);
-            primitives.push(line(&owner, centre, target, stroke(Some(MUTED), 2.0, &[8.0, 6.0])));
+            primitives.push(line(
+                &owner,
+                centre,
+                target,
+                stroke(Some(palette.muted), 2.0, &[8.0, 6.0]),
+            ));
             primitives.push(shape(
                 &owner,
                 Role::Decoration("evolve".to_owned()),
                 Path::ellipse(Rect::centred(target, 2.0 * DOT, 2.0 * DOT)),
                 None,
-                Some(stroke(Some(MUTED), 2.0, &[4.0, 3.0])),
+                Some(stroke(Some(palette.muted), 2.0, &[4.0, 3.0])),
                 1.0,
             ));
             let becomes = element.attribute("evolveName");
@@ -328,7 +333,7 @@ pub fn build(
                     becomes.to_owned(),
                     Point::new(target.x + DOT + 6.0, target.y + 4.0),
                     TextAnchor::Start,
-                    font(13.0, 400, Some(MUTED)),
+                    font(13.0, 400, Some(palette.muted)),
                 ));
             }
         }
@@ -337,7 +342,7 @@ pub fn build(
                 &owner,
                 Role::Body,
                 Path::rounded_rect(mark, 0.0),
-                Some("#111827"),
+                Some(palette.text),
                 Some(outline),
                 1.0,
             )),
@@ -354,7 +359,7 @@ pub fn build(
                     &owner,
                     Role::Body,
                     Path::ellipse(mark),
-                    Some("#ffffff"),
+                    Some(palette.surface),
                     Some(outline),
                     1.0,
                 ));
@@ -363,7 +368,7 @@ pub fn build(
                 &owner,
                 Role::Body,
                 Path::ellipse(mark),
-                Some("#ffffff"),
+                Some(palette.surface),
                 Some(outline),
                 1.0,
             )),
@@ -396,7 +401,7 @@ pub fn build(
             font(
                 14.0,
                 if is_selected { 600 } else { 400 },
-                is_selected.then_some(SELECTED),
+                is_selected.then_some(highlight),
             ),
         ));
         labels.push((
@@ -420,7 +425,7 @@ pub fn build(
                 strategy.join(" · "),
                 Point::new(name_at.x, name_at.y + 14.0),
                 TextAnchor::Start,
-                font(12.0, 400, Some(MUTED)),
+                font(12.0, 400, Some(palette.muted)),
             ));
         }
         if is_selected {
@@ -456,7 +461,7 @@ pub fn build(
             &owner,
             centre,
             Point::new(centre.x + 16.0, centre.y),
-            stroke(is_selected.then_some(SELECTED), 3.0, dash),
+            stroke(is_selected.then_some(highlight), 3.0, dash),
         ));
         primitives.push(text(
             &owner,
@@ -464,7 +469,7 @@ pub fn build(
             accelerator.attribute("name").to_owned(),
             Point::new(centre.x + 22.0, centre.y + 4.0),
             TextAnchor::Start,
-            font(13.0, 400, is_selected.then_some(SELECTED)),
+            font(13.0, 400, is_selected.then_some(highlight)),
         ));
         boxes.push((
             accelerator.id.clone(),
@@ -483,7 +488,7 @@ pub fn build(
             value,
             position,
             TextAnchor::Start,
-            font(14.0, 400, is_selected.then_some(SELECTED)),
+            font(14.0, 400, is_selected.then_some(highlight)),
         ));
         boxes.push((
             note.id.clone(),
@@ -507,8 +512,8 @@ pub fn build(
                 owner: owner.clone(),
                 role: Role::Body,
                 path: Path::ellipse(ring),
-                fill: Some(Colour::value("#ffffff")),
-                stroke: Some(stroke(is_selected.then_some(SELECTED), 1.5, &[])),
+                fill: Some(Colour::value(palette.surface)),
+                stroke: Some(stroke(is_selected.then_some(highlight), 1.5, &[])),
                 opacity: 1.0,
                 tooltip: Some(annotation.attribute("text").to_owned()),
             }));

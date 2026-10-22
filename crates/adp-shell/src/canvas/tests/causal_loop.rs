@@ -12,7 +12,7 @@ use eframe::egui::{Modifiers, PointerButton};
 
 use super::{Harness, bodies, texts_of};
 
-fn reference() -> Harness {
+pub(super) fn reference() -> Harness {
     let folder =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/systems/causal-loop-diagram/reference");
     Harness::open_from(

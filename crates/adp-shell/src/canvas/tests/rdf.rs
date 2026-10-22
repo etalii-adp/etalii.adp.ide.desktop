@@ -10,6 +10,7 @@ use adp_diagram::{DiagramElement, ElementKind};
 use adp_diagram_rdf::payload::Payload;
 use adp_scene::Rect;
 use adp_scene::scene::{HookKind, Owner, Primitive, Role};
+use adp_theme::Kind;
 
 use super::super::rdf_scene::{self, CARD_WIDTH, CONCEPT_HEIGHT, CONCEPT_WIDTH, REGION_WIDTH, SHAPE_CARD_WIDTH};
 use super::{Harness, texts_of};
@@ -211,7 +212,7 @@ fn a_data_graph_card_wears_its_badges_and_rows_and_a_blank_card_is_dashed_withou
         ),
         truncation(rdf_scene::RDF_TRUNCATION, 1000, 1200),
     ];
-    let built = rdf_scene::build("w3c/rdf", &elements, &[], None, false);
+    let built = rdf_scene::build("w3c/rdf", &elements, &[], None, Kind::Light);
     let texts = texts_of(&built.scene);
     for label in [
         "ex:a",
@@ -327,7 +328,7 @@ fn an_ontology_draws_rounds_for_classes_boxes_for_datatypes_and_each_axiom_with_
         ),
         truncation(rdf_scene::OWL_TRUNCATION, 3, 9),
     ];
-    let built = rdf_scene::build("w3c/owl", &elements, &[], None, true);
+    let built = rdf_scene::build("w3c/owl", &elements, &[], None, Kind::Dark);
     let texts = texts_of(&built.scene);
     for label in [
         "Pizza",
@@ -424,7 +425,7 @@ fn a_scheme_draws_its_regions_under_its_concepts_and_its_three_edge_languages() 
         ),
         truncation(rdf_scene::SKOS_TRUNCATION, 5, 7),
     ];
-    let built = rdf_scene::build("w3c/skos", &elements, &[], None, false);
+    let built = rdf_scene::build("w3c/skos", &elements, &[], None, Kind::Light);
     let texts = texts_of(&built.scene);
     for label in [
         "Animals",
@@ -530,7 +531,7 @@ fn a_shapes_card_lists_its_targets_and_rows_and_a_deactivated_shape_is_faded() {
         ),
         truncation(rdf_scene::SHACL_TRUNCATION, 1, 2),
     ];
-    let built = rdf_scene::build("w3c/shacl", &elements, &[], None, false);
+    let built = rdf_scene::build("w3c/shacl", &elements, &[], None, Kind::Light);
     let texts = texts_of(&built.scene);
     for label in [
         "ex:PersonShape — Person",
@@ -569,7 +570,7 @@ fn a_selected_card_is_outlined_and_hooked_and_a_moving_one_is_carried() {
         Payload::new().text("display", "ex:a"),
     )];
     let ids = ["res:a".to_owned()];
-    let built = rdf_scene::build("w3c/rdf", &elements, &ids, Some((&ids, (5.0, 5.0))), false);
+    let built = rdf_scene::build("w3c/rdf", &elements, &ids, Some((&ids, (5.0, 5.0))), Kind::Light);
     let hooked = built
         .scene
         .primitives

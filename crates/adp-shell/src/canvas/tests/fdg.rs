@@ -13,7 +13,7 @@ use eframe::egui::{self, Modifiers, PointerButton};
 
 use super::{Harness, texts_of};
 
-fn field_service() -> Harness {
+pub(super) fn field_service() -> Harness {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../parity/fixtures/etalii/functional-decomposition-graph/field-service");
     Harness::open_from(

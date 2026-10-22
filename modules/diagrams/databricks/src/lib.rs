@@ -36,6 +36,7 @@ pub mod registration_layout;
 pub mod rules;
 pub mod selection;
 pub mod store;
+pub mod theme;
 pub mod toolbox;
 pub mod view;
 pub mod writer;

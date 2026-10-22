@@ -32,6 +32,7 @@ pub mod plugin;
 pub mod reader;
 pub mod registration_layout;
 pub mod store;
+pub mod theme;
 pub mod view;
 pub mod yaml;
 

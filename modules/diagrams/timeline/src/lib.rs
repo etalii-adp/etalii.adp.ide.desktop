@@ -25,6 +25,7 @@ pub mod placement;
 pub mod reading;
 pub mod ruler;
 pub mod scale;
+pub mod theme;
 pub mod times;
 
 use std::rc::Rc;

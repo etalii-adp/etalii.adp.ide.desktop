@@ -37,13 +37,15 @@ use std::collections::{HashMap, HashSet};
 
 use adp_diagram::DiagramElement;
 use adp_diagram_rdf::payload::{field, flag, list, number, records, text as payload_text};
+use adp_diagram_rdf::theme::{Palette, palette};
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::notation::catalog::MarkerKind;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, marker_shape};
 use adp_scene::style::{Colour, Font, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::{ANCHOR_RADIUS, AVERAGE_ADVANCE, ModuleScene, SELECTED, SELECTED_WIDTH, font, text};
+use super::module_scene::{ANCHOR_RADIUS, AVERAGE_ADVANCE, ModuleScene, SELECTED_WIDTH, font, selection_colour, text};
 
 /// The data graph's element types (`RdfElementMapper`).
 pub const RDF_RESOURCE: &str = "w3c/rdf+resource";
@@ -93,37 +95,6 @@ const SHACL_LINE_HEIGHT: f64 = 22.0;
 
 /// The size a node's label is set at (`LABEL_FONT_SIZE`).
 const LABEL_FONT_SIZE: f64 = 13.0;
-
-/// The theme's tokens (`notation.theme` of the family's specifications).
-struct Palette {
-    surface: &'static str,
-    text: &'static str,
-    muted: &'static str,
-    border: &'static str,
-    outline: &'static str,
-    primary: &'static str,
-    warning: &'static str,
-}
-
-const LIGHT: Palette = Palette {
-    surface: "#ffffff",
-    text: "#0f172a",
-    muted: "#64748b",
-    border: "#e2e8f0",
-    outline: "#8892a6",
-    primary: "#32cd32",
-    warning: "#b45309",
-};
-
-const DARK: Palette = Palette {
-    surface: "#1e293b",
-    text: "#f1f5f9",
-    muted: "#94a3b8",
-    border: "#334155",
-    outline: "#8892a6",
-    primary: "#32cd32",
-    warning: "#fbbf24",
-};
 
 fn stroke(colour: &str, width: f64, dash: &[f64]) -> Stroke {
     Stroke {
@@ -306,6 +277,8 @@ struct LineStyle<'a> {
 /// What a reading's builder gathers.
 struct Builder<'a> {
     palette: &'static Palette,
+    /// The colour a selected element is outlined in.
+    highlight: &'static str,
     selected: HashSet<&'a str>,
     moving: Option<(&'a [String], (f64, f64))>,
     /// Every node's box as placed, and as drawn with the drag in flight; whether it is round.
@@ -318,9 +291,10 @@ struct Builder<'a> {
 }
 
 impl<'a> Builder<'a> {
-    fn new(selection: &'a [String], moving: Option<(&'a [String], (f64, f64))>, dark: bool) -> Self {
+    fn new(selection: &'a [String], moving: Option<(&'a [String], (f64, f64))>, theme: Kind) -> Self {
         Builder {
-            palette: if dark { &DARK } else { &LIGHT },
+            palette: palette(theme),
+            highlight: selection_colour(theme),
             selected: selection.iter().map(String::as_str).collect(),
             moving,
             rects: HashMap::new(),
@@ -368,7 +342,7 @@ impl<'a> Builder<'a> {
         let owner = Owner::Relation(edge.id.clone());
         let is_selected = self.is_selected(&edge.id);
         let mut line = if is_selected {
-            stroke(SELECTED, SELECTED_WIDTH, style.dash)
+            stroke(self.highlight, SELECTED_WIDTH, style.dash)
         } else {
             stroke(style.colour, style.width, style.dash)
         };
@@ -410,7 +384,7 @@ impl<'a> Builder<'a> {
         let owner = Owner::Element(id.to_owned());
         let outline = if self.is_selected(id) {
             Stroke {
-                colour: Some(Colour::value(SELECTED)),
+                colour: Some(Colour::value(self.highlight)),
                 width: SELECTED_WIDTH,
                 ..outline
             }
@@ -587,19 +561,19 @@ pub fn is_rdf(origin: &str) -> bool {
 }
 
 /// The scene of `elements`, the reading `origin`'s rendering, with `selection` outlined, the elements `moving`
-/// carried by the drag in flight, in the dark palette when `dark`.
+/// carried by the drag in flight, in the palette of the active theme, `theme`.
 pub fn build(
     origin: &str,
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
     match origin {
-        "w3c/owl" => build_owl(elements, selection, moving, dark),
-        "w3c/skos" => build_skos(elements, selection, moving, dark),
-        "w3c/shacl" => build_shacl(elements, selection, moving, dark),
-        _ => build_rdf(elements, selection, moving, dark),
+        "w3c/owl" => build_owl(elements, selection, moving, theme),
+        "w3c/skos" => build_skos(elements, selection, moving, theme),
+        "w3c/shacl" => build_shacl(elements, selection, moving, theme),
+        _ => build_rdf(elements, selection, moving, theme),
     }
 }
 
@@ -608,9 +582,9 @@ pub fn build_rdf(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let mut b = Builder::new(selection, moving, dark);
+    let mut b = Builder::new(selection, moving, theme);
     let palette = b.palette;
     let nodes: Vec<&DiagramElement> = elements.iter().filter(|e| e.element_type == RDF_RESOURCE).collect();
     for node in &nodes {
@@ -663,9 +637,9 @@ pub fn build_owl(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let mut b = Builder::new(selection, moving, dark);
+    let mut b = Builder::new(selection, moving, theme);
     let palette = b.palette;
     let nodes: Vec<&DiagramElement> = elements
         .iter()
@@ -793,9 +767,9 @@ pub fn build_skos(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let mut b = Builder::new(selection, moving, dark);
+    let mut b = Builder::new(selection, moving, theme);
     let palette = b.palette;
     // Regions first, schemes before collections, so the concepts they hold draw over them.
     let regions: Vec<&DiagramElement> = elements
@@ -925,9 +899,9 @@ pub fn build_shacl(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let mut b = Builder::new(selection, moving, dark);
+    let mut b = Builder::new(selection, moving, theme);
     let palette = b.palette;
     let shapes: Vec<&DiagramElement> = elements.iter().filter(|e| e.element_type == SHACL_SHAPE).collect();
     for shape in &shapes {

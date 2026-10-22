@@ -11,7 +11,7 @@ use eframe::egui::PointerButton;
 
 use super::{Harness, bodies, texts_of};
 
-fn research_assistant() -> Harness {
+pub(super) fn research_assistant() -> Harness {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../parity/fixtures/etalii/agent-behavior-modelling/research-assistant");
     Harness::open_from(

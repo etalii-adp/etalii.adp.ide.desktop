@@ -62,6 +62,15 @@ impl Theme {
         Theme { tokens, mode }
     }
 
+    /// This theme with `tokens` merged over it: what a host supplies for a mode the specification gives no value
+    /// in, such as a tool's dark colours where its notation declares only light ones.
+    pub fn with_tokens<'a>(mut self, tokens: impl IntoIterator<Item = (&'a str, &'a str)>) -> Theme {
+        for (name, value) in tokens {
+            self.tokens.insert(name.to_owned(), Json::String(value.to_owned()));
+        }
+        self
+    }
+
     pub fn mode(&self) -> Option<&str> {
         self.mode.as_deref()
     }
@@ -421,6 +430,20 @@ impl StyleResolver<'_> {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn a_hosts_tokens_are_merged_over_the_theme_the_last_winning() {
+        let theme = Theme::default()
+            .with_tokens([("color.surface", "#1E293B"), ("color.loop", "#0369A1")])
+            .with_tokens([("color.loop", "#4DAAFC")]);
+        assert_eq!(theme.text_of("color.surface").as_deref(), Some("#1E293B"));
+        assert_eq!(theme.text_of("color.loop").as_deref(), Some("#4DAAFC"));
+        assert_eq!(
+            theme.text_of("color.border").as_deref(),
+            Some("#5F5E5A"),
+            "a standard token is kept"
+        );
+    }
 
     #[test]
     fn a_style_is_merged_over_the_styles_it_extends_left_to_right() {

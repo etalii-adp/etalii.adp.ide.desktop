@@ -27,6 +27,7 @@ pub mod mapper;
 pub mod model;
 pub mod properties;
 pub mod store;
+pub mod theme;
 pub mod validator;
 pub mod view;
 

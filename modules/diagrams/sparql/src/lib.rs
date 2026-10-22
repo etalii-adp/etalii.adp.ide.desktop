@@ -25,6 +25,7 @@ pub mod registration_layout;
 pub mod rows;
 pub mod store;
 pub mod terminals;
+pub mod theme;
 pub mod tokenizer;
 pub mod view;
 

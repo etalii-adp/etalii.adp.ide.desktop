@@ -42,7 +42,7 @@ use crate::notation::catalog::BuiltInRoute;
 use crate::notation::geometry_expressions::{GeomScope, evaluate_condition, path_of, resolve_box, resolve_path};
 use crate::shapes::BuiltInShape;
 use crate::shapes::outline::{outline_edge_point, outline_of};
-use crate::style::{Colour, Font, ResolvedStyle, Stroke, StyleResolver, merged_per_key, style_of};
+use crate::style::{Colour, Font, ResolvedStyle, Stroke, StyleResolver, Theme, merged_per_key, style_of};
 use crate::text::TextMetrics;
 
 /// The width and height an element has where nothing else says (`DEFAULT_WIDTH` and `DEFAULT_HEIGHT`).
@@ -206,14 +206,23 @@ pub fn attachment_point(element_type: &ElementType, bounds: Rect, anchor: Option
     edge_point_of(box_, dx, dy)
 }
 
+/// The selected colour: the theme's `color.selected` in the active mode, else the standalone host's violet.
+fn highlight(theme: &Theme) -> Colour {
+    Colour {
+        token: Some(HIGHLIGHT_TOKEN.to_owned()),
+        value: Some(
+            theme
+                .text_of(HIGHLIGHT_TOKEN)
+                .unwrap_or_else(|| HIGHLIGHT_VALUE.to_owned()),
+        ),
+    }
+}
+
 /// The paint a highlighted outline takes: the selected colour, heavier than the notation's and never lighter.
-fn highlighted(stroke: Option<Stroke>) -> Stroke {
+fn highlighted(theme: &Theme, stroke: Option<Stroke>) -> Stroke {
     let declared = stroke.as_ref().map(|s| s.width);
     Stroke {
-        colour: Some(Colour {
-            token: Some(HIGHLIGHT_TOKEN.to_owned()),
-            value: Some(HIGHLIGHT_VALUE.to_owned()),
-        }),
+        colour: Some(highlight(theme)),
         width: declared
             .map(|w| (w + 1.0).max(HIGHLIGHT_STROKE_WIDTH))
             .unwrap_or(HIGHLIGHT_STROKE_WIDTH),
@@ -423,7 +432,7 @@ impl<'a> Builder<'a> {
         let selected = self.selected(&id);
         let style = self.element_style(placed);
         let stroke = if selected {
-            Some(highlighted(style.stroke.clone()))
+            Some(highlighted(self.evaluator.theme(), style.stroke.clone()))
         } else {
             style.stroke.clone()
         };
@@ -1031,10 +1040,7 @@ impl<'a> Builder<'a> {
             ..resolved.font.clone()
         };
         if selected {
-            font.colour = Some(Colour {
-                token: Some(HIGHLIGHT_TOKEN.to_owned()),
-                value: Some(HIGHLIGHT_VALUE.to_owned()),
-            });
+            font.colour = Some(highlight(self.evaluator.theme()));
         }
         font
     }
@@ -1066,7 +1072,7 @@ impl<'a> Builder<'a> {
                     .as_ref(),
             );
             if selected {
-                stroke = highlighted(Some(stroke));
+                stroke = highlighted(self.evaluator.theme(), Some(stroke));
             }
             self.primitives.push(Primitive::Edge(EdgePrimitive {
                 owner: owner.clone(),
@@ -1111,7 +1117,7 @@ impl<'a> Builder<'a> {
         let (path, from, to, arc) = self.route(&relation_type.route, relation_type, from, to, &ends, &vars);
         let (mut stroke, resolved) = self.line_stroke(relation_type, &vars, None);
         if selected {
-            stroke = highlighted(Some(stroke));
+            stroke = highlighted(self.evaluator.theme(), Some(stroke));
         }
         let start = path
             .start_direction()

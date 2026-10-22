@@ -12,7 +12,7 @@ use eframe::egui::PointerButton;
 
 use super::{Harness, texts_of};
 
-fn two_projects() -> Harness {
+pub(super) fn two_projects() -> Harness {
     let folder =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/etalii/agent-activity-diagram/two-projects");
     Harness::open_from(

@@ -31,7 +31,8 @@ pub(super) struct Colours {
     pub(super) danger_bg: Color32,
     pub(super) warning: Color32,
     pub(super) warning_bg: Color32,
-    dark: bool,
+    /// The active theme, which an option's colour is chosen for.
+    kind: Kind,
 }
 
 impl Colours {
@@ -58,27 +59,16 @@ impl Colours {
             danger_bg: c(&["inputValidation.errorBackground"], palette.notification_background),
             warning: c(&["editorWarning.foreground"], Color32::YELLOW),
             warning_bg: c(&["inputValidation.warningBackground"], palette.notification_background),
-            dark: theme.kind == Kind::Dark,
+            kind: theme.kind,
         }
     }
 
     /// An option's colour by its theme name: the standalone host's own ten (`--color-table-option-*`), which VS Code
-    /// has no colours for.
+    /// has no colours for, in the active theme (`adp_designer_knowledge::theme`).
     pub(super) fn option(&self, name: &str) -> Color32 {
-        let hex = |rgb: u32| Color32::from_rgb((rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8);
-        let (light, dark) = match name {
-            "gray" => (0xe2e8f0, 0x475569),
-            "brown" => (0xeedfd3, 0x603b2c),
-            "orange" => (0xfde3c8, 0x7a4317),
-            "yellow" => (0xfdecc8, 0x6b4d14),
-            "green" => (0xdbeddb, 0x2b593f),
-            "blue" => (0xd3e5ef, 0x28456c),
-            "purple" => (0xe8deee, 0x492f64),
-            "pink" => (0xf5e0e9, 0x69314c),
-            "red" => (0xffe2dd, 0x6e3630),
-            _ => (0xf1f5f9, 0x334155),
-        };
-        hex(if self.dark { dark } else { light })
+        adp_theme::Rgba::parse(adp_designer_knowledge::theme::option(name, self.kind))
+            .map(|c| Color32::from_rgba_unmultiplied(c.r, c.g, c.b, c.a))
+            .unwrap_or(self.raised)
     }
 }
 
@@ -1912,6 +1902,37 @@ pub(super) fn kind_mark(painter: &egui::Painter, rect: Rect, kind: &str, colour:
         }
         _ => {
             painter.text(c, Align2::CENTER_CENTER, "?", small, colour);
+        }
+    }
+}
+
+#[cfg(test)]
+mod theme_tests {
+    use super::*;
+    use adp_designer_knowledge::theme::OPTION_WORDS;
+    use adp_theme::Rgba;
+    use adp_theme::contrast::contrast_ratio;
+
+    fn rgba(colour: Color32) -> Rgba {
+        let [r, g, b, a] = colour.to_srgba_unmultiplied();
+        Rgba { r, g, b, a }
+    }
+
+    #[test]
+    fn the_table_takes_its_colours_from_the_active_theme_and_an_option_tag_reads_in_both() {
+        let of = |theme: Theme| Colours::of(&theme, &Palette::of(&theme));
+        let (light, dark) = (of(Theme::light()), of(Theme::dark()));
+        assert_ne!(light.surface, dark.surface);
+        assert_ne!(light.text, dark.text);
+        for word in OPTION_WORDS.iter().chain(&["default"]) {
+            assert_ne!(light.option(word), dark.option(word), "{word} has a fill per theme");
+            for (kind, colours) in [("light", &light), ("dark", &dark)] {
+                let ratio = contrast_ratio(rgba(colours.text), rgba(colours.option(word)));
+                assert!(
+                    ratio >= 4.5,
+                    "the text on a {word} tag in the {kind} theme is {ratio:.2}:1"
+                );
+            }
         }
     }
 }

@@ -29,6 +29,7 @@ pub mod model;
 pub mod parser;
 pub mod properties;
 pub mod store;
+pub mod theme;
 pub mod toolbox;
 pub mod trace;
 pub mod validator;

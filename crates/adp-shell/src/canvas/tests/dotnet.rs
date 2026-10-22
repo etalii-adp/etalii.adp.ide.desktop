@@ -31,7 +31,7 @@ fn files_under(root: &Path, folder: &Path, out: &mut Vec<String>) {
     }
 }
 
-fn pipeline_toolkit() -> Harness {
+pub(super) fn pipeline_toolkit() -> Harness {
     let folder: PathBuf =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/dotnet/dependency-graph/pipeline-toolkit");
     let mut files = Vec::new();
