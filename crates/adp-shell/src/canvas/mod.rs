@@ -1654,6 +1654,10 @@ impl DiagramTab {
         let surface = egui::Rect::from_min_max(available.min, available.max - egui::vec2(SCROLL_BAR, SCROLL_BAR));
         ui.allocate_rect(available, Sense::hover());
         let response = ui.interact(surface, self.id, Sense::click_and_drag());
+        // The canvas is painted, not made of widgets: to a screen reader it is one canvas, named as its tab is and
+        // described by its tool type (FR-041, T088).
+        crate::a11y::describe(&response, egui::accesskit::Role::Canvas, &self.name());
+        crate::a11y::describe_state(&response, &self.opened.origin);
         self.surface = surface;
         if !self.focused_once {
             // A diagram that opens has the keyboard, as an editor that opens has it.
@@ -2156,10 +2160,17 @@ impl DiagramTab {
     }
 
     fn show_menu(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace, palette: &Palette) {
+        let diagram = self.name();
         let Some(menu) = &mut self.menu else { return };
         let mut chosen = None;
         let id = self.id.with("context-menu");
+        let name = match &menu.target {
+            ActionTarget::Element(element) => element.clone(),
+            ActionTarget::Canvas { .. } | ActionTarget::Connection { .. } => diagram,
+        };
         let area = egui::Area::new(id)
+            .role(egui::accesskit::Role::Menu)
+            .accessible_name(name)
             .order(egui::Order::Foreground)
             .fixed_pos(menu.at)
             .show(ui.ctx(), |ui| {
@@ -2178,86 +2189,100 @@ impl DiagramTab {
     }
 
     fn show_prompt(&mut self, ui: &mut egui::Ui, workspace: &mut DiagramWorkspace) {
+        let diagram = self.name();
         let Some(pending) = &mut self.prompt else { return };
         let mut answer: Option<Option<String>> = None;
-        egui::Modal::new(self.id.with("prompt")).show(ui.ctx(), |ui| {
-            ui.set_width(420.0);
-            let enter = ui.input(|i| i.key_pressed(egui::Key::Enter));
-            match &pending.prompt {
-                Prompt::Confirm {
-                    title,
-                    message,
-                    confirm_label,
-                    ..
-                } => {
-                    ui.heading(title.as_str());
-                    ui.label(message.as_str());
-                    ui.horizontal(|ui| {
-                        if ui.button(confirm_label.as_str()).clicked() {
-                            answer = Some(Some(String::new()));
-                        }
-                        if ui.button("Cancel").clicked() {
-                            answer = Some(None);
-                        }
-                    });
-                }
-                Prompt::Input {
-                    title,
-                    label,
-                    confirm_label,
-                    ..
-                } => {
-                    ui.heading(title.as_str());
-                    ui.label(label.as_str());
-                    ui.text_edit_singleline(&mut pending.value).request_focus();
-                    ui.horizontal(|ui| {
-                        if ui.button(confirm_label.as_str()).clicked() || enter {
-                            answer = Some(Some(pending.value.clone()));
-                        }
-                        if ui.button("Cancel").clicked() {
-                            answer = Some(None);
-                        }
-                    });
-                }
-                Prompt::Choice {
-                    title,
-                    confirm_label,
-                    options,
-                    empty_message,
-                    ..
-                } => {
-                    ui.heading(title.as_str());
-                    answer = choose(ui, &[options], empty_message, confirm_label, &mut pending.value, enter);
-                }
-                Prompt::File {
-                    title,
-                    confirm_label,
-                    files,
-                    pinned,
-                    empty_message,
-                    ..
-                } => {
-                    ui.heading(title.as_str());
-                    answer = choose(
-                        ui,
-                        &[pinned, files],
-                        empty_message,
+        // The dialog is named by its title, as a screen reader announces it when it opens (T088).
+        let name = match &pending.prompt {
+            Prompt::Confirm { title, .. }
+            | Prompt::Input { title, .. }
+            | Prompt::Choice { title, .. }
+            | Prompt::File { title, .. } => title.clone(),
+            Prompt::Closed { .. } => diagram,
+        };
+        let id = self.id.with("prompt");
+        egui::Modal::new(id)
+            .area(egui::Modal::default_area(id).accessible_name(name))
+            .show(ui.ctx(), |ui| {
+                ui.set_width(420.0);
+                let enter = ui.input(|i| i.key_pressed(egui::Key::Enter));
+                match &pending.prompt {
+                    Prompt::Confirm {
+                        title,
+                        message,
                         confirm_label,
-                        &mut pending.value,
-                        enter,
-                    );
-                }
-                Prompt::Closed { message } => {
-                    ui.label(message.as_str());
-                    if ui.button("OK").clicked() {
-                        answer = Some(None);
+                        ..
+                    } => {
+                        ui.heading(title.as_str());
+                        ui.label(message.as_str());
+                        ui.horizontal(|ui| {
+                            if ui.button(confirm_label.as_str()).clicked() {
+                                answer = Some(Some(String::new()));
+                            }
+                            if ui.button("Cancel").clicked() {
+                                answer = Some(None);
+                            }
+                        });
+                    }
+                    Prompt::Input {
+                        title,
+                        label,
+                        confirm_label,
+                        ..
+                    } => {
+                        ui.heading(title.as_str());
+                        let label = ui.label(label.as_str());
+                        ui.text_edit_singleline(&mut pending.value)
+                            .labelled_by(label.id)
+                            .request_focus();
+                        ui.horizontal(|ui| {
+                            if ui.button(confirm_label.as_str()).clicked() || enter {
+                                answer = Some(Some(pending.value.clone()));
+                            }
+                            if ui.button("Cancel").clicked() {
+                                answer = Some(None);
+                            }
+                        });
+                    }
+                    Prompt::Choice {
+                        title,
+                        confirm_label,
+                        options,
+                        empty_message,
+                        ..
+                    } => {
+                        ui.heading(title.as_str());
+                        answer = choose(ui, &[options], empty_message, confirm_label, &mut pending.value, enter);
+                    }
+                    Prompt::File {
+                        title,
+                        confirm_label,
+                        files,
+                        pinned,
+                        empty_message,
+                        ..
+                    } => {
+                        ui.heading(title.as_str());
+                        answer = choose(
+                            ui,
+                            &[pinned, files],
+                            empty_message,
+                            confirm_label,
+                            &mut pending.value,
+                            enter,
+                        );
+                    }
+                    Prompt::Closed { message } => {
+                        ui.label(message.as_str());
+                        if ui.button("OK").clicked() {
+                            answer = Some(None);
+                        }
                     }
                 }
-            }
-            if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-                answer = Some(None);
-            }
-        });
+                if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+                    answer = Some(None);
+                }
+            });
         if let Some(value) = answer {
             self.answer(workspace, value.as_deref());
         }
@@ -2299,22 +2324,34 @@ fn menu_entries(ui: &mut egui::Ui, groups: &[ActionGroup], id: egui::Id, chosen:
         for action in &group.actions {
             let available = action.is_available();
             if action.items.is_empty() {
-                let response = ui
-                    .add_enabled(available, egui::Button::new(&action.label).frame(false))
-                    .on_disabled_hover_text(&action.unavailable_reason);
+                let response = ui.add_enabled(available, egui::Button::new(&action.label).frame(false));
+                crate::a11y::menu_item(&response, &action.label, "");
+                if !available {
+                    crate::a11y::describe_state(&response, &action.unavailable_reason);
+                }
+                let response = response.on_disabled_hover_text(&action.unavailable_reason);
                 if response.clicked() {
                     *chosen = Some(action.id.clone());
                 }
                 continue;
             }
             let nested = id.with(&action.id);
-            ui.add_enabled_ui(available, |ui| {
-                egui::CollapsingHeader::new(action.label.as_str())
+            let shown = ui.add_enabled_ui(available, |ui| {
+                let submenu = egui::CollapsingHeader::new(action.label.as_str())
                     .id_salt(nested)
                     .show(ui, |ui| menu_entries(ui, &action.items, nested, chosen));
-            })
-            .response
-            .on_disabled_hover_text(&action.unavailable_reason);
+                // To a screen reader a submenu's heading is a menu item that opens its entries (T088).
+                let heading = &submenu.header_response;
+                crate::a11y::menu_item(heading, &action.label, "");
+                heading.ctx.accesskit_node_builder(heading.id, |node| {
+                    node.set_expanded(!submenu.fully_closed());
+                    node.set_has_popup(egui::accesskit::HasPopup::Menu);
+                });
+                if !available {
+                    crate::a11y::describe_state(heading, &action.unavailable_reason);
+                }
+            });
+            shown.response.on_disabled_hover_text(&action.unavailable_reason);
         }
     }
 }
