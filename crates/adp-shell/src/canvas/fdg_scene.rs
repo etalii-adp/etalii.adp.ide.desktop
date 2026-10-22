@@ -19,16 +19,17 @@
 use std::collections::{HashMap, HashSet};
 
 use adp_diagram::{DiagramElement, ElementKind};
+use adp_diagram_functional_decomposition_graph::theme::palette;
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::notation::catalog::MarkerKind;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, TextRun, marker_shape};
 use adp_scene::style::{Colour, Font, Stroke};
 use adp_scene::{Path, Point, Rect};
+use adp_theme::Kind;
 
 /// What the module prefixes every element and connection type with (`adp_diagram_functional_decomposition_graph`).
 pub const PREFIX: &str = "etalii/functional-decomposition-graph+";
 
-const SELECTED: &str = "#7c3aed";
 const SELECTED_WIDTH: f64 = 3.0;
 const ANCHOR_RADIUS: f64 = 5.0;
 const FONT_SIZE: f64 = 13.0;
@@ -55,51 +56,6 @@ pub fn rect_of(element: &DiagramElement) -> Rect {
         number(element, "width"),
         number(element, "height"),
     )
-}
-
-/// The theme colours of the notation: the text, the border and each type's fill, light or dark.
-struct Palette {
-    text: &'static str,
-    border: &'static str,
-    fills: [(&'static str, &'static str); 5],
-}
-
-const LIGHT: Palette = Palette {
-    text: "#0f172a",
-    border: "#94a3b8",
-    fills: [
-        ("ui-element", "#aaed92"),
-        ("data-element", "#ededed"),
-        ("action", "#9edcfa"),
-        ("function", "#86e6d9"),
-        ("comment", "#fcf281"),
-    ],
-};
-
-/// The dark fills keep the standalone host's hues and saturations with the lightness lowered to the lightest value that
-/// reaches 5.0:1 against VS Code's dark `editor.foreground` (`#BBBEBF`), the text a tool is to take from the active theme (FR-045);
-/// the standalone host's (`#2e7814`, `#696969`, `#086fa1`, `#187569`, `#736a03`) were chosen against `#f1f5f9` and
-/// reach only 2.9:1 there (task T086, `adp-theme/tests/contrast.rs`).
-const DARK: Palette = Palette {
-    text: "#f1f5f9",
-    border: "#64748b",
-    fills: [
-        ("ui-element", "#1f510e"),
-        ("data-element", "#464646"),
-        ("action", "#054b6d"),
-        ("function", "#104f47"),
-        ("comment", "#4e4702"),
-    ],
-};
-
-impl Palette {
-    fn fill(&self, element_type: &str) -> &'static str {
-        self.fills
-            .iter()
-            .find(|(t, _)| *t == element_type)
-            .map(|(_, c)| *c)
-            .unwrap_or("#ededed")
-    }
 }
 
 /// The outline of an element of `element_type` in `b`.
@@ -227,15 +183,16 @@ pub struct Drawn {
 }
 
 /// Draws the graph's connections and then its elements, at the boxes `drawn` gives them (a drag in flight included),
-/// `selected` outlined, in the light or `dark` palette, the elements `moving` faded.
+/// `selected` outlined, in the palette of the active theme, `theme`, the elements `moving` faded.
 pub fn draw(
     elements: &[DiagramElement],
     drawn: &HashMap<String, Rect>,
     selected: &HashSet<&str>,
     moving: &HashSet<&str>,
-    dark: bool,
+    theme: Kind,
 ) -> Drawn {
-    let palette = if dark { &DARK } else { &LIGHT };
+    let palette = palette(theme);
+    let highlight = super::module_scene::selection_colour(theme);
     let mut out = Drawn::default();
 
     for connection in elements.iter().filter(|e| is_fdg(e) && e.kind == ElementKind::Relation) {
@@ -257,7 +214,7 @@ pub fn draw(
         let owner = Owner::Relation(connection.id.clone());
         let is_selected = selected.contains(connection.id.as_str());
         let line = if is_selected {
-            stroke(SELECTED, SELECTED_WIDTH)
+            stroke(highlight, SELECTED_WIDTH)
         } else {
             stroke(palette.border, 1.5)
         };
@@ -285,7 +242,7 @@ pub fn draw(
                 Role::LineLabel,
                 name.to_owned(),
                 Point::new(mid.x, mid.y - 6.0),
-                font(if is_selected { SELECTED } else { palette.text }, 400),
+                font(if is_selected { highlight } else { palette.text }, 400),
             ));
         }
     }
@@ -303,7 +260,7 @@ pub fn draw(
             path: outline(element_type, rect),
             fill: Some(Colour::value(palette.fill(element_type))),
             stroke: Some(if is_selected {
-                stroke(SELECTED, SELECTED_WIDTH)
+                stroke(highlight, SELECTED_WIDTH)
             } else {
                 stroke(palette.border, 1.0)
             }),

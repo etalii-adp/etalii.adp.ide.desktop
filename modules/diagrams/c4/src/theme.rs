@@ -12,7 +12,7 @@ const CONTAINER_BACKGROUND: &str = "#438dd5";
 pub const COMPONENT_BACKGROUND: &str = "#85bbf0";
 pub const EXTERNAL_BACKGROUND: &str = "#999999";
 const DEPLOYMENT_NODE_BACKGROUND: &str = "#ffffff";
-const LIGHT_TEXT: &str = "#ffffff";
+pub const LIGHT_TEXT: &str = "#ffffff";
 pub const DARK_TEXT: &str = "#000000";
 
 /// How one element is painted.

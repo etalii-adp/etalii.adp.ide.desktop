@@ -12,7 +12,7 @@ use adp_context::SelectMode;
 use adp_disl::behavior::ids;
 use adp_scene::Point;
 use adp_scene::scene::{Owner, Primitive, Role};
-use adp_theme::Theme;
+use adp_theme::{Kind, Theme};
 use eframe::egui::{self, Event, Key, Modifiers, PointerButton, Pos2, RawInput};
 
 use super::gestures::Intent;
@@ -48,6 +48,8 @@ struct Harness {
     screen: egui::Vec2,
     /// Whether the property grid is drawn beside the canvas, as the shell draws it.
     grid: bool,
+    /// The active theme the frames are drawn in: dark unless a test switches it.
+    kind: Kind,
     _folder: tempfile::TempDir,
 }
 
@@ -85,10 +87,21 @@ impl Harness {
             shapes: Vec::new(),
             screen: SCREEN,
             grid: false,
+            kind: Kind::Dark,
             _folder: folder,
         };
         harness.frame(Vec::new());
         harness
+    }
+
+    /// Switches the active theme to `kind` and draws a frame in it, as the shell does when the system's setting changes.
+    fn switch_theme(&mut self, kind: Kind) {
+        self.kind = kind;
+        self.ctx.set_theme(match kind {
+            Kind::Light => egui::Theme::Light,
+            Kind::Dark => egui::Theme::Dark,
+        });
+        self.frame(Vec::new());
     }
 
     fn dependency_graph() -> Harness {
@@ -112,7 +125,7 @@ impl Harness {
             events,
             ..Default::default()
         };
-        let theme = Theme::dark();
+        let theme = Theme::for_kind(self.kind);
         let palette = Palette::of(&theme);
         let (host, tab, root, grid) = (&mut self.host, &mut self.tab, &self.root, self.grid);
         let mut output = self.ctx.run_ui(input, |ui| {
@@ -1240,3 +1253,5 @@ mod agent_activity;
 mod databricks;
 // The Wardley map with its module (T070), in a file of its own.
 mod wardley_map;
+// Every tool drawn in the active theme and again when it switches (T087), in a file of its own.
+mod themes;

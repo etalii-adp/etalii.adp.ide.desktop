@@ -20,6 +20,7 @@ pub mod ends;
 pub mod findings;
 pub mod placement;
 pub mod rows;
+pub mod theme;
 
 use std::rc::Rc;
 

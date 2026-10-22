@@ -20,32 +20,16 @@ use std::collections::{HashMap, HashSet};
 
 use adp_diagram::DiagramElement;
 use adp_diagram_supply_chain::mapper::{FLOW_TYPE, GROUP_TYPE, PREFIX};
+use adp_diagram_supply_chain::theme::{palette, stage_colour};
 use adp_diagram_supply_chain::trace::{DIMMED, DOWNSTREAM, SupplyChainTrace, TraceGraph, UPSTREAM};
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive};
 use adp_scene::style::{Colour, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::{ANCHOR_RADIUS, ModuleScene, SELECTED, SELECTED_WIDTH, font, number, stroke, text};
+use super::module_scene::{ANCHOR_RADIUS, ModuleScene, SELECTED_WIDTH, font, number, selection_colour, stroke, text};
 
-/// The header colour of `stage` (`supply-chain.dis`, `color.supply.<stage>`).
-fn stage_colour(stage: &str) -> &'static str {
-    match stage {
-        "Source" => "#7c4a1e",
-        "Processor" => "#b91c1c",
-        "Producer" => "#1d4ed8",
-        "Integrator" => "#0f766e",
-        "Hub" => "#475569",
-        "Outlet" => "#15803d",
-        _ => "#be185d",
-    }
-}
-
-const TEXT: &str = "#0f172a";
-const MUTED: &str = "#64748b";
-const SURFACE: &str = "#ffffff";
-const BORDER: &str = "#e2e8f0";
-const FLOW: &str = "#64748b";
 const HEADER: f64 = 24.0;
 const INSET: f64 = 14.0;
 /// How far a lane runs straight either side of its slot's middle: half a card.
@@ -139,12 +123,15 @@ fn shape(
 }
 
 /// The scene of `elements`, a supply chain view's rendering, traced through the first of `selection`, with the
-/// elements `moving` carried by the drag in flight.
+/// elements `moving` carried by the drag in flight, in the palette of the active theme, `theme`.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
+    theme: Kind,
 ) -> ModuleScene {
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let trace = SupplyChainTrace::over(
         &TraceGraph::of_elements(elements),
@@ -180,15 +167,15 @@ pub fn build(
             &[6.0, 4.0]
         };
         let outline = if selected.contains(group.id.as_str()) {
-            stroke(Some(SELECTED), SELECTED_WIDTH, dash)
+            stroke(Some(highlight), SELECTED_WIDTH, dash)
         } else {
-            stroke(Some(BORDER), 1.5, dash)
+            stroke(Some(palette.border), 1.5, dash)
         };
         primitives.push(shape(
             &owner,
             Role::Body,
             Path::rounded_rect(rect, 8.0),
-            Some("#0000000f"),
+            Some(palette.group_fill),
             Some(outline),
             faded(1.0, mark),
         ));
@@ -242,14 +229,14 @@ pub fn build(
         };
         let band = if selected.contains(flow.id.as_str()) {
             Stroke {
-                colour: Some(Colour::value(SELECTED)),
+                colour: Some(Colour::value(highlight)),
                 width,
                 dash: Vec::new(),
                 opacity: 0.9,
             }
         } else {
             Stroke {
-                colour: Some(Colour::value(FLOW)),
+                colour: Some(Colour::value(palette.flow)),
                 width,
                 dash: Vec::new(),
                 opacity: faded(opacity, mark),
@@ -277,7 +264,7 @@ pub fn build(
                 .line_to(Point::new(end.x - direction * head, end.y - head * 0.7))
                 .line_to(Point::new(end.x - direction * head, end.y + head * 0.7))
                 .close(),
-            Some(FLOW),
+            Some(palette.flow),
             None,
             faded(0.9, mark),
         ));
@@ -300,7 +287,7 @@ pub fn build(
                 product.to_owned(),
                 Point::new(middle.x, middle.y - (9.0 + 6.0)),
                 TextAnchor::Middle,
-                font(12.0, 400, Some(TEXT)),
+                font(12.0, 400, Some(palette.text)),
             ));
         }
         let volume = flow.attribute("volumeText");
@@ -314,7 +301,7 @@ pub fn build(
                 volume.to_owned(),
                 Point::new(middle.x, middle.y + width / 2.0 + 16.0),
                 TextAnchor::Middle,
-                font(10.0, 600, Some(TEXT)),
+                font(10.0, 600, Some(palette.text)),
             ));
         }
     }
@@ -336,18 +323,18 @@ pub fn build(
             mark,
         );
         let outline = if selected.contains(node.id.as_str()) {
-            stroke(Some(SELECTED), SELECTED_WIDTH, &[])
+            stroke(Some(highlight), SELECTED_WIDTH, &[])
         } else if mark == UPSTREAM || mark == DOWNSTREAM {
-            stroke(Some(MUTED), 2.5, &[])
+            stroke(Some(palette.muted), 2.5, &[])
         } else {
-            stroke(Some(BORDER), 1.5, &[])
+            stroke(Some(palette.border), 1.5, &[])
         };
         let colour = stage_colour(node.attribute("stage"));
         primitives.push(shape(
             &owner,
             Role::Body,
             Path::rounded_rect(rect, 8.0),
-            Some(SURFACE),
+            Some(palette.surface),
             Some(outline),
             opacity,
         ));
@@ -379,7 +366,7 @@ pub fn build(
             &owner,
             Role::Part("barTrack".to_owned()),
             Path::rounded_rect(track, 2.0),
-            Some(BORDER),
+            Some(palette.border),
             None,
             opacity,
         ));
@@ -395,8 +382,8 @@ pub fn build(
             ));
         }
         for (id, value, dy, size, weight, colour) in [
-            ("stage", node.attribute("stageTitle"), 16.0, 10.0, 700, "#ffffff"),
-            ("name", node.attribute("name"), 46.0, 13.0, 600, TEXT),
+            ("stage", node.attribute("stageTitle"), 16.0, 10.0, 700, palette.on_stage),
+            ("name", node.attribute("name"), 46.0, 13.0, 600, palette.text),
         ] {
             primitives.push(text(
                 &owner,
@@ -425,7 +412,7 @@ pub fn build(
             amount,
             Point::new(rect.x + INSET, rect.y + 74.0),
             TextAnchor::Start,
-            font(20.0, 700, Some(TEXT)),
+            font(20.0, 700, Some(palette.text)),
         ));
         labels.push((
             node.id.clone(),

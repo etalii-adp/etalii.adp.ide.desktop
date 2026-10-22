@@ -31,6 +31,7 @@ pub mod model;
 pub mod parser;
 pub mod rules;
 pub mod store;
+pub mod theme;
 pub mod view;
 pub mod writer;
 pub mod yaml;

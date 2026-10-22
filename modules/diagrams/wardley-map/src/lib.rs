@@ -29,6 +29,7 @@ pub mod parser;
 pub mod properties;
 pub mod rules;
 pub mod store;
+pub mod theme;
 pub mod toolbox;
 pub mod view;
 pub mod writer;

@@ -35,6 +35,7 @@ pub mod properties;
 pub mod relations;
 pub mod rules;
 pub mod store;
+pub mod theme;
 pub mod view;
 pub mod writer;
 pub mod yaml;

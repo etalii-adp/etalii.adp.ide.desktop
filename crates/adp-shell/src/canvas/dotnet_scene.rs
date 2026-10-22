@@ -21,53 +21,18 @@ use std::collections::{HashMap, HashSet};
 
 use adp_diagram::{DiagramElement, ElementKind};
 use adp_diagram_dotnet_dependency_graph::mapper::{EDGE_TYPE, PACKAGE_TYPE};
+use adp_diagram_dotnet_dependency_graph::theme::palette;
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::notation::catalog::MarkerKind;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, marker_shape};
 use adp_scene::style::{Colour, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::{AVERAGE_ADVANCE, ModuleScene, SELECTED, SELECTED_WIDTH, font, number, text};
+use super::module_scene::{AVERAGE_ADVANCE, ModuleScene, SELECTED_WIDTH, font, number, selection_colour, text};
 
 /// What the canvas says of a solution with no project it could resolve (`DotNetDependencyGraphCanvas`).
 const EMPTY: &str = "This solution has no projects ADP could resolve. Any reason is reported in the problems panel.";
-
-/// The theme's tokens (`notation.theme`).
-struct Palette {
-    project_fill: &'static str,
-    project_stroke: &'static str,
-    package_fill: &'static str,
-    package_stroke: &'static str,
-    label: &'static str,
-    sublabel: &'static str,
-    edge_project: &'static str,
-    edge_package: &'static str,
-    warning: &'static str,
-}
-
-const LIGHT: Palette = Palette {
-    project_fill: "#3b6ea5",
-    project_stroke: "#2b537c",
-    package_fill: "#cbd5e1",
-    package_stroke: "#94a3b8",
-    label: "#ffffff",
-    sublabel: "#dbe6f2",
-    edge_project: "#64748b",
-    edge_package: "#94a3b8",
-    warning: "#b45309",
-};
-
-const DARK: Palette = Palette {
-    project_fill: "#3b6ea5",
-    project_stroke: "#7fb0e0",
-    package_fill: "#4a5568",
-    package_stroke: "#6b7280",
-    label: "#ffffff",
-    sublabel: "#cbd5e1",
-    edge_project: "#94a3b8",
-    edge_package: "#64748b",
-    warning: "#fbbf24",
-};
 
 fn stroke(colour: &str, width: f64, dash: &[f64]) -> Stroke {
     Stroke {
@@ -104,14 +69,15 @@ fn is_ambient(element: &DiagramElement) -> bool {
 }
 
 /// The scene of `elements`, a .NET dependency graph's rendering, with `selection` outlined, the elements `moving`
-/// carried by the drag in flight, in the dark palette when `dark`.
+/// carried by the drag in flight, in the palette of the active theme, `theme`.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let palette = if dark { &DARK } else { &LIGHT };
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let hidden: Vec<&DiagramElement> = elements.iter().filter(|e| is_ambient(e)).collect();
     let hidden_ids: HashSet<&str> = hidden.iter().map(|e| e.id.as_str()).collect();
@@ -170,7 +136,7 @@ pub fn build(
             (palette.edge_project, &[])
         };
         let line = if selected.contains(reference.id.as_str()) {
-            stroke(SELECTED, SELECTED_WIDTH, dash)
+            stroke(highlight, SELECTED_WIDTH, dash)
         } else {
             stroke(colour, 1.5, dash)
         };
@@ -205,7 +171,7 @@ pub fn build(
             _ => (palette.project_fill, stroke(palette.project_stroke, 1.5, &[])),
         };
         let outline = if selected.contains(node.id.as_str()) {
-            stroke(SELECTED, SELECTED_WIDTH, &outline.dash)
+            stroke(highlight, SELECTED_WIDTH, &outline.dash)
         } else {
             outline
         };
@@ -346,7 +312,7 @@ mod tests {
             &[package("package:xunit.v3", true), package("package:Serilog", false)],
             &[],
             None,
-            false,
+            Kind::Light,
         );
         assert!(built.rects.contains_key("package:Serilog"));
         assert!(!built.rects.contains_key("package:xunit.v3"));

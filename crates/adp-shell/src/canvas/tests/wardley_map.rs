@@ -15,7 +15,7 @@ use super::{Harness, texts_of};
 const PAYMENT: &str = "et0fqurcgd3ri1az051jupyvf";
 const DATACENTRE: &str = "804r9rdikiiftb5uxc4dmz1sb";
 
-fn strategy_vocabulary() -> Harness {
+pub(super) fn strategy_vocabulary() -> Harness {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/wardley/map/strategy-vocabulary");
     Harness::open_from(
         &folder,

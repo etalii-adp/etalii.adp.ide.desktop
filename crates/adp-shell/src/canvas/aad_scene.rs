@@ -21,68 +21,16 @@ use std::collections::{HashMap, HashSet};
 
 use adp_diagram::{DiagramElement, ElementKind};
 use adp_diagram_agent_activity::mapper::{HEADING_HEIGHT, PREFIX, RELATION_TYPE, ROW_HEIGHT, VIEW_TYPE};
+use adp_diagram_agent_activity::theme::{fill, palette, status_colour};
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive};
 use adp_scene::style::{Colour, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
 use super::module_scene::{
-    ANCHOR_RADIUS, AVERAGE_ADVANCE, ModuleScene, SELECTED, SELECTED_WIDTH, font, number, stroke, text,
+    ANCHOR_RADIUS, AVERAGE_ADVANCE, ModuleScene, SELECTED_WIDTH, font, number, selection_colour, stroke, text,
 };
-
-/// The theme's tokens (`notation.theme`), light first, dark second.
-struct Palette {
-    text: &'static str,
-    border: &'static str,
-    relation: &'static str,
-    danger: &'static str,
-}
-
-const LIGHT: Palette = Palette {
-    text: "#0f172a",
-    border: "#94a3b8",
-    relation: "#64748b",
-    danger: "#dc2626",
-};
-
-const DARK: Palette = Palette {
-    text: "#f1f5f9",
-    border: "#64748b",
-    relation: "#94a3b8",
-    danger: "#f87171",
-};
-
-/// A kind's fill (`aad.<kind>`).
-fn fill(kind: &str, dark: bool) -> &'static str {
-    match (kind, dark) {
-        ("project", false) => "#dbeafe",
-        ("project", true) => "#1e3a8a",
-        ("specification", false) => "#ffffff",
-        ("specification", true) => "#1e293b",
-        ("agent", false) => "#ede9fe",
-        ("agent", true) => "#4c1d95",
-        ("location", false) => "#fef3c7",
-        ("location", true) => "#78350f",
-        (_, false) => "#dcfce7",
-        (_, true) => "#14532d",
-    }
-}
-
-/// A status's colour (`aad.<status>`).
-fn status_colour(status: &str, dark: bool) -> &'static str {
-    match (status, dark) {
-        ("progressing", false) => "#2563eb",
-        ("progressing", true) => "#60a5fa",
-        ("inputRequired", false) => "#c2410c",
-        ("inputRequired", true) => "#fb923c",
-        ("finished", false) => "#15803d",
-        ("finished", true) => "#4ade80",
-        ("archived", false) => "#94a3b8",
-        ("archived", true) => "#64748b",
-        (_, false) => "#64748b",
-        (_, true) => "#94a3b8",
-    }
-}
 
 /// A group's heading, as the definition names the status it lists.
 fn heading(group: &str) -> &str {
@@ -212,14 +160,15 @@ fn rows_of(element: &DiagramElement) -> Vec<(String, String)> {
 }
 
 /// The scene of `elements`, an agent activity view's rendering, with the elements `moving` carried by the drag in
-/// flight, in the light or the `dark` mode.
+/// flight, in the colours of the active theme, `theme` (`adp_diagram_agent_activity::theme`).
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let palette = if dark { &DARK } else { &LIGHT };
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let cards: Vec<&DiagramElement> = elements
         .iter()
@@ -253,7 +202,7 @@ pub fn build(
         let end = edge_point(*target, source.centre());
         let breach = relation.attribute("breach") == "true";
         let line = if selected.contains(relation.id.as_str()) {
-            stroke(Some(SELECTED), SELECTED_WIDTH, &[])
+            stroke(Some(highlight), SELECTED_WIDTH, &[])
         } else if breach {
             stroke(Some(palette.danger), 1.5, &[6.0, 4.0])
         } else {
@@ -284,9 +233,9 @@ pub fn build(
         };
         let status = card.attribute("status");
         let outline = if selected.contains(card.id.as_str()) {
-            stroke(Some(SELECTED), SELECTED_WIDTH, &[])
+            stroke(Some(highlight), SELECTED_WIDTH, &[])
         } else if kind == "specification" {
-            stroke(Some(status_colour(status, dark)), 2.0, &[])
+            stroke(Some(status_colour(status, theme)), 2.0, &[])
         } else {
             stroke(Some(palette.border), 1.5, &[])
         };
@@ -294,7 +243,7 @@ pub fn build(
             &owner,
             Role::Body,
             silhouette(kind, rect),
-            Some(fill(kind, dark)),
+            Some(fill(kind, theme)),
             Some(outline),
             opacity,
         ));

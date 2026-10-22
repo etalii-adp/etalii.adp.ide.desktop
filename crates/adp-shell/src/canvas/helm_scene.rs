@@ -23,56 +23,21 @@ use adp_diagram_helm_chart::mapper::{
     ARCHIVE_TYPE, CHART_TYPE, CRDS_TYPE, DEPENDENCY_TYPE, EDGE_TYPE, LOCK_TYPE, PARTIAL_TYPE, SCHEMA_TYPE,
     SUBCHART_TYPE, TEMPLATE_TYPE, VALUES_TYPE,
 };
+use adp_diagram_helm_chart::theme::palette;
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::notation::catalog::MarkerKind;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, marker_shape};
 use adp_scene::style::{Colour, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::{ModuleScene, SELECTED, SELECTED_WIDTH, font, number, text};
+use super::module_scene::{ModuleScene, SELECTED_WIDTH, font, number, selection_colour, text};
 
 /// What the canvas says of a folder that is no chart (`canvas.empty`).
 const EMPTY: &str = "This folder is not a Helm chart: it has no Chart.yaml, so there is nothing to draw.";
 
 /// The length of an open end's stub.
 const STUB: f64 = 48.0;
-
-/// The theme's tokens (`notation.theme`).
-struct Palette {
-    text: &'static str,
-    muted: &'static str,
-    danger: &'static str,
-    chart: &'static str,
-    values: &'static str,
-    template: &'static str,
-    dependency: &'static str,
-    subchart: &'static str,
-    plain_fill: &'static str,
-}
-
-const LIGHT: Palette = Palette {
-    text: "#0F172A",
-    muted: "#64748B",
-    danger: "#DC2626",
-    chart: "#3D7BD9",
-    values: "#2EA064",
-    template: "#C48220",
-    dependency: "#8E54C4",
-    subchart: "#3498A0",
-    plain_fill: "#64748B1F",
-};
-
-const DARK: Palette = Palette {
-    text: "#F1F5F9",
-    muted: "#94A3B8",
-    danger: "#F87171",
-    chart: "#7DB4F0",
-    values: "#6ECD96",
-    template: "#E8B05A",
-    dependency: "#B88CE4",
-    subchart: "#6ECDD4",
-    plain_fill: "#94A3B81F",
-};
 
 fn stroke(colour: &str, width: f64, dash: &[f64], opacity: f64) -> Stroke {
     Stroke {
@@ -94,14 +59,15 @@ pub fn rect_of(element: &DiagramElement) -> Rect {
 }
 
 /// The scene of `elements`, a Helm chart view's rendering, with `selection` outlined, the elements `moving` carried by
-/// the drag in flight, in the dark palette when `dark`.
+/// the drag in flight, in the palette of the active theme, `theme`.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
-    let palette = if dark { &DARK } else { &LIGHT };
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let mut rects: HashMap<String, Rect> = HashMap::new();
     for element in elements.iter().filter(|e| e.kind == ElementKind::Node) {
@@ -142,7 +108,7 @@ pub fn build(
             // An open end: the stub, with what it names above it.
             let to = Point::new(from.x + STUB, from.y);
             let line = if is_selected {
-                stroke(SELECTED, SELECTED_WIDTH, &[3.0, 3.0], 1.0)
+                stroke(highlight, SELECTED_WIDTH, &[3.0, 3.0], 1.0)
             } else {
                 stroke(colour, 1.5, &[3.0, 3.0], 0.7)
             };
@@ -179,7 +145,7 @@ pub fn build(
                 .move_to(from)
                 .cubic_to(Point::new(from.x + bend, from.y), Point::new(to.x - bend, to.y), to);
         let line = if is_selected {
-            stroke(SELECTED, SELECTED_WIDTH, dash, 1.0)
+            stroke(highlight, SELECTED_WIDTH, dash, 1.0)
         } else {
             stroke(colour, 1.5, dash, 1.0)
         };
@@ -232,7 +198,7 @@ pub fn build(
             &[]
         };
         let outline = if selected.contains(node.id.as_str()) {
-            stroke(SELECTED, SELECTED_WIDTH, dash, 1.0)
+            stroke(highlight, SELECTED_WIDTH, dash, 1.0)
         } else if node.attribute("unreadable") == "true" {
             // A node whose file did not parse: marked, never hidden.
             stroke(palette.danger, 1.5, &[4.0, 3.0], 1.0)

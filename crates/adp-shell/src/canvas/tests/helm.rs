@@ -27,7 +27,7 @@ fn files_under(root: &Path, folder: &Path, out: &mut Vec<String>) {
     }
 }
 
-fn nginx() -> Harness {
+pub(super) fn nginx() -> Harness {
     let folder: PathBuf = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/helm/chart/nginx");
     let mut files = Vec::new();
     files_under(&folder, &folder, &mut files);

@@ -27,6 +27,7 @@ pub mod project;
 pub mod registration_layout;
 pub mod solution;
 pub mod store;
+pub mod theme;
 pub mod view;
 pub mod xml;
 

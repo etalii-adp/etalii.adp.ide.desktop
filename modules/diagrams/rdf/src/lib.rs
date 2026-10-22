@@ -41,6 +41,7 @@ pub mod shacl;
 pub mod skos;
 pub mod store;
 pub mod term_input;
+pub mod theme;
 pub mod toolbox;
 pub mod validator;
 pub mod view;

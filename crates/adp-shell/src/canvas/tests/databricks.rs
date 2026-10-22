@@ -11,7 +11,7 @@ use eframe::egui::{self, PointerButton};
 
 use super::{Harness, texts_of};
 
-fn nightly_ingest() -> Harness {
+pub(super) fn nightly_ingest() -> Harness {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/databricks/lakehouse/resources");
     Harness::open_from(
         &folder,

@@ -21,19 +21,18 @@
 use std::collections::{HashMap, HashSet};
 
 use adp_diagram::DiagramElement;
+use adp_diagram_sankey::theme::{note as note_colour, palette};
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::scene::{Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, TextRun};
 use adp_scene::style::{Colour, Font, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::ModuleScene;
+use super::module_scene::{ModuleScene, selection_colour};
 
 /// The element types the Sankey module puts on the wire (`adp_diagram_sankey::mapper`).
 const NODE_TYPE: &str = "etalii/sankey+node";
 const FLOW_TYPE: &str = "etalii/sankey+flow";
-
-/// The selected outline, as the scene builder paints it (`HIGHLIGHT_STROKE`).
-const SELECTED: &str = "#7c3aed";
 
 /// How far a label sits from its bar's edge.
 const LABEL_GAP: f64 = 10.0;
@@ -44,33 +43,12 @@ const NAME_FIELD_WIDTH: f64 = 180.0;
 /// The radius of an anchor's dot, in canvas units.
 const ANCHOR_RADIUS: f64 = 5.0;
 
-/// A palette word's colour, light then dark (`sankey.dis`, `color.sankey.<word>`, as the standalone host's `index.css`
-/// declares them): the dark values lift each word so the bar, the band and the label still read on the dark canvas, where
-/// the light ones measured 2.3:1 to 3.8:1 on VS Code's dark `editor.background` (task T086, `adp-theme/tests/contrast.rs`).
-fn palette(word: &str, dark: bool) -> &'static str {
-    let (light, lifted) = match word {
-        "slate" => ("#2f5b8a", "#8fb0d4"),
-        "purple" => ("#86198f", "#e879f9"),
-        "blue" => ("#1d4ed8", "#60a5fa"),
-        "teal" => ("#0f766e", "#2dd4bf"),
-        "green" => ("#15803d", "#4ade80"),
-        "lime" => ("#4d7c0f", "#a3e635"),
-        "yellow" => ("#a16207", "#facc15"),
-        "orange" => ("#c2410c", "#fb923c"),
-        "red" => ("#a3151a", "#f87171"),
-        "pink" => ("#be185d", "#f472b6"),
-        "brown" => ("#7c4a1e", "#d6a26f"),
-        _ => ("#666666", "#a8a8a8"),
-    };
-    if dark { lifted } else { light }
-}
-
 /// What an element is painted in: its own hex as written in both modes, else its palette word's colour in the light
-/// or the `dark` mode (`paintOf`).
-fn paint_of(element: &DiagramElement, dark: bool) -> String {
+/// or the dark theme, `theme` (`paintOf`).
+fn paint_of(element: &DiagramElement, theme: Kind) -> String {
     let custom = element.attribute("customColor");
     if custom.is_empty() {
-        palette(element.attribute("color"), dark).to_owned()
+        palette(element.attribute("color"), theme).to_owned()
     } else {
         custom.to_owned()
     }
@@ -152,13 +130,14 @@ fn text(owner: &Owner, id: &str, text: String, position: Point, anchor: TextAnch
 }
 
 /// The scene of `elements`, the Sankey module's rendering, with `selection` outlined and the nodes `moving` carried up
-/// or down their column by the drag in flight, in the light or the `dark` palette.
+/// or down their column by the drag in flight, in the colours of the active theme, `theme`.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let nodes: Vec<&DiagramElement> = elements.iter().filter(|e| e.element_type == NODE_TYPE).collect();
     let mut rects: HashMap<String, Rect> = HashMap::new();
@@ -201,9 +180,9 @@ pub fn build(
             owner: Owner::Relation(flow.id.clone()),
             role: Role::Body,
             path: band_path(from, to, thickness),
-            fill: Some(Colour::value(&paint_of(flow, dark))),
+            fill: Some(Colour::value(&paint_of(flow, theme))),
             stroke: is_selected.then(|| Stroke {
-                colour: Some(Colour::value(SELECTED)),
+                colour: Some(Colour::value(highlight)),
                 width: 2.0,
                 dash: Vec::new(),
                 opacity: 1.0,
@@ -223,7 +202,7 @@ pub fn build(
             continue;
         };
         let owner = Owner::Element(node.id.clone());
-        let paint = paint_of(node, dark);
+        let paint = paint_of(node, theme);
         let is_selected = selected.contains(node.id.as_str());
         primitives.push(Primitive::Shape(ShapePrimitive {
             owner: owner.clone(),
@@ -231,7 +210,7 @@ pub fn build(
             path: Path::rounded_rect(rect, 0.0),
             fill: Some(Colour::value(&paint)),
             stroke: is_selected.then(|| Stroke {
-                colour: Some(Colour::value(SELECTED)),
+                colour: Some(Colour::value(highlight)),
                 width: 3.0,
                 dash: Vec::new(),
                 opacity: 1.0,
@@ -284,7 +263,7 @@ pub fn build(
                 note.to_owned(),
                 Point::new(x, middle + 26.0),
                 anchor,
-                font(11.0, 400, true, Some("#6b7280")),
+                font(11.0, 400, true, Some(note_colour(theme))),
             ));
         }
         if is_selected {
@@ -348,10 +327,10 @@ mod tests {
         let mut node = DiagramElement::node("a", NODE_TYPE);
         node.attributes.push(("color".into(), "blue".into()));
         node.attributes.push(("customColor".into(), String::new()));
-        assert_eq!(paint_of(&node, false), "#1d4ed8");
-        assert_eq!(paint_of(&node, true), "#60a5fa");
+        assert_eq!(paint_of(&node, Kind::Light), "#1d4ed8");
+        assert_eq!(paint_of(&node, Kind::Dark), "#60a5fa");
         node.attributes[1].1 = "#aa5500".into();
-        assert_eq!(paint_of(&node, false), "#aa5500");
-        assert_eq!(paint_of(&node, true), "#aa5500");
+        assert_eq!(paint_of(&node, Kind::Light), "#aa5500");
+        assert_eq!(paint_of(&node, Kind::Dark), "#aa5500");
     }
 }

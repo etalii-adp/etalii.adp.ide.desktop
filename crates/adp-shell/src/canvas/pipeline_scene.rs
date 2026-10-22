@@ -20,22 +20,15 @@ use std::collections::{HashMap, HashSet};
 
 use adp_diagram::DiagramElement;
 use adp_diagram_azure_devops_pipeline::mapper::{EDGE_TYPE, JOB_TYPE, STAGE_TYPE, STEP_TYPE, TEMPLATE_TYPE};
+use adp_diagram_azure_devops_pipeline::theme::{Palette, palette};
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive};
 use adp_scene::style::{Colour, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::{ModuleScene, SELECTED, SELECTED_WIDTH, font, number, stroke, text};
+use super::module_scene::{ModuleScene, SELECTED_WIDTH, font, number, selection_colour, stroke, text};
 
-const STAGE_FILL: &str = "#f8fafc";
-const SURFACE: &str = "#ffffff";
-const BORDER: &str = "#e2e8f0";
-const TEXT: &str = "#0f172a";
-const MUTED: &str = "#64748b";
-const DEPLOYMENT_FILL: &str = "#f0fdf4";
-const DEPLOYMENT_EDGE: &str = "#32cd32";
-const EDGE: &str = "#64748b";
-const BROKEN: &str = "#dc2626";
 /// The fixed reach of an arrow's control points.
 const EDGE_REACH: f64 = 30.0;
 
@@ -81,7 +74,7 @@ fn label(
 }
 
 /// The outline of an element: selected, a deployment's, or a plain one, dashed where it is uncertain or borrowed.
-fn outline_of(element: &DiagramElement, selected: bool) -> Stroke {
+fn outline_of(element: &DiagramElement, selected: bool, palette: &Palette, highlight: &str) -> Stroke {
     let dash: &[f64] = if element.element_type == TEMPLATE_TYPE {
         &[6.0, 4.0]
     } else if element.attribute("fromTemplate") == "true" {
@@ -92,11 +85,11 @@ fn outline_of(element: &DiagramElement, selected: bool) -> Stroke {
         &[]
     };
     if selected {
-        stroke(Some(SELECTED), SELECTED_WIDTH, dash)
+        stroke(Some(highlight), SELECTED_WIDTH, dash)
     } else if element.attribute("kind") == "deploymentJob" {
-        stroke(Some(DEPLOYMENT_EDGE), 2.0, dash)
+        stroke(Some(palette.deployment_edge), 2.0, dash)
     } else {
-        stroke(Some(BORDER), 1.0, dash)
+        stroke(Some(palette.border), 1.0, dash)
     }
 }
 
@@ -138,8 +131,11 @@ fn glyph_shape(glyph: &str, centre: Point) -> Option<Path> {
     }
 }
 
-/// The scene of `elements`, a pipeline view's rendering, with `selection` outlined.
-pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
+/// The scene of `elements`, a pipeline view's rendering, with `selection` outlined, in the palette of the active
+/// theme, `theme`.
+pub fn build(elements: &[DiagramElement], selection: &[String], theme: Kind) -> ModuleScene {
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let mut rects: HashMap<String, Rect> = HashMap::new();
     for element in elements.iter().filter(|e| e.element_type != EDGE_TYPE) {
@@ -165,18 +161,18 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
         let fill = if element.element_type == TEMPLATE_TYPE {
             None
         } else if is_stage {
-            Some(STAGE_FILL)
+            Some(palette.stage_fill)
         } else if element.attribute("kind") == "deploymentJob" {
-            Some(DEPLOYMENT_FILL)
+            Some(palette.deployment_fill)
         } else {
-            Some(SURFACE)
+            Some(palette.surface)
         };
         let mut body = shape(
             &owner,
             Role::Body,
             Path::rounded_rect(rect, if is_stage { 6.0 } else { 0.0 }),
             fill,
-            Some(outline_of(element, is_selected)),
+            Some(outline_of(element, is_selected, palette, highlight)),
         );
         if let Primitive::Shape(s) = &mut body {
             let reason = element.attribute("unresolvedReason");
@@ -194,7 +190,7 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
                 name,
                 Point::new(rect.x + 12.0, rect.y + 24.0),
                 TextAnchor::Start,
-                (14.0, 600, TEXT),
+                (14.0, 600, palette.text),
             ));
             labels.push((
                 element.id.clone(),
@@ -209,7 +205,7 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
                     format!("{count} {}", if count == 1 { "job" } else { "jobs" }),
                     Point::new(rect.x + 12.0, rect.y + 44.0),
                     TextAnchor::Start,
-                    (12.0, 400, MUTED),
+                    (12.0, 400, palette.muted),
                 ));
             }
         } else {
@@ -225,7 +221,7 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
                 name,
                 Point::new(rect.x + 10.0, y),
                 TextAnchor::Start,
-                (12.0, 400, TEXT),
+                (12.0, 400, palette.text),
             ));
             labels.push((
                 element.id.clone(),
@@ -244,9 +240,9 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
                     Role::Decoration(role),
                     path,
                     None,
-                    Some(stroke(Some(MUTED), 1.2, &[])),
+                    Some(stroke(Some(palette.muted), 1.2, &[])),
                 ),
-                None => label(&owner, &role, glyph, at, TextAnchor::End, (11.0, 400, MUTED)),
+                None => label(&owner, &role, glyph, at, TextAnchor::End, (11.0, 400, palette.muted)),
             };
             primitives.push(match drawn {
                 Primitive::Shape(mut s) => {
@@ -289,11 +285,11 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
         let implicit = edge.attribute("implicitDependency") == "true";
         let broken = edge.attribute("broken") == "true";
         let colour = if selected.contains(edge.id.as_str()) {
-            SELECTED
+            highlight
         } else if broken {
-            BROKEN
+            palette.broken
         } else {
-            EDGE
+            palette.edge
         };
         let dash = if broken {
             vec![2.0, 4.0]

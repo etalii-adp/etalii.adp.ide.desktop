@@ -13,7 +13,7 @@ use eframe::egui::{self, Modifiers, PointerButton};
 
 use super::{Harness, bodies, texts_of};
 
-fn company() -> Harness {
+pub(super) fn company() -> Harness {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/etalii/sankey/brightwater-coffee");
     Harness::open_from(
         &folder,

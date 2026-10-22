@@ -24,20 +24,15 @@ use adp_diagram_databricks::mapper::{
     EDGE_TYPE, FLOW_EDGE_TYPE, FRAME_HEIGHT, FRAME_WIDTH, NODE_HEIGHT, NODE_WIDTH, OVERRIDE_EDGE_TYPE, TARGET_TYPE,
     TASK_TYPE, is_edge,
 };
+use adp_diagram_databricks::theme::palette;
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive};
 use adp_scene::style::{Colour, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
-use super::module_scene::{ANCHOR_RADIUS, ModuleScene, SELECTED, SELECTED_WIDTH, font, stroke, text};
+use super::module_scene::{ANCHOR_RADIUS, ModuleScene, SELECTED_WIDTH, font, selection_colour, stroke, text};
 
-const SURFACE: &str = "#ffffff";
-const BORDER: &str = "#8892a6";
-const TEXT: &str = "#1c2333";
-const MUTED: &str = "#5a6376";
-const EDGE: &str = "#64748b";
-const SUCCESS: &str = "#15803d";
-const DANGER: &str = "#dc2626";
 /// The fixed reach of a layered edge's control points (`EDGE_REACH`).
 const EDGE_REACH: f64 = 30.0;
 /// How many characters of a box's name fit beside its inset at 13 (`truncate`).
@@ -156,8 +151,11 @@ fn arrowhead(owner: &Owner, tip: Point, from: Point, colour: &str) -> Primitive 
     )
 }
 
-/// The scene of `elements`, a Databricks view's rendering, with `selection` outlined.
-pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
+/// The scene of `elements`, a Databricks view's rendering, with `selection` outlined, in the palette of the active
+/// theme, `theme`.
+pub fn build(elements: &[DiagramElement], selection: &[String], theme: Kind) -> ModuleScene {
+    let palette = palette(theme);
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let mut rects: HashMap<String, Rect> = HashMap::new();
     for element in elements.iter().filter(|e| !is_edge(&e.element_type)) {
@@ -175,9 +173,9 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
         let rect = rects[&frame.id];
         let owner = Owner::Element(frame.id.clone());
         let outline = if selected.contains(frame.id.as_str()) {
-            stroke(Some(SELECTED), SELECTED_WIDTH, &[6.0, 4.0])
+            stroke(Some(highlight), SELECTED_WIDTH, &[6.0, 4.0])
         } else {
-            stroke(Some(BORDER), 1.0, &[6.0, 4.0])
+            stroke(Some(palette.border), 1.0, &[6.0, 4.0])
         };
         primitives.push(shape(
             &owner,
@@ -192,14 +190,14 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
             "name",
             frame.attribute("label").to_owned(),
             Point::new(rect.x, rect.y - 6.0),
-            (12.0, MUTED),
+            (12.0, palette.muted),
         ));
         primitives.push(label(
             &owner,
             "badges",
             frame_badges(frame),
             Point::new(rect.x + 12.0, rect.y + 18.0),
-            (10.0, MUTED),
+            (10.0, palette.muted),
         ));
         labels.push((
             frame.id.clone(),
@@ -226,9 +224,9 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
         let is_selected = selected.contains(node.id.as_str());
         let dash: &[f64] = if missing { &[5.0, 4.0] } else { &[] };
         let outline = if is_selected {
-            stroke(Some(SELECTED), SELECTED_WIDTH, dash)
+            stroke(Some(highlight), SELECTED_WIDTH, dash)
         } else {
-            stroke(Some(BORDER), 1.0, dash)
+            stroke(Some(palette.border), 1.0, dash)
         };
         let radius = if node.attribute("kind") == "condition" {
             16.0
@@ -239,7 +237,7 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
             &owner,
             Role::Body,
             Path::rounded_rect(rect, radius),
-            (!missing).then_some(SURFACE),
+            (!missing).then_some(palette.surface),
             Some(outline),
             if missing { 0.7 } else { 1.0 },
         ));
@@ -248,7 +246,7 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
             "name",
             truncated(node.attribute("label")),
             Point::new(rect.x + 8.0, rect.y + NODE_HEIGHT / 2.0 - 4.0),
-            (13.0, TEXT),
+            (13.0, palette.text),
         ));
         let worn: Vec<&str> = node.attribute("badges").lines().filter(|b| !b.is_empty()).collect();
         if !worn.is_empty() {
@@ -257,7 +255,7 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
                 "badges",
                 worn.join(" · "),
                 Point::new(rect.x + 8.0, rect.y + NODE_HEIGHT - 8.0),
-                (10.0, MUTED),
+                (10.0, palette.muted),
             ));
         }
         labels.push((
@@ -304,12 +302,12 @@ pub fn build(elements: &[DiagramElement], selection: &[String]) -> ModuleScene {
         let owner = Owner::Relation(edge.id.clone());
         let outcome = edge.attribute("outcome");
         let colour = if selected.contains(edge.id.as_str()) {
-            SELECTED
+            highlight
         } else {
             match outcome {
-                "true" => SUCCESS,
-                "false" => DANGER,
-                _ => EDGE,
+                "true" => palette.success,
+                "false" => palette.danger,
+                _ => palette.edge,
             }
         };
         let (path, sampled, head_from, tip) = if edge.element_type == OVERRIDE_EDGE_TYPE {

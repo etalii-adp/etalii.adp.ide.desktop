@@ -28,7 +28,7 @@ fn badges(harness: &Harness) -> Vec<String> {
         .collect()
 }
 
-fn multi_stage() -> Harness {
+pub(super) fn multi_stage() -> Harness {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../parity/fixtures/azure-devops/pipeline/example-1");
     Harness::open_from(
         &folder,

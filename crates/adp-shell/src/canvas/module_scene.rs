@@ -21,11 +21,13 @@
 use std::collections::{HashMap, HashSet};
 
 use adp_diagram::{DiagramElement, ElementKind};
+use adp_diagram_c4::theme as c4_theme;
 use adp_scene::definition::labels::TextAnchor;
 use adp_scene::notation::catalog::MarkerKind;
 use adp_scene::scene::{EdgePrimitive, Hook, HookKind, Owner, Primitive, Role, ShapePrimitive, TextRun, marker_shape};
 use adp_scene::style::{Colour, Font, Stroke};
 use adp_scene::{Path, Point, Rect, Scene};
+use adp_theme::Kind;
 
 use super::fdg_scene;
 
@@ -35,9 +37,19 @@ const RELATIONSHIP_TYPE: &str = "c4/model+relationship";
 const BOUNDARY_TYPE: &str = "c4/model+boundary";
 const VIEW_TYPE: &str = "c4/model+view";
 
-/// The selected outline, as the scene builder paints it (`HIGHLIGHT_STROKE`).
+/// The selected outline, as the scene builder paints it (`HIGHLIGHT_STROKE`), in the light theme and in the dark one,
+/// where the standalone host's `index.css` lifts the same violet so it still reads on the dark canvas (`--color-selected`).
 pub(super) const SELECTED: &str = "#7c3aed";
+pub(super) const SELECTED_DARK: &str = "#a78bfa";
 pub(super) const SELECTED_WIDTH: f64 = 3.0;
+
+/// The colour a selected element is outlined in, in the active theme `kind`.
+pub(super) fn selection_colour(kind: Kind) -> &'static str {
+    match kind {
+        Kind::Light => SELECTED,
+        Kind::Dark => SELECTED_DARK,
+    }
+}
 
 /// The average advance of a character, as a fraction of the font size (`textMetrics.ts`).
 pub(super) const AVERAGE_ADVANCE: f64 = 0.55;
@@ -207,13 +219,15 @@ pub(super) fn edge_point(rect: Rect, towards: Point) -> Point {
 }
 
 /// The scene of `elements`, a module view's rendering, with `selection` outlined and the elements `moving` carried
-/// by the drag in flight; a module whose notation has a dark palette draws in it when `dark`.
+/// by the drag in flight, in the colours of the active theme, `theme`; a C4 element keeps the colours its model's
+/// styles give it in either theme, as Structurizr draws them.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
-    dark: bool,
+    theme: Kind,
 ) -> ModuleScene {
+    let highlight = selection_colour(theme);
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let mut rects: HashMap<String, Rect> = HashMap::new();
     for element in elements.iter().filter(|e| e.element_type == NODE_TYPE) {
@@ -287,7 +301,7 @@ pub fn build(
         let owner = Owner::Relation(relationship.id.clone());
         let is_selected = selected.contains(relationship.id.as_str());
         let line = if is_selected {
-            stroke(Some(SELECTED), SELECTED_WIDTH, &[6.0, 4.0])
+            stroke(Some(highlight), SELECTED_WIDTH, &[6.0, 4.0])
         } else {
             stroke(None, 1.5, &[6.0, 4.0])
         };
@@ -326,7 +340,7 @@ pub fn build(
                 font(
                     10.0,
                     if is_selected { 600 } else { 400 },
-                    is_selected.then_some(SELECTED),
+                    is_selected.then_some(highlight),
                 ),
             ));
         }
@@ -341,19 +355,21 @@ pub fn build(
         let background = Some(element.attribute("background")).filter(|b| !b.is_empty());
         let colour = Some(element.attribute("color"))
             .filter(|c| !c.is_empty())
-            .unwrap_or("#ffffff");
+            .unwrap_or(c4_theme::LIGHT_TEXT);
         let is_selected = selected.contains(element.id.as_str());
         let outline = if is_selected {
-            stroke(Some(SELECTED), SELECTED_WIDTH, &[])
+            stroke(Some(highlight), SELECTED_WIDTH, &[])
         } else {
-            stroke(background.or(Some("#1168bd")), 1.0, &[])
+            stroke(background.or(Some(c4_theme::SOFTWARE_SYSTEM_BACKGROUND)), 1.0, &[])
         };
         let (body, cap) = silhouette(element.attribute("shape"), rect);
         primitives.push(Primitive::Shape(ShapePrimitive {
             owner: owner.clone(),
             role: Role::Body,
             path: body,
-            fill: Some(Colour::value(background.unwrap_or("#1168bd"))),
+            fill: Some(Colour::value(
+                background.unwrap_or(c4_theme::SOFTWARE_SYSTEM_BACKGROUND),
+            )),
             stroke: Some(outline),
             opacity: if moving.is_some_and(|(ids, _)| ids.contains(&element.id)) {
                 0.75
@@ -531,7 +547,7 @@ pub fn build(
     let moving_ids: HashSet<&str> = moving
         .map(|(ids, _)| ids.iter().map(String::as_str).collect())
         .unwrap_or_default();
-    let graph = fdg_scene::draw(elements, &drawn, &selected, &moving_ids, dark);
+    let graph = fdg_scene::draw(elements, &drawn, &selected, &moving_ids, theme);
     primitives.extend(graph.primitives);
     boxes.extend(graph.boxes);
     lines.extend(graph.lines);

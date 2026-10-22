@@ -34,6 +34,7 @@ pub mod registration_layout;
 pub mod resolution;
 pub mod store;
 pub mod template_scan;
+pub mod theme;
 pub mod view;
 pub mod yaml;
 
