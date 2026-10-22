@@ -76,15 +76,19 @@ const LIGHT: Palette = Palette {
     ],
 };
 
+/// The dark fills keep the standalone host's hues and saturations with the lightness lowered to the lightest value that
+/// reaches 5.0:1 against VS Code's dark `editor.foreground` (`#BBBEBF`), the text a tool is to take from the active theme (FR-045);
+/// the standalone host's (`#2e7814`, `#696969`, `#086fa1`, `#187569`, `#736a03`) were chosen against `#f1f5f9` and
+/// reach only 2.9:1 there (task T086, `adp-theme/tests/contrast.rs`).
 const DARK: Palette = Palette {
     text: "#f1f5f9",
     border: "#64748b",
     fills: [
-        ("ui-element", "#2e7814"),
-        ("data-element", "#696969"),
-        ("action", "#086fa1"),
-        ("function", "#187569"),
-        ("comment", "#736a03"),
+        ("ui-element", "#1f510e"),
+        ("data-element", "#464646"),
+        ("action", "#054b6d"),
+        ("function", "#104f47"),
+        ("comment", "#4e4702"),
     ],
 };
 

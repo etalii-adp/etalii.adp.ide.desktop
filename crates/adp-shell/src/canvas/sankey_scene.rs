@@ -44,29 +44,33 @@ const NAME_FIELD_WIDTH: f64 = 180.0;
 /// The radius of an anchor's dot, in canvas units.
 const ANCHOR_RADIUS: f64 = 5.0;
 
-/// A palette word's colour (`index.css`, the light theme's `--color-diagram-sankey-*`).
-fn palette(word: &str) -> &'static str {
-    match word {
-        "slate" => "#2f5b8a",
-        "purple" => "#86198f",
-        "blue" => "#1d4ed8",
-        "teal" => "#0f766e",
-        "green" => "#15803d",
-        "lime" => "#4d7c0f",
-        "yellow" => "#a16207",
-        "orange" => "#c2410c",
-        "red" => "#a3151a",
-        "pink" => "#be185d",
-        "brown" => "#7c4a1e",
-        _ => "#666666",
-    }
+/// A palette word's colour, light then dark (`sankey.dis`, `color.sankey.<word>`, as the standalone host's `index.css`
+/// declares them): the dark values lift each word so the bar, the band and the label still read on the dark canvas, where
+/// the light ones measured 2.3:1 to 3.8:1 on VS Code's dark `editor.background` (task T086, `adp-theme/tests/contrast.rs`).
+fn palette(word: &str, dark: bool) -> &'static str {
+    let (light, lifted) = match word {
+        "slate" => ("#2f5b8a", "#8fb0d4"),
+        "purple" => ("#86198f", "#e879f9"),
+        "blue" => ("#1d4ed8", "#60a5fa"),
+        "teal" => ("#0f766e", "#2dd4bf"),
+        "green" => ("#15803d", "#4ade80"),
+        "lime" => ("#4d7c0f", "#a3e635"),
+        "yellow" => ("#a16207", "#facc15"),
+        "orange" => ("#c2410c", "#fb923c"),
+        "red" => ("#a3151a", "#f87171"),
+        "pink" => ("#be185d", "#f472b6"),
+        "brown" => ("#7c4a1e", "#d6a26f"),
+        _ => ("#666666", "#a8a8a8"),
+    };
+    if dark { lifted } else { light }
 }
 
-/// What an element is painted in: its own hex, else its palette word's colour (`paintOf`).
-fn paint_of(element: &DiagramElement) -> String {
+/// What an element is painted in: its own hex as written in both modes, else its palette word's colour in the light
+/// or the `dark` mode (`paintOf`).
+fn paint_of(element: &DiagramElement, dark: bool) -> String {
     let custom = element.attribute("customColor");
     if custom.is_empty() {
-        palette(element.attribute("color")).to_owned()
+        palette(element.attribute("color"), dark).to_owned()
     } else {
         custom.to_owned()
     }
@@ -148,11 +152,12 @@ fn text(owner: &Owner, id: &str, text: String, position: Point, anchor: TextAnch
 }
 
 /// The scene of `elements`, the Sankey module's rendering, with `selection` outlined and the nodes `moving` carried up
-/// or down their column by the drag in flight.
+/// or down their column by the drag in flight, in the light or the `dark` palette.
 pub fn build(
     elements: &[DiagramElement],
     selection: &[String],
     moving: Option<(&[String], (f64, f64))>,
+    dark: bool,
 ) -> ModuleScene {
     let selected: HashSet<&str> = selection.iter().map(String::as_str).collect();
     let nodes: Vec<&DiagramElement> = elements.iter().filter(|e| e.element_type == NODE_TYPE).collect();
@@ -196,7 +201,7 @@ pub fn build(
             owner: Owner::Relation(flow.id.clone()),
             role: Role::Body,
             path: band_path(from, to, thickness),
-            fill: Some(Colour::value(&paint_of(flow))),
+            fill: Some(Colour::value(&paint_of(flow, dark))),
             stroke: is_selected.then(|| Stroke {
                 colour: Some(Colour::value(SELECTED)),
                 width: 2.0,
@@ -218,7 +223,7 @@ pub fn build(
             continue;
         };
         let owner = Owner::Element(node.id.clone());
-        let paint = paint_of(node);
+        let paint = paint_of(node, dark);
         let is_selected = selected.contains(node.id.as_str());
         primitives.push(Primitive::Shape(ShapePrimitive {
             owner: owner.clone(),
@@ -339,12 +344,14 @@ mod tests {
     }
 
     #[test]
-    fn a_palette_word_is_painted_in_its_theme_colour_and_a_hex_as_written() {
+    fn a_palette_word_is_painted_in_its_theme_colour_per_mode_and_a_hex_as_written() {
         let mut node = DiagramElement::node("a", NODE_TYPE);
         node.attributes.push(("color".into(), "blue".into()));
         node.attributes.push(("customColor".into(), String::new()));
-        assert_eq!(paint_of(&node), "#1d4ed8");
+        assert_eq!(paint_of(&node, false), "#1d4ed8");
+        assert_eq!(paint_of(&node, true), "#60a5fa");
         node.attributes[1].1 = "#aa5500".into();
-        assert_eq!(paint_of(&node), "#aa5500");
+        assert_eq!(paint_of(&node, false), "#aa5500");
+        assert_eq!(paint_of(&node, true), "#aa5500");
     }
 }

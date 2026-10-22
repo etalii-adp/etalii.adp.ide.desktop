@@ -770,7 +770,7 @@ impl DiagramTab {
             wardley_scene::build(&elements, &self.selection, self.arbiter.moving())
         } else if self.opened.origin == adp_diagram_sankey::ORIGIN {
             (
-                sankey_scene::build(&elements, &self.selection, self.arbiter.moving()),
+                sankey_scene::build(&elements, &self.selection, self.arbiter.moving(), key.dark),
                 HashMap::new(),
             )
         } else if self.opened.origin == adp_diagram_helm_chart::ORIGIN {

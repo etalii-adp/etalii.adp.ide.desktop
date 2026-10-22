@@ -9,6 +9,9 @@
 //!   environment a hexagon with its kind under its name; each kind in its own fill;
 //! - a specification lists its tasks by status, each group under a heading with its count, a folded group as its
 //!   heading alone; a location lists its pull requests the same way;
+//! - everything written on a card, its status and folder among them, is in the text colour: the muted and the status
+//!   colours measured 2.4:1 to 3.8:1 on these fills, so a status is told by its word, as `aad.css` paints it (task T086,
+//!   `adp-theme/tests/contrast.rs`);
 //! - a locked element carries a lock at its top-left;
 //! - a relation is a plain line between the two cards' edges, a breach dashed in the danger colour.
 //!
@@ -30,7 +33,6 @@ use super::module_scene::{
 /// The theme's tokens (`notation.theme`), light first, dark second.
 struct Palette {
     text: &'static str,
-    muted: &'static str,
     border: &'static str,
     relation: &'static str,
     danger: &'static str,
@@ -38,7 +40,6 @@ struct Palette {
 
 const LIGHT: Palette = Palette {
     text: "#0f172a",
-    muted: "#475569",
     border: "#94a3b8",
     relation: "#64748b",
     danger: "#dc2626",
@@ -46,7 +47,6 @@ const LIGHT: Palette = Palette {
 
 const DARK: Palette = Palette {
     text: "#f1f5f9",
-    muted: "#cbd5e1",
     border: "#64748b",
     relation: "#94a3b8",
     danger: "#f87171",
@@ -321,7 +321,7 @@ pub fn build(
                     card.attribute("statusLabel").to_owned(),
                     Point::new(rect.centre().x, rect.y + 40.0),
                     TextAnchor::Middle,
-                    font(11.0, 600, Some(status_colour(status, dark))),
+                    font(11.0, 600, Some(palette.text)),
                 ));
                 y = rect.y + 64.0;
             }
@@ -332,7 +332,7 @@ pub fn build(
                     card.attribute("kindLabel").to_owned(),
                     Point::new(rect.centre().x, rect.y + 38.0),
                     TextAnchor::Middle,
-                    font(11.0, 400, Some(palette.muted)),
+                    font(11.0, 400, Some(palette.text)),
                 ));
             }
             "location" => {
@@ -352,7 +352,7 @@ pub fn build(
                     fitted(card.attribute("folder"), inner, 11.0),
                     Point::new(rect.centre().x, rect.y + 46.0),
                     TextAnchor::Middle,
-                    font(11.0, 400, Some(palette.muted)),
+                    font(11.0, 400, Some(palette.text)),
                 ));
                 y = rect.y + 64.0 + ROW_HEIGHT;
             }
