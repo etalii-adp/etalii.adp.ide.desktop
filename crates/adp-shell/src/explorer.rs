@@ -1,7 +1,8 @@
 //! The explorer (etalii.adp spec 030, Story 1, FR-013, task T034): the workspace tree in VS Code's look, folders
 //! first, each registration under the file it registers, kept in step with the disk. A click selects, a double
 //! click or Enter opens, the arrows move, F2 renames and Delete deletes; the context menu offers the standalone
-//! host's actions. The explorer only says what was asked; the shell does it.
+//! host's actions, and Shift+F10 or the Menu key opens it on the entry the keyboard is on (P-007, T100). The explorer
+//! only says what was asked; the shell does it.
 
 use std::collections::HashSet;
 
@@ -45,6 +46,10 @@ pub struct Explorer {
     view: (f32, f32),
     /// Whether the keyboard moved the selection, so that it is scrolled into view.
     reveal: bool,
+    /// The entry whose context menu the keyboard asked for, opened when its row is next drawn.
+    menu_asked: Option<String>,
+    /// The entry whose context menu the keyboard opened, and where: below its row rather than at the pointer.
+    menu_at: Option<(String, egui::Pos2)>,
 }
 
 impl Explorer {
@@ -210,62 +215,77 @@ impl Explorer {
                             requests.push(Request::Open(row.node.path.clone()));
                         }
                     }
-                    egui::Popup::context_menu(&response)
-                        .accessible_name(&row.node.name)
-                        .show(|ui| {
-                            self.selected = Some(row.node.path.clone());
-                            let path = row.node.path.clone();
-                            let folder = if row.node.kind == Kind::Folder {
-                                path.clone()
-                            } else {
-                                path.rsplit_once('/').map(|(p, _)| p.to_owned()).unwrap_or_default()
+                    let popup_id = egui::Popup::default_response_id(&response);
+                    if self.menu_asked.as_deref() == Some(row.node.path.as_str()) {
+                        self.menu_asked = None;
+                        egui::Popup::open_id(ui.ctx(), popup_id);
+                        self.menu_at = Some((
+                            row.node.path.clone(),
+                            rect.left_bottom() + egui::vec2(indent + 14.0, 0.0),
+                        ));
+                    }
+                    let mut popup = egui::Popup::context_menu(&response).accessible_name(&row.node.name);
+                    match &self.menu_at {
+                        Some((path, at)) if *path == row.node.path && egui::Popup::is_id_open(ui.ctx(), popup_id) => {
+                            popup = popup.at_position(*at);
+                        }
+                        Some((path, _)) if *path == row.node.path => self.menu_at = None,
+                        _ => {}
+                    }
+                    popup.show(|ui| {
+                        self.selected = Some(row.node.path.clone());
+                        let path = row.node.path.clone();
+                        let folder = if row.node.kind == Kind::Folder {
+                            path.clone()
+                        } else {
+                            path.rsplit_once('/').map(|(p, _)| p.to_owned()).unwrap_or_default()
+                        };
+                        // The standalone host's Add… (`AddDiagramContextActionProvider`), offered first.
+                        if let Some(offer) = self.add_offer(&path, row.node.kind) {
+                            let button = egui::Button::new(RichText::new(offer.label)).shortcut_text("Insert");
+                            let response = ui.add_enabled(offer.unavailable_reason.is_none(), button);
+                            a11y::menu_item(&response, offer.label, "Insert");
+                            if let Some(reason) = offer.unavailable_reason {
+                                a11y::describe_state(&response, reason);
+                            }
+                            let response = match offer.unavailable_reason {
+                                Some(reason) => response.on_disabled_hover_text(reason),
+                                None => response,
                             };
-                            // The standalone host's Add… (`AddDiagramContextActionProvider`), offered first.
-                            if let Some(offer) = self.add_offer(&path, row.node.kind) {
-                                let button = egui::Button::new(RichText::new(offer.label)).shortcut_text("Insert");
-                                let response = ui.add_enabled(offer.unavailable_reason.is_none(), button);
-                                a11y::menu_item(&response, offer.label, "Insert");
-                                if let Some(reason) = offer.unavailable_reason {
-                                    a11y::describe_state(&response, reason);
-                                }
-                                let response = match offer.unavailable_reason {
-                                    Some(reason) => response.on_disabled_hover_text(reason),
-                                    None => response,
-                                };
-                                if response.clicked() {
-                                    requests.push(Request::Add(path.clone()));
-                                    ui.close();
-                                }
+                            if response.clicked() {
+                                requests.push(Request::Add(path.clone()));
+                                ui.close();
                             }
-                            let mut item = |ui: &mut egui::Ui, label: &str, shortcut: &str, request: Request| {
-                                let button = egui::Button::new(RichText::new(label)).shortcut_text(shortcut);
-                                let response = ui.add(button);
-                                a11y::menu_item(&response, label, shortcut);
-                                if response.clicked() {
-                                    requests.push(request);
-                                    ui.close();
-                                }
-                            };
-                            item(ui, "New Folder…", "", Request::NewFolder(folder));
-                            if row.node.kind != Kind::Folder {
-                                item(ui, "Open as Text", "", Request::OpenAsText(path.clone()));
+                        }
+                        let mut item = |ui: &mut egui::Ui, label: &str, shortcut: &str, request: Request| {
+                            let button = egui::Button::new(RichText::new(label)).shortcut_text(shortcut);
+                            let response = ui.add(button);
+                            a11y::menu_item(&response, label, shortcut);
+                            if response.clicked() {
+                                requests.push(request);
+                                ui.close();
                             }
-                            // What a module offers on the entry: a knowledge file adds a relation.
-                            for group in adp_designer_knowledge::context_actions::discover(
-                                &self.root.join(&path),
-                                row.node.kind == Kind::Folder,
-                            ) {
-                                for action in group.actions {
-                                    item(ui, &action.label, "", Request::Relate(path.clone()));
-                                }
+                        };
+                        item(ui, "New Folder…", "", Request::NewFolder(folder));
+                        if row.node.kind != Kind::Folder {
+                            item(ui, "Open as Text", "", Request::OpenAsText(path.clone()));
+                        }
+                        // What a module offers on the entry: a knowledge file adds a relation.
+                        for group in adp_designer_knowledge::context_actions::discover(
+                            &self.root.join(&path),
+                            row.node.kind == Kind::Folder,
+                        ) {
+                            for action in group.actions {
+                                item(ui, &action.label, "", Request::Relate(path.clone()));
                             }
-                            ui.separator();
-                            item(ui, "Rename…", "F2", Request::Rename(path.clone()));
-                            item(ui, "Delete", "Delete", Request::Delete(path.clone()));
-                            ui.separator();
-                            item(ui, "Validate", "", Request::Validate(path.clone()));
-                            item(ui, "Validate All", "", Request::ValidateAll);
-                        });
+                        }
+                        ui.separator();
+                        item(ui, "Rename…", "F2", Request::Rename(path.clone()));
+                        item(ui, "Delete", "Delete", Request::Delete(path.clone()));
+                        ui.separator();
+                        item(ui, "Validate", "", Request::Validate(path.clone()));
+                        item(ui, "Validate All", "", Request::ValidateAll);
+                    });
                 }
             });
             self.view = (output.state.clamped_offset().y, output.inner_rect.height());
@@ -331,7 +351,12 @@ impl Explorer {
             requests.push(Request::Add(path.clone()));
         }
         if pressed(Key::Delete) {
-            requests.push(Request::Delete(path));
+            requests.push(Request::Delete(path.clone()));
+        }
+        // The standalone host's `ExplorerTreePanel.tsx`: Shift+F10 and the Menu key open the entry's context menu.
+        let shift_f10 = ui.input_mut(|i| i.consume_key(egui::Modifiers::SHIFT, Key::F10));
+        if shift_f10 || pressed(Key::Menu) {
+            self.menu_asked = Some(path);
         }
     }
 }
@@ -487,6 +512,53 @@ mod tests {
             explorer.expanded.contains("docs"),
             "Enter on a folder opens or closes it"
         );
+    }
+
+    fn key_with(
+        ctx: &egui::Context,
+        explorer: &mut Explorer,
+        tree: &Hierarchy,
+        key: Key,
+        modifiers: egui::Modifiers,
+    ) -> Vec<Request> {
+        let event = egui::Event::Key {
+            key,
+            physical_key: None,
+            pressed: true,
+            repeat: false,
+            modifiers,
+        };
+        frame(ctx, explorer, tree, vec![event])
+    }
+
+    /// The standalone host's `ExplorerTreePanel.tsx`: Shift+F10 and the Menu key open the context menu of the entry
+    /// the keyboard is on, below its row, and Escape closes it.
+    #[test]
+    fn shift_f10_and_the_menu_key_open_the_entrys_context_menu() {
+        let tree = Hierarchy {
+            root: std::path::PathBuf::new(),
+            children: vec![
+                node("a.md", Kind::File, Vec::new()),
+                node("b.md", Kind::File, Vec::new()),
+            ],
+        };
+        for (pressed, modifiers) in [(Key::F10, egui::Modifiers::SHIFT), (Key::Menu, egui::Modifiers::NONE)] {
+            let ctx = egui::Context::default();
+            let mut explorer = Explorer::default();
+            frame(&ctx, &mut explorer, &tree, Vec::new());
+            let second = egui::pos2(8.0 + 60.0, 8.0 + theme_row_height() * 1.5);
+            click(&ctx, &mut explorer, &tree, second);
+            assert!(!egui::Popup::is_any_open(&ctx));
+
+            assert!(key_with(&ctx, &mut explorer, &tree, pressed, modifiers).is_empty());
+            frame(&ctx, &mut explorer, &tree, Vec::new());
+
+            assert!(egui::Popup::is_any_open(&ctx), "{pressed:?} opens the menu");
+            assert_eq!(explorer.selected.as_deref(), Some("b.md"));
+            let (path, at) = explorer.menu_at.clone().expect("opened by the keyboard");
+            assert_eq!(path, "b.md");
+            assert!(at.y > second.y, "below the row, not at the pointer: {at:?}");
+        }
     }
 
     fn theme_row_height() -> f32 {
