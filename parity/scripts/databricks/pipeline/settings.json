@@ -1,0 +1,23 @@
+{
+  "tool": "databricks/pipeline",
+  "fixture": "databricks/settings/pipeline.json",
+  "registration": "databricks/settings/pipeline.adp",
+  "steps": [
+    { "action": "databricks.add-library:notebook", "args": { "target": "pipeline", "value": "transformations/platinum" } },
+    { "property": { "row": "Name", "value": "bronze \"to\" gold", "target": "pipeline" } },
+    { "property": { "row": "Catalog", "value": "main", "target": "pipeline" } },
+    { "property": { "row": "Channel", "value": "PREVIEW", "target": "pipeline" } },
+    { "action": "databricks.remove-library", "args": { "target": "library:transformations/platinum" } },
+    { "action": "databricks.remove-library", "args": { "target": "library:transformations/silver.py" } },
+    { "undo": 1 },
+    { "redo": 1 },
+    { "action": "databricks.add-library:file", "args": { "target": "pipeline", "value": "a/b.py" } },
+    { "action": "databricks.remove-library", "args": { "target": "library:transformations/bronze" } },
+    { "action": "databricks.remove-library", "args": { "target": "library:a/b.py" } },
+    { "action": "databricks.remove-library", "args": { "target": "library:transformations/gold/**" }, "expect": "refused" },
+    { "move": { "refs": ["pipeline"], "to": { "x": 320, "y": 40 } } },
+    { "move": { "refs": ["target"], "to": { "x": 640, "y": 40 } } },
+    { "undo": 1 },
+    { "move": { "refs": ["compute"], "to": { "x": 0.125, "y": 300.5 } } }
+  ]
+}

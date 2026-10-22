@@ -434,6 +434,7 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         );
     let tools = adp_diagram_dependency_graph::register(tools);
     let tools = adp_diagram_supply_chain::register(tools);
+    let tools = adp_diagram_databricks::register(tools);
     let tools = adp_diagram_azure_devops_pipeline::register(tools);
     let tools = adp_diagram_sankey::register(tools);
     let tools = adp_diagram_functional_decomposition_graph::register(tools);

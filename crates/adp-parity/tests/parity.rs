@@ -22,6 +22,26 @@ fn c4_container_courier() {
 }
 
 #[test]
+fn databricks_job_nightly_ingest() {
+    check("databricks/job/nightly-ingest");
+}
+
+#[test]
+fn databricks_bundle_lakehouse() {
+    check("databricks/bundle/lakehouse");
+}
+
+#[test]
+fn databricks_pipeline_lakehouse() {
+    check("databricks/pipeline/lakehouse");
+}
+
+#[test]
+fn databricks_pipeline_settings() {
+    check("databricks/pipeline/settings");
+}
+
+#[test]
 fn dotnet_dependency_graph_pipeline_toolkit() {
     check("dotnet/dependency-graph/pipeline-toolkit");
 }

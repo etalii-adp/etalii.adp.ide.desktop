@@ -1,0 +1,170 @@
+{
+  "script": "parity/scripts/databricks/pipeline/lakehouse.json",
+  "tool": "databricks/pipeline",
+  "fixture": "databricks/lakehouse/databricks.yml",
+  "registration": "databricks/lakehouse/databricks.pipeline.adp",
+  "standaloneCommit": "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-21T21:18:05Z",
+  "edits": 18,
+  "changed": [
+    "databricks.pipeline.adp",
+    "databricks.yml"
+  ],
+  "removed": [],
+  "generated": [
+    {
+      "step": 1,
+      "id": "library:transformations/platinum",
+      "type": "databricks/pipeline+node",
+      "connection": false
+    },
+    {
+      "step": 1,
+      "id": "flow:transformations/platinum->pipeline",
+      "type": "databricks/pipeline+edge",
+      "connection": false
+    },
+    {
+      "step": 2,
+      "id": "library:transformations/udfs.py",
+      "type": "databricks/pipeline+node",
+      "connection": false
+    },
+    {
+      "step": 2,
+      "id": "flow:transformations/udfs.py->pipeline",
+      "type": "databricks/pipeline+edge",
+      "connection": false
+    }
+  ],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "pipeline"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the selection; input 'Add library' answered 'transformations/platinum'"
+    },
+    {
+      "step": 2,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on pipeline; input 'Add library' answered '  transformations/udfs.py '"
+    },
+    {
+      "step": 3,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "refused",
+      "detail": "The notebook library 'transformations/bronze' is already there."
+    },
+    {
+      "step": 4,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on library:transformations/silver"
+    },
+    {
+      "step": 5,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.pipeline:catalog = 'main'"
+    },
+    {
+      "step": 6,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.pipeline:channel = 'PREVIEW'"
+    },
+    {
+      "step": 7,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "databricks.pipeline:schema = 'gold #2'"
+    },
+    {
+      "step": 8,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "A pipeline needs a name."
+    },
+    {
+      "step": 9,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 10,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 11,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on library:transformations/gold/**"
+    },
+    {
+      "step": 12,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction",
+      "outcome": "accepted",
+      "detail": "on pipeline"
+    },
+    {
+      "step": 13,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "pipeline to (300, 100)"
+    },
+    {
+      "step": 14,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "library:transformations/bronze to (-20, 0)"
+    },
+    {
+      "step": 15,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "accepted",
+      "detail": "notifications by (40, 0) to (360, 440)"
+    },
+    {
+      "step": 16,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    },
+    {
+      "step": 17,
+      "kind": "move",
+      "rpc": "DiagramService.MoveElement",
+      "outcome": "refused",
+      "detail": "That element is not something this diagram can move."
+    }
+  ]
+}

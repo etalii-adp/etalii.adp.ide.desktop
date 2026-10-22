@@ -129,6 +129,7 @@ dependencies = [
  "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
+ "adp-diagram-databricks",
  "adp-diagram-dotnet-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
  "adp-diagram-hype-cycle",
@@ -312,6 +313,21 @@ dependencies = [
  "adp-disl",
  "adp-layout",
  "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "adp-diagram-databricks"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "saphyr-parser",
  "tempfile",
 ]
 
@@ -574,6 +590,7 @@ dependencies = [
  "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
+ "adp-diagram-databricks",
  "adp-diagram-dependency-graph",
  "adp-diagram-dotnet-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
@@ -637,6 +654,7 @@ dependencies = [
  "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
+ "adp-diagram-databricks",
  "adp-diagram-dependency-graph",
  "adp-diagram-dotnet-dependency-graph",
  "adp-diagram-functional-decomposition-graph",
