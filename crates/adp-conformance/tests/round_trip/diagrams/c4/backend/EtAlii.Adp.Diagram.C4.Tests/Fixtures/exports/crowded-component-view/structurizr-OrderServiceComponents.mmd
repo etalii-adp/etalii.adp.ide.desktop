@@ -1,0 +1,49 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Component View: Manufacturing Execution System - Order Service"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    34("<div style='font-weight: bold'>Warehouse Management System</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Where the materials are and<br />what has been picked.</div>")
+    style 34 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    subgraph 6 ["Manufacturing Execution System"]
+      style 6 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 9 ["Order Service"]
+        style 9 fill:#ffffff,stroke:#2e6295,color:#2e6295
+
+        10("<div style='font-weight: bold'>Order Intake</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring Component]</div><div style='font-size: 80%; margin-top:10px'>Accepts works orders from the<br />ERP and validates them<br />against the line catalogue.</div>")
+        style 10 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        11("<div style='font-weight: bold'>Line Sequencer</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring Component]</div><div style='font-size: 80%; margin-top:10px'>Decides which order a line<br />runs next, honouring<br />changeover rules.</div>")
+        style 11 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        12("<div style='font-weight: bold'>Order State Machine</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring Component]</div><div style='font-size: 80%; margin-top:10px'>Released, staged, running,<br />held, complete - and the<br />transitions allowed between<br />them.</div>")
+        style 12 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        13("<div style='font-weight: bold'>Material Availability</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring Component]</div><div style='font-size: 80%; margin-top:10px'>Asks the warehouse whether<br />the bill of materials can be<br />satisfied.</div>")
+        style 13 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        14("<div style='font-weight: bold'>Order Repository</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring Data JPA]</div><div style='font-size: 80%; margin-top:10px'>Reads and writes works orders<br />and their state.</div>")
+        style 14 fill:#85bbf0,stroke:#5d82a8,color:#000000
+      end
+
+      24("<div style='font-weight: bold'>ERP Adapter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Pulls works orders down and<br />posts confirmations back.</div>")
+      style 24 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      26[("<div style='font-weight: bold'>Operational Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Works orders, batches,<br />checks, downtime events.</div>")]
+      style 26 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      28["<div style='font-weight: bold'>Plant Event Bus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Apache Kafka]</div><div style='font-size: 80%; margin-top:10px'>Carries line events so slow<br />consumers cannot stall the<br />line.</div>"]
+      style 28 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      7("<div style='font-weight: bold'>Line HMI</div><div style='font-size: 70%; margin-top: 0px'>[Container: TypeScript and React, kiosk browser]</div><div style='font-size: 80%; margin-top:10px'>The screen at the line:<br />current order, setup<br />confirmation, downtime<br />reasons, in-process checks.</div>")
+      style 7 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    10-. "<div>Creates the order in</div><div style='font-size: 70%'>[Method call]</div>" .->12
+    11-. "<div>Advances</div><div style='font-size: 70%'>[Method call]</div>" .->12
+    11-. "<div>Asks whether the order can<br />run</div><div style='font-size: 70%'>[Method call]</div>" .->13
+    12-. "<div>Persists through</div><div style='font-size: 70%'>[Method call]</div>" .->14
+    10-. "<div>Persists through</div><div style='font-size: 70%'>[Method call]</div>" .->14
+    24-. "<div>Delivers works orders to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->10
+    7-. "<div>Asks for the next order from</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->11
+    14-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->26
+    12-. "<div>Publishes state changes to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->28
+    13-. "<div>Checks stock against</div><div style='font-size: 70%'>[REST/HTTPS]</div>" .->34
+
+  end

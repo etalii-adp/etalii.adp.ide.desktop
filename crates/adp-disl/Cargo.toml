@@ -22,3 +22,15 @@ serde_json = { version = "1", features = ["preserve_order"] }
 sha2 = "0.10"
 # The uuid-v4 and uuid-v7 id strategies (DISL section 11.5.1).
 uuid = { version = "1", features = ["v4", "v7"] }
+
+[dev-dependencies]
+# The scene snapshots of the mind map's, the timeline's and the C4 container view's examples (tests/scenes, T053):
+# each opened as the shell opens it, its scene built by its notation.
+adp-core = { path = "../adp-core" }
+adp-diagram = { path = "../adp-diagram" }
+adp-diagram-c4 = { path = "../../modules/diagrams/c4" }
+adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap" }
+adp-diagram-timeline = { path = "../../modules/diagrams/timeline" }
+adp-scene = { path = "../adp-scene" }
+insta = "1"
+tempfile = "3"

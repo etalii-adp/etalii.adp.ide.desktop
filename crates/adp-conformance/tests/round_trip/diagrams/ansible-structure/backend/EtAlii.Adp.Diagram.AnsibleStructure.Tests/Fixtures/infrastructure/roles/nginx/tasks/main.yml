@@ -1,0 +1,17 @@
+---
+- name: Install nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  notify: Restart nginx
+
+- name: Write the nginx configuration
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: "0644"
+  notify: Restart nginx
+
+- name: Configure TLS
+  ansible.builtin.include_tasks: tls.yml
+  when: nginx_tls_enabled | default(false)

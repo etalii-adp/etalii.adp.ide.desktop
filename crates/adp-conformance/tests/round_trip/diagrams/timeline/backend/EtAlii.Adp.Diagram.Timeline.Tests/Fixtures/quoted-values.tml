@@ -1,0 +1,17 @@
+timeline: 1
+# Values quoted where YAML does not need it: the author's choice, in both styles.
+elements:
+  - id: qvperiod
+    label: 'Single-quoted label'
+    begin: "2026-03-02"
+    end: '2026-03-20'
+    row: "0"
+  - id: qvmoment
+    label: "Double-quoted label"
+    begin: '2026-03-25'
+    row: 1
+connections:
+  - id: qvconn01
+    from: qvperiod
+    to: qvmoment
+    label: 'single-quoted relation'

@@ -1,0 +1,57 @@
+causal-loop 1
+
+# Why an on-call rotation gets worse on its own.
+#
+# Written for this repository, from the pattern any engineer who has carried a
+# pager will recognise. Every loop here is labelled correctly; the reference
+# example beside this one is where a deliberately wrong label lives.
+
+variable incidents "Incidents"
+variable onCallLoad "On-call load"
+variable fatigue "Fatigue"
+variable mistakes "Mistakes"
+variable attrition "Attrition"
+variable teamSize "Team size"
+variable automation "Automation work"
+variable toil "Manual toil"
+
+# ---- the spiral --------------------------------------------------------------
+# Incidents wake people up, tired people make mistakes, mistakes cause
+# incidents. Nothing in this path is negative, so it compounds.
+
+link incidents -> onCallLoad + weight=1
+link onCallLoad -> fatigue +
+link fatigue -> mistakes + weight=1.5 "the tired-hands effect"
+link mistakes -> incidents +
+
+loop R1 "Tired hands make more work" incidents onCallLoad fatigue mistakes
+
+# ---- the drain ---------------------------------------------------------------
+# Fatigue also costs people, and a smaller team carries more each. The delay is
+# the point: nobody quits the week they get tired, so the load rises long
+# before the cause is visible in a headcount report.
+
+link fatigue -> attrition + delayed "people leave months later, not days"
+link attrition -> teamSize -
+link teamSize -> onCallLoad -
+
+loop R2 "Fewer hands, heavier rota" onCallLoad fatigue attrition teamSize
+
+# ---- the exit that closes behind you -----------------------------------------
+# The obvious reading of this path is "automation is the way out, if only there
+# were time" - a balancing loop being starved. The arithmetic says otherwise,
+# and the arithmetic is right.
+#
+# Two negative links, and two is even: load falls automation, automation falls
+# toil, toil raises load. That is REINFORCING. The exit does not merely fail to
+# open - the busier the team gets, the faster it closes.
+#
+# This label was originally written as B3 and ADP reported the disagreement.
+# The tool was right and the author was wrong, which is the case Requirement 3.3
+# exists for.
+
+link toil -> onCallLoad +
+link automation -> toil - delayed
+link onCallLoad -> automation - "no time to fix the thing that has no time"
+
+loop R3 "Too busy to stop being busy" onCallLoad automation toil

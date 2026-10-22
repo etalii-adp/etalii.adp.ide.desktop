@@ -1,0 +1,29 @@
+dependencies: 1
+# Keys this module does not model, at every level. Every one of them survives a round
+# trip verbatim, so a later version of this type - or a human - can put data here
+# without ADP eating it.
+title: Platform service dependencies
+author: someone@example.com
+elements:
+  - id: extra001
+    label: Carries unknown keys
+    x: 240
+    row: 0
+    colour: "#3355ff"
+    owner: platform-team
+    notes:
+      - first note
+      - second note
+  - id: extra002
+    label: Ordinary beside it
+    x: 520
+    row: 1
+relations:
+  - id: extracn1
+    from: extra001
+    to: extra002
+    label: reads from
+    style: dashed
+metadata:
+  revision: 7
+  reviewed: false

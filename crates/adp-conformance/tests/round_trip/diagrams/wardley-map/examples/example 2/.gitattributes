@@ -1,0 +1,10 @@
+# These bytes are the test subject, not just its input.
+#
+# Requirement 3.1 says a map ADP did not change comes back byte-identical, and the tests check
+# that by comparing what the writer produced against the file on disk. With core.autocrlf on,
+# git would rewrite the line endings on checkout and the test would be measuring git rather
+# than the writer - and `crlf-line-endings.owm` and `lf-line-endings.owm` would become the
+# same file, which is the one thing that pair exists to disprove.
+#
+# `no-trailing-newline.owm` is equally at risk from any tool that helpfully adds one.
+*.owm -text

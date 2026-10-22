@@ -1,0 +1,17 @@
+timeline: 1
+# Trailing comments on the lines an edit changes: a label, a begin, an end, a row and a relation's label.
+elements:
+  - id: tcperiod
+    label: Discovery   # what the phase is called
+    begin: 2026-01-05  # when it starts
+    end: 2026-02-13 # when it ends
+    row: 0  # the top row
+  - id: tcmoment
+    label: Go/no-go # the decision
+    begin: 2026-02-16
+    row: 1
+connections:
+  - id: tcconn01
+    from: tcperiod
+    to: tcmoment
+    label: gates # why the one leads to the other

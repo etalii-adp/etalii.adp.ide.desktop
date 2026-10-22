@@ -1,0 +1,28 @@
+# Templates at three levels: stages, jobs and steps. Two of the three resolve
+# inside this folder; the repository-resource one deliberately cannot.
+resources:
+  repositories:
+    - repository: shared
+      type: git
+      name: Shared/BuildTemplates
+
+parameters:
+  - name: runIntegration
+    type: boolean
+    default: true
+
+stages:
+  - stage: Build
+    jobs:
+      - template: templates/build-jobs.yml
+
+  - stage: Test
+    dependsOn: Build
+    jobs:
+      - job: Unit
+        steps:
+          - template: templates/test-steps.yml
+
+  - template: templates/deploy-stages.yml@shared
+    parameters:
+      environment: production

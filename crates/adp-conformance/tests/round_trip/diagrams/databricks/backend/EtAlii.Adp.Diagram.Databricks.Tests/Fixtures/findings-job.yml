@@ -1,0 +1,26 @@
+resources:
+  jobs:
+    tangled:
+      name: Tangled
+      tasks:
+        - task_key: loop_a
+          depends_on:
+            - task_key: loop_b
+          notebook_task:
+            notebook_path: notebooks/a
+        - task_key: loop_b
+          depends_on:
+            - task_key: loop_a
+          notebook_task:
+            notebook_path: notebooks/b
+        - task_key: stray
+          job_cluster_key: warp_core
+          depends_on:
+            - task_key: nowhere
+          notebook_task:
+            notebook_path: notebooks/stray
+        - task_key: stray
+          notebook_task:
+            notebook_path: notebooks/stray2
+        - notebook_task:
+            notebook_path: notebooks/nameless

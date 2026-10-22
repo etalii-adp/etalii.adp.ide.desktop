@@ -1,0 +1,13 @@
+---
+- name: Create the certificate directory
+  ansible.builtin.file:
+    path: /etc/nginx/tls
+    state: directory
+    mode: "0700"
+
+- name: Install the certificate
+  ansible.builtin.copy:
+    src: "{{ nginx_tls_certificate }}"
+    dest: /etc/nginx/tls/server.crt
+    mode: "0644"
+  notify: Restart nginx

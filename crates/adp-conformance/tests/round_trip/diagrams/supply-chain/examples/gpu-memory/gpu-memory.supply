@@ -1,0 +1,482 @@
+supply-chain: 1
+# GPUs and memory: from rare earths, quartz and neon to data centres, phones and gaming PCs.
+
+groups:
+  - id: china-mining
+    name: "China: mining and refining"
+    description: Rare earths, gallium and germanium, and graphite.
+  - id: americas
+    name: Americas
+    description: High-purity quartz, copper, and the cloud buyers.
+  - id: europe
+    name: Europe
+    description: Lithography tools and neon purification.
+  - id: japan
+    name: Japan
+    description: Wafers, photoresists and process chemicals.
+  - id: taiwan
+    name: Taiwan
+    description: Leading-edge logic, advanced packaging and server assembly.
+  - id: korea
+    name: South Korea
+    description: DRAM, high-bandwidth memory and NAND flash.
+  - id: assembly
+    name: China and Southeast Asia
+    description: "Device assembly: phones, laptops, consoles."
+  - id: markets
+    name: Markets
+    description: Distribution, retail and the people and companies who buy.
+
+nodes:
+  - id: bayan-obo
+    type: source
+    name: Bayan Obo rare earth ore
+    group: china-mining
+    quantity: 210
+    unit: kt REO
+    step: 10
+    description: Rare earth oxide equivalent.
+  - id: ree-separation
+    type: processor
+    name: Rare earth separation
+    group: china-mining
+    quantity: 180
+    unit: kt REO
+    step: 10
+  - id: magnet-plant
+    type: producer
+    name: NdFeB magnet plant
+    group: china-mining
+    quantity: 300
+    unit: kt
+    step: 10
+  - id: gallium-refinery
+    type: processor
+    name: Gallium and germanium refinery
+    group: china-mining
+    quantity: 750
+    unit: t Ga
+    step: 25
+  - id: graphite-mine
+    type: source
+    name: Graphite mines
+    group: china-mining
+    quantity: 1200
+    unit: kt
+    step: 50
+  - id: spruce-pine-quartz
+    type: source
+    name: Spruce Pine high-purity quartz
+    group: americas
+    quantity: 50
+    unit: kt
+    step: 5
+  - id: chile-copper
+    type: source
+    name: Chilean copper
+    group: americas
+    quantity: 5500
+    unit: kt Cu
+    step: 100
+  - id: neon-purification
+    type: processor
+    name: Neon gas purification
+    group: europe
+    quantity: 450
+    unit: kL
+    step: 25
+  - id: euv-tools
+    type: processor
+    name: EUV lithography tools
+    group: europe
+    quantity: 50
+    unit: tools
+    step: 1
+  - id: wafer-maker
+    type: processor
+    name: 300 mm silicon wafers
+    group: japan
+    quantity: 8
+    unit: M wafers/month
+    step: 0.5
+  - id: photoresist
+    type: processor
+    name: Photoresists
+    group: japan
+    quantity: 30
+    unit: kt
+    step: 1
+  - id: hf-chemicals
+    type: processor
+    name: Ultra-pure hydrofluoric acid
+    group: japan
+    quantity: 120
+    unit: kt
+    step: 5
+  - id: logic-fab
+    type: producer
+    name: Leading-edge logic fab
+    group: taiwan
+    quantity: 160
+    unit: k wafers/month
+    step: 5
+    description: 4 nm and 3 nm wafers for GPUs, phone SoCs and laptop processors.
+  - id: cowos-packaging
+    type: integrator
+    name: CoWoS advanced packaging
+    group: taiwan
+    quantity: 35
+    unit: k wafers/month
+    step: 1
+  - id: server-assembly
+    type: integrator
+    name: GPU server assembly
+    group: taiwan
+    quantity: 60
+    unit: k racks
+    step: 1
+  - id: dram-fab
+    type: producer
+    name: DRAM fab
+    group: korea
+    quantity: 1100
+    unit: k wafers/month
+    step: 25
+  - id: hbm-stacking
+    type: integrator
+    name: HBM stacking
+    group: korea
+    quantity: 160
+    unit: k wafers/month
+    step: 5
+  - id: nand-fab
+    type: producer
+    name: NAND flash fab
+    group: korea
+    quantity: 600
+    unit: k wafers/month
+    step: 25
+  - id: phone-assembly
+    type: integrator
+    name: Smartphone assembly
+    group: assembly
+    quantity: 1200
+    unit: M phones
+    step: 10
+  - id: laptop-assembly
+    type: integrator
+    name: Laptop and PC assembly
+    group: assembly
+    quantity: 250
+    unit: M units
+    step: 5
+  - id: graphics-cards
+    type: integrator
+    name: Graphics card assembly
+    group: assembly
+    quantity: 40
+    unit: M cards
+    step: 1
+  - id: distributor
+    type: hub
+    name: Electronics distribution
+    group: markets
+    quantity: 1400
+    unit: M units
+    step: 10
+  - id: retail
+    type: outlet
+    name: Electronics retail
+    group: markets
+    quantity: 1300
+    unit: M units
+    step: 10
+  - id: hyperscalers
+    type: consumer
+    name: Cloud and AI data centres
+    group: markets
+    quantity: 60
+    unit: k racks
+    step: 1
+  - id: households
+    type: consumer
+    name: Households
+    group: markets
+    quantity: 1300
+    unit: M devices
+    step: 10
+  - id: gamers
+    type: consumer
+    name: PC gamers
+    group: markets
+    quantity: 40
+    unit: M cards
+    step: 1
+
+flows:
+  - id: bayan-obo-to-ree-separation
+    from: bayan-obo
+    to: ree-separation
+    product: Mixed rare earth concentrate
+    volume: 180
+    unit: kt REO
+    step: 10
+  - id: ree-separation-to-magnet-plant
+    from: ree-separation
+    to: magnet-plant
+    product: Neodymium and praseodymium oxide
+    volume: 90
+    unit: kt REO
+    step: 5
+  - id: magnet-plant-to-phone-assembly
+    from: magnet-plant
+    to: phone-assembly
+    product: Speaker and haptic magnets
+    volume: 15
+    unit: kt
+    step: 1
+  - id: magnet-plant-to-laptop-assembly
+    from: magnet-plant
+    to: laptop-assembly
+    product: Fan and drive magnets
+    volume: 10
+    unit: kt
+    step: 1
+  - id: gallium-refinery-to-logic-fab
+    from: gallium-refinery
+    to: logic-fab
+    product: Gallium and germanium
+    volume: 60
+    unit: t Ga
+    step: 5
+  - id: spruce-pine-quartz-to-wafer-maker
+    from: spruce-pine-quartz
+    to: wafer-maker
+    product: Crucible quartz
+    volume: 20
+    unit: kt
+    step: 1
+  - id: wafer-maker-to-logic-fab
+    from: wafer-maker
+    to: logic-fab
+    product: Prime wafers
+    volume: 0.16
+    unit: M wafers/month
+    step: 0.01
+  - id: wafer-maker-to-dram-fab
+    from: wafer-maker
+    to: dram-fab
+    product: Prime wafers
+    volume: 1.1
+    unit: M wafers/month
+    step: 0.05
+  - id: wafer-maker-to-nand-fab
+    from: wafer-maker
+    to: nand-fab
+    product: Prime wafers
+    volume: 0.6
+    unit: M wafers/month
+    step: 0.05
+  - id: photoresist-to-logic-fab
+    from: photoresist
+    to: logic-fab
+    product: EUV photoresist
+    volume: 4
+    unit: kt
+    step: 0.5
+  - id: photoresist-to-dram-fab
+    from: photoresist
+    to: dram-fab
+    product: ArF photoresist
+    volume: 6
+    unit: kt
+    step: 0.5
+  - id: hf-chemicals-to-logic-fab
+    from: hf-chemicals
+    to: logic-fab
+    product: Etch and clean chemicals
+    volume: 30
+    unit: kt
+    step: 1
+  - id: hf-chemicals-to-dram-fab
+    from: hf-chemicals
+    to: dram-fab
+    product: Etch and clean chemicals
+    volume: 40
+    unit: kt
+    step: 1
+  - id: neon-purification-to-logic-fab
+    from: neon-purification
+    to: logic-fab
+    product: Excimer laser neon
+    volume: 120
+    unit: kL
+    step: 10
+  - id: neon-purification-to-dram-fab
+    from: neon-purification
+    to: dram-fab
+    product: Excimer laser neon
+    volume: 200
+    unit: kL
+    step: 10
+  - id: euv-tools-to-logic-fab
+    from: euv-tools
+    to: logic-fab
+    product: EUV scanners
+    volume: 30
+    unit: tools
+    step: 1
+  - id: euv-tools-to-dram-fab
+    from: euv-tools
+    to: dram-fab
+    product: EUV scanners
+    volume: 15
+    unit: tools
+    step: 1
+  - id: logic-fab-to-cowos-packaging
+    from: logic-fab
+    to: cowos-packaging
+    product: GPU dies
+    volume: 35
+    unit: k wafers/month
+    step: 1
+  - id: logic-fab-to-phone-assembly
+    from: logic-fab
+    to: phone-assembly
+    product: Phone SoCs
+    volume: 1100
+    unit: M chips
+    step: 10
+  - id: logic-fab-to-laptop-assembly
+    from: logic-fab
+    to: laptop-assembly
+    product: Laptop processors
+    volume: 230
+    unit: M chips
+    step: 5
+  - id: logic-fab-to-graphics-cards
+    from: logic-fab
+    to: graphics-cards
+    product: Consumer GPU dies
+    volume: 40
+    unit: M chips
+    step: 1
+  - id: dram-fab-to-hbm-stacking
+    from: dram-fab
+    to: hbm-stacking
+    product: DRAM dies for stacking
+    volume: 160
+    unit: k wafers/month
+    step: 5
+  - id: dram-fab-to-phone-assembly
+    from: dram-fab
+    to: phone-assembly
+    product: LPDDR5 memory
+    volume: 1200
+    unit: M packages
+    step: 10
+  - id: dram-fab-to-laptop-assembly
+    from: dram-fab
+    to: laptop-assembly
+    product: DDR5 memory
+    volume: 400
+    unit: M modules
+    step: 10
+  - id: dram-fab-to-graphics-cards
+    from: dram-fab
+    to: graphics-cards
+    product: GDDR7 memory
+    volume: 320
+    unit: M packages
+    step: 10
+  - id: nand-fab-to-phone-assembly
+    from: nand-fab
+    to: phone-assembly
+    product: UFS storage
+    volume: 1200
+    unit: M packages
+    step: 10
+  - id: nand-fab-to-laptop-assembly
+    from: nand-fab
+    to: laptop-assembly
+    product: NVMe SSDs
+    volume: 250
+    unit: M drives
+    step: 5
+  - id: hbm-stacking-to-cowos-packaging
+    from: hbm-stacking
+    to: cowos-packaging
+    product: HBM3E stacks
+    volume: 12
+    unit: M stacks
+    step: 0.5
+  - id: graphite-mine-to-phone-assembly
+    from: graphite-mine
+    to: phone-assembly
+    product: Battery anode graphite
+    volume: 60
+    unit: kt
+    step: 5
+  - id: chile-copper-to-server-assembly
+    from: chile-copper
+    to: server-assembly
+    product: Copper busbars and cabling
+    volume: 90
+    unit: kt Cu
+    step: 5
+  - id: cowos-packaging-to-server-assembly
+    from: cowos-packaging
+    to: server-assembly
+    product: AI accelerators
+    volume: 5
+    unit: M accelerators
+    step: 0.25
+  - id: server-assembly-to-hyperscalers
+    from: server-assembly
+    to: hyperscalers
+    product: GPU server racks
+    volume: 60
+    unit: k racks
+    step: 1
+  - id: phone-assembly-to-distributor
+    from: phone-assembly
+    to: distributor
+    product: Smartphones
+    volume: 1150
+    unit: M units
+    step: 10
+  - id: laptop-assembly-to-distributor
+    from: laptop-assembly
+    to: distributor
+    product: Laptops and PCs
+    volume: 240
+    unit: M units
+    step: 5
+  - id: graphics-cards-to-retail
+    from: graphics-cards
+    to: retail
+    product: Graphics cards
+    volume: 38
+    unit: M cards
+    step: 1
+  - id: distributor-to-retail
+    from: distributor
+    to: retail
+    product: Devices
+    volume: 1300
+    unit: M units
+    step: 10
+  - id: retail-to-households
+    from: retail
+    to: households
+    product: Phones and laptops
+    volume: 1250
+    unit: M devices
+    step: 10
+  - id: retail-to-gamers
+    from: retail
+    to: gamers
+    product: Graphics cards
+    volume: 36
+    unit: M cards
+    step: 1

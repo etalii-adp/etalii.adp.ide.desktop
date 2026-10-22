@@ -1,0 +1,139 @@
+graph TB
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Deployment View: Manufacturing Execution System - Plant"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 137 ["Line HMI terminal"]
+      style 137 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+      138("<div style='font-weight: bold'>Line HMI</div><div style='font-size: 70%; margin-top: 0px'>[Container: TypeScript and React, kiosk browser]</div><div style='font-size: 80%; margin-top:10px'>The screen at the line:<br />current order, setup<br />confirmation, downtime<br />reasons, in-process checks.</div>")
+      style 138 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    subgraph 82 ["Control network (Purdue level 1-2)"]
+      style 82 fill:#ffffff,stroke:#805d07,color:#ffffff
+
+      subgraph 83 ["Filling line PLC"]
+        style 83 fill:#ffffff,stroke:#805d07,color:#ffffff
+
+        84("<div style='font-weight: bold'>PLC Runtime</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: Siemens TIA]</div><div style='font-size: 80%; margin-top:10px'>Executes the ladder logic<br />that runs the machines.</div>")
+        style 84 fill:#b8860b,stroke:#805d07,color:#ffffff
+      end
+
+      85("<div style='font-weight: bold'>SCADA Server</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: Ignition 8.1]</div><div style='font-size: 80%; margin-top:10px'>Ignition gateway, redundant<br />pair.</div>")
+      style 85 fill:#b8860b,stroke:#805d07,color:#ffffff
+      86("<div style='font-weight: bold'>Historian Server</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: AVEVA PI]</div><div style='font-size: 80%; margin-top:10px'>Tag history at one-second<br />resolution.</div>")
+      style 86 fill:#b8860b,stroke:#805d07,color:#ffffff
+    end
+
+    subgraph 87 ["Plant DMZ"]
+      style 87 fill:#ffffff,stroke:#554000,color:#ffffff
+
+      88("<div style='font-weight: bold'>Industrial Firewall</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: Palo Alto]</div><div style='font-size: 80%; margin-top:10px'>Allows OPC UA outbound from<br />the gateway only. Nothing<br />initiates inbound.</div>")
+      style 88 fill:#ffffff,stroke:#b2b2b2,color:#000000
+      subgraph 89 ["gw-opc-*"]
+        style 89 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+        90("<div style='font-weight: bold'>OPC UA Gateway</div><div style='font-size: 70%; margin-top: 0px'>[Container: C# and OPC UA SDK]</div><div style='font-size: 80%; margin-top:10px'>The only thing that talks to<br />the control network:<br />subscribes to line tags and<br />issues recipe downloads.</div>")
+        style 90 fill:#d94f00,stroke:#973700,color:#ffffff
+        91("<div style='font-weight: bold'>Historian Bridge</div><div style='font-size: 70%; margin-top: 0px'>[Container: C# and .NET]</div><div style='font-size: 80%; margin-top:10px'>Streams tag values into the<br />process historian and reads<br />them back for analysis.</div>")
+        style 91 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+    end
+
+    subgraph 92 ["Plant data centre"]
+      style 92 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+      subgraph 111 ["kafka-plant-*"]
+        style 111 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+        112["<div style='font-weight: bold'>Plant Event Bus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Apache Kafka]</div><div style='font-size: 80%; margin-top:10px'>Carries line events so slow<br />consumers cannot stall the<br />line.</div>"]
+        style 112 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      subgraph 120 ["pg-primary"]
+        style 120 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+        121[("<div style='font-weight: bold'>Operational Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Works orders, batches,<br />checks, downtime events.</div>")]
+        style 121 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        126[("<div style='font-weight: bold'>Batch Record Archive</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Signed, immutable electronic<br />batch records kept for the<br />retention period.</div>")]
+        style 126 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      subgraph 128 ["pg-standby"]
+        style 128 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+        129[("<div style='font-weight: bold'>Operational Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Works orders, batches,<br />checks, downtime events.</div>")]
+        style 129 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        134[("<div style='font-weight: bold'>Batch Record Archive</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Signed, immutable electronic<br />batch records kept for the<br />retention period.</div>")]
+        style 134 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      93("<div style='font-weight: bold'>Load Balancer</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node: HAProxy]</div><div style='font-size: 80%; margin-top:10px'>Terminates TLS for everything<br />on the floor.</div>")
+      style 93 fill:#ffffff,stroke:#b2b2b2,color:#000000
+      subgraph 94 ["k8s-plant"]
+        style 94 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+        subgraph 104 ["mes-web"]
+          style 104 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+          105("<div style='font-weight: bold'>Line HMI</div><div style='font-size: 70%; margin-top: 0px'>[Container: TypeScript and React, kiosk browser]</div><div style='font-size: 80%; margin-top:10px'>The screen at the line:<br />current order, setup<br />confirmation, downtime<br />reasons, in-process checks.</div>")
+          style 105 fill:#438dd5,stroke:#2e6295,color:#ffffff
+          109("<div style='font-weight: bold'>Andon Display</div><div style='font-size: 70%; margin-top: 0px'>[Container: TypeScript and React]</div><div style='font-size: 80%; margin-top:10px'>Wall-mounted board showing<br />line state, rate against<br />target, and open calls.</div>")
+          style 109 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        end
+
+        subgraph 95 ["mes-services"]
+          style 95 fill:#ffffff,stroke:#0b4884,color:#ffffff
+
+          100("<div style='font-weight: bold'>OEE Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Python and FastAPI]</div><div style='font-size: 80%; margin-top:10px'>Availability, performance and<br />quality per line, per shift.</div>")
+          style 100 fill:#438dd5,stroke:#2e6295,color:#ffffff
+          101("<div style='font-weight: bold'>ERP Adapter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Pulls works orders down and<br />posts confirmations back.</div>")
+          style 101 fill:#438dd5,stroke:#2e6295,color:#ffffff
+          96("<div style='font-weight: bold'>Order Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Receives works orders,<br />sequences them per line, and<br />holds the state of each.</div>")
+          style 96 fill:#438dd5,stroke:#2e6295,color:#ffffff
+          97("<div style='font-weight: bold'>Batch Execution Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Follows a batch from first<br />fill to last pallet, and<br />holds the electronic batch<br />record.</div>")
+          style 97 fill:#438dd5,stroke:#2e6295,color:#ffffff
+          98("<div style='font-weight: bold'>Quality Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>In-process checks, sampling<br />plans, and the release or<br />quarantine decision.</div>")
+          style 98 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        end
+
+      end
+
+    end
+
+    101-. "<div>Hands works orders to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->96
+    97-. "<div>Posts production<br />confirmations through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->101
+    105-. "<div>Reads the order queue and<br />confirms setup through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->96
+    105-. "<div>Reports downtime and progress<br />through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->97
+    105-. "<div>Records in-process checks<br />through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->98
+    109-. "<div>Polls line performance from</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->100
+    112-. "<div>Delivers recipe download<br />commands to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->90
+    90-. "<div>Publishes line events to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->112
+    91-. "<div>Consumes line events from</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->112
+    96-. "<div>Publishes order state changes<br />to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->112
+    112-. "<div>Delivers line events to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->97
+    97-. "<div>Publishes batch events to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->112
+    100-. "<div>Consumes line events from</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->112
+    96-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->121
+    97-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->121
+    98-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->121
+    100-. "<div>Reads downtime and order data<br />from</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->121
+    97-. "<div>Writes the signed batch<br />record to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->126
+    96-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->129
+    97-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->129
+    98-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->129
+    100-. "<div>Reads downtime and order data<br />from</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->129
+    97-. "<div>Writes the signed batch<br />record to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->134
+    138-. "<div>Reads the order queue and<br />confirms setup through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->96
+    138-. "<div>Reports downtime and progress<br />through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->97
+    138-. "<div>Records in-process checks<br />through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->98
+    85-. "<div>Polls tags on and issues<br />setpoints to</div><div style='font-size: 70%'>[Siemens S7 over Profinet]</div>" .->84
+    85-. "<div>Logs every tag value to</div><div style='font-size: 70%'>[OPC UA]</div>" .->86
+    88-. "<div>Permits OPC UA to</div><div style='font-size: 70%'>[OPC UA over TCP 4840]</div>" .->85
+    93-. "<div>Is not permitted through</div><div style='font-size: 70%'>[Blocked by policy]</div>" .->88
+    98-. "<div>Releases or quarantines the<br />batch through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->97
+
+  end

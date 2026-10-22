@@ -1,0 +1,29 @@
+timeline: 1
+# An end key holding nothing, a mapping, a sequence, a quoted empty text and null.
+elements:
+  - id: esempty
+    label: Empty end
+    begin: 2026-07-01
+    end:
+    row: 0
+  - id: esmapping
+    label: Mapping end
+    begin: 2026-07-02
+    end:
+      at: 2026-07-09
+    row: 1
+  - id: essequence
+    label: Sequence end
+    begin: 2026-07-03
+    end: [2026-07-10]
+    row: 2
+  - id: esquoted
+    label: Quoted empty end
+    begin: 2026-07-04
+    end: ''
+    row: 3
+  - id: esnull
+    label: Null end
+    begin: 2026-07-05
+    end: null
+    row: 4

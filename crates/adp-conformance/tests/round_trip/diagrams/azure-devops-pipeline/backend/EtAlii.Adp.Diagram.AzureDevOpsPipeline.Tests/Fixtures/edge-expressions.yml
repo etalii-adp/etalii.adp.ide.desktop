@@ -1,0 +1,32 @@
+# Compile-time and runtime expressions in every position the diagram reads.
+parameters:
+  - name: deploy
+    type: boolean
+    default: false
+
+stages:
+  - stage: Build
+    displayName: ${{ format('Build {0}', parameters.deploy) }}
+    jobs:
+      - job: Compile
+        steps:
+          - script: echo build
+
+  # Whether this stage exists at all is decided at compile time.
+  - ${{ if parameters.deploy }}:
+      - stage: Deploy
+        dependsOn: Build
+        condition: and(succeeded(), eq(variables['Build.Reason'], 'Manual'))
+        jobs:
+          - job: Ship
+            steps:
+              - script: echo ship
+
+  - stage: Report
+    # A runtime expression: not knowable until the pipeline runs.
+    condition: eq(dependencies.Build.outputs['Compile.result'], 'Succeeded')
+    dependsOn: Build
+    jobs:
+      - job: Write
+        steps:
+          - script: echo report

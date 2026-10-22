@@ -1,0 +1,15 @@
+# Two steps that open with a block scalar and have no displayName (finding B8).
+stages:
+  - stage: Build
+    jobs:
+      - job: Compile
+        steps:
+          - script: |
+              dotnet restore
+              dotnet build
+
+              dotnet test
+          - bash: >-
+              echo folded
+              onto one line
+            condition: always()

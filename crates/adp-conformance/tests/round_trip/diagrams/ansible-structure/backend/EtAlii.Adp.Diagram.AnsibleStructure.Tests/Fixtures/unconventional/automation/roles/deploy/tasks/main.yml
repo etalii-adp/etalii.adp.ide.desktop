@@ -1,0 +1,5 @@
+---
+- name: Deploy the application
+  ansible.builtin.command:
+    cmd: /opt/app/deploy.sh
+  changed_when: true

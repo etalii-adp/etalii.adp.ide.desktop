@@ -1,0 +1,23 @@
+functional-decomposition-graph: 1
+elements:
+  - id: f1
+    type: function
+    name: f1
+    x: 0
+    y: 0
+    width: 100
+  - id: f2
+    type: function
+    name: f2
+    x: 0
+    y: 100
+    width: 100
+connections:
+  - id: c1
+    type: owns-function
+    from: f1
+    to: f2
+  - id: c2
+    type: owns-function
+    from: f2
+    to: f1

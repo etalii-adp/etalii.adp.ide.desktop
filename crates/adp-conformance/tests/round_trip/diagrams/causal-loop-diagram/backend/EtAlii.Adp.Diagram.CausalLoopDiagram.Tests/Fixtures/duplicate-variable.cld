@@ -1,0 +1,12 @@
+causal-loop 1
+
+# Finding A7: two variables share a name.
+
+variable a "First"
+variable a "Second"
+variable b "B"
+
+link a -> b +
+link b -> a +
+
+loop R1 "Twice declared" a b

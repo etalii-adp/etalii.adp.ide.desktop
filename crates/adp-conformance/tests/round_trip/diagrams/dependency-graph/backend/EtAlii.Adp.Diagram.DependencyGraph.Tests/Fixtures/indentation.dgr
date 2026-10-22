@@ -1,0 +1,17 @@
+dependencies: 1
+# Valid YAML, but not the indentation a generator would choose: four spaces at the
+# sequence level, and the dash indented under its key. A writer that reformats this
+# has broken the round-trip discipline even though the model is unchanged.
+elements:
+    -   id: indent01
+        label: Search service
+        x: 180
+        row: 0
+    -   id: indent02
+        label: Search index
+        x: 460
+        row: 1
+relations:
+    -   id: indentcn
+        from: indent01
+        to: indent02

@@ -1,0 +1,28 @@
+# structurizr-cli 2025.11.09, recorded 2026-08-26
+# Regenerate: see C4InteropTests.EveryVerdict_IsStillWhatStructurizrSays
+ERROR  | workspace.scope                    | This workspace has no defined scope. It is recommended that the workspace scope is set to "Landscape" or "SoftwareSystem".
+ERROR  | model.relationship.technology      | The relationship between the person "Personal Banking Customer" and the software system "Internet Banking System" is missing a technology.
+ERROR  | model.relationship.technology      | The relationship between the person "Personal Banking Customer" and the container "Internet Banking System.Single-Page Application" is missing a technology.
+ERROR  | model.relationship.technology      | The relationship between the person "Personal Banking Customer" and the container "Internet Banking System.Mobile App" is missing a technology.
+ERROR  | model.softwaresystem.documentation | The software system "Internet Banking System" has containers, but is missing documentation.
+ERROR  | model.softwaresystem.decisions     | The software system "Internet Banking System" has containers, but is missing decisions.
+ERROR  | model.relationship.technology      | The relationship between the software system "Internet Banking System" and the software system "Mainframe Banking System" is missing a technology.
+ERROR  | model.relationship.technology      | The relationship between the software system "Internet Banking System" and the software system "E-mail System" is missing a technology.
+ERROR  | model.relationship.technology      | The relationship between the container "Internet Banking System.Web Application" and the container "Internet Banking System.Single-Page Application" is missing a technology.
+ERROR  | model.relationship.technology      | The relationship between the component "Internet Banking System.API Application.Sign In Controller" and the component "Internet Banking System.API Application.Security Component" is missing a technology.
+ERROR  | model.relationship.technology      | The relationship between the component "Internet Banking System.API Application.Accounts Summary Controller" and the component "Internet Banking System.API Application.Mainframe Banking System Facade" is missing a technology.
+ERROR  | model.relationship.technology      | The relationship between the software system "E-mail System" and the person "Personal Banking Customer" is missing a technology.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Customer's mobile device" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Customer's computer" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Customer's computer/Web Browser" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc/bigbank-web***" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc/bigbank-web***/Apache Tomcat" is missing a description.
+ERROR  | model.relationship.technology      | The relationship between the container "Live/Big Bank plc/bigbank-web***/Apache Tomcat/Internet Banking System.Web Application[1]" and the container "Live/Customer's computer/Web Browser/Internet Banking System.Single-Page Application[1]" is missing a technology.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc/bigbank-api***" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc/bigbank-api***/Apache Tomcat" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc/bigbank-db01" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc/bigbank-db01/Oracle - Primary" is missing a description.
+ERROR  | model.relationship.technology      | The relationship between the deployment node "Live/Big Bank plc/bigbank-db01/Oracle - Primary" and the deployment node "Live/Big Bank plc/bigbank-db02/Oracle - Secondary" is missing a technology.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc/bigbank-db02" is missing a description.
+ERROR  | model.deploymentnode.description   | The deployment node "Live/Big Bank plc/bigbank-db02/Oracle - Secondary" is missing a description.

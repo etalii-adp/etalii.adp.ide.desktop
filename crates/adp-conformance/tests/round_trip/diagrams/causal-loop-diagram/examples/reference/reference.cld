@@ -1,0 +1,68 @@
+causal-loop 1
+
+# Every construct ADP's causal loop support understands, in one diagram.
+#
+# Written for this repository. It is a demonstration rather than a claim about
+# demography: the numbers are annotations and nothing here is simulated.
+
+# ---- variables ---------------------------------------------------------------
+# A variable is a quantity that can go up or down. The label is what a reader
+# sees; the identifier is what links and loops refer to.
+
+variable population "Population"
+variable births "Births"
+variable deaths "Deaths"
+variable crowding "Crowding"
+variable sanitation "Sanitation"
+variable foodPerCapita "Food per capita"
+
+# ---- links -------------------------------------------------------------------
+# An arrow from a cause to an effect. `+` means they move together, `-` means
+# they move opposite. `delayed` draws the conventional strokes across the arrow.
+# `flipped` bows the arc to the other side of its chord: the side is normally
+# this module's own choice, taken from the direction of travel so that a
+# two-variable loop draws as an ellipse, and this is the author overriding that
+# for one link where the chosen side crosses something.
+# `weight=` is an annotation the author writes and this module never evaluates.
+
+link population -> births + weight=1.4 "more people, more births"
+link births -> population +
+
+link population -> deaths +
+link deaths -> population -
+
+link population -> crowding + weight=0.8
+link crowding -> sanitation - delayed "infrastructure lags the crowd"
+link sanitation -> deaths - flipped
+
+# A link nobody has stated a polarity for. Unwritten is not zero and not
+# positive: it is unknown, and any loop through it is undecidable.
+link population -> foodPerCapita -
+link foodPerCapita -> births
+
+# ---- loops -------------------------------------------------------------------
+# A loop is a claim about a path. The identifier claims a polarity - R for
+# reinforcing, B for balancing - and the module checks that claim against the
+# arithmetic rather than trusting it.
+
+# Correct: no negative links, and zero is even, so this is reinforcing.
+loop R1 "Births beget births" population births
+
+# Correct: one negative link, so this is balancing.
+loop B2 "Deaths check the population" population deaths
+
+# DELIBERATELY WRONG, and the reason this file exists.
+#
+# This path runs through three negative links - crowding falls sanitation,
+# sanitation falls deaths, deaths falls population - and three is odd, so the
+# arithmetic makes it BALANCING. The identifier below claims reinforcing.
+#
+# ADP reports the disagreement and changes nothing. The author's label may be
+# the intent and an arrow may be the mistake; the tool is not entitled to guess
+# which. See the readme beside this file.
+loop R3 "Crowding, sanitation and mortality" population crowding sanitation deaths
+
+# Undecidable rather than guessed: the link from food per capita to births has
+# no stated polarity, so the parity of this loop cannot be counted at all.
+# "Unknown" is not "none".
+loop B4 "Food limits births" population foodPerCapita births

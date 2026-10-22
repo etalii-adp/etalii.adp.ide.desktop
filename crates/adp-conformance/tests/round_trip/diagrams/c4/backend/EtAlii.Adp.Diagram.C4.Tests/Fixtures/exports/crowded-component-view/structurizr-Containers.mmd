@@ -1,0 +1,109 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Container View: Manufacturing Execution System"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Line Operator</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Runs a filling line, confirms<br />setup, and reports downtime<br />against a reason code.</div>"]
+    style 1 fill:#08427b,stroke:#052e56,color:#ffffff
+    2["<div style='font-weight: bold'>Shift Supervisor</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Sequences works orders across<br />the three lines and signs off<br />shift handover.</div>"]
+    style 2 fill:#08427b,stroke:#052e56,color:#ffffff
+    3["<div style='font-weight: bold'>Quality Engineer</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Reviews in-process checks and<br />releases or quarantines a<br />batch.</div>"]
+    style 3 fill:#08427b,stroke:#052e56,color:#ffffff
+    4["<div style='font-weight: bold'>Maintenance Technician</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Responds to breakdowns and<br />records what was done.</div>"]
+    style 4 fill:#08427b,stroke:#052e56,color:#ffffff
+    29("<div style='font-weight: bold'>SCADA and PLC Layer</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Ignition SCADA and the<br />Siemens S7 PLCs that actually<br />run the fillers, cappers and<br />palletisers.</div>")
+    style 29 fill:#b8860b,stroke:#805d07,color:#ffffff
+    30("<div style='font-weight: bold'>Process Historian</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Long-term tag history for<br />every sensor on the plant.</div>")
+    style 30 fill:#b8860b,stroke:#805d07,color:#ffffff
+    31("<div style='font-weight: bold'>SAP S/4HANA</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Demand, works orders, stock<br />and financials.</div>")
+    style 31 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    32("<div style='font-weight: bold'>LIMS</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Laboratory results for<br />samples taken off the line.</div>")
+    style 32 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    33("<div style='font-weight: bold'>CMMS</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Maintenance work orders and<br />asset history.</div>")
+    style 33 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    34("<div style='font-weight: bold'>Warehouse Management System</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Where the materials are and<br />what has been picked.</div>")
+    style 34 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    subgraph 6 ["Manufacturing Execution System"]
+      style 6 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph group1 ["Execution services"]
+        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        20("<div style='font-weight: bold'>Batch Execution Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Follows a batch from first<br />fill to last pallet, and<br />holds the electronic batch<br />record.</div>")
+        style 20 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        21("<div style='font-weight: bold'>Quality Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>In-process checks, sampling<br />plans, and the release or<br />quarantine decision.</div>")
+        style 21 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        22("<div style='font-weight: bold'>OEE Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Python and FastAPI]</div><div style='font-size: 80%; margin-top:10px'>Availability, performance and<br />quality per line, per shift.</div>")
+        style 22 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        9("<div style='font-weight: bold'>Order Service</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Receives works orders,<br />sequences them per line, and<br />holds the state of each.</div>")
+        style 9 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      subgraph group2 ["Operations floor"]
+        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        7("<div style='font-weight: bold'>Line HMI</div><div style='font-size: 70%; margin-top: 0px'>[Container: TypeScript and React, kiosk browser]</div><div style='font-size: 80%; margin-top:10px'>The screen at the line:<br />current order, setup<br />confirmation, downtime<br />reasons, in-process checks.</div>")
+        style 7 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        8("<div style='font-weight: bold'>Andon Display</div><div style='font-size: 70%; margin-top: 0px'>[Container: TypeScript and React]</div><div style='font-size: 80%; margin-top:10px'>Wall-mounted board showing<br />line state, rate against<br />target, and open calls.</div>")
+        style 8 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      subgraph group3 ["Plant integration"]
+        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        23("<div style='font-weight: bold'>OPC UA Gateway</div><div style='font-size: 70%; margin-top: 0px'>[Container: C# and OPC UA SDK]</div><div style='font-size: 80%; margin-top:10px'>The only thing that talks to<br />the control network:<br />subscribes to line tags and<br />issues recipe downloads.</div>")
+        style 23 fill:#d94f00,stroke:#973700,color:#ffffff
+        24("<div style='font-weight: bold'>ERP Adapter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Java and Spring Boot]</div><div style='font-size: 80%; margin-top:10px'>Pulls works orders down and<br />posts confirmations back.</div>")
+        style 24 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        25("<div style='font-weight: bold'>Historian Bridge</div><div style='font-size: 70%; margin-top: 0px'>[Container: C# and .NET]</div><div style='font-size: 80%; margin-top:10px'>Streams tag values into the<br />process historian and reads<br />them back for analysis.</div>")
+        style 25 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+      subgraph group4 ["Stores"]
+        style group4 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        26[("<div style='font-weight: bold'>Operational Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Works orders, batches,<br />checks, downtime events.</div>")]
+        style 26 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        27[("<div style='font-weight: bold'>Batch Record Archive</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Signed, immutable electronic<br />batch records kept for the<br />retention period.</div>")]
+        style 27 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        28["<div style='font-weight: bold'>Plant Event Bus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Apache Kafka]</div><div style='font-size: 80%; margin-top:10px'>Carries line events so slow<br />consumers cannot stall the<br />line.</div>"]
+        style 28 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+
+    end
+
+    29-. "<div>Logs tag values to</div><div style='font-size: 70%'>[OPC UA]</div>" .->30
+    1-. "<div>Confirms setup and reports<br />downtime on</div><div style='font-size: 70%'>[HTTPS]</div>" .->7
+    1-. "<div>Reads line state from</div><div style='font-size: 70%'>[HTTPS]</div>" .->8
+    2-. "<div>Sequences the line on</div><div style='font-size: 70%'>[HTTPS]</div>" .->7
+    3-. "<div>Records in-process checks on</div><div style='font-size: 70%'>[HTTPS]</div>" .->7
+    4-. "<div>Sees open calls on</div><div style='font-size: 70%'>[HTTPS]</div>" .->8
+    7-. "<div>Reads the order queue and<br />confirms setup through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->9
+    7-. "<div>Reports downtime and progress<br />through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->20
+    7-. "<div>Records in-process checks<br />through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->21
+    8-. "<div>Polls line performance from</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->22
+    9-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->26
+    9-. "<div>Publishes order state changes<br />to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->28
+    9-. "<div>Checks material availability<br />against</div><div style='font-size: 70%'>[REST/HTTPS]</div>" .->34
+    20-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->26
+    20-. "<div>Writes the signed batch<br />record to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->27
+    20-. "<div>Publishes batch events to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->28
+    28-. "<div>Delivers line events to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->20
+    21-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->26
+    21-. "<div>Requests sample results from</div><div style='font-size: 70%'>[REST/HTTPS]</div>" .->32
+    21-. "<div>Releases or quarantines the<br />batch through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->20
+    22-. "<div>Consumes line events from</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->28
+    22-. "<div>Reads downtime and order data<br />from</div><div style='font-size: 70%'>[JDBC/SSL]</div>" .->26
+    23-. "<div>Subscribes to tags on and<br />downloads recipes to</div><div style='font-size: 70%'>[OPC UA over TCP 4840]</div>" .->29
+    23-. "<div>Publishes line events to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->28
+    28-. "<div>Delivers recipe download<br />commands to</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->23
+    25-. "<div>Writes tag history to and<br />reads it back from</div><div style='font-size: 70%'>[OPC UA HDA]</div>" .->30
+    25-. "<div>Consumes line events from</div><div style='font-size: 70%'>[Kafka protocol]</div>" .->28
+    24-. "<div>Pulls works orders from and<br />posts confirmations to</div><div style='font-size: 70%'>[IDoc over HTTPS]</div>" .->31
+    24-. "<div>Hands works orders to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->9
+    20-. "<div>Posts production<br />confirmations through</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->24
+    20-. "<div>Raises maintenance work<br />orders in</div><div style='font-size: 70%'>[REST/HTTPS]</div>" .->33
+
+  end

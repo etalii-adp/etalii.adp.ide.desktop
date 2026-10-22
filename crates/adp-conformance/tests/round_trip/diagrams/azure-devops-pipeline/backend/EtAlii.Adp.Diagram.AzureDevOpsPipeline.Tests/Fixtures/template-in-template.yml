@@ -1,0 +1,13 @@
+# A template that itself names a template (finding A9): every reference gets an id of its own,
+# however deep the template that names it.
+stages:
+  - stage: Build
+    jobs:
+      - template: templates/nested-jobs.yml
+
+  - stage: Test
+    dependsOn: Build
+    jobs:
+      - job: Unit
+        steps:
+          - template: templates/test-steps.yml

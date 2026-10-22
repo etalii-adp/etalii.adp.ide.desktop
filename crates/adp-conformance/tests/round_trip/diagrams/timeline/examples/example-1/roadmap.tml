@@ -1,0 +1,87 @@
+timeline: 1
+elements:
+  - id: discovery
+    label: Discovery
+    begin: 2025-04-27
+    end: 2025-06-05
+    row: 11
+  - id: build
+    label: Private beta
+    begin: 2025-09-04
+    end: 2025-10-19
+    row: 11
+  - id: launch
+    label: Launch
+    begin: 2025-12-04
+    row: 8
+  - id: 467lu0vgaiudevamnkpl6k052
+    label: Enterprise tier
+    begin: 2026-03-10
+    end: 2026-05-14
+    row: 8
+  - id: a0p2gj4xxf8feve0nn8cxd1tz
+    label: Pricing research
+    begin: 2025-08-27
+    end: 2025-10-30
+    row: 7
+  - id: 6ez55ypjmbp2zawzfvphb4rbr
+    label: Security hardening
+    begin: 2025-03-26
+    end: 2025-06-28
+    row: 14
+  - id: 1x5mmoj5j4ia9i8w95tfm8x40
+    label: Mobile app
+    begin: 2026-02-07
+    end: 2026-04-20
+    row: 11
+  - id: 18g3b7b6kp2icm9vzi5ncd91a
+    label: Analytics dashboard
+    begin: 2025-10-23
+    end: 2026-01-02
+    row: 14
+  - id: 9s462vri4qn9ww06akis5rqli
+    label: Integration marketplace
+    begin: 2025-12-05
+    end: 2026-01-15
+    row: 9
+  - id: elvtk68a6tc7nniqgonud96zx
+    label: Onboarding revamp
+    begin: 2026-06-13
+    end: 2026-08-07
+    row: 8
+  - id: 1rat1anz81doeib7uhti0fbsb
+    label: Version 2.0
+    begin: 2025-11-16
+    row: 17
+connections:
+  - id: c1
+    from: discovery
+    to: build
+    label: informs
+  - id: c2
+    from: build
+    to: launch
+  - id: ckim9ho6d05mhdj0q6aia2ztp
+    from: discovery
+    to: a0p2gj4xxf8feve0nn8cxd1tz
+  - id: bp8ydo6526jaxdia0ex1bybpo
+    from: 6ez55ypjmbp2zawzfvphb4rbr
+    to: build
+  - id: c8l16qf5n6pddjbdkbmgn2ful
+    from: 6ez55ypjmbp2zawzfvphb4rbr
+    to: 18g3b7b6kp2icm9vzi5ncd91a
+  - id: 89cqu83l2tpxa5vhzf1v2uj3c
+    from: build
+    to: 1x5mmoj5j4ia9i8w95tfm8x40
+  - id: f1vv2ss6jj0seowzt8tc49iu9
+    from: 9s462vri4qn9ww06akis5rqli
+    to: 1x5mmoj5j4ia9i8w95tfm8x40
+  - id: ew3s2dk0a2ofjrudpnps654ua
+    from: 9s462vri4qn9ww06akis5rqli
+    to: 467lu0vgaiudevamnkpl6k052
+  - id: 9m2wsmbu0ippwexowlu712zap
+    from: 467lu0vgaiudevamnkpl6k052
+    to: elvtk68a6tc7nniqgonud96zx
+  - id: av1cr8v0qi9qh2z7bpulyn7a7
+    from: 6ez55ypjmbp2zawzfvphb4rbr
+    to: 1rat1anz81doeib7uhti0fbsb

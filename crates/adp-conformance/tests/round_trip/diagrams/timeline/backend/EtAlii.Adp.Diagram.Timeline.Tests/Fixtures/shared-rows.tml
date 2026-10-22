@@ -1,0 +1,24 @@
+timeline: 1
+# Rows are a placement grid: several elements may share one, and the indices
+# need be neither contiguous nor ascending in the document.
+elements:
+  - id: aaa11111
+    label: Alpha
+    begin: 2026-01-01
+    end: 2026-01-31
+    row: 3
+  - id: bbb22222
+    label: Beta
+    begin: 2026-02-01
+    end: 2026-02-28
+    row: 0
+  - id: ccc33333
+    label: Gamma runs beside Beta
+    begin: 2026-02-10
+    end: 2026-03-15
+    row: 0
+  - id: ddd44444
+    label: Delta sits far below
+    begin: 2026-01-15
+    end: 2026-04-01
+    row: 12

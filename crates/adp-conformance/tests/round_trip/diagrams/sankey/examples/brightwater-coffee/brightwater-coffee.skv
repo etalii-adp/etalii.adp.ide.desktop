@@ -1,0 +1,103 @@
+# Brightwater Coffee Co. - a fictional coffee company's income statement for fiscal year 2026,
+# drawn the way quarterly results are: revenue by segment on the left, what is left of it after
+# each kind of cost to the right. Millions of euros. Every figure is invented.
+sankey: 1
+format: "€{value}M"
+flow-color: target
+nodes:
+  - id: cafes
+    name: Cafés
+    color: blue
+    note: "+9% Y/Y"
+  - id: packaged
+    name: Packaged coffee
+    color: blue
+    note: "+4% Y/Y"
+  - id: wholesale
+    name: Wholesale & roasting
+    color: blue
+    note: "-2% Y/Y"
+  - id: licensing
+    name: Licensing
+    color: blue
+    note: "+21% Y/Y"
+  - id: revenue
+    name: Revenue
+    color: grey
+    note: "+6% Y/Y"
+  - id: gross-profit
+    name: Gross profit
+    color: green
+    note: "46% margin"
+  - id: cost-of-revenue
+    name: Cost of revenue
+    color: red
+    format: "(€{value}M)"
+  - id: operating-profit
+    name: Operating profit
+    color: green
+    note: "16% margin"
+  - id: operating-expenses
+    name: Operating expenses
+    color: red
+    format: "(€{value}M)"
+  - id: net-profit
+    name: Net profit
+    color: green
+    note: "12% margin"
+  - id: tax
+    name: Tax
+    color: red
+    format: "(€{value}M)"
+  - id: marketing
+    name: Marketing
+    color: red
+    format: "(€{value}M)"
+  - id: research
+    name: Research & development
+    color: red
+    format: "(€{value}M)"
+  - id: general
+    name: General & administrative
+    color: red
+    format: "(€{value}M)"
+flows:
+  - from: cafes
+    to: revenue
+    value: 1840
+  - from: packaged
+    to: revenue
+    value: 960
+  - from: wholesale
+    to: revenue
+    value: 520
+  - from: licensing
+    to: revenue
+    value: 180
+  - from: revenue
+    to: gross-profit
+    value: 1610
+  - from: revenue
+    to: cost-of-revenue
+    value: 1890
+  - from: gross-profit
+    to: operating-profit
+    value: 560
+  - from: gross-profit
+    to: operating-expenses
+    value: 1050
+  - from: operating-profit
+    to: net-profit
+    value: 420
+  - from: operating-profit
+    to: tax
+    value: 140
+  - from: operating-expenses
+    to: marketing
+    value: 420
+  - from: operating-expenses
+    to: research
+    value: 210
+  - from: operating-expenses
+    to: general
+    value: 420

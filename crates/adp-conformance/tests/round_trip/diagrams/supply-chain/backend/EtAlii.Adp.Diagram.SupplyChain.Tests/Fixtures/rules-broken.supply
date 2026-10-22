@@ -1,0 +1,30 @@
+supply-chain: 1
+groups:
+  - id: north
+    name: North
+  - id: empty
+    name: Nobody here
+nodes:
+  - id: mine
+    type: raw-material
+    name: Mine
+    group: north
+  - id: plant
+    type: manufacturer
+    name: Plant
+    group: south
+  - id: mine
+    type: supplier
+    name: Second mine
+  - type: retailer
+    name: No id
+flows:
+  - id: ore
+    from: mine
+    to: plant
+  - id: loop
+    from: plant
+    to: plant
+  - id: lost
+    from: plant
+    to: nowhere

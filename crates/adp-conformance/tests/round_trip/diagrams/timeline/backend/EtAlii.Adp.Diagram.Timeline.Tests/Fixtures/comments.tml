@@ -1,0 +1,26 @@
+# A leading comment, before anything else.
+
+timeline: 1
+
+# Between the marker and the elements.
+elements:
+  # Before the first element.
+  - id: cmt00001   # trailing, on the id line
+    label: Commented
+    # Between two keys.
+    begin: 2026-06-01
+    end: 2026-06-30
+    row: 0
+  # Between two elements.
+  - id: cmt00002
+    label: Also commented
+    begin: 2026-07-01
+    row: 1
+
+# After the elements, before the connections.
+connections:
+  - id: cmt0conn
+    from: cmt00001
+    to: cmt00002
+
+# A trailing comment, after everything.

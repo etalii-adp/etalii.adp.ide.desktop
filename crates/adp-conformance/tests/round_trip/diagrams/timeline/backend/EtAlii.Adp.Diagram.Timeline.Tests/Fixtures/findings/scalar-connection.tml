@@ -1,0 +1,17 @@
+timeline: 1
+# A connections entry that is not a mapping.
+elements:
+  - id: scfirst
+    label: First
+    begin: 2026-10-01
+    end: 2026-10-05
+    row: 0
+  - id: scsecond
+    label: Second
+    begin: 2026-10-08
+    row: 1
+connections:
+  - id: scconn01
+    from: scfirst
+    to: scsecond
+  - not a mapping

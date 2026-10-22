@@ -1,0 +1,25 @@
+timeline: 1
+# Relations naming elements that are not on the timeline.
+elements:
+  - id: here
+    label: Here
+    begin: 2026-01-01
+    end: 2026-01-08
+    row: 0
+connections:
+  - id: tonowhere
+    from: here
+    to: nowhere
+  - id: fromnowhere
+    from: nowhere
+    to: here
+    label: arrives
+  - id: bothgone
+    from: gone1
+    to: gone2
+  - id: noends
+    from: ''
+    to: ''
+  - id: itself
+    from: here
+    to: here

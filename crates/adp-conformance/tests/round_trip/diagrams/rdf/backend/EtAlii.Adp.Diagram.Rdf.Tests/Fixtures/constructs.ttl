@@ -1,0 +1,29 @@
+# The parser corpus: every construct Requirement 1.1 names, in one coherent file.
+@prefix ex: <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@base <http://example.org/base/> .
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+ex:alice a foaf:Person ;
+    foaf:name "Alice" ;
+    foaf:age 42 ;
+    foaf:score 1.2e3 ;
+    foaf:knows ex:bob, ex:carol ; # an object list
+    dc:description "A description\nwith a break"@en .
+
+ex:bob foaf:name "Bob"^^<http://www.w3.org/2001/XMLSchema#string> ; foaf:knows _:c .
+
+_:c foaf:name "Carol" ;
+    foaf:mbox <mailto:carol@example.org> .
+
+ex:carol foaf:interests ( ex:music ex:art 4.5 ) ;
+    ex:verified true ; .
+
+ex:group ex:member [ foaf:name "Dave" ; foaf:age 23 ], ex:carol .
+
+ex:empty ex:member [] .
+
+<relative> ex:sameAs <> .
+
+ex:doc dc:title """A long
+string with "quotes" inside""" .

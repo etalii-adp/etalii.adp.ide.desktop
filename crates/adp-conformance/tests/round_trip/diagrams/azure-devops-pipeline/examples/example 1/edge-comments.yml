@@ -1,0 +1,22 @@
+# A leading comment, before anything else.
+
+# A comment separated from the key it belongs to by a blank line.
+trigger:
+  - main   # a trailing comment on a sequence entry
+
+pool:
+  # a comment inside a mapping
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Build   # trailing comment on a key
+    # a comment between the key and its child
+    jobs:
+      - job: Compile
+        steps:
+          - script: |
+              # this hash is script content, not a YAML comment
+              echo "building"
+            displayName: Build   # trailing again
+
+# A trailing comment at the very end of the file, with no newline discipline after it.

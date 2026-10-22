@@ -1,0 +1,43 @@
+graph TB
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Component View: Internet Banking System - API Application"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    12["<div style='font-weight: bold'>Mainframe Banking System</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Stores all of the core<br />banking information about<br />customers, accounts,<br />transactions, etc.</div>"]
+    style 12 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    subgraph 2 ["Internet Banking System"]
+      style 2 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 6 ["API Application"]
+        style 6 fill:#ffffff,stroke:#2e6295,color:#2e6295
+
+        10["<div style='font-weight: bold'>Mainframe Banking System Facade</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring Bean]</div><div style='font-size: 80%; margin-top:10px'>A facade onto the mainframe<br />banking system.</div>"]
+        style 10 fill:#85bbf0,stroke:#5d82a8,color:#ffffff
+        7["<div style='font-weight: bold'>Sign In Controller</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring MVC Rest Controller]</div><div style='font-size: 80%; margin-top:10px'>Allows users to sign in to<br />the Internet Banking System.</div>"]
+        style 7 fill:#85bbf0,stroke:#5d82a8,color:#ffffff
+        8["<div style='font-weight: bold'>Accounts Summary Controller</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring MVC Rest Controller]</div><div style='font-size: 80%; margin-top:10px'>Provides customers with a<br />summary of their bank<br />accounts.</div>"]
+        style 8 fill:#85bbf0,stroke:#5d82a8,color:#ffffff
+        9["<div style='font-weight: bold'>Security Component</div><div style='font-size: 70%; margin-top: 0px'>[Component: Spring Bean]</div><div style='font-size: 80%; margin-top:10px'>Provides functionality<br />related to signing in,<br />changing passwords, etc.</div>"]
+        style 9 fill:#85bbf0,stroke:#5d82a8,color:#ffffff
+      end
+
+      11[("<div style='font-weight: bold'>Database</div><div style='font-size: 70%; margin-top: 0px'>[Container: Oracle Database Schema]</div><div style='font-size: 80%; margin-top:10px'>Stores user registration<br />information, hashed<br />authentication credentials,<br />access logs, etc.</div>")]
+      style 11 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      3["<div style='font-weight: bold'>Single-Page Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript and Angular]</div><div style='font-size: 80%; margin-top:10px'>Provides all of the Internet<br />banking functionality to<br />customers via their web<br />browser.</div>"]
+      style 3 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      4["<div style='font-weight: bold'>Mobile App</div><div style='font-size: 70%; margin-top: 0px'>[Container: Xamarin]</div><div style='font-size: 80%; margin-top:10px'>Provides a limited subset of<br />the Internet banking<br />functionality to customers<br />via their mobile device.</div>"]
+      style 4 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    3-. "<div>Makes API calls to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->7
+    3-. "<div>Makes API calls to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->8
+    4-. "<div>Makes API calls to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->7
+    4-. "<div>Makes API calls to</div><div style='font-size: 70%'>[JSON/HTTPS]</div>" .->8
+    7-. "<div>Uses</div><div style='font-size: 70%'></div>" .->9
+    8-. "<div>Uses</div><div style='font-size: 70%'></div>" .->10
+    9-. "<div>Reads from and writes to</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->11
+    10-. "<div>Makes API calls to</div><div style='font-size: 70%'>[XML/HTTPS]</div>" .->12
+
+  end

@@ -1,0 +1,9 @@
+worker_processes {{ nginx_worker_processes | default(2) }};
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/conf.d/*.conf;
+}
