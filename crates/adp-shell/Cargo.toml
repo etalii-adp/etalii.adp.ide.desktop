@@ -7,6 +7,11 @@ license.workspace = true
 repository.workspace = true
 publish = false
 
+# The window, as a library that the binary runs and the tests under tests/ drive (spec 030, T088).
+[lib]
+name = "adp_shell"
+path = "src/lib.rs"
+
 [[bin]]
 name = "adp-desktop"
 path = "src/main.rs"
