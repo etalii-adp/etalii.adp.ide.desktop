@@ -239,7 +239,10 @@ fn what_the_standalone_host_refuses_is_refused_with_its_words() {
         adds.commit(&target, "generic/timeline", "map"),
         Err("An item named 'map.adp' already exists in this folder.".into())
     );
-    assert_eq!(adds.commit(&target, "w3c/sparql", "query"), Err(INCOMPLETE.into()));
+    assert_eq!(
+        adds.commit(&target, "generic/dependencies", "query"),
+        Err(INCOMPLETE.into())
+    );
     assert_eq!(
         adds.commit(&target, "nobody/nothing", "x"),
         Err("That diagram type is not available.".into())
@@ -449,6 +452,22 @@ fn a_hype_cycle_graph_is_written_as_the_standalone_host_writes_an_empty_one() {
     assert_eq!(
         read(&folder.path().join("trends.ghg")),
         "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n"
+    );
+}
+
+#[test]
+fn a_sparql_query_is_written_with_the_starter_query() {
+    let folder = tempfile::tempdir().unwrap();
+    let target = AddTarget::Folder(folder.path().to_path_buf());
+    let created = AddCatalogue::standalone()
+        .commit(&target, "w3c/sparql", "query")
+        .unwrap();
+    assert_eq!(created, folder.path().join("query.adp"));
+    assert_eq!(read(&created), "w3c/sparql\r\n");
+    // The standalone host's `AddEmptyDocument`: a `SELECT` that parses and validates clean, in CRLF.
+    assert_eq!(
+        read(&folder.path().join("query.rq")),
+        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\r\n\r\nSELECT ?subject ?label\r\nWHERE {\r\n  ?subject rdfs:label ?label .\r\n}\r\nLIMIT 100\r\n"
     );
 }
 

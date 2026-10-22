@@ -67,7 +67,7 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 | P-061 | OWL ontology (`w3c/owl`, implemented) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
 | P-062 | SKOS concept scheme (`w3c/skos`, prototype) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
 | P-063 | SHACL shapes (`w3c/shacl`, implemented) | docs/tools.md, 13. Ontologies & semantic web | 4 |  | planned |
-| P-064 | SPARQL query (`w3c/sparql`, implemented) | docs/tools.md, 14. Database queries & results | 4 |  | planned |
+| P-064 | SPARQL query (`w3c/sparql`, implemented) | docs/tools.md, 14. Database queries & results | 4 | adp-parity::w3c_sparql_groups, adp-parity::w3c_sparql_proteome_location_of_gene | checked |
 | P-065 | Knowledge designer (`etalii/knowledge`, prototype) | docs/tools.md, 15. Designers | 5 | adp-parity::etalii_knowledge_cities_yaml, adp-parity::etalii_knowledge_cities_json, adp-parity::etalii_knowledge_cities_xml; walk: 4/1 to 4/9 (re-walked: columns resized and moved by dragging, a view renamed in its tab, the column menu, the view panels, the ticked rows and the line of calculations as the standalone host offers them; walks.md K1 to K9 and the re-walk) | checked |
 | P-066 | JSON editor (`editor/json`, implemented) | docs/tools.md, 16. Editors | 2 |  | planned |
 | P-067 | Markdown editor (`editor/markdown`, implemented) | docs/tools.md, 16. Editors | 2 |  | planned |

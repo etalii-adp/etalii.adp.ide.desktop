@@ -186,7 +186,7 @@ fn silhouette(shape: &str, bounds: Rect) -> (Path, Option<Path>) {
 }
 
 /// Where the line from the centre of `rect` towards `towards` leaves it.
-fn edge_point(rect: Rect, towards: Point) -> Point {
+pub(super) fn edge_point(rect: Rect, towards: Point) -> Point {
     let centre = rect.centre();
     let (dx, dy) = (towards.x - centre.x, towards.y - centre.y);
     if dx == 0.0 && dy == 0.0 {

@@ -135,6 +135,7 @@ dependencies = [
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-sankey",
+ "adp-diagram-sparql",
  "adp-diagram-supply-chain",
  "adp-diagram-timeline",
  "adp-diagram-wardley-map",
@@ -445,6 +446,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-diagram-sparql"
+version = "0.1.0"
+dependencies = [
+ "adp-context",
+ "adp-core",
+ "adp-diagram",
+ "adp-disl",
+ "adp-documents",
+ "adp-history",
+ "adp-layout",
+ "tempfile",
+]
+
+[[package]]
 name = "adp-diagram-supply-chain"
 version = "0.1.0"
 dependencies = [
@@ -598,6 +613,7 @@ dependencies = [
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-sankey",
+ "adp-diagram-sparql",
  "adp-diagram-supply-chain",
  "adp-diagram-timeline",
  "adp-diagram-wardley-map",
@@ -662,6 +678,7 @@ dependencies = [
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-sankey",
+ "adp-diagram-sparql",
  "adp-diagram-supply-chain",
  "adp-diagram-timeline",
  "adp-diagram-wardley-map",
