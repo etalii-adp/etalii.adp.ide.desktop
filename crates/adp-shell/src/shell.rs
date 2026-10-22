@@ -27,6 +27,7 @@ use crate::canvas::{DiagramHost, DiagramTab};
 use crate::documents::OpenText;
 use crate::explorer::{Explorer, Request};
 use crate::highlight::Highlighter;
+use crate::ribbon::{Command, Ribbon, Situation};
 use crate::table::TableTab;
 use crate::theme::{self, Palette};
 
@@ -127,6 +128,18 @@ impl Tab {
     }
 }
 
+/// Which view the side bar shows, chosen on the activity bar as in VS Code; the standalone host's Hierarchy and Search
+/// tabs (`WorkspaceShell.tsx`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SideView {
+    Explorer,
+    Search,
+}
+
+/// What the search view says: the standalone host's placeholder at `8b6ccfc` (`SearchPanel.tsx`), which searches
+/// nothing yet (P-015, T101).
+pub const SEARCH_DESCRIPTION: &str = "Search across your project's files and diagrams.";
+
 /// Which pane beside a diagram is showing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SidePane {
@@ -184,6 +197,8 @@ pub struct Shell {
     /// The diagram tool types and each project's diagrams, loaded when a file is first opened.
     diagrams: Option<DiagramHost>,
     side_pane: SidePane,
+    side_view: SideView,
+    ribbon: Ribbon,
     pending: Option<Pending>,
     /// The window's title as last sent: sending it asks for a new frame, so it is sent only when it changes.
     title: Option<String>,
@@ -208,6 +223,8 @@ impl Default for Shell {
             active: 0,
             diagrams: None,
             side_pane: SidePane::Toolbox,
+            side_view: SideView::Explorer,
+            ribbon: Ribbon::default(),
             pending: None,
             title: None,
             window: Arc::new(OnceLock::new()),
@@ -304,7 +321,9 @@ impl Shell {
         }
         if self.host().claims(path) {
             match self.host().open(path, root) {
-                Ok(tab) => {
+                Ok(mut tab) => {
+                    // The ribbon has the canvas's Zoom In, Zoom Out, Fit to View, Undo and Redo.
+                    tab.toolbar_buttons = false;
                     self.notice = Some(format!("Opened {} as {}", tab.name(), tab.opened.origin));
                     self.tabs.push(Tab::Diagram(Box::new(tab)));
                     self.active = self.tabs.len() - 1;
@@ -848,9 +867,13 @@ impl Shell {
 
     /// Ctrl+S (Cmd+S on macOS) saves the active tab, keeping its encoding and line endings.
     fn save(&mut self, ui: &egui::Ui) {
-        if !ui.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, egui::Key::S)) {
-            return;
+        if ui.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, egui::Key::S)) {
+            self.save_active();
         }
+    }
+
+    /// Saves the active tab when it is text.
+    fn save_active(&mut self) {
         if let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut) {
             self.notice = Some(match open.save() {
                 Ok(()) => format!("Saved {}", open.file.path().display()),
@@ -867,9 +890,14 @@ impl Shell {
             let undo = input.consume_key(egui::Modifiers::COMMAND, egui::Key::Z);
             (undo, redo)
         });
-        if !undo && !redo {
-            return;
+        if undo || redo {
+            self.history(undo);
         }
+    }
+
+    /// Undoes (or redoes) the active tab's last edit: a table's on its session, a diagram's on its project's diagram
+    /// history, else the workspace's.
+    fn history(&mut self, undo: bool) {
         // A table's edits are its session's.
         if let Some(table) = self.tabs.get_mut(self.active).and_then(Tab::table_mut) {
             let outcome = if undo { table.undo() } else { table.redo() };
@@ -977,8 +1005,26 @@ impl Shell {
                     if response.on_hover_text("Back to projects").clicked() {
                         self.close_project();
                     }
+                    for (view, name, shortcut) in [
+                        (SideView::Explorer, "Explorer", "Ctrl+Shift+E"),
+                        (SideView::Search, "Search", "Ctrl+Shift+F"),
+                    ] {
+                        if self.activity(ui, &theme, view, name, shortcut) {
+                            self.side_view = view;
+                        }
+                    }
                 }
             });
+        // VS Code's keys for its views: Ctrl+Shift+E and Ctrl+Shift+F (Cmd on macOS).
+        if self.project.is_some() {
+            let views = egui::Modifiers::COMMAND | egui::Modifiers::SHIFT;
+            if ui.input_mut(|i| i.consume_key(views, egui::Key::E)) {
+                self.side_view = SideView::Explorer;
+            }
+            if ui.input_mut(|i| i.consume_key(views, egui::Key::F)) {
+                self.side_view = SideView::Search;
+            }
+        }
 
         if self.project.is_none() && self.tabs.is_empty() {
             self.projects_page(ui, &theme, &palette);
@@ -986,6 +1032,77 @@ impl Shell {
             self.workspace_view(ui, &theme, &palette);
         }
         self.prompt(ui.ctx());
+    }
+
+    /// One view's entry on the activity bar, its icon drawn rather than taken from a font, the active one marked by
+    /// VS Code's border on its left; whether it was pressed.
+    fn activity(
+        &self,
+        ui: &mut egui::Ui,
+        theme: &adp_theme::Theme,
+        view: SideView,
+        name: &str,
+        shortcut: &str,
+    ) -> bool {
+        let width = theme.sizes.activity_bar_width;
+        let (rect, response) = ui.allocate_exact_size(egui::vec2(width, 44.0), egui::Sense::click());
+        let active = self.side_view == view;
+        let colour = if active || response.hovered() {
+            theme::color(theme, &["activityBar.foreground", "foreground"], egui::Color32::WHITE)
+        } else {
+            theme::color(
+                theme,
+                &["activityBar.inactiveForeground", "foreground"],
+                egui::Color32::GRAY,
+            )
+        };
+        let painter = ui.painter();
+        if active {
+            let border = theme::color(theme, &["activityBar.activeBorder", "focusBorder"], colour);
+            painter.rect_filled(
+                egui::Rect::from_min_size(rect.min, egui::vec2(2.0, rect.height())),
+                0.0,
+                border,
+            );
+        }
+        let c = rect.center();
+        let stroke = egui::Stroke::new(1.5, colour);
+        match view {
+            SideView::Explorer => {
+                // Two pages, one behind the other.
+                painter.rect_stroke(
+                    egui::Rect::from_center_size(c + egui::vec2(2.0, -2.0), egui::vec2(12.0, 15.0)),
+                    1.0,
+                    stroke,
+                    egui::StrokeKind::Middle,
+                );
+                painter.rect_filled(
+                    egui::Rect::from_center_size(c + egui::vec2(-2.0, 2.0), egui::vec2(12.0, 15.0)),
+                    1.0,
+                    theme::color(
+                        theme,
+                        &["activityBar.background", "sideBar.background"],
+                        egui::Color32::BLACK,
+                    ),
+                );
+                painter.rect_stroke(
+                    egui::Rect::from_center_size(c + egui::vec2(-2.0, 2.0), egui::vec2(12.0, 15.0)),
+                    1.0,
+                    stroke,
+                    egui::StrokeKind::Middle,
+                );
+            }
+            SideView::Search => {
+                // A magnifying glass.
+                painter.circle_stroke(c + egui::vec2(-2.0, -2.0), 6.0, stroke);
+                painter.line_segment(
+                    [c + egui::vec2(2.5, 2.5), c + egui::vec2(8.0, 8.0)],
+                    egui::Stroke::new(2.0, colour),
+                );
+            }
+        }
+        a11y::tab(&response, name, active);
+        response.on_hover_text(format!("{name} ({shortcut})")).clicked()
     }
 
     fn status_bar(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
@@ -1097,9 +1214,106 @@ impl Shell {
         }
     }
 
+    /// What the ribbon shows for the active tab.
+    fn situation(&mut self) -> Situation {
+        let mut situation = Situation {
+            save: Some("Open a file to save it.".to_owned()),
+            undo: None,
+            redo: None,
+            diagram: false,
+            selection: None,
+            actions: Vec::new(),
+        };
+        match self.tabs.get(self.active) {
+            Some(Tab::Text(open)) => {
+                situation.save =
+                    (!open.editor.buffer.is_modified()).then(|| "There are no changes to save.".to_owned());
+            }
+            Some(Tab::Table(_)) => situation.save = Some("A table's edits are written as they are made.".to_owned()),
+            Some(Tab::Diagram(tab)) => {
+                situation.save = Some("A diagram's edits are written as they are made.".to_owned());
+                situation.diagram = true;
+                if let Some(host) = self.diagrams.as_mut() {
+                    let workspace = host.workspace(&tab.root);
+                    let availability = workspace.history().availability();
+                    situation.undo = (!availability.can_undo).then(|| "There is nothing to undo.".to_owned());
+                    situation.redo = (!availability.can_redo).then(|| "There is nothing to redo.".to_owned());
+                    if !tab.selection.is_empty() {
+                        situation.selection = Some(format!("{}#{}", tab.path.display(), tab.selection.join(",")));
+                        situation.actions = tab.selection_actions(workspace);
+                    }
+                }
+            }
+            None => {}
+        }
+        situation
+    }
+
+    /// Carries out what the ribbon was asked.
+    fn ribbon_command(&mut self, command: Command) {
+        match command {
+            Command::Save => self.save_active(),
+            Command::New => {
+                let folder = self
+                    .project
+                    .as_ref()
+                    .and_then(|p| p.explorer.selected.clone())
+                    .filter(|s| self.root().is_some_and(|root| root.join(s).is_dir()))
+                    .unwrap_or_default();
+                self.handle(Request::Add(folder));
+            }
+            Command::Undo => self.history(true),
+            Command::Redo => self.history(false),
+            Command::ZoomIn | Command::ZoomOut | Command::FitToView => {
+                if let Some(tab) = self.tabs.get_mut(self.active).and_then(Tab::diagram_mut) {
+                    match command {
+                        Command::ZoomIn => tab.zoom_by(crate::canvas::ZOOM_STEP, None),
+                        Command::ZoomOut => tab.zoom_by(1.0 / crate::canvas::ZOOM_STEP, None),
+                        _ => tab.fit(),
+                    }
+                }
+            }
+            Command::Run(action_id) => {
+                let Some(root) = self
+                    .tabs
+                    .get(self.active)
+                    .and_then(Tab::diagram)
+                    .map(|d| d.root.clone())
+                else {
+                    return;
+                };
+                let Some(mut host) = self.diagrams.take() else {
+                    return;
+                };
+                if let Some(tab) = self.tabs.get_mut(self.active).and_then(Tab::diagram_mut) {
+                    tab.run_selection_action(host.workspace(&root), &action_id);
+                }
+                let changed = host.take_changed();
+                self.diagrams = Some(host);
+                self.diagrams_changed(&changed);
+            }
+        }
+    }
+
     fn workspace_view(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
         let sizes = theme.sizes;
         let mut requests = Vec::new();
+        if self.project.is_some() {
+            let situation = self.situation();
+            let mut asked = None;
+            egui::Panel::top("ribbon")
+                .resizable(false)
+                .frame(
+                    Frame::NONE
+                        .fill(palette.side_bar_background)
+                        .stroke(egui::Stroke::new(sizes.border_width, palette.border))
+                        .inner_margin(Margin::symmetric(8, 4)),
+                )
+                .show(ui, |ui| asked = self.ribbon.show(ui, theme, &situation));
+            if let Some(command) = asked {
+                self.ribbon_command(command);
+            }
+        }
         if let Some(project) = &mut self.project {
             egui::Panel::left("side-bar")
                 .default_size(260.0)
@@ -1112,14 +1326,32 @@ impl Shell {
                         .inner_margin(Margin::symmetric(0, 8)),
                 )
                 .show(ui, |ui| {
+                    let view = self.side_view;
                     ui.horizontal(|ui| {
                         ui.add_space(12.0);
                         ui.label(
-                            RichText::new("EXPLORER")
-                                .color(palette.side_bar_title)
-                                .size(sizes.workbench_font - 2.0),
+                            RichText::new(match view {
+                                SideView::Explorer => "EXPLORER",
+                                SideView::Search => "SEARCH",
+                            })
+                            .color(palette.side_bar_title)
+                            .size(sizes.workbench_font - 2.0),
                         );
                     });
+                    if view == SideView::Search {
+                        // The standalone host's placeholder (`PanelPlaceholder`'s empty state): what the view is for.
+                        ui.add_space(16.0);
+                        ui.vertical_centered(|ui| {
+                            ui.label(RichText::new("Search").strong().size(sizes.workbench_font));
+                            ui.add_space(4.0);
+                            ui.label(
+                                RichText::new(SEARCH_DESCRIPTION)
+                                    .color(palette.side_bar_foreground.gamma_multiply(0.8))
+                                    .size(sizes.workbench_font - 1.0),
+                            );
+                        });
+                        return;
+                    }
                     ui.horizontal(|ui| {
                         ui.add_space(12.0);
                         ui.label(
@@ -1159,6 +1391,9 @@ impl Shell {
                             ui.label("Findings are kept only for projects in the project list.");
                         }
                     });
+                    // The panel keeps the height it was dragged to however little it shows: a panel sized by its
+                    // content would spring back to the height of one sentence (P-009).
+                    ui.allocate_space(ui.available_size());
                 });
             if let Some((file, line)) = jump {
                 let root = project.project.path.clone();
@@ -1980,6 +2215,82 @@ mod tests {
         let set = shell.project.as_ref().unwrap().problem_set.as_ref().unwrap();
         assert_eq!(set.errors, 1);
         assert_eq!(set.problems[0].finding.file, "broken.json");
+    }
+
+    #[test]
+    fn the_ribbon_says_what_applies_and_runs_the_selections_menu_and_undo() {
+        let fixtures =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../adp-diagram/tests/fixtures/dependency-graph/example-1");
+        let folder = tempfile::tempdir().unwrap();
+        for name in ["services.adp", "services.dgr"] {
+            std::fs::copy(fixtures.join(name), folder.path().join(name)).unwrap();
+        }
+        std::fs::write(folder.path().join("notes.md"), "# Notes\n").unwrap();
+        let body = folder.path().join("services.dgr");
+        let original = std::fs::read_to_string(&body).unwrap();
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+
+        // Nothing open: nothing to save, and View has no diagram.
+        let situation = shell.situation();
+        assert_eq!(situation.save.as_deref(), Some("Open a file to save it."));
+        assert!(!situation.diagram);
+
+        // A text with an edit can be saved; one without cannot.
+        shell.handle(Request::Open("notes.md".into()));
+        assert_eq!(shell.situation().save.as_deref(), Some("There are no changes to save."));
+
+        // A diagram: View zooms it, and its history says when there is nothing to undo.
+        shell.handle(Request::Open("services.dgr".into()));
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        frame(&ctx, &mut shell);
+        assert!(
+            !shell.tabs[shell.active].diagram().unwrap().toolbar_buttons,
+            "the ribbon has the canvas's buttons"
+        );
+        let situation = shell.situation();
+        assert!(situation.diagram);
+        assert_eq!(situation.undo.as_deref(), Some("There is nothing to undo."));
+        assert!(situation.selection.is_none() && situation.actions.is_empty());
+        let zoom = shell.tabs[shell.active].diagram().unwrap().view.zoom;
+        shell.ribbon_command(Command::ZoomIn);
+        let zoomed = shell.tabs[shell.active].diagram().unwrap().view.zoom;
+        assert!(
+            (zoomed / zoom - crate::canvas::ZOOM_STEP).abs() < 1e-9,
+            "{zoom} to {zoomed}"
+        );
+
+        // The contextual groups are the selection's menu, and run as the context menu runs them.
+        let active = shell.active;
+        shell.tabs[active]
+            .diagram_mut()
+            .unwrap()
+            .select(vec!["api-gateway".into()], SelectMode::Replace);
+        let situation = shell.situation();
+        let actions: Vec<_> = situation.actions.iter().flat_map(|g| g.actions.iter()).collect();
+        assert!(!actions.is_empty(), "the selection's menu");
+        let delete = actions.iter().find(|a| a.label == "Remove").expect("Remove").id.clone();
+        shell.ribbon_command(Command::Run(delete));
+        // It asks first, as from the context menu; the confirmation is answered as its dialog would.
+        let root = shell.tabs[active].diagram().unwrap().root.clone();
+        let mut host = shell.diagrams.take().unwrap();
+        let tab = shell.tabs[active].diagram_mut().unwrap();
+        assert!(tab.prompt.is_some(), "Remove asks first");
+        tab.answer(host.workspace(&root), Some(""));
+        shell.diagrams = Some(host);
+        frame(&ctx, &mut shell);
+        assert!(
+            !std::fs::read_to_string(&body).unwrap().contains("api-gateway"),
+            "the ribbon's Delete deleted it"
+        );
+        assert!(shell.situation().undo.is_none(), "and it can be undone");
+        shell.ribbon_command(Command::Undo);
+        assert_eq!(
+            std::fs::read_to_string(&body).unwrap(),
+            original,
+            "the ribbon's Undo undid it"
+        );
     }
 
     #[test]

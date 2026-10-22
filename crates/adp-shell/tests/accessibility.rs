@@ -89,6 +89,62 @@ impl Window {
         self.assert_controls_are_named();
     }
 
+    /// The cursor the window shows with the pointer at `at`, after one frame.
+    fn cursor_at(&mut self, at: egui::Pos2) -> egui::CursorIcon {
+        self.time += 0.15;
+        let input = egui::RawInput {
+            time: Some(self.time),
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1280.0, 800.0))),
+            events: vec![egui::Event::PointerMoved(at)],
+            ..Default::default()
+        };
+        let shell = &mut self.shell;
+        let mut output = self.ctx.run_ui(input, |ui| shell.show(ui));
+        output.textures_delta.clear();
+        output.platform_output.cursor_icon
+    }
+
+    /// Drags with the primary button from `from` to `to`, over a few frames, then lets the window settle.
+    fn drag(&mut self, from: egui::Pos2, to: egui::Pos2) {
+        let button = |pos, pressed| egui::Event::PointerButton {
+            pos,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        self.frame(vec![egui::Event::PointerMoved(from), button(from, true)]);
+        for step in 1..=4 {
+            let at = from + (to - from) * (step as f32 / 4.0);
+            self.frame(vec![egui::Event::PointerMoved(at)]);
+        }
+        self.frame(vec![button(to, false)]);
+        self.frames(2);
+    }
+
+    /// Where a pane's edge is along the line from `from` to `to`: the first point there that shows a resize cursor.
+    fn edge(&mut self, from: egui::Pos2, to: egui::Pos2) -> egui::Pos2 {
+        let steps = (to - from).length().ceil() as usize;
+        for step in 0..=steps {
+            // Whole pixels: the grab of a pane's edge is narrow.
+            let at = (from + (to - from) * (step as f32 / steps.max(1) as f32)).round();
+            let cursor = self.cursor_at(at);
+            if matches!(
+                cursor,
+                egui::CursorIcon::ResizeHorizontal
+                    | egui::CursorIcon::ResizeVertical
+                    | egui::CursorIcon::ResizeColumn
+                    | egui::CursorIcon::ResizeRow
+                    | egui::CursorIcon::ResizeEast
+                    | egui::CursorIcon::ResizeWest
+                    | egui::CursorIcon::ResizeNorth
+                    | egui::CursorIcon::ResizeSouth
+            ) {
+                return at;
+            }
+        }
+        panic!("no pane edge between {from:?} and {to:?}");
+    }
+
     fn frames(&mut self, count: usize) {
         for _ in 0..count {
             self.frame(Vec::new());
@@ -538,4 +594,77 @@ fn a_diagram_canvas_is_one_named_node_beside_its_toolbar_and_its_panes() {
     let entries = window.controls_under(menus[0]);
     assert!(!entries.is_empty(), "{}", window.outline());
     assert!(entries.iter().all(|(role, _)| *role == Role::MenuItem), "{entries:?}");
+}
+
+/// The activity bar switches the side bar between the explorer and the search view, as the standalone host's Hierarchy
+/// and Search tabs do (P-015, T101); each is a tab that says whether it is the one shown, and the search view says what
+/// it is for, as the standalone host's placeholder does.
+#[test]
+fn the_activity_bar_switches_between_the_explorer_and_the_search_view() {
+    let mut window = Window::open(&[NOTES, ROADMAP]);
+    assert_eq!(window.find(Role::Tab, "Explorer").1.is_selected(), Some(true));
+    assert_eq!(window.find(Role::Tab, "Search").1.is_selected(), Some(false));
+    assert!(window.has(Role::Tree, "Explorer"));
+
+    window.click(Role::Tab, "Search");
+    assert_eq!(window.find(Role::Tab, "Search").1.is_selected(), Some(true));
+    assert!(
+        !window.has(Role::Tree, "Explorer"),
+        "the explorer gives way to the search view"
+    );
+    assert!(window.has(Role::Label, adp_shell::shell::SEARCH_DESCRIPTION));
+
+    window.click(Role::Tab, "Explorer");
+    assert!(window.has(Role::Tree, "Explorer"));
+    assert!(!window.has(Role::Label, adp_shell::shell::SEARCH_DESCRIPTION));
+}
+
+/// The standalone host's panes resize (P-009, T102): the side bar with the explorer or the search view, the errors and
+/// warnings panel, and the toolbox and properties beside a diagram, each by a drag on its edge, which the tabs between
+/// them give way to.
+#[test]
+fn the_side_bar_the_problems_panel_and_the_diagram_panes_resize() {
+    const MAP: (&str, &str) = (
+        "ideas.mm",
+        "<map version=\"freeplane 1.11.5\">\n<node TEXT=\"Ideas\" ID=\"ID_1\">\n<node TEXT=\"One\" ID=\"ID_2\"/>\n</node>\n</map>\n",
+    );
+    let mut window = Window::open(&[NOTES, MAP]);
+    window.click(Role::TreeItem, "ideas.mm");
+    window.frames(2);
+
+    // Each edge is found where the window shows a resize cursor, dragged, and found again where it went.
+    let row = window.find(Role::TreeItem, "notes.md").1.bounds().unwrap();
+    let side_bar = |window: &mut Window| {
+        let y = ((row.y0 + row.y1) / 2.0) as f32;
+        window.edge(egui::pos2(row.x1 as f32 - 4.0, y), egui::pos2(row.x1 as f32 + 200.0, y))
+    };
+    let problems = |window: &mut Window| window.edge(egui::pos2(640.0, 790.0), egui::pos2(640.0, 300.0));
+    let panes = |window: &mut Window| window.edge(egui::pos2(1275.0, 400.0), egui::pos2(700.0, 400.0));
+
+    // The side bar, by its right edge.
+    let edge = side_bar(&mut window);
+    window.drag(edge, edge + egui::vec2(80.0, 0.0));
+    let moved = side_bar(&mut window);
+    assert!(
+        moved.x > edge.x + 60.0,
+        "the side bar widens: its edge from {edge:?} to {moved:?}"
+    );
+
+    // The problems panel, by its top edge.
+    let edge = problems(&mut window);
+    window.drag(edge, edge - egui::vec2(0.0, 80.0));
+    let moved = problems(&mut window);
+    assert!(
+        moved.y < edge.y - 60.0,
+        "the problems panel grows: its edge from {edge:?} to {moved:?}"
+    );
+
+    // The toolbox and properties, by their left edge.
+    let edge = panes(&mut window);
+    window.drag(edge, edge - egui::vec2(80.0, 0.0));
+    let moved = panes(&mut window);
+    assert!(
+        moved.x < edge.x - 60.0,
+        "the diagram panes widen: their edge from {edge:?} to {moved:?}"
+    );
 }
