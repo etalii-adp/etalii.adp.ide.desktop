@@ -21,6 +21,23 @@ path = "src/main.rs"
 name = "table"
 path = "../../benches/table.rs"
 
+# The benchmarks of SC-005, SC-006 and SC-008 and the start-up probe (spec 030, T090, research R12): the repository's
+# benches/, each its own program that prints what it measured against its criterion, run with `cargo bench -p adp-shell`.
+[[bench]]
+name = "startup"
+path = "../../benches/startup.rs"
+harness = false
+
+[[bench]]
+name = "workspace"
+path = "../../benches/workspace.rs"
+harness = false
+
+[[bench]]
+name = "canvas"
+path = "../../benches/canvas.rs"
+harness = false
+
 [lints]
 workspace = true
 
