@@ -15,4 +15,12 @@ workspace = true
 notify = "8"
 
 [dev-dependencies]
+# The benchmarks of the core paths under SC-005 and SC-008 (spec 030, T090, research R12), without plots.
+criterion = { version = "0.8", default-features = false, features = ["cargo_bench_support"] }
 tempfile = "3"
+
+# The tree of a workspace of 5,000 files and a change on disk reaching the watcher: the repository's benches/core.rs.
+[[bench]]
+name = "core"
+path = "../../benches/core.rs"
+harness = false

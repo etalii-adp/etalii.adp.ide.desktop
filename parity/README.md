@@ -1,6 +1,6 @@
 # Parity
 
-What etalii.adp spec 030's FR-010, FR-032, SC-002 and SC-004 are checked against ([contracts/parity.md](https://github.com/etalii-adp/etalii.adp/blob/develop/specs/030-desktop-native-rust/contracts/parity.md)): the inventory of the standalone host's capabilities ([inventory.md](inventory.md)), the edit scripts ([scripts/](scripts/)), the documents they open ([fixtures/](fixtures/README.md)), the bytes the standalone host wrote for them ([goldens/](goldens/)) the program that recorded those bytes ([recorder/](recorder/README.md)), and the user stories walked by hand in the desktop host, with their screenshots ([walks.md](walks.md)).
+What etalii.adp spec 030's FR-010, FR-032, SC-002 and SC-004 are checked against ([contracts/parity.md](https://github.com/etalii-adp/etalii.adp/blob/develop/specs/030-desktop-native-rust/contracts/parity.md)): the inventory of the standalone host's capabilities ([inventory.md](inventory.md)), the edit scripts ([scripts/](scripts/)), the documents they open ([fixtures/](fixtures/README.md)), the bytes the standalone host wrote for them ([goldens/](goldens/)) the program that recorded those bytes ([recorder/](recorder/README.md)), and the user stories walked by hand in the desktop host, with their screenshots ([walks.md](walks.md)). The machines the performance criteria SC-005 to SC-008 are measured on, and what was measured there, are in [reference-machine.md](reference-machine.md).
 
 ## The check
 
