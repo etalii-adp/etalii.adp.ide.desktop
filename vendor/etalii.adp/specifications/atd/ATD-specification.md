@@ -794,7 +794,7 @@ What the grammar cannot state and a checker **MUST** check (FR-010).
 
 ### 14.1 A description
 
-A description is its root and the parts its imports reach (section 5). Every file is parsed; a file that does not parse is reported (`ATD1001`) and the rest of the description is still checked as far as it can be.
+A description is its root and the parts its imports reach (section 5). Every file is parsed; a file that does not parse is reported (`ATD1001`). A description whose files do not all parse is checked no further than its syntax: what the parser skipped would otherwise be reported again as names that resolve to nothing. Its names are still collected, so that a language server's hover, definition and completion answer in the parts that parse (FR-053).
 
 ### 14.2 Namespaces and names
 
@@ -926,7 +926,7 @@ The closest names a finding offers for a name that resolves to nothing are the n
 The formatter writes a description in one canonical layout (FR-032):
 
 - two spaces of indentation per level of braces;
-- one member per line; a block on one line when it has no nested block and fits in 120 columns, otherwise one member per line between `{` and `}`;
+- one member per line; a block of settings (an attribute's, a style's, a shape's and the like) on one line when it holds no comment and fits in 120 columns, otherwise one setting per line between `{` and `}`; a block of members always one member per line;
 - one space around `:` of a setting after it only, around binary operators, after `,`, and before `{`; none inside parentheses and brackets;
 - members in the order written: the formatter never reorders;
 - one blank line kept where the text has one or more between members; none at the start or end of a block;

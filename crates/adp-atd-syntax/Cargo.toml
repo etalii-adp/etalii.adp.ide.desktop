@@ -19,4 +19,6 @@ serde_json = { version = "1", features = ["preserve_order"] }
 adp-atd-grammar = { path = "../adp-atd-grammar" }
 
 [dev-dependencies]
+# The highlighting test tokenizes the examples with the vendored TextMate grammar (FR-052, T097).
+syntect = { version = "5", default-features = false, features = ["default-fancy"] }
 jsonschema = { version = "0.59", default-features = false }

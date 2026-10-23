@@ -218,6 +218,7 @@ dependencies = [
  "jsonschema",
  "regex",
  "serde_json",
+ "syntect",
 ]
 
 [[package]]
@@ -817,6 +818,8 @@ name = "adp-shell"
 version = "1.0.0"
 dependencies = [
  "adp-add",
+ "adp-atd-check",
+ "adp-atd-lsp",
  "adp-cel",
  "adp-context",
  "adp-core",
@@ -858,6 +861,7 @@ dependencies = [
  "adp-text",
  "adp-theme",
  "eframe",
+ "lsp-server",
  "png",
  "rfd",
  "serde_json",

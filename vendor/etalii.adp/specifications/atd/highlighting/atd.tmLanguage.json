@@ -67,6 +67,10 @@
       "match": "\\b[A-Za-z_][A-Za-z0-9_-]*(?:\\.[A-Za-z_][A-Za-z0-9_-]*)*(?=[ \\t]*:(?!:))"
     },
     {
+      "name": "variable.other.word.atd",
+      "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?:-[A-Za-z0-9_]+)+\\b"
+    },
+    {
       "name": "keyword.control.atd",
       "match": "\\b(?:continue|return|break|limit|while|else|fail|for|let|var|if|in)\\b"
     },

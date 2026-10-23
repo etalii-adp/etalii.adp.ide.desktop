@@ -37,6 +37,8 @@ contexts:
       scope: constant.numeric.atd
     - match: '\b[A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*)*(?=[ \t]*:(?!:))'
       scope: support.type.property-name.atd
+    - match: '\b[A-Za-z_][A-Za-z0-9_]*(?:-[A-Za-z0-9_]+)+\b'
+      scope: variable.other.word.atd
     - match: '\b(?:continue|return|break|limit|while|else|fail|for|let|var|if|in)\b'
       scope: keyword.control.atd
     - match: '\b(?:true|false|null)\b'
