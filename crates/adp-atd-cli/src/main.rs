@@ -24,6 +24,7 @@ const USAGE: &str = "usage: atd [--spec-dir <dir>] <command> …
   record <origin> --cases <dir> [--description <path>]
                                              record a tool type's conformance cases from its parity scripts
   record --capability <name> --cases <dir>   record a capability's fixtures from the code that does it today
+  record --check                             record every vendored case and capability fixture again and compare
   --version                                  print this tool's version and the versions of ATD it reads";
 
 fn main() -> ExitCode {
@@ -61,6 +62,29 @@ fn main() -> ExitCode {
 #[cfg(feature = "record")]
 fn record_command(args: &[String]) -> ExitCode {
     let value = |flag: &str| args.iter().position(|a| a == flag).and_then(|i| args.get(i + 1));
+    if args.iter().any(|a| a == "--check") {
+        let vendor = adp_parity::repository_root().join("vendor/etalii.adp");
+        return match record::check::check(&vendor) {
+            Ok(differences) if differences.is_empty() => {
+                println!("Every vendored case and capability fixture records as vendored.");
+                ExitCode::SUCCESS
+            }
+            Ok(differences) => {
+                for difference in &differences {
+                    eprintln!("{difference}");
+                }
+                eprintln!(
+                    "atd record --check: {} files differ from the vendored ones.",
+                    differences.len()
+                );
+                ExitCode::from(1)
+            }
+            Err(problem) => {
+                eprintln!("atd record: {problem}");
+                ExitCode::from(1)
+            }
+        };
+    }
     if let Some(name) = value("--capability") {
         let Some(cases) = value("--cases") else {
             return usage("record --capability needs --cases <dir>");

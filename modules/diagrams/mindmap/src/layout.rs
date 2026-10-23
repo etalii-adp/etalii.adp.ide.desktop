@@ -1,6 +1,8 @@
 //! The two-sided mind map layout, `net.etalii.adp.freeplane.mindmapLayout` (etalii.adp spec 030, FR-018; `mindmap.dis`
 //! `layout.algorithms.mindmap`), ported from the standalone host's `MindmapLayout.cs` and `_Model/MindmapMetrics.cs` at
-//! `8b6ccfc`.
+//! `8b6ccfc`. Its placement is the capability `layout.twoSidedTree`, moved to `adp-atd-runtime` (etalii.adp spec 035,
+//! T125); what stays here is what is the mind map's: the metric that sizes a node from its text, and Freeplane's
+//! `POSITION`.
 //!
 //! The conventional arrangement, computed from the tree alone: the central topic centred on the origin, its first-level
 //! branches split to its right and its left, each list of siblings a column centred on its parent, and depth as
@@ -11,6 +13,7 @@
 
 use indexmap::IndexMap;
 
+use adp_atd_runtime::capabilities::two_sided_tree::{self, Gaps, Side, TreeNode};
 use adp_layout::Rect;
 use adp_layout::text_metric;
 
@@ -54,9 +57,7 @@ impl Default for MindmapMetrics {
 }
 
 /// .NET's `Math.Round(value, 2)`: to two decimals, a midpoint to the even neighbour.
-pub fn round2(value: f64) -> f64 {
-    (value * 100.0).round_ties_even() / 100.0
-}
+pub use adp_atd_runtime::capabilities::two_sided_tree::round2;
 
 impl MindmapMetrics {
     /// The box a node with `text` occupies: its width and height.
@@ -68,14 +69,13 @@ impl MindmapMetrics {
         (round2(width), round2(height))
     }
 
-    /// The gap between a node of `width` and whatever sits beside it.
-    pub fn gap_beside(&self, width: f64) -> f64 {
-        self.horizontal_gap.max(width * self.minimum_gap_ratio)
-    }
-
-    /// The gap between two stacked subtrees whose members are `first` and `second` wide.
-    pub fn gap_between(&self, first: f64, second: f64) -> f64 {
-        self.vertical_gap.max(first.max(second) * self.minimum_gap_ratio)
+    /// The gaps of the capability `layout.twoSidedTree`.
+    pub fn gaps(&self) -> Gaps {
+        Gaps {
+            spacing: self.vertical_gap,
+            level_gap: self.horizontal_gap,
+            minimum_gap_ratio: self.minimum_gap_ratio,
+        }
     }
 }
 
@@ -120,120 +120,22 @@ pub fn compute(
     metrics: &MindmapMetrics,
     is_folded: &dyn Fn(&str) -> bool,
 ) -> IndexMap<String, Rect> {
-    let mut boxes = IndexMap::new();
-    let (width, height) = metrics.measure(&root.text);
-    let root_box = Rect::new(-width / 2.0, -height / 2.0, width, height);
-    boxes.insert(root.id.clone(), root_box);
-    if is_folded(&root.id) {
-        return boxes;
-    }
-    let mut right = Vec::new();
-    let mut left = Vec::new();
-    let mut alternate = 0;
-    for child in &root.children {
-        let side = child.position.as_deref().map(str::to_lowercase);
-        let goes_left = match side.as_deref() {
-            Some("left" | "top_or_left") => true,
-            Some("right" | "bottom_or_right") => false,
-            _ => {
-                let left = alternate % 2 == 1;
-                alternate += 1;
-                left
-            }
-        };
-        if goes_left { left.push(child) } else { right.push(child) }
-    }
-    let layout = Layout { metrics, is_folded };
-    layout.column(
-        &right,
-        root_box.right() + metrics.gap_beside(root_box.width),
-        root_box.center_y(),
-        true,
-        &mut boxes,
-    );
-    layout.column(
-        &left,
-        root_box.x - metrics.gap_beside(root_box.width),
-        root_box.center_y(),
-        false,
-        &mut boxes,
-    );
-    boxes
+    two_sided_tree::layout(&tree(root, metrics), &metrics.gaps(), is_folded)
 }
 
-struct Layout<'a> {
-    metrics: &'a MindmapMetrics,
-    is_folded: &'a dyn Fn(&str) -> bool,
-}
-
-impl Layout<'_> {
-    /// Lays sibling subtrees out as a column centred on `center_y`.
-    fn column(
-        &self,
-        siblings: &[&LayoutNode],
-        edge_x: f64,
-        center_y: f64,
-        towards_right: bool,
-        boxes: &mut IndexMap<String, Rect>,
-    ) {
-        if siblings.is_empty() {
-            return;
-        }
-        let heights: Vec<f64> = siblings.iter().map(|s| self.subtree_height(s)).collect();
-        let widths: Vec<f64> = siblings.iter().map(|s| self.metrics.measure(&s.text).0).collect();
-        let mut total: f64 = heights.iter().sum();
-        for i in 0..siblings.len() - 1 {
-            total += self.metrics.gap_between(widths[i], widths[i + 1]);
-        }
-        let mut y = center_y - total / 2.0;
-        for i in 0..siblings.len() {
-            let slot_center_y = y + heights[i] / 2.0;
-            self.subtree(siblings[i], edge_x, slot_center_y, towards_right, boxes);
-            y += heights[i];
-            if i < siblings.len() - 1 {
-                y += self.metrics.gap_between(widths[i], widths[i + 1]);
-            }
-        }
-    }
-
-    /// Places one node at `edge_x`, centred on `center_y`, then its children beyond it.
-    fn subtree(
-        &self,
-        node: &LayoutNode,
-        edge_x: f64,
-        center_y: f64,
-        towards_right: bool,
-        boxes: &mut IndexMap<String, Rect>,
-    ) {
-        let (width, height) = self.metrics.measure(&node.text);
-        let x = if towards_right { edge_x } else { edge_x - width };
-        let place = Rect::new(round2(x), round2(center_y - height / 2.0), width, height);
-        boxes.insert(node.id.clone(), place);
-        if (self.is_folded)(&node.id) {
-            return;
-        }
-        let child_edge = if towards_right {
-            place.right() + self.metrics.gap_beside(place.width)
-        } else {
-            place.x - self.metrics.gap_beside(place.width)
-        };
-        let children: Vec<&LayoutNode> = node.children.iter().collect();
-        self.column(&children, child_edge, center_y, towards_right, boxes);
-    }
-
-    /// The room a subtree needs across: its visible children stacked, or its own height when it shows none.
-    fn subtree_height(&self, node: &LayoutNode) -> f64 {
-        let own = self.metrics.measure(&node.text).1;
-        if (self.is_folded)(&node.id) || node.children.is_empty() {
-            return own;
-        }
-        let mut stacked: f64 = node.children.iter().map(|c| self.subtree_height(c)).sum();
-        for pair in node.children.windows(2) {
-            stacked += self.metrics.gap_between(
-                self.metrics.measure(&pair[0].text).0,
-                self.metrics.measure(&pair[1].text).0,
-            );
-        }
-        own.max(stacked)
+/// The tree as the capability takes it: each node sized by the metric, a first-level node's `POSITION` as its side.
+fn tree(node: &LayoutNode, metrics: &MindmapMetrics) -> TreeNode {
+    let (width, height) = metrics.measure(&node.text);
+    let side = match node.position.as_deref().map(str::to_lowercase).as_deref() {
+        Some("left" | "top_or_left") => Some(Side::Left),
+        Some("right" | "bottom_or_right") => Some(Side::Right),
+        _ => None,
+    };
+    TreeNode {
+        id: node.id.clone(),
+        width,
+        height,
+        side,
+        children: node.children.iter().map(|child| tree(child, metrics)).collect(),
     }
 }

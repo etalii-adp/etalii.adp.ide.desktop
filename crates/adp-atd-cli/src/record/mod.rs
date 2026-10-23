@@ -7,7 +7,9 @@
 //! desktop host's. Each part names who produced it.
 
 pub mod capability;
+pub mod check;
 
+use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -126,8 +128,21 @@ fn resolve(value: &Json, generated: &[(String, bool)]) -> Json {
     }
 }
 
+thread_local! {
+    /// The commit `recordedWith` names in place of the one `atd record` runs at: `atd record --check` records each case
+    /// as it was recorded.
+    static RECORDED_WITH: RefCell<Option<String>> = const { RefCell::new(None) };
+}
+
+pub(crate) fn override_recorded_with(commit: Option<String>) {
+    RECORDED_WITH.with(|r| *r.borrow_mut() = commit);
+}
+
 /// The short commit of the desktop host `atd record` runs at.
 fn recorded_with() -> String {
+    if let Some(commit) = RECORDED_WITH.with(|r| r.borrow().clone()) {
+        return commit;
+    }
     if let Ok(commit) = std::env::var("ATD_RECORDED_WITH") {
         return commit;
     }
@@ -381,7 +396,7 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
     write_json(&folder.join("conformance.json"), &fixture)
 }
 
-fn collect_files(root: &Path, folder: &Path, out: &mut Vec<String>) {
+pub(crate) fn collect_files(root: &Path, folder: &Path, out: &mut Vec<String>) {
     let Ok(entries) = fs::read_dir(folder) else { return };
     for entry in entries.flatten() {
         let path = entry.path();
