@@ -11,6 +11,7 @@ publish = false
 workspace = true
 
 [dependencies]
+regex = "1"
 adp-atd-syntax = { path = "../adp-atd-syntax" }
 jsonschema = { version = "0.59", default-features = false }
 serde_json = { version = "1", features = ["preserve_order"] }

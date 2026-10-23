@@ -14,6 +14,7 @@ const USAGE: &str = "usage: atd [--spec-dir <dir>] <command> …
   check [--json] <path>…                     check every description whose files are among the paths
   check --expect <findings.json> <file>      compare a file's findings with the expected ones
   check --corpus <dir>                       compare every <name>.atd of a folder with <name>.findings.json
+  check [--json] --trace <trace.json>        check a trace against its description and companion
   fmt [--check] <path>…                      write files in the canonical layout
   tree <file>                                print a file's abstract tree
   tables [--grammar <file.lark>]             print the normalized parse tables
@@ -103,6 +104,15 @@ fn check_command(args: &[String]) -> ExitCode {
             Err(problem) => usage(&problem),
         };
     }
+    if let Some(i) = args.iter().position(|a| a == "--trace") {
+        let Some(trace) = args.get(i + 1) else {
+            return usage("--trace needs a trace file");
+        };
+        return match adp_atd_check::trace::check_trace(&FsFiles, Path::new(trace)) {
+            Ok(findings) => report(&findings, json),
+            Err(problem) => usage(&problem),
+        };
+    }
     if let Some(i) = args.iter().position(|a| a == "--corpus") {
         let Some(folder) = args.get(i + 1) else {
             return usage("--corpus needs a folder");
@@ -118,13 +128,18 @@ fn check_command(args: &[String]) -> ExitCode {
         Err(problem) => return usage(&problem),
     };
     let findings = check_all(&files);
+    report(&findings, json)
+}
+
+/// Prints findings as text or as `$defs/Findings`; exit code 1 when one is an error.
+fn report(findings: &[Finding], json: bool) -> ExitCode {
     if json {
         println!(
             "{}",
-            serde_json::to_string_pretty(&findings_json(&findings)).unwrap_or_default()
+            serde_json::to_string_pretty(&findings_json(findings)).unwrap_or_default()
         );
     } else {
-        for finding in &findings {
+        for finding in findings {
             println!("{}", finding.to_line());
         }
     }

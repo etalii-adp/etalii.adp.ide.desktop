@@ -174,3 +174,34 @@ fn version_names_the_tool_and_the_versions_of_atd() {
     assert_eq!(code, 0);
     assert!(stdout.starts_with("atd ") && stdout.contains("ATD 0.1"), "{stdout}");
 }
+
+#[test]
+fn check_trace_resolves_every_construct_path_and_reports_one_that_does_not_at_its_entry() {
+    let trace = spec_dir().join("mindmap.trace.json");
+    let (code, out, _) = atd(&["check", "--trace", trace.to_str().unwrap()]);
+    assert_eq!((code, out.as_str()), (0, ""));
+
+    let folder = std::env::temp_dir().join(format!("atd-trace-{}", std::process::id()));
+    std::fs::create_dir_all(&folder).unwrap();
+    for name in ["mindmap.atd", "mindmap.notation.atd", "mindmap.md"] {
+        std::fs::copy(spec_dir().join(name), folder.join(name)).unwrap();
+    }
+    let broken = std::fs::read_to_string(&trace).unwrap().replacen(
+        "\"statedBy\": \"fn siblingName\"",
+        "\"statedBy\": \"fn siblingNames\"",
+        1,
+    );
+    let path = folder.join("mindmap.trace.json");
+    std::fs::write(&path, broken).unwrap();
+    let (code, out, _) = atd(&["check", "--trace", path.to_str().unwrap()]);
+    assert_eq!(code, 1);
+    assert!(
+        out.ends_with(":15:20: error ATD2011: `fn siblingNames` names no construct of the description.\n"),
+        "{out}"
+    );
+    let (code, out, _) = atd(&["check", "--json", "--trace", path.to_str().unwrap()]);
+    assert_eq!(code, 1);
+    let findings: Value = serde_json::from_str(&out).unwrap();
+    assert_eq!(findings["findings"][0]["code"], "ATD2011");
+    let _ = std::fs::remove_dir_all(&folder);
+}

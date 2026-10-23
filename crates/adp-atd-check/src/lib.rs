@@ -11,6 +11,7 @@ mod script;
 mod settings;
 mod suggest;
 mod symbols;
+pub mod trace;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
