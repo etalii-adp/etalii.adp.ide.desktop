@@ -66,6 +66,9 @@ pub fn run(description: &Description, symbols: &Symbols, findings: &mut Vec<Find
         checker.member(member);
     }
     checker.calls(description);
+    for member in description.members() {
+        checker.scoped(member, &[]);
+    }
 }
 
 fn duplicates(symbols: &Symbols, findings: &mut Vec<Finding>) {
@@ -507,6 +510,87 @@ impl Checker<'_> {
                     self.statements(&statement[key]);
                 }
             }
+        }
+    }
+
+    /// The types a construct is written for: what `self` is inside it.
+    fn self_types(construct: &Json) -> Option<Vec<String>> {
+        let kind = construct["kind"].as_str().unwrap_or("");
+        let names = match kind {
+            "constraint" | "operation" | "hook" | "context" | "form" => construct.get("for"),
+            "node" | "edge" if construct.get("names").is_some() => construct.get("names"),
+            _ => None,
+        }?;
+        Some(
+            names
+                .as_array()
+                .into_iter()
+                .flatten()
+                .map(|n| text(n).to_owned())
+                .collect(),
+        )
+    }
+
+    /// Every expression of a construct written for one type, and what it holds: a field of `self` the type does not
+    /// have (`ATD2001`); and in a node's or an edge's notation, a `style` that names no style (`ATD2011`).
+    fn scoped(&mut self, node: &Json, types: &[String]) {
+        match node {
+            Json::Object(map) => {
+                let own = Self::self_types(node);
+                let types: Vec<String> = own.unwrap_or_else(|| types.to_vec());
+                if node.get("ast").is_some() && !types.is_empty() {
+                    let mut found = Vec::new();
+                    cel::unknown_members(&node["ast"], &self.self_scope(&types), self.symbols, &mut found);
+                    for (at, field, type_name) in found {
+                        let known: Vec<String> = self.symbols.attributes_of(&type_name).into_keys().collect();
+                        let suggestions = closest(&field, known.iter().map(String::as_str).collect::<Vec<_>>());
+                        let mut finding = finding_at(
+                            "ATD2001",
+                            &at,
+                            format!(
+                                "No attribute `{field}` in element type `{type_name}`.{}",
+                                did_you_mean(&suggestions)
+                            ),
+                        );
+                        finding.suggestions = suggestions;
+                        self.findings.push(finding);
+                    }
+                    return;
+                }
+                if matches!(node["kind"].as_str(), Some("node" | "edge")) && node.get("names").is_some() {
+                    for member in node["members"].as_array().into_iter().flatten() {
+                        let setting = &member["setting"];
+                        if member["kind"] == "setting"
+                            && setting["key"] == "style"
+                            && setting["value"]["form"] == "word"
+                            && !self
+                                .symbols
+                                .styles
+                                .contains(setting["value"]["literal"].as_str().unwrap_or(""))
+                        {
+                            let written = setting["value"]["literal"].as_str().unwrap_or("");
+                            let suggestions = closest(
+                                written,
+                                self.symbols.styles.iter().map(String::as_str).collect::<Vec<_>>(),
+                            );
+                            let mut finding = finding_at(
+                                "ATD2011",
+                                &setting["value"],
+                                format!("No style `{written}`.{}", did_you_mean(&suggestions)),
+                            );
+                            finding.suggestions = suggestions;
+                            self.findings.push(finding);
+                        }
+                    }
+                }
+                for (key, value) in map {
+                    if key != "span" {
+                        self.scoped(value, &types);
+                    }
+                }
+            }
+            Json::Array(items) => items.iter().for_each(|item| self.scoped(item, types)),
+            _ => {}
         }
     }
 

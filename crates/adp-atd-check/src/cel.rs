@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 
 use serde_json::Value as Json;
 
-use crate::symbols::Symbols;
+use crate::symbols::{BUILT_IN_FIELDS, Symbols};
 
 /// A CEL type, as far as the checker infers it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -284,6 +284,45 @@ pub fn infer(node: &Json, scope: &Scope, symbols: &Symbols) -> Ty {
 }
 
 /// Every global call of an expression (no receiver), with its node.
+/// The fields of an element every element has besides `BUILT_IN_FIELDS`: whether it is derived, and its sources
+/// (DISL §12.2).
+const ELEMENT_MEMBERS: &[&str] = &["derived", "sources"];
+
+/// The selects of an expression on an element of a known type that names a field the type does not have, each with
+/// the field and the type (ATD §14.2, `ATD2001`). An operand whose type cannot be known is never one.
+pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut Vec<(Json, String, String)>) {
+    if let Some(field) = node.get("select").and_then(Json::as_str)
+        && node.get("optional").is_none()
+        && let Ty::Element(name) = infer(&node["operand"], scope, symbols)
+        && symbols.is_type(&name)
+        && !BUILT_IN_FIELDS.contains(&field)
+        && !ELEMENT_MEMBERS.contains(&field)
+        && !symbols.attributes_of(&name).contains_key(field)
+    {
+        // The finding is at the field: the end of the select, as long as the field's name.
+        let mut at = node.clone();
+        let span = &mut at["span"];
+        let width = field.chars().count() as u64;
+        if let (Some(end), Some(end_column)) = (span["end"].as_u64(), span["endColumn"].as_u64()) {
+            span["start"] = Json::from(end.saturating_sub(field.len() as u64));
+            span["line"] = span["endLine"].clone();
+            span["column"] = Json::from(end_column.saturating_sub(width));
+        }
+        out.push((at, field.to_owned(), name));
+    }
+    match node {
+        Json::Object(map) => {
+            for (key, value) in map {
+                if key != "span" {
+                    unknown_members(value, scope, symbols, out);
+                }
+            }
+        }
+        Json::Array(items) => items.iter().for_each(|item| unknown_members(item, scope, symbols, out)),
+        _ => {}
+    }
+}
+
 pub fn global_calls<'a>(node: &'a Json, out: &mut Vec<&'a Json>) {
     if let Some(call) = node.get("call").and_then(Json::as_str)
         && node.get("target").is_none()
