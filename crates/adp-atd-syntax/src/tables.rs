@@ -40,7 +40,9 @@ pub fn action(state: usize, terminal: u16) -> Option<i32> {
 /// The state `state` goes to on `nonterminal`.
 pub fn goto(state: usize, nonterminal: u16) -> Option<usize> {
     let row = GOTOS[state];
-    row.binary_search_by_key(&nonterminal, |(n, _)| *n).ok().map(|i| row[i].1 as usize)
+    row.binary_search_by_key(&nonterminal, |(n, _)| *n)
+        .ok()
+        .map(|i| row[i].1 as usize)
 }
 
 /// The terminals `state` has an action on.

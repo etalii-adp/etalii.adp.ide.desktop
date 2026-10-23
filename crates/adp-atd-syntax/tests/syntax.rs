@@ -52,8 +52,12 @@ fn every_refused_file_is_lossless_and_its_syntax_error_is_where_its_findings_say
         assert_eq!(parse.source(), text, "{} is not lossless", path.display());
         let findings: Value =
             serde_json::from_str(&std::fs::read_to_string(path.with_extension("findings.json")).unwrap()).unwrap();
-        let syntax: Vec<&Value> =
-            findings["findings"].as_array().unwrap().iter().filter(|f| f["code"].as_str().unwrap().starts_with("ATD1")).collect();
+        let syntax: Vec<&Value> = findings["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|f| f["code"].as_str().unwrap().starts_with("ATD1"))
+            .collect();
         match (syntax.first(), parse.errors.first()) {
             (None, None) => {}
             (Some(expected), Some(error)) => {
@@ -73,26 +77,61 @@ fn every_refused_file_is_lossless_and_its_syntax_error_is_where_its_findings_say
 }
 
 const DEFS: &[(&str, &str)] = &[
-    ("tool", "Tool"), ("part", "Part"), ("label", "Label"), ("doc", "DocMember"), ("setting", "SettingMember"),
-    ("import", "Import"), ("requires", "Requires"), ("model", "Model"), ("constraints", "Constraints"),
-    ("constraint", "Constraint"), ("builtin", "Builtin"), ("operation", "Operation"), ("hook", "Hook"),
-    ("reason", "Reason"), ("message", "MessageDecl"), ("behavior", "Behavior"), ("persistence", "Persistence"),
-    ("plugin", "Plugin"), ("fn", "Function"), ("coordinates", "Coordinates"), ("notation", "Notation"),
-    ("toolbox", "Toolbox"), ("form", "Form"), ("layout", "Layout"), ("viewpoint", "Viewpoint"),
-    ("tableSurface", "TableSurface"), ("hierarchySurface", "HierarchySurface"), ("textSurface", "TextSurface"),
-    ("binding", "Binding"), ("element", "Element"), ("relation", "Relation"), ("enum", "Enum"),
-    ("datatype", "DataType"), ("document", "DocumentDecl"), ("attribute", "Attribute"), ("contains", "Contains"),
-    ("port", "Port"), ("fix", "Fix"), ("param", "Param"), ("rule", "Rule"),
+    ("tool", "Tool"),
+    ("part", "Part"),
+    ("label", "Label"),
+    ("doc", "DocMember"),
+    ("setting", "SettingMember"),
+    ("import", "Import"),
+    ("requires", "Requires"),
+    ("model", "Model"),
+    ("constraints", "Constraints"),
+    ("constraint", "Constraint"),
+    ("builtin", "Builtin"),
+    ("operation", "Operation"),
+    ("hook", "Hook"),
+    ("reason", "Reason"),
+    ("message", "MessageDecl"),
+    ("behavior", "Behavior"),
+    ("persistence", "Persistence"),
+    ("plugin", "Plugin"),
+    ("fn", "Function"),
+    ("coordinates", "Coordinates"),
+    ("notation", "Notation"),
+    ("toolbox", "Toolbox"),
+    ("form", "Form"),
+    ("layout", "Layout"),
+    ("viewpoint", "Viewpoint"),
+    ("tableSurface", "TableSurface"),
+    ("hierarchySurface", "HierarchySurface"),
+    ("textSurface", "TextSurface"),
+    ("binding", "Binding"),
+    ("element", "Element"),
+    ("relation", "Relation"),
+    ("enum", "Enum"),
+    ("datatype", "DataType"),
+    ("document", "DocumentDecl"),
+    ("attribute", "Attribute"),
+    ("contains", "Contains"),
+    ("port", "Port"),
+    ("fix", "Fix"),
+    ("param", "Param"),
+    ("rule", "Rule"),
 ];
 
 /// Validates a construct against the `$defs` entry of its kind, and its members likewise, collecting the errors of
 /// the innermost constructs that fail.
 fn explain(schema: &Value, node: &Value, dir: &std::path::Path, problems: &mut Vec<String>) {
     let kind = node["kind"].as_str().unwrap_or("");
-    let Some((_, def)) = DEFS.iter().find(|(k, _)| *k == kind) else { return };
+    let Some((_, def)) = DEFS.iter().find(|(k, _)| *k == kind) else {
+        return;
+    };
     let mut sub = schema.clone();
     sub["$ref"] = Value::String(format!("#/$defs/{def}"));
-    let validator = jsonschema::options().with_retriever(Vendored(dir.parent().unwrap().to_path_buf())).build(&sub).unwrap();
+    let validator = jsonschema::options()
+        .with_retriever(Vendored(dir.parent().unwrap().to_path_buf()))
+        .build(&sub)
+        .unwrap();
     if validator.is_valid(node) {
         return;
     }
@@ -108,8 +147,15 @@ fn explain(schema: &Value, node: &Value, dir: &std::path::Path, problems: &mut V
         let line = node["span"]["line"].as_u64().unwrap_or(0);
         for error in validator.iter_errors(node).take(3) {
             let text = error.to_string();
-            let text = if text.len() > 300 { format!("{}…", &text[..300]) } else { text };
-            problems.push(format!("  {kind} at line {line} ({def}): {text} at {}", error.instance_path()));
+            let text = if text.len() > 300 {
+                format!("{}…", &text[..300])
+            } else {
+                text
+            };
+            problems.push(format!(
+                "  {kind} at line {line} ({def}): {text} at {}",
+                error.instance_path()
+            ));
         }
     }
 }
@@ -121,7 +167,9 @@ impl jsonschema::Retrieve for Vendored {
     fn retrieve(&self, uri: &jsonschema::Uri<String>) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let name = uri.as_str().rsplit('/').next().unwrap_or("").trim_end_matches('#');
         let language = name.trim_end_matches(".schema.json");
-        Ok(serde_json::from_str(&std::fs::read_to_string(self.0.join(language).join(name))?)?)
+        Ok(serde_json::from_str(&std::fs::read_to_string(
+            self.0.join(language).join(name),
+        )?)?)
     }
 }
 

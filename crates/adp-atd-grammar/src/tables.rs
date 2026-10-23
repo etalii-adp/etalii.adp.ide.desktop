@@ -34,7 +34,12 @@ pub fn to_json(grammar: &Grammar, tables: &Tables, grammar_path: &str) -> String
         format!("  \"start\": {},", json_string(&grammar.start)),
         format!(
             "  \"ignore\": [{}],",
-            grammar.ignore.iter().map(|i| json_string(i)).collect::<Vec<_>>().join(", ")
+            grammar
+                .ignore
+                .iter()
+                .map(|i| json_string(i))
+                .collect::<Vec<_>>()
+                .join(", ")
         ),
         "  \"terminals\": [".to_owned(),
     ];
@@ -94,7 +99,11 @@ pub fn to_json(grammar: &Grammar, tables: &Tables, grammar_path: &str) -> String
                 .iter()
                 .map(|(n, target)| format!("{}:{target}", json_string(n)))
                 .collect();
-            format!("    {{\"actions\":{{{}}},\"gotos\":{{{}}}}}", actions.join(","), gotos.join(","))
+            format!(
+                "    {{\"actions\":{{{}}},\"gotos\":{{{}}}}}",
+                actions.join(","),
+                gotos.join(",")
+            )
         })
         .collect();
     lines.push(states.join(",\n"));

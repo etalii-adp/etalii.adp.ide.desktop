@@ -33,14 +33,29 @@ _SKIP: /[ ]+/
 #[test]
 fn a_shift_reduce_conflict_is_refused() {
     let found = conflicts("start: a | a \"x\"\na: \"x\" | \"x\" \"x\"\n");
-    assert!(found.iter().any(|c| c.starts_with("Shift/Reduce conflict for terminal \"x\"")), "{found:?}");
+    assert!(
+        found
+            .iter()
+            .any(|c| c.starts_with("Shift/Reduce conflict for terminal \"x\"")),
+        "{found:?}"
+    );
 }
 
 #[test]
 fn a_reduce_reduce_conflict_is_refused() {
     let found = conflicts("start: a | b\na: \"x\"\nb: \"x\"\n");
-    assert!(found.iter().any(|c| c.starts_with("Reduce/Reduce conflict for terminal $END")), "{found:?}");
-    assert!(found.iter().any(|c| c.contains("<a : \"x\">") && c.contains("<b : \"x\">")), "{found:?}");
+    assert!(
+        found
+            .iter()
+            .any(|c| c.starts_with("Reduce/Reduce conflict for terminal $END")),
+        "{found:?}"
+    );
+    assert!(
+        found
+            .iter()
+            .any(|c| c.contains("<a : \"x\">") && c.contains("<b : \"x\">")),
+        "{found:?}"
+    );
 }
 
 #[test]
@@ -74,19 +89,34 @@ fn the_lexer_takes_the_longest_match_then_priority_then_a_string() {
         (lexer.matchers[lexeme.terminal].name.clone(), lexeme.end)
     };
     assert_eq!(name("iffy"), ("WORD".to_owned(), 4), "the longest match");
-    assert_eq!(name("if x"), ("\"if\"".to_owned(), 2), "a string over a pattern of the same length");
+    assert_eq!(
+        name("if x"),
+        ("\"if\"".to_owned(), 2),
+        "a string over a pattern of the same length"
+    );
     assert_eq!(name("== 1"), ("\"==\"".to_owned(), 2), "the longest string");
     assert_eq!(name("42"), ("DEC".to_owned(), 2), "the higher priority");
 }
 
 #[test]
 fn a_filtered_rule_has_no_alias() {
-    assert!(matches!(build_single("start: _a\n_a: \"x\" -> y\n", "start"), Err(BuildError::Compose(_))));
+    assert!(matches!(
+        build_single("start: _a\n_a: \"x\" -> y\n", "start"),
+        Err(BuildError::Compose(_))
+    ));
 }
 
 #[test]
 fn constructs_outside_the_notation_are_refused() {
-    for text in ["start: a\na.2: \"x\"\n", "start: \"x\"i\n", "start: /x/i\n", "%declare X\nstart: \"x\"\n"] {
-        assert!(matches!(build_single(text, "start"), Err(BuildError::Compose(_))), "{text}");
+    for text in [
+        "start: a\na.2: \"x\"\n",
+        "start: \"x\"i\n",
+        "start: /x/i\n",
+        "%declare X\nstart: \"x\"\n",
+    ] {
+        assert!(
+            matches!(build_single(text, "start"), Err(BuildError::Compose(_))),
+            "{text}"
+        );
     }
 }

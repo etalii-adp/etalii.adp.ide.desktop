@@ -199,7 +199,10 @@ fn tokenize(text: &str, first_line: usize) -> Result<Vec<Token>, NotationError> 
                 return Err(error(line, "a string that does not end".into()));
             }
             if text[end..].starts_with(|c: char| c.is_ascii_lowercase()) {
-                return Err(error(line, "a string with flags, which ATD grammar notation does not admit".into()));
+                return Err(error(
+                    line,
+                    "a string with flags, which ATD grammar notation does not admit".into(),
+                ));
             }
             tokens.push(Token::Str(string_value(raw, line)?));
             i = end;
@@ -215,7 +218,10 @@ fn tokenize(text: &str, first_line: usize) -> Result<Vec<Token>, NotationError> 
             if close + 1 != literal.len() {
                 return Err(error(
                     line,
-                    format!("the flags `{}` of a regular expression, which ATD grammar notation does not admit", &literal[close + 1..]),
+                    format!(
+                        "the flags `{}` of a regular expression, which ATD grammar notation does not admit",
+                        &literal[close + 1..]
+                    ),
                 ));
             }
             tokens.push(Token::Re(eval_escaping(&literal[1..close], line)?));
@@ -223,14 +229,20 @@ fn tokenize(text: &str, first_line: usize) -> Result<Vec<Token>, NotationError> 
             continue;
         }
         if c == b'%' {
-            let end = i + 1 + text[i + 1..].find(|c: char| !c.is_ascii_alphabetic()).unwrap_or(text.len() - i - 1);
+            let end = i
+                + 1
+                + text[i + 1..]
+                    .find(|c: char| !c.is_ascii_alphabetic())
+                    .unwrap_or(text.len() - i - 1);
             tokens.push(Token::Directive(text[i..end].to_owned()));
             i = end;
             continue;
         }
         if c.is_ascii_digit() {
             let end = i + text[i..].find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len() - i);
-            let value = text[i..end].parse().map_err(|_| error(line, "a number too large".into()))?;
+            let value = text[i..end]
+                .parse()
+                .map_err(|_| error(line, "a number too large".into()))?;
             tokens.push(Token::Int(value));
             i = end;
             continue;
@@ -307,10 +319,13 @@ pub fn eval_escaping(raw: &str, line: usize) -> Result<String, NotationError> {
                     _ => 8,
                 };
                 let hex: String = chars.iter().skip(i).take(digits).collect();
-                let code = u32::from_str_radix(&hex, 16).ok().and_then(char::from_u32).ok_or(NotationError {
-                    line,
-                    message: format!("the escape `\\{next}{hex}` is not a character"),
-                })?;
+                let code = u32::from_str_radix(&hex, 16)
+                    .ok()
+                    .and_then(char::from_u32)
+                    .ok_or(NotationError {
+                        line,
+                        message: format!("the escape `\\{next}{hex}` is not a character"),
+                    })?;
                 out.push(code);
                 i += digits;
             }
@@ -398,7 +413,9 @@ impl Parser {
                         line: self.line,
                     });
                 }
-                other => return Err(self.error(format!("`{other}` is not admitted (only `%import` and `%ignore` are)"))),
+                other => {
+                    return Err(self.error(format!("`{other}` is not admitted (only `%import` and `%ignore` are)")));
+                }
             },
             Some(Token::Name(head)) => {
                 let (inline, name) = match head.strip_prefix('?') {
@@ -412,7 +429,9 @@ impl Parser {
                 if self.eat(".") {
                     match self.next() {
                         Some(Token::Int(value)) if is_terminal_name(&name) => priority = value,
-                        Some(Token::Int(_)) => return Err(self.error(format!("the rule priority of `{name}` is not admitted"))),
+                        Some(Token::Int(_)) => {
+                            return Err(self.error(format!("the rule priority of `{name}` is not admitted")));
+                        }
                         _ => return Err(self.error("a priority expected")),
                     }
                 }
@@ -450,13 +469,8 @@ impl Parser {
 
     fn alternative(&mut self) -> Result<Alternative, NotationError> {
         let mut items = Vec::new();
-        loop {
-            match self.peek() {
-                Some(Token::Name(_)) | Some(Token::Str(_)) | Some(Token::Re(_)) | Some(Token::Punct("(")) | Some(Token::Punct("[")) => {
-                    items.push(self.item()?);
-                }
-                _ => break,
-            }
+        while let Some(Token::Name(_) | Token::Str(_) | Token::Re(_) | Token::Punct("(" | "[")) = self.peek() {
+            items.push(self.item()?);
         }
         let alias = if self.eat("->") { Some(self.name()?) } else { None };
         Ok(Alternative { items, alias })

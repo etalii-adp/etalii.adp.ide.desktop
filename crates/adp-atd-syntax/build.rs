@@ -10,13 +10,20 @@ fn main() {
     println!("cargo:rerun-if-env-changed=ATD_SPEC_DIR");
     let spec = match std::env::var_os("ATD_SPEC_DIR") {
         Some(dir) => PathBuf::from(dir),
-        None => PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("../../vendor/etalii.adp/specifications/atd"),
+        None => PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
+            .join("../../vendor/etalii.adp/specifications/atd"),
     };
     let grammar_dir = spec.join("grammar");
-    for module in ["atd", "core", "cel", "script", "canvas", "form", "text", "binding", "notation"] {
-        println!("cargo:rerun-if-changed={}", grammar_dir.join(format!("{module}.lark")).display());
+    for module in [
+        "atd", "core", "cel", "script", "canvas", "form", "text", "binding", "notation",
+    ] {
+        println!(
+            "cargo:rerun-if-changed={}",
+            grammar_dir.join(format!("{module}.lark")).display()
+        );
     }
-    let built = adp_atd_grammar::build_dir(&grammar_dir, "atd", "description").unwrap_or_else(|e| panic!("ATD's grammar does not build: {e}"));
+    let built = adp_atd_grammar::build_dir(&grammar_dir, "atd", "description")
+        .unwrap_or_else(|e| panic!("ATD's grammar does not build: {e}"));
     let grammar = &built.grammar;
     let mut terminals: Vec<String> = grammar.terminals.iter().map(|t| t.name.clone()).collect();
     terminals.push("$END".into());

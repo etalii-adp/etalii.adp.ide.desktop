@@ -87,7 +87,10 @@ impl Lowerer<'_> {
     }
 
     fn find_all<'n>(&self, node: &'n Node, kind: &str) -> Vec<&'n Node> {
-        self.child_nodes(node).into_iter().filter(|n| n.kind() == kind).collect()
+        self.child_nodes(node)
+            .into_iter()
+            .filter(|n| n.kind() == kind)
+            .collect()
     }
 
     /// The first token of the node whose terminal is `name` (a named terminal, or a keyword's quoted string).
@@ -181,13 +184,25 @@ impl Lowerer<'_> {
     }
 
     fn names(&self, node: &Node) -> Json {
-        Json::Array(self.find_all(node, "qualified").iter().map(|q| self.qualified(q)).collect())
+        Json::Array(
+            self.find_all(node, "qualified")
+                .iter()
+                .map(|q| self.qualified(q))
+                .collect(),
+        )
     }
 
     fn type_ref(&self, node: &Node) -> Json {
         let mut object = Map::new();
-        object.insert("name".into(), self.qualified(self.find(node, "qualified").expect("a type has a name")));
-        let arguments: Vec<Json> = self.find_all(node, "type_ref").iter().map(|t| self.type_ref(t)).collect();
+        object.insert(
+            "name".into(),
+            self.qualified(self.find(node, "qualified").expect("a type has a name")),
+        );
+        let arguments: Vec<Json> = self
+            .find_all(node, "type_ref")
+            .iter()
+            .map(|t| self.type_ref(t))
+            .collect();
         if !arguments.is_empty() {
             object.insert("arguments".into(), Json::Array(arguments));
         }
@@ -196,7 +211,8 @@ impl Lowerer<'_> {
     }
 
     fn string_token(&self, node: &Node) -> Option<String> {
-        self.token_named(node, "STRING").map(|t| decode_string(self.token_text(t)))
+        self.token_named(node, "STRING")
+            .map(|t| decode_string(self.token_text(t)))
     }
 
     // ------------------------------------------------------------------------------------------------ values
@@ -234,7 +250,9 @@ impl Lowerer<'_> {
                 };
                 json!({"literal": literal, "form": "word", "span": span})
             }
-            "string_literal" => json!({"literal": decode_string(self.first_token_text(node)), "form": "string", "span": span}),
+            "string_literal" => {
+                json!({"literal": decode_string(self.first_token_text(node)), "form": "string", "span": span})
+            }
             "number_literal" => json!({"literal": number(self.first_token_text(node)), "form": "number", "span": span}),
             "negative_literal" => {
                 let digits = self.parse.token_text(node.tokens().last().expect("a number"));
@@ -259,11 +277,18 @@ impl Lowerer<'_> {
                 .into_iter()
                 .filter(|n| matches!(n.kind(), "map_entry" | "quoted_entry"))
                 .map(|entry| {
-                    let value = self.value(self.find(entry, "value").or_else(|| self.value_child(entry)).expect("a value"));
+                    let value = self.value(
+                        self.find(entry, "value")
+                            .or_else(|| self.value_child(entry))
+                            .expect("a value"),
+                    );
                     let (key, quoted) = if entry.kind() == "quoted_entry" {
                         (self.string_token(entry).unwrap_or_default(), true)
                     } else {
-                        (key_text(self.token_text(self.token_named(entry, "KEY").expect("a key"))), false)
+                        (
+                            key_text(self.token_text(self.token_named(entry, "KEY").expect("a key"))),
+                            false,
+                        )
                     };
                     let mut object = Map::new();
                     object.insert("key".into(), json!(key));
@@ -411,7 +436,10 @@ impl Lowerer<'_> {
                 json!({"map": entries, "span": span})
             }
             "cel_literal" | "cel_true" | "cel_false" | "cel_null" => self.cel_literal(node, span),
-            "expr" | "primary" => kids.first().map(|k| self.cel(k)).unwrap_or(json!({"ident": "", "span": span})),
+            "expr" | "primary" => kids
+                .first()
+                .map(|k| self.cel(k))
+                .unwrap_or(json!({"ident": "", "span": span})),
             _ => json!({"ident": self.text_of(node), "span": span}),
         }
     }
@@ -433,7 +461,10 @@ impl Lowerer<'_> {
             "INT" => (number(text), "int"),
             "UINT" => (number(&text[..text.len() - 1]), "uint"),
             "DOUBLE" => (number(text), "double"),
-            "BYTES" => (json!(decode_string(text.trim_start_matches(['b', 'B', 'r', 'R']))), "bytes"),
+            "BYTES" => (
+                json!(decode_string(text.trim_start_matches(['b', 'B', 'r', 'R']))),
+                "bytes",
+            ),
             _ => (json!(decode_string(text)), "string"),
         };
         json!({"literal": literal, "type": kind, "text": text, "span": span})
@@ -462,7 +493,10 @@ impl Lowerer<'_> {
             .collect();
         let mut object = self.object(body.kind(), body);
         if body.kind() == "tool" {
-            let kind = self.child_nodes(body).into_iter().find(|n| matches!(n.kind(), "diagram" | "designer" | "editor"));
+            let kind = self
+                .child_nodes(body)
+                .into_iter()
+                .find(|n| matches!(n.kind(), "diagram" | "designer" | "editor"));
             object.insert("toolKind".into(), json!(kind.map(|k| k.kind()).unwrap_or("diagram")));
             object.insert("origin".into(), json!(origin));
             object.insert("version".into(), json!(self.string_token(body).unwrap_or_default()));
@@ -506,7 +540,10 @@ impl Lowerer<'_> {
             }
             "requires_decl" => {
                 let mut o = self.object("requires", node);
-                o.insert("capability".into(), self.qualified(self.find(node, "qualified").expect("a capability")));
+                o.insert(
+                    "capability".into(),
+                    self.qualified(self.find(node, "qualified").expect("a capability")),
+                );
                 let range = self.token_text(self.token_named(node, "CAPABILITY_RANGE").expect("a range"));
                 o.insert("range".into(), json!(&range[1..]));
                 self.with_doc(node, o, None)
@@ -526,7 +563,10 @@ impl Lowerer<'_> {
             "constraint" => self.constraint(node),
             "builtin" => {
                 let mut o = self.object("builtin", node);
-                o.insert("name".into(), self.qualified(self.find(node, "qualified").expect("a name")));
+                o.insert(
+                    "name".into(),
+                    self.qualified(self.find(node, "qualified").expect("a name")),
+                );
                 let (settings, doc) = self.settings_block(self.find(node, "settings_block"));
                 o.insert("settings".into(), Json::Array(settings));
                 self.with_doc(node, o, doc)
@@ -536,7 +576,10 @@ impl Lowerer<'_> {
             "reason" => self.reason(node),
             "message_decl" => {
                 let mut o = self.object("message", node);
-                o.insert("name".into(), self.qualified(self.find(node, "qualified").expect("a name")));
+                o.insert(
+                    "name".into(),
+                    self.qualified(self.find(node, "qualified").expect("a name")),
+                );
                 o.insert("value".into(), self.value(self.value_child(node).expect("a value")));
                 self.with_doc(node, o, None)
             }
@@ -548,7 +591,10 @@ impl Lowerer<'_> {
             }
             "plugin" => {
                 let mut o = self.object("plugin", node);
-                o.insert("name".into(), self.qualified(self.find(node, "qualified").expect("a name")));
+                o.insert(
+                    "name".into(),
+                    self.qualified(self.find(node, "qualified").expect("a name")),
+                );
                 let (settings, doc) = self.settings_block(self.find(node, "settings_block"));
                 o.insert("settings".into(), Json::Array(settings));
                 self.with_doc(node, o, doc)
@@ -606,13 +652,20 @@ impl Lowerer<'_> {
     fn model_member(&self, node: &Node) -> Json {
         match node.kind() {
             "element" | "relation" | "document_decl" => {
-                let kind = if node.kind() == "document_decl" { "document" } else { node.kind() };
+                let kind = if node.kind() == "document_decl" {
+                    "document"
+                } else {
+                    node.kind()
+                };
                 let mut o = self.object(kind, node);
                 if let Some(name) = self.find(node, "name") {
                     o.insert("name".into(), self.name(name));
                 }
                 if let Some(extends) = self.find(node, "extends") {
-                    o.insert("extends".into(), self.names(self.find(extends, "names").expect("names")));
+                    o.insert(
+                        "extends".into(),
+                        self.names(self.find(extends, "names").expect("names")),
+                    );
                 }
                 if node.kind() == "relation" {
                     let all = self.find_all(node, "names");
@@ -723,7 +776,10 @@ impl Lowerer<'_> {
     fn attribute_like(&self, kind: &str, node: &Node) -> Json {
         let mut o = self.object(kind, node);
         o.insert("name".into(), self.name(self.find(node, "name").expect("a name")));
-        o.insert("type".into(), self.type_ref(self.find(node, "type_ref").expect("a type")));
+        o.insert(
+            "type".into(),
+            self.type_ref(self.find(node, "type_ref").expect("a type")),
+        );
         for flag in self.child_nodes(node) {
             match flag.kind() {
                 "required" | "many" | "readonly" => {
@@ -760,7 +816,10 @@ impl Lowerer<'_> {
                     o.insert("message".into(), self.value(self.value_child(member).expect("a value")));
                 }
                 "severity" => {
-                    o.insert("severity".into(), self.name(self.find(member, "name").expect("a severity")));
+                    o.insert(
+                        "severity".into(),
+                        self.name(self.find(member, "name").expect("a severity")),
+                    );
                 }
                 "fix" => fixes.push(self.fix(member)),
                 "setting" => settings.push(self.setting(member)),
@@ -829,7 +888,10 @@ impl Lowerer<'_> {
                     o.insert("enabled".into(), self.expr(self.child_nodes(member)[0]));
                 }
                 "unavailable" => {
-                    o.insert("unavailable".into(), self.value(self.value_child(member).expect("a value")));
+                    o.insert(
+                        "unavailable".into(),
+                        self.value(self.value_child(member).expect("a value")),
+                    );
                 }
                 "param" => params.push(self.attribute_like("param", member)),
                 "confirm" => {
@@ -934,7 +996,10 @@ impl Lowerer<'_> {
         if let Some(int) = self.token_named(node, "INT") {
             o.insert("recursion".into(), number(self.token_text(int)));
         }
-        o.insert("body".into(), Json::Array(self.block(self.find(node, "stmt_block").expect("a block"))));
+        o.insert(
+            "body".into(),
+            Json::Array(self.block(self.find(node, "stmt_block").expect("a block"))),
+        );
         self.with_doc(node, o, None)
     }
 
@@ -959,7 +1024,28 @@ impl Lowerer<'_> {
         let exprs: Vec<&Node> = kids
             .iter()
             .copied()
-            .filter(|k| !matches!(k.kind(), "name" | "type_ref" | "path" | "assignments" | "stmt_block" | "if_stmt" | "settings_block" | "qualified" | "call_arg" | "named_arg" | "after" | "before" | "slot" | "at" | "size" | "place" | "by"))
+            .filter(|k| {
+                !matches!(
+                    k.kind(),
+                    "name"
+                        | "type_ref"
+                        | "path"
+                        | "assignments"
+                        | "stmt_block"
+                        | "if_stmt"
+                        | "settings_block"
+                        | "qualified"
+                        | "call_arg"
+                        | "named_arg"
+                        | "after"
+                        | "before"
+                        | "slot"
+                        | "at"
+                        | "size"
+                        | "place"
+                        | "by"
+                )
+            })
             .collect();
         let mut o = Map::new();
         let kind = match node.kind() {
@@ -1012,7 +1098,10 @@ impl Lowerer<'_> {
                 let text = self.token_text(token);
                 let name = text.trim_end_matches('=').trim_end();
                 let t = &self.parse.tokens[token];
-                o.insert("name".into(), json!({"text": name, "span": self.span(t.start, t.start + name.len())}));
+                o.insert(
+                    "name".into(),
+                    json!({"text": name, "span": self.span(t.start, t.start + name.len())}),
+                );
                 o.insert("value".into(), self.expr(exprs[0]));
             }
             "if" => {
@@ -1026,19 +1115,32 @@ impl Lowerer<'_> {
                 }
             }
             "for" => {
-                o.insert("names".into(), Json::Array(names.iter().map(|n| self.name(n)).collect()));
+                o.insert(
+                    "names".into(),
+                    Json::Array(names.iter().map(|n| self.name(n)).collect()),
+                );
                 o.insert("iterable".into(), self.expr(exprs[0]));
                 o.insert("limit".into(), self.limit(node));
-                o.insert("body".into(), Json::Array(self.block(self.find(node, "stmt_block").expect("a block"))));
+                o.insert(
+                    "body".into(),
+                    Json::Array(self.block(self.find(node, "stmt_block").expect("a block"))),
+                );
             }
             "while" => {
                 o.insert("condition".into(), self.expr(exprs[0]));
                 o.insert("limit".into(), self.limit(node));
-                o.insert("body".into(), Json::Array(self.block(self.find(node, "stmt_block").expect("a block"))));
+                o.insert(
+                    "body".into(),
+                    Json::Array(self.block(self.find(node, "stmt_block").expect("a block"))),
+                );
             }
             "return" | "fail" | "delete" | "open" | "select" | "reveal" => {
                 if let Some(e) = exprs.first() {
-                    let key = if matches!(kind, "return" | "fail") { "value" } else { "target" };
+                    let key = if matches!(kind, "return" | "fail") {
+                        "value"
+                    } else {
+                        "target"
+                    };
                     o.insert(key.into(), self.expr(e));
                 }
             }
@@ -1053,7 +1155,10 @@ impl Lowerer<'_> {
                 }
             }
             "create" | "connect" => {
-                o.insert("type".into(), self.type_ref(self.find(node, "type_ref").expect("a type")));
+                o.insert(
+                    "type".into(),
+                    self.type_ref(self.find(node, "type_ref").expect("a type")),
+                );
                 if let Some(assignments) = self.find(node, "assignments") {
                     o.insert("assignments".into(), self.assignments(assignments));
                 }
@@ -1102,7 +1207,10 @@ impl Lowerer<'_> {
             }
             "view" => {
                 o.insert("target".into(), self.expr(exprs[0]));
-                o.insert("assignments".into(), self.assignments(self.find(node, "assignments").expect("assignments")));
+                o.insert(
+                    "assignments".into(),
+                    self.assignments(self.find(node, "assignments").expect("assignments")),
+                );
             }
             "openForm" => {
                 o.insert("form".into(), self.name(names[0]));
@@ -1132,7 +1240,10 @@ impl Lowerer<'_> {
                 }
             }
             "call" | "plugin" => {
-                o.insert("operation".into(), self.qualified(self.find(node, "qualified").expect("a name")));
+                o.insert(
+                    "operation".into(),
+                    self.qualified(self.find(node, "qualified").expect("a name")),
+                );
                 let args: Vec<Json> = kids
                     .iter()
                     .filter(|k| matches!(k.kind(), "call_arg" | "named_arg"))
@@ -1153,7 +1264,9 @@ impl Lowerer<'_> {
     }
 
     fn limit(&self, node: &Node) -> Json {
-        self.token_named(node, "INT").map(|t| number(self.token_text(t))).unwrap_or(json!(0))
+        self.token_named(node, "INT")
+            .map(|t| number(self.token_text(t)))
+            .unwrap_or(json!(0))
     }
 
     fn assignments(&self, node: &Node) -> Json {
@@ -1255,15 +1368,20 @@ impl Lowerer<'_> {
         if let Some(when) = self.child_nodes(node).into_iter().find(|n| self.is_expression(n)) {
             o.insert("when".into(), self.expr(when));
         }
-        if node.kind() == "marker" {
-            if let Some(end) = self.child_nodes(node).into_iter().find(|n| matches!(n.kind(), "source" | "target" | "mid")) {
-                o.insert("end".into(), json!(end.kind()));
-            }
+        if node.kind() == "marker"
+            && let Some(end) = self
+                .child_nodes(node)
+                .into_iter()
+                .find(|n| matches!(n.kind(), "source" | "target" | "mid"))
+        {
+            o.insert("end".into(), json!(end.kind()));
         }
         for source in ["capability_source", "named_source"] {
             if let Some(found) = self.find(node, source) {
                 let value = match source {
-                    "capability_source" => json!({"capability": self.qualified(self.find(found, "qualified").expect("a name"))}),
+                    "capability_source" => {
+                        json!({"capability": self.qualified(self.find(found, "qualified").expect("a name"))})
+                    }
                     _ => json!({"named": self.string_token(found).unwrap_or_default()}),
                 };
                 o.insert("source".into(), value);
@@ -1292,9 +1410,24 @@ impl Lowerer<'_> {
     fn is_member(&self, node: &Node) -> bool {
         !matches!(
             node.kind(),
-            "name" | "names" | "qualified" | "type_ref" | "settings_block" | "value" | "cel_value" | "attribute_ref"
-                | "token_ref" | "param_ref" | "settings_map" | "value_list" | "extends" | "source" | "target" | "mid"
-                | "capability_source" | "named_source"
+            "name"
+                | "names"
+                | "qualified"
+                | "type_ref"
+                | "settings_block"
+                | "value"
+                | "cel_value"
+                | "attribute_ref"
+                | "token_ref"
+                | "param_ref"
+                | "settings_map"
+                | "value_list"
+                | "extends"
+                | "source"
+                | "target"
+                | "mid"
+                | "capability_source"
+                | "named_source"
         ) && !self.is_expression(node)
     }
 
@@ -1302,11 +1435,17 @@ impl Lowerer<'_> {
         let mut o = self.object("binding", node);
         o.insert("name".into(), self.name(self.find(node, "name").expect("a name")));
         if let Some(family) = self.find(node, "declared_family") {
-            o.insert("family".into(), json!(self.name_text(self.find(family, "name").expect("a family"))));
+            o.insert(
+                "family".into(),
+                json!(self.name_text(self.find(family, "name").expect("a family"))),
+            );
         }
         if let Some(family) = self.find(node, "capability_family") {
             o.insert("family".into(), json!("capability"));
-            o.insert("capability".into(), self.qualified(self.find(family, "qualified").expect("a capability")));
+            o.insert(
+                "capability".into(),
+                self.qualified(self.find(family, "qualified").expect("a capability")),
+            );
         }
         let members: Vec<Json> = self
             .child_nodes(node)
@@ -1322,8 +1461,18 @@ impl Lowerer<'_> {
         match node.kind() {
             "element_rule" | "relation_rule" => {
                 let mut o = self.object("rule", node);
-                o.insert("ruleKind".into(), json!(if node.kind() == "element_rule" { "element" } else { "relation" }));
-                o.insert("type".into(), self.type_ref(self.find(node, "type_ref").expect("a type")));
+                o.insert(
+                    "ruleKind".into(),
+                    json!(if node.kind() == "element_rule" {
+                        "element"
+                    } else {
+                        "relation"
+                    }),
+                );
+                o.insert(
+                    "type".into(),
+                    self.type_ref(self.find(node, "type_ref").expect("a type")),
+                );
                 if let Some(name) = self.find(node, "name") {
                     o.insert("as".into(), self.name(name));
                 }
@@ -1358,7 +1507,11 @@ impl Lowerer<'_> {
                 self.with_doc(node, o, doc)
             }
             "block_rule" | "section_rule" => {
-                let kind = if node.kind() == "block_rule" { "block" } else { "section" };
+                let kind = if node.kind() == "block_rule" {
+                    "block"
+                } else {
+                    "section"
+                };
                 let mut o = self.object(kind, node);
                 o.insert("name".into(), self.name(self.find(node, "name").expect("a name")));
                 if let Some(text) = self.string_token(node) {
@@ -1400,7 +1553,9 @@ impl Lowerer<'_> {
         if let Some(when) = self.child_nodes(node).into_iter().find(|n| self.is_expression(n)) {
             o.insert("when".into(), self.expr(when));
         }
-        let block = self.find(node, "settings_block").or_else(|| self.find(node, "attribute_binding_block"));
+        let block = self
+            .find(node, "settings_block")
+            .or_else(|| self.find(node, "attribute_binding_block"));
         let mut settings = Vec::new();
         let mut doc = None;
         if let Some(block) = block {
@@ -1462,7 +1617,11 @@ fn number(text: &str) -> Json {
     if let Ok(int) = text.parse::<i64>() {
         return Json::from(int);
     }
-    text.parse::<f64>().ok().and_then(serde_json::Number::from_f64).map(Json::Number).unwrap_or(Json::Null)
+    text.parse::<f64>()
+        .ok()
+        .and_then(serde_json::Number::from_f64)
+        .map(Json::Number)
+        .unwrap_or(Json::Null)
 }
 
 fn negate(value: Json) -> Json {
@@ -1526,7 +1685,9 @@ pub fn decode_string(text: &str) -> String {
                 i += digits;
             }
             '0'..='3' => {
-                let octal: String = std::iter::once(next).chain(chars.iter().skip(i).take(2).copied()).collect();
+                let octal: String = std::iter::once(next)
+                    .chain(chars.iter().skip(i).take(2).copied())
+                    .collect();
                 if let Some(c) = u32::from_str_radix(&octal, 8).ok().and_then(char::from_u32) {
                     out.push(c);
                 }

@@ -81,11 +81,7 @@ fn compose_error(module: &str, error: NotationError) -> ComposeError {
 
 /// Composes the grammar whose root module is `root` (`atd` for ATD's grammar), reading each module's text with
 /// `load`, and expands it for the start symbol `start`.
-pub fn compose(
-    root: &str,
-    start: &str,
-    load: &dyn Fn(&str) -> Option<String>,
-) -> Result<Grammar, ComposeError> {
+pub fn compose(root: &str, start: &str, load: &dyn Fn(&str) -> Option<String>) -> Result<Grammar, ComposeError> {
     let root_text = load(root).ok_or_else(|| ComposeError {
         module: root.into(),
         line: 0,
@@ -114,7 +110,8 @@ pub fn compose(
             return Err(ComposeError {
                 module: module_name.clone(),
                 line: module.imports[0].line,
-                message: "a module other than the root imports nothing; the root's import list names what it shares".into(),
+                message: "a module other than the root imports nothing; the root's import list names what it shares"
+                    .into(),
             });
         }
         let aliases: HashSet<&str> = aliases.iter().map(String::as_str).collect();
@@ -130,7 +127,11 @@ pub fn compose(
         let own: HashMap<&str, &Definition> = module.definitions.iter().map(|d| (d.name.as_str(), d)).collect();
         // Lark keeps only what the imported names reach within the module.
         let mut reached: BTreeSet<String> = BTreeSet::new();
-        let mut todo: Vec<String> = aliases.iter().filter(|a| own.contains_key(*a)).map(|a| (*a).to_owned()).collect();
+        let mut todo: Vec<String> = aliases
+            .iter()
+            .filter(|a| own.contains_key(*a))
+            .map(|a| (*a).to_owned())
+            .collect();
         while let Some(name) = todo.pop() {
             if !reached.insert(name.clone()) {
                 continue;
@@ -154,7 +155,13 @@ pub fn compose(
                 });
             }
             let renamed = rename(definition, &mangle);
-            definitions.insert(composed.clone(), Definition { name: composed, ..renamed });
+            definitions.insert(
+                composed.clone(),
+                Definition {
+                    name: composed,
+                    ..renamed
+                },
+            );
         }
         seen_modules.push(module_name.clone());
     }
@@ -238,8 +245,12 @@ fn expand(definitions: &BTreeMap<String, Definition>, root: &Module, start: &str
     // Terminals by name, their pattern from their definition.
     let mut named_terminals: BTreeMap<String, Terminal> = BTreeMap::new();
     for definition in definitions.values().filter(|d| d.is_terminal()) {
-        let (kind, value) = terminal_pattern(&definition.alternatives, definitions)
-            .ok_or_else(|| format!("the terminal `{}` is neither a string nor a regular expression", definition.name))?;
+        let (kind, value) = terminal_pattern(&definition.alternatives, definitions).ok_or_else(|| {
+            format!(
+                "the terminal `{}` is neither a string nor a regular expression",
+                definition.name
+            )
+        })?;
         named_terminals.insert(
             definition.name.clone(),
             Terminal {
@@ -311,7 +322,11 @@ fn expand(definitions: &BTreeMap<String, Definition>, root: &Module, start: &str
     terminals.sort();
     let mut ignore = root.ignores.clone();
     ignore.sort();
-    let inline = definitions.values().filter(|d| d.inline).map(|d| d.name.clone()).collect();
+    let inline = definitions
+        .values()
+        .filter(|d| d.inline)
+        .map(|d| d.name.clone())
+        .collect();
     Ok(Grammar {
         terminals,
         ignore,
@@ -323,7 +338,10 @@ fn expand(definitions: &BTreeMap<String, Definition>, root: &Module, start: &str
 
 /// A terminal's pattern: one string, or one regular expression, or a choice and sequence of them joined into one
 /// regular expression as Lark joins them.
-fn terminal_pattern(alternatives: &[Alternative], definitions: &BTreeMap<String, Definition>) -> Option<(TerminalKind, String)> {
+fn terminal_pattern(
+    alternatives: &[Alternative],
+    definitions: &BTreeMap<String, Definition>,
+) -> Option<(TerminalKind, String)> {
     if let [Alternative { items, .. }] = alternatives
         && let [item] = items.as_slice()
     {
@@ -413,7 +431,11 @@ impl Expander<'_> {
         Ok(unique)
     }
 
-    fn alternatives(&mut self, alternatives: &[Alternative], referenced: &mut Vec<String>) -> Result<Vec<Vec<String>>, String> {
+    fn alternatives(
+        &mut self,
+        alternatives: &[Alternative],
+        referenced: &mut Vec<String>,
+    ) -> Result<Vec<Vec<String>>, String> {
         let mut out = Vec::new();
         for alternative in alternatives {
             for sequence in self.sequence(&alternative.items, referenced)? {

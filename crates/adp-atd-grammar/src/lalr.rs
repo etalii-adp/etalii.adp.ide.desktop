@@ -104,7 +104,9 @@ impl BitSet {
     }
     fn iter(&self) -> impl Iterator<Item = usize> + '_ {
         self.0.iter().enumerate().flat_map(|(w, bits)| {
-            (0..64).filter(move |b| bits & (1u64 << b) != 0).map(move |b| w * 64 + b)
+            (0..64)
+                .filter(move |b| bits & (1u64 << b) != 0)
+                .map(move |b| w * 64 + b)
         })
     }
 }
@@ -142,7 +144,11 @@ impl<'g> Builder<'g> {
         let count = names.len();
         Builder {
             grammar,
-            symbols: Symbols { names, index, terminals },
+            symbols: Symbols {
+                names,
+                index,
+                terminals,
+            },
             rules,
             by_lhs,
             nullable: vec![false; count],
@@ -280,7 +286,9 @@ impl<'g> Builder<'g> {
         for (state, kernel) in kernels.iter().enumerate() {
             for (k, &item) in kernel.iter().enumerate() {
                 for ((rule, dot), set) in self.closure1(item, hash) {
-                    let Some(&symbol) = self.rules[rule].1.get(dot) else { continue };
+                    let Some(&symbol) = self.rules[rule].1.get(dot) else {
+                        continue;
+                    };
                     let target = transitions[state][&symbol];
                     let at = position(target, (rule, dot + 1), &kernels);
                     for t in set.iter() {
@@ -324,7 +332,12 @@ impl<'g> Builder<'g> {
                 if dot == self.rules[rule].1.len() {
                     completed.push((rule, lookaheads[state][k].clone()));
                 }
-                if self.rules[rule].1.iter().skip(dot).any(|s| !self.symbols.is_terminal(*s)) {
+                if self.rules[rule]
+                    .1
+                    .iter()
+                    .skip(dot)
+                    .any(|s| !self.symbols.is_terminal(*s))
+                {
                     for ((r, d), set) in self.closure1((rule, dot), hash) {
                         if d == 0 && self.rules[r].1.is_empty() {
                             let mut resolved = BitSet::new(width);
@@ -346,7 +359,11 @@ impl<'g> Builder<'g> {
             }
             for (rule, set) in merged {
                 for t in set.iter() {
-                    let action = if rule == root_rule { Action::Accept } else { Action::Reduce(rule) };
+                    let action = if rule == root_rule {
+                        Action::Accept
+                    } else {
+                        Action::Reduce(rule)
+                    };
                     match actions.get(&t) {
                         None => {
                             actions.insert(t, action);
@@ -360,7 +377,10 @@ impl<'g> Builder<'g> {
                 }
             }
             raw.push(State {
-                actions: actions.into_iter().map(|(t, a)| (self.symbols.names[t].clone(), a)).collect(),
+                actions: actions
+                    .into_iter()
+                    .map(|(t, a)| (self.symbols.names[t].clone(), a))
+                    .collect(),
                 gotos,
                 kernel: kernel.iter().map(|i| self.item_text(*i)).collect(),
             });
@@ -442,7 +462,11 @@ fn renumber(raw: Vec<State>) -> Tables {
                         )
                     })
                     .collect(),
-                gotos: state.gotos.iter().map(|(n, target)| (n.clone(), number[target])).collect(),
+                gotos: state
+                    .gotos
+                    .iter()
+                    .map(|(n, target)| (n.clone(), number[target]))
+                    .collect(),
                 kernel: state.kernel.clone(),
             }
         })

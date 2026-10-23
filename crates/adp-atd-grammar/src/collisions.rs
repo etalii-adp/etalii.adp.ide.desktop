@@ -22,7 +22,11 @@ pub struct Collision {
 
 impl std::fmt::Display for Collision {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Collision between Terminals {} and {}. Example: {:?}", self.first, self.second, self.example)
+        write!(
+            f,
+            "Collision between Terminals {} and {}. Example: {:?}",
+            self.first, self.second, self.example
+        )
     }
 }
 
@@ -34,10 +38,20 @@ pub fn collisions(grammar: &Grammar, tables: &Tables) -> Vec<Collision> {
         .filter(|t| t.kind == TerminalKind::Pattern)
         .map(|t| (t.name.as_str(), (t.priority, t.value.as_str())))
         .collect();
-    let ignored: Vec<&str> = grammar.ignore.iter().map(String::as_str).filter(|n| patterns.contains_key(n)).collect();
+    let ignored: Vec<&str> = grammar
+        .ignore
+        .iter()
+        .map(String::as_str)
+        .filter(|n| patterns.contains_key(n))
+        .collect();
     let mut groups: BTreeSet<Vec<&str>> = BTreeSet::new();
     for state in &tables.states {
-        let mut group: Vec<&str> = state.actions.keys().map(String::as_str).filter(|n| patterns.contains_key(n)).collect();
+        let mut group: Vec<&str> = state
+            .actions
+            .keys()
+            .map(String::as_str)
+            .filter(|n| patterns.contains_key(n))
+            .collect();
         group.extend(ignored.iter().copied());
         group.sort();
         group.dedup();
@@ -78,7 +92,11 @@ pub fn collisions(grammar: &Grammar, tables: &Tables) -> Vec<Collision> {
 
 fn dfa(pattern: &str) -> Option<dense::DFA<Vec<u32>>> {
     dense::Builder::new()
-        .configure(dense::Config::new().start_kind(StartKind::Anchored).match_kind(MatchKind::All))
+        .configure(
+            dense::Config::new()
+                .start_kind(StartKind::Anchored)
+                .match_kind(MatchKind::All),
+        )
         .build(&format!("^(?:{})$", to_rust(pattern)))
         .ok()
 }

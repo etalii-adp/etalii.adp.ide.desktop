@@ -176,7 +176,9 @@ impl Parser<'_> {
             let state = self.state();
             let mut best: Option<(u16, usize)> = None;
             let consider = |terminal: u16, best: &mut Option<(u16, usize)>| {
-                let Some(len) = tables::match_len(terminal, rest) else { return };
+                let Some(len) = tables::match_len(terminal, rest) else {
+                    return;
+                };
                 let info = &TERMINALS[terminal as usize];
                 let better = match *best {
                     None => true,
@@ -339,7 +341,11 @@ impl Parser<'_> {
     /// popped and skipped tokens are kept, as skipped text.
     fn recover(&mut self, lookahead: &mut Option<usize>) -> bool {
         let (start, end, found) = match *lookahead {
-            Some(t) => (self.tokens[t].start, self.tokens[t].end, format!("`{}`", self.tokens[t].text(self.text))),
+            Some(t) => (
+                self.tokens[t].start,
+                self.tokens[t].end,
+                format!("`{}`", self.tokens[t].text(self.text)),
+            ),
             None => (self.text.len(), self.text.len(), "the end of the file".to_owned()),
         };
         let expected = self.expected();
@@ -354,7 +360,10 @@ impl Parser<'_> {
         let close = tables::terminal("\"}\"").expect("the grammar has `}`");
         if lookahead.is_none() {
             // A missing `}`: assume it, where a state on the stack can read it.
-            if let Some(depth) = (0..self.states.len()).rev().find(|d| tables::action(self.states[*d], close).is_some()) {
+            if let Some(depth) = (0..self.states.len())
+                .rev()
+                .find(|d| tables::action(self.states[*d], close).is_some())
+            {
                 self.discard_to(depth);
                 self.tokens.push(Token {
                     kind: TokenKind::Missing,
@@ -376,15 +385,17 @@ impl Parser<'_> {
                 return true;
             };
             let terminal = self.tokens[token].terminal;
-            if terminal != u16::MAX && synchronising(terminal) && (skipped_first || !self.errors_at(token)) {
-                if let Some(depth) =
-                    (0..self.states.len()).rev().find(|d| tables::action(self.states[*d], terminal).is_some())
-                    && (depth + 1 < self.states.len() || skipped_first)
-                {
-                    self.discard_to(depth);
-                    *lookahead = Some(token);
-                    return true;
-                }
+            if terminal != u16::MAX
+                && synchronising(terminal)
+                && (skipped_first || !self.errors_at(token))
+                && let Some(depth) = (0..self.states.len())
+                    .rev()
+                    .find(|d| tables::action(self.states[*d], terminal).is_some())
+                && (depth + 1 < self.states.len() || skipped_first)
+            {
+                self.discard_to(depth);
+                *lookahead = Some(token);
+                return true;
             }
             self.tokens[token].kind = TokenKind::Skipped;
             skipped_first = true;
@@ -472,7 +483,10 @@ fn list(expected: &[&str]) -> String {
         [rest @ .., last] => format!("{} or {last} was", rest.join(", ")),
     };
     if expected.len() > shown.len() {
-        text = text.replace(" was", &format!(" (or one of {} more) was", expected.len() - shown.len()));
+        text = text.replace(
+            " was",
+            &format!(" (or one of {} more) was", expected.len() - shown.len()),
+        );
     }
     text.replace("\"", "`").replace("`` ", "` ")
 }
