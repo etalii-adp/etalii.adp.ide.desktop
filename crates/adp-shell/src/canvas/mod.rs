@@ -27,6 +27,7 @@ pub mod paint;
 pub mod pipeline_scene;
 pub mod placement;
 pub mod rdf_scene;
+pub mod recording;
 pub mod sankey_scene;
 pub mod sparql_scene;
 pub mod supply_chain_scene;
@@ -630,8 +631,7 @@ impl DiagramTab {
         self.id
     }
 
-    /// The scene as last built.
-    #[cfg(test)]
+    /// The scene as last built: what the canvas draws, and what the recording painter records.
     pub fn scene(&self) -> Option<&Scene> {
         self.cache.as_ref().map(|c| &c.scene)
     }

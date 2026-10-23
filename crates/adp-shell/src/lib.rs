@@ -16,6 +16,8 @@ mod markdown;
 mod problems;
 mod properties;
 mod ribbon;
+/// The recording painter, for `atd record` (spec 035, T051).
+pub use canvas::recording;
 pub mod shell;
 mod table;
 // The table's tests sit beside it, declared here so that the benchmark, which includes the table module, leaves them out.

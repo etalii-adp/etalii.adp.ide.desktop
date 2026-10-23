@@ -1,0 +1,359 @@
+//! The recording painter (etalii.adp spec 035, T051, ATD §2.4): what a canvas draws, turned into `$defs/Drawing`, the
+//! drawing a conformance fixture records. It reads the scene the canvas paints, not pixels: each element's body, its
+//! labels and its style; each relation's route, its ends and its style; the canvas's own bands and texts as chrome; and
+//! the order everything is drawn in. Positions and sizes are in the canvas's units, rounded to 0.01.
+//!
+//! [`drawing`] opens a diagram headlessly, as `atd record` does, and records the scene its canvas builds, whether the
+//! notation draws it or its module draws it by hand (`*_scene.rs`).
+
+use std::collections::{BTreeMap, HashMap};
+use std::path::Path;
+
+use adp_diagram::DiagramElement;
+use adp_scene::geometry::PathCommand;
+use adp_scene::scene::{Owner, Primitive, Role, ShapePrimitive};
+use adp_scene::style::{Colour, Stroke};
+use adp_scene::{Point, Rect, Scene};
+use adp_theme::Kind;
+use eframe::egui;
+use serde_json::{Map, Value as Json, json};
+
+use crate::canvas::DiagramHost;
+
+fn round(value: f64) -> f64 {
+    let rounded = (value * 100.0).round() / 100.0;
+    if rounded == 0.0 { 0.0 } else { rounded }
+}
+
+fn number(value: f64) -> Json {
+    let rounded = round(value);
+    if rounded.fract() == 0.0 && rounded.abs() < 1e15 {
+        json!(rounded as i64)
+    } else {
+        json!(rounded)
+    }
+}
+
+fn bounds(rect: &Rect) -> Json {
+    json!({"x": number(rect.x), "y": number(rect.y), "w": number(rect.width), "h": number(rect.height)})
+}
+
+fn point(at: Point) -> Json {
+    json!({"x": number(at.x), "y": number(at.y)})
+}
+
+/// A path's points: where each command goes, curves and arcs by their end points.
+fn points(path: &adp_scene::Path) -> Vec<Point> {
+    path.commands
+        .iter()
+        .filter_map(|command| match command {
+            PathCommand::MoveTo(to) | PathCommand::LineTo(to) => Some(*to),
+            PathCommand::QuadTo { to, .. } | PathCommand::CubicTo { to, .. } | PathCommand::ArcTo { to, .. } => {
+                Some(*to)
+            }
+            PathCommand::Close => None,
+        })
+        .collect()
+}
+
+/// The shape a body's path draws: a rectangle, a rounded rectangle, an ellipse, or a path.
+fn shape_of(path: &adp_scene::Path) -> &'static str {
+    let commands = &path.commands;
+    let arcs = commands
+        .iter()
+        .filter(|c| matches!(c, PathCommand::ArcTo { .. }))
+        .count();
+    let curves = commands
+        .iter()
+        .filter(|c| matches!(c, PathCommand::QuadTo { .. } | PathCommand::CubicTo { .. }))
+        .count();
+    let lines = commands.iter().filter(|c| matches!(c, PathCommand::LineTo(_))).count();
+    let ps = points(path);
+    let axis_aligned = ps
+        .windows(2)
+        .all(|w| (w[0].x - w[1].x).abs() < 1e-9 || (w[0].y - w[1].y).abs() < 1e-9);
+    if arcs == 0 && curves == 0 && lines >= 3 && lines <= 4 && axis_aligned {
+        "rect"
+    } else if arcs >= 2 && lines == 0 && curves == 0 || curves == 4 && lines == 0 {
+        "ellipse"
+    } else if (arcs == 4 || curves == 4) && lines >= 3 && axis_aligned {
+        "roundRect"
+    } else {
+        "path"
+    }
+}
+
+/// A paint as a colour, and the token it came from.
+fn paint(colour: &Option<Colour>, key: &str, style: &mut Map<String, Json>, tokens: &mut Map<String, Json>) {
+    let Some(colour) = colour else { return };
+    if let Some(value) = &colour.value {
+        style.insert(key.into(), json!(value));
+    }
+    if let Some(token) = &colour.token {
+        tokens.insert(key.into(), json!(token));
+    }
+}
+
+fn style_of(fill: &Option<Colour>, stroke: Option<&Stroke>, opacity: f64) -> Json {
+    let (mut style, mut tokens) = (Map::new(), Map::new());
+    paint(fill, "fill", &mut style, &mut tokens);
+    if let Some(stroke) = stroke {
+        paint(&stroke.colour, "stroke", &mut style, &mut tokens);
+        style.insert("strokeWidth".into(), number(stroke.width));
+        if !stroke.dash.is_empty() {
+            style.insert(
+                "dash".into(),
+                Json::Array(stroke.dash.iter().map(|d| number(*d)).collect()),
+            );
+        }
+    }
+    if (opacity - 1.0).abs() > 1e-9 {
+        style.insert("opacity".into(), number(opacity));
+    }
+    if !tokens.is_empty() {
+        style.insert("tokens".into(), Json::Object(tokens));
+    }
+    Json::Object(style)
+}
+
+fn font_of(font: &adp_scene::style::Font) -> String {
+    let mut out = format!("{} {}", number(font.size), font.weight);
+    if font.italic {
+        out.push_str(" italic");
+    }
+    if let Some(family) = &font.family {
+        out.push(' ');
+        out.push_str(family);
+    }
+    out
+}
+
+/// What is known of a drawn element or relation while the scene is read.
+#[derive(Default)]
+struct Drawn {
+    body: Option<ShapePrimitive>,
+    extent: Option<Rect>,
+    labels: BTreeMap<String, (Vec<(usize, String)>, Option<Point>, Option<String>)>,
+    route: Vec<Point>,
+    markers: (Option<String>, Option<String>),
+    stroke: Option<Stroke>,
+}
+
+fn label_entries(labels: &BTreeMap<String, (Vec<(usize, String)>, Option<Point>, Option<String>)>) -> Vec<Json> {
+    labels
+        .iter()
+        .map(|(id, (lines, at, font))| {
+            let mut lines = lines.clone();
+            lines.sort();
+            let text: Vec<String> = lines.into_iter().map(|(_, t)| t).collect();
+            let mut label = Map::new();
+            label.insert("id".into(), json!(id));
+            label.insert("text".into(), json!(text.join("\n")));
+            if let Some(font) = font {
+                label.insert("font".into(), json!(font));
+            }
+            if let Some(at) = at {
+                label.insert("position".into(), point(*at));
+            }
+            Json::Object(label)
+        })
+        .collect()
+}
+
+fn marker_name(kind: adp_scene::notation::catalog::MarkerKind) -> &'static str {
+    use adp_scene::notation::catalog::MarkerKind::*;
+    match kind {
+        None => "none",
+        Arrow => "arrow",
+        OpenArrow => "openArrow",
+        Diamond => "diamond",
+        Circle => "circle",
+    }
+}
+
+/// The drawing of a scene: its elements, by the ids and types the diagram's elements give them, its relations with
+/// their ends, the canvas's chrome, and the drawing order (`$defs/Drawing`).
+pub fn record(scene: &Scene, elements: &[DiagramElement], view: &str) -> Json {
+    let by_id: HashMap<&str, &DiagramElement> = elements.iter().map(|e| (e.id.as_str(), e)).collect();
+    let mut drawn: BTreeMap<(bool, String), Drawn> = BTreeMap::new();
+    let mut order: Vec<String> = Vec::new();
+    let mut chrome: Vec<Json> = Vec::new();
+    let mention = |id: &str, order: &mut Vec<String>| {
+        if !order.iter().any(|o| o == id) {
+            order.push(id.to_owned());
+        }
+    };
+    for primitive in &scene.primitives {
+        let (relation, id) = match primitive.owner() {
+            Owner::Element(id) => (false, id.clone()),
+            Owner::Relation(id) => (true, id.clone()),
+            Owner::Canvas => {
+                let id = format!("chrome:{}", chrome.len() + 1);
+                match primitive {
+                    Primitive::Shape(shape) if shape.role != Role::Background => {
+                        let Some(area) = shape.path.bounds() else { continue };
+                        chrome.push(json!({
+                            "id": id, "kind": "band", "bounds": bounds(&area),
+                            "style": style_of(&shape.fill, shape.stroke.as_ref(), shape.opacity),
+                        }));
+                    }
+                    Primitive::Text(text) => {
+                        chrome.push(json!({
+                            "id": id, "kind": "legend", "text": text.text,
+                            "bounds": bounds(&Rect::new(text.position.x, text.position.y, 0.0, 0.0)),
+                        }));
+                    }
+                    _ => continue,
+                }
+                mention(&id, &mut order);
+                continue;
+            }
+        };
+        if matches!(primitive, Primitive::Hook(_)) {
+            continue;
+        }
+        mention(&id, &mut order);
+        let entry = drawn.entry((relation, id)).or_default();
+        match primitive {
+            Primitive::Shape(shape) => {
+                if let Some(area) = shape.path.bounds() {
+                    entry.extent = Some(entry.extent.map_or(area, |e| e.union(&area)));
+                }
+                if shape.role == Role::Body && entry.body.is_none() {
+                    entry.body = Some(shape.clone());
+                }
+            }
+            Primitive::Text(text) => {
+                let (label, line) = match &text.role {
+                    Role::Label { id, line } => (id.clone(), *line),
+                    Role::LineLabel => ("label".to_owned(), 0),
+                    _ => continue,
+                };
+                let slot = entry.labels.entry(label).or_insert_with(|| (Vec::new(), None, None));
+                slot.0.push((line, text.text.clone()));
+                if slot.1.is_none() {
+                    slot.1 = Some(text.position);
+                    slot.2 = Some(font_of(&text.font));
+                }
+            }
+            Primitive::Edge(edge) => {
+                if entry.route.is_empty() {
+                    entry.route = points(&edge.path);
+                    entry.stroke = Some(edge.stroke.clone());
+                    entry.markers = (
+                        Some(edge.start.as_ref().map_or("none", |m| marker_name(m.kind)).to_owned()),
+                        Some(edge.end.as_ref().map_or("none", |m| marker_name(m.kind)).to_owned()),
+                    );
+                }
+            }
+            Primitive::Hook(_) => {}
+        }
+    }
+
+    let (mut nodes, mut edges) = (Vec::new(), Vec::new());
+    for ((relation, id), entry) in drawn {
+        let element = by_id.get(id.as_str());
+        let kind = element.map(|e| e.element_type.clone()).unwrap_or_default();
+        let labels = label_entries(&entry.labels);
+        if relation {
+            let mut edge = Map::new();
+            edge.insert("id".into(), json!(id));
+            edge.insert("type".into(), json!(kind));
+            edge.insert(
+                "source".into(),
+                json!(element.and_then(|e| e.source.clone()).unwrap_or_default()),
+            );
+            edge.insert(
+                "target".into(),
+                json!(element.and_then(|e| e.target.clone()).unwrap_or_default()),
+            );
+            // A relation drawn as a band rather than a line runs along its band's middle.
+            let route = if entry.route.is_empty() {
+                entry
+                    .extent
+                    .map(|r| {
+                        vec![
+                            Point::new(r.x, r.y + r.height / 2.0),
+                            Point::new(r.right(), r.y + r.height / 2.0),
+                        ]
+                    })
+                    .unwrap_or_default()
+            } else {
+                entry.route.clone()
+            };
+            edge.insert("route".into(), Json::Array(route.into_iter().map(point).collect()));
+            if let (Some(source), Some(target)) = &entry.markers {
+                edge.insert("markers".into(), json!({"source": source, "target": target}));
+            }
+            if !labels.is_empty() {
+                edge.insert("labels".into(), Json::Array(labels));
+            }
+            let style = match (&entry.stroke, &entry.body) {
+                (Some(stroke), _) => style_of(&None, Some(stroke), stroke.opacity),
+                (None, Some(body)) => style_of(&body.fill, body.stroke.as_ref(), body.opacity),
+                (None, None) => json!({}),
+            };
+            edge.insert("style".into(), style);
+            edges.push(Json::Object(edge));
+        } else {
+            // An element drawn as text only (a note on a map) is where its text is.
+            let area = entry
+                .body
+                .as_ref()
+                .and_then(|b| b.path.bounds())
+                .or(entry.extent)
+                .or_else(|| Rect::around(entry.labels.values().filter_map(|(_, at, _)| *at)));
+            let Some(area) = area else { continue };
+            let mut node = Map::new();
+            node.insert("id".into(), json!(id));
+            node.insert("type".into(), json!(kind));
+            node.insert(
+                "shape".into(),
+                json!(entry.body.as_ref().map_or("path", |b| shape_of(&b.path))),
+            );
+            node.insert("bounds".into(), bounds(&area));
+            if !labels.is_empty() {
+                node.insert("labels".into(), Json::Array(labels));
+            }
+            if let Some(body) = &entry.body {
+                node.insert("style".into(), style_of(&body.fill, body.stroke.as_ref(), body.opacity));
+            }
+            let children: Vec<Json> = elements
+                .iter()
+                .filter(|e| e.parent.as_deref() == Some(id.as_str()))
+                .map(|e| json!(e.id))
+                .collect();
+            if !children.is_empty() {
+                node.insert("children".into(), Json::Array(children));
+            }
+            nodes.push(Json::Object(node));
+        }
+    }
+    json!({
+        "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+        "view": view,
+        "elements": nodes,
+        "edges": edges,
+        "chrome": chrome,
+        "order": order,
+    })
+}
+
+/// Opens the diagram at `path` (its body or its registration) in the project `root` headlessly, builds the scene its
+/// canvas draws in the `kind` theme, and records it; the vendored tool types are read from `vendor`.
+pub fn drawing(vendor: &Path, path: &Path, root: &Path, kind: Kind) -> Result<Json, String> {
+    let mut host = DiagramHost::with_vendor(vendor);
+    if !host.claims(path) {
+        return Err(format!("no usable tool type claims {}", path.display()));
+    }
+    let mut tab = host.open(path, root)?;
+    // A context for the text metrics the scene is laid out with; no window is opened and no frame is drawn.
+    let ctx = egui::Context::default();
+    crate::theme::install(&ctx);
+    ctx.run_ui(egui::RawInput::default(), |_| {}).textures_delta.clear();
+    let documents = host.workspace(root).documents();
+    tab.ensure_scene(&ctx, documents, kind == Kind::Dark);
+    let elements = tab.session.render(documents)?;
+    let scene = tab.scene().ok_or("the canvas drew nothing")?;
+    Ok(record(scene, &elements, "canvas"))
+}
