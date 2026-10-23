@@ -12,7 +12,11 @@ workspace = true
 
 [dependencies]
 adp-atd-grammar = { path = "../adp-atd-grammar" }
+regex = "1"
 serde_json = { version = "1", features = ["preserve_order"] }
 
 [build-dependencies]
 adp-atd-grammar = { path = "../adp-atd-grammar" }
+
+[dev-dependencies]
+jsonschema = { version = "0.59", default-features = false }
