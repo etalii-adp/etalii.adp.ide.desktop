@@ -668,3 +668,82 @@ fn the_side_bar_the_problems_panel_and_the_diagram_panes_resize() {
         "the diagram panes widen: their edge from {edge:?} to {moved:?}"
     );
 }
+
+const DESCRIPTION: (&str, &str) = (
+    "notes.atd",
+    include_str!("../../../vendor/etalii.adp/specifications/atd/notes.atd"),
+);
+
+/// A `.atd` file's tab (etalii.adp spec 035, T105): its outline is a tree named Outline of the description's symbols,
+/// its suggestions a list box named Suggestions, and its findings are in the errors panel like any editor's.
+#[test]
+fn an_atd_tab_has_a_named_outline_and_suggestion_list_and_its_findings_in_the_errors_panel() {
+    let broken = (
+        "broken.atd",
+        "atd 0.1\n\ndiagram x/broken \"Broken\" {\n  model {\n    element Node extends Missing {}\n  }\n}\n",
+    );
+    let mut window = Window::open(&[DESCRIPTION, broken]);
+    window.click(Role::TreeItem, "notes.atd");
+    // The server answers on its thread; the outline comes with the first colouring.
+    for _ in 0..40 {
+        if window.has(Role::Tree, "Outline")
+            && window
+                .all(Role::Tree, "Outline")
+                .first()
+                .is_some_and(|(id, _)| !window.controls_under(*id).is_empty())
+        {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(50));
+        window.frames(1);
+    }
+    let (outline, _) = window.find(Role::Tree, "Outline");
+    let symbols = window.controls_under(outline);
+    assert!(
+        !symbols.is_empty(),
+        "the outline lists the symbols: {}",
+        window.outline()
+    );
+    assert!(symbols.iter().all(|(role, _)| *role == Role::Button));
+
+    // Ctrl+Space in the editor opens the suggestions.
+    window.frame(vec![
+        egui::Event::PointerMoved(egui::pos2(900.0, 300.0)),
+        egui::Event::PointerButton {
+            pos: egui::pos2(900.0, 300.0),
+            button: egui::PointerButton::Primary,
+            pressed: true,
+            modifiers: egui::Modifiers::NONE,
+        },
+    ]);
+    window.frame(vec![egui::Event::PointerButton {
+        pos: egui::pos2(900.0, 300.0),
+        button: egui::PointerButton::Primary,
+        pressed: false,
+        modifiers: egui::Modifiers::NONE,
+    }]);
+    let space = |pressed| egui::Event::Key {
+        key: egui::Key::Space,
+        physical_key: None,
+        pressed,
+        repeat: false,
+        modifiers: egui::Modifiers::CTRL,
+    };
+    // On a line of its own, where a member of the element can start.
+    window.key(egui::Key::Enter);
+    window.frame(vec![space(true), space(false)]);
+    window.frames(2);
+    let (list, _) = window.find(Role::ListBox, "Suggestions");
+    assert!(!window.controls_under(list).is_empty(), "{}", window.outline());
+
+    window.right_click(Role::TreeItem, "notes.atd");
+    window.click(Role::MenuItem, "Validate All");
+    let (panel, _) = window.find(Role::List, "Problems");
+    let findings = window.controls_under(panel);
+    assert!(
+        findings
+            .iter()
+            .any(|(_, name)| name.contains("broken.atd") && name.contains("ATD")),
+        "the broken description's findings: {findings:?}"
+    );
+}

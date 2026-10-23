@@ -9,9 +9,14 @@ use adp_theme::{Kind, Rgba, Theme};
 use eframe::egui::Color32;
 use syntect::easy::HighlightLines;
 use syntect::highlighting::{
-    Color, FontStyle, ScopeSelectors, StyleModifier, Theme as SyntectTheme, ThemeItem, ThemeSettings,
+    Color, FontStyle, Highlighter as ScopeHighlighter, ScopeSelectors, StyleModifier, Theme as SyntectTheme, ThemeItem,
+    ThemeSettings,
 };
-use syntect::parsing::SyntaxSet;
+use syntect::parsing::{Scope, SyntaxDefinition, SyntaxSet};
+
+/// The TextMate grammar of ATD, generated from its grammar in etalii.adp and vendored here (spec 035, FR-052, T105).
+pub const ATD_SYNTAX: &str =
+    include_str!("../../../vendor/etalii.adp/specifications/atd/highlighting/atd.sublime-syntax");
 
 /// Files longer than this are shown without colour, so a large file never makes typing wait.
 const MAX_HIGHLIGHTED_LINES: usize = 20_000;
@@ -32,8 +37,12 @@ pub struct Highlighter {
 
 impl Default for Highlighter {
     fn default() -> Self {
+        let mut builder = SyntaxSet::load_defaults_newlines().into_builder();
+        if let Ok(atd) = SyntaxDefinition::load_from_str(ATD_SYNTAX, true, Some("atd")) {
+            builder.add(atd);
+        }
         Self {
-            syntaxes: SyntaxSet::load_defaults_newlines(),
+            syntaxes: builder.build(),
             dark: syntect_theme(&Theme::dark()),
             light: syntect_theme(&Theme::light()),
         }
@@ -79,6 +88,20 @@ impl Highlighter {
             all.push(Vec::new());
         }
         all
+    }
+
+    /// The colour and italics the theme gives a TextMate scope, for colouring a semantic token by the scope VS Code
+    /// maps its type to; none when the theme leaves the scope in the foreground.
+    pub fn scope_style(&self, scope: &str, kind: Kind) -> Option<(Color32, bool)> {
+        let theme = match kind {
+            Kind::Dark => &self.dark,
+            Kind::Light => &self.light,
+        };
+        let scope = Scope::new(scope).ok()?;
+        let style = ScopeHighlighter::new(theme).style_mod_for_stack(&[scope]);
+        let c = style.foreground?;
+        let italic = style.font_style.is_some_and(|f| f.contains(FontStyle::ITALIC));
+        Some((Color32::from_rgba_unmultiplied(c.r, c.g, c.b, c.a), italic))
     }
 }
 
@@ -167,6 +190,15 @@ mod tests {
         let lines = Highlighter::default().highlight("a\nb\nc", "unknown-extension", Kind::Light);
         assert_eq!(lines.len(), 3);
         assert!(lines.iter().all(Vec::is_empty));
+    }
+
+    #[test]
+    fn atd_is_coloured_by_its_vendored_grammar() {
+        let highlighter = Highlighter::default();
+        let lines = highlighter.highlight("atd 0.1\n// a comment\ndiagram x/y \"Y\" {}\n", "atd", Kind::Dark);
+        let colours: std::collections::HashSet<_> = lines.iter().flatten().map(|r| r.color).collect();
+        assert!(colours.len() >= 3, "keywords, comments and strings differ: {colours:?}");
+        assert!(highlighter.scope_style("entity.name.type", Kind::Dark).is_some());
     }
 
     #[test]

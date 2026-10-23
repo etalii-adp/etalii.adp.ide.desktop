@@ -20,12 +20,13 @@ pub struct Found {
 
 /// The editors with an analysis, by extension.
 pub fn analysed(extension: &str) -> bool {
-    matches!(extension, "json" | "yaml" | "yml" | "xml" | "xsd")
+    matches!(extension, "json" | "yaml" | "yml" | "xml" | "xsd" | "atd")
 }
 
 /// Runs the analysis of the editor a file's extension takes. `root` is the project the schema may be read from and
 /// `document` the file's path in it; `stored` is how the file is stored ("UTF-8" or "UTF-8 with BOM").
 pub fn analyse(extension: &str, text: &str, root: &Path, document: &[String], stored: &str) -> (Vec<Found>, String) {
+    let atd_path = root.join(document.join("/"));
     let root = root.to_path_buf();
     let read: adp_editor_json::ReadFile =
         Arc::new(move |path: &[String]| std::fs::read_to_string(root.join(path.join("/"))).ok());
@@ -81,6 +82,27 @@ pub fn analyse(extension: &str, text: &str, root: &Path, document: &[String], st
                 .collect();
             (found, analysis.status)
         }
+        // A description is checked with the files beside it, this text in place of its file (spec 035, T105).
+        "atd" => {
+            use adp_atd_check::Severity::*;
+            let path = atd_path;
+            let files = adp_atd_check::Overlay {
+                open: std::iter::once((path.clone(), text.to_owned())).collect(),
+                under: &adp_atd_check::FsFiles,
+            };
+            let checked = adp_atd_check::check(&files, &path);
+            let found: Vec<Found> = checked
+                .findings
+                .into_iter()
+                .filter(|f| Path::new(&f.file) == path)
+                .map(|f| Found {
+                    level: level(f.severity == Error, f.severity == Warning),
+                    span: f.start..f.end,
+                    message: format!("{}: {}", f.code, f.message),
+                })
+                .collect();
+            (found, "ATD".to_owned())
+        }
         _ => (Vec::new(), String::new()),
     }
 }
@@ -94,6 +116,8 @@ pub struct OpenText {
     /// The buffer revision the analysis was made for, and what it says on the status line.
     analysed: Option<u64>,
     pub status: String,
+    /// For `.atd`: what its language client keeps (spec 035, T105).
+    pub atd: crate::atd_client::State,
     /// For Markdown: the outline and the preview, made for the analysed revision.
     pub markdown: Option<(Vec<adp_editor_markdown::Heading>, Vec<adp_editor_markdown::Block>)>,
     /// The file as it is on disk, when it changed there while this tab had other unsaved edits (T058).
@@ -104,7 +128,8 @@ impl OpenText {
     pub fn open(path: &Path, root: &Path) -> Result<Self, String> {
         let file = TextFile::open(path)?;
         let extension = extension_of(path);
-        let editor = TextEditor::new(file.content(), &extension, egui::Id::unique(path));
+        let mut editor = TextEditor::new(file.content(), &extension, egui::Id::unique(path));
+        editor.language = extension == "atd";
         Ok(Self {
             file,
             editor,
@@ -112,6 +137,7 @@ impl OpenText {
             analysed: None,
             status: String::new(),
             markdown: None,
+            atd: Default::default(),
             disk: None,
         })
     }
@@ -157,6 +183,10 @@ impl OpenText {
             ));
             return;
         }
+        if extension == "atd" {
+            crate::atd_client::sync(self);
+            return;
+        }
         if !analysed(&extension) {
             return;
         }
@@ -180,6 +210,14 @@ impl OpenText {
             .filter(|m| m.level == MarkLevel::Warning)
             .count();
         self.status = format!("{status} · {errors} errors, {warnings} warnings");
+    }
+}
+
+impl Drop for OpenText {
+    fn drop(&mut self) {
+        if self.editor.language {
+            crate::atd_client::closed(self.file.path());
+        }
     }
 }
 

@@ -1539,6 +1539,7 @@ impl Shell {
         let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut) else {
             return;
         };
+        let mut actions = Vec::new();
         egui::CentralPanel::default()
             .frame(Frame::NONE.fill(palette.editor_background))
             .show(ui, |ui| match &open.markdown {
@@ -1560,10 +1561,44 @@ impl Shell {
                             });
                     });
                 }
+                None if open.editor.language => {
+                    actions = crate::atd_client::show(ui, open, theme, highlighter);
+                }
                 None => {
                     open.editor.show(ui, theme, highlighter);
                 }
             });
+        let root = open.root.clone();
+        for action in actions {
+            self.language_action(ui, &root, action);
+        }
+    }
+
+    /// Carries out what a `.atd` tab's language client asks (spec 035, T105): a definition or reference in another
+    /// file opens it at the place; a rename's edits of another file go into its tab, opened for them and left
+    /// unsaved, as VS Code leaves them.
+    fn language_action(&mut self, ui: &egui::Ui, root: &Path, action: crate::atd_client::Action) {
+        match action {
+            crate::atd_client::Action::Open { path, line, character } => {
+                self.open_text(&path, root);
+                if let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut) {
+                    let offset = open.editor.buffer.offset(line, character);
+                    open.editor.buffer.set_cursor(offset);
+                    ui.memory_mut(|m| m.request_focus(open.editor.id()));
+                }
+            }
+            crate::atd_client::Action::Edit { path, edits } => {
+                let active = self.active;
+                self.open_text(&path, root);
+                if let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut)
+                    && open.file.path() == path
+                {
+                    crate::atd_client::apply(&mut open.editor.buffer, &edits);
+                    open.analyse();
+                }
+                self.active = active;
+            }
+        }
     }
 
     /// What a frame of a canvas changed: its notice in the status bar, its selection the window's, and every other

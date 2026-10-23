@@ -6,6 +6,7 @@
 
 mod a11y;
 mod add_dialog;
+mod atd_client;
 mod canvas;
 mod documents;
 mod editor;
