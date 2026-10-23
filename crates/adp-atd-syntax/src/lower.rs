@@ -107,11 +107,12 @@ impl Lowerer<'_> {
 
     /// The `///` comments directly above the node, joined (ATD §3.2).
     fn doc_comments(&self, node: &Node) -> Option<String> {
-        let first = self
-            .parse
-            .tokens
-            .iter()
-            .position(|t| t.start == node.start && t.kind == TokenKind::Normal)?;
+        // The tokens are in text order: the node's first is found by halving, not by a scan.
+        let tokens = &self.parse.tokens;
+        let from = tokens.partition_point(|t| t.start < node.start);
+        let first = (from..tokens.len())
+            .take_while(|i| tokens[*i].start == node.start)
+            .find(|i| tokens[*i].kind == TokenKind::Normal)?;
         let mut lines = Vec::new();
         let mut i = first;
         while i > 0 {

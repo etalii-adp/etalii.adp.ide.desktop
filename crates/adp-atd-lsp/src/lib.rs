@@ -12,8 +12,10 @@ mod positions;
 mod semantic;
 pub mod transport;
 
+use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use adp_atd_check::{Checked, Files, FsFiles, Overlay, Severity, check};
 use serde_json::{Value as Json, json};
@@ -32,6 +34,11 @@ pub struct Server {
     published: BTreeMap<PathBuf, BTreeSet<PathBuf>>,
     files: Box<dyn Files + Send>,
     shutdown: bool,
+    /// The last check of each file's description, with the generation of the open documents it was made for: the
+    /// requests between two edits reuse the check the diagnostics made (SC-006).
+    checked: RefCell<BTreeMap<PathBuf, (u64, Arc<Checked>)>>,
+    /// Counts the changes to the open documents.
+    generation: u64,
 }
 
 impl Default for Server {
@@ -147,6 +154,8 @@ impl Server {
             published: BTreeMap::new(),
             files,
             shutdown: false,
+            checked: RefCell::new(BTreeMap::new()),
+            generation: 0,
         }
     }
 
@@ -162,13 +171,29 @@ impl Server {
             .or_else(|| self.files.read(path))
     }
 
-    /// Checks the description a file belongs to, over the open texts.
-    pub fn check(&self, path: &Path) -> Checked {
+    /// Checks the description a file belongs to, over the open texts; the last check is reused until a document
+    /// changes.
+    pub fn check(&self, path: &Path) -> Arc<Checked> {
+        if let Some((generation, checked)) = self.checked.borrow().get(path)
+            && *generation == self.generation
+        {
+            return checked.clone();
+        }
         let files = OpenFiles {
             documents: &self.documents,
             under: self.files.as_ref(),
         };
-        check(&files, path)
+        let checked = Arc::new(check(&files, path));
+        self.checked
+            .borrow_mut()
+            .insert(path.to_path_buf(), (self.generation, checked.clone()));
+        checked
+    }
+
+    /// A document changed: every check made before is stale.
+    fn changed(&mut self) {
+        self.generation += 1;
+        self.checked.get_mut().clear();
     }
 
     /// Whether descriptions wait to be checked again: the transport calls [`Server::flush`] 150 ms after the last
@@ -225,6 +250,7 @@ impl Server {
                     ),
                 );
                 self.dirty.insert(path);
+                self.changed();
                 self.flush()
             }
             "textDocument/didChange" => {
@@ -243,16 +269,19 @@ impl Server {
                 }
                 self.documents.insert(path.clone(), (text, version));
                 self.dirty.insert(path);
+                self.changed();
                 Vec::new()
             }
             "textDocument/didSave" => {
                 let path = uri_to_path(params["textDocument"]["uri"].as_str().unwrap_or(""));
                 self.dirty.insert(path);
+                self.changed();
                 self.flush()
             }
             "textDocument/didClose" => {
                 let path = uri_to_path(params["textDocument"]["uri"].as_str().unwrap_or(""));
                 self.documents.remove(&path);
+                self.changed();
                 Vec::new()
             }
             _ => Vec::new(),

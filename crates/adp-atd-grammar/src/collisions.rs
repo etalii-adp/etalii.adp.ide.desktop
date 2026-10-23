@@ -90,6 +90,18 @@ pub fn collisions(grammar: &Grammar, tables: &Tables) -> Vec<Collision> {
     found
 }
 
+/// The bytes a match of `pattern` can start with, from its automaton; none when it does not compile to one. A lexer
+/// tries a pattern only where the text starts with one of them.
+pub fn first_bytes(pattern: &str) -> Option<[bool; 256]> {
+    let dfa = dfa(pattern)?;
+    let start = dfa.start_state(&start::Config::new().anchored(Anchored::Yes)).ok()?;
+    let mut bytes = [false; 256];
+    for (byte, can) in bytes.iter_mut().enumerate() {
+        *can = !dfa.is_dead_state(dfa.next_state(start, byte as u8));
+    }
+    Some(bytes)
+}
+
 fn dfa(pattern: &str) -> Option<dense::DFA<Vec<u32>>> {
     dense::Builder::new()
         .configure(

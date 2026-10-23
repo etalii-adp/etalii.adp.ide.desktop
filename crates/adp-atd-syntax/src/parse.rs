@@ -255,15 +255,8 @@ impl Parser<'_> {
                     *best = Some((terminal, len));
                 }
             };
-            for terminal in tables::acceptable(state) {
-                if terminal != END {
-                    consider(terminal, &mut best);
-                }
-            }
-            for (index, info) in TERMINALS.iter().enumerate() {
-                if info.ignored {
-                    consider(index as u16, &mut best);
-                }
+            for terminal in tables::candidates(state, rest.as_bytes()[0]) {
+                consider(*terminal, &mut best);
             }
             match best {
                 Some((terminal, len)) if TERMINALS[terminal as usize].ignored => {
@@ -358,9 +351,12 @@ impl Parser<'_> {
         let at = self.values.len() - info.len;
         let popped: Vec<Child> = self.values.drain(at..).collect();
         self.states.truncate(self.states.len() - info.len);
-        let mut children = Vec::with_capacity(popped.len());
+        // A repetition grows by one item per reduction: its helper's children are taken over, not copied, so that a
+        // long list is built in linear time.
+        let mut children: Vec<Child> = Vec::new();
         for child in popped {
             match child {
+                Child::Node(node) if RULES[node.rule].helper && children.is_empty() => children = node.children,
                 Child::Node(node) if RULES[node.rule].helper => children.extend(node.children),
                 other => children.push(other),
             }
