@@ -2,6 +2,24 @@
 
 The manual walks of etalii.adp spec 030's user stories ([quickstart](https://github.com/etalii-adp/etalii.adp/blob/develop/specs/030-desktop-native-rust/quickstart.md), "Walk a user story by hand"): each one says what was done, what happened and whether it passed, per tool type. An inventory row whose Check is `walk: <story>/<step>` points at a step here. A difference from the standalone host's behaviour at [`8b6ccfc`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e) is recorded as a failure, with what was done, what was expected and what happened; the walk fixes nothing, and a re-walk after the fixes records what each one changed beside the original findings.
 
+## Story 1: install, open a workspace and find one's way in it (task T037)
+
+| | |
+|---|---|
+| Date | 2026-10-22 |
+| Walked by | The maintainer, by hand, on the pre-release builds of `develop` from the repository's releases |
+| Steps | Start the program; add a folder and restart; change a file in it outside the program; use the explorer by the keyboard alone (the arrows, F2, Delete, Shift+F10); open, edit and save a Markdown, a JSON, an XML and a YAML file |
+| Result | **pass**, as the maintainer reported it on 2026-10-22; the platforms and the step-by-step findings were not recorded |
+
+## Story 1 with a screen reader, and Story 6 (task T089; SC-009, SC-010)
+
+| | |
+|---|---|
+| Date | 2026-10-22 |
+| Walked by | The maintainer, by hand |
+| Steps | Story 1's steps with a screen reader and without sighted help; the window beside VS Code 1.142 in Dark 2026 and in its default light theme, comparing the explorer, the tabs, the panels, the menus and the status bar |
+| Result | **pass**, as the maintainer reported it on 2026-10-22; the platforms and the screen reader used were not recorded |
+
 ## Story 2: work in a diagram with the same result on disk (task T062)
 
 | | |
