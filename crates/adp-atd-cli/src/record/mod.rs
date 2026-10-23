@@ -154,18 +154,22 @@ pub(crate) fn write_json(path: &Path, value: &Json) -> Result<(), String> {
 /// Records every parity script of `origin` as a case folder under `cases`, named after the script; returns the
 /// folders written. `description` is the path of the tool description from a case's folder.
 pub fn record(origin: &str, cases: &Path, description: Option<&str>) -> Result<Vec<PathBuf>, String> {
-    let names: Vec<String> = adp_parity::script_names()
-        .into_iter()
-        .filter(|name| name.rsplit_once('/').is_some_and(|(tool, _)| tool == origin))
-        .collect();
-    if names.is_empty() {
+    let of_origin = |name: &String| name.rsplit_once('/').is_some_and(|(tool, _)| tool == origin);
+    let names: Vec<String> = adp_parity::script_names().into_iter().filter(of_origin).collect();
+    let minted: Vec<String> = adp_parity::case_names().into_iter().filter(of_origin).collect();
+    if names.is_empty() && minted.is_empty() {
         return Err(format!("no parity script records `{origin}`"));
     }
     let short = origin.rsplit('/').next().unwrap_or(origin);
     let description = description.map_or_else(|| format!("../../../{short}.atd"), str::to_owned);
     let mut written = Vec::new();
-    for name in names {
-        let case = Case::load(&name)?;
+    let loaded = names
+        .iter()
+        .map(|name| Case::load(name))
+        .chain(minted.iter().map(|name| Case::load_minted(name)));
+    for case in loaded {
+        let case = case?;
+        let name = case.name.clone();
         if adp_parity::table::is_table(&case.script.tool) {
             return Err(format!("{name}: a designer's table is not recorded yet"));
         }
@@ -178,7 +182,7 @@ pub fn record(origin: &str, cases: &Path, description: Option<&str>) -> Result<V
 
 /// Records one script as the case in `folder`, which is made anew.
 fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), String> {
-    let fixtures = adp_parity::repository_root().join("parity/fixtures");
+    let fixtures = adp_parity::repository_root().join(if case.minted { "parity/cases" } else { "parity/fixtures" });
     let fixture = fixtures.join(&case.script.fixture);
     let source = fixture.parent().ok_or("a fixture has a folder")?;
     let body = fixture
@@ -345,10 +349,20 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
         })
     };
     let standalone = case.recorded.standalone_commit.chars().take(7).collect::<String>();
+    // A case without a golden has the desktop host's bytes; a parity script's are the standalone host's golden.
+    let bytes = if case.minted {
+        desktop("bytes")
+    } else {
+        json!({
+            "host": "standalone", "repository": "etalii.adp.ide.standalone", "commit": standalone,
+            "source": format!("etalii.adp.ide.desktop/parity/goldens/{}/", case.name),
+        })
+    };
+    let source = if case.minted { "parity/cases" } else { "parity/scripts" };
     let fixture = json!({
         "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
         "doc": format!(
-            "Recorded by `atd record {}` from the parity script parity/scripts/{}.json of etalii.adp.ide.desktop; never edited by hand.",
+            "Recorded by `atd record {}` from {source}/{}.json of etalii.adp.ide.desktop; never edited by hand.",
             case.script.tool, case.name
         ),
         "tool": case.script.tool,
@@ -358,10 +372,7 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
         "drawing": {"$ref": "drawing.read.json"},
         "steps": steps,
         "provenance": {
-            "bytes": {
-                "host": "standalone", "repository": "etalii.adp.ide.standalone", "commit": standalone,
-                "source": format!("etalii.adp.ide.desktop/parity/goldens/{}/", case.name),
-            },
+            "bytes": bytes,
             "reading": desktop("reading"),
             "findings": desktop("findings"),
             "drawing": desktop("drawing"),

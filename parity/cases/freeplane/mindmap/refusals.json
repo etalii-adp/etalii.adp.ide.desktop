@@ -1,0 +1,51 @@
+{
+  "tool": "freeplane/mindmap",
+  "fixture": "freeplane/mindmap/plan/plan.mm",
+  "steps": [
+    {
+      "select": [
+        "ID_1"
+      ]
+    },
+    {
+      "action": "mindmap.delete",
+      "args": {},
+      "expect": "refused"
+    },
+    {
+      "action": "mindmap.add-sibling",
+      "args": {},
+      "expect": "refused"
+    },
+    {
+      "move": {
+        "refs": [
+          "ID_1"
+        ],
+        "parent": "ID_5",
+        "index": 0
+      },
+      "expect": "refused"
+    },
+    {
+      "move": {
+        "refs": [
+          "ID_2"
+        ],
+        "parent": "ID_3",
+        "index": 0
+      },
+      "expect": "refused"
+    },
+    {
+      "select": [
+        "ID_4"
+      ]
+    },
+    {
+      "action": "mindmap.unlink",
+      "args": {},
+      "expect": "refused"
+    }
+  ]
+}
