@@ -99,13 +99,13 @@ struct TestHost {
 }
 
 impl TestHost {
-    fn new(model: Model) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(TestHost {
+    fn new(model: Model) -> Self {
+        TestHost {
             model,
             transaction: None,
             log: Vec::new(),
             next: 1,
-        }))
+        }
     }
 
     fn node(id: &str, text: &str) -> Value {
@@ -238,13 +238,13 @@ fn operate(
     script: &Script,
     operations: &BTreeMap<String, Json>,
     name: &str,
-    host: &Rc<RefCell<TestHost>>,
+    host: &mut TestHost,
     history: &mut History<Model>,
 ) -> Result<(), Stop> {
-    host.borrow_mut().transaction = Some(Transaction::new(name));
-    let gesture = script.gesture(host.clone());
+    host.transaction = Some(Transaction::new(name));
+    let gesture = script.gesture(host);
     let result = gesture.run(name, &operations[name]["body"], Map::default());
-    let mut host = host.borrow_mut();
+    drop(gesture);
     let transaction = host.transaction.take().expect("the transaction is open");
     match &result {
         Ok(()) => {
@@ -256,7 +256,8 @@ fn operate(
 }
 
 fn call(script: &Script, function: &str, arguments: &[Value]) -> Result<Value, Stop> {
-    let gesture: Gesture = script.gesture(TestHost::new(Model::default()));
+    let mut host = TestHost::new(Model::default());
+    let gesture: Gesture = script.gesture(&mut host);
     gesture.call(function, arguments)
 }
 
@@ -284,11 +285,11 @@ fn actions_go_to_the_transaction_in_order_and_land_as_one_change() {
 "#,
         Options::default(),
     );
-    let host = TestHost::new(Model::default());
+    let mut host = TestHost::new(Model::default());
     let mut history = History::default();
-    operate(&script, &operations, "add", &host, &mut history).expect("the operation runs");
+    operate(&script, &operations, "add", &mut host, &mut history).expect("the operation runs");
 
-    let h = host.borrow();
+    let h = &host;
     // The second `create` sees the first: each expression sees the actions before it.
     assert_eq!(
         h.log,
@@ -301,14 +302,13 @@ fn actions_go_to_the_transaction_in_order_and_land_as_one_change() {
         ]
     );
     assert_eq!(h.model.texts(), ["Node 1", "Node 2!"]);
-    drop(h);
 
     // One change, undone exactly.
     assert_eq!(history.availability().undo_count, 1);
-    history.undo(&mut host.borrow_mut().model);
-    assert_eq!(host.borrow().model, Model::default());
-    history.redo(&mut host.borrow_mut().model);
-    assert_eq!(host.borrow().model.texts(), ["Node 1", "Node 2!"]);
+    history.undo(&mut host.model);
+    assert_eq!(host.model, Model::default());
+    history.redo(&mut host.model);
+    assert_eq!(host.model.texts(), ["Node 1", "Node 2!"]);
 }
 
 #[test]
@@ -332,9 +332,9 @@ fn a_budget_overrun_stops_the_call_and_discards_the_transaction() {
     );
     assert_eq!(call(&script, "spin", &[Value::Int(10)]).unwrap().as_int(), Some(10));
 
-    let host = TestHost::new(Model::default());
+    let mut host = TestHost::new(Model::default());
     let mut history = History::default();
-    let stop = operate(&script, &operations, "add", &host, &mut history).unwrap_err();
+    let stop = operate(&script, &operations, "add", &mut host, &mut history).unwrap_err();
     assert_eq!(stop.kind, Kind::Budget);
     assert_eq!(stop.code(), Some("ATD7102"));
     assert_eq!(stop.function, "spin");
@@ -344,7 +344,7 @@ fn a_budget_overrun_stops_the_call_and_discards_the_transaction() {
     assert_eq!(finding.file, "/test/script.atd");
     assert!(finding.line > 0);
 
-    assert_eq!(host.borrow().model, Model::default(), "the transaction is discarded");
+    assert_eq!(host.model, Model::default(), "the transaction is discarded");
     assert_eq!(history.availability().undo_count, 0);
 }
 
@@ -528,20 +528,20 @@ fn a_fail_refuses_with_its_message() {
 "#,
         Options::default(),
     );
-    let host = TestHost::new(Model::default());
+    let mut host = TestHost::new(Model::default());
     let mut history = History::default();
 
-    let stop = operate(&script, &operations, "add", &host, &mut history).unwrap_err();
+    let stop = operate(&script, &operations, "add", &mut host, &mut history).unwrap_err();
     assert_eq!(
         (stop.kind, stop.message.as_str(), stop.function.as_str()),
         (Kind::Fail, "No room.", "add")
     );
     assert_eq!(stop.refusal().0, "No room.");
     assert_eq!(stop.code(), None);
-    assert_eq!(host.borrow().model, Model::default());
+    assert_eq!(host.model, Model::default());
 
     // A `fail` in a function an expression calls stops the operation with the function's message and name.
-    let stop = operate(&script, &operations, "addMany", &host, &mut history).unwrap_err();
+    let stop = operate(&script, &operations, "addMany", &mut host, &mut history).unwrap_err();
     assert_eq!(
         (stop.kind, stop.message.as_str(), stop.function.as_str()),
         (Kind::Fail, "At most two, not 3.", "checked")
@@ -563,7 +563,8 @@ fn the_debugger_sees_each_statement_and_can_stop_the_call() {
 "#,
         Options::default(),
     );
-    let gesture = script.gesture(TestHost::new(Model::default()));
+    let mut host = TestHost::new(Model::default());
+    let gesture = script.gesture(&mut host);
     let seen = Rc::new(RefCell::new(Vec::new()));
     let log = Rc::clone(&seen);
     gesture.on_statement(move |event| {
@@ -603,7 +604,8 @@ fn the_steps_are_counted_per_statement_iteration_expression_and_call() {
 "#,
         Options::default(),
     );
-    let gesture = script.gesture(TestHost::new(Model::default()));
+    let mut host = TestHost::new(Model::default());
+    let gesture = script.gesture(&mut host);
     assert_eq!(gesture.call("one", &[]).unwrap().as_int(), Some(1));
     // A call, a statement, an expression.
     assert_eq!(gesture.steps(), 3);
@@ -640,4 +642,31 @@ fn the_mind_maps_sibling_names() {
         let name = call(&script, "siblingName", &[strings(names)]).unwrap_or_else(|s| panic!("{names:?}: {s}"));
         assert_eq!(name.to_string(), expected, "{names:?}");
     }
+}
+
+#[test]
+fn an_expression_outside_a_script_calls_the_functions_and_may_not_change_the_model() {
+    let (script, _) = describe(
+        r#"
+  fn twice(n: int) -> int {
+    return n * 2
+  }
+
+  fn grow(parent: Node) -> int {
+    create Node { text: "x" } in parent
+    return 1
+  }
+"#,
+        Options::default(),
+    );
+    // A label or a constraint of an engine, compiled in the script's environment, with no gesture of its own.
+    let label = script.environment().compile("twice(21)").unwrap();
+    assert_eq!(label.evaluate(&Map::default()).unwrap().as_int(), Some(42));
+    let refused = script
+        .environment()
+        .compile("grow(0)")
+        .unwrap()
+        .evaluate(&Map::default());
+    let message = refused.unwrap_err();
+    assert!(message.contains("cannot `create`"), "{message}");
 }

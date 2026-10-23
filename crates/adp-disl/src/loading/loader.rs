@@ -14,6 +14,7 @@ use super::diagnostic::{DislDiagnostic, DislSeverity};
 use super::metamodel::{DislExpression, DislFunctionDeclaration, DislParameter, DislRecursion};
 use super::specification::DislSpecification;
 use super::{inheritance, names, walker};
+use crate::behavior::extension::DislExtensions;
 use crate::expressions::plugins::{self, DislPluginFunctions};
 use crate::expressions::{contexts, library, user_functions};
 use crate::json::{self, Json};
@@ -110,6 +111,12 @@ impl DislLoader {
     /// declared function it does not implement is evaluated through its `fallback`, or is an evaluation error
     /// without one.
     pub fn load_bytes(utf8: &[u8], plugins: &DislPluginFunctions) -> DislLoadResult {
+        DislLoader::load_extended(utf8, plugins, DislExtensions::default())
+    }
+
+    /// Loads a specification as [`DislLoader::load_bytes`] does, with what a runtime that lowers another language
+    /// onto DISL adds: functions in its environment and the `extension` actions it runs.
+    pub fn load_extended(utf8: &[u8], plugins: &DislPluginFunctions, extensions: DislExtensions) -> DislLoadResult {
         let mut diagnostics = Vec::new();
         let refused = |diagnostics| DislLoadResult {
             specification: None,
@@ -195,6 +202,9 @@ impl DislLoader {
         environment.budget = cost_limit(&root);
         library::register(&mut environment, metamodel.enums.clone());
         plugins::register(&mut environment, &root, plugins, &mut diagnostics);
+        if let Some(extend) = extensions.environment {
+            environment = extend(environment);
+        }
         user_functions::compile(&mut environment, &functions, &mut diagnostics);
         let expressions = compile(&root, &environment, &mut diagnostics);
 
@@ -208,6 +218,7 @@ impl DislLoader {
                 functions,
                 environment,
                 expressions,
+                extensions.actions,
             )),
             diagnostics,
         }

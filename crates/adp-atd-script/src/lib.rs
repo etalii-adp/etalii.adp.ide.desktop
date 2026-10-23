@@ -59,16 +59,14 @@ pub(crate) struct Inner {
     environment: Environment,
     programs: RefCell<HashMap<String, Program>>,
     pub(crate) options: Options,
-    /// The gesture running now, for a function CEL calls.
-    current: RefCell<Option<Rc<Run>>>,
 }
 
 /// The debugger's hook (research R21).
 type Hook = Box<dyn FnMut(&Event<'_>) -> Control>;
 
-/// The state of one gesture.
-pub(crate) struct Run {
-    pub(crate) host: Rc<RefCell<dyn Host>>,
+/// The state of one gesture, in its host.
+pub(crate) struct Run<'h> {
+    pub(crate) host: RefCell<&'h mut dyn Host>,
     pub(crate) steps: Cell<u64>,
     /// The function of every frame on the stack.
     pub(crate) frames: RefCell<Vec<String>>,
@@ -94,9 +92,14 @@ impl Script {
                 let arity = function["params"].as_array().map_or(0, Vec::len);
                 let weak = weak.clone();
                 let called = name.clone();
+                // Called from a script's expression, the call runs in the script's gesture, which the expression's
+                // variables answer for; called from any other expression, in a gesture of its own that only reads.
                 let body = move |call: &Call<'_>| -> Result<Value, String> {
+                    if let Some(result) = call.variables.call(&called, call.arguments) {
+                        return result;
+                    }
                     let inner = weak.upgrade().ok_or("The script is gone.")?;
-                    inner.called(&called, call.arguments)
+                    inner.detached(&called, call.arguments)
                 };
                 environment.add_function(Function::new(name, Style::Global, arity, arity, Some(Rc::new(body))));
             }
@@ -105,50 +108,59 @@ impl Script {
                 environment,
                 programs: RefCell::new(HashMap::new()),
                 options,
-                current: RefCell::new(None),
             }
         });
         Script { inner }
     }
 
     /// A gesture in `host`, with a budget of its own.
-    pub fn gesture(&self, host: Rc<RefCell<dyn Host>>) -> Gesture {
+    pub fn gesture<'h>(&self, host: &'h mut dyn Host) -> Gesture<'h> {
         Gesture {
             inner: Rc::clone(&self.inner),
-            run: Rc::new(Run {
-                host,
-                steps: Cell::new(0),
-                frames: RefCell::new(Vec::new()),
-                stopped: RefCell::new(None),
-                hook: RefCell::new(None),
-            }),
+            run: Run::new(host),
+        }
+    }
+
+    /// The environment the description's expressions compile in: the one given, with `range` and the description's
+    /// functions. An engine that evaluates the description's expressions itself compiles them here, so that they call
+    /// the functions; a call outside a gesture runs in a gesture of its own whose actions are refused.
+    pub fn environment(&self) -> &Environment {
+        &self.inner.environment
+    }
+}
+
+impl<'h> Run<'h> {
+    fn new(host: &'h mut dyn Host) -> Self {
+        Run {
+            host: RefCell::new(host),
+            steps: Cell::new(0),
+            frames: RefCell::new(Vec::new()),
+            stopped: RefCell::new(None),
+            hook: RefCell::new(None),
         }
     }
 }
 
 /// One gesture of the user: the calls it makes share its step budget.
-pub struct Gesture {
+pub struct Gesture<'h> {
     inner: Rc<Inner>,
-    run: Rc<Run>,
+    run: Run<'h>,
 }
 
-impl Gesture {
+impl Gesture<'_> {
     /// Calls a function of the description.
     pub fn call(&self, function: &str, arguments: &[Value]) -> Result<Value, Stop> {
-        let _current = Current::enter(&self.inner, &self.run);
         self.inner.invoke(&self.run, function, arguments)
     }
 
     /// Runs the statements of an operation, a hook or a fix, named `name` in a stop; `bindings` are the names they see
     /// first (`self`, `p`).
     pub fn run(&self, name: &str, body: &Json, bindings: Map) -> Result<(), Stop> {
-        let _current = Current::enter(&self.inner, &self.run);
         self.inner.run_body(&self.run, name, body, bindings).map(|_| ())
     }
 
     /// Evaluates an expression (`{cel}` node) of the description, which may call its functions.
     pub fn evaluate(&self, name: &str, expression: &Json, bindings: Map) -> Result<Value, Stop> {
-        let _current = Current::enter(&self.inner, &self.run);
         let frame = Frame::new(&self.inner, &self.run, name, bindings);
         frame.evaluate(expression)
     }
@@ -164,42 +176,16 @@ impl Gesture {
     }
 }
 
-/// Makes a gesture the one CEL's calls of the description's functions run in, until dropped.
-struct Current<'a> {
-    inner: &'a Inner,
-    previous: Option<Rc<Run>>,
-}
-
-impl<'a> Current<'a> {
-    fn enter(inner: &'a Inner, run: &Rc<Run>) -> Self {
-        let previous = inner.current.replace(Some(Rc::clone(run)));
-        Current { inner, previous }
-    }
-}
-
-impl Drop for Current<'_> {
-    fn drop(&mut self) {
-        *self.inner.current.borrow_mut() = self.previous.take();
-    }
-}
-
 impl Inner {
-    /// A function of the description, called from CEL: a stop is kept for the evaluation that called it, which CEL
-    /// sees as an error.
-    fn called(&self, function: &str, arguments: &[Value]) -> Result<Value, String> {
-        let run = self
-            .current
-            .borrow()
-            .clone()
-            .ok_or_else(|| format!("`{function}` is called outside a gesture."))?;
-        self.invoke(&run, function, arguments).map_err(|stop| {
-            let message = stop.message.clone();
-            run.stopped.borrow_mut().get_or_insert(stop);
-            message
-        })
+    /// A function of the description called from an expression outside a script (a label, a constraint, a derived
+    /// attribute): it runs in a gesture of its own, which may only read (ATD §12.7).
+    fn detached(&self, function: &str, arguments: &[Value]) -> Result<Value, String> {
+        let mut host = Reading;
+        let run = Run::new(&mut host);
+        self.invoke(&run, function, arguments).map_err(|stop| stop.message)
     }
 
-    pub(crate) fn invoke(&self, run: &Rc<Run>, name: &str, arguments: &[Value]) -> Result<Value, Stop> {
+    pub(crate) fn invoke(&self, run: &Run<'_>, name: &str, arguments: &[Value]) -> Result<Value, Stop> {
         let Some(function) = self.functions.get(name) else {
             return Err(Stop::new(
                 Kind::Error,
@@ -243,7 +229,7 @@ impl Inner {
 
     pub(crate) fn run_body(
         &self,
-        run: &Rc<Run>,
+        run: &Run<'_>,
         name: &str,
         body: &Json,
         bindings: Map,
@@ -271,6 +257,22 @@ impl Inner {
             self.programs.borrow_mut().insert(source.to_owned(), program.clone());
         }
         Ok(program)
+    }
+}
+
+/// The host of a function called where nothing may change.
+struct Reading;
+
+impl Host for Reading {
+    fn variable(&self, _name: &str) -> Option<Value> {
+        None
+    }
+
+    fn perform(&mut self, action: &Action<'_>) -> Result<Performed, String> {
+        Err(format!(
+            "A function called where the model is only read cannot `{}`.",
+            action.kind
+        ))
     }
 }
 
