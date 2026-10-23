@@ -22,6 +22,13 @@ use serde_json::{Value as Json, json};
 
 pub use positions::Encoding;
 
+/// The files a server reads besides its open documents. Natively the server may run on a thread of its own, so they
+/// cross threads; in WebAssembly they are the JavaScript host's, which stay on its one thread.
+#[cfg(not(target_arch = "wasm32"))]
+pub type HostFiles = Box<dyn Files + Send>;
+#[cfg(target_arch = "wasm32")]
+pub type HostFiles = Box<dyn Files>;
+
 /// The language server: its documents, the encoding it agreed with the client, and the descriptions waiting to be
 /// checked again.
 pub struct Server {
@@ -32,7 +39,7 @@ pub struct Server {
     /// Files diagnostics were published for, by description root, so that a file that no longer has findings gets
     /// an empty list.
     published: BTreeMap<PathBuf, BTreeSet<PathBuf>>,
-    files: Box<dyn Files + Send>,
+    files: HostFiles,
     shutdown: bool,
     /// The last check of each file's description, with the generation of the open documents it was made for: the
     /// requests between two edits reuse the check the diagnostics made (SC-006).
@@ -146,7 +153,7 @@ impl Server {
     }
 
     /// A server over other files than the file system's: those a client hands it (WebAssembly).
-    pub fn with_files(files: Box<dyn Files + Send>) -> Self {
+    pub fn with_files(files: HostFiles) -> Self {
         Server {
             documents: BTreeMap::new(),
             encoding: Encoding::Utf16,

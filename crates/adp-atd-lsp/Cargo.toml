@@ -28,6 +28,7 @@ lsp-server = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = { workspace = true }
+js-sys = "0.3"
 
 # SC-006 (spec 035, T099): diagnostics after a keystroke and completion on a 5,000-line description, timed against
 # their bounds and printed, run with `cargo bench -p adp-atd-lsp --bench latency`.
