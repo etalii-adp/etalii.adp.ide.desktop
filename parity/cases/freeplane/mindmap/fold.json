@@ -1,0 +1,29 @@
+{
+  "tool": "freeplane/mindmap",
+  "fixture": "freeplane/mindmap/plan/plan.mm",
+  "steps": [
+    {
+      "select": [
+        "ID_2"
+      ]
+    },
+    {
+      "action": "mindmap.toggle-fold",
+      "args": {}
+    },
+    {
+      "action": "mindmap.toggle-fold",
+      "args": {}
+    },
+    {
+      "select": [
+        "ID_4"
+      ]
+    },
+    {
+      "action": "mindmap.toggle-fold",
+      "args": {},
+      "expect": "refused"
+    }
+  ]
+}

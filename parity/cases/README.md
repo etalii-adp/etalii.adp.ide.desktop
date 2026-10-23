@@ -1,0 +1,3 @@
+# Cases without a golden
+
+Edit scripts in the format of [`../scripts/`](../scripts/), each with the documents it opens beside it, for what the standalone host's recorded scripts do not reach: refusals, view state and the findings of a document as it is read (etalii.adp spec 035, T052). `atd record <origin> --cases <dir>` records them into conformance cases with the parity scripts. No golden exists for them, so their bytes are the desktop host's, and the ids a step creates are minted in order (`ID_case1`, `ID_case2`, …) and stated in the case. A step marked `"expect": "refused"` is one the type refuses.

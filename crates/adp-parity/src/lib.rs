@@ -94,6 +94,9 @@ pub struct Generated {
 /// A script and its golden, loaded.
 #[derive(Debug, Clone)]
 pub struct Case {
+    /// A case the desktop host records without a golden of the standalone host (`parity/cases/`): its ids are minted
+    /// as the steps make them, and its bytes are the desktop host's (etalii.adp spec 035, T052).
+    pub minted: bool,
     /// The script's path under `parity/scripts/`, without `.json` (`generic/timeline/roadmap`).
     pub name: String,
     pub script: Script,
@@ -111,12 +114,37 @@ impl Case {
         let script: Script = read_json(&script_path)?;
         let recorded: Recorded = read_json(&golden.join("recorded.json"))?;
         Ok(Case {
+            minted: false,
             name: name.to_owned(),
             script,
             recorded,
             golden,
         })
     }
+
+    /// Loads `parity/cases/<name>.json`, a case without a golden: its documents are `parity/cases/<fixture>`.
+    pub fn load_minted(name: &str) -> Result<Case, String> {
+        let cases = repository_root().join("parity/cases");
+        let script: Script = read_json(&cases.join(format!("{name}.json")))?;
+        Ok(Case {
+            minted: true,
+            name: name.to_owned(),
+            script,
+            recorded: Recorded {
+                platform: this_platform().to_owned(),
+                standalone_commit: String::new(),
+                changed: Vec::new(),
+                removed: Vec::new(),
+                generated: Vec::new(),
+            },
+            golden: cases,
+        })
+    }
+}
+
+/// Every case under `parity/cases/`, by its name without `.json`, sorted.
+pub fn case_names() -> Vec<String> {
+    names_under(&repository_root().join("parity/cases"))
 }
 
 fn read_json<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T, String> {
@@ -126,7 +154,11 @@ fn read_json<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T, String> {
 
 /// Every script under `parity/scripts/`, by its name without `.json`, sorted.
 pub fn script_names() -> Vec<String> {
-    let scripts = repository_root().join("parity/scripts");
+    names_under(&repository_root().join("parity/scripts"))
+}
+
+fn names_under(scripts: &Path) -> Vec<String> {
+    let scripts = scripts.to_path_buf();
     let mut names = Vec::new();
     let mut folders = vec![scripts.clone()];
     while let Some(folder) = folders.pop() {
@@ -319,27 +351,45 @@ impl fmt::Display for Verdict {
 /// type and gets the next unused one of that step whose recorded type is that type, else the next unused one of the
 /// step; a create the standalone host did not make at that step is refused with a sentence.
 struct RecordedIds {
-    generated: Vec<Generated>,
+    generated: RefCell<Vec<Generated>>,
     used: RefCell<Vec<bool>>,
     step: Cell<usize>,
+    /// Whether an id no step recorded is minted (`ID_case` and a number), as a case without a golden needs.
+    mint: bool,
 }
 
 impl RecordedIds {
     fn new(generated: Vec<Generated>) -> Self {
+        RecordedIds::with_minting(generated, false)
+    }
+
+    fn with_minting(generated: Vec<Generated>, mint: bool) -> Self {
         RecordedIds {
             used: RefCell::new(vec![false; generated.len()]),
-            generated,
+            generated: RefCell::new(generated),
             step: Cell::new(0),
+            mint,
         }
     }
 
     /// The N-th (from 1) generated element, or connection when `connection`.
-    fn nth(&self, n: usize, connection: bool) -> Option<&str> {
+    fn nth(&self, n: usize, connection: bool) -> Option<String> {
         self.generated
+            .borrow()
             .iter()
             .filter(|g| g.connection == connection)
             .nth(n.checked_sub(1)?)
-            .map(|g| g.id.as_str())
+            .map(|g| g.id.clone())
+    }
+
+    /// The ids generated at `step`, in the order they were.
+    fn at_step(&self, step: usize) -> Vec<String> {
+        self.generated
+            .borrow()
+            .iter()
+            .filter(|g| g.step == step)
+            .map(|g| g.id.clone())
+            .collect()
     }
 
     /// `reference` with each `$N` and `$cN` replaced by the id it names.
@@ -358,7 +408,7 @@ impl RecordedIds {
             let id = self
                 .nth(n, connection)
                 .ok_or_else(|| format!("'{reference}': recorded.json lists no generated id for it"))?;
-            out.push_str(id);
+            out.push_str(&id);
             rest = &after[from + digits.len()..];
         }
         out.push_str(rest);
@@ -370,15 +420,16 @@ impl IdSource for RecordedIds {
     fn next(&self, type_name: &str) -> Result<String, String> {
         let step = self.step.get();
         let mut used = self.used.borrow_mut();
-        let candidates: Vec<usize> = (0..self.generated.len())
-            .filter(|i| self.generated[*i].step == step && !used[*i])
+        let mut generated = self.generated.borrow_mut();
+        let candidates: Vec<usize> = (0..generated.len())
+            .filter(|i| generated[*i].step == step && !used[*i])
             .collect();
         let wanted = type_name.to_lowercase();
         let pick = candidates
             .iter()
             .copied()
             .find(|i| {
-                self.generated[*i]
+                generated[*i]
                     .element_type
                     .rsplit_once('+')
                     .is_some_and(|(_, t)| t == wanted)
@@ -387,7 +438,19 @@ impl IdSource for RecordedIds {
         match pick {
             Some(i) => {
                 used[i] = true;
-                Ok(self.generated[i].id.clone())
+                Ok(generated[i].id.clone())
+            }
+            // A case without a golden mints the id, in order, and keeps it as generated at this step.
+            None if self.mint => {
+                let id = format!("ID_case{}", generated.len() + 1);
+                generated.push(Generated {
+                    step,
+                    id: id.clone(),
+                    element_type: format!("+{wanted}"),
+                    connection: false,
+                });
+                used.push(true);
+                Ok(id)
             }
             None => Err(format!(
                 "the standalone host generated no further id at step {step}, but the desktop host creates a {type_name}"
@@ -425,7 +488,8 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
 /// [`replay`], showing `observe` the document once it opens and again after each step. A designer's script is
 /// replayed without being shown.
 pub fn replay_observed(case: &Case, observe: &mut dyn FnMut(&Observed)) -> Result<Verdict, String> {
-    let fixtures = repository_root().join("parity/fixtures");
+    // A case without a golden keeps its documents beside its script.
+    let fixtures = repository_root().join(if case.minted { "parity/cases" } else { "parity/fixtures" });
     let fixture = fixtures.join(&case.script.fixture);
     let folder = fixture
         .parent()
@@ -444,7 +508,7 @@ pub fn replay_observed(case: &Case, observe: &mut dyn FnMut(&Observed)) -> Resul
 
     // The ids the standalone host generated, handed out at the steps that made them; the Wardley map mints its ids
     // itself, when its identities are reconciled, so its module is handed them too.
-    let ids = Rc::new(RecordedIds::new(case.recorded.generated.clone()));
+    let ids = Rc::new(RecordedIds::with_minting(case.recorded.generated.clone(), case.minted));
     let catalogue = Catalogue::load(&repository_root().join("vendor"));
     let tools = adp_diagram_mindmap::register(DiagramTools::new(catalogue, |_| DislPluginFunctions::none()))
         .with_module(adp_diagram_timeline::ORIGIN, adp_diagram_timeline::module())
@@ -503,13 +567,7 @@ pub fn replay_observed(case: &Case, observe: &mut dyn FnMut(&Observed)) -> Resul
             project: project.path(),
             documents: replay.workspace.documents(),
             session: &replay.session,
-            generated: case
-                .recorded
-                .generated
-                .iter()
-                .filter(|g| g.step == index)
-                .map(|g| g.id.clone())
-                .collect(),
+            generated: ids.at_step(index),
         });
         let what = match (outcome, refusal_expected) {
             (Ok(()), false) | (Err(_), true) => None,

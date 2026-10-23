@@ -106,6 +106,24 @@ impl DiagramModule for MindmapModule {
     }
 
     /// The centre of every visible node's box, as the two-sided layout places it for this viewer's folds.
+    /// The open map's findings as the errors panel reports them (`validator`): a node is judged by the id the file
+    /// writes, so a later holder of an id the file gives twice is `mindmap.duplicate-id` here too.
+    fn problems(
+        &self,
+        document: &DiagramDocument,
+        options: adp_disl::DislConstraintOptions,
+    ) -> Option<Vec<adp_diagram::DiagramProblem>> {
+        // A finding names the map by the file it is attributed to: its registration, else the body.
+        let diagram = &document.model().diagram;
+        let file = document.registration_path().unwrap_or(document.body_path());
+        diagram.set_file(file.file_name().and_then(|n| n.to_str()));
+        Some(validator::problems(
+            document.tool().definition.specification(),
+            diagram,
+            options,
+        ))
+    }
+
     fn positions(&self, document: &DiagramDocument) -> Option<HashMap<String, (f64, f64)>> {
         let diagram = &document.model().diagram;
         let root = central_topic(diagram)?;

@@ -48,6 +48,19 @@ pub fn validate(tool: &DiagramTool, text: &str, file: &str) -> Vec<DiagramProble
     let options = DislConstraintOptions {
         env: Some(DislEnv::default()),
         reader_findings,
+        ..DislConstraintOptions::default()
+    };
+    problems(specification, &model.diagram, options)
+}
+
+/// The findings of a map's constraints under `options`, each node judged by the id the file writes (`storedId`), as
+/// both the errors panel and the open map report them.
+pub fn problems(
+    specification: &adp_disl::DislSpecification,
+    diagram: &adp_disl::DislDiagram,
+    options: DislConstraintOptions,
+) -> Vec<DiagramProblem> {
+    let options = DislConstraintOptions {
         written_id: Some(Rc::new(|element| {
             element
                 .host_attributes()
@@ -55,8 +68,9 @@ pub fn validate(tool: &DiagramTool, text: &str, file: &str) -> Vec<DiagramProble
                 .and_then(|v| v.as_str().map(str::to_owned))
                 .unwrap_or_default()
         })),
+        ..options
     };
-    constraints::evaluate(specification, &model.diagram, &options)
+    constraints::evaluate(specification, diagram, &options)
         .into_iter()
         .map(|finding| DiagramProblem {
             severity: DislDiagramDefinition::severity_of(&finding),
