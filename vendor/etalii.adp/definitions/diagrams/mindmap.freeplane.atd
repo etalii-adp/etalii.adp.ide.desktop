@@ -1,0 +1,68 @@
+atd 0.1
+part of freeplane/mindmap
+
+// The mind map's Freeplane body, in a part of its own (ATD §5.2, §9).
+
+/// A Freeplane mind map (mindmap.md §3): the `xml` family. The XML a map was read from is the single source of truth:
+/// reading a node reads its element, an edit is a splice of that element, and everything the map does not change is
+/// written back byte for byte - the declaration-less header, attribute order, whitespace, comments, the mixed line ends
+/// of a Windows save (structural lines in CRLF, the HTML inside `richcontent` in LF), and every construct ADP neither
+/// shows nor edits (`hook`, `MapStyle`, `map_styles`, `stylenode`, `tags`, `properties`, `font`, `edge`, `icon`,
+/// `cloud`, `arrowlink`, `attribute`, `bookmarks`).
+///
+/// `mindmap.dis` reads the body with the persistence plugin `net.etalii.adp.freeplane.mm`, because no FBL 0.1 rule read
+/// nested `<node>` elements whose text may be HTML; this binding states what that plugin reads and writes, rule by
+/// rule.
+binding freeplane family xml {
+  label "Freeplane mind map"
+  claims { extensions: [".mm"], origins: ["freeplane/mindmap"], marker: { pattern: r"^<map[\s>]", lines: 5 } }
+  /// New text follows the file: a structural edit inserts the newline the file ends its `<map …>` line with; these are
+  /// the conventions of a new map only.
+  text { newline: lf }
+  /// The document element is `<map>` and holds exactly one `<node>`, the central topic; non-node elements such as a
+  /// Freeplane 1.12 save's `<bookmarks/>` may come before it, so the root is found by name. Anything else is not a map.
+  header { line: r"^<map[\s>]", required: true }
+
+  /// Every `<node>` is a Node, nested to any depth; its children's order is kept. A node without an `ID` is given
+  /// `ID_` and a new id in memory, written with the next save and never on open.
+  element Node as node at "/map/**/node" {
+    parent node slot children
+    id from attribute "ID"
+    /// `TEXT`, or the formatted text of a `richcontent TYPE="NODE"` child, which wins when present and is read as plain
+    /// text, one line per `<p>`, whitespace collapsed (`CONTENT-TYPE="xml/"` or not). Setting the text writes `TEXT` and
+    /// removes the formatted body.
+    attribute text from attribute "TEXT" {
+      override: { child: "richcontent[@TYPE='NODE']", text: true }
+      content: "html-paragraphs"
+    }
+    /// A `richcontent TYPE="NOTE"` child, read as plain text the same way; written as `<html><head/><body><p>…</p>`, one
+    /// `<p>` per line, before the first child node on a line of its own. Emptying the notes removes the element.
+    attribute notes from text {
+      child: "richcontent[@TYPE='NOTE']"
+      content: "html-paragraphs"
+      empty: remove
+    }
+    /// `LINK` exactly as stored: present (empty or not) or absent; unlinking removes it.
+    attribute link from attribute "LINK" { empty: remove }
+    /// `FOLDED="true"`, any case: read, never written.
+    attribute folded from attribute "FOLDED" { readOnly: "Folding is a viewer's state and is never written to the map." }
+    /// `POSITION` on a first-level node: read, never written.
+    attribute position from attribute "POSITION" { readOnly: "The side follows Freeplane's layout and is kept as Freeplane wrote it." }
+    /// A new node is `<node TEXT="…" ID="ID_…"/>`, its attributes in that order, as the last child or right after the
+    /// node an operation names.
+    insert { place: "last-child", emit: "<node TEXT=\"{text}\" ID=\"{id}\"/>" }
+    remove {}
+  }
+
+  /// A branch is the nesting of one node in another: read from the nesting, never written of its own.
+  relation Branch as branch at "/map/**/node/node" {
+    source from parent "ID"
+    target from attribute "ID"
+    readOnly: "A branch is the nesting of one node in another; move or remove the node instead."
+  }
+
+  template """<map version="freeplane 1.11.5">
+<node TEXT="{base}" ID="{newid:node}"/>
+</map>
+"""
+}

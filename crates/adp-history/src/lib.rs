@@ -215,6 +215,21 @@ impl<M> History<M> {
         }
     }
 
+    /// Records a change already applied to the model, as `execute` records a command that succeeded: a script's
+    /// transaction applies its actions one by one, so that each expression sees the actions before it, and lands as
+    /// one change once the script ends (ATD §12.4).
+    pub fn record(&mut self, label: impl Into<String>, applied: Applied<M>) -> Outcome {
+        let label = label.into();
+        if let Some(inverse) = applied.inverse {
+            self.redo.clear();
+            self.push(label.clone(), inverse);
+        }
+        Outcome::Done {
+            label,
+            warning: applied.warning,
+        }
+    }
+
     /// Reverses the most recent change and moves it to the redo side. At a barrier it refuses with the barrier's reason.
     pub fn undo(&mut self, model: &mut M) -> Outcome {
         match self.undo.pop_back() {

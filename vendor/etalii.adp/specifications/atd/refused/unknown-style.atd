@@ -1,0 +1,17 @@
+atd 0.1
+
+/// A node's notation that names a style the notation does not declare.
+diagram example/tasks version "0.1.0" {
+  model {
+    element Task {
+      attribute title: string required
+    }
+  }
+  notation {
+    style card { fill: "#FFFFFF" }
+    node Task {
+      style: crad
+      label @title
+    }
+  }
+}

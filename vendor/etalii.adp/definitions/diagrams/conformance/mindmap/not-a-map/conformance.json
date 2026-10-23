@@ -1,0 +1,54 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record freeplane/mindmap` from parity/cases/freeplane/mindmap/not-a-map.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "freeplane/mindmap",
+  "description": "../../../mindmap.atd",
+  "inputs": {
+    "body": "two-roots.mm"
+  },
+  "read": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "mindmap.not-a-map",
+        "severity": "error",
+        "message": "'two-roots.mm' is not a readable mind map: A map has exactly one root node; this one has 2."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (drawing)"
+    }
+  }
+}

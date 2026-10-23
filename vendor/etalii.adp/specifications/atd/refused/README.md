@@ -21,6 +21,8 @@ The tool descriptions in this folder **must be refused** when they are checked: 
 | `settings-schema.atd` | `ATD5001` at settings-schema.atd:11:35: `thickness` is not a setting of a stroke (DISL `$defs/Stroke`). Did you mean `width`? |
 | `syntax-error.atd` | `ATD1001` at syntax-error.atd:7:22: Found `required` where `:` and the attribute's type were expected. |
 | `unknown-attribute.atd` | `ATD2001` at unknown-attribute.atd:12:23: No attribute `titel` in element type `Task`. Did you mean `title` or `tier`? |
+| `unknown-member.atd` | `ATD2001` at unknown-member.atd:13:15: No attribute `titel` in element type `Task`. Did you mean `title`? |
+| `unknown-style.atd` | `ATD2011` at unknown-style.atd:13:14: No style `crad`. Did you mean `card`? |
 | `unknown-binding-rule.atd` | `ATD2004` at unknown-binding-rule.atd:14:14: No rule `iten` in binding `outline`. Did you mean `item`? |
 | `unknown-capability.atd` | `ATD2010` at unknown-capability.atd:5:23: No capability `layout.radialTree` in the catalogue. Did you mean `layout.twoSidedTree`? |
 | `unknown-element-type.atd` | `ATD2002` at unknown-element-type.atd:11:10: No element type `Tsak`. Did you mean `Task`? |
