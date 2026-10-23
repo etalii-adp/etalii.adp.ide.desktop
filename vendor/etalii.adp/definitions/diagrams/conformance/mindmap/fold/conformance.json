@@ -1,0 +1,157 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record freeplane/mindmap` from parity/cases/freeplane/mindmap/fold.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "freeplane/mindmap",
+  "description": "../../../mindmap.atd",
+  "inputs": {
+    "body": "plan.mm"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "ID_1",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "text": "Plan",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_2",
+        "type": "Node",
+        "parent": "ID_1",
+        "attributes": {
+          "text": "Scope",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_3",
+        "type": "Node",
+        "parent": "ID_2",
+        "attributes": {
+          "text": "Goals",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_4",
+        "type": "Node",
+        "parent": "ID_2",
+        "attributes": {
+          "text": "Risks",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_5",
+        "type": "Node",
+        "parent": "ID_1",
+        "attributes": {
+          "text": "Budget",
+          "folded": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "Branch:ID_1->ID_2",
+        "type": "Branch",
+        "source": "ID_1",
+        "target": "ID_2",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_2->ID_3",
+        "type": "Branch",
+        "source": "ID_2",
+        "target": "ID_3",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_2->ID_4",
+        "type": "Branch",
+        "source": "ID_2",
+        "target": "ID_4",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_1->ID_5",
+        "type": "Branch",
+        "source": "ID_1",
+        "target": "ID_5",
+        "attributes": {}
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "mindmap.toggle-fold",
+      "select": [
+        "ID_2"
+      ],
+      "expectFile": "plan.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "mindmap.toggle-fold",
+      "expectFile": "plan.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "mindmap.toggle-fold",
+      "select": [
+        "ID_4"
+      ],
+      "refused": {
+        "reason": "Unknown action 'mindmap.toggle-fold'."
+      },
+      "expectFile": "plan.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (drawing)"
+    }
+  }
+}

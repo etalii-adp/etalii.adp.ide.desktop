@@ -12,5 +12,7 @@ workspace = true
 
 [dependencies]
 adp-atd-check = { path = "../adp-atd-check" }
+adp-atd-syntax = { path = "../adp-atd-syntax" }
 adp-cel = { path = "../adp-cel" }
 adp-history = { path = "../adp-history" }
+serde_json = { version = "1", features = ["preserve_order"] }

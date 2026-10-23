@@ -1,0 +1,16 @@
+atd 0.1
+
+/// A constraint whose rule reads a field its type does not have: the finding is at the field and offers the closest
+/// names.
+diagram example/tasks version "0.1.0" {
+  model {
+    element Task {
+      attribute title: string required
+      attribute done: bool default false
+    }
+  }
+  constraint titled for Task {
+    rule self.titel.trim() != ""
+    message "A task needs a title."
+  }
+}

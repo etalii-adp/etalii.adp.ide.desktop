@@ -1,0 +1,887 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record freeplane/mindmap` from parity/scripts/freeplane/mindmap/example-1.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "freeplane/mindmap",
+  "description": "../../../mindmap.atd",
+  "inputs": {
+    "body": "mindmap.mm",
+    "registration": "mindmap.adp",
+    "design.mm": "design.mm"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "text": "Rendering engine",
+          "folded": "false",
+          "link": "../src/core/Engine.cs"
+        }
+      },
+      {
+        "id": "ID_1guw8w5hp34usdnp25phle3s4",
+        "type": "Node",
+        "parent": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "attributes": {
+          "text": "Scene graph",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_cqa3pgradk667j4k35pr7kgts",
+        "type": "Node",
+        "parent": "ID_1guw8w5hp34usdnp25phle3s4",
+        "attributes": {
+          "text": "Node lifecycle",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_a937863j5r3fjwlgwak0fgiqo",
+        "type": "Node",
+        "parent": "ID_1guw8w5hp34usdnp25phle3s4",
+        "attributes": {
+          "text": "Transforms",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_bdcsfkucxiu7a7ia1rpy4ixtq",
+        "type": "Node",
+        "parent": "ID_1guw8w5hp34usdnp25phle3s4",
+        "attributes": {
+          "text": "Bounding boxes",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_2ls7h8mwx8yobgdtjlzhbsgm0",
+        "type": "Node",
+        "parent": "ID_1guw8w5hp34usdnp25phle3s4",
+        "attributes": {
+          "text": "Hit testing",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_f08i7uiwmzgo6z1whb7ye3hrp",
+        "type": "Node",
+        "parent": "ID_1guw8w5hp34usdnp25phle3s4",
+        "attributes": {
+          "text": "Z-ordering",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_cfszit7hnta23frsv88kmqg1z",
+        "type": "Node",
+        "parent": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "attributes": {
+          "text": "Layout",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_56kq0gezao11kk77h11qmd35j",
+        "type": "Node",
+        "parent": "ID_cfszit7hnta23frsv88kmqg1z",
+        "attributes": {
+          "text": "Measure pass",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_0ryf1obir7ntkbby84jz3kcbn",
+        "type": "Node",
+        "parent": "ID_cfszit7hnta23frsv88kmqg1z",
+        "attributes": {
+          "text": "Arrange pass",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_ar3l23j7ktrbok9ljafioyamz",
+        "type": "Node",
+        "parent": "ID_cfszit7hnta23frsv88kmqg1z",
+        "attributes": {
+          "text": "Incremental relayout on edit",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "type": "Node",
+        "parent": "ID_cfszit7hnta23frsv88kmqg1z",
+        "attributes": {
+          "text": "Constraints",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_7o7qnujtgpeb9b1eqe9xokzgn",
+        "type": "Node",
+        "parent": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "attributes": {
+          "text": "Alignment",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_ez1aq7z5vdbb6be63bx0l45pf",
+        "type": "Node",
+        "parent": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "attributes": {
+          "text": "Spacing",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_dc4nmzrb52ldb33c5jl8fl8hy",
+        "type": "Node",
+        "parent": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "attributes": {
+          "text": "Anchoring",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_70c25zb7brn5jb4yhf7q5kk1q",
+        "type": "Node",
+        "parent": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "attributes": {
+          "text": "Aspect ratio",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_ac6qkn600eah6ncfjkp1fppvb",
+        "type": "Node",
+        "parent": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "attributes": {
+          "text": "Minimum sizes",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_0jkyc0uyotnmbcen585kev647",
+        "type": "Node",
+        "parent": "ID_cfszit7hnta23frsv88kmqg1z",
+        "attributes": {
+          "text": "Overflow handling",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "type": "Node",
+        "parent": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "attributes": {
+          "text": "Rendering pipeline",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_ctln538jyv19c90ma73k8mi2d",
+        "type": "Node",
+        "parent": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "attributes": {
+          "text": "Rasterization",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_ch4kzh4cv3c453c74uefqou4d",
+        "type": "Node",
+        "parent": "ID_ctln538jyv19c90ma73k8mi2d",
+        "attributes": {
+          "text": "Culling",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_ebx3qory5nercb6g9ljf4u2x3",
+        "type": "Node",
+        "parent": "ID_ch4kzh4cv3c453c74uefqou4d",
+        "attributes": {
+          "text": "Frustum tests",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_a47ytjhzn52khh2mdvsl73dgv",
+        "type": "Node",
+        "parent": "ID_ctln538jyv19c90ma73k8mi2d",
+        "attributes": {
+          "text": "Batching",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_08rl6vit3v7a8j71li73jn6sw",
+        "type": "Node",
+        "parent": "ID_ctln538jyv19c90ma73k8mi2d",
+        "attributes": {
+          "text": "Caching",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_89va8he7cvg922e381578w2ls",
+        "type": "Node",
+        "parent": "ID_ctln538jyv19c90ma73k8mi2d",
+        "attributes": {
+          "text": "Dirty regions",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_ekgw89i7db808gat8wz1yzz0h",
+        "type": "Node",
+        "parent": "ID_ctln538jyv19c90ma73k8mi2d",
+        "attributes": {
+          "text": "Antialiasing",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_9o38xbexna2fbd10cf7h1fhho",
+        "type": "Node",
+        "parent": "ID_ctln538jyv19c90ma73k8mi2d",
+        "attributes": {
+          "text": "Text shaping",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_3sttygloaltxrfbjqlbwa23oe",
+        "type": "Node",
+        "parent": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "attributes": {
+          "text": "Export",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_3ie9277i72iwfgn07s97vba6d",
+        "type": "Node",
+        "parent": "ID_3sttygloaltxrfbjqlbwa23oe",
+        "attributes": {
+          "text": "SVG writer",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_3vzd42ia4t4r6unkd5v7vzppa",
+        "type": "Node",
+        "parent": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "attributes": {
+          "text": "Theming",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_6pyv4g6e7ckggtzj0qrs6a0bi",
+        "type": "Node",
+        "parent": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "attributes": {
+          "text": "Animation",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_dkxoogv4iwpipks7c6kdpqssi",
+        "type": "Node",
+        "parent": "ID_6pyv4g6e7ckggtzj0qrs6a0bi",
+        "attributes": {
+          "text": "Easing curves",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_9tcyummco59586fyebfzq2n8t",
+        "type": "Node",
+        "parent": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "attributes": {
+          "text": "Profiling",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_1z8lmh0t5m59d4qdgnded2jtd",
+        "type": "Node",
+        "parent": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "attributes": {
+          "text": "Input handling",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_51ljf5yl355i4knxrpnzmbiar",
+        "type": "Node",
+        "parent": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "attributes": {
+          "text": "Persistence",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_btdpge28u4joa6ni21k7cpe3c",
+        "type": "Node",
+        "parent": "ID_51ljf5yl355i4knxrpnzmbiar",
+        "attributes": {
+          "text": "Autosave",
+          "folded": "false"
+        }
+      },
+      {
+        "id": "ID_74exhpxs1dv7gd5pf0hoouove",
+        "type": "Node",
+        "parent": "ID_btdpge28u4joa6ni21k7cpe3c",
+        "attributes": {
+          "text": "Crash recovery",
+          "folded": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "Branch:ID_5eb2r180uk2p4ys1q0tkiwil6->ID_1guw8w5hp34usdnp25phle3s4",
+        "type": "Branch",
+        "source": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "target": "ID_1guw8w5hp34usdnp25phle3s4",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_1guw8w5hp34usdnp25phle3s4->ID_cqa3pgradk667j4k35pr7kgts",
+        "type": "Branch",
+        "source": "ID_1guw8w5hp34usdnp25phle3s4",
+        "target": "ID_cqa3pgradk667j4k35pr7kgts",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_1guw8w5hp34usdnp25phle3s4->ID_a937863j5r3fjwlgwak0fgiqo",
+        "type": "Branch",
+        "source": "ID_1guw8w5hp34usdnp25phle3s4",
+        "target": "ID_a937863j5r3fjwlgwak0fgiqo",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_1guw8w5hp34usdnp25phle3s4->ID_bdcsfkucxiu7a7ia1rpy4ixtq",
+        "type": "Branch",
+        "source": "ID_1guw8w5hp34usdnp25phle3s4",
+        "target": "ID_bdcsfkucxiu7a7ia1rpy4ixtq",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_1guw8w5hp34usdnp25phle3s4->ID_2ls7h8mwx8yobgdtjlzhbsgm0",
+        "type": "Branch",
+        "source": "ID_1guw8w5hp34usdnp25phle3s4",
+        "target": "ID_2ls7h8mwx8yobgdtjlzhbsgm0",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_1guw8w5hp34usdnp25phle3s4->ID_f08i7uiwmzgo6z1whb7ye3hrp",
+        "type": "Branch",
+        "source": "ID_1guw8w5hp34usdnp25phle3s4",
+        "target": "ID_f08i7uiwmzgo6z1whb7ye3hrp",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_5eb2r180uk2p4ys1q0tkiwil6->ID_cfszit7hnta23frsv88kmqg1z",
+        "type": "Branch",
+        "source": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "target": "ID_cfszit7hnta23frsv88kmqg1z",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_cfszit7hnta23frsv88kmqg1z->ID_56kq0gezao11kk77h11qmd35j",
+        "type": "Branch",
+        "source": "ID_cfszit7hnta23frsv88kmqg1z",
+        "target": "ID_56kq0gezao11kk77h11qmd35j",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_cfszit7hnta23frsv88kmqg1z->ID_0ryf1obir7ntkbby84jz3kcbn",
+        "type": "Branch",
+        "source": "ID_cfszit7hnta23frsv88kmqg1z",
+        "target": "ID_0ryf1obir7ntkbby84jz3kcbn",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_cfszit7hnta23frsv88kmqg1z->ID_ar3l23j7ktrbok9ljafioyamz",
+        "type": "Branch",
+        "source": "ID_cfszit7hnta23frsv88kmqg1z",
+        "target": "ID_ar3l23j7ktrbok9ljafioyamz",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_cfszit7hnta23frsv88kmqg1z->ID_43s3dbv7dz34umql6dwza7lwb",
+        "type": "Branch",
+        "source": "ID_cfszit7hnta23frsv88kmqg1z",
+        "target": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_43s3dbv7dz34umql6dwza7lwb->ID_7o7qnujtgpeb9b1eqe9xokzgn",
+        "type": "Branch",
+        "source": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "target": "ID_7o7qnujtgpeb9b1eqe9xokzgn",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_43s3dbv7dz34umql6dwza7lwb->ID_ez1aq7z5vdbb6be63bx0l45pf",
+        "type": "Branch",
+        "source": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "target": "ID_ez1aq7z5vdbb6be63bx0l45pf",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_43s3dbv7dz34umql6dwza7lwb->ID_dc4nmzrb52ldb33c5jl8fl8hy",
+        "type": "Branch",
+        "source": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "target": "ID_dc4nmzrb52ldb33c5jl8fl8hy",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_43s3dbv7dz34umql6dwza7lwb->ID_70c25zb7brn5jb4yhf7q5kk1q",
+        "type": "Branch",
+        "source": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "target": "ID_70c25zb7brn5jb4yhf7q5kk1q",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_43s3dbv7dz34umql6dwza7lwb->ID_ac6qkn600eah6ncfjkp1fppvb",
+        "type": "Branch",
+        "source": "ID_43s3dbv7dz34umql6dwza7lwb",
+        "target": "ID_ac6qkn600eah6ncfjkp1fppvb",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_cfszit7hnta23frsv88kmqg1z->ID_0jkyc0uyotnmbcen585kev647",
+        "type": "Branch",
+        "source": "ID_cfszit7hnta23frsv88kmqg1z",
+        "target": "ID_0jkyc0uyotnmbcen585kev647",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_5eb2r180uk2p4ys1q0tkiwil6->ID_atstvbrrkv6i03q4lscue6ugo",
+        "type": "Branch",
+        "source": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "target": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_atstvbrrkv6i03q4lscue6ugo->ID_ctln538jyv19c90ma73k8mi2d",
+        "type": "Branch",
+        "source": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "target": "ID_ctln538jyv19c90ma73k8mi2d",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_ctln538jyv19c90ma73k8mi2d->ID_ch4kzh4cv3c453c74uefqou4d",
+        "type": "Branch",
+        "source": "ID_ctln538jyv19c90ma73k8mi2d",
+        "target": "ID_ch4kzh4cv3c453c74uefqou4d",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_ch4kzh4cv3c453c74uefqou4d->ID_ebx3qory5nercb6g9ljf4u2x3",
+        "type": "Branch",
+        "source": "ID_ch4kzh4cv3c453c74uefqou4d",
+        "target": "ID_ebx3qory5nercb6g9ljf4u2x3",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_ctln538jyv19c90ma73k8mi2d->ID_a47ytjhzn52khh2mdvsl73dgv",
+        "type": "Branch",
+        "source": "ID_ctln538jyv19c90ma73k8mi2d",
+        "target": "ID_a47ytjhzn52khh2mdvsl73dgv",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_ctln538jyv19c90ma73k8mi2d->ID_08rl6vit3v7a8j71li73jn6sw",
+        "type": "Branch",
+        "source": "ID_ctln538jyv19c90ma73k8mi2d",
+        "target": "ID_08rl6vit3v7a8j71li73jn6sw",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_ctln538jyv19c90ma73k8mi2d->ID_89va8he7cvg922e381578w2ls",
+        "type": "Branch",
+        "source": "ID_ctln538jyv19c90ma73k8mi2d",
+        "target": "ID_89va8he7cvg922e381578w2ls",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_ctln538jyv19c90ma73k8mi2d->ID_ekgw89i7db808gat8wz1yzz0h",
+        "type": "Branch",
+        "source": "ID_ctln538jyv19c90ma73k8mi2d",
+        "target": "ID_ekgw89i7db808gat8wz1yzz0h",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_ctln538jyv19c90ma73k8mi2d->ID_9o38xbexna2fbd10cf7h1fhho",
+        "type": "Branch",
+        "source": "ID_ctln538jyv19c90ma73k8mi2d",
+        "target": "ID_9o38xbexna2fbd10cf7h1fhho",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_atstvbrrkv6i03q4lscue6ugo->ID_3sttygloaltxrfbjqlbwa23oe",
+        "type": "Branch",
+        "source": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "target": "ID_3sttygloaltxrfbjqlbwa23oe",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_3sttygloaltxrfbjqlbwa23oe->ID_3ie9277i72iwfgn07s97vba6d",
+        "type": "Branch",
+        "source": "ID_3sttygloaltxrfbjqlbwa23oe",
+        "target": "ID_3ie9277i72iwfgn07s97vba6d",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_atstvbrrkv6i03q4lscue6ugo->ID_3vzd42ia4t4r6unkd5v7vzppa",
+        "type": "Branch",
+        "source": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "target": "ID_3vzd42ia4t4r6unkd5v7vzppa",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_atstvbrrkv6i03q4lscue6ugo->ID_6pyv4g6e7ckggtzj0qrs6a0bi",
+        "type": "Branch",
+        "source": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "target": "ID_6pyv4g6e7ckggtzj0qrs6a0bi",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_6pyv4g6e7ckggtzj0qrs6a0bi->ID_dkxoogv4iwpipks7c6kdpqssi",
+        "type": "Branch",
+        "source": "ID_6pyv4g6e7ckggtzj0qrs6a0bi",
+        "target": "ID_dkxoogv4iwpipks7c6kdpqssi",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_atstvbrrkv6i03q4lscue6ugo->ID_9tcyummco59586fyebfzq2n8t",
+        "type": "Branch",
+        "source": "ID_atstvbrrkv6i03q4lscue6ugo",
+        "target": "ID_9tcyummco59586fyebfzq2n8t",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_5eb2r180uk2p4ys1q0tkiwil6->ID_1z8lmh0t5m59d4qdgnded2jtd",
+        "type": "Branch",
+        "source": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "target": "ID_1z8lmh0t5m59d4qdgnded2jtd",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_5eb2r180uk2p4ys1q0tkiwil6->ID_51ljf5yl355i4knxrpnzmbiar",
+        "type": "Branch",
+        "source": "ID_5eb2r180uk2p4ys1q0tkiwil6",
+        "target": "ID_51ljf5yl355i4knxrpnzmbiar",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_51ljf5yl355i4knxrpnzmbiar->ID_btdpge28u4joa6ni21k7cpe3c",
+        "type": "Branch",
+        "source": "ID_51ljf5yl355i4knxrpnzmbiar",
+        "target": "ID_btdpge28u4joa6ni21k7cpe3c",
+        "attributes": {}
+      },
+      {
+        "id": "Branch:ID_btdpge28u4joa6ni21k7cpe3c->ID_74exhpxs1dv7gd5pf0hoouove",
+        "type": "Branch",
+        "source": "ID_btdpge28u4joa6ni21k7cpe3c",
+        "target": "ID_74exhpxs1dv7gd5pf0hoouove",
+        "attributes": {}
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "mindmap.add-child",
+      "args": {
+        "value": "Culling helpers"
+      },
+      "select": [
+        "ID_1guw8w5hp34usdnp25phle3s4"
+      ],
+      "ids": [
+        "ID_7w0itn6r5ibqgk8q7ifapvulm"
+      ],
+      "expectFile": "after-1.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "mindmap.add-sibling",
+      "args": {
+        "value": "Physics"
+      },
+      "ids": [
+        "ID_d0e6nrsnd00g33qyexmxh4uim"
+      ],
+      "expectFile": "after-2.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "mindmap.add-child",
+      "args": {
+        "value": "Rigid bodies"
+      },
+      "select": [
+        "ID_d0e6nrsnd00g33qyexmxh4uim"
+      ],
+      "ids": [
+        "ID_4pu02b1ii8a19pqau6e674d2t"
+      ],
+      "expectFile": "after-3.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "mindmap.add-child",
+      "ids": [
+        "ID_3xhnier0zm6riius1ipbnndy2"
+      ],
+      "expectFile": "after-4.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "element": "ID_3xhnier0zm6riius1ipbnndy2",
+        "attribute": "Text",
+        "value": "Soft bodies"
+      },
+      "expectFile": "after-5.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "property": {
+        "element": "ID_3xhnier0zm6riius1ipbnndy2",
+        "attribute": "Notes",
+        "value": "Cloth and ropes."
+      },
+      "expectFile": "after-6.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "mindmap.rename",
+      "args": {
+        "value": "Node lifecycle & pooling"
+      },
+      "select": [
+        "ID_cqa3pgradk667j4k35pr7kgts"
+      ],
+      "expectFile": "after-7.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "mindmap.edit-notes",
+      "args": {
+        "value": "Nodes are pooled, never freed mid-frame."
+      },
+      "expectFile": "after-8.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "move": {
+        "element": "ID_a937863j5r3fjwlgwak0fgiqo",
+        "parent": "ID_d0e6nrsnd00g33qyexmxh4uim"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"ID_a937863j5r3fjwlgwak0fgiqo\"],\"parent\":\"ID_d0e6nrsnd00g33qyexmxh4uim\",\"index\":0}",
+      "expectFile": "after-9.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "mindmap.delete",
+      "select": [
+        "ID_f08i7uiwmzgo6z1whb7ye3hrp"
+      ],
+      "expectFile": "after-10.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-9.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-10.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "mindmap.delete",
+      "args": {
+        "confirm": true
+      },
+      "select": [
+        "ID_43s3dbv7dz34umql6dwza7lwb"
+      ],
+      "expectFile": "after-11.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-10.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "property": {
+        "element": "ID_1z8lmh0t5m59d4qdgnded2jtd",
+        "attribute": "Link",
+        "value": "design.mm"
+      },
+      "expectFile": "after-12.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "mindmap.unlink",
+      "select": [
+        "ID_5eb2r180uk2p4ys1q0tkiwil6"
+      ],
+      "expectFile": "after-13.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-10.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-12.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "action": "mindmap.link",
+      "args": {
+        "value": "design.mm"
+      },
+      "select": [
+        "ID_3vzd42ia4t4r6unkd5v7vzppa"
+      ],
+      "expectFile": "after-14.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "property": {
+        "element": "ID_51ljf5yl355i4knxrpnzmbiar",
+        "attribute": "Text",
+        "value": "Storage"
+      },
+      "expectFile": "after-15.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "move": {
+        "element": "ID_btdpge28u4joa6ni21k7cpe3c",
+        "parent": "ID_1z8lmh0t5m59d4qdgnded2jtd"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"ID_btdpge28u4joa6ni21k7cpe3c\"],\"parent\":\"ID_1z8lmh0t5m59d4qdgnded2jtd\",\"index\":-1}",
+      "expectFile": "after-16.mm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/freeplane/mindmap/example-1/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "567ab55",
+      "source": "atd record (drawing)"
+    }
+  }
+}

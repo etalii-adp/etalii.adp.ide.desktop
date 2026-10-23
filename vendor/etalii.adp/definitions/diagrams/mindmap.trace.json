@@ -1,0 +1,171 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "freeplane/mindmap",
+  "description": "mindmap.atd",
+  "companion": {
+    "file": "mindmap.md",
+    "sections": [
+      "13. What DISL still lacks for this type"
+    ]
+  },
+  "items": [
+    {
+      "id": "13-what-disl-still-lacks-for-this-type/1",
+      "text": "**A tree layout with sides**",
+      "statedBy": "capability layout.twoSidedTree"
+    },
+    {
+      "id": "13-what-disl-still-lacks-for-this-type/2",
+      "text": "**Containment drawn as edges**",
+      "statedBy": "relation Branch"
+    },
+    {
+      "id": "13-what-disl-still-lacks-for-this-type/3",
+      "text": "**Positional `create`**",
+      "statedBy": "operation addSibling"
+    },
+    {
+      "id": "13-what-disl-still-lacks-for-this-type/4",
+      "text": "**Several shortcuts for one entry**",
+      "hostConcern": "gestures",
+      "reason": "Tab as a second key of Add child is the host's keyboard convention (XMind's), which it maps onto the entry's one shortcut, Insert; a context tool states one shortcut, as DISL's entries do."
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-diagram/src/sibling_naming.rs",
+      "lines": "12-101",
+      "behaviour": "A new node is named from its siblings: one past the highest number of the numbered stem most of them share, else `New` and a last word at least two share, else `Node`, made unique ignoring case.",
+      "statedBy": "fn siblingName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/actions.rs",
+      "lines": "196-232",
+      "behaviour": "Add child and Add sibling create the node at once under the sibling name, a child as the last child and a sibling right after the node, then ask for its text in place.",
+      "statedBy": "operation addSibling"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/actions.rs",
+      "lines": "138-146",
+      "behaviour": "Add child runs on any node; Add sibling is refused on the central topic.",
+      "statedBy": "operation addChild"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/actions.rs",
+      "lines": "154-168",
+      "behaviour": "Deleting a leaf goes without asking; deleting a branch asks first, with the words of the specification's deletion confirmation.",
+      "statedBy": "behavior"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/actions.rs",
+      "lines": "169-174",
+      "behaviour": "Collapsing and expanding is the viewer's own state: nothing is written and nothing lands on the history.",
+      "statedBy": "operation toggleFold"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/actions.rs",
+      "lines": "175-181",
+      "behaviour": "Notes are edited in a prompt and written as one edit.",
+      "statedBy": "operation editNotes"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/actions.rs",
+      "lines": "182-190",
+      "behaviour": "Link to offers the project's files and folders, skipping `.git`, `node_modules`, `bin`, `obj` and `.claude`, and Unlink removes the link.",
+      "statedBy": "operation link"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/layout.rs",
+      "lines": "118-239",
+      "behaviour": "The central topic is centred on the origin, its first-level branches split to its right and left as their POSITION says or alternately from the right, each list of siblings a column centred on its parent, with gaps of at least 10 and 48 growing to a tenth of the wider box; collapsed branches take no room.",
+      "statedBy": "capability layout.twoSidedTree"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/layout.rs",
+      "lines": "22-82",
+      "behaviour": "A node is measured with a 14 font at 0.55 per UTF-16 code unit and a 1.4 line, padded 10 and 6, at least 32 wide, rounded to two decimals.",
+      "statedBy": "notation node Node size"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/document.rs",
+      "lines": "66-102",
+      "behaviour": "A body is a map only when it is well-formed XML whose element is `<map>` holding exactly one `<node>`; a carriage return is kept as written, so a Windows save comes back byte for byte.",
+      "statedBy": "binding freeplane header"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/document.rs",
+      "lines": "176-212",
+      "behaviour": "A node's id is its `ID`, its text its `TEXT` or the plain text of a `richcontent TYPE=\"NODE\"`, its notes the plain text of a `richcontent TYPE=\"NOTE\"`, its link `LINK`, its folded flag `FOLDED`, its side `POSITION`.",
+      "statedBy": "binding freeplane element node"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/document.rs",
+      "lines": "123-142",
+      "behaviour": "A new map is a `<map>` holding one central topic named after the file.",
+      "statedBy": "binding freeplane template"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/plugin.rs",
+      "lines": "53-123",
+      "behaviour": "Every `<node>` is read as a Node with its parent and place; a later holder of an id the file gives twice is read under an ephemeral id and keeps what the file writes as `storedId`.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/validator.rs",
+      "lines": "21-71",
+      "behaviour": "A map's findings are its specification's constraints over what the reader read, a body that is not a map giving only `mindmap.not-a-map`, and a duplicate id named by what the file writes.",
+      "statedBy": "builtin std.unparseable"
+    },
+    {
+      "host": "intellij",
+      "repository": "etalii.adp.ide.intellij",
+      "commit": "255c57c",
+      "path": "freemind/src/main/java/etalii/adp/freemind/ui/FreeMindMapping.java",
+      "lines": "345-365",
+      "behaviour": "Folding a branch writes `FOLDED` into the file as an undoable edit, and a rename stamps `MODIFIED`.",
+      "divergesFrom": "operation toggleFold"
+    }
+  ]
+}

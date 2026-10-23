@@ -1,0 +1,167 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "ID_1",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "Plan",
+          "font": "12 400 system-ui, sans-serif",
+          "position": {
+            "x": 60,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#E2E8F0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "ID_2",
+        "ID_2\u00002"
+      ]
+    },
+    {
+      "id": "ID_2",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 102.65,
+        "y": 0,
+        "w": 120,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "Scope",
+          "font": "12 400 system-ui, sans-serif",
+          "position": {
+            "x": 162.65,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#E2E8F0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "ID_2\u00002",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": -106.5,
+        "y": 0,
+        "w": 120,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "Budget",
+          "font": "12 400 system-ui, sans-serif",
+          "position": {
+            "x": -46.5,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#E2E8F0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "Branch:ID_1->ID_2",
+      "type": "Branch",
+      "source": "ID_1",
+      "target": "ID_2",
+      "route": [
+        {
+          "x": 120,
+          "y": 20
+        },
+        {
+          "x": 102.65,
+          "y": 20
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#E2E8F0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "Branch:ID_1->ID_2\u00002",
+      "type": "Branch",
+      "source": "ID_1",
+      "target": "ID_2\u00002",
+      "route": [
+        {
+          "x": 0,
+          "y": 20
+        },
+        {
+          "x": 13.5,
+          "y": 20
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#E2E8F0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "Branch:ID_1->ID_2",
+    "Branch:ID_1->ID_2\u00002",
+    "ID_1",
+    "ID_2",
+    "ID_2\u00002"
+  ]
+}

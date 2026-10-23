@@ -1,0 +1,173 @@
+atd 0.1
+part of freeplane/mindmap
+
+// The mind map's coordinates, notation, toolbox, form and layout, in a part of their own (ATD §5.2).
+
+/// One free pixel canvas without grid or snapping. The central topic's centre is the origin; every position is computed
+/// by the layout.
+coordinates {
+  system canvas { kind: cartesian, x: { kind: linear, unit: px }, y: { kind: linear, unit: px }, orientation: y-down, grid: { visible: false } }
+  default canvas
+}
+
+notation {
+  theme {
+    tokens: { color.surface: "#FFFFFF", color.border: "#E2E8F0", color.text: "#0F172A", color.primary: limegreen, font.body: "system-ui, sans-serif" }
+    modes: { dark: { color.surface: "#1E293B", color.border: "#334155", color.text: "#F1F5F9" } }
+    defaultMode: light
+    followSystem: true
+  }
+  /// The metric the layout measures a node's text with (mindmap.md §4): textWidth = characters × 14 × 0.55, a character
+  /// being a UTF-16 code unit, and a line 14 × 1.4 high, so every host sizes and lays out a map alike.
+  textMetric: { kind: average, advance: 0.55, count: utf16, lineHeight: 1.4 }
+
+  style node {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1.5 }
+    font: { family: $font.body, size: 12, color: $color.text }
+    padding: [6, 10]
+    cursor: pointer
+  }
+  style branch {
+    stroke: { color: $color.border, width: 1.5 }
+  }
+
+  /// A rectangle with corners rounded by 6, as an SVG `rect` with `rx` 6 draws it: each radius is at most half its side,
+  /// so a box narrower or lower than 12 has elliptical corners. The node's position is its centre (`placement.anchor`).
+  shape topicBox {
+    label: "Topic box"
+    path: {
+      segments: [
+        { op: M, x: (min(6.0, w / 2.0)), y: 0 },
+        { op: L, x: (w - min(6.0, w / 2.0)), y: 0 },
+        { op: A, rx: (min(6.0, w / 2.0)), ry: (min(6.0, h / 2.0)), rotation: 0, largeArc: false, sweep: true, x: (w), y: (min(6.0, h / 2.0)) },
+        { op: L, x: (w), y: (h - min(6.0, h / 2.0)) },
+        { op: A, rx: (min(6.0, w / 2.0)), ry: (min(6.0, h / 2.0)), rotation: 0, largeArc: false, sweep: true, x: (w - min(6.0, w / 2.0)), y: (h) },
+        { op: L, x: (min(6.0, w / 2.0)), y: (h) },
+        { op: A, rx: (min(6.0, w / 2.0)), ry: (min(6.0, h / 2.0)), rotation: 0, largeArc: false, sweep: true, x: 0, y: (h - min(6.0, h / 2.0)) },
+        { op: L, x: 0, y: (min(6.0, h / 2.0)) },
+        { op: A, rx: (min(6.0, w / 2.0)), ry: (min(6.0, h / 2.0)), rotation: 0, largeArc: false, sweep: true, x: (min(6.0, w / 2.0)), y: 0 },
+        { op: Z }
+      ]
+    }
+  }
+
+  /// A box with rounded corners sized to its text, the text centred and the corner glyphs top right. A double-click
+  /// does nothing of its own; the text is edited in place through Rename (F2). A branch leaves and reaches a node at the
+  /// middle of its left or right side.
+  node Node {
+    shape topicBox
+    style: node
+    /// The size the layout measures a node at (mindmap.md §4): max(32, textWidth + 20) wide and 14 × 1.4 + 12 = 31.6
+    /// high, rounded to two decimals. The text is drawn at 12 while it is measured at 14, so a box has more room than
+    /// its text needs (mindmap.md §6); the hosts have always drawn it so.
+    size: {
+      min: [32, 31.6]
+      width: (math.round(max(32.0, textWidth(self.text, 14.0) + 20.0) * 100.0) / 100.0)
+      height: (textHeight(1, 14.0) + 12.0)
+      resizable: false
+    }
+    placement: {
+      x: { layout: true }
+      y: { layout: true }
+      anchor: center
+      movable: true
+      resizable: false
+      doc: "Positions come from the layout. A node can be dragged: dropping it on another node makes it that node's last child, and dropping it on empty canvas does nothing. The drag never writes a position."
+    }
+    label @text as text { editable: inline, position: center, wrap: none }
+    label (indicators(self)) as indicators {
+      visible: (indicators(self) != "")
+      position: { anchor: [1, 0], offset: [-4, 12], align: end }
+      doc: "The corner glyphs (`indicators`), right-aligned 4 inside the right edge, 12 below the top."
+    }
+    anchors: { mode: sides, sides: [left, right] }
+    container: { layout: "layout:mindmap", clip: false, collapsible: true, highlightOnDrop: true }
+    state dragging { opacity: 0.65 }
+    state dropTarget { stroke: { color: $color.primary, width: 2.5, dash: [6, 3], dashScale: absolute } }
+    deletable: (self.parent != null)
+    doubleClick: none
+  }
+
+  /// A smooth curve from the facing side of the parent to the facing side of the child, under the boxes, with no
+  /// arrowheads.
+  edge Branch {
+    line { stroke: { color: $color.border, width: 1.5 }, routing: bezier, bendpoints: { editable: false }, startDirection: auto, endDirection: auto }
+    style: branch
+    marker source none
+    marker target none
+    anchoring: { source: { mode: sides }, target: { mode: sides } }
+    selectable: false
+    deletable: false
+    reconnectable: false
+    layer: belowNodes
+  }
+
+  canvas { background: $color.surface }
+}
+
+/// One tool: a node, dropped on the node that becomes its parent. Everything else is on the selected node's context
+/// menu and keyboard.
+toolbox {
+  generic: { select: true, pan: true }
+  searchable: false
+  group mindmap "Mind map" {
+    /// Drop on a node to add a child under it: the node under the drop is the operation's `self`, and a drop on empty
+    /// canvas does nothing (mindmap.md §7.5).
+    tool node "Node" { kind: operation, operation: addChild, icon: "mdi-card-plus-outline", mode: drop }
+  }
+  /// Three groups: the structure (add, rename, delete), the content (notes and link) and the view (expand or collapse).
+  /// An entry that does not apply is left out rather than greyed: the central topic has no sibling and cannot be
+  /// deleted, an unlinked node has nothing to unlink, a leaf has nothing to collapse. Expand and Collapse are one
+  /// operation with two faces; which one shows follows this viewer's collapsed state.
+  context for Node {
+    placement: menu
+    standardEntries: false
+    tool "Add child" { kind: operation, operation: addChild, group: structure, icon: "mdi-subdirectory-arrow-right", shortcut: "Insert" }
+    tool "Add sibling" { kind: operation, operation: addSibling, group: structure, icon: "mdi-plus", shortcut: "Enter", visible: (self.parent != null) }
+    tool "Rename…" { kind: editLabel, group: structure, icon: "mdi-pencil-outline", shortcut: "F2" }
+    tool "Delete" { kind: delete, group: structure, icon: "mdi-trash-can-outline", shortcut: "Delete", visible: (self.parent != null) }
+    tool { kind: operation, operation: editNotes, group: content, label: (self.notes != "" ? "Edit notes…" : "Add notes…"), icon: "mdi-note-text-outline" }
+    tool { kind: operation, operation: link, group: content, label: (has(self.link) ? "Change link…" : "Link to…"), icon: "mdi-link-variant" }
+    tool "Unlink" { kind: operation, operation: unlink, group: content, icon: "mdi-link-variant-off", visible: (has(self.link)) }
+    tool "Expand" { kind: operation, operation: toggleFold, group: view, icon: "mdi-unfold-more-horizontal", shortcut: "Space", visible: (self.children.size() > 0 && self.view.collapsed) }
+    tool "Collapse" { kind: operation, operation: toggleFold, group: view, icon: "mdi-unfold-less-horizontal", shortcut: "Space", visible: (self.children.size() > 0 && !self.view.collapsed) }
+  }
+}
+
+form nodeProperties "Mind map node" for Node {
+  usage: [inspector]
+  field text { widget: text }
+  field notes { widget: textarea, rows: 4 }
+  field link { widget: text, placeholder: "Empty to unlink", doc: "An emptied link is an unlink." }
+  section view "View" {
+    item folded "Collapsed" {
+      kind: computed
+      value: (self.folded ? "Yes" : "No")
+      visible: (self.children.size() > 0)
+      readOnlyReasons: ["Collapsing is a view setting rather than part of the document, so it is not undoable. Collapse from the canvas or the context menu."]
+      doc: "The file's FOLDED flag, which seeds each viewer's collapsed state; shown only for a node with children."
+    }
+  }
+  section model "Model" {
+    item identifier "Identifier" {
+      kind: computed
+      value: (self.id)
+      readOnlyReasons: ["Freeplane gives every node its identifier and other files may link to it, so it is not ours to change."]
+    }
+  }
+}
+
+/// The conventional two-sided mind map (mindmap.md §4): the central topic centred at the origin, first-level branches
+/// split to its right and left (a `POSITION` decides, else they alternate from the right), each subtree a column
+/// centred on its parent, depth as distance from the centre; collapsed branches take no space. The capability's
+/// arguments are the layout's gaps: at least 10 between sibling subtrees and 48 between a node and its children, each
+/// growing to a tenth of the wider box.
+layout {
+  default mindmap
+  algorithm mindmap capability layout.twoSidedTree { spacing: 10, levelGap: 48, minimumGapRatio: 0.1, side: (self.position) }
+  trigger: always
+  respect: none
+  incremental: false
+  animate: false
+}

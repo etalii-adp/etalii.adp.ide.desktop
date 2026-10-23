@@ -168,3 +168,39 @@ fn the_oldest_change_falls_off_past_the_capacity() {
     );
     assert_eq!(model, ["a"]);
 }
+
+#[test]
+fn a_change_applied_already_is_recorded_as_one_step() {
+    let (mut model, mut history) = (Words::new(), History::default());
+    history.execute(&mut model, &Append("a"));
+    history.undo(&mut model);
+    assert_eq!(history.availability().redo_count, 1);
+
+    // A script's transaction: its commands applied one by one, their inverses kept, recorded at the end.
+    let mut inverses: Vec<Box<dyn Command<Words>>> = Vec::new();
+    for word in ["b", "c"] {
+        inverses.push(Append(word).apply(&mut model).unwrap().inverse.unwrap());
+    }
+    inverses.reverse();
+    let applied = Applied {
+        inverse: Some(Box::new(Composite::new("Add b and c", inverses)) as Box<dyn Command<Words>>),
+        warning: String::new(),
+    };
+    assert_eq!(
+        history.record("Add b and c", applied),
+        Outcome::Done {
+            label: "Add b and c".into(),
+            warning: String::new()
+        }
+    );
+    let availability = history.availability();
+    assert_eq!(
+        (availability.undo_count, availability.redo_count),
+        (1, 0),
+        "the redo side is gone"
+    );
+    assert!(history.undo(&mut model).is_done());
+    assert!(model.is_empty());
+    assert!(history.redo(&mut model).is_done());
+    assert_eq!(model, ["b", "c"]);
+}
