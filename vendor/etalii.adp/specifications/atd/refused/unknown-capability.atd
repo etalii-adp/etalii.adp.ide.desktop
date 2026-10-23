@@ -1,0 +1,11 @@
+atd 0.1
+
+/// A capability that is not in the catalogue of ATD §13.
+diagram example/tree version "0.1.0" {
+  requires capability layout.radialTree@^1
+  model {
+    element Node {
+      contains Node ordered
+    }
+  }
+}

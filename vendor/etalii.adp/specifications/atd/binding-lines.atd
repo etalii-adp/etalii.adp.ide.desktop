@@ -1,0 +1,49 @@
+atd 0.1
+
+/// Variables and the links between them, one statement per line: the `lines` family, as the causal loop diagram's
+/// `.cld` files are read (FBL's `causal-loop-diagram.fbl`, trimmed).
+diagram example/influence version "0.1.0" {
+  label "Influence diagram"
+
+  model {
+    element Variable {
+      attribute name: string required
+      attribute label: string
+      labelAttribute: name
+    }
+    element Link {
+      attribute from: Variable required
+      attribute to: Variable required
+    }
+    relation Influence from Variable to Variable {
+      derived: (diagram.nodes.filter(n, n.type == "Link").map(l, {'source': l.from, 'target': l.to}))
+    }
+  }
+
+  notation {
+    node Variable { shape ellipse  label @name }
+    edge Influence { line { routing: bezier }  marker target arrow }
+  }
+
+  binding cld family lines {
+    label "Influence diagram"
+    claims files "*.cld"
+    text { newline: crlf, finalNewline: true }
+    comment: r"^\s*#"
+    unmatched: report
+
+    element Variable as variable line r"^\s*variable\s+(?<name>[^\s]+)(?:\s+(?<label>\x22[^\x22]*\x22))?\s*$" {
+      attribute name from group "name" { empty: refuse }
+      attribute label from group "label" { empty: remove }
+      insert { place: after-last, emit: "variable {name}[ \"{label}\"]" }
+      remove { cascade: [link] }
+    }
+
+    element Link as link line r"^\s*link\s+(?<from>[^\s]+)\s+->\s+(?<to>[^\s]+)\s*$" {
+      attribute from from group "from" { references variable by name }
+      attribute to from group "to" { references variable by name }
+      insert { place: after-last, emit: "link {from} -> {to}" }
+      remove {}
+    }
+  }
+}

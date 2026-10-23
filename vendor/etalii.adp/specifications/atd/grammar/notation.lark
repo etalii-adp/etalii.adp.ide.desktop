@@ -1,0 +1,29 @@
+// ATD 0.1, module notation: ATD grammar notation as a grammar (ATD §4), so that a binding can carry a grammar
+// (FBL 0.9's grammar family, ATD §11.9). A definition starts with its name and colon as one token, so that
+// definitions need no line ends to separate them.
+// Uses from core: name, KEY, STRING, NAME, INT.
+
+grammar_text: grammar_item*
+
+?grammar_item: KEY grammar_alternatives -> grammar_definition
+             | INLINE_HEAD grammar_alternatives -> grammar_inline_definition
+             | PRIORITY_HEAD grammar_alternatives -> grammar_terminal_definition
+             | "%ignore" NAME -> grammar_ignore
+             | "%import" "." name ("." name)* "(" name ("," name)* ")" -> grammar_import
+
+grammar_alternatives: grammar_alternative ("|" grammar_alternative)*
+grammar_alternative: grammar_item_expression* ["->" NAME]
+?grammar_item_expression: grammar_atom
+                        | grammar_atom "?" -> grammar_optional
+                        | grammar_atom "*" -> grammar_star
+                        | grammar_atom "+" -> grammar_plus
+?grammar_atom: "(" grammar_alternatives ")"
+             | "[" grammar_alternatives "]" -> grammar_maybe
+             | NAME -> grammar_reference
+             | STRING -> grammar_string
+             | REGEXP -> grammar_regexp
+
+INLINE_HEAD: /\?[a-z_][a-z0-9_]*[ \t]*:/
+PRIORITY_HEAD: /_?[A-Z][A-Z0-9_]*\.[0-9]+[ \t]*:/
+// A regular expression between slashes; it never starts with `*`, so that `/*` always opens a comment.
+REGEXP: /\/([^\/\\\n\r*]|\\[^\n\r])([^\/\\\n\r]|\\[^\n\r])*\//

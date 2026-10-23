@@ -1,0 +1,18 @@
+atd 0.1
+
+/// A rule whose parent names a rule the binding does not have.
+diagram example/outline version "0.1.0" {
+  model {
+    element Item {
+      attribute text: string required
+      contains Item ordered
+    }
+  }
+  binding outline family yaml {
+    claims files "*.outline.yaml"
+    element Item as item at "/items/*" {
+      parent iten slot children
+      attribute text from key "text"
+    }
+  }
+}

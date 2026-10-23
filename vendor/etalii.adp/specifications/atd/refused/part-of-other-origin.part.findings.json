@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Findings",
+  "findings": [
+    {
+      "code": "ATD2007",
+      "severity": "error",
+      "file": "part-of-other-origin.part.atd",
+      "line": 2,
+      "column": 9,
+      "message": "This part says it is part of `example/two`, but `part-of-other-origin.atd` imports it into `example/one`."
+    }
+  ]
+}

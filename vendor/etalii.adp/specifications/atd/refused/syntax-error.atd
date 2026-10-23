@@ -1,0 +1,10 @@
+atd 0.1
+
+/// An attribute without its type: the finding names what was found and what was expected (ATD §15.3).
+diagram example/broken version "0.1.0" {
+  model {
+    element Task {
+      attribute name required
+    }
+  }
+}

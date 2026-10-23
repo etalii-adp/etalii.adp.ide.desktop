@@ -146,6 +146,89 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-atd-check"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-syntax",
+ "jsonschema",
+ "serde_json",
+]
+
+[[package]]
+name = "adp-atd-cli"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-check",
+ "adp-atd-format",
+ "adp-atd-grammar",
+ "adp-atd-syntax",
+ "jsonschema",
+ "serde_json",
+]
+
+[[package]]
+name = "adp-atd-format"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-syntax",
+]
+
+[[package]]
+name = "adp-atd-grammar"
+version = "1.0.0"
+dependencies = [
+ "adp-cel",
+ "regex",
+ "regex-automata",
+]
+
+[[package]]
+name = "adp-atd-lsp"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-check",
+ "adp-atd-format",
+ "adp-atd-syntax",
+ "lsp-server",
+ "serde_json",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "adp-atd-runtime"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-script",
+]
+
+[[package]]
+name = "adp-atd-script"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-check",
+ "adp-cel",
+ "adp-history",
+]
+
+[[package]]
+name = "adp-atd-syntax"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-grammar",
+ "jsonschema",
+ "regex",
+ "serde_json",
+ "syntect",
+]
+
+[[package]]
+name = "adp-atd-validate"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-runtime",
+]
+
+[[package]]
 name = "adp-cel"
 version = "1.0.0"
 dependencies = [
@@ -735,6 +818,8 @@ name = "adp-shell"
 version = "1.0.0"
 dependencies = [
  "adp-add",
+ "adp-atd-check",
+ "adp-atd-lsp",
  "adp-cel",
  "adp-context",
  "adp-core",
@@ -776,6 +861,7 @@ dependencies = [
  "adp-text",
  "adp-theme",
  "eframe",
+ "lsp-server",
  "png",
  "rfd",
  "serde_json",
@@ -1567,6 +1653,15 @@ checksum = "d8d80a2f4f5b554395e47b5d8305bc3d27813bacb73493eb1001e8f76dae29ea"
 dependencies = [
  "cast",
  "itertools 0.13.0",
+]
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98b0cc327b5bc766e7fda9c9260cc0fa81b43a8e240440422dff70788e3f9ef1"
+dependencies = [
+ "crossbeam-utils",
 ]
 
 [[package]]
@@ -2897,6 +2992,19 @@ name = "log"
 version = "0.4.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
+
+[[package]]
+name = "lsp-server"
+version = "0.7.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d6ada348dbc2703cbe7637b2dda05cff84d3da2819c24abcb305dd613e0ba2e"
+dependencies = [
+ "crossbeam-channel",
+ "log",
+ "serde",
+ "serde_derive",
+ "serde_json",
+]
 
 [[package]]
 name = "memchr"

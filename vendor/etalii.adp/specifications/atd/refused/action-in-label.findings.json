@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Findings",
+  "findings": [
+    {
+      "code": "ATD7002",
+      "severity": "error",
+      "file": "action-in-label.atd",
+      "line": 11,
+      "column": 27,
+      "message": "`bump` changes the model (`set` at line 14), so it cannot be called from a label, which only reads."
+    }
+  ]
+}

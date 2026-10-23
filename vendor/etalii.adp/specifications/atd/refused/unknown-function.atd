@@ -1,0 +1,17 @@
+atd 0.1
+
+/// A call of a function neither CEL's library nor the description declares.
+diagram example/tasks version "0.1.0" {
+  model {
+    element Task {
+      attribute title: string required
+    }
+  }
+  constraint titled for Task {
+    rule nonBlank(self.title)
+    message "A task needs a title."
+  }
+  fn notBlank(text: string) -> bool {
+    return text.trim() != ""
+  }
+}

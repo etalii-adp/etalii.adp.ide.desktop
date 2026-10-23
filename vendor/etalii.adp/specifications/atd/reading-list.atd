@@ -1,0 +1,117 @@
+atd 0.1
+
+/// A reading list, one row per book, with text and number fields and one view: DESL's smallest example
+/// (`minimal-table.des` and `minimal-table.fbl`) as a designer in ATD.
+designer example/reading-list version "0.1.0" {
+  label "Reading list"
+
+  model {
+    element Field {
+      attribute name: string required
+      attribute valueType: ValueType required
+      labelAttribute: name
+    }
+    element View {
+      attribute name: string required
+      labelAttribute: name
+    }
+    element Book {
+      contains Value ordered
+      contains Value as values
+    }
+    element Value {
+      attribute field: Field required
+      attribute text: text
+      attribute number: number
+    }
+    enum ValueType {
+      text { label: "Text" }
+      number { label: "Number" }
+    }
+  }
+
+  persistence {
+    ids: { strategy: "uuid-v4", encoding: base36, types: { Value: { strategy: derived, expression: (self.parent.id + "/" + self.field.id) } } }
+  }
+
+  constraint uniqueFieldNames for Field {
+    rule document.elementsOfType("Field").filter(f, f.name == self.name).size() == 1
+    severity error
+    message "Two fields have this name."
+    code: "reading-list.duplicate-field-name"
+  }
+
+  surface table {
+    columns Field { name: name, valueType: valueType }
+    rows Book
+    cells Value { column: field }
+    views View { name: name }
+    valueType text "Text" {
+      key: text
+      editor: text
+      comparisons: [is, contains]
+      sort: text
+      convert number parse
+    }
+    valueType number "Number" {
+      key: number
+      editor: number
+      comparisons: [equals, greater-than, less-than]
+      sort: number
+      convert text written-form
+    }
+  }
+
+  operation addBook "New book" for document {
+    create Book
+  }
+
+  binding yaml family yaml {
+    label "Reading list"
+    claims { extensions: [".yaml", ".yml"], shared: true, marker: { rootKey: designer, value: "example/reading-list" }, origins: ["example/reading-list"] }
+    text { newline: lf, indent: 2 }
+    header { key: ded, value: "0.1", required: true }
+
+    element Field as field at "/fields/*" {
+      id from key "id"
+      attribute name from key "name" { empty: refuse }
+      attribute valueType from key "type" { empty: refuse }
+      insert { place: after-last, container: "/fields", keys: [id, name, type] }
+      remove { cascade: [value] }
+    }
+    element View as view at "/views/*" {
+      id from key "id"
+      attribute name from key "name" { empty: refuse }
+      insert { place: after-last, container: "/views", keys: [id, name] }
+      remove {}
+    }
+    element Book as book at "/books/*" {
+      id from key "id"
+      insert { place: after-last, container: "/books", create: { at: { under: "/" } }, keys: [id] }
+      remove {}
+    }
+    element Value as value at "/books/*/values/*" {
+      parent book slot values
+      attribute field from key "field" {
+        empty: refuse
+        references field by id
+      }
+      attribute text from key "text" { empty: remove }
+      attribute number from key "number" { empty: remove, number: shortest }
+      insert { place: after-last, container: "values", create: { at: { after: id } }, keys: [field, text, number] }
+      remove { container: remove-when-empty }
+    }
+
+    registration { createOnFirstPlacement: false }
+    template """ded: "0.1"
+designer: example/reading-list
+fields:
+  - id: {newid:field}
+    name: Title
+    type: text
+views:
+  - id: {newid:view}
+    name: All books
+"""
+  }
+}

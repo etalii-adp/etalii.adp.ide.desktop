@@ -1,0 +1,9 @@
+atd 0.1
+
+/// The root of a description whose parts import each other in a cycle: reported once (ATD §5.3).
+diagram example/cycle version "0.1.0" {
+  import "import-cycle-b.atd"
+  model {
+    element Node
+  }
+}

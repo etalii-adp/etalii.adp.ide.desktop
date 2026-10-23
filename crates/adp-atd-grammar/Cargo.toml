@@ -1,0 +1,18 @@
+[package]
+name = "adp-atd-grammar"
+description = "Reads ATD grammar notation and builds LALR(1) tables as Lark does, with the contextual lexer (etalii.adp spec 035, research R9)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-cel = { path = "../adp-cel" }
+regex = "1"
+# Two terminals a parser state accepts must not match the same text (ATD §4.7, Lark's strict mode): the check
+# intersects their DFAs.
+regex-automata = "0.4"

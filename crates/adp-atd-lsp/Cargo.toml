@@ -1,0 +1,36 @@
+[package]
+name = "adp-atd-lsp"
+description = "The ATD language server core and its transports (spec 035, research R10, contracts/language-server.md)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "atd-lsp"
+path = "src/bin/atd-lsp.rs"
+
+[dependencies]
+adp-atd-check = { path = "../adp-atd-check" }
+adp-atd-format = { path = "../adp-atd-format" }
+adp-atd-syntax = { path = "../adp-atd-syntax" }
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+lsp-server = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { workspace = true }
+
+# SC-006 (spec 035, T099): diagnostics after a keystroke and completion on a 5,000-line description, timed against
+# their bounds and printed, run with `cargo bench -p adp-atd-lsp --bench latency`.
+[[bench]]
+name = "latency"
+harness = false

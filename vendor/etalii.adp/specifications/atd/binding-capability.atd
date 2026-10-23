@@ -1,0 +1,33 @@
+atd 0.1
+
+/// Resources and the properties between them in a Turtle file, read and written by the capability `reader.turtle`:
+/// the persistence plugin's contract (FBL §11) as a binding's family. The grammar family replaces it for W3C RDF
+/// in a later batch.
+diagram example/resource-graph version "0.1.0" {
+  label "Resource graph"
+  requires capability reader.turtle@^1
+
+  model {
+    element Resource {
+      attribute iri: string required
+      attribute label: string
+      labelAttribute: label
+    }
+    relation Property from Resource to Resource {
+      attribute predicate: string required
+    }
+  }
+
+  notation {
+    node Resource { shape ellipse  label (has(self.label) ? self.label : self.iri) }
+    edge Property { label @predicate  marker target arrow }
+  }
+
+  binding turtle family capability reader.turtle {
+    label "Turtle"
+    claims { extensions: [".ttl"], origins: ["example/resource-graph"] }
+    body { kind: file }
+    text { newline: lf, finalNewline: true }
+    args: { prefixes: keep }
+  }
+}

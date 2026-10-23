@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Findings",
+  "findings": [
+    {
+      "code": "ATD7003",
+      "severity": "error",
+      "file": "missing-return.atd",
+      "line": 10,
+      "column": 6,
+      "message": "Not every path of `grade` returns a `string` or fails: the path where `value >= 50` is false ends without one."
+    }
+  ]
+}

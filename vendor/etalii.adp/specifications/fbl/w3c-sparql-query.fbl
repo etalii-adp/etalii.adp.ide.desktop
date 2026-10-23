@@ -1,0 +1,37 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.2",
+  "doc": "A SPARQL 1.1 query file (definitions/diagrams/sparql-query.dis, sparql-query.md): a binding whose reader is a persistence plugin (section 11), and which is never written. A query is a recursive grammar projected onto scopes, which no rule family reads (section 11.5): of the 21 queries of the standalone module, 14 open or close a group in the middle of a line, statements span lines and share them, one written statement yields several patterns, and a prefixed name needs the prologue. Parsing stays in the plugin, which delivers one stored record per entry with its span and line; the drawn projection is the definition's. Routing, the read-only sentence, the registration and the new-document template are declared here and done by the host.",
+  "bindings": {
+    "query": {
+      "title": "SPARQL 1.1 query",
+      "claims": {
+        "extensions": [
+          ".rq"
+        ],
+        "origins": [
+          "w3c/sparql"
+        ]
+      },
+      "body": {
+        "kind": "file"
+      },
+      "reader": {
+        "plugin": "net.etalii.adp.w3c.sparqlQuery",
+        "version": "^1.0.0"
+      },
+      "readOnly": "A query diagram offers no edits: it reads the .rq file, which is edited in a text editor.",
+      "text": {
+        "newline": "crlf",
+        "finalNewline": true
+      },
+      "registration": {
+        "createOnFirstPlacement": false
+      },
+      "template": {
+        "text": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\r\n\r\nSELECT ?subject ?label\r\nWHERE {\r\n  ?subject rdfs:label ?label .\r\n}\r\nLIMIT 100\r\n",
+        "doc": "The standalone document factory's bytes, which it hands out from here."
+      }
+    }
+  }
+}

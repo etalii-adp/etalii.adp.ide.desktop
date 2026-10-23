@@ -1,0 +1,79 @@
+// ATD 0.1, module cel: CEL's expression syntax (ATD §6.3).
+// From the grammar of the CEL specification (https://github.com/google/cel-spec, langdef.md), rewritten for LALR(1)
+// with one rule per precedence level, and with CEL's optional syntax (`.?`, `[?`, `?` elements and entries).
+// Message construction (`Name{field: value}`) is left out: no ADP CEL environment declares a message type (ATD §6.3).
+// Uses from core: word, STRING.
+
+?expr: or_expr
+     | or_expr "?" or_expr ":" expr -> cel_conditional
+
+?or_expr: and_expr
+        | or_expr "||" and_expr -> cel_or
+
+?and_expr: relation
+         | and_expr "&&" relation -> cel_and
+
+?relation: addition
+         | relation "<" addition -> cel_less
+         | relation "<=" addition -> cel_less_equal
+         | relation ">=" addition -> cel_greater_equal
+         | relation ">" addition -> cel_greater
+         | relation "==" addition -> cel_equal
+         | relation "!=" addition -> cel_not_equal
+         | relation "in" addition -> cel_in
+
+?addition: multiplication
+         | addition "+" multiplication -> cel_add
+         | addition "-" multiplication -> cel_subtract
+
+?multiplication: unary
+               | multiplication "*" unary -> cel_multiply
+               | multiplication "/" unary -> cel_divide
+               | multiplication "%" unary -> cel_modulo
+
+?unary: member
+      | "!" unary -> cel_not
+      | "-" unary -> cel_negate
+
+?member: primary
+       | member "." cel_ident -> cel_select
+       | member "." "?" cel_ident -> cel_optional_select
+       | member "." cel_ident "(" [cel_args] ")" -> cel_method
+       | member "[" expr "]" -> cel_index
+       | member "[" "?" expr "]" -> cel_optional_index
+
+?primary: cel_ident -> cel_ident_expr
+        | "." cel_ident -> cel_root_ident
+        | cel_ident "(" [cel_args] ")" -> cel_call
+        | "." cel_ident "(" [cel_args] ")" -> cel_root_call
+        | "(" expr ")"
+        | "[" [cel_list_elements] "]" -> cel_list
+        | "{" [cel_map_entries] "}" -> cel_map
+        | cel_literal
+
+cel_args: expr ("," expr)*
+
+cel_list_elements: cel_list_element ("," cel_list_element)* [","]
+cel_list_element: expr
+                | "?" expr -> cel_optional_element
+
+cel_map_entries: cel_map_entry ("," cel_map_entry)* [","]
+cel_map_entry: expr ":" expr
+             | "?" expr ":" expr -> cel_optional_entry
+
+// CEL's reserved words are not identifiers inside CEL: `word` lists every other keyword of ATD (core).
+cel_ident: word
+
+cel_literal: INT
+           | UINT
+           | DOUBLE
+           | STRING
+           | BYTES
+           | "true" -> cel_true
+           | "false" -> cel_false
+           | "null" -> cel_null
+
+INT: /0x[0-9a-fA-F]+|[0-9]+/
+UINT: /(0x[0-9a-fA-F]+|[0-9]+)[uU]/
+DOUBLE: /[0-9]+\.[0-9]+([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+|\.[0-9]+([eE][+-]?[0-9]+)?/
+BYTES: /([bB][rR]?|[rR][bB])("""(("|"")?([^"\\]|\\[\s\S]))*("|"")?"""|'''(('|'')?([^'\\]|\\[\s\S]))*('|'')?'''|"([^"\\\n\r]|\\[^\n\r])*"|'([^'\\\n\r]|\\[^\n\r])*')/

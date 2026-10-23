@@ -1,0 +1,17 @@
+atd 0.1
+
+/// An editor's surface is text: a canvas construct is refused at the construct (ATD §14.4).
+editor example/memo version "0.1.0" {
+  label "Memo"
+  model {
+    element Memo {
+      attribute text: text
+    }
+  }
+  surface text {
+    files "*.memo"
+  }
+  notation {
+    node Memo { shape rect }
+  }
+}

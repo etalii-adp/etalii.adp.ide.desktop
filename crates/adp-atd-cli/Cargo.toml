@@ -1,0 +1,25 @@
+[package]
+name = "adp-atd-cli"
+description = "The `atd` command line: check, fmt, tree and tables (spec 035, contracts/checker.md)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "atd"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-atd-grammar = { path = "../adp-atd-grammar" }
+adp-atd-syntax = { path = "../adp-atd-syntax" }
+adp-atd-check = { path = "../adp-atd-check" }
+adp-atd-format = { path = "../adp-atd-format" }
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[dev-dependencies]
+jsonschema = { version = "0.59", default-features = false }

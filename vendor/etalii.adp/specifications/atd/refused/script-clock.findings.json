@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Findings",
+  "findings": [
+    {
+      "code": "ATD7001",
+      "severity": "error",
+      "file": "script-clock.atd",
+      "line": 11,
+      "column": 29,
+      "message": "`now` reads the clock; a script is deterministic and calls only CEL's library and the description's functions."
+    }
+  ]
+}

@@ -23,6 +23,15 @@ members = [
     "crates/adp-conformance",
     "crates/adp-parity",
     "crates/adp-shell",
+    "crates/adp-atd-grammar",
+    "crates/adp-atd-syntax",
+    "crates/adp-atd-check",
+    "crates/adp-atd-format",
+    "crates/adp-atd-script",
+    "crates/adp-atd-runtime",
+    "crates/adp-atd-validate",
+    "crates/adp-atd-lsp",
+    "crates/adp-atd-cli",
     "modules/designers/knowledge",
     "modules/diagrams/agent-behavior-modelling",
     "modules/diagrams/ansible-structure",
@@ -48,6 +57,12 @@ members = [
     "modules/editors/xml",
     "modules/editors/yaml",
 ]
+
+# Shared by the ATD language server's crates (etalii.adp spec 035, research R9): the protocol's types, the stdio and
+# in-memory transport, and the WebAssembly build.
+[workspace.dependencies]
+lsp-server = "0.7"
+wasm-bindgen = "0.2"
 
 [workspace.package]
 version = "1.0.0"

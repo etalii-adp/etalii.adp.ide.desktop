@@ -1,0 +1,66 @@
+atd 0.1
+
+/// People and systems in a Structurizr-like workspace: the `blocks` family, whose statements open and close blocks
+/// (FBL's `structurizr.fbl`, trimmed).
+diagram example/landscape version "0.1.0" {
+  label "System landscape"
+
+  model {
+    element Person {
+      attribute name: string required
+      attribute description: text
+      labelAttribute: name
+    }
+    element System {
+      attribute name: string required
+      attribute description: text
+      labelAttribute: name
+    }
+    relation Uses from Person, System to System {
+      attribute description: string
+    }
+  }
+
+  notation {
+    node Person { shape person  label @name }
+    node System { shape rect  label @name }
+    edge Uses { label @description  marker target arrow }
+  }
+
+  binding workspace family blocks {
+    label "Workspace"
+    claims { extensions: [".dsl"], origins: ["example/landscape"] }
+    comment: r"^\s*(#|//)"
+    text { newline: lf, indent: 4, finalNewline: true }
+
+    block workspace line r"^workspace\s*\{\s*$" { within: ["^"], caseInsensitive: true }
+    block model line r"^model\s*\{\s*$" { within: [workspace], caseInsensitive: true }
+
+    element Person as person line r"^(?<id>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*person\s+\x22(?<name>[^\x22]*)\x22(?:\s+\x22(?<description>[^\x22]*)\x22)?\s*$" {
+      within model
+      id from group "id"
+      attribute name from group "name"
+      attribute description from group "description" { empty: remove }
+      insert { place: after-last, emit: "{id} = person \"{name}\"" }
+      remove {}
+    }
+
+    element System as system line r"^(?<id>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*softwareSystem\s+\x22(?<name>[^\x22]*)\x22(?:\s+\x22(?<description>[^\x22]*)\x22)?\s*$" {
+      within model
+      id from group "id"
+      attribute name from group "name"
+      attribute description from group "description" { empty: remove }
+      insert { place: after-last, emit: "{id} = softwareSystem \"{name}\"" }
+      remove {}
+    }
+
+    relation Uses as uses line r"^(?<source>[A-Za-z_][A-Za-z0-9_]*)\s*->\s*(?<target>[A-Za-z_][A-Za-z0-9_]*)(?:\s+\x22(?<description>[^\x22]*)\x22)?\s*$" {
+      within model
+      source from group "source"
+      target from group "target"
+      attribute description from group "description" { empty: remove }
+      insert { place: after-last, emit: "{source} -> {target}[ \"{description}\"]" }
+      remove {}
+    }
+  }
+}

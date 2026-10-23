@@ -1,0 +1,37 @@
+// ATD 0.1, the root module: the header, the tool construct of each kind, and the parts of a description (ATD §5).
+// It imports every other module; a symbol a module uses and another module defines is named in that module's import
+// list here, so that every module of the grammar shares it (ATD §4.4).
+
+description: header (tool | part)
+
+// `atd 0.1`: the one construct every version of the grammar keeps (ATD §18).
+header: "atd" VERSION
+
+// `diagram freeplane/mindmap version "1.4.0" { … }` (ATD §5.1).
+tool: tool_kind ORIGIN "version" STRING "{" member* "}"
+tool_kind: "diagram" -> diagram
+         | "designer" -> designer
+         | "editor" -> editor
+
+// `part of freeplane/mindmap` and the members it adds to the description (ATD §5.2).
+part: "part" "of" ORIGIN member*
+
+?member: core_member
+       | canvas_member
+       | form_surface
+       | text_surface
+       | binding
+
+VERSION: /[0-9]+\.[0-9]+/
+
+%import .core (core_member, name, word, qualified, names, type_ref, value, setting, settings_block, doc_member, label_member, extends, fix, fn_decl, stmt, void_return, expr, NAME, DASHED_WORD, KEY, STRING, LENGTH, ATTR_REF, TOKEN_REF, PARAM_REF, CAPABILITY_RANGE, ORIGIN, INT, DOUBLE, WHITESPACE, COMMENT, BLOCK_COMMENT)
+%import .cel (expr, word, STRING, INT, UINT, DOUBLE, BYTES)
+%import .script (fn_decl, stmt, void_return, name, qualified, names, type_ref, settings_block, setting, expr, KEY, NAME, INT, ASSIGN)
+%import .canvas (canvas_member, name, qualified, names, value, setting, settings_block, doc_member, label_member, extends, expr, STRING)
+%import .form (form_surface, name, type_ref, value, setting, settings_block, doc_member, label_member, STRING)
+%import .text (text_surface, name, qualified, names, setting, settings_block, doc_member, fix, STRING)
+%import .binding (binding, name, qualified, names, type_ref, value, setting, settings_block, doc_member, label_member, expr, STRING, INT)
+
+%ignore WHITESPACE
+%ignore COMMENT
+%ignore BLOCK_COMMENT

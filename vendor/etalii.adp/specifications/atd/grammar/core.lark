@@ -1,0 +1,215 @@
+// ATD 0.1, module core: names, values, settings and the constructs every kind shares (ATD §3, §6, §7).
+// Uses from cel: expr. Uses from script: stmt, void_return.
+
+// ---------------------------------------------------------------- Names (ATD §3.6, §6.1)
+
+// A name is a NAME or any keyword: keywords are soft (FR-008). CEL's reserved words that are ATD keywords are names
+// here but not inside CEL, so `word` lists every keyword except those, and `name` adds them.
+name: word
+    | "as" | "break" | "continue" | "else" | "for" | "if" | "import" | "in" | "let" | "return" | "var" | "while"
+
+word: NAME
+    | "after" | "algorithm" | "at" | "atd" | "attribute" | "axis" | "badge" | "before" | "behavior"
+    | "binding" | "block" | "body" | "builtin" | "by" | "call" | "canvas" | "capability" | "cells" | "check"
+    | "claims" | "columns" | "compartment" | "complete" | "confirm" | "connect" | "constraint" | "constraints"
+    | "contains" | "context" | "convert" | "coordinates" | "create" | "datatype" | "default" | "defaults" | "delete"
+    | "designer" | "diagram" | "doc" | "document" | "edge" | "editLabel" | "editor" | "element"
+    | "enabled" | "entries" | "enum" | "extends" | "fail" | "family" | "field" | "files" | "filters" | "fix" | "fn"
+    | "fold" | "form" | "from" | "group" | "header" | "hierarchy" | "highlight" | "hook" | "icon" | "id"
+    | "insert" | "into" | "item" | "label" | "labels" | "layout" | "levels" | "limit" | "line" | "many" | "marker"
+    | "message" | "mid" | "model" | "move" | "node" | "notation" | "notes" | "notify" | "of" | "on" | "open"
+    | "openForm" | "operation" | "ordered" | "outline" | "param" | "parent" | "part" | "persistence" | "place"
+    | "plugin" | "port" | "preview" | "readonly" | "reason" | "recursion" | "references" | "registration"
+    | "relation" | "remove" | "reorder" | "reparent" | "required" | "requires" | "resize" | "retype" | "reveal"
+    | "rows" | "rule" | "section" | "select" | "set" | "severity" | "shape" | "size" | "slot" | "snapping"
+    | "source" | "state" | "style" | "surface" | "system" | "table" | "target" | "template" | "text" | "theme" | "to"
+    | "token" | "tokens" | "tool" | "toolbox" | "unavailable" | "unset" | "valueType" | "variant" | "version"
+    | "view" | "viewpoint" | "views" | "when" | "with" | "within"
+
+qualified: name ("." name)*
+names: qualified ("," qualified)*
+
+// A type: a qualified name, with type arguments for CEL's parameterised types (`list<Concept>`, `map<string, int>`).
+type_ref: qualified ["<" type_ref ("," type_ref)* ">"]
+
+// ---------------------------------------------------------------- Values (ATD §6)
+
+value: literal
+     | "(" expr ")" -> cel_value
+     | ATTR_REF -> attribute_ref
+     | TOKEN_REF -> token_ref
+     | PARAM_REF -> param_ref
+     | settings_map
+     | value_list
+
+literal: name -> word_literal
+       | DASHED_WORD -> word_literal
+       | STRING -> string_literal
+       | INT -> number_literal
+       | DOUBLE -> number_literal
+       | "-" INT -> negative_literal
+       | "-" DOUBLE -> negative_literal
+       | LENGTH -> length_literal
+
+value_list: "[" [value ("," value)* [","]] "]"
+settings_map: "{" map_entry* "}"
+map_entry: KEY value [","]
+         | STRING ":" value [","] -> quoted_entry
+
+// A setting stands among the members of a construct; its key is a KEY token: a name and its colon (ATD §3.4).
+setting: KEY value [","]
+
+doc_member: "doc" value
+label_member: "label" value
+
+// The block of a construct that has no members of its own besides its settings.
+settings_block: "{" settings_member* "}"
+?settings_member: setting | doc_member | label_member
+
+// ---------------------------------------------------------------- The tool's core members (ATD §7)
+
+?core_member: label_member
+            | doc_member
+            | setting
+            | import_decl
+            | requires_decl
+            | model
+            | constraints
+            | constraint
+            | operation
+            | hook
+            | reason
+            | message_decl
+            | behavior
+            | persistence
+            | plugin
+            | fn_decl
+
+// `import "notation.atd"` takes a part of this description; `import "lib.atd" as lib` a library (ATD §5.3, DISL §3.3).
+import_decl: "import" STRING ["as" name] [settings_block]
+
+// `requires capability layout.twoSidedTree@^1` (ATD §13).
+requires_decl: "requires" "capability" qualified CAPABILITY_RANGE
+
+// ---------------------------------------------------------------- The model (ATD §7.4 to §7.8; DISL §4, DESL §4)
+
+model: "model" "{" model_member* "}"
+?model_member: element
+             | relation
+             | enum_decl
+             | datatype
+             | document_decl
+             | setting
+             | doc_member
+
+element: "element" name [extends] ["{" element_member* "}"]
+extends: "extends" names
+?element_member: attribute
+               | contains
+               | port
+               | setting
+               | doc_member
+               | label_member
+
+attribute: "attribute" name ":" type_ref attribute_flag* [settings_block]
+attribute_flag: "required" -> required
+              | "many" -> many
+              | "readonly" -> readonly
+              | "default" value -> default
+
+// `contains Topic ordered` adds to an element's children; `contains Value as values` fills the slot `values`.
+contains: "contains" names ["as" name] ["ordered"] [settings_block]
+
+port: "port" name [settings_block]
+
+relation: "relation" name [extends] ["from" names "to" names] ["{" element_member* "}"]
+
+enum_decl: "enum" name [STRING] "{" enum_member* "}"
+?enum_member: enum_value | setting
+enum_value: name [settings_block]
+          | STRING [settings_block] -> quoted_enum_value
+
+datatype: "datatype" name [":" type_ref] [settings_block]
+
+// The attributes of the document itself: DISL's `metamodel.diagram`, DESL's `metamodel.document`.
+document_decl: "document" "{" element_member* "}"
+
+// ---------------------------------------------------------------- Constraints (ATD §7.9; DISL §8, DESL §6)
+
+constraints: "constraints" "{" constraints_member* "}"
+?constraints_member: constraint | builtin | setting | doc_member
+
+constraint: "constraint" name ["for" names] "{" constraint_member* "}"
+?constraint_member: "when" expr -> when
+                  | "rule" expr -> rule
+                  | "message" value -> message
+                  | "severity" name -> severity
+                  | fix
+                  | setting
+                  | doc_member
+                  | label_member
+
+builtin: "builtin" qualified [settings_block]
+
+fix: "fix" name [STRING] "{" fix_member* [void_return] "}"
+?fix_member: "when" expr -> when
+           | stmt
+           | setting
+           | doc_member
+           | label_member
+
+// ---------------------------------------------------------------- Operations, hooks, reasons, messages (ATD §7.10 to §7.12)
+
+operation: "operation" name [STRING] ["for" names] "{" operation_member* [void_return] "}"
+?operation_member: "enabled" expr -> enabled
+                 | "unavailable" value -> unavailable
+                 | "param" name ":" type_ref attribute_flag* [settings_block] -> param
+                 | "confirm" settings_block -> confirm
+                 | stmt
+                 | setting
+                 | doc_member
+                 | label_member
+
+hook: "hook" name "on" name ["for" names] "{" hook_member* [void_return] "}"
+?hook_member: "when" expr -> when
+            | stmt
+            | setting
+            | doc_member
+
+reason: "reason" name STRING
+      | "reason" name "{" reason_member* "}"
+?reason_member: "when" expr -> when
+              | "message" value -> message
+              | setting
+              | doc_member
+
+message_decl: "message" qualified value
+
+// DISL's `behavior` beside its operations, hooks, reasons and messages: deletion, clipboard, retype, undo, edit gate.
+behavior: "behavior" settings_block
+
+// DISL's and DESL's `persistence`: format, ids and id strategies, type map, settings; the bindings are `binding`s.
+persistence: "persistence" settings_block
+
+// DISL §13's plugin declarations.
+plugin: "plugin" qualified [settings_block]
+
+// ---------------------------------------------------------------- Terminals (ATD §3)
+
+NAME: /[A-Za-z_][A-Za-z0-9_]*/
+// A bare word with hyphens, as many of DISL's and FBL's fixed values are (`y-down`, `after-last`); a literal only.
+DASHED_WORD: /[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z0-9_]+)+/
+KEY: /[A-Za-z_][A-Za-z0-9_-]*(\.[A-Za-z_][A-Za-z0-9_-]*)*[ \t]*:/
+// A string is one of CEL's string literals: quoted with `"` or `'`, tripled for several lines, or raw with `r` (ATD §3.4).
+STRING: /[rR]("""(("|"")?[^"])*("|"")?"""|'''(('|'')?[^'])*('|'')?'''|"[^"\n\r]*"|'[^'\n\r]*')|"""(("|"")?([^"\\]|\\[\s\S]))*("|"")?"""|'''(('|'')?([^'\\]|\\[\s\S]))*('|'')?'''|"([^"\\\n\r]|\\[^\n\r])*"|'([^'\\\n\r]|\\[^\n\r])*'/
+ATTR_REF: /@[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/
+TOKEN_REF: /\$[A-Za-z_][A-Za-z0-9_-]*(\.[A-Za-z_][A-Za-z0-9_-]*)*/
+// A length is a number of any of CEL's forms with its unit, with no space between (DISL §2.6): `12px`, `1.5em`, `50%`.
+LENGTH: /([0-9]+\.[0-9]+([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+|\.[0-9]+([eE][+-]?[0-9]+)?|[0-9]+)(px|mm|in|em|%)/
+PARAM_REF: /#[A-Za-z_][A-Za-z0-9_]*/
+CAPABILITY_RANGE: /@[\^~<>=*0-9][^ \t\r\n{}]*/
+ORIGIN: /[A-Za-z0-9_][A-Za-z0-9_.-]*\/[A-Za-z0-9_][A-Za-z0-9_.-]*/
+
+WHITESPACE: /[ \t\r\n]+/
+COMMENT: /\/\/[^\n]*/
+BLOCK_COMMENT: /\/\*([^*]|\*+[^*\/])*\*+\//

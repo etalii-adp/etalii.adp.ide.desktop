@@ -1,0 +1,110 @@
+// ATD 0.1, module canvas: the surface of a diagram (ATD §8; DISL §3.5, §5, §6, §7, §10).
+// Uses from core: name, qualified, names, value, setting, settings_block, doc_member, label_member, STRING.
+// Uses from cel: expr.
+
+?canvas_member: coordinates
+              | notation
+              | toolbox
+              | form
+              | layout
+              | viewpoint
+
+// ---------------------------------------------------------------- Coordinates (DISL §5)
+
+coordinates: "coordinates" "{" coordinates_member* "}"
+?coordinates_member: "system" name [settings_block] -> coordinate_system
+                   | "axis" name [settings_block] -> axis
+                   | "snapping" name [settings_block] -> snapping_profile
+                   | "default" name -> default_system
+                   | setting
+                   | doc_member
+
+// ---------------------------------------------------------------- Notation (DISL §6)
+
+notation: "notation" "{" notation_member* "}"
+?notation_member: "theme" settings_block -> theme
+                | "style" name [extends] settings_block -> style
+                | "shape" name settings_block -> shape_definition
+                | "marker" name settings_block -> marker_definition
+                | "icon" name settings_block -> icon_definition
+                | "canvas" settings_block -> canvas
+                | "defaults" settings_block -> defaults
+                | node_notation
+                | edge_notation
+                | port_notation
+                | setting
+                | doc_member
+
+node_notation: "node" names "{" node_member* "}"
+?node_member: shape_use
+            | label_decl
+            | "variant" name ["when" expr] "{" node_member* "}" -> variant
+            | "state" name settings_block -> state
+            | "compartment" name settings_block -> compartment
+            | "badge" name settings_block -> badge
+            | "port" names settings_block -> node_port
+            | setting
+            | doc_member
+
+// `shape roundedRect`, or a shape with its parameters: `shape cylinder { ratio: 0.2 }`.
+shape_use: "shape" value [settings_block]
+
+// `label @text`, `label (self.name.upperAscii()) as title { position: center }`.
+label_decl: "label" value ["as" name] [settings_block]
+
+edge_notation: "edge" names "{" edge_member* "}"
+?edge_member: "line" settings_block -> line
+            | "marker" marker_end value [settings_block] -> marker
+            | label_decl
+            | "variant" name ["when" expr] "{" edge_member* "}" -> variant
+            | "state" name settings_block -> state
+            | setting
+            | doc_member
+marker_end: "source" -> source
+          | "target" -> target
+          | "mid" -> mid
+
+port_notation: "port" names settings_block
+
+// ---------------------------------------------------------------- Toolbox and context tools (DISL §7.1 to §7.4)
+
+toolbox: "toolbox" "{" toolbox_member* "}"
+?toolbox_member: tool_group
+               | tool
+               | context_tools
+               | "template" name [STRING] settings_block -> template
+               | setting
+               | doc_member
+
+tool_group: "group" name [STRING] "{" toolbox_member* "}"
+tool: "tool" name [STRING] [settings_block]
+
+context_tools: "context" ["for" names] ["when" expr] "{" context_member* "}"
+?context_member: context_tool
+               | setting
+               | doc_member
+// A context tool has no id of its own in DISL, so its name is optional and its block is not.
+context_tool: "tool" [name] [STRING] settings_block
+
+// ---------------------------------------------------------------- Forms (DISL §7.5, §7.6)
+
+form: "form" name [STRING] ["for" names] "{" form_member* "}"
+?form_member: form_item
+            | setting
+            | doc_member
+            | label_member
+?form_item: "field" name [STRING] [settings_block] -> field
+          | "section" [name] [STRING] "{" form_member* "}" -> section
+          | "item" [name] [STRING] settings_block -> form_item
+
+// ---------------------------------------------------------------- Layout (DISL §10)
+
+layout: "layout" "{" layout_member* "}"
+?layout_member: "default" name -> default_layout
+              | "algorithm" name ["capability" qualified] [settings_block] -> algorithm
+              | setting
+              | doc_member
+
+// ---------------------------------------------------------------- Viewpoints (DISL §3.5)
+
+viewpoint: "viewpoint" name [STRING] [settings_block]

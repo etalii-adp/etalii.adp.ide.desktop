@@ -28,6 +28,81 @@ pub struct TextEditor {
     last_cursor: Option<usize>,
     /// Findings to underline, by character offsets.
     pub marks: Vec<Mark>,
+    /// Whether a language client serves this editor (only `.atd`, spec 035, T105): its keys then ask for completion,
+    /// hover, definition, references, rename and formatting.
+    pub language: bool,
+    /// What the person asked of the language client since it last looked.
+    pub commands: Vec<Command>,
+    /// The open completion list.
+    pub completion: Option<Completion>,
+    /// The language client's colouring over the highlighting, per line, for the buffer revision it was made for.
+    pub semantic: Option<(u64, Vec<Vec<SemanticRun>>)>,
+    /// Where the cursor was drawn this frame, for the popups beside it.
+    pub cursor_rect: Option<Rect>,
+    /// The character under the pointer this frame, and the pointer.
+    pub pointer: Option<(usize, Pos2)>,
+    /// Ctrl+K was pressed: the next key completes the chord.
+    chord: bool,
+}
+
+/// A request of the person to the language client, by the keys VS Code gives it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Command {
+    /// Ctrl+Space, or typing `.`.
+    Complete,
+    /// Ctrl+K Ctrl+I.
+    Hover,
+    /// F12.
+    Definition,
+    /// Shift+F12.
+    References,
+    /// F2.
+    Rename,
+    /// Shift+Alt+F.
+    Format,
+    /// Enter or Tab in the completion list: the chosen item.
+    Accept(String),
+}
+
+/// A completion list: its items, the one selected among those shown, and where the word it completes starts.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Completion {
+    pub items: Vec<String>,
+    pub selected: usize,
+    pub start: usize,
+}
+
+impl Completion {
+    /// The items that start with what was typed since the list opened.
+    pub fn shown(&self, buffer: &Buffer) -> Vec<String> {
+        let cursor = buffer.cursor();
+        let (line, column) = buffer.position(cursor);
+        let (start_line, start_column) = buffer.position(self.start);
+        if cursor < self.start || line != start_line {
+            return Vec::new();
+        }
+        let typed: String = buffer
+            .line(line)
+            .chars()
+            .skip(start_column)
+            .take(column - start_column)
+            .collect::<String>()
+            .to_lowercase();
+        self.items
+            .iter()
+            .filter(|i| i.to_lowercase().starts_with(&typed))
+            .cloned()
+            .collect()
+    }
+}
+
+/// A run of a line coloured by the language client, by character offsets within the line.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SemanticRun {
+    pub start: usize,
+    pub end: usize,
+    pub color: Color32,
+    pub italic: bool,
 }
 
 /// A finding drawn as a squiggle under its range, in the theme's error, warning or information colour.
@@ -55,6 +130,13 @@ impl TextEditor {
             runs: None,
             last_cursor: None,
             marks: Vec::new(),
+            language: false,
+            commands: Vec::new(),
+            completion: None,
+            semantic: None,
+            cursor_rect: None,
+            pointer: None,
+            chord: false,
         }
     }
 
@@ -65,6 +147,8 @@ impl TextEditor {
     /// Draws the editor filling the space it is given; returns whether the text changed this frame.
     pub fn show(&mut self, ui: &mut egui::Ui, theme: &Theme, highlighter: &Highlighter) -> bool {
         let revision = self.buffer.revision();
+        self.cursor_rect = None;
+        self.pointer = None;
         let focused = ui.memory(|m| m.has_focus(self.id));
         if focused {
             ui.memory_mut(|m| {
@@ -166,12 +250,18 @@ impl TextEditor {
                         font.clone(),
                         number_colour,
                     );
-                    let runs = self
+                    let mut runs = self
                         .runs
                         .as_ref()
                         .and_then(|(_, _, r)| r.get(line))
                         .cloned()
                         .unwrap_or_default();
+                    if let Some((made_for, lines)) = &self.semantic
+                        && *made_for == self.buffer.revision()
+                        && let Some(semantic) = lines.get(line).filter(|s| !s.is_empty())
+                    {
+                        runs = overlay(&runs, &line_text, semantic);
+                    }
                     let galley = painter.layout_job(line_job(&line_text, &runs, &font, foreground));
                     // The selection's part of this line.
                     let line_end = line_start + line_text.chars().count();
@@ -214,12 +304,34 @@ impl TextEditor {
                     if focused && line == cursor_line {
                         let column = self.buffer.position(self.buffer.cursor()).1;
                         let x = text_origin.x + galley.pos_from_cursor(egui::text::CCursor::new(column)).left();
+                        self.cursor_rect = Some(Rect::from_min_max(
+                            Pos2::new(x, top),
+                            Pos2::new(x + 1.0, top + row_height),
+                        ));
                         painter.line_segment(
                             [Pos2::new(x, top + 2.0), Pos2::new(x, top + row_height - 2.0)],
                             Stroke::new(2.0, cursor_color),
                         );
                     }
                     galleys.push((line, galley, text_origin));
+                }
+                if let Some(pointer) = response.hover_pos() {
+                    let row = ((pointer.y - rect.top()) / row_height).floor().max(0.0) as usize;
+                    if let Some((line, galley, origin)) = galleys.get(row) {
+                        let at = pointer - *origin;
+                        let column = galley.cursor_from_pos(at).index.0;
+                        if at.x >= 0.0 && at.x < galley.rect.right() {
+                            self.pointer = Some((
+                                self.buffer.offset(
+                                    *line,
+                                    column.saturating_sub(usize::from(
+                                        galley.pos_from_cursor(egui::text::CCursor::new(column)).left() > at.x,
+                                    )),
+                                ),
+                                pointer,
+                            ));
+                        }
+                    }
                 }
                 if let Some(pointer) = response.interact_pointer_pos()
                     && (response.clicked() || response.dragged() || response.drag_started())
@@ -254,7 +366,12 @@ impl TextEditor {
         let events = ui.input(|i| i.events.clone());
         for event in events {
             match event {
-                egui::Event::Text(text) => self.buffer.insert(&text),
+                egui::Event::Text(text) => {
+                    self.buffer.insert(&text);
+                    if self.language && text == "." {
+                        self.commands.push(Command::Complete);
+                    }
+                }
                 egui::Event::Paste(text) => self.buffer.insert(&text.replace("\r\n", "\n")),
                 egui::Event::Copy => {
                     let text = self.buffer.selected_text();
@@ -281,6 +398,9 @@ impl TextEditor {
     }
 
     fn key(&mut self, key: Key, modifiers: Modifiers) {
+        if self.language && self.language_key(key, modifiers) {
+            return;
+        }
         let word = modifiers.command || modifiers.alt;
         let extend = modifiers.shift;
         let movement = match key {
@@ -318,6 +438,93 @@ impl TextEditor {
             _ => {}
         }
     }
+}
+
+impl TextEditor {
+    /// The keys of the language client and of an open completion list; returns whether the key was one of them.
+    fn language_key(&mut self, key: Key, modifiers: Modifiers) -> bool {
+        if let Some(completion) = &mut self.completion {
+            let shown = completion.shown(&self.buffer);
+            match key {
+                Key::ArrowDown => {
+                    completion.selected = (completion.selected + 1) % shown.len().max(1);
+                    return true;
+                }
+                Key::ArrowUp => {
+                    completion.selected = (completion.selected + shown.len().max(1) - 1) % shown.len().max(1);
+                    return true;
+                }
+                Key::Enter | Key::Tab => {
+                    if let Some(label) = shown.get(completion.selected) {
+                        self.commands.push(Command::Accept(label.clone()));
+                        self.completion = None;
+                        return true;
+                    }
+                    self.completion = None;
+                }
+                Key::Escape => {
+                    self.completion = None;
+                    return true;
+                }
+                _ => {}
+            }
+        }
+        let chord = std::mem::take(&mut self.chord);
+        let command = match key {
+            Key::Space if modifiers.ctrl => Command::Complete,
+            Key::K if modifiers.command => {
+                self.chord = true;
+                return true;
+            }
+            Key::I if chord && modifiers.command => Command::Hover,
+            Key::F12 if modifiers.shift => Command::References,
+            Key::F12 => Command::Definition,
+            Key::F2 => Command::Rename,
+            Key::F if modifiers.shift && modifiers.alt => Command::Format,
+            _ => return false,
+        };
+        self.commands.push(command);
+        true
+    }
+}
+
+/// The highlighted runs of a line with the language client's runs over them, by byte range.
+fn overlay(runs: &[Run], text: &str, semantic: &[SemanticRun]) -> Vec<Run> {
+    let mut styles: Vec<Option<(Color32, bool)>> = vec![None; text.len()];
+    for run in runs {
+        for style in styles
+            .iter_mut()
+            .take(run.range.end.min(text.len()))
+            .skip(run.range.start)
+        {
+            *style = Some((run.color, run.italic));
+        }
+    }
+    let byte_of = |char_offset: usize| text.char_indices().nth(char_offset).map_or(text.len(), |(i, _)| i);
+    for run in semantic {
+        let (from, to) = (byte_of(run.start), byte_of(run.end));
+        for style in styles.iter_mut().take(to).skip(from) {
+            *style = Some((run.color, run.italic));
+        }
+    }
+    let mut out: Vec<Run> = Vec::new();
+    let mut at = 0;
+    while at < styles.len() {
+        let style = styles[at];
+        let mut end = at + 1;
+        while end < styles.len() && styles[end] == style {
+            end += 1;
+        }
+        if let Some((color, italic)) = style {
+            out.push(Run {
+                range: at..end,
+                color,
+                italic,
+            });
+        }
+        at = end;
+    }
+    out
 }
 
 /// A wavy underline from `left` to `right` at `y`, as VS Code draws a finding.
@@ -422,6 +629,84 @@ mod tests {
             &highlighter,
         );
         assert_eq!(editor.buffer.text(), "");
+    }
+
+    #[test]
+    fn the_language_keys_become_commands_and_steer_the_completion_list() {
+        let ctx = egui::Context::default();
+        let highlighter = Highlighter::default();
+        let mut editor = TextEditor::new("atd 0.1\n", "atd", egui::Id::unique("atd-editor"));
+        editor.language = true;
+        run_frame(&ctx, Vec::new(), &mut editor, &highlighter);
+        ctx.memory_mut(|m| m.request_focus(editor.id()));
+        run_frame(&ctx, Vec::new(), &mut editor, &highlighter);
+        editor.buffer.set_cursor(8);
+        run_frame(
+            &ctx,
+            vec![
+                key(Key::Space, Modifiers::CTRL),
+                key(Key::F12, Modifiers::NONE),
+                key(Key::F12, Modifiers::SHIFT),
+                key(Key::F2, Modifiers::NONE),
+                key(Key::K, Modifiers::COMMAND),
+                key(Key::I, Modifiers::COMMAND),
+                egui::Event::Text(".".into()),
+            ],
+            &mut editor,
+            &highlighter,
+        );
+        assert_eq!(
+            editor.commands,
+            vec![
+                Command::Complete,
+                Command::Definition,
+                Command::References,
+                Command::Rename,
+                Command::Hover,
+                Command::Complete
+            ]
+        );
+        editor.commands.clear();
+        editor.completion = Some(Completion {
+            items: vec!["diagram".into(), "designer".into(), "node".into()],
+            selected: 0,
+            start: editor.buffer.cursor(),
+        });
+        run_frame(
+            &ctx,
+            vec![
+                egui::Event::Text("d".into()),
+                key(Key::ArrowDown, Modifiers::NONE),
+                key(Key::Enter, Modifiers::NONE),
+            ],
+            &mut editor,
+            &highlighter,
+        );
+        assert_eq!(editor.commands, vec![Command::Accept("designer".into())]);
+        assert!(editor.completion.is_none());
+    }
+
+    #[test]
+    fn semantic_runs_take_the_place_of_the_highlighting_by_characters() {
+        let runs = vec![Run {
+            range: 0..6,
+            color: Color32::RED,
+            italic: false,
+        }];
+        let out = overlay(
+            &runs,
+            "é node",
+            &[SemanticRun {
+                start: 2,
+                end: 6,
+                color: Color32::BLUE,
+                italic: true,
+            }],
+        );
+        assert_eq!(out.len(), 2);
+        assert_eq!(out[0].range, 0..3);
+        assert_eq!(out[1].range, 3..7);
+        assert_eq!(out[1].color, Color32::BLUE);
     }
 
     #[test]

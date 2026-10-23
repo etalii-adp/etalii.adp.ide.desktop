@@ -1,0 +1,514 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Walk",
+  "doc": "The 30-edit walk of SC-005 (ATD §19.2): requests at fixed positions of the examples and edits to them, each with its expected result, which a language server meets in every IDE alike. Steps run in order on copies of the files, an edit staying until a later step undoes it; positions are 1-based lines and columns in code points, with the column's UTF-16 offset from the line's start. Written before any server existed (spec 035, T094).",
+  "files": [
+    "binding-json.atd",
+    "mindmap.atd",
+    "mindmap.notation.atd",
+    "notes.atd",
+    "reading-list.atd"
+  ],
+  "steps": [
+    {
+      "id": 1,
+      "file": "mindmap.atd",
+      "line": 144,
+      "column": 17,
+      "utf16": 16,
+      "request": "completion",
+      "scenario": 1,
+      "doc": "In a binding rule for `Node`, the attribute position offers `Node`'s attributes and nothing else.",
+      "expect": {
+        "exactly": [
+          "folded",
+          "link",
+          "notes",
+          "position",
+          "text"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "file": "reading-list.atd",
+      "line": 77,
+      "column": 17,
+      "utf16": 16,
+      "request": "completion",
+      "scenario": 1,
+      "doc": "In the rule for `Field`, only `Field`'s attributes.",
+      "expect": {
+        "exactly": [
+          "name",
+          "valueType"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "file": "reading-list.atd",
+      "line": 99,
+      "column": 17,
+      "utf16": 16,
+      "request": "completion",
+      "scenario": 1,
+      "doc": "In the rule for `Value`, only `Value`'s attributes.",
+      "expect": {
+        "exactly": [
+          "field",
+          "number",
+          "text"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "file": "mindmap.atd",
+      "line": 73,
+      "column": 5,
+      "utf16": 4,
+      "request": "completion",
+      "scenario": 1,
+      "doc": "At the start of a statement in an operation: the statements and actions, not the model's constructs.",
+      "expect": {
+        "includes": [
+          "select",
+          "set",
+          "create",
+          "delete",
+          "let",
+          "if",
+          "for"
+        ],
+        "excludes": [
+          "element",
+          "attribute",
+          "notation"
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "file": "mindmap.atd",
+      "line": 90,
+      "column": 48,
+      "utf16": 47,
+      "request": "completion",
+      "scenario": 1,
+      "doc": "After `.` in CEL, the members of the receiver's type: a `Node`'s built-in fields and attributes.",
+      "expect": {
+        "includes": [
+          "parent",
+          "children",
+          "text",
+          "notes",
+          "link",
+          "folded",
+          "position"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "file": "mindmap.notation.atd",
+      "line": 28,
+      "column": 8,
+      "utf16": 7,
+      "request": "completion",
+      "scenario": 1,
+      "doc": "After `node` in a notation, the description's element and relation types, not its enums.",
+      "expect": {
+        "includes": [
+          "Node",
+          "Branch"
+        ],
+        "excludes": [
+          "Side"
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "file": "mindmap.atd",
+      "line": 12,
+      "column": 13,
+      "utf16": 12,
+      "request": "rename",
+      "scenario": 2,
+      "doc": "Renaming the element type `Node` to `Topic` renames every use in the model, constraints, operations, functions, the binding and the notation part; the strings that hold `Node` (`\"Node\"`, `\"/map/**/node\"`) stay as they are.",
+      "expect": {
+        "newName": "Topic",
+        "files": {
+          "mindmap.atd": 16,
+          "mindmap.notation.atd": 2
+        },
+        "stringsUnchanged": true
+      },
+      "newName": "Topic"
+    },
+    {
+      "id": 8,
+      "file": "mindmap.atd",
+      "line": 115,
+      "column": 6,
+      "utf16": 5,
+      "request": "references",
+      "scenario": 2,
+      "doc": "The function's declaration and its two calls inside CEL.",
+      "expect": {
+        "count": 3,
+        "files": [
+          "mindmap.atd"
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "file": "mindmap.atd",
+      "line": 115,
+      "column": 6,
+      "utf16": 5,
+      "request": "rename",
+      "scenario": 2,
+      "doc": "Renaming a function renames its calls inside CEL expressions.",
+      "expect": {
+        "newName": "freeName",
+        "files": {
+          "mindmap.atd": 3
+        }
+      },
+      "newName": "freeName"
+    },
+    {
+      "id": 10,
+      "file": "mindmap.atd",
+      "line": 82,
+      "column": 25,
+      "utf16": 24,
+      "request": "definition",
+      "scenario": 2,
+      "doc": "Go to definition from a call in CEL lands on the function.",
+      "expect": {
+        "file": "mindmap.atd",
+        "line": 115,
+        "column": 6,
+        "utf16": 5
+      }
+    },
+    {
+      "id": 11,
+      "file": "mindmap.notation.atd",
+      "line": 60,
+      "column": 52,
+      "utf16": 51,
+      "request": "definition",
+      "scenario": 2,
+      "doc": "A setting that names an operation leads to it, in the root file.",
+      "expect": {
+        "file": "mindmap.atd",
+        "line": 68,
+        "column": 13,
+        "utf16": 12
+      }
+    },
+    {
+      "id": 12,
+      "file": "mindmap.atd",
+      "line": 16,
+      "column": 17,
+      "utf16": 16,
+      "request": "rename",
+      "scenario": 2,
+      "doc": "Renaming the attribute `link` renames the binding's `attribute link` too, and the string `\"LINK\"` stays.",
+      "expect": {
+        "newName": "href",
+        "files": {
+          "mindmap.atd": 2
+        }
+      },
+      "newName": "href"
+    },
+    {
+      "id": 13,
+      "file": "reading-list.atd",
+      "line": 9,
+      "column": 13,
+      "utf16": 12,
+      "request": "references",
+      "scenario": 2,
+      "doc": "The element type `Field` in the model, as an attribute's type, in the surface and in the binding rule; the string in `elementsOfType(\"Field\")` is not a reference.",
+      "expect": {
+        "count": 5,
+        "files": [
+          "reading-list.atd"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "file": "mindmap.atd",
+      "line": 16,
+      "column": 21,
+      "utf16": 20,
+      "request": "edit",
+      "scenario": 3,
+      "doc": "Deleting the colon after `link` gives one syntax finding.",
+      "expect": {
+        "diagnostics": [
+          {
+            "code": "ATD1001",
+            "line": 16
+          }
+        ]
+      },
+      "edit": {
+        "endLine": 16,
+        "endColumn": 22,
+        "text": ""
+      }
+    },
+    {
+      "id": 15,
+      "file": "mindmap.atd",
+      "line": 83,
+      "column": 5,
+      "utf16": 4,
+      "request": "completion",
+      "scenario": 3,
+      "doc": "Further down, after the error, completion still answers.",
+      "expect": {
+        "includes": [
+          "select",
+          "editLabel"
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "file": "mindmap.atd",
+      "line": 87,
+      "column": 13,
+      "utf16": 12,
+      "request": "hover",
+      "scenario": 3,
+      "doc": "Hover still answers below the error, with the operation's documentation.",
+      "expect": {
+        "contains": "Makes the node a sibling of its parent"
+      }
+    },
+    {
+      "id": 17,
+      "file": "mindmap.atd",
+      "line": 115,
+      "column": 3,
+      "utf16": 2,
+      "request": "diagnostics",
+      "scenario": 3,
+      "doc": "No finding but the one syntax error: the rest of the file is still checked.",
+      "expect": {
+        "codes": [
+          "ATD1001"
+        ]
+      }
+    },
+    {
+      "id": 18,
+      "file": "mindmap.atd",
+      "line": 16,
+      "column": 21,
+      "utf16": 20,
+      "request": "edit",
+      "scenario": 3,
+      "doc": "Typing the colon back clears the finding.",
+      "expect": {
+        "diagnostics": []
+      },
+      "edit": {
+        "text": ":"
+      }
+    },
+    {
+      "id": 19,
+      "file": "mindmap.notation.atd",
+      "line": 1,
+      "column": 1,
+      "utf16": 0,
+      "request": "format",
+      "scenario": 4,
+      "doc": "Formatting the part twice: the second changes nothing, and its comments stay with their constructs.",
+      "expect": {
+        "secondFormatUnchanged": true,
+        "commentsKept": true
+      }
+    },
+    {
+      "id": 20,
+      "file": "notes.atd",
+      "line": 1,
+      "column": 1,
+      "utf16": 0,
+      "request": "format",
+      "scenario": 4,
+      "doc": "The same for an editor's description.",
+      "expect": {
+        "secondFormatUnchanged": true,
+        "commentsKept": true
+      }
+    },
+    {
+      "id": 21,
+      "file": "binding-json.atd",
+      "line": 17,
+      "column": 1,
+      "utf16": 0,
+      "request": "edit",
+      "scenario": 4,
+      "doc": "Irregular spacing and a long line are not findings.",
+      "expect": {
+        "diagnostics": []
+      },
+      "edit": {
+        "text": "    node   Task   {shape roundedRect label   @name    }\n"
+      }
+    },
+    {
+      "id": 22,
+      "file": "binding-json.atd",
+      "line": 1,
+      "column": 1,
+      "utf16": 0,
+      "request": "format",
+      "scenario": 4,
+      "doc": "Formatting the edited file puts the line in the canonical layout, once.",
+      "expect": {
+        "secondFormatUnchanged": true,
+        "commentsKept": true
+      }
+    },
+    {
+      "id": 23,
+      "file": "mindmap.notation.atd",
+      "line": 1,
+      "column": 1,
+      "utf16": 0,
+      "request": "diagnostics",
+      "scenario": 5,
+      "doc": "The part checks clean as part of its description.",
+      "expect": {
+        "codes": []
+      }
+    },
+    {
+      "id": 24,
+      "file": "mindmap.notation.atd",
+      "line": 36,
+      "column": 11,
+      "utf16": 10,
+      "request": "edit",
+      "scenario": 5,
+      "doc": "Misspelling `@text` in the part gives one finding there, from the model in the root.",
+      "expect": {
+        "diagnostics": [
+          {
+            "code": "ATD2001",
+            "file": "mindmap.notation.atd"
+          }
+        ]
+      },
+      "edit": {
+        "text": "@txet as text",
+        "endLine": 36,
+        "endColumn": 24
+      }
+    },
+    {
+      "id": 25,
+      "file": "mindmap.notation.atd",
+      "line": 28,
+      "column": 8,
+      "utf16": 7,
+      "request": "hover",
+      "scenario": 5,
+      "doc": "Hover in the part shows the `///` documentation written in the root.",
+      "expect": {
+        "contains": "A topic in the map"
+      }
+    },
+    {
+      "id": 26,
+      "file": "mindmap.notation.atd",
+      "line": 28,
+      "column": 8,
+      "utf16": 7,
+      "request": "definition",
+      "scenario": 5,
+      "doc": "Go to definition from the part leads into the root.",
+      "expect": {
+        "file": "mindmap.atd",
+        "line": 12,
+        "column": 13,
+        "utf16": 12
+      }
+    },
+    {
+      "id": 27,
+      "file": "mindmap.atd",
+      "line": 8,
+      "column": 3,
+      "utf16": 2,
+      "request": "hover",
+      "scenario": 5,
+      "doc": "Hover over a keyword shows its entry of Appendix B.",
+      "expect": {
+        "contains": "capability"
+      }
+    },
+    {
+      "id": 28,
+      "file": "mindmap.atd",
+      "line": 8,
+      "column": 23,
+      "utf16": 22,
+      "request": "completion",
+      "scenario": 5,
+      "doc": "After `requires capability`, the catalogue's capabilities.",
+      "expect": {
+        "includes": [
+          "layout.twoSidedTree",
+          "reader.turtle",
+          "render.markdown"
+        ]
+      }
+    },
+    {
+      "id": 29,
+      "file": "notes.atd",
+      "line": 29,
+      "column": 21,
+      "utf16": 20,
+      "request": "completion",
+      "scenario": 5,
+      "doc": "In an editor's outline, the attributes of the element type it outlines.",
+      "expect": {
+        "exactly": [
+          "detail",
+          "done",
+          "title"
+        ]
+      }
+    },
+    {
+      "id": 30,
+      "file": "reading-list.atd",
+      "line": 1,
+      "column": 1,
+      "utf16": 0,
+      "request": "diagnostics",
+      "scenario": 5,
+      "doc": "A designer's description checks clean, in every IDE alike.",
+      "expect": {
+        "codes": []
+      }
+    }
+  ]
+}

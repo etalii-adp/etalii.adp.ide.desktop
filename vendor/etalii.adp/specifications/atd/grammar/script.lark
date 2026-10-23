@@ -1,0 +1,76 @@
+// ATD 0.1, module script: functions, statements and the action set as statements (ATD §12).
+// Uses from core: name, qualified, names, type_ref, settings_block, setting, KEY, NAME. Uses from cel: expr, INT.
+
+// `fn siblingName(parent: Topic, base: string) -> string recursion 8 { … }`
+fn_decl: "fn" name "(" [fn_param ("," fn_param)*] ")" ["->" type_ref] ["recursion" INT] stmt_block
+fn_param: name ":" type_ref
+
+// A `return` without a value stands last in its block only, so that it is never read as the start of an expression.
+stmt_block: "{" stmt* [void_return] "}"
+void_return: "return"
+
+?stmt: "let" name [":" type_ref] "=" expr -> let_stmt
+     | "var" name [":" type_ref] "=" expr -> var_stmt
+     | ASSIGN expr -> assign_stmt
+     | if_stmt
+     | "for" name ["," name] "in" expr "limit" INT stmt_block -> for_stmt
+     | "while" expr "limit" INT stmt_block -> while_stmt
+     | "return" expr -> return_stmt
+     | "break" -> break_stmt
+     | "continue" -> continue_stmt
+     | "fail" expr -> fail_stmt
+     | action
+
+if_stmt: "if" expr stmt_block ["else" (if_stmt | stmt_block)]
+
+// ---------------------------------------------------------------- The action set (DISL §9.4, DESL §8.2)
+
+?action: "set" path "=" expr -> set_action
+       | "unset" path -> unset_action
+       | "create" type_ref [assignments] ["in" expr] create_option* ["as" name] -> create_action
+       | "connect" type_ref "from" expr "to" expr [assignments] ["as" name] -> connect_action
+       | "delete" expr -> delete_action
+       | "move" expr ["to" expr "," expr] ["into" expr] -> move_action
+       | "resize" expr "to" expr "," expr -> resize_action
+       | "retype" expr "to" type_ref -> retype_action
+       | "reparent" expr "to" expr reparent_option* -> reparent_action
+       | "reorder" expr reorder_option -> reorder_action
+       | "view" expr assignments -> view_action
+       | "open" expr -> open_action
+       | "openForm" name "for" expr -> open_form_action
+       | "editLabel" expr [settings_block] -> edit_label_action
+       | "select" expr -> select_action
+       | "reveal" expr -> reveal_action
+       | "highlight" expr [settings_block] -> highlight_action
+       | "notify" expr ["severity" name] -> notify_action
+       | "layout" name ["on" expr] [settings_block] -> layout_action
+       | "call" qualified "(" [call_arg ("," call_arg)*] ")" -> call_action
+       | "call" "plugin" qualified "(" [call_arg ("," call_arg)*] ")" -> plugin_action
+
+// The attribute or element a `set` changes: `set self.text = …`, or `set text = …` for `self`.
+path: name ("." name)*
+
+// Attribute values of a new element or relation, and the view data of `view`: each value is CEL.
+assignments: "{" assignment* "}"
+assignment: KEY expr [","]
+
+create_option: "after" expr -> after
+             | "before" expr -> before
+             | "slot" name -> slot
+             | "at" expr -> at
+             | "size" expr -> size
+             | "place" name -> place
+
+reparent_option: "slot" name -> slot
+               | "after" expr -> after
+               | "before" expr -> before
+
+reorder_option: "by" expr -> by
+              | "after" expr -> after
+              | "before" expr -> before
+
+call_arg: expr
+        | KEY expr -> named_arg
+
+// A name and its `=` as one token, so that an assignment is told from a statement that starts with a keyword (ATD §3.4).
+ASSIGN: /[A-Za-z_][A-Za-z0-9_]*[ \t]*=/

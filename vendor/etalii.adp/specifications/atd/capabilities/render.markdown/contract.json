@@ -1,0 +1,15 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "render.markdown",
+  "version": "1.0.0",
+  "extensionPoint": "render",
+  "doc": "Renders CommonMark, with tables, strikethrough and task lists, as text runs by block: headings by level, paragraphs, quotes, list items by depth, code blocks and rules. Its fixtures are recorded with the Markdown editor's cases (spec 035, T067).",
+  "input": { "$ref": "../../atd.schema.json#/$defs/RenderInput" },
+  "args": {
+    "side": { "type": "enum", "values": ["right", "below"], "default": "right", "doc": "Where the preview stands beside the text." }
+  },
+  "output": { "$ref": "../../atd.schema.json#/$defs/RenderResult" },
+  "laws": ["deterministic", "pure"],
+  "fallback": null,
+  "status": "provisional"
+}

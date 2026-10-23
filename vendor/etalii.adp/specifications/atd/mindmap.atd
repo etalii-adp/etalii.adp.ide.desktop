@@ -1,0 +1,171 @@
+atd 0.1
+
+/// Ideas branch from one central topic. A trimmed mind map, after DISL's example `mindmap.dis` and FBL's
+/// `mindmap.fbl`: one node type nested to any depth, read from and written to a Freeplane `.mm` file.
+diagram freeplane/mindmap version "0.1.0" {
+  label "Mind map"
+  import "mindmap.notation.atd"
+  requires capability layout.twoSidedTree@^1
+
+  model {
+    /// A topic in the map. The one node without a parent is the central topic.
+    element Node {
+      label "Node"
+      attribute text: string default "" { label: "Text" order: 1 }
+      attribute notes: text default "" { markup: plain label: "Notes" order: 2 }
+      attribute link: string { label: "Link" order: 3 }
+      /// Freeplane's `FOLDED="true"`: it seeds each viewer's fold state and is never written by ADP.
+      attribute folded: bool readonly default false { label: "Collapsed" group: "View" order: 4 }
+      attribute position: Side readonly { label: "Side" order: 5 }
+      contains Node ordered
+      labelAttribute: text
+    }
+
+    /// The line from a node to its parent; not stored, but derived for every node that has a parent.
+    relation Branch from Node to Node {
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      acyclic: true
+      derived: (diagram.nodes.filter(n, n.parent != null).map(n, {'source': n.parent, 'target': n}))
+    }
+
+    /// Freeplane's `POSITION` on a first-level node: the side of the central topic its branch is drawn on.
+    enum Side {
+      right { label: "Right (Freeplane 1.11)" }
+      left { label: "Left (Freeplane 1.11)" }
+      bottom_or_right { label: "Right (Freeplane 1.12)" }
+      top_or_left { label: "Left (Freeplane 1.12)" }
+    }
+  }
+
+  constraints {
+    builtin std.missingId {
+      severity: info
+      code: "mindmap.missing-id"
+      message: ("The node '" + self.text + "' had no ID in the file; it was given one, which is written with the next save.")
+    }
+
+    constraint unnamedCentralTopic for Node {
+      label "Named central topic"
+      when self.parent == null
+      rule self.text.trim() != ""
+      severity warning
+      message ("The map '" + diagram.file + "' has an unnamed central topic.")
+      code: "mindmap.unnamed-root"
+      attribute: text
+    }
+
+    constraint keepCentralTopic for Node {
+      kind: delete
+      rule self.parent != null
+      message "The root node cannot be removed."
+    }
+  }
+
+  reason atStart "This node is already the first under its parent."
+
+  operation addChild "Add child" for Node {
+    doc "Adds a node as the last child, then edits its text in place."
+    icon: "mdi-subdirectory-arrow-right"
+    shortcut: "Insert"
+    create Node { text: siblingName(self, "Node") } in self as added
+    select added
+    editLabel added { label: text }
+  }
+
+  operation addSibling "Add sibling" for Node {
+    doc "Adds a node right after this one under the same parent, then edits its text in place."
+    icon: "mdi-plus"
+    shortcut: "Enter"
+    enabled self.parent != null
+    create Node { text: siblingName(self.parent, "Node") } in self.parent after self as added
+    select added
+    editLabel added { label: text }
+  }
+
+  operation promote "Move up a level" for Node {
+    doc "Makes the node a sibling of its parent, placed right after it, with its whole branch."
+    shortcut: "Ctrl+Left"
+    enabled self.parent != null && self.parent.parent != null
+    reparent self to self.parent.parent after self.parent
+  }
+
+  operation moveFirst "Move to the top of its branch" for Node {
+    enabled self.parent != null
+    unavailable [{ when: (self.positionIn(self.parent.children) == 0), reason: atStart }]
+    reorder self before self.parent.children[0]
+  }
+
+  operation editNotes for Node {
+    label (self.notes != "" ? "Edit notes" : "Add notes")
+    param notes: text { label: "Notes" }
+    set self.notes = p.notes
+  }
+
+  operation toggleFold for Node {
+    doc "Collapses or expands the branch for this viewer only: nothing is written and nothing lands on the undo history."
+    label (self.view.collapsed ? "Expand" : "Collapse")
+    shortcut: "Space"
+    enabled self.children.size() > 0
+    view self { collapsed: !self.view.collapsed }
+  }
+
+  /// The name for a new node under `parent`: `base`, else `base` and the first free number from 2.
+  fn siblingName(parent: Node, base: string) -> string {
+    let taken = parent.children.map(c, c.text)
+    if !(base in taken) {
+      return base
+    }
+    for i in range(2, 1000) limit 1000 {
+      let candidate = base + " " + string(i)
+      if !(candidate in taken) {
+        return candidate
+      }
+    }
+    fail "No free name for a node under '" + parent.text + "'."
+  }
+
+  persistence {
+    ids: { strategy: "uuid-v4", prefix: "ID_", stable: true, missing: assign }
+    view: { store: [], viewer: [collapsed, viewport, selection], initial: { collapsed: (self.folded) }, revealExpands: true }
+  }
+
+  /// A Freeplane mind map: the `xml` family. Every construct ADP does not model is kept byte for byte.
+  binding freeplane family xml {
+    label "Freeplane mind map"
+    claims { extensions: [".mm"], origins: ["freeplane/mindmap"], marker: { pattern: r"^<map[\s>]", lines: 5 } }
+    text { newline: lf }
+    header { line: r"^<map[\s>]", required: true }
+
+    element Node as node at "/map/**/node" {
+      parent node slot children
+      id from attribute "ID"
+      attribute text from attribute "TEXT" {
+        override: { child: "richcontent[@TYPE='NODE']", text: true }
+        content: "html-paragraphs"
+      }
+      attribute notes from text {
+        child: "richcontent[@TYPE='NOTE']"
+        content: "html-paragraphs"
+        empty: remove
+      }
+      attribute link from attribute "LINK" { empty: remove }
+      attribute folded from attribute "FOLDED" { readOnly: "Folding is a viewer's state and is never written to the map." }
+      attribute position from attribute "POSITION" { readOnly: "The side follows Freeplane's layout and is kept as Freeplane wrote it." }
+      insert { place: "last-child", emit: "<node TEXT=\"{text}\" ID=\"{id}\"/>" }
+      remove {}
+    }
+
+    relation Branch as branch at "/map/**/node/node" {
+      source from parent "ID"
+      target from attribute "ID"
+      readOnly: "A branch is the nesting of one node in another; move or remove the node instead."
+    }
+
+    template """<map version="freeplane 1.11.5">
+<node TEXT="{base}" ID="{newid:node}"/>
+</map>
+"""
+  }
+}

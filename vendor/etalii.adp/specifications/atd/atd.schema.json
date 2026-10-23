@@ -1,0 +1,4621 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json",
+  "title": "ATD, the ADP Tool Language, 0.1",
+  "description": "The JSON forms of ATD (ATD-specification.md, Appendix A): the abstract tree of a tool description (`Tree`), findings, parse tables, traces, conformance fixtures, drawings, capability contracts and their fixtures, and the walk. A tool description itself is text, `.atd`, whose grammar is in `grammar/`; its tree is not an interchange form.",
+  "$defs": {
+    "Span": {
+      "description": "Where a node stands in its file: UTF-8 byte offsets of its first byte and of the byte after it, and the 1-based line and column of its start and end, columns in code points (ATD §3.1, §15).",
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "start",
+        "end",
+        "line",
+        "column"
+      ]
+    },
+    "Name": {
+      "description": "A name as written, with where it stands: a NAME or a keyword in a name position (ATD §3.6).",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "span"
+      ]
+    },
+    "QualifiedName": {
+      "description": "A dotted name, `layout.twoSidedTree`, `std.missingId`.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "span"
+      ]
+    },
+    "TypeRef": {
+      "description": "A type: a qualified name with its type arguments (`list<Concept>`).",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/QualifiedName"
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TypeRef"
+          }
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "span"
+      ]
+    },
+    "Value": {
+      "description": "A value (ATD §6): exactly one of a literal, a CEL expression with its abstract syntax, a reference to an attribute, a theme token or a parameter, a settings map, or a list.",
+      "type": "object",
+      "oneOf": [
+        {
+          "description": "A literal: a bare word, a number, a string or a length.",
+          "type": "object",
+          "properties": {
+            "literal": {
+              "type": [
+                "string",
+                "number",
+                "boolean",
+                "null"
+              ]
+            },
+            "form": {
+              "enum": [
+                "word",
+                "number",
+                "string",
+                "length"
+              ]
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "literal",
+            "form",
+            "span"
+          ]
+        },
+        {
+          "description": "A CEL expression in parentheses.",
+          "type": "object",
+          "properties": {
+            "cel": {
+              "type": "string"
+            },
+            "ast": {
+              "$ref": "#/$defs/CelNode"
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "cel",
+            "ast",
+            "span"
+          ]
+        },
+        {
+          "description": "`@path`: an attribute of the current element, two-way where the position allows.",
+          "type": "object",
+          "properties": {
+            "attribute": {
+              "type": "string"
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "attribute",
+            "span"
+          ]
+        },
+        {
+          "description": "`$name`: a theme token.",
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string"
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "token",
+            "span"
+          ]
+        },
+        {
+          "description": "`#name`: a parameter of the enclosing shape, marker or template.",
+          "type": "object",
+          "properties": {
+            "param": {
+              "type": "string"
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "param",
+            "span"
+          ]
+        },
+        {
+          "description": "`{ key: value … }`: a settings map, in written order.",
+          "type": "object",
+          "properties": {
+            "settings": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Setting"
+              }
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "settings",
+            "span"
+          ]
+        },
+        {
+          "description": "`[ value, … ]`: a list.",
+          "type": "object",
+          "properties": {
+            "list": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Value"
+              }
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "list",
+            "span"
+          ]
+        }
+      ]
+    },
+    "Setting": {
+      "description": "One `key: value` pair (ATD §6.4); `quoted` when the key was written as a string.",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "quoted": {
+          "type": "boolean"
+        },
+        "value": {
+          "$ref": "#/$defs/Value"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "value",
+        "span"
+      ]
+    },
+    "CelNode": {
+      "description": "CEL's abstract syntax (ATD §6.3), with spans: an operator is a call of its CEL function name (`_+_`, `_&&_`, `!_`, `-_`, `_?_:_`, `_[_]`, `@in`, `_[?_]`, `_?._`), a macro is a call marked `macro`, a method call has a `target`.",
+      "type": "object",
+      "oneOf": [
+        {
+          "description": "An identifier; `root` when written with a leading dot.",
+          "type": "object",
+          "properties": {
+            "ident": {
+              "type": "string"
+            },
+            "root": {
+              "type": "boolean"
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "ident",
+            "span"
+          ]
+        },
+        {
+          "description": "A field selection.",
+          "type": "object",
+          "properties": {
+            "select": {
+              "type": "string"
+            },
+            "operand": {
+              "$ref": "#/$defs/CelNode"
+            },
+            "optional": {
+              "type": "boolean"
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "select",
+            "operand",
+            "span"
+          ]
+        },
+        {
+          "description": "A call of a function, an operator or a macro.",
+          "type": "object",
+          "properties": {
+            "call": {
+              "type": "string"
+            },
+            "target": {
+              "$ref": "#/$defs/CelNode"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/CelNode"
+              }
+            },
+            "macro": {
+              "type": "boolean"
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "call",
+            "args",
+            "span"
+          ]
+        },
+        {
+          "description": "A list literal; `optional` names the indexes written with `?`.",
+          "type": "object",
+          "properties": {
+            "list": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/CelNode"
+              }
+            },
+            "optional": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "list",
+            "span"
+          ]
+        },
+        {
+          "description": "A map literal.",
+          "type": "object",
+          "properties": {
+            "map": {
+              "type": "array",
+              "items": {
+                "description": "An entry.",
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "$ref": "#/$defs/CelNode"
+                  },
+                  "value": {
+                    "$ref": "#/$defs/CelNode"
+                  },
+                  "optional": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "key",
+                  "value"
+                ]
+              }
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "map",
+            "span"
+          ]
+        },
+        {
+          "description": "A literal: `type` is CEL's type of it.",
+          "type": "object",
+          "properties": {
+            "literal": {
+              "type": [
+                "string",
+                "number",
+                "boolean",
+                "null"
+              ]
+            },
+            "type": {
+              "enum": [
+                "int",
+                "uint",
+                "double",
+                "string",
+                "bytes",
+                "bool",
+                "null_type"
+              ]
+            },
+            "text": {
+              "type": "string"
+            },
+            "span": {
+              "$ref": "#/$defs/Span"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "literal",
+            "type",
+            "span"
+          ]
+        }
+      ]
+    },
+    "Tree": {
+      "description": "The abstract tree of one `.atd` file, as `atd tree` prints it (ATD §4.5, FR-030). It is not an interchange form: nothing reads it back as a description.",
+      "type": "object",
+      "properties": {
+        "atd": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        },
+        "file": {
+          "type": "string"
+        },
+        "description": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tool"
+            },
+            {
+              "$ref": "#/$defs/Part"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "atd",
+        "file",
+        "description"
+      ]
+    },
+    "Tool": {
+      "description": "The tool construct of a root file (ATD §5.1).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "tool"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "toolKind": {
+          "enum": [
+            "diagram",
+            "designer",
+            "editor"
+          ]
+        },
+        "origin": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.-]*/[A-Za-z0-9_][A-Za-z0-9_.-]*$"
+        },
+        "version": {
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Member"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "toolKind",
+        "origin",
+        "version",
+        "members"
+      ]
+    },
+    "Part": {
+      "description": "A part of a description (ATD §5.2).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "part"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Member"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "origin",
+        "members"
+      ]
+    },
+    "Member": {
+      "description": "A member of a tool or a part: a construct of the core (ATD §7), the script (§12), a surface (§8 to §10) or a binding (§11).",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Label"
+        },
+        {
+          "$ref": "#/$defs/DocMember"
+        },
+        {
+          "$ref": "#/$defs/SettingMember"
+        },
+        {
+          "$ref": "#/$defs/Import"
+        },
+        {
+          "$ref": "#/$defs/Requires"
+        },
+        {
+          "$ref": "#/$defs/Model"
+        },
+        {
+          "$ref": "#/$defs/Constraints"
+        },
+        {
+          "$ref": "#/$defs/Constraint"
+        },
+        {
+          "$ref": "#/$defs/Builtin"
+        },
+        {
+          "$ref": "#/$defs/Operation"
+        },
+        {
+          "$ref": "#/$defs/Hook"
+        },
+        {
+          "$ref": "#/$defs/Reason"
+        },
+        {
+          "$ref": "#/$defs/MessageDecl"
+        },
+        {
+          "$ref": "#/$defs/Behavior"
+        },
+        {
+          "$ref": "#/$defs/Persistence"
+        },
+        {
+          "$ref": "#/$defs/Plugin"
+        },
+        {
+          "$ref": "#/$defs/Function"
+        },
+        {
+          "$ref": "#/$defs/Coordinates"
+        },
+        {
+          "$ref": "#/$defs/Notation"
+        },
+        {
+          "$ref": "#/$defs/Toolbox"
+        },
+        {
+          "$ref": "#/$defs/Form"
+        },
+        {
+          "$ref": "#/$defs/Layout"
+        },
+        {
+          "$ref": "#/$defs/Viewpoint"
+        },
+        {
+          "$ref": "#/$defs/TableSurface"
+        },
+        {
+          "$ref": "#/$defs/HierarchySurface"
+        },
+        {
+          "$ref": "#/$defs/TextSurface"
+        },
+        {
+          "$ref": "#/$defs/Binding"
+        }
+      ]
+    },
+    "Label": {
+      "description": "`label value`: a display name or a label's text.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "label"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "value"
+      ]
+    },
+    "DocMember": {
+      "description": "`doc value`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "doc"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "value"
+      ]
+    },
+    "SettingMember": {
+      "description": "A setting among the members of a construct.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "setting"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "setting": {
+          "$ref": "#/$defs/Setting"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "setting"
+      ]
+    },
+    "Import": {
+      "description": "`import \"file\"` (a part), or `import \"file\" as name` (a library) (ATD §5.3).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "import"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "as": {
+          "$ref": "#/$defs/Name"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "path"
+      ]
+    },
+    "Requires": {
+      "description": "`requires capability name@range` (ATD §13).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "requires"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "capability": {
+          "$ref": "#/$defs/QualifiedName"
+        },
+        "range": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "capability",
+        "range"
+      ]
+    },
+    "Model": {
+      "description": "`model { … }` (ATD §7.4).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "model"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Element"
+              },
+              {
+                "$ref": "#/$defs/Relation"
+              },
+              {
+                "$ref": "#/$defs/Enum"
+              },
+              {
+                "$ref": "#/$defs/DataType"
+              },
+              {
+                "$ref": "#/$defs/DocumentDecl"
+              },
+              {
+                "$ref": "#/$defs/SettingMember"
+              },
+              {
+                "$ref": "#/$defs/DocMember"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "Element": {
+      "description": "`element Name extends … { … }`: an element type (DISL's node type, DESL's element type).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "element"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "extends": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Attribute"
+              },
+              {
+                "$ref": "#/$defs/Contains"
+              },
+              {
+                "$ref": "#/$defs/Port"
+              },
+              {
+                "$ref": "#/$defs/SettingMember"
+              },
+              {
+                "$ref": "#/$defs/DocMember"
+              },
+              {
+                "$ref": "#/$defs/Label"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "Relation": {
+      "description": "`relation Name from … to … { … }` (DISL §4.9).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "relation"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "extends": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "from": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "to": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Attribute"
+              },
+              {
+                "$ref": "#/$defs/Contains"
+              },
+              {
+                "$ref": "#/$defs/Port"
+              },
+              {
+                "$ref": "#/$defs/SettingMember"
+              },
+              {
+                "$ref": "#/$defs/DocMember"
+              },
+              {
+                "$ref": "#/$defs/Label"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "Attribute": {
+      "description": "`attribute name: Type flags { … }` (DISL §4.3, DESL §4.3).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "attribute"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "many": {
+          "type": "boolean"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "default": {
+          "$ref": "#/$defs/Value"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "type"
+      ]
+    },
+    "Contains": {
+      "description": "`contains Types as slot ordered` (DISL §4.8, DESL §4.6).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "contains"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "slot": {
+          "$ref": "#/$defs/Name"
+        },
+        "ordered": {
+          "type": "boolean"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "types"
+      ]
+    },
+    "Port": {
+      "description": "`port name { … }` (DISL §4.10).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "port"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "Enum": {
+      "description": "`enum Name \"Label\" { values }` (DISL §4.5).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "enum"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "label": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "description": "An enum value.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "quoted": {
+                "type": "boolean"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              },
+              "settings": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Setting"
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "span"
+            ]
+          }
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "values"
+      ]
+    },
+    "DataType": {
+      "description": "`datatype Name: Base { … }` (DISL §4.4).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "datatype"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "base": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "DocumentDecl": {
+      "description": "`document { … }`: the attributes of the document itself.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "document"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Attribute"
+              },
+              {
+                "$ref": "#/$defs/Contains"
+              },
+              {
+                "$ref": "#/$defs/Port"
+              },
+              {
+                "$ref": "#/$defs/SettingMember"
+              },
+              {
+                "$ref": "#/$defs/DocMember"
+              },
+              {
+                "$ref": "#/$defs/Label"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "Constraints": {
+      "description": "`constraints { … }` (DISL §8, DESL §6).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "constraints"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Constraint"
+              },
+              {
+                "$ref": "#/$defs/Builtin"
+              },
+              {
+                "$ref": "#/$defs/SettingMember"
+              },
+              {
+                "$ref": "#/$defs/DocMember"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "Constraint": {
+      "description": "`constraint id for Types { … }`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "constraint"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "for": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "when": {
+          "$ref": "#/$defs/Expr"
+        },
+        "rule": {
+          "$ref": "#/$defs/Expr"
+        },
+        "message": {
+          "$ref": "#/$defs/Value"
+        },
+        "severity": {
+          "$ref": "#/$defs/Name"
+        },
+        "fixes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Fix"
+          }
+        },
+        "label": {
+          "$ref": "#/$defs/Value"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "Builtin": {
+      "description": "`builtin std.name { … }`: settings of a built-in constraint (DISL §8.7).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "builtin"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/QualifiedName"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "Fix": {
+      "description": "`fix name \"Label\" { … }`: a quick fix (DISL §8.5), or a fix on a range of an editor's text (ATD §10).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "fix"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "title": {
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/Expr"
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          }
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "Operation": {
+      "description": "`operation id \"Label\" for Types { … }` (DISL §9.3, DESL §8.1).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "operation"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "title": {
+          "type": "string"
+        },
+        "for": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "enabled": {
+          "$ref": "#/$defs/Expr"
+        },
+        "unavailable": {
+          "$ref": "#/$defs/Value"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Param"
+          }
+        },
+        "confirm": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        },
+        "label": {
+          "$ref": "#/$defs/Value"
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          }
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "body"
+      ]
+    },
+    "Param": {
+      "description": "`param name: Type`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "param"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "many": {
+          "type": "boolean"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "default": {
+          "$ref": "#/$defs/Value"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "type"
+      ]
+    },
+    "Hook": {
+      "description": "`hook id on event for Types { … }` (DISL §9.2).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "hook"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "on": {
+          "$ref": "#/$defs/Name"
+        },
+        "for": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "when": {
+          "$ref": "#/$defs/Expr"
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          }
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "on",
+        "body"
+      ]
+    },
+    "Reason": {
+      "description": "`reason id \"text\"` or `reason id { when … message … }` (DISL §2.3, §9.1).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "reason"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "message": {
+          "$ref": "#/$defs/Value"
+        },
+        "when": {
+          "$ref": "#/$defs/Expr"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "MessageDecl": {
+      "description": "`message id value`: a standard message (DISL §9.1).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "message"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/QualifiedName"
+        },
+        "value": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "value"
+      ]
+    },
+    "Behavior": {
+      "description": "`behavior { … }`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "behavior"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "settings"
+      ]
+    },
+    "Persistence": {
+      "description": "`persistence { … }`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "persistence"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "settings"
+      ]
+    },
+    "Plugin": {
+      "description": "`plugin name { … }` (DISL §13).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "plugin"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/QualifiedName"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "Function": {
+      "description": "`fn name(params) -> Type recursion n { … }` (ATD §12.1).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "fn"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "description": "A parameter.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/Name"
+              },
+              "type": {
+                "$ref": "#/$defs/TypeRef"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "type"
+            ]
+          }
+        },
+        "returns": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "recursion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "params",
+        "body"
+      ]
+    },
+    "Expr": {
+      "description": "A CEL expression in a position that takes only an expression, written bare (ATD §6.2).",
+      "type": "object",
+      "properties": {
+        "cel": {
+          "type": "string"
+        },
+        "ast": {
+          "$ref": "#/$defs/CelNode"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "cel",
+        "ast",
+        "span"
+      ]
+    },
+    "Statement": {
+      "description": "A statement of the script (ATD §12.2) or an action (§12.3). Its fields are those its form writes: `name`, `type`, `value`, `target`, `path`, `condition`, `then`, `else`, `names`, `iterable`, `limit`, `body`, `assignments`, `parent`, `after`, `before`, `slot`, `at`, `size`, `place`, `as`, `source`, `to`, `by`, `x`, `y`, `width`, `height`, `form`, `severity`, `on`, `operation`, `args`, `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "let",
+            "var",
+            "assign",
+            "if",
+            "for",
+            "while",
+            "return",
+            "break",
+            "continue",
+            "fail",
+            "set",
+            "unset",
+            "create",
+            "connect",
+            "delete",
+            "move",
+            "resize",
+            "retype",
+            "reparent",
+            "reorder",
+            "view",
+            "open",
+            "openForm",
+            "editLabel",
+            "select",
+            "reveal",
+            "highlight",
+            "notify",
+            "layout",
+            "call",
+            "plugin"
+          ]
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Name"
+          }
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "value": {
+          "$ref": "#/$defs/Expr"
+        },
+        "target": {
+          "$ref": "#/$defs/Expr"
+        },
+        "path": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Name"
+          }
+        },
+        "condition": {
+          "$ref": "#/$defs/Expr"
+        },
+        "then": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          }
+        },
+        "else": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          }
+        },
+        "iterable": {
+          "$ref": "#/$defs/Expr"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          }
+        },
+        "assignments": {
+          "type": "array",
+          "items": {
+            "description": "An attribute and its CEL value.",
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/Expr"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "value",
+              "span"
+            ]
+          }
+        },
+        "parent": {
+          "$ref": "#/$defs/Expr"
+        },
+        "after": {
+          "$ref": "#/$defs/Expr"
+        },
+        "before": {
+          "$ref": "#/$defs/Expr"
+        },
+        "slot": {
+          "$ref": "#/$defs/Name"
+        },
+        "at": {
+          "$ref": "#/$defs/Expr"
+        },
+        "size": {
+          "$ref": "#/$defs/Expr"
+        },
+        "place": {
+          "$ref": "#/$defs/Name"
+        },
+        "as": {
+          "$ref": "#/$defs/Name"
+        },
+        "source": {
+          "$ref": "#/$defs/Expr"
+        },
+        "to": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Expr"
+            },
+            {
+              "$ref": "#/$defs/TypeRef"
+            }
+          ]
+        },
+        "by": {
+          "$ref": "#/$defs/Expr"
+        },
+        "x": {
+          "$ref": "#/$defs/Expr"
+        },
+        "y": {
+          "$ref": "#/$defs/Expr"
+        },
+        "width": {
+          "$ref": "#/$defs/Expr"
+        },
+        "height": {
+          "$ref": "#/$defs/Expr"
+        },
+        "form": {
+          "$ref": "#/$defs/Name"
+        },
+        "severity": {
+          "$ref": "#/$defs/Name"
+        },
+        "on": {
+          "$ref": "#/$defs/Expr"
+        },
+        "operation": {
+          "$ref": "#/$defs/QualifiedName"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "description": "An argument, named when written `key: value`.",
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/Expr"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "value"
+            ]
+          }
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span"
+      ]
+    },
+    "Coordinates": {
+      "description": "`coordinates { system … axis … snapping … default … }` (DISL §5). Its members are the constructs ATD's section names, each with `kind` the construct's keyword (`system`, `node`, `edge`, `variant`, `group`, `tool`, `algorithm`, `rows`, `valueType`, `outline`, …), `name` or `names`, its own fields and its `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "coordinates"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "Notation": {
+      "description": "`notation { … }` (DISL §6). Its members are the constructs ATD's section names, each with `kind` the construct's keyword (`system`, `node`, `edge`, `variant`, `group`, `tool`, `algorithm`, `rows`, `valueType`, `outline`, …), `name` or `names`, its own fields and its `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "notation"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "Toolbox": {
+      "description": "`toolbox { … }` (DISL §7.1 to §7.4). Its members are the constructs ATD's section names, each with `kind` the construct's keyword (`system`, `node`, `edge`, `variant`, `group`, `tool`, `algorithm`, `rows`, `valueType`, `outline`, …), `name` or `names`, its own fields and its `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "toolbox"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "Layout": {
+      "description": "`layout { default … algorithm … }` (DISL §10). Its members are the constructs ATD's section names, each with `kind` the construct's keyword (`system`, `node`, `edge`, `variant`, `group`, `tool`, `algorithm`, `rows`, `valueType`, `outline`, …), `name` or `names`, its own fields and its `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "layout"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "TableSurface": {
+      "description": "`surface table { … }` (DESL §7.2 to §7.6). Its members are the constructs ATD's section names, each with `kind` the construct's keyword (`system`, `node`, `edge`, `variant`, `group`, `tool`, `algorithm`, `rows`, `valueType`, `outline`, …), `name` or `names`, its own fields and its `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "tableSurface"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "HierarchySurface": {
+      "description": "`surface hierarchy { … }` (DESL §7.7). Its members are the constructs ATD's section names, each with `kind` the construct's keyword (`system`, `node`, `edge`, `variant`, `group`, `tool`, `algorithm`, `rows`, `valueType`, `outline`, …), `name` or `names`, its own fields and its `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "hierarchySurface"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "TextSurface": {
+      "description": "`surface text { … }` (ATD §10). Its members are the constructs ATD's section names, each with `kind` the construct's keyword (`system`, `node`, `edge`, `variant`, `group`, `tool`, `algorithm`, `rows`, `valueType`, `outline`, …), `name` or `names`, its own fields and its `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "textSurface"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "Form": {
+      "description": "`form id \"Label\" for Types { … }` (DISL §7.5).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "form"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "title": {
+          "type": "string"
+        },
+        "for": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedName"
+          }
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "members"
+      ]
+    },
+    "Viewpoint": {
+      "description": "`viewpoint id \"Label\" { … }` (DISL §3.5).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "viewpoint"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "title": {
+          "type": "string"
+        },
+        "settings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Setting"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name"
+      ]
+    },
+    "Binding": {
+      "description": "`binding name family … { … }` (ATD §11).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "binding"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "family": {
+          "type": "string"
+        },
+        "capability": {
+          "$ref": "#/$defs/QualifiedName"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BindingMember"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "name",
+        "members"
+      ]
+    },
+    "BindingMember": {
+      "description": "A member of a binding: `claims`, `body`, `text`, `header`, `registration`, `template`, `block`, `section`, an element or relation rule, or a `setting`, `doc` or `label` member.",
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "rule"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/Rule"
+      },
+      "else": {
+        "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+        "type": "object",
+        "required": [
+          "kind",
+          "span"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "span": {
+            "$ref": "#/$defs/Span"
+          }
+        }
+      }
+    },
+    "Rule": {
+      "description": "An element or relation rule (FBL §5.1, §5.4).",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "rule"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "ruleKind": {
+          "enum": [
+            "element",
+            "relation"
+          ]
+        },
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "as": {
+          "$ref": "#/$defs/Name"
+        },
+        "at": {
+          "type": "string"
+        },
+        "line": {
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "ruleKind",
+        "type",
+        "members"
+      ]
+    },
+    "Finding": {
+      "description": "A finding of the checker, a language server or validation (ATD §15, FR-091).",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^ATD[0-9]{4}$"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "information"
+          ]
+        },
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "message": {
+          "type": "string"
+        },
+        "related": {
+          "type": "array",
+          "items": {
+            "description": "Another place the finding concerns.",
+            "type": "object",
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "column": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "file",
+              "line",
+              "column"
+            ]
+          }
+        },
+        "fixes": {
+          "type": "array",
+          "items": {
+            "description": "A fix: text edits, in byte offsets, that resolve the finding.",
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "edits": {
+                "type": "array",
+                "items": {
+                  "description": "One splice.",
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "type": "string"
+                    },
+                    "start": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "end": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "text": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "file",
+                    "start",
+                    "end",
+                    "text"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "title",
+              "edits"
+            ]
+          }
+        },
+        "suggestions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 5
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "severity",
+        "file",
+        "line",
+        "column",
+        "message"
+      ]
+    },
+    "Findings": {
+      "description": "The findings of one run, in a stable order: by file, then position, then code (ATD §15.4). A refused file of the corpus states those it must give in this form; `message` is then not compared.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Finding"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "findings"
+      ]
+    },
+    "ParseTables": {
+      "description": "The LALR(1) automaton of a grammar in ATD grammar notation, normalized so that two implementations can be compared byte for byte (ATD §4.7): terminals by name (an anonymous string terminal is named by its quoted string), the rules of the grammar after the expansion of §4.4 sorted and numbered (a helper of a repetition named `(<symbols>)+`), and the states numbered breadth first from the start state over the symbols in sorted order, each with its actions on terminals (`s<state>`, `r<rule>`, `accept`) and its gotos on nonterminals.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "grammar": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "ignore": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "terminals": {
+          "type": "array",
+          "items": {
+            "description": "A terminal.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "string",
+                  "pattern"
+                ]
+              },
+              "value": {
+                "type": "string"
+              },
+              "priority": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "kind",
+              "value",
+              "priority"
+            ]
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "description": "A rule.",
+            "type": "object",
+            "properties": {
+              "lhs": {
+                "type": "string"
+              },
+              "rhs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "alias": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "lhs",
+              "rhs"
+            ]
+          }
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "description": "A state.",
+            "type": "object",
+            "properties": {
+              "actions": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "pattern": "^(s[0-9]+|r[0-9]+|accept)$"
+                }
+              },
+              "gotos": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "actions",
+              "gotos"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "grammar",
+        "start",
+        "terminals",
+        "rules",
+        "states"
+      ]
+    },
+    "Trace": {
+      "description": "The trace of a tool description (ATD §2.5, data-model.md §10): every item of its companion's gap sections and every behaviour of a host's code, each with the part of the description that states it, the host's concern it is, or the reference behaviour it diverges from.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "companion": {
+          "description": "The companion file and the sections whose `###` headings and top-level list items are the items.",
+          "type": "object",
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "file",
+            "sections"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "description": "One item of the companion.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+/[0-9]+$"
+              },
+              "text": {
+                "type": "string"
+              },
+              "statedBy": {
+                "type": "string"
+              },
+              "hostConcern": {
+                "enum": [
+                  "rendering",
+                  "gestures",
+                  "text-measurement",
+                  "file-dialogs",
+                  "opening-links",
+                  "undo-stack"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "text"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "statedBy"
+                ],
+                "not": {
+                  "required": [
+                    "hostConcern"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "hostConcern",
+                  "reason"
+                ],
+                "not": {
+                  "required": [
+                    "statedBy"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "hostCode": {
+          "type": "array",
+          "items": {
+            "description": "One behaviour read in a host's code at its reference commit.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "host": {
+                "enum": [
+                  "standalone",
+                  "desktop",
+                  "vscode",
+                  "intellij",
+                  "eclipse",
+                  "notion"
+                ]
+              },
+              "repository": {
+                "type": "string"
+              },
+              "commit": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{7,40}$"
+              },
+              "path": {
+                "type": "string"
+              },
+              "lines": {
+                "type": "string",
+                "pattern": "^[0-9]+(-[0-9]+)?$"
+              },
+              "behaviour": {
+                "type": "string"
+              },
+              "statedBy": {
+                "type": "string"
+              },
+              "divergesFrom": {
+                "type": "string"
+              },
+              "hostConcern": {
+                "enum": [
+                  "rendering",
+                  "gestures",
+                  "text-measurement",
+                  "file-dialogs",
+                  "opening-links",
+                  "undo-stack"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "host",
+              "repository",
+              "commit",
+              "path",
+              "lines",
+              "behaviour"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "statedBy"
+                ]
+              },
+              {
+                "required": [
+                  "divergesFrom"
+                ]
+              },
+              {
+                "required": [
+                  "hostConcern",
+                  "reason"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "description",
+        "companion",
+        "items",
+        "hostCode"
+      ]
+    },
+    "Provenance": {
+      "description": "Who produced one part of a fixture (ATD §2.3).",
+      "type": "object",
+      "properties": {
+        "host": {
+          "enum": [
+            "standalone",
+            "desktop",
+            "vscode",
+            "intellij",
+            "eclipse",
+            "notion"
+          ]
+        },
+        "repository": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$"
+        },
+        "recordedWith": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "host",
+        "repository",
+        "commit",
+        "source"
+      ]
+    },
+    "ConformanceStep": {
+      "description": "One gesture of a case and what it must produce (ATD §2.3). Exactly one of `action`, `property`, `move`, `create`, `connect`, `delete`, `undo` and `redo`; `select` before it.",
+      "type": "object",
+      "properties": {
+        "select": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "action": {
+          "type": "string"
+        },
+        "args": {
+          "type": "object"
+        },
+        "property": {
+          "description": "A property set through a form.",
+          "type": "object",
+          "properties": {
+            "element": {
+              "type": "string"
+            },
+            "attribute": {
+              "type": "string"
+            },
+            "value": {}
+          },
+          "additionalProperties": false,
+          "required": [
+            "attribute",
+            "value"
+          ]
+        },
+        "move": {
+          "description": "A move gesture.",
+          "type": "object",
+          "properties": {
+            "element": {
+              "type": "string"
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "parent": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "create": {
+          "description": "A create gesture.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "parent": {
+              "type": "string"
+            },
+            "attributes": {
+              "type": "object"
+            },
+            "at": {}
+          },
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ]
+        },
+        "connect": {
+          "description": "A connect gesture.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "attributes": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "source",
+            "target"
+          ]
+        },
+        "delete": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "undo": {
+          "const": true
+        },
+        "redo": {
+          "const": true
+        },
+        "ids": {
+          "description": "The ids the reference host generated in this step, in order, handed to the runtime.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "splices": {
+          "type": "array",
+          "items": {
+            "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Splice"
+          }
+        },
+        "expect": {
+          "type": "string"
+        },
+        "expectFile": {
+          "type": "string"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "description": "A finding a reading or a step gives: its rule or code and where.",
+            "type": "object",
+            "properties": {
+              "rule": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "element": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer"
+              },
+              "column": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "drawing": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Drawing"
+            },
+            {
+              "description": "A drawing kept in a file beside the fixture.",
+              "type": "object",
+              "properties": {
+                "$ref": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "$ref"
+              ]
+            }
+          ]
+        },
+        "refused": {
+          "description": "The gesture is refused, with this reason.",
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "reason"
+          ]
+        },
+        "doc": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConformanceFixture": {
+      "description": "One conformance case of one tool type (ATD §2.3, data-model.md §8).",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "doc": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "inputs": {
+          "description": "The input files of the case by role (`body`, `registration`, …): paths relative to the case's folder, kept byte for byte.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1
+        },
+        "read": {
+          "description": "What reading the inputs yields.",
+          "type": "object",
+          "properties": {
+            "elements": {
+              "type": "array",
+              "items": {
+                "description": "An element.",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "parent": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "attributes": {
+                    "type": "object"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "type"
+                ]
+              }
+            },
+            "relations": {
+              "type": "array",
+              "items": {
+                "description": "A relation.",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "source": {
+                    "type": "string"
+                  },
+                  "target": {
+                    "type": "string"
+                  },
+                  "attributes": {
+                    "type": "object"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "type",
+                  "source",
+                  "target"
+                ]
+              }
+            },
+            "findings": {
+              "type": "array",
+              "items": {
+                "description": "A finding a reading or a step gives: its rule or code and where.",
+                "type": "object",
+                "properties": {
+                  "rule": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "severity": {
+                    "type": "string"
+                  },
+                  "element": {
+                    "type": "string"
+                  },
+                  "line": {
+                    "type": "integer"
+                  },
+                  "column": {
+                    "type": "integer"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "unreadable": {
+              "type": "array",
+              "items": {
+                "description": "An unreadable part of the body.",
+                "type": "object",
+                "properties": {
+                  "line": {
+                    "type": "integer"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "line"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "drawing": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Drawing"
+            },
+            {
+              "description": "A drawing kept in a file beside the fixture.",
+              "type": "object",
+              "properties": {
+                "$ref": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "$ref"
+              ]
+            }
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConformanceStep"
+          }
+        },
+        "provenance": {
+          "description": "Who produced each part.",
+          "type": "object",
+          "properties": {
+            "bytes": {
+              "$ref": "#/$defs/Provenance"
+            },
+            "reading": {
+              "$ref": "#/$defs/Provenance"
+            },
+            "findings": {
+              "$ref": "#/$defs/Provenance"
+            },
+            "drawing": {
+              "$ref": "#/$defs/Provenance"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "reading"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "description",
+        "inputs",
+        "read",
+        "provenance"
+      ]
+    },
+    "Drawing": {
+      "description": "The scene of one view in `adp-scene`'s vocabulary (ATD §2.4, data-model.md §9). Two drawings are equal when their elements and edges are equal as sets keyed by `id` and their `order` lists are equal.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "view": {
+          "type": "string"
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "description": "A drawn element.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "shape": {
+                "type": "string"
+              },
+              "bounds": {
+                "description": "A box in the canvas's domain units, rounded to 0.01.",
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "w": {
+                    "type": "number"
+                  },
+                  "h": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y",
+                  "w",
+                  "h"
+                ]
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "description": "A label as drawn.",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "font": {
+                      "type": "string"
+                    },
+                    "position": {
+                      "description": "A point in the canvas's domain units, rounded to 0.01.",
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "x",
+                        "y"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "text"
+                  ]
+                }
+              },
+              "style": {
+                "description": "The resolved style: paints as colours, with the token names they came from.",
+                "type": "object",
+                "properties": {
+                  "fill": {
+                    "type": "string"
+                  },
+                  "stroke": {
+                    "type": "string"
+                  },
+                  "strokeWidth": {
+                    "type": "number"
+                  },
+                  "dash": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "tokens": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "opacity": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "children": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "state": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "shape",
+              "bounds"
+            ]
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "description": "A drawn edge.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              },
+              "route": {
+                "type": "array",
+                "items": {
+                  "description": "A point in the canvas's domain units, rounded to 0.01.",
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "x",
+                    "y"
+                  ]
+                }
+              },
+              "markers": {
+                "description": "End decorations.",
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string"
+                  },
+                  "target": {
+                    "type": "string"
+                  },
+                  "mid": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "description": "A label as drawn.",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "font": {
+                      "type": "string"
+                    },
+                    "position": {
+                      "description": "A point in the canvas's domain units, rounded to 0.01.",
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "x",
+                        "y"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "text"
+                  ]
+                }
+              },
+              "style": {
+                "description": "The resolved style: paints as colours, with the token names they came from.",
+                "type": "object",
+                "properties": {
+                  "fill": {
+                    "type": "string"
+                  },
+                  "stroke": {
+                    "type": "string"
+                  },
+                  "strokeWidth": {
+                    "type": "number"
+                  },
+                  "dash": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "tokens": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "opacity": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "source",
+              "target",
+              "route"
+            ]
+          }
+        },
+        "chrome": {
+          "type": "array",
+          "items": {
+            "description": "Bands, notices and legends.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "band",
+                  "notice",
+                  "legend",
+                  "header",
+                  "ruler"
+                ]
+              },
+              "bounds": {
+                "description": "A box in the canvas's domain units, rounded to 0.01.",
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "w": {
+                    "type": "number"
+                  },
+                  "h": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y",
+                  "w",
+                  "h"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "style": {
+                "description": "The resolved style: paints as colours, with the token names they came from.",
+                "type": "object",
+                "properties": {
+                  "fill": {
+                    "type": "string"
+                  },
+                  "stroke": {
+                    "type": "string"
+                  },
+                  "strokeWidth": {
+                    "type": "number"
+                  },
+                  "dash": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "tokens": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "opacity": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "kind"
+            ]
+          }
+        },
+        "order": {
+          "description": "The ids of elements, edges and chrome in drawing order (z-order).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "elements",
+        "edges",
+        "order"
+      ]
+    },
+    "Capability": {
+      "description": "The contract of a capability (ATD §2.6, §13, data-model.md §7).",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^(layout|routing|reader|analysis|arrange|render)\\.[A-Za-z][A-Za-z0-9]*$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "extensionPoint": {
+          "enum": [
+            "layout",
+            "routing",
+            "reader",
+            "analysis",
+            "arrange",
+            "render"
+          ]
+        },
+        "doc": {
+          "type": "string"
+        },
+        "input": {
+          "description": "A reference to the `$defs` entry of the input.",
+          "type": "object",
+          "properties": {
+            "$ref": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "$ref"
+          ]
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "An argument of a capability.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "number",
+                  "integer",
+                  "boolean",
+                  "string",
+                  "enum",
+                  "query",
+                  "list",
+                  "map"
+                ]
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "default": {},
+              "doc": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ]
+          }
+        },
+        "output": {
+          "description": "A reference to the `$defs` entry of the output.",
+          "type": "object",
+          "properties": {
+            "$ref": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "$ref"
+          ]
+        },
+        "laws": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "deterministic",
+              "pinnedStay",
+              "stable",
+              "readingNeverFails",
+              "minimalSplices",
+              "pure"
+            ]
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "items": {
+            "description": "An exception to ATD §12's determinism, stated in the contract (ATD §13.5).",
+            "type": "object",
+            "properties": {
+              "reads": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "reads",
+              "reason"
+            ]
+          }
+        },
+        "fallback": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "provisional",
+            "standard",
+            "deprecated"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "extensionPoint",
+        "input",
+        "output",
+        "laws",
+        "status"
+      ]
+    },
+    "CapabilityFixture": {
+      "description": "One fixture of a capability: an input, the arguments and the expected output (ATD §2.6).",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "doc": {
+          "type": "string"
+        },
+        "input": {},
+        "args": {
+          "type": "object"
+        },
+        "output": {}
+      },
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "args",
+        "output"
+      ]
+    },
+    "LayoutInput": {
+      "description": "The input of a `layout` capability: the nodes with their sizes and pins, the edges and the containment, in the canvas's domain units.",
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "description": "A node.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "width": {
+                "type": "number"
+              },
+              "height": {
+                "type": "number"
+              },
+              "parent": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "order": {
+                "type": "integer"
+              },
+              "pinned": {
+                "description": "A point in the canvas's domain units, rounded to 0.01.",
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y"
+                ]
+              },
+              "attributes": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "width",
+              "height"
+            ]
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "description": "An edge.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "source",
+              "target"
+            ]
+          }
+        },
+        "roots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "nodes",
+        "edges"
+      ]
+    },
+    "LayoutResult": {
+      "description": "The output of a `layout` capability: a position for every node it places, in the canvas's domain units, rounded to 0.01, and optionally route points.",
+      "type": "object",
+      "properties": {
+        "positions": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "A point in the canvas's domain units, rounded to 0.01.",
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ]
+          }
+        },
+        "routes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "description": "A point in the canvas's domain units, rounded to 0.01.",
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "x",
+                "y"
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "positions"
+      ]
+    },
+    "ReaderInput": {
+      "description": "The input of a `reader` capability: the body's bytes as text, and the edit to plan when one is asked (FBL §11.2).",
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "string"
+        },
+        "files": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "edit": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "body"
+      ]
+    },
+    "ReaderResult": {
+      "description": "The output of a `reader` capability: what FBL §11.2's read returns, or the splices of a planned edit.",
+      "type": "object",
+      "properties": {
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "description": "A finding a reading or a step gives: its rule or code and where.",
+            "type": "object",
+            "properties": {
+              "rule": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "element": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer"
+              },
+              "column": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "splices": {
+          "type": "array",
+          "items": {
+            "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Splice"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "RenderInput": {
+      "description": "The input of a `render` capability: a value to render.",
+      "type": "object",
+      "properties": {
+        "value": {},
+        "format": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "value"
+      ]
+    },
+    "RenderResult": {
+      "description": "The output of a `render` capability: text runs or a drawing.",
+      "type": "object",
+      "properties": {
+        "runs": {
+          "type": "array",
+          "items": {
+            "description": "A run of text with its style.",
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "style": {
+                "type": "object"
+              },
+              "block": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "drawing": {
+          "$ref": "#/$defs/Drawing"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AnalysisInput": {
+      "description": "The input of an `analysis` or `arrange` capability: a model or part of one.",
+      "type": "object",
+      "properties": {
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "selection": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "elements"
+      ]
+    },
+    "AnalysisResult": {
+      "description": "The output of an `analysis` capability: derived elements or relations and findings; of an `arrange` capability: actions.",
+      "type": "object",
+      "properties": {
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "description": "A finding a reading or a step gives: its rule or code and where.",
+            "type": "object",
+            "properties": {
+              "rule": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "element": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer"
+              },
+              "column": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Walk": {
+      "description": "The 30-edit walk of SC-005 (ATD §19): steps over the examples, each a request at a position or an edit, with its expected result.",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "doc": {
+          "type": "string"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "description": "One step.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "file": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "column": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "utf16": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "request": {
+                "enum": [
+                  "completion",
+                  "hover",
+                  "rename",
+                  "format",
+                  "definition",
+                  "references",
+                  "diagnostics",
+                  "edit"
+                ]
+              },
+              "edit": {
+                "description": "Text replacing a range, in lines and columns.",
+                "type": "object",
+                "properties": {
+                  "endLine": {
+                    "type": "integer"
+                  },
+                  "endColumn": {
+                    "type": "integer"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "text"
+                ]
+              },
+              "newName": {
+                "type": "string"
+              },
+              "expect": {
+                "type": "object"
+              },
+              "scenario": {
+                "type": "integer"
+              },
+              "doc": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "file",
+              "request",
+              "expect"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "files",
+        "steps"
+      ]
+    },
+    "SettingsSchemas": {
+      "description": "The `$defs` of DISL, DESL and FBL that the settings of ATD's constructs are checked against (ATD §14.6), by reference; each construct's entry is listed in ATD's Appendix A.",
+      "type": "object",
+      "properties": {
+        "Stroke": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Stroke"
+        },
+        "Font": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Font"
+        },
+        "LayoutConfig": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/LayoutConfig"
+        },
+        "TextDefaults": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/TextDefaults"
+        },
+        "Style": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Style"
+        },
+        "Theme": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Theme"
+        },
+        "Attribute": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Attribute"
+        },
+        "DeslAttribute": {
+          "$ref": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Attribute"
+        },
+        "Claims": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Claims"
+        },
+        "Body": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Body"
+        },
+        "Header": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Header"
+        },
+        "Insert": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Insert"
+        },
+        "Remove": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Remove"
+        },
+        "AttributeBinding": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/AttributeBinding"
+        },
+        "RegistrationSettings": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/RegistrationSettings"
+        },
+        "Template": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Template"
+        },
+        "Persistence": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Persistence"
+        },
+        "DeslPersistence": {
+          "$ref": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Persistence"
+        },
+        "Behavior": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Behavior"
+        },
+        "Language": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Language"
+        },
+        "NodeNotation": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/NodeNotation"
+        },
+        "EdgeNotation": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/EdgeNotation"
+        },
+        "Tool": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Tool"
+        },
+        "ToolGroup": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/ToolGroup"
+        },
+        "ContextTool": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/ContextTool"
+        },
+        "ContextToolSet": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/ContextToolSet"
+        },
+        "Form": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Form"
+        },
+        "FormItem": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/FormItem"
+        },
+        "Canvas": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Canvas"
+        },
+        "CoordinateSystem": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/CoordinateSystem"
+        },
+        "Axis": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Axis"
+        },
+        "Snapping": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Snapping"
+        },
+        "Constraint": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Constraint"
+        },
+        "BuiltInSetting": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/BuiltInSetting"
+        },
+        "Operation": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Operation"
+        },
+        "Hook": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Hook"
+        },
+        "Viewpoint": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Viewpoint"
+        },
+        "Plugin": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Plugin"
+        },
+        "Table": {
+          "$ref": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Table"
+        },
+        "Hierarchy": {
+          "$ref": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Hierarchy"
+        },
+        "ValueType": {
+          "$ref": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/ValueType"
+        },
+        "Label": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Label"
+        },
+        "ShapeDef": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/ShapeDef"
+        },
+        "MarkerDef": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/MarkerDef"
+        },
+        "IconDef": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/IconDef"
+        },
+        "LineSpec": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/LineSpec"
+        },
+        "Compartment": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Compartment"
+        },
+        "Badge": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Badge"
+        },
+        "PortNotation": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/PortNotation"
+        },
+        "PortType": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/PortType"
+        },
+        "RelationType": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/RelationType"
+        },
+        "NodeType": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/NodeType"
+        },
+        "Enum": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Enum"
+        },
+        "EnumValue": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/EnumValue"
+        },
+        "DataType": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/DataType"
+        },
+        "Containment": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Containment"
+        },
+        "Confirmation": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Confirmation"
+        },
+        "QuickFix": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/QuickFix"
+        },
+        "ElementRule": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/ElementRule"
+        },
+        "RelationRule": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/RelationRule"
+        },
+        "BlockRule": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/BlockRule"
+        },
+        "SectionRule": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/SectionRule"
+        },
+        "IdBinding": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/IdBinding"
+        },
+        "Binding": {
+          "$ref": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Binding"
+        },
+        "Template_": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Template"
+        },
+        "Import": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Import"
+        },
+        "Doc": {
+          "$ref": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
