@@ -507,11 +507,11 @@ A node's placement (DISL §5.8) is its setting `placement: { … }` (DISL's `Pla
 - `variant <name> [when <CEL>] { … }`: a variant (DISL's `NodeVariant`), with the members of a node notation;
 - `state <name> { … }`: the style of a state (`hover`, `selected`, `dropTarget`, …, DISL's `States`);
 - `compartment <id> { … }`, `badge <id> { … }`, `port <Types> { … }`: DISL's `Compartment`, `Badge` and `PortNotation`;
-- settings of DISL's `NodeNotation` (`style`, `size`, `anchors`, `container`, `icon`, `deletable`, `refusals`, `doubleClick`, `lod`, `tooltip`, …).
+- settings of DISL's `NodeNotation` (`style`, `size`, `anchors`, `container`, `icon`, `deletable`, `refusals`, `doubleClick`, `lod`, `tooltip`, …), and of DISL's `Style` (`fill`, `stroke`, `font`, `padding`, …): a setting that is a property of `Style` and not of `NodeNotation` is a property of the node's inline style, its `style` when it names no style, or the style it adds to the one it names.
 
 ### 8.5 Edge notation
 
-`edge <Types> { … }` is the notation of relation types (DISL §6.10): `line { … }` (DISL's `LineSpec`), `marker source|target|mid <value> [{ … }]` (DISL §6.11), `label`, `variant`, `state`, and settings of DISL's `EdgeNotation` (`selectable`, `deletable`, `reconnectable`, `layer`, `anchoring`, `stub`, …).
+`edge <Types> { … }` is the notation of relation types (DISL §6.10): `line { … }` (DISL's `LineSpec`), `marker source|target|mid <value> [{ … }]` (DISL §6.11), `label`, `variant`, `state`, and settings of DISL's `EdgeNotation` (`selectable`, `deletable`, `reconnectable`, `layer`, `anchoring`, `stub`, …) and, as for a node, of its inline `Style`.
 
 ### 8.6 Toolbox and context tools
 

@@ -10,17 +10,17 @@ The tool descriptions in this folder **must be refused** when they are checked: 
 | `binding-undeclared-attribute.atd` | `ATD6001` at binding-undeclared-attribute.atd:18:17: The binding reads `owner`, which element type `Task` does not declare. |
 | `cel-type.atd` | `ATD4001` at cel-type.atd:11:10: A constraint's rule is a `bool`; this expression is an `int`. |
 | `designer-relation.atd` | `ATD3001` at designer-relation.atd:10:5: A designer has no relation types; `relation Broader` is admitted in diagrams only. |
-| `editor-canvas.atd` | `ATD3002` at editor-canvas.atd:9:3: An editor has a text surface; `notation` belongs to the canvas of a diagram. |
-| `import-cycle-a.atd` | `ATD2003` at import-cycle-a.atd:5:3: The imports `import-cycle-a.atd` → `import-cycle-b.atd` → `import-cycle-a.atd` form a cycle. |
-| `import-cycle-b.atd` | `ATD2003` at import-cycle-a.atd:5:3: The imports `import-cycle-a.atd` → `import-cycle-b.atd` → `import-cycle-a.atd` form a cycle. |
+| `editor-canvas.atd` | `ATD3002` at editor-canvas.atd:14:3: An editor has a text surface; `notation` belongs to the canvas of a diagram. |
+| `import-cycle-a.atd` | `ATD2003` at import-cycle-b.atd:4:1: The imports `import-cycle-a.atd` → `import-cycle-b.atd` → `import-cycle-a.atd` form a cycle. |
+| `import-cycle-b.atd` | `ATD2003` at import-cycle-b.atd:4:1: The imports `import-cycle-a.atd` → `import-cycle-b.atd` → `import-cycle-a.atd` form a cycle. |
 | `missing-return.atd` | `ATD7003` at missing-return.atd:10:6: Not every path of `grade` returns a `string` or fails: the path where `value >= 50` is false ends without one. |
 | `part-of-other-origin.atd` | `ATD2007` at part-of-other-origin.part.atd:2:9: This part says it is part of `example/two`, but `part-of-other-origin.atd` imports it into `example/one`. |
 | `part-of-other-origin.part.atd` | `ATD2007` at part-of-other-origin.part.atd:2:9: This part says it is part of `example/two`, but `part-of-other-origin.atd` imports it into `example/one`. |
 | `recursion-over-64.atd` | `ATD7004` at recursion-over-64.atd:10:41: A function recurses at most 64 frames deep; `recursion 100` asks for more. |
 | `script-clock.atd` | `ATD7001` at script-clock.atd:11:29: `now` reads the clock; a script is deterministic and calls only CEL's library and the description's functions. |
-| `settings-schema.atd` | `ATD5001` at settings-schema.atd:3:97: `thickness` is not a setting of a stroke (DISL `$defs/Stroke`). Did you mean `width`? |
+| `settings-schema.atd` | `ATD5001` at settings-schema.atd:11:35: `thickness` is not a setting of a stroke (DISL `$defs/Stroke`). Did you mean `width`? |
 | `syntax-error.atd` | `ATD1001` at syntax-error.atd:7:22: Found `required` where `:` and the attribute's type were expected. |
-| `unknown-attribute.atd` | `ATD2001` at unknown-attribute.atd:12:23: No attribute `titel` in element type `Task`. Did you mean `title`? |
+| `unknown-attribute.atd` | `ATD2001` at unknown-attribute.atd:12:23: No attribute `titel` in element type `Task`. Did you mean `title` or `tier`? |
 | `unknown-binding-rule.atd` | `ATD2004` at unknown-binding-rule.atd:14:14: No rule `iten` in binding `outline`. Did you mean `item`? |
 | `unknown-capability.atd` | `ATD2010` at unknown-capability.atd:5:23: No capability `layout.radialTree` in the catalogue. Did you mean `layout.twoSidedTree`? |
 | `unknown-element-type.atd` | `ATD2002` at unknown-element-type.atd:11:10: No element type `Tsak`. Did you mean `Task`? |

@@ -2426,27 +2426,32 @@
     },
     "BindingMember": {
       "description": "A member of a binding: `claims`, `body`, `text`, `header`, `registration`, `template`, `block`, `section`, an element or relation rule, or a `setting`, `doc` or `label` member.",
-      "oneOf": [
-        {
-          "$ref": "#/$defs/Rule"
-        },
-        {
-          "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
-          "type": "object",
-          "required": [
-            "kind",
-            "span"
-          ],
-          "properties": {
-            "kind": {
-              "type": "string"
-            },
-            "span": {
-              "$ref": "#/$defs/Span"
-            }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "rule"
           }
         }
-      ]
+      },
+      "then": {
+        "$ref": "#/$defs/Rule"
+      },
+      "else": {
+        "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+        "type": "object",
+        "required": [
+          "kind",
+          "span"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "span": {
+            "$ref": "#/$defs/Span"
+          }
+        }
+      }
     },
     "Rule": {
       "description": "An element or relation rule (FBL §5.1, §5.4).",

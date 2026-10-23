@@ -194,10 +194,44 @@ pub fn check(files: &dyn Files, path: &Path) -> Checked {
     }
     sort(&mut findings);
     findings.dedup_by(|a, b| a.code == b.code && a.file == b.file && a.start == b.start && a.end == b.end);
+    add_fixes(&description, &mut findings);
     Checked {
         description,
         symbols,
         findings,
+    }
+}
+
+/// A finding with closest names gets one fix per name: the name replaced by it (FR-091).
+fn add_fixes(description: &Description, findings: &mut [Finding]) {
+    for finding in findings
+        .iter_mut()
+        .filter(|f| !f.suggestions.is_empty() && f.fixes.is_empty())
+    {
+        let Some(file) = description.file(&finding.file) else {
+            continue;
+        };
+        let Some(written) = file.text.get(finding.start..finding.end) else {
+            continue;
+        };
+        let sigil = if written.starts_with(['@', '$', '#']) {
+            &written[..1]
+        } else {
+            ""
+        };
+        finding.fixes = finding
+            .suggestions
+            .iter()
+            .map(|name| Fix {
+                title: format!("Change to `{name}`"),
+                edits: vec![Edit {
+                    file: finding.file.clone(),
+                    start: finding.start,
+                    end: finding.end,
+                    text: format!("{sigil}{name}"),
+                }],
+            })
+            .collect();
     }
 }
 

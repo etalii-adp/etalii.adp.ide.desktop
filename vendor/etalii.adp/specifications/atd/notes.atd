@@ -45,7 +45,7 @@ editor example/notes version "0.1.0" {
       within notes
       parent note
       attribute title from group "title" { empty: refuse }
-      attribute done from group "done" { map: { "x": true, " ": false } }
+      attribute done from group "done" { map: { "x": "true", " ": "false" } }
       attribute detail from continuation
       insert { place: after-last, emit: "- \\[{done}\\] {title}" }
       remove {}
