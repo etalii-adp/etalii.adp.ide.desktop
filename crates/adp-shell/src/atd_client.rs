@@ -106,6 +106,12 @@ pub fn client() -> MutexGuard<'static, Client> {
         .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
+/// A document as the server names it back: the path its URI gives, so that a path the client holds and a path in the
+/// server's messages are one key, whatever separators or prefixes the platform wrote the first with.
+fn key(path: &Path) -> PathBuf {
+    uri_to_path(&path_to_uri(path))
+}
+
 fn position(line: usize, character: usize) -> Json {
     json!({"line": line, "character": character})
 }
@@ -242,6 +248,7 @@ impl Client {
     /// `quiet`: the diagnostics of the other files of its description come in the same flush.
     #[cfg(test)]
     pub fn wait(&mut self, path: &Path, limit: Duration) {
+        let path = &key(path);
         let deadline = Instant::now() + limit;
         while self.waiting.contains(path)
             && let Some(left) = deadline.checked_duration_since(Instant::now())
@@ -263,6 +270,7 @@ impl Client {
     /// root `<name>.atd` and its parts `<name>.<part>.atd` beside it (ATD §5), as the walk counts them.
     #[cfg(test)]
     pub fn description_codes(&self, path: &Path) -> Vec<String> {
+        let path = &key(path);
         let name = |p: &Path| {
             p.file_name()
                 .map(|n| n.to_string_lossy().split('.').next().unwrap_or("").to_owned())
@@ -279,6 +287,7 @@ impl Client {
 
     /// Gives the server a document's text, when it is new to it or its revision changed.
     pub fn sync(&mut self, path: &Path, text: &str, revision: u64) {
+        let path = &key(path);
         let uri = path_to_uri(path);
         match self.versions.get(path).copied() {
             None => {
@@ -303,6 +312,7 @@ impl Client {
     /// Tells the server a document was saved, which publishes its description's diagnostics again.
     #[cfg(test)]
     pub fn saved(&mut self, path: &Path) {
+        let path = &key(path);
         if self.versions.contains_key(path) {
             self.notify(
                 "textDocument/didSave",
@@ -314,6 +324,7 @@ impl Client {
 
     /// Tells the server a document's tab closed: the file on disk counts again.
     pub fn close(&mut self, path: &Path) {
+        let path = &key(path);
         if self.versions.remove(path).is_some() {
             self.notify(
                 "textDocument/didClose",
@@ -325,11 +336,13 @@ impl Client {
 
     /// Whether a changed document's diagnostics have yet to come.
     pub fn waiting(&self, path: &Path) -> bool {
+        let path = &key(path);
         self.waiting.contains(path)
     }
 
     /// The diagnostics of a document, when new ones came since this was last asked.
     pub fn take_diagnostics(&mut self, path: &Path) -> Option<Vec<Diagnostic>> {
+        let path = &key(path);
         self.pump();
         self.fresh
             .remove(path)
@@ -664,7 +677,7 @@ fn commands(open: &mut OpenText, client: &mut Client, actions: &mut Vec<Action>)
                 open.atd.popup = Some(Popup::Info(text));
             }
             Command::Definition => match client.definition(&path, at) {
-                Some(location) if location.path == path => {
+                Some(location) if key(&location.path) == key(&path) => {
                     let target = offset(open, location.start);
                     open.editor.buffer.set_cursor(target);
                 }
@@ -702,7 +715,7 @@ fn commands(open: &mut OpenText, client: &mut Client, actions: &mut Vec<Action>)
 fn rename(open: &mut OpenText, client: &mut Client, at: (usize, usize), name: &str, actions: &mut Vec<Action>) {
     let path = open.file.path().to_path_buf();
     for (file, edits) in client.rename(&path, at, name) {
-        if file == path {
+        if key(&file) == key(&path) {
             apply(&mut open.editor.buffer, &edits);
         } else {
             actions.push(Action::Edit { path: file, edits });
@@ -1028,7 +1041,6 @@ mod tests {
                 std::fs::copy(&path, folder.join(path.file_name().unwrap())).unwrap();
             }
         }
-        let folder = folder.canonicalize().unwrap();
         let mut tabs: BTreeMap<String, OpenText> = BTreeMap::new();
         for file in walk["files"].as_array().unwrap() {
             let file = file.as_str().unwrap();
