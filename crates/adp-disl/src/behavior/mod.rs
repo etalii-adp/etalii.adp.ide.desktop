@@ -5,6 +5,7 @@
 pub(crate) mod actions;
 pub mod change;
 pub mod deletion;
+pub mod extension;
 pub mod hooks;
 pub mod ids;
 pub mod operations;

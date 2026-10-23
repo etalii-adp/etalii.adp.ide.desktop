@@ -16,6 +16,7 @@ pub mod model;
 
 pub use behavior::change::{DislChange, DislTransaction, HostAction};
 pub use behavior::deletion::DislConfirmation;
+pub use behavior::extension::{DislActionExtension, DislActions, DislEnvironmentExtension, DislExtensions};
 pub use behavior::ids::IdSource;
 pub use behavior::operations::{DislInvocation, DislOperationParameter};
 pub use bundling::{BundledDefinition, DefinitionProvenance};

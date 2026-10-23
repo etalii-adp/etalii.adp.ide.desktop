@@ -83,6 +83,13 @@ pub(crate) fn check_variables(node: &Node, environment: &Environment, bound: &mu
 /// The values of the variables of one evaluation. A value may be made only when the expression reads it.
 pub trait Variables {
     fn get(&self, name: &str) -> Option<Value>;
+
+    /// The result of a call of `function` that the evaluation's owner makes itself, none when the function's body
+    /// is to make it. An interpreter whose functions CEL calls (ATD's script) answers here, so that a call runs in
+    /// the interpreter's state rather than in one the function's body would have to find.
+    fn call(&self, _function: &str, _arguments: &[Value]) -> Option<Result<Value, String>> {
+        None
+    }
 }
 
 impl Variables for HashMap<String, Value> {

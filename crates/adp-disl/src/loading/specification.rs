@@ -12,6 +12,7 @@ use std::rc::Rc;
 use adp_cel::{Environment, Program};
 
 use super::metamodel::{DislExpression, DislFunctionDeclaration, DislIdRule, DislMetamodel};
+use crate::behavior::extension::DislActionExtension;
 use crate::expressions::contexts;
 use crate::json::{self, Json, NOTHING};
 
@@ -35,6 +36,8 @@ pub(crate) struct SpecificationData {
     id_prefixes: HashMap<String, String>,
     /// The programs compiled on first use for expressions the loader does not walk, by context, source and bindings.
     pub(crate) compiled: RefCell<HashMap<(String, String, String), Compiled>>,
+    /// The runtime that runs `extension` actions, when one loaded the specification.
+    actions: Option<Rc<dyn DislActionExtension>>,
 }
 
 impl fmt::Debug for DislSpecification {
@@ -65,6 +68,7 @@ impl DislSpecification {
         functions: Vec<DislFunctionDeclaration>,
         environment: Environment,
         expressions: Vec<DislExpression>,
+        actions: Option<Rc<dyn DislActionExtension>>,
     ) -> Self {
         let index = expressions
             .iter()
@@ -93,7 +97,13 @@ impl DislSpecification {
             id_types,
             id_prefixes,
             compiled: RefCell::new(HashMap::new()),
+            actions,
         }))
+    }
+
+    /// The runtime that runs `extension` actions, when one loaded the specification.
+    pub(crate) fn action_extension(&self) -> Option<Rc<dyn DislActionExtension>> {
+        self.0.actions.clone()
     }
 
     /// The specification's JSON, as it was read.

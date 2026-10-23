@@ -1,7 +1,5 @@
 //! One frame of a call: its locals in nested scopes, its statements (ATD §12.2) and its actions (§12.3).
 
-use std::rc::Rc;
-
 use adp_cel::{Budget, Map, Value, Variables};
 use serde_json::Value as Json;
 
@@ -25,15 +23,15 @@ enum Flow {
     Return(Option<Value>),
 }
 
-pub(crate) struct Frame<'a> {
+pub(crate) struct Frame<'a, 'h> {
     inner: &'a Inner,
-    run: &'a Rc<Run>,
+    run: &'a Run<'h>,
     function: String,
     scopes: Vec<Vec<Local>>,
 }
 
-impl<'a> Frame<'a> {
-    pub(crate) fn new(inner: &'a Inner, run: &'a Rc<Run>, function: &str, bindings: Map) -> Self {
+impl<'a, 'h> Frame<'a, 'h> {
+    pub(crate) fn new(inner: &'a Inner, run: &'a Run<'h>, function: &str, bindings: Map) -> Self {
         run.frames.borrow_mut().push(function.to_owned());
         let locals = bindings
             .iter()
@@ -435,15 +433,28 @@ impl<'a> Frame<'a> {
     }
 }
 
-impl Drop for Frame<'_> {
+impl Drop for Frame<'_, '_> {
     fn drop(&mut self) {
         self.run.frames.borrow_mut().pop();
     }
 }
 
-impl Variables for Frame<'_> {
+impl Variables for Frame<'_, '_> {
     fn get(&self, name: &str) -> Option<Value> {
         Frame::get(self, name)
+    }
+
+    /// A function of the description runs in this frame's gesture; a stop is kept for the evaluation that called it,
+    /// which CEL sees as an error.
+    fn call(&self, function: &str, arguments: &[Value]) -> Option<Result<Value, String>> {
+        if !self.inner.functions.contains_key(function) {
+            return None;
+        }
+        Some(self.inner.invoke(self.run, function, arguments).map_err(|stop| {
+            let message = stop.message.clone();
+            self.run.stopped.borrow_mut().get_or_insert(stop);
+            message
+        }))
     }
 }
 

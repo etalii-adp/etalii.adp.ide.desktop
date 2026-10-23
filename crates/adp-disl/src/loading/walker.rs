@@ -41,7 +41,7 @@ const EXPRESSION_KEYS: [&str; 8] = [
 ];
 
 /// The keywords and names of an action, which are never CEL (section 2.5 d).
-const ACTION_NAMES: [&str; 8] = [
+const ACTION_NAMES: [&str; 9] = [
     "as",
     "algorithm",
     "unset",
@@ -50,6 +50,7 @@ const ACTION_NAMES: [&str; 8] = [
     "severity",
     "form",
     "place",
+    "extension",
 ];
 
 /// The coordinates a shape states as GeomExprs (sections 2.5 c and 6.8).

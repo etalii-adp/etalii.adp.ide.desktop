@@ -15,6 +15,7 @@ use adp_cel::{Map, Value};
 
 use super::change::{DislChange, DislTransaction, HostAction};
 use super::deletion;
+use super::extension::DislActions;
 use super::ids::IdSource;
 use super::retype;
 use crate::derivation::evaluation::{self, Vars};
@@ -24,7 +25,7 @@ use crate::model::diagram::DislDiagram;
 use crate::model::element::DislElement;
 use crate::model::values;
 
-const KINDS: [&str; 24] = [
+const KINDS: [&str; 25] = [
     "set",
     "unset",
     "create",
@@ -49,6 +50,7 @@ const KINDS: [&str; 24] = [
     "abort",
     "call",
     "plugin",
+    "extension",
 ];
 
 pub(crate) struct ActionRunner<'a> {
@@ -111,6 +113,19 @@ impl<'a> ActionRunner<'a> {
                 refusal: None,
             },
         }
+    }
+
+    pub(crate) fn specification(&self) -> &DislSpecification {
+        self.specification
+    }
+
+    pub(crate) fn diagram(&self) -> &DislDiagram {
+        self.diagram
+    }
+
+    /// Why the transaction is refused, once it is.
+    pub(crate) fn refusal(&self) -> Option<String> {
+        self.refusal.clone()
     }
 
     pub(crate) fn refuse(&mut self, reason: impl Into<String>) -> bool {
@@ -346,6 +361,17 @@ impl<'a> ActionRunner<'a> {
                     return false;
                 };
                 self.refuse(evaluation::text_of(&message))
+            }
+            "extension" => {
+                let name = body.as_str().unwrap_or_default().to_owned();
+                let Some(extension) = self.specification.action_extension() else {
+                    return self.refuse(format!("This runtime cannot run the extension `{name}` ({at})."));
+                };
+                let result = extension.run(&name, &mut DislActions::new(self, variables, at.to_owned()));
+                match result {
+                    Ok(()) => self.refusal.is_none(),
+                    Err(refusal) => self.refuse(refusal),
+                }
             }
             _ => self.refuse(format!("This runtime cannot run a `{kind}` action yet ({at}).")),
         }
