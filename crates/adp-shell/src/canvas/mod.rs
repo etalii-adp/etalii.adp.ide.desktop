@@ -27,6 +27,7 @@ pub mod paint;
 pub mod pipeline_scene;
 pub mod placement;
 pub mod rdf_scene;
+pub mod recording;
 pub mod sankey_scene;
 pub mod sparql_scene;
 pub mod supply_chain_scene;
@@ -630,8 +631,7 @@ impl DiagramTab {
         self.id
     }
 
-    /// The scene as last built.
-    #[cfg(test)]
+    /// The scene as last built: what the canvas draws, and what the recording painter records.
     pub fn scene(&self) -> Option<&Scene> {
         self.cache.as_ref().map(|c| &c.scene)
     }
@@ -968,76 +968,13 @@ impl DiagramTab {
         // that scale.
         // Every module draws in the colours of the active theme (FR-045).
         let theme = if key.dark { Kind::Dark } else { Kind::Light };
-        let (built, scaled) = if self.opened.origin == adp_diagram_wardley_map::ORIGIN {
-            wardley_scene::build(&elements, &self.selection, self.arbiter.moving(), theme)
-        } else if self.opened.origin == adp_diagram_sankey::ORIGIN {
-            (
-                sankey_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
-                HashMap::new(),
-            )
-        } else if self.opened.origin == adp_diagram_helm_chart::ORIGIN {
-            // A Helm chart's boxes are moved by the top-left the registration stores (`onElementMoved`).
-            (
-                helm_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
-                HashMap::new(),
-            )
-        } else if self.opened.origin == adp_diagram_sparql::ORIGIN {
-            // A query's nodes and frames are moved by the top-left the registration stores (`onElementMoved`).
-            (
-                sparql_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
-                HashMap::new(),
-            )
-        } else if self.opened.origin == adp_diagram_ansible_structure::ORIGIN {
-            // An Ansible structure's boxes are moved by the top-left the registration stores (`onElementMoved`).
-            (
-                ansible_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
-                HashMap::new(),
-            )
-        } else if rdf_scene::is_rdf(&self.opened.origin) {
-            // The RDF family's readings: every card is moved by the top-left the registration stores (`onElementMoved`).
-            (
-                rdf_scene::build(
-                    &self.opened.origin,
-                    &elements,
-                    &self.selection,
-                    self.arbiter.moving(),
-                    theme,
-                ),
-                HashMap::new(),
-            )
-        } else if self.opened.origin == adp_diagram_supply_chain::ORIGIN {
-            // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
-            (
-                supply_chain_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
-                HashMap::new(),
-            )
-        } else if adp_diagram_databricks::ORIGINS.contains(&self.opened.origin.as_str()) {
-            // A Databricks box or frame is moved by the top-left its registration's `layout:` block stores.
-            (
-                databricks_scene::build(&elements, &self.selection, theme),
-                HashMap::new(),
-            )
-        } else if self.opened.origin == adp_diagram_dotnet_dependency_graph::ORIGIN {
-            // A .NET dependency graph's boxes are moved by the top-left the registration stores (`onElementMoved`).
-            (
-                dotnet_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
-                HashMap::new(),
-            )
-        } else if self.opened.origin == adp_diagram_azure_devops_pipeline::ORIGIN {
-            // A pipeline arranges itself from its dependencies: nothing on it is dragged.
-            (pipeline_scene::build(&elements, &self.selection, theme), HashMap::new())
-        } else if self.opened.origin == adp_diagram_agent_activity::ORIGIN {
-            // An activity file's cards are laid out on their rings by the module, and locked by their centre.
-            (
-                aad_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
-                HashMap::new(),
-            )
-        } else {
-            (
-                module_scene::build(&elements, &self.selection, self.arbiter.moving(), theme),
-                HashMap::new(),
-            )
-        };
+        let (built, scaled) = hand_drawn(
+            &self.opened.origin,
+            &elements,
+            &self.selection,
+            self.arbiter.moving(),
+            theme,
+        );
         let bounds = built.scene.bounds(metrics);
         // Where a module writes a move as the element's top-left, the drag hands it the top-left.
         let top_left = Mapping {
@@ -2723,4 +2660,56 @@ fn distance_to_segment(p: Point, a: Point, b: Point) -> f64 {
     }
     let t = (((p.x - a.x) * dx + (p.y - a.y) * dy) / length).clamp(0.0, 1.0);
     p.distance(Point::new(a.x + t * dx, a.y + t * dy))
+}
+
+/// The scene of a diagram its module draws itself, by the tool type's origin, with the mappings of the elements a
+/// drag moves otherwise than by their centre: what the canvas shows, and what the recording painter records (spec 035,
+/// T051).
+pub(crate) fn hand_drawn(
+    origin: &str,
+    elements: &[adp_diagram::DiagramElement],
+    selection: &[String],
+    moving: Option<(&[String], (f64, f64))>,
+    theme: Kind,
+) -> (module_scene::ModuleScene, HashMap<String, Mapping>) {
+    if origin == adp_diagram_wardley_map::ORIGIN {
+        wardley_scene::build(elements, selection, moving, theme)
+    } else if origin == adp_diagram_sankey::ORIGIN {
+        (sankey_scene::build(elements, selection, moving, theme), HashMap::new())
+    } else if origin == adp_diagram_helm_chart::ORIGIN {
+        // A Helm chart's boxes are moved by the top-left the registration stores (`onElementMoved`).
+        (helm_scene::build(elements, selection, moving, theme), HashMap::new())
+    } else if origin == adp_diagram_sparql::ORIGIN {
+        // A query's nodes and frames are moved by the top-left the registration stores (`onElementMoved`).
+        (sparql_scene::build(elements, selection, moving, theme), HashMap::new())
+    } else if origin == adp_diagram_ansible_structure::ORIGIN {
+        // An Ansible structure's boxes are moved by the top-left the registration stores (`onElementMoved`).
+        (ansible_scene::build(elements, selection, moving, theme), HashMap::new())
+    } else if rdf_scene::is_rdf(origin) {
+        // The RDF family's readings: every card is moved by the top-left the registration stores (`onElementMoved`).
+        (
+            rdf_scene::build(origin, elements, selection, moving, theme),
+            HashMap::new(),
+        )
+    } else if origin == adp_diagram_supply_chain::ORIGIN {
+        // A supply chain's cards and frames are moved by the top-left the document holds (`onElementMoved`).
+        (
+            supply_chain_scene::build(elements, selection, moving, theme),
+            HashMap::new(),
+        )
+    } else if adp_diagram_databricks::ORIGINS.contains(&origin) {
+        // A Databricks box or frame is moved by the top-left its registration's `layout:` block stores.
+        (databricks_scene::build(elements, selection, theme), HashMap::new())
+    } else if origin == adp_diagram_dotnet_dependency_graph::ORIGIN {
+        // A .NET dependency graph's boxes are moved by the top-left the registration stores (`onElementMoved`).
+        (dotnet_scene::build(elements, selection, moving, theme), HashMap::new())
+    } else if origin == adp_diagram_azure_devops_pipeline::ORIGIN {
+        // A pipeline arranges itself from its dependencies: nothing on it is dragged.
+        (pipeline_scene::build(elements, selection, theme), HashMap::new())
+    } else if origin == adp_diagram_agent_activity::ORIGIN {
+        // An activity file's cards are laid out on their rings by the module, and locked by their centre.
+        (aad_scene::build(elements, selection, moving, theme), HashMap::new())
+    } else {
+        (module_scene::build(elements, selection, moving, theme), HashMap::new())
+    }
 }

@@ -102,6 +102,16 @@ mod wasm {
             }
         }
 
+        /// A server that reads the files the client has not opened through the host: `read(path)` gives a file's text
+        /// or `null`, `list(folder)` the paths of the `.atd` files of a folder. A description's parts and imports are
+        /// found so, as the native server finds them on disk.
+        #[wasm_bindgen(js_name = withFiles)]
+        pub fn with_files(read: js_sys::Function, list: js_sys::Function) -> WasmServer {
+            WasmServer {
+                server: Server::with_files(Box::new(JsFiles { read, list })),
+            }
+        }
+
         /// Handles one message; gives the messages to send, as a JSON array.
         pub fn handle(&mut self, message: &str) -> String {
             let value: Json = serde_json::from_str(message).unwrap_or(Json::Null);
@@ -125,7 +135,33 @@ mod wasm {
         }
     }
 
-    /// WebAssembly reads no file: every file of a description is a document the client opened.
+    /// The files of a JavaScript host, through the functions it handed over.
+    struct JsFiles {
+        read: js_sys::Function,
+        list: js_sys::Function,
+    }
+
+    impl adp_atd_check::Files for JsFiles {
+        fn read(&self, path: &std::path::Path) -> Option<String> {
+            let path = wasm_bindgen::JsValue::from_str(&path.to_string_lossy());
+            self.read.call1(&wasm_bindgen::JsValue::NULL, &path).ok()?.as_string()
+        }
+
+        fn list(&self, folder: &std::path::Path) -> Vec<std::path::PathBuf> {
+            let folder = wasm_bindgen::JsValue::from_str(&folder.to_string_lossy());
+            let Ok(found) = self.list.call1(&wasm_bindgen::JsValue::NULL, &folder) else {
+                return Vec::new();
+            };
+            js_sys::Array::from(&found)
+                .iter()
+                .filter_map(|p| p.as_string())
+                .map(std::path::PathBuf::from)
+                .collect()
+        }
+    }
+
+    /// Without a host's functions, WebAssembly reads no file: every file of a description is a document the client
+    /// opened.
     struct NoFiles;
 
     impl adp_atd_check::Files for NoFiles {

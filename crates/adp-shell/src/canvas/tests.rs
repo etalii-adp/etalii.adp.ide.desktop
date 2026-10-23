@@ -1353,5 +1353,7 @@ mod databricks;
 mod wardley_map;
 // Every tool drawn in the active theme and again when it switches (T087), in a file of its own.
 mod themes;
+// The recording painter on the Sankey and Wardley scenes (spec 035, T051), in a file of its own.
+mod recording;
 // A double-click as each notation's `doubleClick` and each module's canvas declares it (P-028), in a file of its own.
 mod double_click;

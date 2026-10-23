@@ -11,20 +11,18 @@
       "include": "#block-comment"
     },
     {
+      "include": "#triple-double"
+    },
+    {
+      "include": "#triple-single"
+    },
+    {
       "name": "comment.line.documentation.atd",
       "match": "///[^\\n]*"
     },
     {
       "name": "comment.line.double-slash.atd",
       "match": "//[^\\n]*"
-    },
-    {
-      "name": "string.quoted.triple.atd",
-      "match": "[rRbB]{0,2}\"\"\"(?:(?:\"|\"\")?(?:[^\"\\\\]|\\\\[\\s\\S]))*(?:\"|\"\")?\"\"\""
-    },
-    {
-      "name": "string.quoted.triple.atd",
-      "match": "[rRbB]{0,2}'''(?:(?:'|'')?(?:[^'\\\\]|\\\\[\\s\\S]))*(?:'|'')?'''"
     },
     {
       "name": "string.quoted.double.atd",
@@ -100,6 +98,26 @@
       "name": "comment.block.atd",
       "begin": "/\\*",
       "end": "\\*/"
+    },
+    "triple-double": {
+      "name": "string.quoted.triple.atd",
+      "begin": "[rRbB]{0,2}\"\"\"",
+      "end": "\"\"\"",
+      "patterns": [
+        {
+          "match": "\\\\[\\s\\S]"
+        }
+      ]
+    },
+    "triple-single": {
+      "name": "string.quoted.triple.atd",
+      "begin": "[rRbB]{0,2}'''",
+      "end": "'''",
+      "patterns": [
+        {
+          "match": "\\\\[\\s\\S]"
+        }
+      ]
     }
   }
 }

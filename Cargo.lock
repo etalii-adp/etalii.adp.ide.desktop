@@ -151,6 +151,7 @@ version = "1.0.0"
 dependencies = [
  "adp-atd-syntax",
  "jsonschema",
+ "regex",
  "serde_json",
 ]
 
@@ -162,8 +163,14 @@ dependencies = [
  "adp-atd-format",
  "adp-atd-grammar",
  "adp-atd-syntax",
+ "adp-diagram",
+ "adp-diagram-mindmap",
+ "adp-parity",
+ "adp-shell",
+ "adp-theme",
  "jsonschema",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -189,6 +196,7 @@ dependencies = [
  "adp-atd-check",
  "adp-atd-format",
  "adp-atd-syntax",
+ "js-sys",
  "lsp-server",
  "serde_json",
  "wasm-bindgen",
@@ -861,6 +869,7 @@ dependencies = [
  "adp-text",
  "adp-theme",
  "eframe",
+ "jsonschema",
  "lsp-server",
  "png",
  "rfd",

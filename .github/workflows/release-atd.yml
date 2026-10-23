@@ -1,0 +1,110 @@
+# Publishes ATD's toolchain for the other hosts (etalii.adp spec 035, T107): on a tag `atd-v<version>`, `atd` (built
+# without `record`) and `atd-lsp` for Windows, macOS and Linux, the language server as WebAssembly with its JavaScript
+# glue for VS Code, and the walk with the examples it edits for the hosts' own walk tests, each with its SHA-256.
+name: Release atd
+
+on:
+  push:
+    tags: ['atd-v*']
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows-x64
+          - os: macos-latest
+            platform: macos-arm64
+          - os: ubuntu-latest
+            platform: linux-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the toolchain rust-toolchain.toml names
+        run: rustup show
+      - name: Build atd and atd-lsp
+        run: cargo build --release --no-default-features -p adp-atd-cli -p adp-atd-lsp
+      - name: Pack them
+        shell: bash
+        run: |
+          mkdir -p package
+          cp LICENSE package/
+          name="atd-${{ matrix.platform }}"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp target/release/atd.exe target/release/atd-lsp.exe package/
+            7z a "$name.zip" ./package/*
+            sha256sum "$name.zip" > "$name.zip.sha256"
+          else
+            cp target/release/atd target/release/atd-lsp package/
+            tar -czf "$name.tar.gz" -C package .
+            shasum -a 256 "$name.tar.gz" > "$name.tar.gz.sha256"
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: atd-${{ matrix.platform }}
+          path: atd-${{ matrix.platform }}.*
+          if-no-files-found: error
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the toolchain rust-toolchain.toml names, with the WebAssembly target
+        run: |
+          rustup show
+          rustup target add wasm32-unknown-unknown
+      - name: Build the language server for WebAssembly
+        run: cargo build --release -p adp-atd-lsp --lib --target wasm32-unknown-unknown
+      - name: Make its JavaScript glue with the wasm-bindgen the crate is built with
+        run: |
+          version=$(cargo pkgid -p wasm-bindgen | sed 's/.*[@#]//')
+          cargo install wasm-bindgen-cli --version "$version" --locked
+          wasm-bindgen --target nodejs --out-dir atd-lsp-wasm target/wasm32-unknown-unknown/release/adp_atd_lsp.wasm
+          cp LICENSE atd-lsp-wasm/
+          (cd atd-lsp-wasm && zip -r ../atd-lsp-wasm.zip .)
+          sha256sum atd-lsp-wasm.zip > atd-lsp-wasm.zip.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: atd-lsp-wasm
+          path: atd-lsp-wasm.zip*
+          if-no-files-found: error
+
+  walk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Pack the walk and the examples it edits
+        run: |
+          spec=vendor/etalii.adp/specifications/atd
+          mkdir -p atd-walk
+          cp "$spec"/walk/walk.json "$spec"/*.atd atd-walk/
+          (cd atd-walk && zip -r ../atd-walk.zip .)
+          sha256sum atd-walk.zip > atd-walk.zip.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: atd-walk
+          path: atd-walk.zip*
+          if-no-files-found: error
+
+  release:
+    needs: [native, wasm, walk]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ github.ref_name }}"
+          gh release create "$tag" assets/* --repo "${{ github.repository }}" --title "atd ${tag#atd-v}" \
+            --notes "ATD's toolchain for the other hosts, built from ${{ github.sha }}: \`atd\` and \`atd-lsp\` for Windows, macOS and Linux, the language server as WebAssembly with its glue, and the walk with its examples. Each file has its SHA-256 beside it. Specified by etalii.adp spec 035."

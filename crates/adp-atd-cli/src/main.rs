@@ -6,6 +6,9 @@ use std::process::ExitCode;
 use adp_atd_check::{Finding, FsFiles, check, findings_json};
 use serde_json::Value;
 
+#[cfg(feature = "record")]
+mod record;
+
 mod embedded {
     include!(concat!(env!("OUT_DIR"), "/modules.rs"));
 }
@@ -14,9 +17,13 @@ const USAGE: &str = "usage: atd [--spec-dir <dir>] <command> …
   check [--json] <path>…                     check every description whose files are among the paths
   check --expect <findings.json> <file>      compare a file's findings with the expected ones
   check --corpus <dir>                       compare every <name>.atd of a folder with <name>.findings.json
+  check [--json] --trace <trace.json>        check a trace against its description and companion
   fmt [--check] <path>…                      write files in the canonical layout
   tree <file>                                print a file's abstract tree
   tables [--grammar <file.lark>]             print the normalized parse tables
+  record <origin> --cases <dir> [--description <path>]
+                                             record a tool type's conformance cases from its parity scripts
+  record --capability <name> --cases <dir>   record a capability's fixtures from the code that does it today
   --version                                  print this tool's version and the versions of ATD it reads";
 
 fn main() -> ExitCode {
@@ -46,8 +53,51 @@ fn main() -> ExitCode {
         "tree" => tree_command(rest),
         "tables" => tables_command(rest, spec_dir.as_deref()),
         "fmt" => fmt_command(rest),
+        "record" => record_command(rest),
         other => usage(&format!("`{other}` is not a command")),
     }
+}
+
+#[cfg(feature = "record")]
+fn record_command(args: &[String]) -> ExitCode {
+    let value = |flag: &str| args.iter().position(|a| a == flag).and_then(|i| args.get(i + 1));
+    if let Some(name) = value("--capability") {
+        let Some(cases) = value("--cases") else {
+            return usage("record --capability needs --cases <dir>");
+        };
+        return match record::capability::record(name, Path::new(cases)) {
+            Ok(files) => {
+                for file in files {
+                    println!("{}", file.display());
+                }
+                ExitCode::SUCCESS
+            }
+            Err(problem) => {
+                eprintln!("atd record: {problem}");
+                ExitCode::from(1)
+            }
+        };
+    }
+    let (Some(origin), Some(cases)) = (args.first().filter(|a| !a.starts_with("--")), value("--cases")) else {
+        return usage("record needs an origin and --cases <dir>");
+    };
+    match record::record(origin, Path::new(cases), value("--description").map(String::as_str)) {
+        Ok(folders) => {
+            for folder in folders {
+                println!("{}", folder.display());
+            }
+            ExitCode::SUCCESS
+        }
+        Err(problem) => {
+            eprintln!("atd record: {problem}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+#[cfg(not(feature = "record"))]
+fn record_command(_: &[String]) -> ExitCode {
+    usage("this atd was built without `record`")
 }
 
 fn usage(problem: &str) -> ExitCode {
@@ -103,6 +153,15 @@ fn check_command(args: &[String]) -> ExitCode {
             Err(problem) => usage(&problem),
         };
     }
+    if let Some(i) = args.iter().position(|a| a == "--trace") {
+        let Some(trace) = args.get(i + 1) else {
+            return usage("--trace needs a trace file");
+        };
+        return match adp_atd_check::trace::check_trace(&FsFiles, Path::new(trace)) {
+            Ok(findings) => report(&findings, json),
+            Err(problem) => usage(&problem),
+        };
+    }
     if let Some(i) = args.iter().position(|a| a == "--corpus") {
         let Some(folder) = args.get(i + 1) else {
             return usage("--corpus needs a folder");
@@ -118,13 +177,18 @@ fn check_command(args: &[String]) -> ExitCode {
         Err(problem) => return usage(&problem),
     };
     let findings = check_all(&files);
+    report(&findings, json)
+}
+
+/// Prints findings as text or as `$defs/Findings`; exit code 1 when one is an error.
+fn report(findings: &[Finding], json: bool) -> ExitCode {
     if json {
         println!(
             "{}",
-            serde_json::to_string_pretty(&findings_json(&findings)).unwrap_or_default()
+            serde_json::to_string_pretty(&findings_json(findings)).unwrap_or_default()
         );
     } else {
-        for finding in &findings {
+        for finding in findings {
             println!("{}", finding.to_line());
         }
     }
