@@ -1,0 +1,26 @@
+# The licences of what the ATD crates ship into other hosts (etalii.adp spec 035, T107): `atd`, `atd-lsp` and
+# `atd-lsp.wasm` go into the VS Code and IntelliJ extensions, which are Apache-2.0, so every crate they are built from
+# must carry a licence compatible with it. Run over those crates:
+#
+#     cargo deny --manifest-path crates/adp-atd-cli/Cargo.toml --exclude-dev check licenses
+#     cargo deny --manifest-path crates/adp-atd-lsp/Cargo.toml --exclude-dev check licenses
+
+[graph]
+all-features = false
+
+[licenses]
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "MIT-0",
+    "BSD-2-Clause",
+    "Zlib",
+    "Unicode-3.0",
+    "Unlicense",
+]
+confidence-threshold = 0.9
+
+# The workspace's own crates are Apache-2.0 by the workspace's `license`; they are not published.
+[licenses.private]
+ignore = true

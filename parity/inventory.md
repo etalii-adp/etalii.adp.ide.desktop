@@ -80,3 +80,13 @@ Every capability and tool type of the standalone host at [`8b6ccfc`](https://git
 The rows not yet `checked` (etalii.adp spec 030, task T093), each with why and the task that covers it. SC-002 holds, and release 1.0 can follow, once none is left.
 
 None is left: every row is `checked` since 2026-10-22, so SC-002 holds.
+
+## Beyond the standalone host
+
+What the desktop host does that the standalone host does not, so that no regeneration of the table above takes it for a gap. Each row is in the table's format; the standalone host has no source for it.
+
+| Id | Capability | Standalone source | Increment | Check | State |
+|---|---|---|---|---|---|
+| D-001 | `.atd` language support in the text editor (etalii.adp spec 035, T105): the ATD language server on a worker thread over an in-memory connection, no socket; its diagnostics as underlines, on the status line and in the errors panel; semantic colouring over the `syntect` colouring of the vendored `atd.sublime-syntax`; a completion list (Ctrl+Space, `.`), hover (the pointer resting, or Ctrl+K Ctrl+I), go to definition (F12), find references (Shift+F12), rename across the description's files (F2), format (Shift+Alt+F) and an outline | none: the standalone host has no `.atd` support | spec 035 | adp-shell `atd_client::tests::the_walk_through_the_editor_and_its_client_gives_the_cores_results` (the 30-step walk of SC-005 through the shell's editor and client), `atd_client::tests::an_atd_tab_draws_its_outline_colouring_underlines_and_completion_list`, `editor::tests::the_language_keys_become_commands_and_steer_the_completion_list`; adp-shell accessibility `an_atd_tab_has_a_named_outline_and_suggestion_list_and_its_findings_in_the_errors_panel`; adp-atd-lsp `walk.rs`, `diagnostics.rs` and `benches/latency.rs` (SC-006) | checked |
+| D-002 | The `atd` command line: `check` (text and `--json` findings, `--corpus`), `fmt [--check]`, `tree` and `tables` (etalii.adp spec 035, T034 to T043, T100) | none | spec 035 | adp-atd-cli `cli.rs`; adp-atd-check `corpus.rs`; adp-atd-format `format.rs`; adp-atd-grammar `lark_crosscheck.rs` | checked |
+| D-003 | The `atd-lsp` language server for the other hosts: stdio for IntelliJ, WebAssembly for VS Code (etalii.adp spec 035, T104) | none | spec 035 | adp-atd-lsp `walk.rs` through `Server::handle`, the transport every host shares | checked |
