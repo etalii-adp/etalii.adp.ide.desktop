@@ -11,7 +11,7 @@ pub mod text;
 
 pub use ast::Span;
 pub use lower::{LowerError, decode_string, key_text, lower};
-pub use parse::{Child, Node, Parse, SyntaxError, Token, TokenKind, parse};
+pub use parse::{Child, Node, Parse, SyntaxError, Token, TokenKind, describe as describe_terminal, expected_at, parse};
 pub use text::LineIndex;
 
 /// The versions of ATD this reader reads (ATD §5.4, §18).

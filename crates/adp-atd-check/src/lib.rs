@@ -185,11 +185,19 @@ pub fn check(files: &dyn Files, path: &Path) -> Checked {
     let mut description = describe(files, path);
     let mut findings = std::mem::take(&mut description.findings);
     let mut symbols = None;
+    // A description whose files do not all parse is checked no further than its syntax (ATD §14.1): what the parser
+    // skipped would otherwise show again as names that resolve to nothing.
+    let parses = description
+        .files
+        .iter()
+        .all(|f| f.parse.as_ref().is_some_and(|p| p.errors.is_empty()));
     if description.has_trees() {
         let collected = symbols::collect(&description);
-        checks::run(&description, &collected, &mut findings);
-        settings::run(&description, &collected, &mut findings);
-        script::run(&description, &collected, &mut findings);
+        if parses {
+            checks::run(&description, &collected, &mut findings);
+            settings::run(&description, &collected, &mut findings);
+            script::run(&description, &collected, &mut findings);
+        }
         symbols = Some(collected);
     }
     sort(&mut findings);

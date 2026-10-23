@@ -126,13 +126,65 @@ fn synchronising(terminal: u16) -> bool {
 /// Parses a file. A file that does not start with a header of a version this reader knows is not parsed (ATD §5.4):
 /// the caller checks the version first.
 pub fn parse(text: &str) -> Parse {
+    run_parser(text, None).0
+}
+
+/// What the grammar admits at `offset`: the terminals the parser's state there reads, the text before it parsed with
+/// recovery (completion, spec 035 research R10). A word the offset stands in or at the end of is not read.
+pub fn expected_at(text: &str, offset: usize) -> Vec<&'static str> {
+    let mut start = offset.min(text.len());
+    while start > 0 {
+        let c = text[..start].chars().next_back().unwrap_or(' ');
+        if c.is_alphanumeric() || c == '_' {
+            start -= c.len_utf8();
+        } else {
+            break;
+        }
+    }
+    let (_, states) = run_parser(text, Some(start));
+    let mut names: Vec<&'static str> = (0..TERMINALS.len() as u16)
+        .filter(|t| !TERMINALS[*t as usize].ignored && shifts(&states, *t))
+        .map(|t| TERMINALS[t as usize].name)
+        .collect();
+    names.sort();
+    names
+}
+
+/// Whether the parser, its stack `states`, would shift `terminal` after the reductions it calls for.
+fn shifts(states: &[usize], terminal: u16) -> bool {
+    let mut stack = states.to_vec();
+    for _ in 0..10_000 {
+        let Some(&state) = stack.last() else { return false };
+        match tables::action(state, terminal) {
+            None => return false,
+            Some(i32::MIN) => return true,
+            Some(code) if code >= 0 => return true,
+            Some(code) => {
+                let rule = &RULES[(-code - 1) as usize];
+                if stack.len() <= rule.len {
+                    return false;
+                }
+                stack.truncate(stack.len() - rule.len);
+                match stack.last().and_then(|s| tables::goto(*s, rule.lhs)) {
+                    Some(next) => stack.push(next),
+                    None => return false,
+                }
+            }
+        }
+    }
+    false
+}
+
+fn run_parser(text: &str, stop: Option<usize>) -> (Parse, Vec<usize>) {
     let mut parser = Parser {
         text,
+        stop: None,
         position: if text.starts_with('\u{feff}') { 3 } else { 0 },
         tokens: Vec::new(),
         states: vec![0],
         values: Vec::new(),
         errors: Vec::new(),
+        quiet: 0,
     };
     if parser.position > 0 {
         parser.tokens.push(Token {
@@ -142,22 +194,31 @@ pub fn parse(text: &str) -> Parse {
             end: 3,
         });
     }
+    parser.stop = stop;
     let root = parser.run();
-    Parse {
-        text: text.to_owned(),
-        tokens: parser.tokens,
-        root,
-        errors: parser.errors,
-    }
+    let states = parser.states.clone();
+    (
+        Parse {
+            text: text.to_owned(),
+            tokens: parser.tokens,
+            root,
+            errors: parser.errors,
+        },
+        states,
+    )
 }
 
 struct Parser<'a> {
     text: &'a str,
+    /// Where to stop reading, for [`expected_at`].
+    stop: Option<usize>,
     position: usize,
     tokens: Vec<Token>,
     states: Vec<usize>,
     values: Vec<Child>,
     errors: Vec<SyntaxError>,
+    /// Tokens to shift after a recovery before another error is recorded, so that one error gives one finding.
+    quiet: usize,
 }
 
 impl Parser<'_> {
@@ -255,6 +316,14 @@ impl Parser<'_> {
         let mut lookahead = self.lex();
         let mut steps = 0usize;
         loop {
+            if let (Some(stop), Some(token)) = (self.stop, lookahead)
+                && self.tokens[token].start >= stop
+            {
+                return None;
+            }
+            if self.stop.is_some() && lookahead.is_none() {
+                return None;
+            }
             steps += 1;
             if steps > 50 * (self.text.len() + 16) {
                 return None;
@@ -271,6 +340,7 @@ impl Parser<'_> {
                     let token = lookahead.expect("only a token is shifted");
                     self.states.push(code as usize);
                     self.values.push(Child::Token(token));
+                    self.quiet = self.quiet.saturating_sub(1);
                     lookahead = self.lex();
                 }
                 Some(code) => self.reduce((-code - 1) as usize),
@@ -350,13 +420,14 @@ impl Parser<'_> {
         };
         let expected = self.expected();
         let first_error_here = self.errors.last().map(|e| e.start != start).unwrap_or(true);
-        if first_error_here {
+        if first_error_here && self.quiet == 0 {
             self.errors.push(SyntaxError {
                 start,
                 end,
                 message: format!("Found {found} where {} expected.", list(&expected)),
             });
         }
+        self.quiet = 3;
         let close = tables::terminal("\"}\"").expect("the grammar has `}`");
         if lookahead.is_none() {
             // A missing `}`: assume it, where a state on the stack can read it.
@@ -379,12 +450,26 @@ impl Parser<'_> {
         // Skip to a construct start or `}` that a state on the stack reads.
         let mut current = *lookahead;
         let mut skipped_first = false;
+        // Braces opened in the skipped text close in it too: their `}` is never taken for the construct's own.
+        let mut depth = 0usize;
         loop {
             let Some(token) = current else {
                 *lookahead = None;
                 return true;
             };
             let terminal = self.tokens[token].terminal;
+            let text = self.tokens[token].text(self.text);
+            if depth > 0 || text == "{" {
+                if text == "{" {
+                    depth += 1;
+                } else if text == "}" {
+                    depth -= 1;
+                }
+                self.tokens[token].kind = TokenKind::Skipped;
+                skipped_first = true;
+                current = self.lex_skipping();
+                continue;
+            }
             if terminal != u16::MAX
                 && synchronising(terminal)
                 && (skipped_first || !self.errors_at(token))

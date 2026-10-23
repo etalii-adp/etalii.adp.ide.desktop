@@ -10,10 +10,21 @@ publish = false
 [lints]
 workspace = true
 
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "atd-lsp"
+path = "src/bin/atd-lsp.rs"
+
 [dependencies]
-adp-atd-syntax = { path = "../adp-atd-syntax" }
 adp-atd-check = { path = "../adp-atd-check" }
 adp-atd-format = { path = "../adp-atd-format" }
-lsp-types = { workspace = true }
-serde = { version = "1", features = ["derive"] }
+adp-atd-syntax = { path = "../adp-atd-syntax" }
 serde_json = { version = "1", features = ["preserve_order"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+lsp-server = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { workspace = true }

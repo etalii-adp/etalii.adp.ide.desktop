@@ -85,6 +85,46 @@ impl Symbols {
         out
     }
 
+    /// The one type that contains `name`, when exactly one does: the type of its `parent`.
+    pub fn container_of(&self, name: &str) -> Option<String> {
+        let containers: Vec<&String> = self
+            .types
+            .iter()
+            .filter(|(_, decl)| {
+                decl.node["members"].as_array().into_iter().flatten().any(|m| {
+                    m["kind"] == "contains" && m["types"].as_array().into_iter().flatten().any(|t| t["text"] == name)
+                })
+            })
+            .map(|(n, _)| n)
+            .collect();
+        match containers.as_slice() {
+            [only] => Some((*only).clone()),
+            _ => None,
+        }
+    }
+
+    /// The types `name` contains in its children.
+    pub fn contained_by(&self, name: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        if let Some(decl) = self.types.get(name) {
+            for member in decl.node["members"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter(|m| m["kind"] == "contains" && m.get("slot").is_none())
+            {
+                for t in member["types"].as_array().into_iter().flatten() {
+                    if let Some(text) = t["text"].as_str()
+                        && !out.iter().any(|o: &String| o == text)
+                    {
+                        out.push(text.to_owned());
+                    }
+                }
+            }
+        }
+        out
+    }
+
     pub fn is_type(&self, name: &str) -> bool {
         self.types.contains_key(name)
     }

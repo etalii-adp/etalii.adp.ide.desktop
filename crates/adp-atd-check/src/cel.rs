@@ -190,10 +190,13 @@ pub fn infer(node: &Json, scope: &Scope, symbols: &Symbols) -> Ty {
         return match infer(&node["operand"], scope, symbols) {
             Ty::Element(name) => match field {
                 "id" | "type" | "kind" => Ty::String,
-                "children" | "descendants" | "ancestors" | "incoming" | "outgoing" | "ports" => {
-                    Ty::List(Box::new(Ty::Dyn))
-                }
-                "parent" | "source" | "target" | "owner" | "view" | "diagram" | "sourcePort" | "targetPort" => Ty::Dyn,
+                "descendants" | "ancestors" | "incoming" | "outgoing" | "ports" => Ty::List(Box::new(Ty::Dyn)),
+                "parent" => symbols.container_of(&name).map(Ty::Element).unwrap_or(Ty::Dyn),
+                "children" => match symbols.contained_by(&name).as_slice() {
+                    [only] => Ty::List(Box::new(Ty::Element(only.clone()))),
+                    _ => Ty::List(Box::new(Ty::Dyn)),
+                },
+                "source" | "target" | "owner" | "view" | "diagram" | "sourcePort" | "targetPort" => Ty::Dyn,
                 _ => symbols
                     .attributes_of(&name)
                     .get(field)
