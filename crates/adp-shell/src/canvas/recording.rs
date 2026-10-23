@@ -3,19 +3,22 @@
 //! labels and its style; each relation's route, its ends and its style; the canvas's own bands and texts as chrome; and
 //! the order everything is drawn in. Positions and sizes are in the canvas's units, rounded to 0.01.
 //!
-//! [`drawing`] opens a diagram headlessly, as `atd record` does, and records the scene its canvas builds, whether the
-//! notation draws it or its module draws it by hand (`*_scene.rs`).
+//! [`drawing_of`] records an open diagram, as `atd record` does after each step: the scene its module draws by hand
+//! (`*_scene.rs`), or the one its notation draws with the estimated text metrics; no window is opened.
 
 use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 
-use adp_diagram::DiagramElement;
+use adp_diagram::{DiagramDocuments, DiagramElement, DiagramSession, ElementKind};
+use adp_disl::DislEnv;
+use adp_scene::definition::compartments::Folding;
 use adp_scene::geometry::PathCommand;
 use adp_scene::scene::{Owner, Primitive, Role, ShapePrimitive};
+use adp_scene::scene::{StandardRoutePlugins, default_size};
 use adp_scene::style::{Colour, Stroke};
+use adp_scene::{EstimatedMetrics, Evaluator, SceneOptions, Theme as SceneTheme, build_scene, compile_notation};
 use adp_scene::{Point, Rect, Scene};
 use adp_theme::Kind;
-use eframe::egui;
 use serde_json::{Map, Value as Json, json};
 
 use crate::canvas::DiagramHost;
@@ -72,7 +75,7 @@ fn shape_of(path: &adp_scene::Path) -> &'static str {
     let axis_aligned = ps
         .windows(2)
         .all(|w| (w[0].x - w[1].x).abs() < 1e-9 || (w[0].y - w[1].y).abs() < 1e-9);
-    if arcs == 0 && curves == 0 && lines >= 3 && lines <= 4 && axis_aligned {
+    if arcs == 0 && curves == 0 && (3..=4).contains(&lines) && axis_aligned {
         "rect"
     } else if arcs >= 2 && lines == 0 && curves == 0 || curves == 4 && lines == 0 {
         "ellipse"
@@ -128,18 +131,21 @@ fn font_of(font: &adp_scene::style::Font) -> String {
     out
 }
 
+/// A label as the scene sets it: its lines by index, where its first line stands, and its font.
+type Label = (Vec<(usize, String)>, Option<Point>, Option<String>);
+
 /// What is known of a drawn element or relation while the scene is read.
 #[derive(Default)]
 struct Drawn {
     body: Option<ShapePrimitive>,
     extent: Option<Rect>,
-    labels: BTreeMap<String, (Vec<(usize, String)>, Option<Point>, Option<String>)>,
+    labels: BTreeMap<String, Label>,
     route: Vec<Point>,
     markers: (Option<String>, Option<String>),
     stroke: Option<Stroke>,
 }
 
-fn label_entries(labels: &BTreeMap<String, (Vec<(usize, String)>, Option<Point>, Option<String>)>) -> Vec<Json> {
+fn label_entries(labels: &BTreeMap<String, Label>) -> Vec<Json> {
     labels
         .iter()
         .map(|(id, (lines, at, font))| {
@@ -339,21 +345,70 @@ pub fn record(scene: &Scene, elements: &[DiagramElement], view: &str) -> Json {
     })
 }
 
-/// Opens the diagram at `path` (its body or its registration) in the project `root` headlessly, builds the scene its
-/// canvas draws in the `kind` theme, and records it; the vendored tool types are read from `vendor`.
+/// The scene a diagram's canvas draws, as a recording takes it: a module's own scene where its module draws it by hand,
+/// with nothing selected, in the `kind` theme; otherwise the scene its notation draws, laid out with the estimated text
+/// metrics that do not depend on the fonts of a machine, as the `insta` scene snapshots of `adp-disl` are.
+pub fn scene_of(
+    origin: &str,
+    session: &DiagramSession,
+    documents: &DiagramDocuments,
+    elements: &[DiagramElement],
+    kind: Kind,
+) -> Result<Scene, String> {
+    if session.module_view().is_some() {
+        return Ok(crate::canvas::hand_drawn(origin, elements, &[], None, kind).0.scene);
+    }
+    let document = documents.get(session.body_path()).ok_or("the diagram is not open")?;
+    let specification = document.tool().definition.specification();
+    let definition = compile_notation(specification).map_err(|e| e.to_string())?;
+    let evaluator = Evaluator::new(
+        &definition.specification,
+        SceneTheme::of(&definition.specification, None),
+        DislEnv::default(),
+    );
+    let positions: HashMap<String, Rect> = elements
+        .iter()
+        .filter(|e| e.kind == ElementKind::Node)
+        .filter_map(|e| {
+            let (width, height) = default_size(definition.element_type(&e.element_type)?);
+            Some((e.id.clone(), Rect::new(e.x, e.y, width, height)))
+        })
+        .collect();
+    let folding = Folding::default();
+    let options = SceneOptions {
+        selection: &[],
+        folding: &folding,
+        metrics: &EstimatedMetrics,
+        plugins: &StandardRoutePlugins,
+    };
+    Ok(build_scene(
+        &definition,
+        &evaluator,
+        &document.model().diagram,
+        &positions,
+        &options,
+    ))
+}
+
+/// The drawing of an open diagram: the scene [`scene_of`] takes, recorded.
+pub fn drawing_of(
+    origin: &str,
+    session: &DiagramSession,
+    documents: &DiagramDocuments,
+    kind: Kind,
+) -> Result<Json, String> {
+    let elements = session.render(documents)?;
+    let scene = scene_of(origin, session, documents, &elements, kind)?;
+    Ok(record(&scene, &elements, "canvas"))
+}
+
+/// Opens the diagram at `path` (its body or its registration) in the project `root` headlessly and records its
+/// drawing ([`drawing_of`]); the vendored tool types are read from `vendor`.
 pub fn drawing(vendor: &Path, path: &Path, root: &Path, kind: Kind) -> Result<Json, String> {
     let mut host = DiagramHost::with_vendor(vendor);
     if !host.claims(path) {
         return Err(format!("no usable tool type claims {}", path.display()));
     }
-    let mut tab = host.open(path, root)?;
-    // A context for the text metrics the scene is laid out with; no window is opened and no frame is drawn.
-    let ctx = egui::Context::default();
-    crate::theme::install(&ctx);
-    ctx.run_ui(egui::RawInput::default(), |_| {}).textures_delta.clear();
-    let documents = host.workspace(root).documents();
-    tab.ensure_scene(&ctx, documents, kind == Kind::Dark);
-    let elements = tab.session.render(documents)?;
-    let scene = tab.scene().ok_or("the canvas drew nothing")?;
-    Ok(record(scene, &elements, "canvas"))
+    let tab = host.open(path, root)?;
+    drawing_of(&tab.opened.origin, &tab.session, host.workspace(root).documents(), kind)
 }

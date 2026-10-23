@@ -38,6 +38,7 @@ use std::rc::Rc;
 
 use adp_context::Prompt;
 use adp_core::Catalogue;
+use adp_diagram::DiagramDocuments;
 use adp_diagram::session::{ActionOutcome, ActionTarget};
 use adp_diagram::tool::DiagramTools;
 use adp_diagram::workspace::DiagramWorkspace;
@@ -69,6 +70,9 @@ pub struct Script {
 pub struct Recorded {
     /// `windows` or `linux`: the platform whose line endings the platform-dependent files were written in.
     pub platform: String,
+    /// The standalone host's commit the bytes were recorded from.
+    #[serde(default, rename = "standaloneCommit")]
+    pub standalone_commit: String,
     pub changed: Vec<String>,
     #[serde(default)]
     pub removed: Vec<String>,
@@ -400,9 +404,27 @@ struct Replay<'a> {
     selection: Option<String>,
 }
 
+/// What a replay shows after the document opens (`step` none) and after each step: how the step went, the project's
+/// folder, the open documents and the session, and the ids the standalone host generated at that step. `atd record`
+/// records a conformance case from these (etalii.adp spec 035, T050).
+pub struct Observed<'a> {
+    pub step: Option<usize>,
+    pub outcome: &'a Result<(), String>,
+    pub project: &'a Path,
+    pub documents: &'a DiagramDocuments,
+    pub session: &'a DiagramSession,
+    pub generated: Vec<String>,
+}
+
 /// Replays `case` in a copy of its fixture's folder, and compares the files its golden lists; an error is a script
 /// or golden the runner cannot read.
 pub fn replay(case: &Case) -> Result<Verdict, String> {
+    replay_observed(case, &mut |_| {})
+}
+
+/// [`replay`], showing `observe` the document once it opens and again after each step. A designer's script is
+/// replayed without being shown.
+pub fn replay_observed(case: &Case, observe: &mut dyn FnMut(&Observed)) -> Result<Verdict, String> {
     let fixtures = repository_root().join("parity/fixtures");
     let fixture = fixtures.join(&case.script.fixture);
     let folder = fixture
@@ -462,11 +484,34 @@ pub fn replay(case: &Case) -> Result<Verdict, String> {
         ids: &ids,
         selection: None,
     };
+    observe(&Observed {
+        step: None,
+        outcome: &Ok(()),
+        project: project.path(),
+        documents: replay.workspace.documents(),
+        session: &replay.session,
+        generated: Vec::new(),
+    });
     let mut steps = Vec::new();
     for (index, step) in case.script.steps.iter().enumerate() {
         ids.step.set(index);
         let refusal_expected = step.get("expect").and_then(Json::as_str) == Some("refused");
-        let what = match (replay.step(step), refusal_expected) {
+        let outcome = replay.step(step);
+        observe(&Observed {
+            step: Some(index),
+            outcome: &outcome,
+            project: project.path(),
+            documents: replay.workspace.documents(),
+            session: &replay.session,
+            generated: case
+                .recorded
+                .generated
+                .iter()
+                .filter(|g| g.step == index)
+                .map(|g| g.id.clone())
+                .collect(),
+        });
+        let what = match (outcome, refusal_expected) {
             (Ok(()), false) | (Err(_), true) => None,
             (Ok(()), true) => Some("the standalone host refused it; the desktop host accepted it".to_owned()),
             (Err(reason), false) => Some(format!("the standalone host accepted it; the desktop host: {reason}")),
@@ -789,7 +834,8 @@ fn compact(step: &Json) -> String {
     serde_json::to_string(step).unwrap_or_default()
 }
 
-fn copy_folder(from: &Path, to: &Path) -> Result<(), String> {
+/// Copies a folder and everything in it.
+pub fn copy_folder(from: &Path, to: &Path) -> Result<(), String> {
     fs::create_dir_all(to).map_err(|e| format!("{}: {e}", to.display()))?;
     let entries = fs::read_dir(from).map_err(|e| format!("{}: {e}", from.display()))?;
     for entry in entries.flatten() {
