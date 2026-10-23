@@ -77,6 +77,11 @@ fn a_refused_file_exits_1_with_findings_in_the_text_form() {
 }
 
 fn regex_lite(line: &str) -> bool {
+    // A Windows path starts with its drive, `D:`, whose colon is not the one after the file.
+    let line = match line.as_bytes() {
+        [drive, b':', ..] if drive.is_ascii_alphabetic() => &line[2..],
+        _ => line,
+    };
     let mut parts = line.splitn(4, ':');
     let (Some(_file), Some(line_no), Some(column), Some(rest)) =
         (parts.next(), parts.next(), parts.next(), parts.next())
