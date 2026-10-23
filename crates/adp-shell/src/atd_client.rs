@@ -216,7 +216,15 @@ impl Client {
                 message: d["message"].as_str().unwrap_or("").to_owned(),
             })
             .collect();
-        self.waiting.remove(&path);
+        // Diagnostics of an earlier version than the one last sent are not yet the change's.
+        let current = self.versions.get(&path).map(|(version, _)| i64::from(*version));
+        if params["version"]
+            .as_i64()
+            .zip(current)
+            .is_none_or(|(published, sent)| published >= sent)
+        {
+            self.waiting.remove(&path);
+        }
         self.fresh.insert(path.clone());
         self.diagnostics.insert(path, diagnostics);
     }
@@ -251,20 +259,19 @@ impl Client {
         }
     }
 
-    /// Forgets which documents have new diagnostics.
+    /// The codes of the diagnostics last published for every file of the description `path` belongs to, sorted: the
+    /// root `<name>.atd` and its parts `<name>.<part>.atd` beside it (ATD §5), as the walk counts them.
     #[cfg(test)]
-    pub fn forget_fresh(&mut self) {
-        self.fresh.clear();
-    }
-
-    /// The codes of the diagnostics that came since [`Client::forget_fresh`], sorted.
-    #[cfg(test)]
-    pub fn fresh_codes(&self) -> Vec<String> {
+    pub fn description_codes(&self, path: &Path) -> Vec<String> {
+        let name = |p: &Path| {
+            p.file_name()
+                .map(|n| n.to_string_lossy().split('.').next().unwrap_or("").to_owned())
+        };
         let mut codes: Vec<String> = self
-            .fresh
+            .diagnostics
             .iter()
-            .flat_map(|p| self.diagnostics.get(p).into_iter().flatten())
-            .map(|d| d.code.clone())
+            .filter(|(p, _)| p.parent() == path.parent() && name(p) == name(path))
+            .flat_map(|(_, d)| d.iter().map(|d| d.code.clone()))
             .collect();
         codes.sort();
         codes
@@ -1106,10 +1113,9 @@ mod tests {
                     (!again.is_empty()).then(|| format!("the second formatting changed the file: {again:?}"))
                 }
                 "diagnostics" => {
-                    client.forget_fresh();
                     client.saved(&path);
                     client.wait(&path, TIMEOUT);
-                    let got = client.fresh_codes();
+                    let got = client.description_codes(&path);
                     let want = sorted(&expect["codes"]);
                     (got != want).then(|| format!("diagnostics {got:?}, expected {want:?}"))
                 }
@@ -1123,7 +1129,6 @@ mod tests {
                         ),
                         None => start,
                     };
-                    client.forget_fresh();
                     drop(client);
                     open.editor
                         .buffer
@@ -1131,7 +1136,7 @@ mod tests {
                     open.analyse();
                     let mut client = super::client();
                     client.wait(&path, TIMEOUT);
-                    let got = client.fresh_codes();
+                    let got = client.description_codes(&path);
                     let want = sorted(&expect["diagnostics"]);
                     (got != want).then(|| format!("diagnostics after the edit {got:?}, expected {want:?}"))
                 }
