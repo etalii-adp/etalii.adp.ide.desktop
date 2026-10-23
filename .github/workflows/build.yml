@@ -49,6 +49,52 @@ jobs:
       - name: Test
         run: cargo test --workspace
 
+  # ATD, the ADP tool language (etalii.adp spec 035, T044, T107): the `atd` the other hosts ship (built without
+  # `record`) checks every vendored example and the refused corpus, the toolchain's tests run against that same
+  # specification, the language server builds for WebAssembly as VS Code runs it, and what the other hosts ship carries
+  # only licences compatible with Apache-2.0. A pull request whose branch etalii.adp also has is built from that
+  # branch's specification (ATD_SPEC_DIR), so a construct and its checker land together.
+  atd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read the specification from etalii.adp's branch of this pull request's name, when there is one
+        if: github.event_name == 'pull_request'
+        run: |
+          branch="${{ github.head_ref }}"
+          if git ls-remote --exit-code --heads https://github.com/etalii-adp/etalii.adp.git "$branch" >/dev/null; then
+            git clone --depth 1 --branch "$branch" https://github.com/etalii-adp/etalii.adp.git "$RUNNER_TEMP/etalii.adp"
+            echo "ATD_SPEC_DIR=$RUNNER_TEMP/etalii.adp/specifications/atd" >> "$GITHUB_ENV"
+          fi
+      - name: Install the toolchain rust-toolchain.toml names
+        run: rustup show
+      - name: Reuse the build of earlier runs
+        uses: Swatinem/rust-cache@v2
+      - name: Build atd as the other hosts ship it, and the language server
+        run: cargo build --release --no-default-features -p adp-atd-cli -p adp-atd-lsp
+      - name: Check every example
+        run: ./target/release/atd check "${ATD_SPEC_DIR:-vendor/etalii.adp/specifications/atd}"/*.atd
+      - name: Check the refused corpus against its findings
+        run: ./target/release/atd check --corpus "${ATD_SPEC_DIR:-vendor/etalii.adp/specifications/atd}/refused"
+      - name: Test the toolchain against that specification, the cross-check of the tables included
+        run: cargo test -p adp-atd-grammar -p adp-atd-syntax -p adp-atd-check -p adp-atd-format -p adp-atd-lsp
+      - name: Build the language server for WebAssembly
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build --release -p adp-atd-lsp --lib --target wasm32-unknown-unknown
+      - name: Check the licences of atd
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check licenses
+          manifest-path: crates/adp-atd-cli/Cargo.toml
+          arguments: --exclude-dev --no-default-features
+      - name: Check the licences of the language server
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check licenses
+          manifest-path: crates/adp-atd-lsp/Cargo.toml
+          arguments: --exclude-dev
+
   # The desktop host for each platform, built from every change to develop (spec 030, FR-040, task T036). Unsigned
   # until signing is set up (T092): the release says so.
   package:
