@@ -1,0 +1,13 @@
+atd 0.1
+
+/// A script that reads the clock: refused when it is checked, not when it runs (ATD §12.5).
+diagram example/log version "0.1.0" {
+  model {
+    element Entry {
+      attribute stamp: string
+    }
+  }
+  operation stampIt "Stamp" for Entry {
+    set self.stamp = string(now())
+  }
+}

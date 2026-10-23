@@ -1,0 +1,93 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "ID_1",
+      "type": "Node",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 50.8,
+        "h": 31.6
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "Plan"
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#E2E8F0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "ID_2",
+      "type": "Node",
+      "shape": "rect",
+      "bounds": {
+        "x": 98.8,
+        "y": 0,
+        "w": 58.5,
+        "h": 31.6
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "Scope"
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#E2E8F0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "branch:ID_2",
+      "type": "Branch",
+      "source": "ID_1",
+      "target": "ID_2",
+      "route": [
+        {
+          "x": 50.8,
+          "y": 15.8
+        },
+        {
+          "x": 98.8,
+          "y": 15.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#E2E8F0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "branch:ID_2",
+    "ID_1",
+    "ID_2"
+  ]
+}

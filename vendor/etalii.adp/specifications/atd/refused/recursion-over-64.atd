@@ -1,0 +1,16 @@
+atd 0.1
+
+/// A recursion bound above the language's 64 frames (ATD §12.6).
+diagram example/depth version "0.1.0" {
+  model {
+    element Node {
+      contains Node ordered
+    }
+  }
+  fn depth(node: Node) -> int recursion 100 {
+    if node.parent == null {
+      return 0
+    }
+    return depth(node.parent) + 1
+  }
+}

@@ -1,0 +1,19 @@
+[package]
+name = "adp-atd-lsp"
+description = "The ATD language server core and its transports (spec 035, research R10, contracts/language-server.md)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-atd-syntax = { path = "../adp-atd-syntax" }
+adp-atd-check = { path = "../adp-atd-check" }
+adp-atd-format = { path = "../adp-atd-format" }
+lsp-types = { workspace = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }

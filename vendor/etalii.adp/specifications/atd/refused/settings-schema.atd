@@ -1,0 +1,14 @@
+atd 0.1
+
+/// A setting its construct's schema does not have (ATD §14.6): DISL's Stroke has `width`, not `thickness`.
+diagram example/boxes version "0.1.0" {
+  model {
+    element Box
+  }
+  notation {
+    node Box {
+      shape rect
+      stroke: { color: "#333333", thickness: 2 }
+    }
+  }
+}

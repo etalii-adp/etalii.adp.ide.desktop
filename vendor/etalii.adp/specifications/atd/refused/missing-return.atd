@@ -1,0 +1,15 @@
+atd 0.1
+
+/// A function with a path that neither returns nor fails (ATD §12.1).
+diagram example/grade version "0.1.0" {
+  model {
+    element Score {
+      attribute value: int
+    }
+  }
+  fn grade(value: int) -> string {
+    if value >= 50 {
+      return "pass"
+    }
+  }
+}

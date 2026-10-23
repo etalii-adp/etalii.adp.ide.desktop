@@ -1,0 +1,17 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.twoSidedTree",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "A tree laid out to both sides of its root: the root's children are split into a right and a left side, each side is laid out as a tidy tree growing away from the root, children in their order, and a child whose `side` is fixed stays on its side. Positions are the top left corners of the nodes, in the canvas's domain units.",
+  "input": { "$ref": "../../atd.schema.json#/$defs/LayoutInput" },
+  "args": {
+    "spacing": { "type": "number", "default": 24, "doc": "The gap between two siblings, across the direction of growth." },
+    "levelGap": { "type": "number", "default": 48, "doc": "The gap between a node and its children, along the direction of growth." },
+    "side": { "type": "query", "doc": "The side a first-level node is fixed to (`right` or `left`), from its attributes; absent, the layout chooses." }
+  },
+  "output": { "$ref": "../../atd.schema.json#/$defs/LayoutResult" },
+  "laws": ["deterministic", "pinnedStay", "stable"],
+  "fallback": "layout.tidyTree",
+  "status": "provisional"
+}

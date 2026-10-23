@@ -146,6 +146,86 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-atd-check"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-syntax",
+ "adp-cel",
+ "jsonschema",
+ "serde_json",
+]
+
+[[package]]
+name = "adp-atd-cli"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-check",
+ "adp-atd-format",
+ "adp-atd-grammar",
+ "adp-atd-syntax",
+ "serde_json",
+]
+
+[[package]]
+name = "adp-atd-format"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-syntax",
+]
+
+[[package]]
+name = "adp-atd-grammar"
+version = "1.0.0"
+dependencies = [
+ "adp-cel",
+ "regex",
+ "regex-automata",
+]
+
+[[package]]
+name = "adp-atd-lsp"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-check",
+ "adp-atd-format",
+ "adp-atd-syntax",
+ "lsp-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "adp-atd-runtime"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-script",
+]
+
+[[package]]
+name = "adp-atd-script"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-check",
+ "adp-cel",
+ "adp-history",
+]
+
+[[package]]
+name = "adp-atd-syntax"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-grammar",
+ "serde_json",
+]
+
+[[package]]
+name = "adp-atd-validate"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-runtime",
+]
+
+[[package]]
 name = "adp-cel"
 version = "1.0.0"
 dependencies = [
@@ -2036,6 +2116,15 @@ dependencies = [
 
 [[package]]
 name = "fluent-uri"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17c704e9dbe1ddd863da1e6ff3567795087b1eb201ce80d8fa81162e1516500d"
+dependencies = [
+ "bitflags 1.3.2",
+]
+
+[[package]]
+name = "fluent-uri"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc74ac4d8359ae70623506d512209619e5cf8f347124910440dbc221714b328e"
@@ -2897,6 +2986,19 @@ name = "log"
 version = "0.4.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
+
+[[package]]
+name = "lsp-types"
+version = "0.97.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53353550a17c04ac46c585feb189c2db82154fc84b79c7a66c96c2c644f66071"
+dependencies = [
+ "bitflags 1.3.2",
+ "fluent-uri 0.1.4",
+ "serde",
+ "serde_json",
+ "serde_repr",
+]
 
 [[package]]
 name = "memchr"
@@ -4051,7 +4153,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "473f4dcca28ead7ee0f8e5b5d0bbae2549f4fc4c958fb20af328961b6c174be3"
 dependencies = [
  "ahash",
- "fluent-uri",
+ "fluent-uri 0.4.1",
  "getrandom 0.3.4",
  "hashbrown 0.17.1",
  "itoa",

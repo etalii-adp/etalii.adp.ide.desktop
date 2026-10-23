@@ -1,0 +1,54 @@
+atd 0.1
+
+/// Notes kept as a Markdown list: an editor whose text is the document, with an outline of the notes, folding by
+/// note, a preview, and a `bullets` binding that reads the notes under the heading `Notes` as a tree.
+editor example/notes version "0.1.0" {
+  label "Notes"
+  requires capability render.markdown@^1
+
+  model {
+    element Note {
+      attribute title: string required
+      attribute done: bool default false
+      attribute detail: text
+      contains Note ordered
+      labelAttribute: title
+    }
+  }
+
+  constraint titled for Note {
+    rule self.title.trim() != ""
+    severity warning
+    message "A note needs a title."
+    code: "notes.untitled"
+  }
+
+  surface text {
+    files "*.notes.md"
+    tokens markdown
+    outline Note by title
+    fold Note
+    preview capability render.markdown { side: right }
+    fix closeNote "Mark as done" {
+      when !self.done
+      set self.done = true
+    }
+  }
+
+  binding notes family bullets {
+    label "Notes"
+    claims files "*.notes.md"
+    header { line: r"^# ", required: false }
+    section notes "Notes" { caseInsensitive: true }
+
+    element Note as note line r"^\[(?<done>[ x])\] (?<title>.+)$" {
+      within notes
+      parent note
+      attribute title from group "title" { empty: refuse }
+      attribute done from group "done" { map: { "x": true, " ": false } }
+      attribute detail from continuation
+      insert { place: after-last, emit: "- \\[{done}\\] {title}" }
+      remove {}
+    }
+  }
+}

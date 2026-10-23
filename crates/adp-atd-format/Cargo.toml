@@ -1,0 +1,14 @@
+[package]
+name = "adp-atd-format"
+description = "The canonical layout of ATD and machine edits as splices (spec 035, FR-032, FR-033)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-atd-syntax = { path = "../adp-atd-syntax" }

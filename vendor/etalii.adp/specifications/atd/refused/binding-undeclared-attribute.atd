@@ -1,0 +1,21 @@
+atd 0.1
+
+/// A binding that reads an attribute the model does not declare: one finding, at the binding (story 1, scenario 5).
+diagram example/tasks version "0.1.0" {
+  model {
+    element Task {
+      attribute title: string required
+    }
+  }
+  notation {
+    node Task { label @title }
+  }
+  binding tasks family yaml {
+    claims files "*.tasks.yaml"
+    element Task as task at "/tasks/*" {
+      id from key "id"
+      attribute title from key "title"
+      attribute owner from key "owner"
+    }
+  }
+}

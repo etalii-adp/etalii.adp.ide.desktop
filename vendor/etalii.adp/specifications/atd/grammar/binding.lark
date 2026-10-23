@@ -1,0 +1,56 @@
+// ATD 0.1, module binding: FBL 0.8's bindings, one to one (ATD §11; FBL §3 to §13).
+// Uses from core: name, qualified, names, type_ref, value, setting, settings_block, doc_member, label_member, STRING,
+// INT. Uses from cel: expr.
+
+// `binding freeplane family xml { … }`; `family capability <name>` reads the body with a persistence plugin's
+// contract (FBL §11); a binding without `family` is a folder binding (FBL §10).
+binding: "binding" name ["family" binding_family] "{" binding_member* "}"
+binding_family: name -> declared_family
+              | "capability" qualified -> capability_family
+
+?binding_member: "claims" "files" STRING ("," STRING)* -> claims_files
+               | "claims" settings_block -> claims
+               | "body" settings_block -> body
+               | "text" settings_block -> text_defaults
+               | "header" settings_block -> header
+               | "registration" settings_block -> registration
+               | "template" value -> template
+               | "block" name ["line" STRING] [settings_block] -> block_rule
+               | "section" name STRING [settings_block] -> section_rule
+               | element_rule
+               | relation_rule
+               | setting
+               | doc_member
+               | label_member
+
+// `element Topic at "node" { … }`: entries at a selector (yaml, json, xml) or statements matching a line (lines,
+// blocks, bullets) become elements of a type; `as` names the rule when one type has several (FBL §5.1).
+element_rule: "element" type_ref ["as" name] [rule_place] "{" rule_member* "}"
+relation_rule: "relation" type_ref ["as" name] [rule_place] "{" relation_rule_member* "}"
+rule_place: "at" STRING -> at
+          | "line" STRING -> line
+
+?rule_member: "id" "from" slot [settings_block] -> id_from
+            | "id" settings_block -> id
+            | "attribute" name ["from" slot] [attribute_binding_block] -> attribute_binding
+            | "parent" names ["slot" name] -> parent
+            | "within" names -> within
+            | "when" expr -> when
+            | "files" names -> files
+            | "insert" settings_block -> insert
+            | "remove" settings_block -> remove
+            | setting
+            | doc_member
+?relation_rule_member: rule_member
+                     | "source" "from" slot [settings_block] -> source
+                     | "target" "from" slot [settings_block] -> target
+
+// A slot (FBL §5.2): `key "id"`, `attribute "TEXT"`, `text`, `group "name"`, `continuation`, `parent "a"`,
+// `capture "c"`, `value (cel)`.
+slot: name [slot_argument]
+?slot_argument: STRING | INT | "(" expr ")" -> cel_slot
+
+attribute_binding_block: "{" attribute_binding_member* "}"
+?attribute_binding_member: "references" names "by" name -> references
+                         | setting
+                         | doc_member

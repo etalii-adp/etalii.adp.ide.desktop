@@ -1,0 +1,15 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.turtle",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads and writes RDF 1.1 Turtle under the persistence plugin contract of FBL §11: resources and the properties between them, with every byte no triple maps kept, every edit a minimal splice. Its fixtures are recorded with the W3C tool types' cases (spec 035, T078).",
+  "input": { "$ref": "../../atd.schema.json#/$defs/ReaderInput" },
+  "args": {
+    "prefixes": { "type": "enum", "values": ["keep", "expand"], "default": "keep", "doc": "Whether IRIs are read with the prefixes the body declares, or expanded." }
+  },
+  "output": { "$ref": "../../atd.schema.json#/$defs/ReaderResult" },
+  "laws": ["deterministic", "readingNeverFails", "minimalSplices"],
+  "fallback": null,
+  "status": "provisional"
+}

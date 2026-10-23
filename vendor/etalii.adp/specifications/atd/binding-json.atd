@@ -1,0 +1,49 @@
+atd 0.1
+
+/// Tasks and their dependencies in a JSON file: the `json` family, with relations whose ends are references by id.
+diagram example/task-graph version "0.1.0" {
+  label "Task graph"
+
+  model {
+    element Task {
+      attribute name: string required
+      attribute estimate: int default 1 { min: 0 }
+      labelAttribute: name
+    }
+    relation DependsOn from Task to Task { acyclic: true }
+  }
+
+  notation {
+    node Task { shape roundedRect  label @name }
+    edge DependsOn { marker target arrow }
+  }
+
+  layout {
+    default layered
+    algorithm layered { algorithm: layered, direction: right }
+  }
+
+  binding tasks family json {
+    label "Task graph"
+    claims { extensions: [".tasks.json"], origins: ["example/task-graph"] }
+    text { indent: 2, newline: lf, finalNewline: true }
+    header { key: "tasks", value: 1 }
+
+    element Task as task at "/tasks/*" {
+      id from key "id"
+      attribute name from key "name" { empty: refuse }
+      attribute estimate from key "estimate" { default: 1, read: typed }
+      insert { place: after-last, container: "/tasks", keys: [id, name, estimate] }
+      remove { cascade: [dependency] }
+    }
+
+    relation DependsOn as dependency at "/tasks/*/after/*" {
+      source from parent "id"
+      target from value (entry)
+      insert { place: after-last, container: "after", create: { at: end } }
+      remove { container: remove-when-empty }
+    }
+
+    template "{ \"tasks\": 1, \"tasks\": [] }\n"
+  }
+}

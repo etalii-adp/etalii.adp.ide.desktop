@@ -1,0 +1,44 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "freeplane/mindmap",
+  "description": "mindmap.atd",
+  "companion": {
+    "file": "mindmap.md",
+    "sections": [
+      "1. What DISL still lacks for this type"
+    ]
+  },
+  "items": [
+    {
+      "id": "1-what-disl-still-lacks-for-this-type/1",
+      "text": "Sibling naming",
+      "statedBy": "fn siblingName"
+    },
+    {
+      "id": "1-what-disl-still-lacks-for-this-type/2",
+      "text": "Images in nodes",
+      "hostConcern": "rendering",
+      "reason": "The pixels of an image are the host's to draw; the description states where a node's content goes."
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/actions.rs",
+      "lines": "196-232",
+      "behaviour": "A node added as a child or a sibling is created at once under a name read off the siblings it joins, then its text is edited in place.",
+      "statedBy": "fn siblingName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/mindmap/src/layout.rs",
+      "lines": "1-10",
+      "behaviour": "The central topic is centred on the origin, its first-level branches split to its right and left as their POSITION says or alternately, each list of siblings a column centred on its parent.",
+      "statedBy": "capability layout.twoSidedTree"
+    }
+  ]
+}

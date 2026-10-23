@@ -1,0 +1,86 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "The worked example of ATD §2.3: the example `mindmap.atd` reads a map of two nodes, adds a sibling after the second, and undoes it. Written by hand for the specification; the cases of the tool types under definitions/ are recorded.",
+  "tool": "freeplane/mindmap",
+  "description": "../../../mindmap.atd",
+  "inputs": {
+    "body": "plan.mm"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "ID_1",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "text": "Plan"
+        }
+      },
+      {
+        "id": "ID_2",
+        "type": "Node",
+        "parent": "ID_1",
+        "attributes": {
+          "text": "Scope"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "branch:ID_2",
+        "type": "Branch",
+        "source": "ID_1",
+        "target": "ID_2"
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "select": [
+        "ID_2"
+      ],
+      "action": "addSibling",
+      "ids": [
+        "ID_3"
+      ],
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 93,
+          "end": 93,
+          "text": "<node TEXT=\"Node\" ID=\"ID_3\"/>\n"
+        }
+      ],
+      "expectFile": "after-1.mm",
+      "findings": []
+    },
+    {
+      "undo": true,
+      "expectFile": "plan.mm"
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp",
+      "commit": "81d829d",
+      "source": "written by hand for ATD §2.3"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp",
+      "commit": "81d829d",
+      "source": "written by hand for ATD §2.3"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp",
+      "commit": "81d829d",
+      "source": "written by hand for ATD §2.3"
+    }
+  }
+}

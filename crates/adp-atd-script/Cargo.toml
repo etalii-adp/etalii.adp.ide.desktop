@@ -1,0 +1,16 @@
+[package]
+name = "adp-atd-script"
+description = "The interpreter of ATD's script, with its budget and the debugger's hooks (spec 035, research R13, R21)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-atd-check = { path = "../adp-atd-check" }
+adp-cel = { path = "../adp-cel" }
+adp-history = { path = "../adp-history" }

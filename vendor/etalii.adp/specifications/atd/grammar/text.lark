@@ -1,0 +1,21 @@
+// ATD 0.1, module text: the surface of an editor (ATD §10), written from what the five editors of the desktop host do
+// at its reference commit `fe5feec` (ATD §10.1 lists each behaviour with the file it was read in).
+// Uses from core: name, qualified, names, setting, settings_block, doc_member, fix, STRING.
+
+text_surface: "surface" "text" "{" text_member* "}"
+
+?text_member: "files" STRING ("," STRING)* -> files
+            | "tokens" name [settings_block] -> tokens
+            | "token" name [settings_block] -> token_class
+            | "fold" names [settings_block] -> fold
+            | "outline" names ["by" name] [settings_block] -> outline
+            | "complete" "from" text_source [settings_block] -> complete
+            | "check" "with" text_source [settings_block] -> check
+            | "preview" text_source [settings_block] -> preview
+            | fix
+            | setting
+            | doc_member
+
+// What completion, a check or a preview comes from: a capability, or a source the editor names (`"schema"`).
+text_source: "capability" qualified -> capability_source
+           | STRING -> named_source

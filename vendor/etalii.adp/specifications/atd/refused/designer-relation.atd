@@ -1,0 +1,15 @@
+atd 0.1
+
+/// A designer may hold relations as values, never as relation types (ATD §14.4, the table of kinds).
+designer example/glossary version "0.1.0" {
+  label "Glossary"
+  model {
+    element Term {
+      attribute name: string required
+    }
+    relation Broader from Term to Term
+  }
+  surface table {
+    rows Term
+  }
+}

@@ -1,0 +1,74 @@
+atd 0.1
+part of freeplane/mindmap
+
+// The mind map's notation, toolbox and layout, in a part of their own (ATD §5.2).
+
+coordinates {
+  system canvas { kind: cartesian, x: { kind: linear, unit: px }, y: { kind: linear, unit: px }, orientation: y-down }
+  default canvas
+}
+
+notation {
+  theme {
+    tokens: { color.surface: "#FFFFFF", color.border: "#E2E8F0", color.text: "#0F172A", color.primary: limegreen }
+    modes: { dark: { color.surface: "#1E293B", color.border: "#334155", color.text: "#F1F5F9" } }
+    defaultMode: light
+    followSystem: true
+  }
+  /// textWidth = characters × 14 × 0.55, a character being a UTF-16 code unit, so every host lays the map out alike.
+  textMetric: { kind: average, advance: 0.55, count: utf16, lineHeight: 1.4 }
+
+  style node {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1.5 }
+    font: { size: 14, color: $color.text }
+    padding: [6, 10]
+  }
+
+  node Node {
+    shape rect
+    style: node
+    size: {
+      width: (math.round(max(32.0, textWidth(self.text, 14.0) + 20.0) * 100.0) / 100.0)
+      height: (textHeight(1, 14.0) + 12.0)
+      resizable: false
+    }
+    label @text as text { editable: inline, position: center, wrap: none }
+    label ([self.notes != "" ? "•" : "", self.view.collapsed && self.children.size() > 0 ? "⊕" : ""].filter(s, s != "").join(" ")) as indicators {
+      position: { anchor: [1, 0], align: end }
+    }
+    anchors: { mode: sides, sides: [left, right] }
+    container: { nesting: none, collapsible: true, highlightOnDrop: true }
+    state dropTarget { stroke: { color: $color.primary, width: 2.5, dash: [6, 3] } }
+    deletable: (self.parent != null)
+    doubleClick: editLabel
+  }
+
+  edge Branch {
+    line { stroke: { color: $color.border, width: 1.5 }, routing: bezier }
+    marker source none
+    marker target none
+    selectable: false
+    deletable: false
+    layer: belowNodes
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true }
+  group mindmap "Mind map" {
+    tool node "Node" { kind: operation, operation: addChild, icon: "mdi-card-plus-outline", mode: drop }
+  }
+  context for Node {
+    placement: menu
+    tool "Add child" { kind: operation, operation: addChild, shortcut: "Insert" }
+    tool "Add sibling" { kind: operation, operation: addSibling, shortcut: "Enter", visible: (self.parent != null) }
+    tool "Rename…" { kind: editLabel, shortcut: "F2" }
+    tool { kind: operation, operation: toggleFold, label: (self.view.collapsed ? "Expand" : "Collapse"), visible: (self.children.size() > 0) }
+  }
+}
+
+layout {
+  default mindmap
+  algorithm mindmap capability layout.twoSidedTree { spacing: 24, levelGap: 48 }
+}

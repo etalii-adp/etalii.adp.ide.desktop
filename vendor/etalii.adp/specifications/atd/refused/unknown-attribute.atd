@@ -1,0 +1,14 @@
+atd 0.1
+
+/// A notation that labels a node with an attribute its type does not declare: the finding offers the closest names.
+diagram example/tasks version "0.1.0" {
+  model {
+    element Task {
+      attribute title: string required
+      attribute tier: int
+    }
+  }
+  notation {
+    node Task { label @titel }
+  }
+}

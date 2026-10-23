@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Findings",
+  "findings": [
+    {
+      "code": "ATD2003",
+      "severity": "error",
+      "file": "import-cycle-a.atd",
+      "line": 5,
+      "column": 3,
+      "message": "The imports `import-cycle-a.atd` → `import-cycle-b.atd` → `import-cycle-a.atd` form a cycle."
+    }
+  ]
+}

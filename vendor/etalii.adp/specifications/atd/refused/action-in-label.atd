@@ -1,0 +1,17 @@
+atd 0.1
+
+/// A function with an action, called from a label: a label's expression is pure (ATD §12.7).
+diagram example/count version "0.1.0" {
+  model {
+    element Counter {
+      attribute count: int default 0
+    }
+  }
+  notation {
+    node Counter { label (bump(self)) }
+  }
+  fn bump(counter: Counter) -> string {
+    set counter.count = counter.count + 1
+    return string(counter.count)
+  }
+}

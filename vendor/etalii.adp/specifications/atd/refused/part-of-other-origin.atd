@@ -1,0 +1,9 @@
+atd 0.1
+
+/// A root that imports a part of another tool type (ATD §5.2).
+diagram example/one version "0.1.0" {
+  import "part-of-other-origin.part.atd"
+  model {
+    element Node
+  }
+}

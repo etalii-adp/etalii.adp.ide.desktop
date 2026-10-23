@@ -1,0 +1,14 @@
+atd 0.1
+
+/// A constraint whose rule is not a bool (ATD §14.5).
+diagram example/tasks version "0.1.0" {
+  model {
+    element Task {
+      attribute title: string required
+    }
+  }
+  constraint titled for Task {
+    rule self.title.size()
+    message "A task needs a title."
+  }
+}
