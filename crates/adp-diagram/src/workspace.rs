@@ -43,6 +43,8 @@ pub struct DiagramWorkspace {
     root: PathBuf,
     documents: DiagramDocuments,
     history: History<DiagramDocuments>,
+    /// The edits run since [`DiagramWorkspace::take_executed`] was last asked, in order.
+    executed: Vec<DocumentEdit>,
 }
 
 impl DiagramWorkspace {
@@ -52,6 +54,7 @@ impl DiagramWorkspace {
             root: root.into(),
             documents: DiagramDocuments::default(),
             history: History::default(),
+            executed: Vec::new(),
         }
     }
 
@@ -62,6 +65,7 @@ impl DiagramWorkspace {
             root: root.into(),
             documents: DiagramDocuments::in_memory(),
             history: History::default(),
+            executed: Vec::new(),
         }
     }
 
@@ -198,9 +202,18 @@ impl DiagramWorkspace {
             return Ok(());
         }
         match self.history.execute(&mut self.documents, &edit) {
-            Outcome::Done { .. } => Ok(()),
+            Outcome::Done { .. } => {
+                self.executed.push(edit);
+                Ok(())
+            }
             Outcome::Refused(refusal) => Err(refusal.0),
         }
+    }
+
+    /// The edits [`DiagramWorkspace::execute`] ran since this was last asked, in order: the splices a gesture made,
+    /// for a conformance fixture to compare (etalii.adp spec 035, T127).
+    pub fn take_executed(&mut self) -> Vec<DocumentEdit> {
+        std::mem::take(&mut self.executed)
     }
 
     /// Runs any command on the documents through the history, a composite of edits to several documents included.
