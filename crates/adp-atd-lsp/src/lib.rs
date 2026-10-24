@@ -238,6 +238,12 @@ impl Server {
                 "textDocument/semanticTokens/range" => Some(self.semantic_tokens(params, Some(&params["range"]))),
                 "atd/check" => Some(self.atd_check(params)),
                 "atd/tree" => Some(self.atd_tree(params)),
+                "atd/validate" => {
+                    return vec![match self.atd_validate(params) {
+                        Ok(result) => response(id, result),
+                        Err(problem) => error_response(id, -32803, &problem),
+                    }];
+                }
                 _ => None,
             };
             return vec![match result {
@@ -700,6 +706,43 @@ impl Server {
     fn atd_check(&self, params: &Json) -> Json {
         let path = uri_to_path(params["uri"].as_str().unwrap_or(""));
         adp_atd_check::findings_json(&self.check(&path).findings)
+    }
+
+    /// `atd/validate`: each case handed in, its files in base64, replayed through the runtime of the description
+    /// whose root is `root`; each difference placed at the construct that produced the value (T128).
+    fn atd_validate(&self, params: &Json) -> Result<Json, String> {
+        use base64::Engine;
+        let root = uri_to_path(params["root"].as_str().unwrap_or(""));
+        let mut cases = Vec::new();
+        for case in params["cases"].as_array().into_iter().flatten() {
+            let name = case["name"].as_str().unwrap_or_default().to_owned();
+            let mut files = BTreeMap::new();
+            for (path, content) in case["files"].as_object().into_iter().flatten() {
+                let bytes = base64::engine::general_purpose::STANDARD
+                    .decode(content.as_str().unwrap_or_default())
+                    .map_err(|e| format!("The case '{name}': {path} is not base64: {e}"))?;
+                files.insert(path.clone(), bytes);
+            }
+            cases.push(adp_atd_validate::case_of(name, files)?);
+        }
+        let checked = self.check(&root);
+        let results =
+            adp_atd_validate::validate_description(&checked, &adp_atd_runtime::RuntimeHost::default(), &cases)?;
+        let at = |at: &adp_atd_validate::At| {
+            let path = checked
+                .description
+                .files
+                .iter()
+                .find(|f| f.name == at.file)
+                .map_or_else(|| PathBuf::from(&at.file), |f| f.path.clone());
+            let text = self.text(&path).unwrap_or_default();
+            json!({
+                "uri": path_to_uri(&path),
+                "range": positions::range(&text, at.start, at.end, self.encoding),
+            })
+        };
+        let cases: Vec<Json> = results.iter().map(|r| r.json(&at)).collect();
+        Ok(json!({ "cases": cases }))
     }
 
     fn atd_tree(&self, params: &Json) -> Json {

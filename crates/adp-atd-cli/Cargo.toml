@@ -1,6 +1,6 @@
 [package]
 name = "adp-atd-cli"
-description = "The `atd` command line: check, fmt, tree, tables and record (spec 035, contracts/checker.md)."
+description = "The `atd` command line: check, fmt, tree, tables, validate and record (spec 035, contracts/checker.md)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -18,10 +18,9 @@ workspace = true
 # `record` feature: the `atd` shipped into other hosts is built without it (spec 035, T050).
 [features]
 default = ["record"]
-record = ["dep:adp-diagram", "dep:adp-diagram-mindmap", "dep:adp-parity", "dep:adp-shell", "dep:adp-theme", "dep:adp-atd-validate"]
+record = ["dep:adp-diagram", "dep:adp-diagram-mindmap", "dep:adp-parity", "dep:adp-shell", "dep:adp-theme"]
 
 [dependencies]
-adp-atd-validate = { path = "../adp-atd-validate", optional = true }
 adp-diagram = { path = "../adp-diagram", optional = true }
 adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap", optional = true }
 adp-parity = { path = "../adp-parity", optional = true }
@@ -31,6 +30,8 @@ adp-atd-grammar = { path = "../adp-atd-grammar" }
 adp-atd-syntax = { path = "../adp-atd-syntax" }
 adp-atd-check = { path = "../adp-atd-check" }
 adp-atd-format = { path = "../adp-atd-format" }
+adp-atd-runtime = { path = "../adp-atd-runtime" }
+adp-atd-validate = { path = "../adp-atd-validate" }
 serde_json = { version = "1", features = ["preserve_order"] }
 
 [dev-dependencies]

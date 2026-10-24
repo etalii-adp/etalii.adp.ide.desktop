@@ -205,3 +205,41 @@ fn check_trace_resolves_every_construct_path_and_reports_one_that_does_not_at_it
     assert_eq!(findings["findings"][0]["code"], "ATD2011");
     let _ = std::fs::remove_dir_all(&folder);
 }
+
+/// `atd validate` (T128): the cases beside a description replayed through its runtime, each difference an `ATD9001`
+/// at the construct that produced the value; exit code 1 when a case does not pass, 2 when there is no such case.
+#[test]
+fn validate_reports_each_difference_at_its_construct() {
+    let mindmap =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../vendor/etalii.adp/definitions/diagrams/mindmap.atd");
+    let mindmap = mindmap.to_string_lossy();
+
+    let (code, out, _) = atd(&["validate", "--case", "fold", &mindmap]);
+    assert_eq!(code, 1, "{out}");
+    let lines: Vec<&str> = out.lines().collect();
+    assert!(
+        lines
+            .iter()
+            .any(|l| l.contains("mindmap.notation.atd:58:3: error ATD9001: case 'fold', step 1, drawing: ")),
+        "{out}"
+    );
+    assert_eq!(lines.last(), Some(&"0 of 1 case(s) passed."));
+
+    let (code, out, _) = atd(&["validate", "--json", "--case", "refusals", &mindmap]);
+    assert_eq!(code, 1);
+    let result: Value = serde_json::from_str(&out).unwrap();
+    let case = &result["cases"][0];
+    assert_eq!(case["name"], "refusals");
+    assert_eq!(case["passed"], false);
+    let deletion = case["differences"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|d| d["step"] == 1)
+        .unwrap();
+    assert_eq!(deletion["part"], "refused");
+    assert_eq!(deletion["at"]["line"], 261);
+
+    let (code, _, err) = atd(&["validate", "--case", "no-such-case", &mindmap]);
+    assert_eq!(code, 2, "{err}");
+}

@@ -101,3 +101,47 @@ fn a_broken_file_still_answers_in_its_other_parts() {
         .clone();
     assert!(tokens["data"].as_array().unwrap().len() > 500);
 }
+
+/// `atd/validate` (T128, contracts/language-server.md): the cases handed in, their files in base64, replayed through
+/// the description's runtime; each difference placed at its construct by uri and range.
+#[test]
+fn validate_answers_each_case_with_its_differences_at_their_constructs() {
+    use base64::Engine;
+    let diagrams = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../vendor/etalii.adp/definitions/diagrams");
+    let folder = diagrams.join("conformance/mindmap/fold");
+    let files: serde_json::Map<String, Value> = std::fs::read_dir(&folder)
+        .unwrap()
+        .flatten()
+        .map(|e| {
+            let content = base64::engine::general_purpose::STANDARD.encode(std::fs::read(e.path()).unwrap());
+            (e.file_name().to_string_lossy().into_owned(), json!(content))
+        })
+        .collect();
+    let mut server = Server::new();
+    server.handle(&json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"capabilities": {}}}));
+    let root = path_to_uri(&diagrams.join("mindmap.atd").canonicalize().unwrap());
+    let answer = server.handle(&json!({"jsonrpc": "2.0", "id": 2, "method": "atd/validate",
+        "params": {"root": root, "cases": [{"name": "fold", "files": files}]}}));
+    let case = &answer[0]["result"]["cases"][0];
+    assert_eq!(case["name"], "fold", "{answer:?}");
+    assert_eq!(case["passed"], false);
+    let drawing = case["differences"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|d| d["part"] == "drawing")
+        .unwrap();
+    assert_eq!(drawing["step"], 1);
+    assert!(
+        drawing["at"]["uri"]
+            .as_str()
+            .unwrap()
+            .ends_with("/mindmap.notation.atd")
+    );
+    // The notation's `node`, on line 58 (from 0 in the protocol).
+    assert_eq!(drawing["at"]["range"]["start"], json!({"line": 57, "character": 2}));
+
+    let refused = server.handle(&json!({"jsonrpc": "2.0", "id": 3, "method": "atd/validate",
+        "params": {"root": root, "cases": [{"name": "broken", "files": {"conformance.json": "not base64!"}}]}}));
+    assert_eq!(refused[0]["error"]["code"], -32803);
+}

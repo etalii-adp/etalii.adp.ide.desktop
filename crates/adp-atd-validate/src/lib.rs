@@ -9,6 +9,7 @@
 //! written to the file system.
 
 pub mod attribution;
+pub mod cases;
 pub mod parts;
 
 use std::cell::RefCell;
@@ -24,6 +25,7 @@ use adp_diagram::workspace::DiagramWorkspace;
 use adp_disl::{HostAction, IdSource};
 use adp_history::Outcome;
 pub use attribution::{At, Constructs};
+pub use cases::{CaseResult, case_of, cases_of, read_case, validate_description};
 use serde_json::{Value as Json, json};
 
 /// A case: its fixture (`conformance.json`) and its files by their names in the fixture, all in memory.
@@ -47,13 +49,20 @@ pub struct Difference {
     pub at: Option<At>,
 }
 
+impl Difference {
+    /// The difference without its construct: its step, its part, what was expected and what was given.
+    pub fn what(&self) -> String {
+        let place = match self.step {
+            Some(step) => format!("step {step}, {}", self.part),
+            None => format!("read, {}", self.part),
+        };
+        format!("{place}: expected {}, got {}", self.expected, self.actual)
+    }
+}
+
 impl std::fmt::Display for Difference {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.step {
-            Some(step) => write!(f, "step {step}, {}: ", self.part)?,
-            None => write!(f, "read, {}: ", self.part)?,
-        }
-        write!(f, "expected {}, got {}", self.expected, self.actual)?;
+        f.write_str(&self.what())?;
         match &self.at {
             Some(at) => write!(f, " ({at})"),
             None => Ok(()),
