@@ -1529,6 +1529,12 @@ impl Lowerer<'_> {
     }
 
     fn rule_member(&self, node: &Node) -> Json {
+        // A rule's own setting (`readOnly: "…"`), as every construct's setting is in the tree.
+        if node.kind() == "setting" {
+            let mut o = self.object("setting", node);
+            o.insert("setting".into(), self.setting(node));
+            return Json::Object(o);
+        }
         let kind = match node.kind() {
             "id_from" | "id" => "id",
             "attribute_binding" => "attribute",

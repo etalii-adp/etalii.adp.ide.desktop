@@ -4,6 +4,7 @@
 
 pub mod actions;
 pub mod disl;
+pub mod fbl;
 pub mod script;
 pub mod values;
 

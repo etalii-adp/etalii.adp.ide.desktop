@@ -117,7 +117,7 @@ impl Lowering {
         }
         // DISL's order: the id first.
         let mut ordered = Map::new();
-        if let Some(id) = language.remove("id") {
+        if let Some(id) = language.shift_remove("id") {
             ordered.insert("id".into(), id);
         }
         ordered.extend(language);
@@ -185,7 +185,7 @@ impl Lowering {
                     let mut rest = element(item);
                     // A label first, as DISL writes it.
                     let mut ordered = Map::new();
-                    if let Some(label) = rest.remove("label") {
+                    if let Some(label) = rest.shift_remove("label") {
                         ordered.insert("label".into(), label);
                     }
                     ordered.extend(lowered);
@@ -217,7 +217,7 @@ impl Lowering {
                 }
                 "document" => {
                     let mut lowered = element(item);
-                    lowered.remove("label");
+                    lowered.shift_remove("label");
                     at(metamodel, &["diagram"]).extend(lowered);
                 }
                 "setting" => {
@@ -254,7 +254,7 @@ impl Lowering {
         rule.insert("id".into(), json!(text(&constraint["name"])));
         let mut own = settings_of(constraint);
         for key in ["code", "kind"] {
-            if let Some(v) = own.remove(key) {
+            if let Some(v) = own.shift_remove(key) {
                 rule.insert(key.into(), v);
             }
         }
@@ -337,7 +337,7 @@ impl Lowering {
         }
         let mut own = settings_of(operation);
         for key in ["icon", "shortcut"] {
-            if let Some(v) = own.remove(key) {
+            if let Some(v) = own.shift_remove(key) {
                 lowered.insert(key.into(), v);
             }
         }
@@ -611,7 +611,7 @@ fn attribute(member: &Json) -> Map<String, Json> {
     let mut lowered = Map::new();
     lowered.insert("type".into(), json!(type_name(&member["type"])));
     let mut own = settings_of(member);
-    if let Some(label) = own.remove("label") {
+    if let Some(label) = own.shift_remove("label") {
         lowered.insert("label".into(), label);
     }
     for (flag, key) in [("required", "required"), ("many", "many"), ("readonly", "readOnly")] {
@@ -741,11 +741,11 @@ fn tool(member: &Json) -> Json {
     }
     let mut own = settings_of(member);
     for key in ["kind", "operation"] {
-        if let Some(v) = own.remove(key) {
+        if let Some(v) = own.shift_remove(key) {
             lowered.insert(key.into(), v);
         }
     }
-    if let Some(group) = own.remove("group") {
+    if let Some(group) = own.shift_remove("group") {
         lowered.insert("group".into(), group);
     }
     if let Some(title) = member.get("title") {
@@ -791,7 +791,7 @@ fn form_items(node: &Json) -> Vec<Json> {
             "item" => {
                 let mut item = Map::new();
                 let mut own = settings_of(member);
-                if let Some(kind) = own.remove("kind") {
+                if let Some(kind) = own.shift_remove("kind") {
                     item.insert("kind".into(), kind);
                 }
                 if let Some(name) = member.get("name") {
