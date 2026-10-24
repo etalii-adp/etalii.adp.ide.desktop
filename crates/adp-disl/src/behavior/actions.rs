@@ -411,7 +411,36 @@ impl<'a> ActionRunner<'a> {
         let Some(attributes) = self.attributes(body, at, variables) else {
             return false;
         };
-        let parent = DislElement::from_value(&parent);
+        let Some(after) = self.member(body, at, "after", variables, Value::Null) else {
+            return false;
+        };
+        let Some(before) = self.member(body, at, "before", variables, Value::Null) else {
+            return false;
+        };
+        let (after, before) = (DislElement::from_value(&after), DislElement::from_value(&before));
+        // Placed beside a sibling (section 9.4), the new node goes under the sibling's parent unless one is given.
+        let parent =
+            DislElement::from_value(&parent).or_else(|| after.as_ref().or(before.as_ref()).and_then(|s| s.parent()));
+        let siblings = self.diagram.siblings_under(parent.as_ref());
+        let index = match (&after, &before) {
+            (Some(after), _) => match siblings.iter().position(|s| s == after) {
+                Some(found) => Some(found as i64 + 1),
+                None => {
+                    return self.refuse(format!(
+                        "The create at {at} is placed after a node that is not its sibling."
+                    ));
+                }
+            },
+            (None, Some(before)) => match siblings.iter().position(|s| s == before) {
+                Some(found) => Some(found as i64),
+                None => {
+                    return self.refuse(format!(
+                        "The create at {at} is placed before a node that is not its sibling."
+                    ));
+                }
+            },
+            (None, None) => None,
+        };
         let created = self.ids.next(&type_name).and_then(|id| match &parent {
             Some(parent) => self
                 .diagram
@@ -422,12 +451,20 @@ impl<'a> ActionRunner<'a> {
             Ok(created) => created,
             Err(e) => return self.refuse(e),
         };
+        // Added last; moved to its place among the siblings when it has one before the end.
+        if let Some(index) = index
+            && (index as usize) < siblings.len()
+            && let Err(e) = self.diagram.reparent(&created, parent.as_ref(), slot.as_str(), index)
+        {
+            return self.refuse(e);
+        }
         self.changes.push(DislChange::Create {
             type_name,
             id: created.id(),
             attributes,
             parent_id: parent.map(|p| p.id()),
             at: point,
+            index,
         });
         if let Some(name) = json::string_of(action, "as") {
             variables.insert(name.to_owned(), created.to_value());

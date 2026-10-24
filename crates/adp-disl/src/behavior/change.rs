@@ -9,13 +9,15 @@ use adp_cel::{Map, Value};
 #[derive(Debug, Clone)]
 pub enum DislChange {
     /// A node of `type_name` created with `id` (`create`); `at` is the domain point it was created at, when the
-    /// action said one: placement is the host's.
+    /// action said one: placement is the host's. `index` is where among its parent's children it goes, when the
+    /// action placed it `after` or `before` a sibling; none puts it last.
     Create {
         type_name: String,
         id: String,
         attributes: Map,
         parent_id: Option<String>,
         at: Value,
+        index: Option<i64>,
     },
     /// A relation of `type_name` created with `id` from `source_id` to `target_id` (`connect`), with the attributes
     /// its action gave.

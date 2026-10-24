@@ -23,6 +23,10 @@ sha2 = "0.10"
 # The uuid-v4 and uuid-v7 id strategies (DISL section 11.5.1).
 uuid = { version = "1", features = ["v4", "v7"] }
 
+# In the WebAssembly build of the runtime (spec 035, T126) a new id's randomness comes from the JavaScript host.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { version = "1", features = ["v4", "v7", "js"] }
+
 [dev-dependencies]
 # The scene snapshots of the mind map's, the timeline's and the C4 container view's examples (tests/scenes, T053):
 # each opened as the shell opens it, its scene built by its notation.

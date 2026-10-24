@@ -287,7 +287,14 @@ const BEYOND_THE_STANDALONE_LIBRARY: [&str; 22] = [
 
 /// The library functions of DISL section 12.4 this runtime implements and the standalone host's evaluator did not:
 /// where the standalone host's loader refused a call of one of them, this one loads it.
-const BEYOND_THE_STANDALONE_HOST: [&str; 4] = ["inCycle", "reachable", "successors", "predecessors"];
+const BEYOND_THE_STANDALONE_HOST: [&str; 6] = [
+    "inCycle",
+    "reachable",
+    "successors",
+    "predecessors",
+    "textWidth",
+    "textHeight",
+];
 
 /// What the standalone host's loader reports since it reads constraints, hooks and names typed at load (its spec 025,
 /// T224) and this runtime does not yet: a value the loader compiles no expression at, written as a quoted CEL string.

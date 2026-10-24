@@ -7,5 +7,6 @@ pub mod contexts;
 pub(crate) mod library;
 pub mod number_format;
 pub mod plugins;
+pub(crate) mod text_metric;
 pub(crate) mod user_functions;
 pub mod year_month;

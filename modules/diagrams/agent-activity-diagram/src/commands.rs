@@ -263,6 +263,7 @@ pub fn edit(body: &mut AadBody, edit: &AadEdit) -> Result<(), String> {
                     attributes,
                     parent_id: Some(parent.id()),
                     at: Value::Null,
+                    index: None,
                 }],
                 host_actions: Vec::new(),
                 refusal: None,
