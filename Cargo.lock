@@ -247,6 +247,7 @@ dependencies = [
  "adp-context",
  "adp-diagram",
  "adp-disl",
+ "adp-drawing",
  "adp-history",
  "serde_json",
 ]
@@ -702,6 +703,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-drawing"
+version = "1.0.0"
+dependencies = [
+ "adp-diagram",
+ "adp-disl",
+ "adp-scene",
+ "serde_json",
+]
+
+[[package]]
 name = "adp-editor-json"
 version = "1.0.0"
 dependencies = [
@@ -871,6 +882,7 @@ dependencies = [
  "adp-diagram-wardley-map",
  "adp-disl",
  "adp-documents",
+ "adp-drawing",
  "adp-editor-json",
  "adp-editor-markdown",
  "adp-editor-xml",

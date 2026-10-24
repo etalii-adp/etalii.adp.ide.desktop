@@ -1587,6 +1587,8 @@ impl DiagramSession {
                     module.set_view(document, &element, values);
                 }
             }
+            // What the drawing reads of the view is the document's: bound again from the module.
+            document.bind_views();
         }
         *self.host_actions.borrow_mut() = transaction.host_actions.clone();
         self.write(workspace, &entry.label, transaction)
