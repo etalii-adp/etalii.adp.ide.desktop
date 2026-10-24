@@ -13,8 +13,25 @@ use serde_json::{Map, Value as Json, json};
 /// A capability at the `layout` extension point: nodes with their sizes and pins (`$defs/LayoutInput`) to positions
 /// (`$defs/LayoutResult`).
 pub trait LayoutCapability {
-    /// `$defs/LayoutResult` for `input` and the capability's `args`, the defaults filling what `args` leaves out.
-    fn layout(&self, input: &Json, args: &Json) -> Result<Json, String>;
+    /// The top-left corner of every node placed, by id, in the order they are placed, as the algorithm computes them:
+    /// not rounded, so that a host that places a node by its centre places it where the code it was moved from did.
+    fn place(&self, input: &Json, args: &Json) -> Result<Vec<(String, f64, f64)>, String>;
+
+    /// `$defs/LayoutResult` for `input` and the capability's `args`, the defaults filling what `args` leaves out: the
+    /// corners rounded to 0.01, as the contract states.
+    fn layout(&self, input: &Json, args: &Json) -> Result<Json, String> {
+        let positions: Map<String, Json> = self
+            .place(input, args)?
+            .into_iter()
+            .map(|(id, x, y)| {
+                (
+                    id,
+                    json!({"x": two_sided_tree::round2(x), "y": two_sided_tree::round2(y)}),
+                )
+            })
+            .collect();
+        Ok(json!({ "positions": positions }))
+    }
 }
 
 /// The capabilities this host provides, by name.
@@ -59,8 +76,8 @@ impl Capabilities {
 struct TwoSidedTree;
 
 impl LayoutCapability for TwoSidedTree {
-    fn layout(&self, input: &Json, args: &Json) -> Result<Json, String> {
-        use two_sided_tree::{Gaps, Side, TreeNode, layout, round2};
+    fn place(&self, input: &Json, args: &Json) -> Result<Vec<(String, f64, f64)>, String> {
+        use two_sided_tree::{Gaps, Side, TreeNode, layout};
 
         let defaults = Gaps::default();
         let number = |name: &str, default: f64| args.get(name).and_then(Json::as_f64).unwrap_or(default);
@@ -123,10 +140,6 @@ impl LayoutCapability for TwoSidedTree {
         let boxes = layout(&tree(nodes, root, &children, 0), &gaps, &|id| {
             collapsed.iter().any(|c| c == id)
         });
-        let positions: Map<String, Json> = boxes
-            .iter()
-            .map(|(id, rect)| (id.clone(), json!({"x": round2(rect.x), "y": round2(rect.y)})))
-            .collect();
-        Ok(json!({ "positions": positions }))
+        Ok(boxes.into_iter().map(|(id, rect)| (id, rect.x, rect.y)).collect())
     }
 }

@@ -169,7 +169,9 @@ impl RuntimeModule {
                 .and_then(|v| v.as_number())
                 .unwrap_or(fallback)
         };
-        (measure("width", min(0)), measure("height", min(1)))
+        // In the canvas's units, rounded to 0.01, as a capability's input is (ATD §2.4, its fixtures).
+        let round = crate::capabilities::two_sided_tree::round2;
+        (round(measure("width", min(0))), round(measure("height", min(1))))
     }
 }
 
@@ -254,19 +256,16 @@ impl DiagramModule for RuntimeModule {
                 "parent": parent.map(|p| p.id()), "order": order, "attributes": attributes,
             }));
         }
-        let result = capability
-            .layout(&json!({ "nodes": nodes, "edges": [] }), &Json::Object(args))
+        // The corners as the algorithm computes them, not rounded, so that the centres are where its module put them.
+        let placed = capability
+            .place(&json!({ "nodes": nodes, "edges": [] }), &Json::Object(args))
             .ok()?;
-        let positions = result["positions"].as_object()?;
         Some(
-            positions
-                .iter()
-                .filter_map(|(id, at)| {
-                    let (width, height) = sizes.get(id)?;
-                    Some((
-                        id.clone(),
-                        (at["x"].as_f64()? + width / 2.0, at["y"].as_f64()? + height / 2.0),
-                    ))
+            placed
+                .into_iter()
+                .filter_map(|(id, x, y)| {
+                    let (width, height) = *sizes.get(&id)?;
+                    Some((id, (x + width / 2.0, y + height / 2.0)))
                 })
                 .collect(),
         )

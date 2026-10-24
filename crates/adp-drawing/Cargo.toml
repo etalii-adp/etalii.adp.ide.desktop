@@ -1,0 +1,17 @@
+[package]
+name = "adp-drawing"
+description = "The recording painter: a scene recorded as an ATD drawing, for conformance fixtures and their validation (spec 035, ATD §2.4)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+adp-diagram = { path = "../adp-diagram" }
+adp-disl = { path = "../adp-disl" }
+adp-scene = { path = "../adp-scene" }
+serde_json = { version = "1", features = ["preserve_order"] }

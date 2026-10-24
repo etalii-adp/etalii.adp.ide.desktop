@@ -3,8 +3,9 @@
 //! A case is replayed through the description's runtime on working copies held in memory: its inputs opened from
 //! their bytes, each step's gesture made with the ids the reference host generated, in that order. After the reading
 //! and after each step, what the runtime gives is compared with what the case states: the bytes, byte for byte, the
-//! reading, the findings and the refusal. Each difference is reported with its step, its part, the expected and the
-//! actual value, for bytes the first line that differs. Nothing is read from or written to the file system.
+//! reading, the findings, the refusal and the drawing (as ATD §2.4 defines its equality). Each difference is
+//! reported with its step, its part, the expected and the actual value, for bytes the first line that differs.
+//! Nothing is read from or written to the file system.
 
 pub mod parts;
 
@@ -33,7 +34,7 @@ pub struct Case {
 pub struct Difference {
     /// The step, from 1; none for the reading.
     pub step: Option<usize>,
-    /// `bytes`, `reading`, `findings` or `refused`.
+    /// `bytes`, `reading`, `findings`, `refused` or `drawing`.
     pub part: &'static str,
     pub expected: String,
     pub actual: String,
@@ -125,6 +126,9 @@ pub fn validate(runtime: &RuntimeTool, case: &Case) -> Vec<Difference> {
         &read["findings"],
         &Json::Array(findings),
     );
+    if let Some(expected) = drawing_of(case, &case.fixture["drawing"]) {
+        replay.compare_drawing(&mut differences, None, &expected);
+    }
 
     // The steps.
     for (index, step) in case.fixture["steps"].as_array().into_iter().flatten().enumerate() {
@@ -173,8 +177,53 @@ pub fn validate(runtime: &RuntimeTool, case: &Case) -> Vec<Difference> {
             let findings = parts::findings(&replay.session, replay.workspace.documents());
             compare(&mut differences, number, "findings", expected, &Json::Array(findings));
         }
+        if let Some(expected) = step.get("drawing").and_then(|d| drawing_of(case, d)) {
+            replay.compare_drawing(&mut differences, number, &expected);
+        }
     }
     differences
+}
+
+/// A case's drawing: inline, or `{"$ref": "<file>"}` beside the case.
+fn drawing_of(case: &Case, drawing: &Json) -> Option<Json> {
+    match drawing.get("$ref").and_then(Json::as_str) {
+        Some(file) => serde_json::from_slice(case.files.get(file)?).ok(),
+        None => drawing.is_object().then(|| drawing.clone()),
+    }
+}
+
+/// The first difference between two drawings, as ATD §2.4 defines their equality: their elements and their edges as
+/// sets keyed by `id`, their chrome, and their `order`.
+fn drawing_difference(expected: &Json, actual: &Json) -> Option<(String, String)> {
+    for part in ["elements", "edges"] {
+        let keyed = |drawing: &Json| -> BTreeMap<String, Json> {
+            drawing[part]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .map(|item| (item["id"].as_str().unwrap_or_default().to_owned(), item.clone()))
+                .collect()
+        };
+        let (want, got) = (keyed(expected), keyed(actual));
+        for id in want.keys().chain(got.keys()) {
+            match (want.get(id), got.get(id)) {
+                (Some(w), Some(g)) if w == g => {}
+                (w, g) => {
+                    let show = |v: Option<&Json>| v.map_or("nothing".to_owned(), Json::to_string);
+                    return Some((format!("{part} {id}: {}", show(w)), format!("{part} {id}: {}", show(g))));
+                }
+            }
+        }
+    }
+    for part in ["chrome", "order"] {
+        if expected[part] != actual[part] {
+            return Some((
+                format!("{part}: {}", expected[part]),
+                format!("{part}: {}", actual[part]),
+            ));
+        }
+    }
+    None
 }
 
 fn compare(differences: &mut Vec<Difference>, step: Option<usize>, part: &'static str, expected: &Json, actual: &Json) {
@@ -222,6 +271,29 @@ struct Replay {
 }
 
 impl Replay {
+    /// The drawing the description's notation draws now, recorded as a case records it.
+    fn drawing(&self) -> Result<Json, String> {
+        let documents = self.workspace.documents();
+        let elements = self.session.render(documents)?;
+        let scene = adp_drawing::notation_scene(&self.session, documents, &elements)?;
+        Ok(adp_drawing::record(&scene, &elements, "canvas"))
+    }
+
+    fn compare_drawing(&self, differences: &mut Vec<Difference>, step: Option<usize>, expected: &Json) {
+        let difference = match self.drawing() {
+            Ok(actual) => drawing_difference(expected, &actual),
+            Err(reason) => Some(("a drawing".to_owned(), format!("none: {reason}"))),
+        };
+        if let Some((expected, actual)) = difference {
+            differences.push(Difference {
+                step,
+                part: "drawing",
+                expected,
+                actual,
+            });
+        }
+    }
+
     fn bytes(&self) -> Vec<u8> {
         self.workspace
             .documents()

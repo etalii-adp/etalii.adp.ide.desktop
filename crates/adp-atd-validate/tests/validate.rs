@@ -103,47 +103,69 @@ fn a_seeded_difference_is_reported_at_its_part_with_what_was_expected_and_given(
 #[test]
 fn the_mind_maps_cases_differ_only_where_known() {
     let known: [(&str, &[&str]); 6] = [
-        // A duplicate id: the module read the later holder under an ephemeral id and reported it.
-        ("duplicate-id", &["read:findings", "read:reading"]),
+        // A duplicate id: the module read the later holder under an ephemeral id and reported it, and draws it so.
+        ("duplicate-id", &["read:drawing", "read:findings", "read:reading"]),
         // A sibling placed after a node and a node moved to another parent, which only a plugin writes; the notes,
-        // whose `create` the description's binding does not state; and the reading's absent FOLDED.
+        // whose `create` the description's binding does not state; and the reading's absent FOLDED. Each refused
+        // gesture leaves the map, and so its drawing, behind the reference's from that step on.
         (
             "example-1",
             &[
                 "10:bytes",
+                "10:drawing",
                 "11:bytes",
+                "11:drawing",
                 "12:bytes",
+                "12:drawing",
                 "13:bytes",
+                "13:drawing",
                 "14:bytes",
+                "14:drawing",
                 "15:bytes",
+                "15:drawing",
                 "16:bytes",
+                "16:drawing",
                 "18:bytes",
+                "18:drawing",
                 "19:bytes",
+                "19:drawing",
                 "20:bytes",
+                "20:drawing",
                 "20:refused",
                 "21:bytes",
+                "21:drawing",
                 "22:bytes",
+                "22:drawing",
                 "22:refused",
                 "2:bytes",
+                "2:drawing",
                 "2:refused",
                 "3:bytes",
+                "3:drawing",
                 "3:refused",
                 "4:bytes",
+                "4:drawing",
                 "5:bytes",
+                "5:drawing",
                 "6:bytes",
+                "6:drawing",
                 "6:refused",
                 "7:bytes",
+                "7:drawing",
                 "8:bytes",
+                "8:drawing",
                 "8:refused",
                 "9:bytes",
+                "9:drawing",
                 "9:refused",
                 "read:reading",
             ],
         ),
-        // The absent FOLDED; the host's wording of an action the selection does not offer.
-        ("fold", &["3:refused", "read:reading"]),
-        // Two roots: the module refused to read the map.
-        ("not-a-map", &["read:findings", "read:reading"]),
+        // The absent FOLDED; the folded node's ⊕, which the canvas draws from the bound view and the reference
+        // recorder, binding no view, did not; the host's wording of an action the selection does not offer.
+        ("fold", &["1:drawing", "3:refused", "read:reading"]),
+        // Two roots: the module refused to read the map, and the runtime still draws the first.
+        ("not-a-map", &["read:drawing", "read:findings", "read:reading"]),
         // The host's wording, and moves only a plugin writes.
         (
             "refusals",
