@@ -1,7 +1,19 @@
-//! Lexing and parsing with ATD's tables: a lossless tree, every byte of the file a token, and recovery from a syntax
-//! error at the next construct (ATD §3.6; spec 035, research R10).
+//! Parsing ATD with `etalii-lark`'s interactive LALR(1) parser over its contextual lexer (ATD §3.6; spec 035, research
+//! R9 as amended on 2026-10-24, R10): a lossless tree, every byte of the file a token, and recovery from a syntax error
+//! at the next construct, driven through the interactive parser.
+//!
+//! The parser is fed one token at a time, each lexed for the state it is in. On an error the parse is recovered as
+//! research R10 says: a missing `}` at the end of the file is assumed where a state on the stack reads it; otherwise
+//! the text is skipped to the next construct start (`}` or a keyword) that a state on the stack reads, and the stack
+//! is popped to that state. What was popped and skipped stays in the file's tokens, as skipped text; the text between
+//! the tokens is lexed as the ignored terminals (whitespace and comments), so that the tokens are the file.
 
-use crate::tables::{self, END, RULES, TERMINALS};
+use std::collections::HashMap;
+
+use etalii_lark::{Error as LarkError, InteractiveParser, Node as LarkNode, Token as LarkToken, Tree as LarkTree};
+
+use crate::tables::{Language, language, terminals};
+use crate::text::LineIndex;
 
 /// What a token is to the tree.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -16,8 +28,8 @@ pub enum TokenKind {
     Missing,
 }
 
-/// A token: its terminal (an index into [`tables::TERMINALS`], `u16::MAX` for text no terminal matches) and its byte
-/// range.
+/// A token: its terminal (an index into [`crate::tables::terminals`], `u16::MAX` for text no terminal matches) and its
+/// byte range.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Token {
     pub kind: TokenKind,
@@ -32,11 +44,11 @@ impl Token {
     }
 
     pub fn name(&self) -> &'static str {
-        TERMINALS.get(self.terminal as usize).map(|t| t.name).unwrap_or("?")
+        terminals().get(self.terminal as usize).map(|t| t.name).unwrap_or("?")
     }
 
     pub fn is_keyword(&self) -> bool {
-        TERMINALS.get(self.terminal as usize).is_some_and(|t| t.keyword)
+        terminals().get(self.terminal as usize).is_some_and(|t| t.keyword)
     }
 }
 
@@ -47,11 +59,11 @@ pub enum Child {
     Node(Node),
 }
 
-/// A node of the lossless tree: the rule that built it (its alias, else its left-hand side) and its children, the
-/// items of the repetitions it holds spliced in.
+/// A node of the lossless tree: the rule that built it (its alias, else its name) and its children.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Node {
     pub name: &'static str,
+    /// Its kind, an index into the language's kinds.
     pub rule: usize,
     pub children: Vec<Child>,
     /// The byte range of its first and last token, trivia excluded.
@@ -81,9 +93,9 @@ impl Node {
         self.name.rsplit("__").next().unwrap_or(self.name)
     }
 
-    /// Whether the rule that built it is a `?rule` that has this one child node and no other tokens but filtered ones.
+    /// Whether the rule that built it is a `?rule`, which Lark inlines when it has one child.
     pub fn inline(&self) -> bool {
-        RULES[self.rule].inline
+        language().kinds.get(self.rule).is_some_and(|k| k.inline)
     }
 }
 
@@ -117,16 +129,12 @@ impl Parse {
     }
 }
 
-/// The construct starts recovery stops at: `}` and every keyword that starts a construct.
-fn synchronising(terminal: u16) -> bool {
-    let info = &TERMINALS[terminal as usize];
-    info.name == "\"}\"" || info.keyword
-}
-
 /// Parses a file. A file that does not start with a header of a version this reader knows is not parsed (ATD §5.4):
 /// the caller checks the version first.
 pub fn parse(text: &str) -> Parse {
-    run_parser(text, None).0
+    let mut run = Run::new(text, None);
+    let root = run.run();
+    run.finish(root)
 }
 
 /// What the grammar admits at `offset`: the terminals the parser's state there reads, the text before it parsed with
@@ -141,204 +149,124 @@ pub fn expected_at(text: &str, offset: usize) -> Vec<&'static str> {
             break;
         }
     }
-    let (_, states) = run_parser(text, Some(start));
-    let mut names: Vec<&'static str> = (0..TERMINALS.len() as u16)
-        .filter(|t| !TERMINALS[*t as usize].ignored && shifts(&states, *t))
-        .map(|t| TERMINALS[t as usize].name)
+    let mut run = Run::new(text, Some(start));
+    let _ = run.run();
+    let language = language();
+    let mut names: Vec<&'static str> = run
+        .accepts
+        .iter()
+        .filter_map(|name| language.terminal_of_lark(name))
+        .filter(|t| !terminals()[*t as usize].ignored)
+        .map(|t| terminals()[t as usize].name)
         .collect();
     names.sort();
+    names.dedup();
     names
 }
 
-/// Whether the parser, its stack `states`, would shift `terminal` after the reductions it calls for.
-fn shifts(states: &[usize], terminal: u16) -> bool {
-    let mut stack = states.to_vec();
-    for _ in 0..10_000 {
-        let Some(&state) = stack.last() else { return false };
-        match tables::action(state, terminal) {
-            None => return false,
-            Some(i32::MIN) => return true,
-            Some(code) if code >= 0 => return true,
-            Some(code) => {
-                let rule = &RULES[(-code - 1) as usize];
-                if stack.len() <= rule.len {
-                    return false;
-                }
-                stack.truncate(stack.len() - rule.len);
-                match stack.last().and_then(|s| tables::goto(*s, rule.lhs)) {
-                    Some(next) => stack.push(next),
-                    None => return false,
-                }
-            }
-        }
-    }
-    false
-}
-
-fn run_parser(text: &str, stop: Option<usize>) -> (Parse, Vec<usize>) {
-    let mut parser = Parser {
-        text,
-        stop: None,
-        position: if text.starts_with('\u{feff}') { 3 } else { 0 },
-        tokens: Vec::new(),
-        states: vec![0],
-        values: Vec::new(),
-        errors: Vec::new(),
-        quiet: 0,
-    };
-    if parser.position > 0 {
-        parser.tokens.push(Token {
-            kind: TokenKind::Trivia,
-            terminal: u16::MAX,
-            start: 0,
-            end: 3,
-        });
-    }
-    parser.stop = stop;
-    let root = parser.run();
-    let states = parser.states.clone();
-    (
-        Parse {
-            text: text.to_owned(),
-            tokens: parser.tokens,
-            root,
-            errors: parser.errors,
-        },
-        states,
-    )
-}
-
-struct Parser<'a> {
+/// One run of the parser over a file.
+struct Run<'a> {
     text: &'a str,
-    /// Where to stop reading, for [`expected_at`].
+    language: &'static Language,
+    lines: LineIndex,
+    /// Where to stop reading, for [`expected_at`]; the terminals the state there accepts are kept.
     stop: Option<usize>,
-    position: usize,
+    accepts: Vec<String>,
     tokens: Vec<Token>,
-    states: Vec<usize>,
-    values: Vec<Child>,
     errors: Vec<SyntaxError>,
-    /// Tokens to shift after a recovery before another error is recorded, so that one error gives one finding.
+    /// Tokens to read after a recovery before another error is recorded, so that one error gives one finding.
     quiet: usize,
 }
 
-impl Parser<'_> {
-    fn state(&self) -> usize {
-        *self.states.last().expect("the stack holds the start state")
-    }
+/// A token the recovery skips or stops at: its terminal (`u16::MAX` when none matches) and its range.
+#[derive(Debug, Clone, Copy)]
+struct Seen {
+    terminal: u16,
+    start: usize,
+    end: usize,
+}
 
-    /// The next token the current state can read, the trivia before it pushed; `END` at the end of the file. Text
-    /// no candidate matches is one skipped token, ended at the next whitespace.
-    fn lex(&mut self) -> Option<usize> {
-        loop {
-            if self.position >= self.text.len() {
-                return None;
-            }
-            let rest = &self.text[self.position..];
-            let state = self.state();
-            let mut best: Option<(u16, usize)> = None;
-            let consider = |terminal: u16, best: &mut Option<(u16, usize)>| {
-                let Some(len) = tables::match_len(terminal, rest) else {
-                    return;
-                };
-                let info = &TERMINALS[terminal as usize];
-                let better = match *best {
-                    None => true,
-                    Some((current, current_len)) => {
-                        let other = &TERMINALS[current as usize];
-                        len > current_len
-                            || (len == current_len
-                                && (info.priority > other.priority
-                                    || (info.priority == other.priority && !info.pattern && other.pattern)))
-                    }
-                };
-                if better {
-                    *best = Some((terminal, len));
-                }
-            };
-            for terminal in tables::candidates(state, rest.as_bytes()[0]) {
-                consider(*terminal, &mut best);
-            }
-            match best {
-                Some((terminal, len)) if TERMINALS[terminal as usize].ignored => {
-                    self.tokens.push(Token {
-                        kind: TokenKind::Trivia,
-                        terminal,
-                        start: self.position,
-                        end: self.position + len,
-                    });
-                    self.position += len;
-                }
-                Some((terminal, len)) => {
-                    self.tokens.push(Token {
-                        kind: TokenKind::Normal,
-                        terminal,
-                        start: self.position,
-                        end: self.position + len,
-                    });
-                    self.position += len;
-                    return Some(self.tokens.len() - 1);
-                }
-                None => {
-                    // Nothing this state reads: any terminal of the grammar, else the text to the next whitespace.
-                    let any = (0..TERMINALS.len() as u16)
-                        .filter_map(|t| tables::match_len(t, rest).map(|len| (t, len)))
-                        .max_by_key(|(_, len)| *len);
-                    let (terminal, len) = any.unwrap_or_else(|| {
-                        let len = rest
-                            .char_indices()
-                            .find(|(_, c)| c.is_whitespace())
-                            .map(|(i, _)| i)
-                            .unwrap_or(rest.len())
-                            .max(rest.chars().next().map(char::len_utf8).unwrap_or(1));
-                        (u16::MAX, len)
-                    });
-                    self.tokens.push(Token {
-                        kind: TokenKind::Normal,
-                        terminal,
-                        start: self.position,
-                        end: self.position + len,
-                    });
-                    self.position += len;
-                    return Some(self.tokens.len() - 1);
-                }
-            }
+impl<'a> Run<'a> {
+    fn new(text: &'a str, stop: Option<usize>) -> Self {
+        Run {
+            text,
+            language: language(),
+            lines: LineIndex::new(text),
+            stop,
+            accepts: Vec::new(),
+            tokens: Vec::new(),
+            errors: Vec::new(),
+            quiet: 0,
         }
     }
 
-    fn run(&mut self) -> Option<Node> {
-        let mut lookahead = self.lex();
+    fn run(&mut self) -> Option<LarkNode> {
+        let language = self.language;
+        let mut parser = language.lark.parse_interactive(self.text, None).ok()?;
+        if self.text.starts_with('\u{feff}') {
+            parser.skip_chars(1);
+            self.push(TokenKind::Trivia, u16::MAX, 0, 3);
+        }
         let mut steps = 0usize;
         loop {
-            if let (Some(stop), Some(token)) = (self.stop, lookahead)
-                && self.tokens[token].start >= stop
-            {
-                return None;
-            }
-            if self.stop.is_some() && lookahead.is_none() {
-                return None;
-            }
             steps += 1;
             if steps > 50 * (self.text.len() + 16) {
                 return None;
             }
-            let terminal = lookahead.map(|t| self.tokens[t].terminal).unwrap_or(END);
-            match tables::action(self.state(), terminal) {
-                Some(i32::MIN) => {
-                    return match self.values.pop() {
-                        Some(Child::Node(node)) => Some(node),
-                        _ => None,
+            match parser.next_token() {
+                Ok(Some(token)) => {
+                    let (start, end) = (token.start_pos.unwrap_or(0), token.end_pos.unwrap_or(0));
+                    if self.stop.is_some_and(|stop| start >= stop) {
+                        self.accepts = parser.accepts().into_iter().collect();
+                        return None;
+                    }
+                    let terminal = language.terminal_of_lark(&token.kind).unwrap_or(u16::MAX);
+                    match parser.feed_token(token) {
+                        Ok(_) => {
+                            self.push(TokenKind::Normal, terminal, start, end);
+                            self.quiet = self.quiet.saturating_sub(1);
+                        }
+                        Err(_) => {
+                            let found = Seen { terminal, start, end };
+                            if !self.recover(&mut parser, Some(found)) {
+                                return None;
+                            }
+                        }
+                    }
+                }
+                Ok(None) => {
+                    if self.stop.is_some() {
+                        self.accepts = parser.accepts().into_iter().collect();
+                        return None;
+                    }
+                    match parser.feed_eof(None) {
+                        Ok(root) => return root,
+                        Err(_) => {
+                            if !self.recover(&mut parser, None) {
+                                return None;
+                            }
+                        }
+                    }
+                }
+                Err(error) => {
+                    // Text this state does not read: the token the grammar would read there, or else the text to the
+                    // next whitespace. The lexer has read it, or it has not, as Lark's lexer goes.
+                    let at = match &error {
+                        LarkError::UnexpectedToken(e) => e.token.start_pos.unwrap_or(0),
+                        LarkError::UnexpectedCharacters(e) => e.pos_in_stream,
+                        _ => return None,
                     };
-                }
-                Some(code) if code >= 0 => {
-                    let token = lookahead.expect("only a token is shifted");
-                    self.states.push(code as usize);
-                    self.values.push(Child::Token(token));
-                    self.quiet = self.quiet.saturating_sub(1);
-                    lookahead = self.lex();
-                }
-                Some(code) => self.reduce((-code - 1) as usize),
-                None => {
-                    if !self.recover(&mut lookahead) {
+                    if self.stop.is_some_and(|stop| at >= stop) {
+                        self.accepts = parser.accepts().into_iter().collect();
+                        return None;
+                    }
+                    let found = self.lex_skipping(at).unwrap_or(Seen {
+                        terminal: u16::MAX,
+                        start: at,
+                        end: self.text.len(),
+                    });
+                    self.advance(&mut parser, found.end);
+                    if !self.recover(&mut parser, Some(found)) {
                         return None;
                     }
                 }
@@ -346,196 +274,338 @@ impl Parser<'_> {
         }
     }
 
-    fn reduce(&mut self, rule: usize) {
-        let info = &RULES[rule];
-        let at = self.values.len() - info.len;
-        let popped: Vec<Child> = self.values.drain(at..).collect();
-        self.states.truncate(self.states.len() - info.len);
-        // A repetition grows by one item per reduction: its helper's children are taken over, not copied, so that a
-        // long list is built in linear time.
-        let mut children: Vec<Child> = Vec::new();
-        for child in popped {
-            match child {
-                Child::Node(node) if RULES[node.rule].helper && children.is_empty() => children = node.children,
-                Child::Node(node) if RULES[node.rule].helper => children.extend(node.children),
-                other => children.push(other),
-            }
-        }
-        let (start, end) = self.extent(&children);
-        self.values.push(Child::Node(Node {
-            name: info.name,
-            rule,
-            children,
+    fn push(&mut self, kind: TokenKind, terminal: u16, start: usize, end: usize) {
+        self.tokens.push(Token {
+            kind,
+            terminal,
             start,
             end,
-        }));
-        let state = tables::goto(self.state(), info.lhs).expect("the tables have the goto");
-        self.states.push(state);
+        });
     }
 
-    fn extent(&self, children: &[Child]) -> (usize, usize) {
-        let first = children.iter().find_map(|c| self.child_range(c));
-        let last = children.iter().rev().find_map(|c| self.child_range(c));
-        match (first, last) {
-            (Some((s, _)), Some((_, e))) => (s, e),
-            _ => {
-                let at = self.tokens.last().map(|t| t.end).unwrap_or(0);
-                (at, at)
-            }
+    /// Moves the lexer to `offset`, when it is before it.
+    fn advance(&self, parser: &mut InteractiveParser<'_>, offset: usize) {
+        let at = parser.lexer_position();
+        if offset > at {
+            parser.skip_chars(self.text[at..offset].chars().count());
         }
     }
 
-    fn child_range(&self, child: &Child) -> Option<(usize, usize)> {
-        match child {
-            Child::Token(t) => Some((self.tokens[*t].start, self.tokens[*t].end)),
-            Child::Node(n) if n.start < n.end || !n.children.is_empty() => Some((n.start, n.end)),
-            Child::Node(_) => None,
-        }
-    }
-
-    fn expected(&self) -> Vec<&'static str> {
-        let mut names: Vec<&'static str> = tables::acceptable(self.state())
-            .map(|t| if t == END { "the end of the file" } else { describe(t) })
+    fn expected(&self, parser: &InteractiveParser<'_>) -> Vec<&'static str> {
+        let language = self.language;
+        let mut names: Vec<&'static str> = parser
+            .choices()
+            .keys()
+            .filter_map(|name| {
+                if name == "$END" {
+                    Some("the end of the file")
+                } else {
+                    language.terminal_of_lark(name).map(describe)
+                }
+            })
             .collect();
         names.sort();
         names.dedup();
         names
     }
 
-    /// Recovers from a syntax error at `lookahead` (research R10): records it, then assumes a missing `}` at the end of
-    /// the file, or skips to the next construct start some state on the stack reads, popping to that state. The
-    /// popped and skipped tokens are kept, as skipped text.
-    fn recover(&mut self, lookahead: &mut Option<usize>) -> bool {
-        let (start, end, found) = match *lookahead {
-            Some(t) => (
-                self.tokens[t].start,
-                self.tokens[t].end,
-                format!("`{}`", self.tokens[t].text(self.text)),
-            ),
+    /// Recovers from a syntax error at `found`, or at the end of the file (research R10): records it, then assumes a
+    /// missing `}` at the end of the file, or skips to the next construct start some state on the stack reads, popping
+    /// to that state. The popped and skipped tokens are kept, as skipped text.
+    fn recover(&mut self, parser: &mut InteractiveParser<'_>, found: Option<Seen>) -> bool {
+        let (start, end, text) = match found {
+            Some(seen) => (seen.start, seen.end, format!("`{}`", &self.text[seen.start..seen.end])),
             None => (self.text.len(), self.text.len(), "the end of the file".to_owned()),
         };
-        let expected = self.expected();
-        let first_error_here = self.errors.last().map(|e| e.start != start).unwrap_or(true);
+        let expected = self.expected(parser);
+        let first_error_here = self.errors.last().is_none_or(|e| e.start != start);
         if first_error_here && self.quiet == 0 {
             self.errors.push(SyntaxError {
                 start,
                 end,
-                message: format!("Found {found} where {} expected.", list(&expected)),
+                message: format!("Found {text} where {} expected.", list(&expected)),
             });
         }
         self.quiet = 3;
-        let close = tables::terminal("\"}\"").expect("the grammar has `}`");
-        if lookahead.is_none() {
+        let language = self.language;
+        let close = language.terminal("\"}\"").expect("the grammar has `}`");
+        let close_lark = terminals()[close as usize].lark;
+        let Some(mut current) = found else {
             // A missing `}`: assume it, where a state on the stack can read it.
-            if let Some(depth) = (0..self.states.len())
-                .rev()
-                .find(|d| tables::action(self.states[*d], close).is_some())
-            {
-                self.discard_to(depth);
-                self.tokens.push(Token {
-                    kind: TokenKind::Missing,
-                    terminal: close,
-                    start: self.text.len(),
-                    end: self.text.len(),
-                });
-                *lookahead = Some(self.tokens.len() - 1);
-                return true;
+            let Some(depth) = self.deepest_reading(parser, close_lark) else {
+                return false;
+            };
+            self.discard_to(parser, depth);
+            let at = self.text.len();
+            if parser.feed_token(self.lark_token(close_lark, at, at)).is_err() {
+                return false;
             }
-            return false;
-        }
+            self.push(TokenKind::Missing, close, at, at);
+            return true;
+        };
         // Skip to a construct start or `}` that a state on the stack reads.
-        let mut current = *lookahead;
         let mut skipped_first = false;
         // Braces opened in the skipped text close in it too: their `}` is never taken for the construct's own.
-        let mut depth = 0usize;
+        let mut braces = 0usize;
         loop {
-            let Some(token) = current else {
-                *lookahead = None;
-                return true;
-            };
-            let terminal = self.tokens[token].terminal;
-            let text = self.tokens[token].text(self.text);
-            if depth > 0 || text == "{" {
+            let text = &self.text[current.start..current.end];
+            if braces > 0 || text == "{" {
                 if text == "{" {
-                    depth += 1;
+                    braces += 1;
                 } else if text == "}" {
-                    depth -= 1;
+                    braces -= 1;
                 }
-                self.tokens[token].kind = TokenKind::Skipped;
-                skipped_first = true;
-                current = self.lex_skipping();
-                continue;
+            } else if current.terminal != u16::MAX && synchronising(current.terminal) {
+                let lark = terminals()[current.terminal as usize].lark;
+                let errors_here = self.errors.last().is_some_and(|e| e.start == current.start);
+                if (skipped_first || !errors_here)
+                    && let Some(depth) = self.deepest_reading(parser, lark)
+                    && (depth + 1 < parser.parser_state().depth() || skipped_first)
+                {
+                    self.discard_to(parser, depth);
+                    self.advance(parser, current.end);
+                    if parser
+                        .feed_token(self.lark_token(lark, current.start, current.end))
+                        .is_ok()
+                    {
+                        self.push(TokenKind::Normal, current.terminal, current.start, current.end);
+                        return true;
+                    }
+                    return self.recover(parser, Some(current));
+                }
             }
-            if terminal != u16::MAX
-                && synchronising(terminal)
-                && (skipped_first || !self.errors_at(token))
-                && let Some(depth) = (0..self.states.len())
-                    .rev()
-                    .find(|d| tables::action(self.states[*d], terminal).is_some())
-                && (depth + 1 < self.states.len() || skipped_first)
-            {
-                self.discard_to(depth);
-                *lookahead = Some(token);
-                return true;
-            }
-            self.tokens[token].kind = TokenKind::Skipped;
+            self.push(TokenKind::Skipped, current.terminal, current.start, current.end);
             skipped_first = true;
-            current = self.lex_skipping();
+            match self.lex_skipping(current.end) {
+                Some(next) => {
+                    self.advance(parser, next.end);
+                    current = next;
+                }
+                None => {
+                    self.advance(parser, self.text.len());
+                    return true;
+                }
+            }
         }
     }
 
-    fn errors_at(&self, token: usize) -> bool {
-        self.errors.last().is_some_and(|e| e.start == self.tokens[token].start)
-    }
-
-    /// The next token, lexed with every terminal of the grammar a candidate, while skipping.
-    fn lex_skipping(&mut self) -> Option<usize> {
-        let saved = self.states.clone();
-        // A state that reads everything is not at hand; lex as the start of a construct, the outermost state.
-        self.states = vec![*self.states.first().unwrap_or(&0)];
-        let mut found = self.lex();
-        if let Some(t) = found
-            && self.tokens[t].terminal == u16::MAX
-        {
-            found = Some(t);
-        }
-        self.states = saved;
-        let token = found?;
-        // Relex a word as the keyword it spells, when it spells one.
-        let text = self.tokens[token].text(self.text);
-        if let Some(keyword) = TERMINALS.iter().position(|t| t.keyword && t.value == text) {
-            self.tokens[token].terminal = keyword as u16;
-        } else if text == "}" {
-            self.tokens[token].terminal = tables::terminal("\"}\"").unwrap_or(u16::MAX);
-        }
-        Some(token)
+    /// The deepest index on the parser's stack whose state reads Lark's terminal `name`.
+    fn deepest_reading(&self, parser: &InteractiveParser<'_>, name: &str) -> Option<usize> {
+        let stack = parser.parser_state().state_stack();
+        (0..stack.len()).rev().find(|d| self.language.reads(stack[*d], name))
     }
 
     /// Pops the stack to `depth`, keeping the popped tokens as skipped text.
-    fn discard_to(&mut self, depth: usize) {
-        while self.states.len() > depth + 1 {
-            self.states.pop();
-            if let Some(value) = self.values.pop() {
-                self.mark_skipped(&value);
-            }
+    fn discard_to(&mut self, parser: &mut InteractiveParser<'_>, depth: usize) {
+        let popped = parser.parser_state_mut().truncate(depth + 1);
+        for value in &popped {
+            self.mark_skipped(value);
         }
     }
 
-    fn mark_skipped(&mut self, child: &Child) {
-        match child {
-            Child::Token(t) => self.tokens[*t].kind = TokenKind::Skipped,
-            Child::Node(n) => {
-                for c in &n.children {
-                    self.mark_skipped(c);
+    fn mark_skipped(&mut self, node: &LarkNode) {
+        match node {
+            LarkNode::Token(token) => {
+                let start = token.start_pos.unwrap_or(0);
+                if let Some(t) = self
+                    .tokens
+                    .iter_mut()
+                    .rev()
+                    .find(|t| t.start == start && t.kind == TokenKind::Normal)
+                {
+                    t.kind = TokenKind::Skipped;
+                }
+            }
+            LarkNode::Tree(tree) => {
+                for child in &tree.children {
+                    self.mark_skipped(child);
+                }
+            }
+            LarkNode::Missing => {}
+        }
+    }
+
+    /// The next token at or after `offset`, lexed as at the start of a construct while skipping, the whitespace and
+    /// comments before it kept as trivia; a word that spells a keyword is that keyword. None at the end of the file.
+    fn lex_skipping(&mut self, mut offset: usize) -> Option<Seen> {
+        let language = self.language;
+        let lexer = &language.lexer;
+        let starts: Vec<usize> = (0..terminals().len())
+            .filter(|t| language.reads(language.start_state, terminals()[*t].lark))
+            .collect();
+        loop {
+            if offset >= self.text.len() {
+                return None;
+            }
+            let lexeme = lexer.next(self.text, offset, &starts).or_else(|| {
+                let all: Vec<usize> = (0..terminals().len()).collect();
+                lexer.next(self.text, offset, &all)
+            });
+            let (terminal, end) = match lexeme {
+                Some(lexeme) if lexeme.end > offset => (lexeme.terminal as u16, lexeme.end),
+                _ => {
+                    let rest = &self.text[offset..];
+                    let len = rest
+                        .char_indices()
+                        .find(|(_, c)| c.is_whitespace())
+                        .map(|(i, _)| i)
+                        .unwrap_or(rest.len())
+                        .max(rest.chars().next().map(char::len_utf8).unwrap_or(1));
+                    (u16::MAX, offset + len)
+                }
+            };
+            if terminal != u16::MAX && terminals()[terminal as usize].ignored {
+                self.push(TokenKind::Trivia, terminal, offset, end);
+                offset = end;
+                continue;
+            }
+            let text = &self.text[offset..end];
+            let terminal = terminals()
+                .iter()
+                .position(|t| t.keyword && t.value == text)
+                .map(|k| k as u16)
+                .or_else(|| (text == "}").then(|| language.terminal("\"}\"")).flatten())
+                .unwrap_or(terminal);
+            return Some(Seen {
+                terminal,
+                start: offset,
+                end,
+            });
+        }
+    }
+
+    /// A token of Lark's terminal `name` over the text from `start` to `end`, positioned as Lark positions it.
+    fn lark_token(&self, name: &str, start: usize, end: usize) -> LarkToken {
+        let (line, column) = self.lines.position(self.text, start);
+        let (end_line, end_column) = self.lines.position(self.text, end);
+        let mut token = LarkToken::new(name, &self.text[start..end]);
+        token.start_pos = Some(start);
+        token.end_pos = Some(end);
+        token.line = Some(line);
+        token.column = Some(column);
+        token.end_line = Some(end_line);
+        token.end_column = Some(end_column);
+        token
+    }
+
+    /// The parse: the tokens in order with the text between them lexed as trivia, and the tree.
+    fn finish(mut self, root: Option<LarkNode>) -> Parse {
+        let mut tokens = std::mem::take(&mut self.tokens);
+        tokens.sort_by_key(|t| (t.start, t.end));
+        let mut all: Vec<Token> = Vec::with_capacity(tokens.len() * 2);
+        let mut at = 0;
+        for token in tokens {
+            if token.start > at {
+                self.trivia(at, token.start, &mut all);
+            }
+            at = at.max(token.end);
+            all.push(token);
+        }
+        if at < self.text.len() {
+            self.trivia(at, self.text.len(), &mut all);
+        }
+        let index: HashMap<(usize, usize), usize> = all
+            .iter()
+            .enumerate()
+            .filter(|(_, t)| matches!(t.kind, TokenKind::Normal | TokenKind::Missing))
+            .map(|(i, t)| ((t.start, t.end), i))
+            .collect();
+        let root = match root {
+            Some(LarkNode::Tree(tree)) => Some(node(&tree, &index, &all)),
+            _ => None,
+        };
+        Parse {
+            text: self.text.to_owned(),
+            tokens: all,
+            root,
+            errors: self.errors,
+        }
+    }
+
+    /// The text from `start` to `end`, between tokens, as the ignored terminals lex it; what they do not lex is
+    /// skipped text.
+    fn trivia(&self, mut start: usize, end: usize, out: &mut Vec<Token>) {
+        let lexer = &self.language.lexer;
+        while start < end {
+            match lexer.next(&self.text[..end], start, &[]) {
+                Some(lexeme) if lexeme.end > start && terminals()[lexeme.terminal].ignored => {
+                    out.push(Token {
+                        kind: TokenKind::Trivia,
+                        terminal: lexeme.terminal as u16,
+                        start,
+                        end: lexeme.end,
+                    });
+                    start = lexeme.end;
+                }
+                _ => {
+                    let next = (start + 1..=end)
+                        .find(|i| self.text.is_char_boundary(*i))
+                        .unwrap_or(end);
+                    match out.last_mut() {
+                        Some(last) if last.kind == TokenKind::Skipped && last.end == start => last.end = next,
+                        _ => out.push(Token {
+                            kind: TokenKind::Skipped,
+                            terminal: u16::MAX,
+                            start,
+                            end: next,
+                        }),
+                    }
+                    start = next;
                 }
             }
         }
     }
 }
 
+/// Lark's tree as the lossless tree: each token by its index in the file's tokens.
+fn node(tree: &LarkTree, index: &HashMap<(usize, usize), usize>, tokens: &[Token]) -> Node {
+    let language = language();
+    let children: Vec<Child> = tree
+        .children
+        .iter()
+        .filter_map(|child| match child {
+            LarkNode::Tree(t) => Some(Child::Node(node(t, index, tokens))),
+            LarkNode::Token(t) => index
+                .get(&(t.start_pos.unwrap_or(0), t.end_pos.unwrap_or(0)))
+                .map(|i| Child::Token(*i)),
+            LarkNode::Missing => None,
+        })
+        .collect();
+    let range = |child: &Child| match child {
+        Child::Token(t) => Some((tokens[*t].start, tokens[*t].end)),
+        Child::Node(n) if n.start < n.end || !n.children.is_empty() => Some((n.start, n.end)),
+        Child::Node(_) => None,
+    };
+    let first = children.iter().find_map(range);
+    let last = children.iter().rev().find_map(range);
+    let (start, end) = match (first, last) {
+        (Some((s, _)), Some((_, e))) => (s, e),
+        _ => (0, 0),
+    };
+    let rule = language.kind(&tree.data).unwrap_or(usize::MAX);
+    let name = language
+        .kinds
+        .get(rule)
+        .map(|k| k.name)
+        .unwrap_or_else(|| Box::leak(tree.data.clone().into_boxed_str()));
+    Node {
+        name,
+        rule,
+        children,
+        start,
+        end,
+    }
+}
+
+/// The construct starts recovery stops at: `}` and every keyword that starts a construct.
+fn synchronising(terminal: u16) -> bool {
+    let info = &terminals()[terminal as usize];
+    info.name == "\"}\"" || info.keyword
+}
+
 /// How a finding names a terminal it expected.
 pub fn describe(terminal: u16) -> &'static str {
-    match TERMINALS[terminal as usize].name {
+    match terminals()[terminal as usize].name {
         "NAME" => "a name",
         "KEY" => "a setting (`key:`)",
         "ASSIGN" => "an assignment (`name =`)",
