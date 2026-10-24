@@ -86,3 +86,6 @@ pub enum PlanResult {
     Refused(String),
     Invalid(String),
 }
+
+#[cfg(test)]
+mod tests;

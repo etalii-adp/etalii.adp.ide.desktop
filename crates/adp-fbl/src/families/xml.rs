@@ -1083,6 +1083,22 @@ impl Family {
         Ok(())
     }
 
+    /// Moves an element into a parent that holds no sibling of it yet (FBL section 5.5): its line span removed, its
+    /// bytes from its line span's start to its end, without the first line's indentation, appended to the parent as
+    /// a new child is, opening a self-closed parent.
+    pub(super) fn xml_move_into(&self, plan: &mut Plan<'_>, element: usize, parent: usize) -> Planning {
+        let reading = plan.reading;
+        let entry = &self.entries[reading.element(element).entry()];
+        let span = entry.line_span.expect("a moved entry stands on lines of its own");
+        let content = self
+            .text
+            .text(span.start, entry.own.end)
+            .trim_start_matches([' ', '\t']);
+        plan.add_span(Operation::RemoveEntry, span, "");
+        self.append(plan, reading.element(parent).entry(), content, Operation::InsertEntry);
+        Ok(())
+    }
+
     /// A new element without an `emit`: the rule's element name with its attributes in `insert.keys` order, then
     /// binding order (FBL section 6.3).
     fn new_element(&self, plan: &Plan<'_>, request: &InsertRequest) -> String {

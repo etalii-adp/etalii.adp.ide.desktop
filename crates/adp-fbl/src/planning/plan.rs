@@ -64,6 +64,16 @@ impl<'a> Plan<'a> {
         self.add(operation, span.start, span.end, text);
     }
 
+    /// How many splices are planned so far, for [`Plan::take_since`].
+    pub fn mark(&self) -> usize {
+        self.splices.len()
+    }
+
+    /// Takes back the splices planned since `mark`.
+    pub fn take_since(&mut self, mark: usize) -> Vec<Splice> {
+        self.splices.split_off(mark)
+    }
+
     /// Whether a splice already replaces bytes overlapping `span`.
     pub fn touches(&self, span: Span) -> bool {
         self.splices.iter().any(|s| s.start < span.end && span.start < s.end)

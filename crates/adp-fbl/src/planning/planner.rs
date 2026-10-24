@@ -375,12 +375,6 @@ fn plan_add(
     slot: Option<&str>,
 ) -> Planning {
     let reading = plan.reading;
-    // A declared binding appends where its insert rule says; a position among siblings is a plugin's to honour.
-    if index.is_some() {
-        return refuse(format!(
-            "This file's binding cannot add a {type_name} at a position; only a persistence plugin can."
-        ));
-    }
     let all = &reading.binding_rc().rules;
     let rules: Vec<usize> = (0..all.len())
         .filter(|&r| {
@@ -480,7 +474,12 @@ fn plan_add(
         source,
         target,
     };
+    let mark = plan.mark();
     reading.family.insert(plan, &request)?;
+    if let Some(index) = index {
+        let siblings = siblings_under(reading, parent, rule);
+        place_at(plan, mark, &siblings, index, type_name)?;
+    }
     if rule.snapshot_undo {
         plan.snapshot = true;
     }
@@ -496,6 +495,47 @@ fn end(reading: &BodyReading, type_name: &str, attributes: &Map, end: &str) -> P
     match reading.find(&id) {
         Some(e) if !reading.element(e).is_relation => Ok(e),
         _ => refuse(format!("The {end} '{id}' names no element.")),
+    }
+}
+
+/// Puts the entry an add just planned at `index` among `siblings` (FBL section 6.4): directly before the entry of
+/// the sibling at that index, or after the last sibling's entry when the index is their number, negative or past
+/// them. With no sibling the entry stays where the rule's insert put it (FBL section 6.3). Only an entry of lines
+/// of its own can be put before another; one that cannot, such as a json item with its separator, is refused there.
+fn place_at(plan: &mut Plan<'_>, mark: usize, siblings: &[usize], index: i64, type_name: &str) -> Planning {
+    let reading = plan.reading;
+    let Some(&last) = siblings.last() else {
+        return Ok(());
+    };
+    let before = usize::try_from(index).ok().and_then(|i| siblings.get(i).copied());
+    let family = &reading.family;
+    let offset = match before {
+        Some(b) => family.entries[reading.element(b).entry()].line_span.map(|l| l.start),
+        None => family.entries[reading.element(last).entry()].line_span.map(|l| l.end),
+    };
+    let mut added = plan.take_since(mark);
+    let lines = match (offset, added.as_slice()) {
+        (Some(_), [splice]) if splice.operation == Operation::InsertEntry && splice.start == splice.end => {
+            family.as_lines(splice.start, &splice.text)
+        }
+        _ => None,
+    };
+    match (offset, lines) {
+        (Some(offset), Some(lines)) => {
+            let text = family.lines_at(offset, &lines);
+            plan.add(Operation::InsertEntry, offset, offset, text);
+            Ok(())
+        }
+        // After the last sibling is where the rule's insert puts a new entry in such a body.
+        _ if before.is_none() => {
+            for splice in added.drain(..) {
+                plan.add(splice.operation, splice.start, splice.end, splice.text);
+            }
+            Ok(())
+        }
+        _ => refuse(format!(
+            "This file's binding cannot add a {type_name} at that position."
+        )),
     }
 }
 
@@ -517,17 +557,9 @@ fn plan_move(plan: &mut Plan<'_>, id: &str, new_parent_id: Option<&str>, index: 
         None => None,
     };
     if parent != element_ref.parent {
-        return refuse(format!(
-            "This file's binding cannot move a {} to another parent; only a persistence plugin can.",
-            rule.type_name
-        ));
+        return plan_reparent(plan, moved, parent, index);
     }
-    let siblings: Vec<usize> = reading
-        .element_indices()
-        .iter()
-        .copied()
-        .filter(|&o| are_siblings(reading, o, moved))
-        .collect();
+    let siblings = siblings_under(reading, element_ref.parent, rule);
     let current = siblings.iter().position(|&s| s == moved).unwrap_or(0);
     let index = if index < 0 || index as usize > siblings.len() {
         siblings.len()
@@ -550,14 +582,74 @@ fn plan_move(plan: &mut Plan<'_>, id: &str, new_parent_id: Option<&str>, index: 
     Ok(())
 }
 
-/// Whether two elements are ordered among each other: the same parent and containment slot, and at the top level,
-/// where there is neither, the same type.
-fn are_siblings(reading: &BodyReading, other: usize, element: usize) -> bool {
-    let (o, e) = (reading.element(other), reading.element(element));
-    let (or, er) = (reading.family.rule(o.rule), reading.family.rule(e.rule));
-    o.parent == e.parent
-        && or.parent.as_ref().and_then(|p| p.slot.as_deref()) == er.parent.as_ref().and_then(|p| p.slot.as_deref())
-        && (e.parent.is_some() || or.type_name == er.type_name)
+/// A move to another parent (FBL section 5.5): a `remove-entry` under the old parent and an `insert-entry` of the
+/// entry's own bytes under the new one, at `index` among its children there, in one edit.
+fn plan_reparent(plan: &mut Plan<'_>, moved: usize, parent: Option<usize>, index: i64) -> Planning {
+    let reading = plan.reading;
+    let rule = reading.family.rule(reading.element(moved).rule);
+    match (parent, &rule.parent) {
+        (Some(p), containment) => {
+            let parent_rule = reading.family.rule(reading.element(p).rule);
+            if !containment
+                .as_ref()
+                .is_some_and(|c| c.rules.contains(&parent_rule.name))
+            {
+                return refuse(format!(
+                    "A {} cannot be placed inside a {}.",
+                    rule.type_name, parent_rule.type_name
+                ));
+            }
+            if within(reading, p, moved) {
+                return refuse(format!("A {} cannot be moved into its own branch.", rule.type_name));
+            }
+        }
+        (None, Some(_)) => {
+            return refuse(format!(
+                "A {} cannot be moved to the top level of this file.",
+                rule.type_name
+            ));
+        }
+        (None, None) => {}
+    }
+    let siblings = siblings_under(reading, parent, rule);
+    let before = usize::try_from(index).ok().and_then(|i| siblings.get(i).copied());
+    reading
+        .family
+        .move_to(plan, moved, parent, before, siblings.last().copied())?;
+    if rule.snapshot_undo {
+        plan.snapshot = true;
+    }
+    Ok(())
+}
+
+/// Whether `element` is `ancestor` or lies under it.
+fn within(reading: &BodyReading, element: usize, ancestor: usize) -> bool {
+    let mut current = Some(element);
+    while let Some(c) = current {
+        if c == ancestor {
+            return true;
+        }
+        current = reading.element(c).parent;
+    }
+    false
+}
+
+/// The elements an element of `rule` under `parent` is ordered among: the same parent and containment slot, and at
+/// the top level, where there is neither, the same type.
+fn siblings_under(reading: &BodyReading, parent: Option<usize>, rule: &Rule) -> Vec<usize> {
+    let slot = rule.parent.as_ref().and_then(|p| p.slot.as_deref());
+    reading
+        .element_indices()
+        .iter()
+        .copied()
+        .filter(|&o| {
+            let other = reading.element(o);
+            let other_rule = reading.family.rule(other.rule);
+            other.parent == parent
+                && other_rule.parent.as_ref().and_then(|p| p.slot.as_deref()) == slot
+                && (parent.is_some() || other_rule.type_name == rule.type_name)
+        })
+        .collect()
 }
 
 // ---- remove ----

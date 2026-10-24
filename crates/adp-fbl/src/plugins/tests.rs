@@ -440,19 +440,68 @@ fn a_plugin_body_hands_the_change_to_its_plugin_as_it_was_made() {
     }
 }
 
+// The standalone host refuses all three changes on a declared binding; since FBL 0.2 (section 6.4) a declared
+// binding plans an add at an index and a move as a plugin does, and only the retype is still refused here.
+
 #[test]
-fn a_declared_binding_refuses_the_change_and_writes_nothing() {
-    for name in ["move to another parent", "retype", "add at an index"] {
-        let mut body = timeline_body(TIMELINE);
+fn a_declared_binding_refuses_a_retype_and_writes_nothing() {
+    let mut body = timeline_body(TIMELINE);
 
-        let result = body.change(&change_of(name));
+    let result = body.change(&change_of("retype"));
 
-        let PlanResult::Refused(reason) = result else {
-            panic!("{name}: {result:?}");
-        };
-        assert!(reason.contains("only a persistence plugin can"), "{name}: {reason}");
-        assert_eq!(body.bytes(), TIMELINE.as_bytes());
-    }
+    let PlanResult::Refused(reason) = result else {
+        panic!("{result:?}");
+    };
+    assert!(reason.contains("only a persistence plugin can"), "{reason}");
+    assert_eq!(body.bytes(), TIMELINE.as_bytes());
+}
+
+#[test]
+fn a_declared_binding_refuses_a_move_into_what_cannot_contain_it_and_writes_nothing() {
+    let mut body = timeline_body(TIMELINE);
+
+    let result = body.change(&change_of("move to another parent"));
+
+    assert_eq!(
+        result,
+        PlanResult::Refused("A Moment cannot be placed inside a Moment.".into())
+    );
+    assert_eq!(body.bytes(), TIMELINE.as_bytes());
+}
+
+#[test]
+fn a_declared_binding_adds_at_an_index_before_the_sibling_there() {
+    let mut body = timeline_body(TIMELINE);
+
+    let result = body.change(&change_of("add at an index"));
+
+    let PlanResult::Planned(edit) = result else {
+        panic!("{result:?}");
+    };
+    assert_eq!(
+        edit.splices.iter().map(|s| s.operation).collect::<Vec<_>>(),
+        [Operation::InsertEntry]
+    );
+    // The entry an add without an index appends, put before a instead.
+    let mut appended = timeline_body(TIMELINE);
+    let ModelChange::Add { attributes, .. } = change_of("add at an index") else {
+        unreachable!()
+    };
+    appended.change(&ModelChange::Add {
+        type_name: "Moment".into(),
+        id: Some("b".into()),
+        attributes,
+        parent_id: None,
+        index: None,
+        slot: None,
+    });
+    let appended = String::from_utf8_lossy(appended.bytes()).into_owned();
+    let entry = &appended[TIMELINE.len()..];
+    assert!(entry.starts_with("  - id: b\n"), "{entry:?}");
+    assert_eq!(
+        String::from_utf8_lossy(body.bytes()),
+        format!("elements:\n{entry}{}", &TIMELINE["elements:\n".len()..])
+    );
 }
 
 #[test]
