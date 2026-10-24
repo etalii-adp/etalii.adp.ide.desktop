@@ -1,6 +1,6 @@
 [package]
 name = "adp-diagram-mindmap"
-description = "The mind map diagram's residue: the .mm reader and writer, the two-sided layout and what a node's menu does (spec 030, T059)."
+description = "The mind map diagram's residue: the .mm reader and writer, the sizes it lays out with and what a node's menu does (spec 030, T059)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,6 +8,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+adp-atd-runtime = { path = "../../../crates/adp-atd-runtime" }
 adp-cel = { path = "../../../crates/adp-cel" }
 adp-context = { path = "../../../crates/adp-context" }
 adp-diagram = { path = "../../../crates/adp-diagram" }

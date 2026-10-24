@@ -12,3 +12,7 @@ workspace = true
 
 [dependencies]
 adp-atd-script = { path = "../adp-atd-script" }
+adp-layout = { path = "../adp-layout" }
+# A layout's boxes are kept in the order they were placed.
+indexmap = "2"
+serde_json = { version = "1", features = ["preserve_order"] }

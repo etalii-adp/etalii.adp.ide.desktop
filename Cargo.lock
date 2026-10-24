@@ -207,6 +207,9 @@ name = "adp-atd-runtime"
 version = "1.0.0"
 dependencies = [
  "adp-atd-script",
+ "adp-layout",
+ "indexmap",
+ "serde_json",
 ]
 
 [[package]]
@@ -546,6 +549,7 @@ dependencies = [
 name = "adp-diagram-mindmap"
 version = "1.0.0"
 dependencies = [
+ "adp-atd-runtime",
  "adp-cel",
  "adp-context",
  "adp-core",
