@@ -3,22 +3,27 @@
 //! A case is replayed through the description's runtime on working copies held in memory: its inputs opened from
 //! their bytes, each step's gesture made with the ids the reference host generated, in that order. After the reading
 //! and after each step, what the runtime gives is compared with what the case states: the bytes, byte for byte, the
-//! reading, the findings, the refusal and the drawing (as ATD §2.4 defines its equality). Each difference is
-//! reported with its step, its part, the expected and the actual value, for bytes the first line that differs.
-//! Nothing is read from or written to the file system.
+//! splices, the reading, the findings, the refusal and the drawing (as ATD §2.4 defines its equality). Each
+//! difference is reported with its step, its part, the expected and the actual value, for bytes the first line that
+//! differs, and the construct of the description that produced the value (`attribution`). Nothing is read from or
+//! written to the file system.
 
+pub mod attribution;
 pub mod parts;
 
 use std::cell::RefCell;
 use std::collections::{BTreeMap, VecDeque};
 use std::path::{Path, PathBuf};
 
+use adp_atd_check::Description;
 use adp_atd_runtime::RuntimeTool;
 use adp_context::Prompt;
+use adp_diagram::document::EditedFile;
 use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
 use adp_diagram::workspace::DiagramWorkspace;
 use adp_disl::{HostAction, IdSource};
 use adp_history::Outcome;
+pub use attribution::{At, Constructs};
 use serde_json::{Value as Json, json};
 
 /// A case: its fixture (`conformance.json`) and its files by their names in the fixture, all in memory.
@@ -34,10 +39,12 @@ pub struct Case {
 pub struct Difference {
     /// The step, from 1; none for the reading.
     pub step: Option<usize>,
-    /// `bytes`, `reading`, `findings`, `refused` or `drawing`.
+    /// `bytes`, `splices`, `reading`, `findings`, `refused` or `drawing`.
     pub part: &'static str,
     pub expected: String,
     pub actual: String,
+    /// The construct of the description that produced the value, when one is known.
+    pub at: Option<At>,
 }
 
 impl std::fmt::Display for Difference {
@@ -46,7 +53,11 @@ impl std::fmt::Display for Difference {
             Some(step) => write!(f, "step {step}, {}: ", self.part)?,
             None => write!(f, "read, {}: ", self.part)?,
         }
-        write!(f, "expected {}, got {}", self.expected, self.actual)
+        write!(f, "expected {}, got {}", self.expected, self.actual)?;
+        match &self.at {
+            Some(at) => write!(f, " ({at})"),
+            None => Ok(()),
+        }
     }
 }
 
@@ -68,8 +79,9 @@ impl IdSource for StepIds {
     }
 }
 
-/// Replays `case` through `runtime`, and every difference from what it states.
-pub fn validate(runtime: &RuntimeTool, case: &Case) -> Vec<Difference> {
+/// Replays `case` through `runtime`, the tool of `description`, and every difference from what it states.
+pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -> Vec<Difference> {
+    let constructs = Constructs::of(description, &runtime.loaded.json);
     let mut differences = Vec::new();
     let inputs = &case.fixture["inputs"];
     let Some(body_name) = inputs["body"].as_str() else {
@@ -78,6 +90,7 @@ pub fn validate(runtime: &RuntimeTool, case: &Case) -> Vec<Difference> {
             part: "reading",
             expected: "a body among the inputs".into(),
             actual: "none".into(),
+            at: None,
         });
         return differences;
     };
@@ -104,30 +117,32 @@ pub fn validate(runtime: &RuntimeTool, case: &Case) -> Vec<Difference> {
     let elements = replay.session.render(replay.workspace.documents()).unwrap_or_default();
     let (nodes, relations) = parts::reading(&elements);
     let read = &case.fixture["read"];
+    let read_by = |item: &Json| constructs.rule(item["type"].as_str());
+    let found_by = |item: &Json| constructs.code(item["rule"].as_str());
     compare(
         &mut differences,
-        None,
-        "reading",
+        (None, "reading"),
         &read["elements"],
         &Json::Array(nodes),
+        &read_by,
     );
     compare(
         &mut differences,
-        None,
-        "reading",
+        (None, "reading"),
         &read["relations"],
         &Json::Array(relations),
+        &read_by,
     );
     let findings = parts::findings(&replay.session, replay.workspace.documents());
     compare(
         &mut differences,
-        None,
-        "findings",
+        (None, "findings"),
         &read["findings"],
         &Json::Array(findings),
+        &found_by,
     );
     if let Some(expected) = drawing_of(case, &case.fixture["drawing"]) {
-        replay.compare_drawing(&mut differences, None, &expected);
+        replay.compare_drawing(&mut differences, None, &expected, &constructs);
     }
 
     // The steps.
@@ -140,8 +155,24 @@ pub fn validate(runtime: &RuntimeTool, case: &Case) -> Vec<Difference> {
             .filter_map(Json::as_str)
             .map(str::to_owned)
             .collect();
+        let element = step["select"][0]
+            .as_str()
+            .map(str::to_owned)
+            .or_else(|| replay.selection.clone());
+        let element = ["property", "move"]
+            .iter()
+            .find_map(|gesture| step[gesture]["element"].as_str().map(str::to_owned))
+            .or(element);
+        let element_type = element.and_then(|id| replay.types().remove(&id));
+        let element_type = element_type.as_deref();
+        let _ = replay.workspace.take_executed();
         let outcome = replay.step(step);
+        let executed = replay.workspace.take_executed();
         let expected_refusal = step["refused"]["reason"].as_str();
+        let refused_at = |actual: Option<&str>| {
+            let reasons: Vec<&str> = expected_refusal.into_iter().chain(actual).collect();
+            constructs.refusal(step, &reasons, element_type)
+        };
         match (&outcome, expected_refusal) {
             (Ok(()), None) => {}
             (Err(actual), Some(expected)) if actual == expected => {}
@@ -150,13 +181,33 @@ pub fn validate(runtime: &RuntimeTool, case: &Case) -> Vec<Difference> {
                 part: "refused",
                 expected: expected.map_or("the gesture made".to_owned(), |e| format!("refused: {e}")),
                 actual: format!("refused: {actual}"),
+                at: refused_at(Some(actual)),
             }),
             (Ok(()), Some(expected)) => differences.push(Difference {
                 step: number,
                 part: "refused",
                 expected: format!("refused: {expected}"),
                 actual: "the gesture made".into(),
+                at: refused_at(None),
             }),
+        }
+        if let Some(expected) = step.get("splices") {
+            let splices: Vec<Json> = executed
+                .iter()
+                .filter(|edit| edit.body_path == replay.body_path)
+                .flat_map(|edit| &edit.steps)
+                .filter(|edit_step| edit_step.file == EditedFile::Body)
+                .flat_map(|edit_step| &edit_step.splices)
+                .map(|splice| serde_json::to_value(splice).expect("a splice writes"))
+                .collect();
+            let made_by = |_: &Json| constructs.gesture(step, element_type);
+            compare(
+                &mut differences,
+                (number, "splices"),
+                expected,
+                &Json::Array(splices),
+                &made_by,
+            );
         }
         let expected_bytes = match (step.get("expectFile").and_then(Json::as_str), step.get("expect")) {
             (Some(file), _) => case.files.get(file).cloned(),
@@ -171,14 +222,21 @@ pub fn validate(runtime: &RuntimeTool, case: &Case) -> Vec<Difference> {
                 part: "bytes",
                 expected,
                 actual,
+                at: constructs.gesture(step, element_type),
             });
         }
         if let Some(expected) = step.get("findings") {
             let findings = parts::findings(&replay.session, replay.workspace.documents());
-            compare(&mut differences, number, "findings", expected, &Json::Array(findings));
+            compare(
+                &mut differences,
+                (number, "findings"),
+                expected,
+                &Json::Array(findings),
+                &found_by,
+            );
         }
         if let Some(expected) = step.get("drawing").and_then(|d| drawing_of(case, d)) {
-            replay.compare_drawing(&mut differences, number, &expected);
+            replay.compare_drawing(&mut differences, number, &expected, &constructs);
         }
     }
     differences
@@ -193,8 +251,8 @@ fn drawing_of(case: &Case, drawing: &Json) -> Option<Json> {
 }
 
 /// The first difference between two drawings, as ATD §2.4 defines their equality: their elements and their edges as
-/// sets keyed by `id`, their chrome, and their `order`.
-fn drawing_difference(expected: &Json, actual: &Json) -> Option<(String, String)> {
+/// sets keyed by `id`, their chrome, and their `order`; with the type of the element or edge that differs.
+fn drawing_difference(expected: &Json, actual: &Json) -> Option<(String, String, Option<String>)> {
     for part in ["elements", "edges"] {
         let keyed = |drawing: &Json| -> BTreeMap<String, Json> {
             drawing[part]
@@ -210,7 +268,12 @@ fn drawing_difference(expected: &Json, actual: &Json) -> Option<(String, String)
                 (Some(w), Some(g)) if w == g => {}
                 (w, g) => {
                     let show = |v: Option<&Json>| v.map_or("nothing".to_owned(), Json::to_string);
-                    return Some((format!("{part} {id}: {}", show(w)), format!("{part} {id}: {}", show(g))));
+                    let type_name = w.or(g).and_then(|item| item["type"].as_str()).map(str::to_owned);
+                    return Some((
+                        format!("{part} {id}: {}", show(w)),
+                        format!("{part} {id}: {}", show(g)),
+                        type_name,
+                    ));
                 }
             }
         }
@@ -220,24 +283,39 @@ fn drawing_difference(expected: &Json, actual: &Json) -> Option<(String, String)
             return Some((
                 format!("{part}: {}", expected[part]),
                 format!("{part}: {}", actual[part]),
+                None,
             ));
         }
     }
     None
 }
 
-fn compare(differences: &mut Vec<Difference>, step: Option<usize>, part: &'static str, expected: &Json, actual: &Json) {
+/// Compares two lists; a difference is attributed by `attribute` to the construct of the first item that differs.
+fn compare(
+    differences: &mut Vec<Difference>,
+    (step, part): (Option<usize>, &'static str),
+    expected: &Json,
+    actual: &Json,
+    attribute: &dyn Fn(&Json) -> Option<At>,
+) {
     let expected = if expected.is_null() {
         json!([])
     } else {
         expected.clone()
     };
     if &expected != actual {
+        let (want, got) = (expected.as_array(), actual.as_array());
+        let length = want.map_or(0, Vec::len).max(got.map_or(0, Vec::len));
+        let first = (0..length).find_map(|i| {
+            let (w, g) = (want.and_then(|l| l.get(i)), got.and_then(|l| l.get(i)));
+            (w != g).then(|| w.or(g)).flatten()
+        });
         differences.push(Difference {
             step,
             part,
             expected: expected.to_string(),
             actual: actual.to_string(),
+            at: first.and_then(attribute),
         });
     }
 }
@@ -279,19 +357,36 @@ impl Replay {
         Ok(adp_drawing::record(&scene, &elements, "canvas"))
     }
 
-    fn compare_drawing(&self, differences: &mut Vec<Difference>, step: Option<usize>, expected: &Json) {
+    fn compare_drawing(
+        &self,
+        differences: &mut Vec<Difference>,
+        step: Option<usize>,
+        expected: &Json,
+        constructs: &Constructs,
+    ) {
         let difference = match self.drawing() {
             Ok(actual) => drawing_difference(expected, &actual),
-            Err(reason) => Some(("a drawing".to_owned(), format!("none: {reason}"))),
+            Err(reason) => Some(("a drawing".to_owned(), format!("none: {reason}"), None)),
         };
-        if let Some((expected, actual)) = difference {
+        if let Some((expected, actual, type_name)) = difference {
             differences.push(Difference {
                 step,
                 part: "drawing",
                 expected,
                 actual,
+                at: constructs.drawn(type_name.as_deref()),
             });
         }
+    }
+
+    /// Each element's type, by its id, as the document reads now.
+    fn types(&self) -> BTreeMap<String, String> {
+        self.session
+            .render(self.workspace.documents())
+            .unwrap_or_default()
+            .into_iter()
+            .map(|element| (element.id, element.element_type))
+            .collect()
     }
 
     fn bytes(&self) -> Vec<u8> {

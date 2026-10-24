@@ -11,6 +11,7 @@ publish = false
 workspace = true
 
 [dependencies]
+adp-atd-check = { path = "../adp-atd-check" }
 adp-atd-runtime = { path = "../adp-atd-runtime" }
 adp-context = { path = "../adp-context" }
 adp-diagram = { path = "../adp-diagram" }
@@ -19,5 +20,3 @@ adp-disl = { path = "../adp-disl" }
 adp-history = { path = "../adp-history" }
 serde_json = { version = "1", features = ["preserve_order"] }
 
-[dev-dependencies]
-adp-atd-check = { path = "../adp-atd-check" }

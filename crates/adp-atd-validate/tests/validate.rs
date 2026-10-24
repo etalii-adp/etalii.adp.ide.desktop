@@ -5,7 +5,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use adp_atd_check::{FsFiles, Overlay, check};
+use adp_atd_check::{Description, FsFiles, Overlay, check};
 use adp_atd_runtime::{RuntimeHost, RuntimeTool, diagram_tool};
 use adp_atd_validate::{Case, Difference, validate};
 
@@ -13,27 +13,44 @@ fn diagrams() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../vendor/etalii.adp/definitions/diagrams")
 }
 
-/// The mind map's runtime, its root `.atd` replaced by `text` when one is given.
-fn runtime(text: Option<String>) -> RuntimeTool {
-    let path = diagrams().join("mindmap.atd");
+/// The mind map's runtime and its description, its root `.atd` replaced by `text` when one is given.
+fn runtime(text: Option<String>) -> (RuntimeTool, Description) {
+    runtime_of(&diagrams().join("mindmap.atd"), text)
+}
+
+/// The runtime and the description of the root `.atd` at `path`, replaced by `text` when one is given.
+fn runtime_of(path: &Path, text: Option<String>) -> (RuntimeTool, Description) {
+    let path = path.to_path_buf();
     let files = Overlay {
         open: text.map(|t| BTreeMap::from([(path.clone(), t)])).unwrap_or_default(),
         under: &FsFiles,
     };
     let checked = check(&files, &path);
-    diagram_tool(
+    let tool = diagram_tool(
         &checked.description,
         checked.symbols.as_ref().unwrap(),
         &RuntimeHost::default(),
     )
-    .unwrap()
+    .unwrap();
+    (tool, checked.description)
+}
+
+/// `case` validated against the mind map, its root `.atd` replaced by `text` when one is given.
+fn run(text: Option<String>, case: &Case) -> Vec<Difference> {
+    let (tool, description) = runtime(text);
+    validate(&tool, &description, case)
 }
 
 /// A vendored case, read into memory.
 fn case(name: &str) -> Case {
-    let dir = diagrams().join("conformance/mindmap").join(name);
+    case_in(&diagrams().join("conformance/mindmap").join(name))
+}
+
+/// The case in `dir`, read into memory.
+fn case_in(dir: &Path) -> Case {
+    let name = dir.file_name().unwrap().to_string_lossy().into_owned();
     let fixture = serde_json::from_str(&std::fs::read_to_string(dir.join("conformance.json")).unwrap()).unwrap();
-    let files = std::fs::read_dir(&dir)
+    let files = std::fs::read_dir(dir)
         .unwrap()
         .flatten()
         .filter(|e| e.path().is_file())
@@ -44,11 +61,15 @@ fn case(name: &str) -> Case {
             )
         })
         .collect();
-    Case {
-        name: name.to_owned(),
-        fixture,
-        files,
-    }
+    Case { name, fixture, files }
+}
+
+/// Where a difference was attributed, as `file:line` with the file's name alone.
+fn short(difference: &Difference) -> String {
+    difference.at.as_ref().map_or("nowhere".to_owned(), |at| {
+        let file = Path::new(&at.file).file_name().unwrap().to_string_lossy();
+        format!("{file}:{}", at.line)
+    })
 }
 
 /// Each difference as `step:part`, the reading's as `read:part`.
@@ -65,7 +86,7 @@ fn places(differences: &[Difference]) -> BTreeSet<String> {
 #[test]
 fn a_gesture_the_runtime_makes_as_the_reference_did_has_no_difference() {
     // The fold case collapses and expands the central topic (view state, nothing written) and the runtime does so.
-    let differences = validate(&runtime(None), &case("fold"));
+    let differences = run(None, &case("fold"));
     let places = places(&differences);
     assert!(
         !places.contains("1:refused") && !places.contains("1:bytes"),
@@ -82,7 +103,7 @@ fn a_seeded_difference_is_reported_at_its_part_with_what_was_expected_and_given(
     let text = std::fs::read_to_string(diagrams().join("mindmap.atd")).unwrap();
     let seeded = text.replacen("has an unnamed central topic.", "has a nameless central topic.", 1);
     assert_ne!(seeded, text);
-    let differences = validate(&runtime(Some(seeded)), &case("unnamed-root"));
+    let differences = run(Some(seeded), &case("unnamed-root"));
     let findings: Vec<&Difference> = differences.iter().filter(|d| d.part == "findings").collect();
     assert_eq!(findings.len(), 1, "{differences:#?}");
     assert_eq!(findings[0].step, None);
@@ -96,6 +117,54 @@ fn a_seeded_difference_is_reported_at_its_part_with_what_was_expected_and_given(
         "{}",
         findings[0].actual
     );
+    // The constraint `unnamedCentralTopic`, whose message the finding is.
+    assert_eq!(short(findings[0]), "mindmap.atd:237");
+}
+
+/// Each difference names the construct of the description that produced its value (ATD §2.3, `ATD9001`).
+#[test]
+fn each_difference_is_attributed_to_the_construct_that_produced_it() {
+    let (tool, description) = runtime(None);
+    let mut attributed = BTreeMap::new();
+    for name in [
+        "duplicate-id",
+        "example-1",
+        "fold",
+        "not-a-map",
+        "refusals",
+        "unnamed-root",
+    ] {
+        for difference in validate(&tool, &description, &case(name)) {
+            let place = places(std::slice::from_ref(&difference)).pop_first().unwrap();
+            attributed.insert(format!("{name} {place}"), short(&difference));
+        }
+    }
+    let unattributed: Vec<&String> = attributed
+        .iter()
+        .filter(|(_, at)| *at == "nowhere")
+        .map(|(p, _)| p)
+        .collect();
+    assert!(unattributed.is_empty(), "{unattributed:?}");
+    for (place, at) in [
+        // The reading, to the binding's rule for the type of the first element that differs.
+        ("fold read:reading", "mindmap.freeplane.atd:28"),
+        // A finding, to the constraint that has its code: here the built-in `std.unparseable`.
+        ("not-a-map read:findings", "mindmap.atd:226"),
+        // A refusal, to the constraint of the gesture's kind: `keepCentralTopic` for a deletion,
+        // `reparentWithinTree` for a move.
+        ("refusals 1:refused", "mindmap.atd:261"),
+        ("refusals 3:refused", "mindmap.atd:269"),
+        // A gesture, to its operation (`addSibling`), the `behavior` block for a deletion, or the binding's rule
+        // for the type of the element a gesture named only by its kind (`editLabel`) changed.
+        ("example-1 2:refused", "mindmap.atd:290"),
+        ("example-1 2:bytes", "mindmap.atd:290"),
+        ("example-1 10:bytes", "mindmap.atd:326"),
+        ("example-1 7:bytes", "mindmap.freeplane.atd:28"),
+        // A drawing, to the notation's entry for the type of the element drawn differently.
+        ("fold 1:drawing", "mindmap.notation.atd:58"),
+    ] {
+        assert_eq!(attributed.get(place).map(String::as_str), Some(at), "{place}");
+    }
 }
 
 /// Where the mind map's description and the runtime still differ from the cases, case by case, until T132 corrects
@@ -180,10 +249,10 @@ fn the_mind_maps_cases_differ_only_where_known() {
         ),
         ("unnamed-root", &["read:reading"]),
     ];
-    let runtime = runtime(None);
+    let (tool, description) = runtime(None);
     let mut unexpected = Vec::new();
     for (name, expected) in known {
-        let differences = validate(&runtime, &case(name));
+        let differences = validate(&tool, &description, &case(name));
         let found = places(&differences);
         let expected: BTreeSet<String> = expected.iter().map(|p| (*p).to_owned()).collect();
         if found != expected {
@@ -200,7 +269,49 @@ fn a_case_is_validated_in_memory_and_nothing_is_written() {
     let mut held = case("fold");
     let body = held.files.get("plan.mm").cloned().unwrap();
     held.files.insert("plan.mm".into(), body.clone());
-    let _ = validate(&runtime(None), &held);
+    let _ = run(None, &held);
     assert!(!Path::new("/case").exists());
     assert_eq!(held.files["plan.mm"], body);
+}
+
+/// A step's splices are compared with the case's, each edit's in order, its offsets into the body as that edit found
+/// it; a difference is attributed to the gesture's operation.
+#[test]
+fn a_steps_splices_are_compared_and_attributed_to_its_gesture() {
+    let (tool, description) = runtime(None);
+    let mut one_step = case("example-1");
+    let steps = one_step.fixture["steps"].as_array_mut().unwrap();
+    steps.truncate(1);
+    let with = |splices: serde_json::Value| {
+        let mut held = one_step.clone();
+        held.fixture["steps"][0]["splices"] = splices;
+        validate(&tool, &description, &held)
+            .into_iter()
+            .filter(|d| d.part == "splices")
+            .collect::<Vec<_>>()
+    };
+
+    // What the runtime made: the new node, then its text typed into the inline editor.
+    let made = with(serde_json::json!([]));
+    assert_eq!(made.len(), 1);
+    let splices: Vec<serde_json::Value> = serde_json::from_str(&made[0].actual).unwrap();
+    assert_eq!(splices.len(), 2, "{splices:?}");
+    let mut body = one_step.files["mindmap.mm"].clone();
+    for splice in &splices {
+        let (start, end) = (
+            splice["start"].as_u64().unwrap() as usize,
+            splice["end"].as_u64().unwrap() as usize,
+        );
+        body.splice(start..end, splice["text"].as_str().unwrap().bytes());
+    }
+    assert_eq!(body, one_step.files["after-1.mm"]);
+
+    assert!(with(serde_json::Value::Array(splices.clone())).is_empty());
+    let mut shifted = splices;
+    shifted[0]["start"] = serde_json::json!(shifted[0]["start"].as_u64().unwrap() + 1);
+    let differences = with(serde_json::Value::Array(shifted));
+    assert_eq!(differences.len(), 1);
+    assert_eq!(differences[0].step, Some(1));
+    // The operation `addChild`.
+    assert_eq!(short(&differences[0]), "mindmap.atd:280");
 }
