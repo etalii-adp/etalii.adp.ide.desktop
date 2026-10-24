@@ -23,7 +23,7 @@ use crate::documents::types::{
     AttributeBinding, BlockRule, Family as FamilyName, FblBinding, HeaderSettings, Rule, Slot,
 };
 use crate::model::{FblOptions, Finding, FindingSeverity, SourceLocation};
-use crate::planning::plan::{Plan, Planning};
+use crate::planning::plan::{Plan, Planning, refuse};
 use crate::rules::{Candidate, InsertRequest, ReadElement, SlotChange, SlotRead};
 use crate::splice::Operation;
 use crate::text::{BodyText, Span};
@@ -436,6 +436,83 @@ impl Family {
         plan.add_span(Operation::RemoveEntry, span, "");
         plan.add(Operation::InsertEntry, offset, offset, self.text.text_of(span));
         Ok(())
+    }
+
+    /// Moves an element's entry to another parent: a `remove-entry` of its line span and an `insert-entry` of the
+    /// same bytes before `before`'s entry, or after `last`'s, the last of its new siblings (FBL section 5.5). Into a
+    /// parent with no such children it goes where a new entry would, which only xml plans here. Entries keep their
+    /// bytes, so a family that reads its nesting from indentation moves an entry only to siblings at its own column;
+    /// json, which separates its entries with commas, does not move one to another parent.
+    pub fn move_to(
+        &self,
+        plan: &mut Plan<'_>,
+        element: usize,
+        parent: Option<usize>,
+        before: Option<usize>,
+        last: Option<usize>,
+    ) -> Planning {
+        let reading = plan.reading;
+        let type_name = &self.rule(reading.element(element).rule).type_name;
+        let entry = &self.entries[reading.element(element).entry()];
+        let cannot = || refuse(format!("This file's binding cannot move a {type_name} there."));
+        let (FamilyKind::Yaml(_) | FamilyKind::Xml(_) | FamilyKind::Lines(_)) = &self.kind else {
+            return cannot();
+        };
+        let Some(span) = entry.line_span else {
+            return cannot();
+        };
+        let Some(sibling) = before.or(last) else {
+            return match (&self.kind, parent) {
+                (FamilyKind::Xml(_), Some(parent)) => self.xml_move_into(plan, element, parent),
+                _ => cannot(),
+            };
+        };
+        let target = &self.entries[reading.element(sibling).entry()];
+        let Some(line) = target.line_span else {
+            return cannot();
+        };
+        if target.indent != entry.indent && !matches!(self.kind, FamilyKind::Xml(_)) {
+            return cannot();
+        }
+        let offset = if before.is_some() { line.start } else { line.end };
+        plan.add_span(Operation::RemoveEntry, span, "");
+        plan.add(
+            Operation::InsertEntry,
+            offset,
+            offset,
+            self.lines_at(offset, self.text.text_of(span)),
+        );
+        Ok(())
+    }
+
+    /// The whole lines `text` stands for when inserted at `offset`: itself when `offset` starts a line and `text`
+    /// ends one; at the end of a body whose last line has no line ending, `text` written as that ending followed by
+    /// lines. None for any other text, such as an entry written after a separator on its sibling's line.
+    pub fn as_lines(&self, offset: usize, text: &str) -> Option<String> {
+        let line_start = offset == 0 || self.text.text(offset - 1, offset) == "\n";
+        if line_start && text.ends_with('\n') {
+            return Some(text.to_owned());
+        }
+        let at_unended_end = offset == self.text.len() && self.text.lines().last().is_some_and(|l| l.ending.is_empty());
+        let rest = text.strip_prefix("\r\n").or_else(|| text.strip_prefix('\n'))?;
+        (at_unended_end && !rest.is_empty()).then(|| format!("{rest}{}", self.newline_at(offset)))
+    }
+
+    /// Whole `lines` as the text of an insertion at `offset`, a line start or the end of the body: at the end of a
+    /// body whose last line has no line ending, the ending is written first and none after (FBL section 6.3).
+    pub fn lines_at(&self, offset: usize, lines: &str) -> String {
+        let body = lines
+            .strip_suffix("\r\n")
+            .or_else(|| lines.strip_suffix('\n'))
+            .unwrap_or(lines);
+        let newline = self.newline_at(offset);
+        if offset == self.text.len()
+            && !self.text.is_empty()
+            && self.text.lines().last().is_some_and(|l| l.ending.is_empty())
+        {
+            return format!("{newline}{body}");
+        }
+        format!("{body}{newline}")
     }
 
     // ---- shared helpers ----

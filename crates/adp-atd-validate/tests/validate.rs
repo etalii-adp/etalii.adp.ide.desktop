@@ -154,10 +154,10 @@ fn each_difference_is_attributed_to_the_construct_that_produced_it() {
         // `reparentWithinTree` for a move.
         ("refusals 1:refused", "mindmap.atd:261"),
         ("refusals 3:refused", "mindmap.atd:269"),
-        // A gesture, to its operation (`addSibling`), the `behavior` block for a deletion, or the binding's rule
+        // A gesture, to its operation (`editNotes`), the `behavior` block for a deletion, or the binding's rule
         // for the type of the element a gesture named only by its kind (`editLabel`) changed.
-        ("example-1 2:refused", "mindmap.atd:290"),
-        ("example-1 2:bytes", "mindmap.atd:290"),
+        ("example-1 8:refused", "mindmap.atd:299"),
+        ("example-1 8:bytes", "mindmap.atd:299"),
         ("example-1 10:bytes", "mindmap.atd:326"),
         ("example-1 7:bytes", "mindmap.freeplane.atd:28"),
         // A drawing, to the notation's entry for the type of the element drawn differently.
@@ -174,9 +174,10 @@ fn the_mind_maps_cases_differ_only_where_known() {
     let known: [(&str, &[&str]); 6] = [
         // A duplicate id: the module read the later holder under an ephemeral id and reported it, and draws it so.
         ("duplicate-id", &["read:drawing", "read:findings", "read:reading"]),
-        // A sibling placed after a node and a node moved to another parent, which only a plugin writes; the notes,
-        // whose `create` the description's binding does not state; and the reading's absent FOLDED. Each refused
-        // gesture leaves the map, and so its drawing, behind the reference's from that step on.
+        // The notes, whose `create` the description's binding does not state, and the reading's absent FOLDED.
+        // Each refused gesture leaves the map, and so its drawing, behind the reference's from that step on; the
+        // moves of steps 9 and 22 are made, the first at the end of its new parent, as the case's `move` carries no
+        // index (ATD §2.3).
         (
             "example-1",
             &[
@@ -205,17 +206,6 @@ fn the_mind_maps_cases_differ_only_where_known() {
                 "21:drawing",
                 "22:bytes",
                 "22:drawing",
-                "22:refused",
-                "2:bytes",
-                "2:drawing",
-                "2:refused",
-                "3:bytes",
-                "3:drawing",
-                "3:refused",
-                "4:bytes",
-                "4:drawing",
-                "5:bytes",
-                "5:drawing",
                 "6:bytes",
                 "6:drawing",
                 "6:refused",
@@ -226,7 +216,6 @@ fn the_mind_maps_cases_differ_only_where_known() {
                 "8:refused",
                 "9:bytes",
                 "9:drawing",
-                "9:refused",
                 "read:reading",
             ],
         ),
