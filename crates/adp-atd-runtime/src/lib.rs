@@ -1,6 +1,8 @@
-//! The runtime of a tool description (etalii.adp spec 035, research R14, R16): the capability registry; the lowering
-//! onto the engines follows in the runtime's pull request.
+//! The runtime of a tool description (etalii.adp spec 035, research R14, R16): the capability registry, and the
+//! lowering of a checked description onto the engines that drive today's tools.
 
 pub mod capabilities;
+pub mod lowering;
 
 pub use capabilities::{Capabilities, LayoutCapability};
+pub use lowering::{LoadedDiagram, load_diagram, lower_diagram};

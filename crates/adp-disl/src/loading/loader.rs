@@ -16,7 +16,7 @@ use super::specification::DislSpecification;
 use super::{inheritance, names, walker};
 use crate::behavior::extension::DislExtensions;
 use crate::expressions::plugins::{self, DislPluginFunctions};
-use crate::expressions::{contexts, library, user_functions};
+use crate::expressions::{contexts, library, text_metric, user_functions};
 use crate::json::{self, Json};
 
 /// The DISL major version this runtime reads, and the highest minor it knows.
@@ -201,6 +201,7 @@ impl DislLoader {
         let mut environment = adp_cel::Environment::standard_library();
         environment.budget = cost_limit(&root);
         library::register(&mut environment, metamodel.enums.clone());
+        text_metric::register(&mut environment, &root);
         plugins::register(&mut environment, &root, plugins, &mut diagnostics);
         if let Some(extend) = extensions.environment {
             environment = extend(environment);

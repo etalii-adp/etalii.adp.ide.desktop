@@ -19,7 +19,7 @@ pub struct DislDiagnostic {
 }
 
 impl DislDiagnostic {
-    pub(crate) fn error(pointer: impl Into<String>, message: impl Into<String>) -> Self {
+    pub fn error(pointer: impl Into<String>, message: impl Into<String>) -> Self {
         DislDiagnostic {
             pointer: pointer.into(),
             severity: DislSeverity::Error,
