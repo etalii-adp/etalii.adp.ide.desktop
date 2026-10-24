@@ -18,9 +18,10 @@ workspace = true
 # `record` feature: the `atd` shipped into other hosts is built without it (spec 035, T050).
 [features]
 default = ["record"]
-record = ["dep:adp-diagram", "dep:adp-diagram-mindmap", "dep:adp-parity", "dep:adp-shell", "dep:adp-theme"]
+record = ["dep:adp-diagram", "dep:adp-diagram-mindmap", "dep:adp-parity", "dep:adp-shell", "dep:adp-theme", "dep:adp-atd-validate"]
 
 [dependencies]
+adp-atd-validate = { path = "../adp-atd-validate", optional = true }
 adp-diagram = { path = "../adp-diagram", optional = true }
 adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap", optional = true }
 adp-parity = { path = "../adp-parity", optional = true }

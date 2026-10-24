@@ -4,7 +4,9 @@
 //! the layout capability it names, and each viewer's view state from its persistence settings. No code here knows a
 //! tool type (FR-040).
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::rc::Rc;
 
 use adp_atd_check::{Description, Symbols};
@@ -104,6 +106,8 @@ pub struct RuntimeModule {
     layout: Option<CapabilityLayout>,
     /// Each viewer's initial view state, by key: `collapsed` from `persistence.view.initial`.
     initial_view: serde_json::Map<String, Json>,
+    /// The view state `view` actions set, by document and element, over the initial one.
+    views: RefCell<HashMap<(PathBuf, String), Map>>,
 }
 
 impl std::fmt::Debug for RuntimeModule {
@@ -133,6 +137,7 @@ impl RuntimeModule {
             capabilities: host.capabilities.clone(),
             layout,
             initial_view,
+            views: RefCell::default(),
         }
     }
 
@@ -173,9 +178,25 @@ impl DiagramModule for RuntimeModule {
         (self.plugins)(plugin_id)
     }
 
-    /// Each viewer's view of `element`, as it starts: the description's `persistence.view.initial`.
+    /// Keeps this viewer's view of `element`, as a `view` action sets it.
+    fn set_view(&self, document: &DiagramDocument, element: &DislElement, values: &Map) -> bool {
+        let key = (document.body_path().to_path_buf(), element.id());
+        let mut views = self.views.borrow_mut();
+        let view = views.entry(key).or_default();
+        for (name, value) in values.iter() {
+            view.insert(name.clone(), value.clone());
+        }
+        true
+    }
+
+    /// Each viewer's view of `element`: the description's `persistence.view.initial`, with what `view` actions set.
     fn view_of(&self, document: &DiagramDocument, element: &DislElement) -> Option<Map> {
-        if self.initial_view.is_empty() {
+        let set = self
+            .views
+            .borrow()
+            .get(&(document.body_path().to_path_buf(), element.id()))
+            .cloned();
+        if self.initial_view.is_empty() && set.is_none() {
             return None;
         }
         let specification = document.tool().definition.specification();
@@ -184,6 +205,9 @@ impl DiagramModule for RuntimeModule {
             if let Some(value) = Self::evaluate(specification, element, value) {
                 view.insert(key.clone(), value);
             }
+        }
+        for (key, value) in set.iter().flat_map(Map::iter) {
+            view.insert(key.clone(), value.clone());
         }
         Some(view)
     }

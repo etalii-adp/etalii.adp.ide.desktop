@@ -63,6 +63,9 @@ pub enum HostAction {
     Select { element_ids: Vec<String> },
     /// `editLabel`: open the inline editor on the element's label, or its first.
     EditLabel { element_id: String, label: Option<String> },
+    /// `view`: the viewer's view of the element (DISL section 11.6: `collapsed`, `filters`, `viewpoint`, `pinned`,
+    /// `groups`), set to the values given; view state, never written to the model.
+    View { element_id: String, values: Map },
 }
 
 /// What running an action list gave: the model changes in order, the actions handed back, and the refusal that

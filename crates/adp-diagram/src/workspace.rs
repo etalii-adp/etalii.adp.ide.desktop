@@ -10,6 +10,7 @@
 
 use std::fs;
 use std::path::{Component, Path, PathBuf};
+use std::rc::Rc;
 
 use adp_fbl::RegistrationDocument;
 use adp_fbl::registration::locate_body;
@@ -17,7 +18,7 @@ use adp_history::{Command, History, Outcome};
 
 use crate::document::{DiagramDocuments, DiskChange, DocumentEdit};
 use crate::session::DiagramSession;
-use crate::tool::DiagramTools;
+use crate::tool::{DiagramTool, DiagramTools};
 
 /// The refusal of a path that names no diagram, as the standalone host words it.
 pub const CANNOT_OPEN: &str = "The diagram cannot be opened.";
@@ -52,6 +53,32 @@ impl DiagramWorkspace {
             documents: DiagramDocuments::default(),
             history: History::default(),
         }
+    }
+
+    /// Diagrams held in memory, named under `root` but never read from it or written to it (etalii.adp spec 035,
+    /// T126): opened with [`DiagramWorkspace::open_bytes`].
+    pub fn in_memory(root: impl Into<PathBuf>) -> Self {
+        DiagramWorkspace {
+            root: root.into(),
+            documents: DiagramDocuments::in_memory(),
+            history: History::default(),
+        }
+    }
+
+    /// Opens a diagram of `tool` from its bytes, named by its paths, and a view of it.
+    pub fn open_bytes(
+        &mut self,
+        tool: Rc<DiagramTool>,
+        body_path: &Path,
+        registration_path: Option<&Path>,
+        body: Vec<u8>,
+        registration: Option<Vec<u8>>,
+    ) -> DiagramSession {
+        let session =
+            DiagramSession::new(body_path.to_path_buf()).in_default_viewpoint(tool.definition.specification());
+        self.documents
+            .open_bytes(tool, body_path, registration_path, body, registration);
+        session
     }
 
     pub fn root(&self) -> &Path {

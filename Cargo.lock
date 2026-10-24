@@ -163,6 +163,7 @@ dependencies = [
  "adp-atd-format",
  "adp-atd-grammar",
  "adp-atd-syntax",
+ "adp-atd-validate",
  "adp-diagram",
  "adp-diagram-mindmap",
  "adp-parity",
@@ -241,7 +242,13 @@ dependencies = [
 name = "adp-atd-validate"
 version = "1.0.0"
 dependencies = [
+ "adp-atd-check",
  "adp-atd-runtime",
+ "adp-context",
+ "adp-diagram",
+ "adp-disl",
+ "adp-history",
+ "serde_json",
 ]
 
 [[package]]
