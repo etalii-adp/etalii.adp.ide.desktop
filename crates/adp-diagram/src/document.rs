@@ -704,6 +704,31 @@ impl DiagramDocuments {
         Ok(self.documents.last().expect("just opened"))
     }
 
+    /// Opens the document whose body and registration are the bytes given, named by their paths but never read from
+    /// them: a working copy held in memory, as a description's runtime opens a conformance case (etalii.adp spec 035,
+    /// T126). An open document of the same body is shared.
+    pub fn open_bytes(
+        &mut self,
+        tool: Rc<DiagramTool>,
+        body_path: &Path,
+        registration_path: Option<&Path>,
+        body: Vec<u8>,
+        registration: Option<Vec<u8>>,
+    ) -> &DiagramDocument {
+        if let Some(index) = self.index_of(body_path) {
+            return &self.documents[index];
+        }
+        let document = self.read(
+            tool,
+            body_path.to_path_buf(),
+            registration_path.map(Path::to_path_buf),
+            Rc::from(body),
+            registration.map(Rc::from),
+        );
+        self.documents.push(document);
+        self.documents.last().expect("just opened")
+    }
+
     /// Closes the document of the body at `body_path`.
     pub fn close(&mut self, body_path: &Path) {
         for state in self.modules.values_mut() {
