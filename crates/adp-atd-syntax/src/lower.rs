@@ -3,7 +3,7 @@
 use serde_json::{Map, Value as Json, json};
 
 use crate::parse::{Child, Node, Parse, TokenKind};
-use crate::tables::TERMINALS;
+use crate::tables::terminals;
 use crate::text::LineIndex;
 
 /// Why a file has no abstract tree.
@@ -75,7 +75,7 @@ impl Lowerer<'_> {
     /// An anonymous string terminal, which Lark filters from the tree.
     fn is_filtered(&self, token: usize) -> bool {
         let t = &self.parse.tokens[token];
-        t.terminal != u16::MAX && TERMINALS[t.terminal as usize].name.starts_with('"')
+        t.terminal != u16::MAX && terminals()[t.terminal as usize].name.starts_with('"')
     }
 
     fn child_nodes<'n>(&self, node: &'n Node) -> Vec<&'n Node> {
@@ -97,7 +97,7 @@ impl Lowerer<'_> {
     fn token_named(&self, node: &Node, name: &str) -> Option<usize> {
         node.tokens().find(|t| {
             let terminal = self.parse.tokens[*t].terminal;
-            terminal != u16::MAX && TERMINALS[terminal as usize].name == name
+            terminal != u16::MAX && terminals()[terminal as usize].name == name
         })
     }
 

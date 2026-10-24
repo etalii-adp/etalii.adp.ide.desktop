@@ -84,3 +84,22 @@ all = { level = "warn", priority = -1 }
 # compiled alike (adp-layout `tests/tiered_force_layout.rs`).
 [profile.dev.package.adp-layout]
 opt-level = 3
+
+# ATD's grammar is built by etalii-lark the first time a description is parsed: unoptimised that takes some 20
+# seconds, longer than a language client waits for the server's first answer (spec 035, T165), so it is optimised in
+# debug builds too, as in release it takes some 2.
+[profile.dev.package.etalii-lark]
+opt-level = 3
+
+[profile.dev.package.regex-automata]
+opt-level = 3
+
+[profile.dev.package.regex-syntax]
+opt-level = 3
+
+[profile.dev.package.fancy-regex]
+opt-level = 3
+
+[profile.dev.package.indexmap]
+opt-level = 3
+

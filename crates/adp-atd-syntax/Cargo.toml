@@ -12,11 +12,9 @@ workspace = true
 
 [dependencies]
 adp-atd-grammar = { path = "../adp-atd-grammar" }
-regex = "1"
+# The parser (research R9, amended 2026-10-24).
+etalii-lark = "0.4.0"
 serde_json = { version = "1", features = ["preserve_order"] }
-
-[build-dependencies]
-adp-atd-grammar = { path = "../adp-atd-grammar" }
 
 [dev-dependencies]
 # The highlighting test tokenizes the examples with the vendored TextMate grammar (FR-052, T097).

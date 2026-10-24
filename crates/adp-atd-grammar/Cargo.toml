@@ -1,6 +1,6 @@
 [package]
 name = "adp-atd-grammar"
-description = "Reads ATD grammar notation and builds LALR(1) tables as Lark does, with the contextual lexer (etalii.adp spec 035, research R9)."
+description = "Reads ATD grammar notation and builds it with etalii-lark: its LALR(1) tables, conflicts and collisions, and the normalized tables (etalii.adp spec 035, research R9)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,8 +11,5 @@ publish = false
 workspace = true
 
 [dependencies]
-adp-cel = { path = "../adp-cel" }
-regex = "1"
-# Two terminals a parser state accepts must not match the same text (ATD §4.7, Lark's strict mode): the check
-# intersects their DFAs.
-regex-automata = "0.4"
+# The Rust port of Lark: the LALR(1) tables, the contextual lexer and the parser (research R9, amended 2026-10-24).
+etalii-lark = "0.4.0"

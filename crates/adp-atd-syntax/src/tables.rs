@@ -1,8 +1,13 @@
-//! The tables of ATD's grammar, built by `build.rs`, and the terminals' matchers.
+//! ATD's grammar, built by `etalii-lark` the first time it is used (etalii.adp spec 035, T165): the parser, its
+//! table, and its terminals and tree nodes as the parser's tree names them.
 
-use std::sync::OnceLock;
+use std::collections::HashMap;
+use std::sync::{Arc, OnceLock};
 
-use regex::Regex;
+use adp_atd_grammar::{Built, Lexer, Options};
+use etalii_lark::Lark;
+
+include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 
 /// A terminal of the grammar.
 #[derive(Debug, Clone, Copy)]
@@ -11,142 +16,132 @@ pub struct TerminalInfo {
     pub name: &'static str,
     pub pattern: bool,
     pub value: &'static str,
-    pub priority: i32,
+    pub priority: i64,
     pub ignored: bool,
     /// A string terminal that spells a name (ATD §3.6).
     pub keyword: bool,
+    /// Its name in Lark's parser.
+    pub lark: &'static str,
 }
 
-/// A rule: its left-hand side (an index into [`NONTERMINALS`]), its length, the name of the tree node it builds (its
-/// alias, else its left-hand side), whether it is a repetition's rule, and whether its node is inlined when it has
-/// one child (`?rule`).
+/// A kind of tree node: its name (a rule's alias, else its name) and whether it is a `?rule`'s, which Lark inlines
+/// when it has one child.
 #[derive(Debug, Clone, Copy)]
-pub struct RuleInfo {
-    pub lhs: u16,
-    pub len: usize,
+pub struct KindInfo {
     pub name: &'static str,
-    pub helper: bool,
     pub inline: bool,
 }
 
-include!(concat!(env!("OUT_DIR"), "/tables.rs"));
-
-/// The action of `state` on `terminal`.
-pub fn action(state: usize, terminal: u16) -> Option<i32> {
-    let row = ACTIONS[state];
-    row.binary_search_by_key(&terminal, |(t, _)| *t).ok().map(|i| row[i].1)
+/// The grammar as the parser uses it.
+pub struct Language {
+    pub lark: Arc<Lark>,
+    /// Lark's lexer over the grammar's terminals, for the text between tokens and the text recovery skips.
+    pub lexer: Lexer,
+    pub terminals: Vec<TerminalInfo>,
+    by_lark: HashMap<&'static str, u16>,
+    pub kinds: Vec<KindInfo>,
+    by_kind: HashMap<&'static str, usize>,
+    /// The state the parser starts in.
+    pub start_state: usize,
 }
 
-/// The state `state` goes to on `nonterminal`.
-pub fn goto(state: usize, nonterminal: u16) -> Option<usize> {
-    let row = GOTOS[state];
-    row.binary_search_by_key(&nonterminal, |(n, _)| *n)
-        .ok()
-        .map(|i| row[i].1 as usize)
+fn leak(text: &str) -> &'static str {
+    Box::leak(text.to_owned().into_boxed_str())
 }
 
-/// The terminals `state` has an action on.
-pub fn acceptable(state: usize) -> impl Iterator<Item = u16> {
-    ACTIONS[state].iter().map(|(t, _)| *t)
-}
-
-/// A terminal by name.
-pub fn terminal(name: &str) -> Option<u16> {
-    TERMINALS.iter().position(|t| t.name == name).map(|i| i as u16)
-}
-
-/// A nonterminal by name.
-pub fn nonterminal(name: &str) -> Option<u16> {
-    NONTERMINALS.iter().position(|n| *n == name).map(|i| i as u16)
-}
-
-/// The anchored matcher of each pattern terminal, by index; `None` for a string terminal.
-pub fn matchers() -> &'static [Option<Regex>] {
-    static MATCHERS: OnceLock<Vec<Option<Regex>>> = OnceLock::new();
-    MATCHERS.get_or_init(|| {
-        TERMINALS
+/// The grammar, built once.
+pub fn language() -> &'static Language {
+    static LANGUAGE: OnceLock<Language> = OnceLock::new();
+    LANGUAGE.get_or_init(|| {
+        let load = |module: &str| {
+            MODULES
+                .iter()
+                .find(|(m, _)| *m == module)
+                .map(|(_, text)| (*text).to_owned())
+        };
+        // The grammar's strictness is checked where its tables are (adp-atd-grammar's tests and etalii.adp's grammar
+        // job); left out here, the parser is built in a tenth of the time, with the same tables.
+        let options = Options {
+            strict: false,
+            keep_all_tokens: true,
+            maybe_placeholders: false,
+        };
+        let Built { lark, lexer, .. } = adp_atd_grammar::build_with_options("atd", "description", &load, options)
+            .unwrap_or_else(|e| panic!("ATD's grammar does not build: {e}"));
+        let ignored = lark.ignore_tokens();
+        let terminals: Vec<TerminalInfo> = lexer
+            .matchers
             .iter()
-            .map(|t| {
-                t.pattern.then(|| {
-                    Regex::new(&format!("^(?:{})", adp_atd_grammar::lexer::to_rust(t.value)))
-                        .expect("a terminal of ATD's grammar compiles")
-                })
+            .map(|m| {
+                let value = leak(m.definition().pattern.value());
+                TerminalInfo {
+                    name: leak(&m.name),
+                    pattern: !m.definition().pattern.is_str(),
+                    value,
+                    priority: m.priority,
+                    ignored: ignored.contains(&m.definition().name),
+                    keyword: m.definition().pattern.is_str()
+                        && value.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'),
+                    lark: leak(&m.definition().name),
+                }
             })
-            .collect()
-    })
-}
-
-/// The terminals the lexer skips between tokens: whitespace and comments.
-pub fn ignored() -> &'static [u16] {
-    static IGNORED: OnceLock<Vec<u16>> = OnceLock::new();
-    IGNORED.get_or_init(|| {
-        (0..TERMINALS.len() as u16)
-            .filter(|t| TERMINALS[*t as usize].ignored)
-            .collect()
-    })
-}
-
-/// Whether a match of `terminal` can start with `byte`.
-fn can_start(terminal: u16, byte: u8) -> bool {
-    let info = &TERMINALS[terminal as usize];
-    if info.pattern {
-        first_bytes()[terminal as usize].is_none_or(|bytes| bytes[byte as usize])
-    } else {
-        info.value.as_bytes().first() == Some(&byte)
-    }
-}
-
-/// The terminals the lexer tries in `state` where the text starts with `byte`: those the state reads and the ignored
-/// ones, without the end of the file, that can start with it. Each state's lists are made the first time the lexer
-/// is in it, so that a token costs the few terminals that can start there rather than every one the state reads.
-pub fn candidates(state: usize, byte: u8) -> &'static [u16] {
-    static BY_STATE: OnceLock<Vec<OnceLock<Vec<Vec<u16>>>>> = OnceLock::new();
-    let states = BY_STATE.get_or_init(|| (0..ACTIONS.len()).map(|_| OnceLock::new()).collect());
-    let lists = states[state].get_or_init(|| {
-        let all: Vec<u16> = acceptable(state)
-            .filter(|t| *t != END)
-            .chain(ignored().iter().copied())
             .collect();
-        (0..=255u8)
-            .map(|byte| all.iter().copied().filter(|t| can_start(*t, byte)).collect())
-            .collect()
-    });
-    &lists[byte as usize]
-}
-
-/// The bytes each pattern terminal's match can start with, by index; `None` for a string terminal, or a pattern
-/// whose automaton was not built (then every byte).
-fn first_bytes() -> &'static [Option<[bool; 256]>] {
-    static FIRST: OnceLock<Vec<Option<[bool; 256]>>> = OnceLock::new();
-    FIRST.get_or_init(|| {
-        TERMINALS
-            .iter()
-            .map(|t| {
-                t.pattern
-                    .then(|| adp_atd_grammar::collisions::first_bytes(t.value))
-                    .flatten()
-            })
-            .collect()
+        let by_lark = terminals.iter().enumerate().map(|(i, t)| (t.lark, i as u16)).collect();
+        let mut kinds: Vec<KindInfo> = Vec::new();
+        for rule in lark.rules() {
+            let (name, inline) = match &rule.alias {
+                Some(alias) => (alias.as_str(), false),
+                None => (&*rule.origin.name, rule.options.expand1),
+            };
+            if !kinds.iter().any(|k| k.name == name) {
+                kinds.push(KindInfo {
+                    name: leak(name),
+                    inline,
+                });
+            }
+        }
+        let by_kind = kinds.iter().enumerate().map(|(i, k)| (k.name, i)).collect();
+        let start_state = lark
+            .parse_table()
+            .and_then(|t| t.start_states.get("description").copied())
+            .expect("a LALR parser starts somewhere");
+        Language {
+            lark,
+            lexer,
+            terminals,
+            by_lark,
+            kinds,
+            by_kind,
+            start_state,
+        }
     })
 }
 
-/// The length of the match of `terminal` at the start of `text`. A pattern is tried only where the text's first byte
-/// can start it: most of a state's patterns cannot, and trying none of them is what keeps lexing linear and fast
-/// (SC-006).
-pub fn match_len(terminal: u16, text: &str) -> Option<usize> {
-    let info = &TERMINALS[terminal as usize];
-    match &matchers()[terminal as usize] {
-        None => {
-            // The first byte rules out nearly every string terminal before a comparison is made.
-            (text.as_bytes().first() == info.value.as_bytes().first() && text.starts_with(info.value))
-                .then_some(info.value.len())
-        }
-        Some(regex) => {
-            let first = *text.as_bytes().first()?;
-            if first_bytes()[terminal as usize].is_some_and(|bytes| !bytes[first as usize]) {
-                return None;
-            }
-            regex.find(text).map(|m| m.end()).filter(|len| *len > 0)
-        }
+impl Language {
+    /// The terminal Lark names `name`.
+    pub fn terminal_of_lark(&self, name: &str) -> Option<u16> {
+        self.by_lark.get(name).copied()
     }
+
+    /// A terminal by its name in the tables (`NAME`, `"}"`).
+    pub fn terminal(&self, name: &str) -> Option<u16> {
+        self.terminals.iter().position(|t| t.name == name).map(|i| i as u16)
+    }
+
+    /// A kind of tree node by its name.
+    pub fn kind(&self, name: &str) -> Option<usize> {
+        self.by_kind.get(name).copied()
+    }
+
+    /// Whether `state` has an action on Lark's terminal `name`.
+    pub fn reads(&self, state: usize, name: &str) -> bool {
+        self.lark
+            .parse_table()
+            .is_some_and(|t| t.states.get(state).is_some_and(|row| row.contains_key(name)))
+    }
+}
+
+/// The grammar's terminals.
+pub fn terminals() -> &'static [TerminalInfo] {
+    &language().terminals
 }

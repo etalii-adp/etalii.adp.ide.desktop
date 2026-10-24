@@ -184,9 +184,7 @@ dependencies = [
 name = "adp-atd-grammar"
 version = "1.0.0"
 dependencies = [
- "adp-cel",
- "regex",
- "regex-automata",
+ "etalii-lark",
 ]
 
 [[package]]
@@ -233,8 +231,8 @@ name = "adp-atd-syntax"
 version = "1.0.0"
 dependencies = [
  "adp-atd-grammar",
+ "etalii-lark",
  "jsonschema",
- "regex",
  "serde_json",
  "syntect",
 ]
@@ -2047,6 +2045,18 @@ name = "error-code"
 version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b5343afd4a8365a643ac588dab4cf234a190c7f6c88c9f6dd6ffe00837661b7"
+
+[[package]]
+name = "etalii-lark"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2185f039f854eafa53ae6fc6bb5f5b77d11962c8611a976b496fa49596bdb97"
+dependencies = [
+ "fancy-regex 0.19.2",
+ "indexmap",
+ "regex-automata",
+ "regex-syntax",
+]
 
 [[package]]
 name = "euclid"
