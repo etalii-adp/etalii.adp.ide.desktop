@@ -4,6 +4,7 @@
 
 pub mod actions;
 pub mod disl;
+pub mod expressions;
 pub mod fbl;
 pub mod script;
 pub mod values;
@@ -37,7 +38,9 @@ pub fn lower_diagram(description: &Description) -> Result<LoweredDiagram, String
         ));
     }
     let members: Vec<&Json> = description.members().collect();
-    Ok(disl::lower(tool, &members))
+    let mut lowered = disl::lower(tool, &members);
+    expressions::as_disl_writes(&mut lowered.specification);
+    Ok(lowered)
 }
 
 /// Lowers a diagram's description and loads it into `adp-disl`, its functions and `extension` actions the script's;

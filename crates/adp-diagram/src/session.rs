@@ -100,6 +100,8 @@ pub struct DiagramSession {
     env: DislEnv,
     /// The module's own view, for a tool type whose module reads, draws and edits its documents itself.
     view: Option<Rc<dyn ModuleView>>,
+    /// What the last operation handed back for the host to carry out (`select`, `editLabel`, …).
+    host_actions: std::cell::RefCell<Vec<HostAction>>,
 }
 
 /// What a gesture a module's own view does not offer answers.
@@ -115,6 +117,7 @@ impl DiagramSession {
             viewport: DiagramViewport::UNBOUNDED,
             env: DislEnv::default(),
             view: None,
+            host_actions: Default::default(),
         }
     }
 
@@ -287,6 +290,13 @@ impl DiagramSession {
         let Ok(document) = self.document(documents) else {
             return Vec::new();
         };
+        // `diagram.file` names the file the document is opened through (DISL section 12.2): its registration, else
+        // its body.
+        let file = document.registration_path().unwrap_or(document.body_path());
+        document
+            .model()
+            .diagram
+            .set_file(file.file_name().and_then(|n| n.to_str()));
         // What the reader could not read: a body that does not parse is the specification's `std.unparseable`, and a
         // body whose reader plugin the host lacks is a problem of its own.
         let mut reader_findings: Vec<DislReaderFinding> = document
@@ -1484,6 +1494,14 @@ impl DiagramSession {
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
         let working = builder::from(document.fbl(), specification).diagram;
+        // `self.view` reads this viewer's view state (DISL section 12.2), the module's to give.
+        if let Some(module) = &document.tool().module {
+            for node in working.nodes() {
+                if let Some(view) = module.view_of(document, &node) {
+                    node.set_view(Some(view));
+                }
+            }
+        }
         let element = match target {
             ActionTarget::Element(id) => working.element_by_id(id),
             _ => None,
@@ -1558,7 +1576,26 @@ impl DiagramSession {
                 }
             }
         }
+        // A `view` action sets this viewer's view state, which is the module's to keep; nothing is written.
+        if transaction.refusal.is_none()
+            && let Some(module) = &document.tool().module
+        {
+            for action in &transaction.host_actions {
+                if let HostAction::View { element_id, values } = action
+                    && let Some(element) = document.element(element_id)
+                {
+                    module.set_view(document, &element, values);
+                }
+            }
+        }
+        *self.host_actions.borrow_mut() = transaction.host_actions.clone();
         self.write(workspace, &entry.label, transaction)
+    }
+
+    /// What the last operation that ran handed back for the host to carry out, in order: the selection to make, the
+    /// label to edit inline, the layout to run.
+    pub fn take_host_actions(&self) -> Vec<HostAction> {
+        std::mem::take(&mut *self.host_actions.borrow_mut())
     }
 }
 

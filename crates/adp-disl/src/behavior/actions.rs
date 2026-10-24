@@ -329,6 +329,33 @@ impl<'a> ActionRunner<'a> {
                 });
                 true
             }
+            "view" => {
+                let self_value = variables.get("self").cloned().unwrap_or(Value::Null);
+                let target = match json::get(action, "target") {
+                    Some(target) => match self.value(target, &json::pointer(at, "target"), variables) {
+                        Some(value) => value,
+                        None => return false,
+                    },
+                    None => self_value,
+                };
+                let Some(element) = DislElement::from_value(&target) else {
+                    return self.refuse(format!("The view at {at} has no element to view."));
+                };
+                let mut values = Map::default();
+                if let Some(members) = body.as_object() {
+                    for (name, value) in members {
+                        let Some(value) = self.value(value, &json::pointer(&body_at, name), variables) else {
+                            return false;
+                        };
+                        values.insert(name.clone(), value);
+                    }
+                }
+                self.host.push(HostAction::View {
+                    element_id: element.id(),
+                    values,
+                });
+                true
+            }
             "layout" => {
                 self.host.push(HostAction::Layout {
                     algorithm: json::string_of(body, "algorithm").unwrap_or("").to_owned(),

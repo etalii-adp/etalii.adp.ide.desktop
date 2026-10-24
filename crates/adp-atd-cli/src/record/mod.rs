@@ -14,8 +14,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use adp_diagram::problems::{DiagramProblemLocation, DiagramProblemSeverity};
-use adp_diagram::{DiagramDocuments, DiagramElement, DiagramSession, ElementKind};
+use adp_atd_validate::parts::{findings, reading};
 use adp_parity::{Case, Observed};
 use adp_theme::Kind;
 use serde_json::{Map, Value as Json, json};
@@ -31,67 +30,6 @@ struct Seen {
     findings: Vec<Json>,
     drawing: Result<Json, String>,
     read: Option<(Vec<Json>, Vec<Json>)>,
-}
-
-fn attributes(element: &DiagramElement) -> Json {
-    Json::Object(
-        element
-            .attributes
-            .iter()
-            .filter(|(_, v)| !v.is_empty())
-            .map(|(k, v)| (k.clone(), json!(v)))
-            .collect(),
-    )
-}
-
-/// What reading gave: the elements with their parents and attributes, and the relations with their ends.
-fn reading(elements: &[DiagramElement]) -> (Vec<Json>, Vec<Json>) {
-    let (mut nodes, mut relations) = (Vec::new(), Vec::new());
-    for element in elements {
-        match element.kind {
-            ElementKind::Node => nodes.push(json!({
-                "id": element.id, "type": element.element_type, "parent": element.parent,
-                "attributes": attributes(element),
-            })),
-            ElementKind::Relation => relations.push(json!({
-                "id": element.id, "type": element.element_type,
-                "source": element.source.clone().unwrap_or_default(),
-                "target": element.target.clone().unwrap_or_default(),
-                "attributes": attributes(element),
-            })),
-        }
-    }
-    (nodes, relations)
-}
-
-fn findings(session: &DiagramSession, documents: &DiagramDocuments) -> Vec<Json> {
-    session
-        .problems(documents)
-        .into_iter()
-        .map(|problem| {
-            let mut finding = Map::new();
-            finding.insert("rule".into(), json!(problem.rule_id));
-            finding.insert(
-                "severity".into(),
-                json!(match problem.severity {
-                    DiagramProblemSeverity::Error => "error",
-                    DiagramProblemSeverity::Warning => "warning",
-                    DiagramProblemSeverity::Info => "information",
-                }),
-            );
-            match problem.location {
-                Some(DiagramProblemLocation::Element(id)) => {
-                    finding.insert("element".into(), json!(id));
-                }
-                Some(DiagramProblemLocation::Line(line)) => {
-                    finding.insert("line".into(), json!(line));
-                }
-                _ => {}
-            }
-            finding.insert("message".into(), json!(problem.message));
-            Json::Object(finding)
-        })
-        .collect()
 }
 
 /// A gesture's references with the ids of `$N` and `$cN` put in, from the ids the standalone host generated.

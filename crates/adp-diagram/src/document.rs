@@ -659,6 +659,8 @@ pub struct DiagramDocuments {
     /// What the modules that read their documents themselves keep of them, by the key each names
     /// ([`crate::DiagramModule::opens_documents`]).
     modules: HashMap<String, Box<dyn ModuleDocuments>>,
+    /// Whether the documents are working copies held in memory: an edit changes their bytes and writes nothing.
+    in_memory: bool,
 }
 
 /// What a module that reads its documents itself keeps of them in the project's documents
@@ -679,6 +681,15 @@ pub trait ModuleDocuments: Any {
 }
 
 impl DiagramDocuments {
+    /// Documents held in memory only, as a description's runtime holds a conformance case's (etalii.adp spec 035,
+    /// T126): opened with [`DiagramDocuments::open_bytes`], edited without a file being written.
+    pub fn in_memory() -> Self {
+        DiagramDocuments {
+            in_memory: true,
+            ..DiagramDocuments::default()
+        }
+    }
+
     /// Opens the document whose body is at `body_path`, read through `tool`, with the registration at
     /// `registration_path` when there is one; an open document of the same body is shared.
     pub fn open(
@@ -892,6 +903,9 @@ impl DiagramDocuments {
     }
 
     fn write(&mut self, path: &Path, bytes: &[u8]) -> io::Result<()> {
+        if self.in_memory {
+            return Ok(());
+        }
         self.guard.begin(path, bytes);
         let written = adp_documents::text::write_atomically(path, bytes);
         self.guard.end(path);
