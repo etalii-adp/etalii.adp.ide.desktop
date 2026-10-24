@@ -1,4 +1,5 @@
-//! `atd`, the command line of ATD (etalii.adp spec 035, contracts/checker.md): `check`, `fmt`, `tree` and `tables`. Exit codes: 0 when there is nothing to report, 1 when there is, 2 on a usage or an I/O error.
+//! `atd`, the command line of ATD (etalii.adp spec 035, contracts/checker.md): `check`, `fmt`, `tree`, `tables` and
+//! `validate`. Exit codes: 0 when there is nothing to report, 1 when there is, 2 on a usage or an I/O error.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -21,6 +22,8 @@ const USAGE: &str = "usage: atd [--spec-dir <dir>] <command> …
   fmt [--check] <path>…                      write files in the canonical layout
   tree <file>                                print a file's abstract tree
   tables [--grammar <file.lark>]             print the normalized parse tables
+  validate [--json] [--case <name>] <root.atd>
+                                             replay the description's conformance cases through its runtime
   record <origin> --cases <dir> [--description <path>]
                                              record a tool type's conformance cases from its parity scripts
   record --capability <name> --cases <dir>   record a capability's fixtures from the code that does it today
@@ -54,6 +57,7 @@ fn main() -> ExitCode {
         "tree" => tree_command(rest),
         "tables" => tables_command(rest, spec_dir.as_deref()),
         "fmt" => fmt_command(rest),
+        "validate" => validate_command(rest),
         "record" => record_command(rest),
         other => usage(&format!("`{other}` is not a command")),
     }
@@ -348,6 +352,84 @@ fn corpus(folder: &Path) -> ExitCode {
     }
     println!("{checked} refused description(s), {failed} with other findings than expected.");
     if failed == 0 && checked > 0 {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::from(1)
+    }
+}
+
+/// `atd validate`: each case beside the description replayed through its runtime (ATD §2.3), each difference
+/// reported as `ATD9001` at the construct that produced the value; exit code 1 when a case does not pass.
+fn validate_command(args: &[String]) -> ExitCode {
+    let json = args.iter().any(|a| a == "--json");
+    let case = args.iter().position(|a| a == "--case").map(|i| args.get(i + 1));
+    if case == Some(None) {
+        return usage("--case needs a case's name");
+    }
+    let case = case.flatten();
+    let Some(root) = args
+        .iter()
+        .enumerate()
+        .find(|(i, a)| !a.starts_with("--") && args.get(i.wrapping_sub(1)).is_none_or(|p| p != "--case"))
+        .map(|(_, a)| Path::new(a))
+    else {
+        return usage("validate needs a description's root");
+    };
+    let folders: Vec<PathBuf> = adp_atd_validate::cases_of(root)
+        .into_iter()
+        .filter(|f| case.is_none_or(|c| f.file_name().is_some_and(|n| n == c.as_str())))
+        .collect();
+    if folders.is_empty() {
+        return usage(&match case {
+            Some(case) => format!("{} has no case '{case}'", root.display()),
+            None => format!("{} has no conformance cases", root.display()),
+        });
+    }
+    let mut cases = Vec::new();
+    for folder in &folders {
+        match adp_atd_validate::read_case(folder) {
+            Ok(case) => cases.push(case),
+            Err(problem) => return usage(&problem),
+        }
+    }
+    let checked = check(&FsFiles, root);
+    let host = adp_atd_runtime::RuntimeHost::default();
+    let results = match adp_atd_validate::validate_description(&checked, &host, &cases) {
+        Ok(results) => results,
+        Err(problem) => {
+            for finding in &checked.findings {
+                eprintln!("{}", finding.to_line());
+            }
+            eprintln!("atd validate: {problem}");
+            return ExitCode::from(1);
+        }
+    };
+    if json {
+        let at = |at: &adp_atd_validate::At| {
+            serde_json::json!({
+                "file": at.file, "line": at.line, "column": at.column,
+                "endLine": at.end_line, "endColumn": at.end_column,
+            })
+        };
+        let cases: Vec<Value> = results.iter().map(|r| r.json(&at)).collect();
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&serde_json::json!({ "cases": cases })).unwrap_or_default()
+        );
+    } else {
+        for result in &results {
+            for difference in &result.differences {
+                let place = difference
+                    .at
+                    .as_ref()
+                    .map_or_else(|| root.display().to_string(), ToString::to_string);
+                println!("{place}: error ATD9001: case '{}', {}", result.name, difference.what());
+            }
+        }
+        let passed = results.iter().filter(|r| r.passed()).count();
+        println!("{passed} of {} case(s) passed.", results.len());
+    }
+    if results.iter().all(adp_atd_validate::CaseResult::passed) {
         ExitCode::SUCCESS
     } else {
         ExitCode::from(1)
