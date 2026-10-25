@@ -20,6 +20,7 @@
 //! knows no file format.
 
 pub mod header;
+pub mod options;
 pub(crate) mod view;
 
 use std::collections::HashMap;
@@ -254,12 +255,12 @@ pub struct TableTab {
     pub header_drag: Option<HeaderDrag>,
     /// A panel of a column's settings, open under its header.
     pub column_panel: Option<ColumnPanel>,
-    /// What the panel's fields hold: a new option's name, an option's name by its id, a relation's other name.
+    /// What the relation panel's field holds: the other side's name.
     pub panel_text: HashMap<String, String>,
+    /// What the options panel holds between frames.
+    pub options_editing: options::OptionsEditing,
     /// The sentence the panel's last change was refused with.
     pub panel_refusal: String,
-    /// The option the options panel asks about deleting, because rows have it.
-    pub panel_asking: Option<String>,
     /// The columns there were before a column was inserted: the one that is new is named at once.
     pub naming_new: Option<Vec<String>>,
     /// The rows ticked to be acted on together, in the order they were ticked.
@@ -319,7 +320,7 @@ impl TableTab {
             column_panel: None,
             panel_text: HashMap::new(),
             panel_refusal: String::new(),
-            panel_asking: None,
+            options_editing: options::OptionsEditing::default(),
             naming_new: None,
             checked: Vec::new(),
             bulk: None,

@@ -16,17 +16,20 @@
 //! nothing, and stores the query under a name ([`narrowing`], T048); a finding stays listed whatever the query hides,
 //! and selecting it takes out of the query the words that hide its node. A reference in a description stands as a
 //! box with its target's number and title and shows the target when selected, and `#` typed in a description opens
-//! the lookup it is picked from ([`references`], T046). A change from outside while a title or a description is being typed shows the file
+//! the lookup it is picked from ([`references`], T046). A label's values are added, taken off and picked from its list,
+//! which is edited in the table's options editor ([`labels`], T047). A change from outside while a title or a description is being typed shows the file
 //! around the field and asks, on a bar over the page, whether to drop the text or keep it (T033).
 //!
 //! It knows no designer type: which type is a level, which an entry, which labels they carry and which operation each
 //! gesture sends are the designer's [`SurfaceDefinition`].
 
 pub mod editing;
+pub mod labels;
 pub mod layout;
 pub mod narrowing;
 pub mod notes;
 pub mod references;
+pub mod search;
 mod view;
 
 #[cfg(test)]
@@ -105,6 +108,8 @@ pub struct HierarchyTab {
     pub deleting: Option<Deleting>,
     /// The list of notes open on a box, from its icon.
     pub notes: Option<NoteList>,
+    /// The list of a label open on a box, from its field, its picker or its control.
+    pub label_list: Option<labels::LabelList>,
     /// The query the filter bar applies, as typed: the page's own, never sent until it is stored.
     pub query: String,
     pub filter_bar: FilterBar,
@@ -155,6 +160,7 @@ impl HierarchyTab {
             hint: None,
             deleting: None,
             notes: None,
+            label_list: None,
             query: String::new(),
             filter_bar: FilterBar::default(),
             next_edit: 0,

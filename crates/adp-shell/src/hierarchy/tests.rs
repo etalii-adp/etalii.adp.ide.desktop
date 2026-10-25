@@ -3091,3 +3091,650 @@ mod references {
         assert!(surface.tab.field.is_none());
     }
 }
+
+/// A label's field and picker, and its list edited (the standalone host's `labels/TagField.test.tsx` and
+/// `classification/ClassificationPicker.test.tsx` at a7fdf03; etalii.adp spec 036, T047).
+mod labels {
+    use super::*;
+    use adp_desl::hierarchy::definition::{
+        LabelEdit, LabelEditOperations, LabelEditWords, LabelPick, LabelPickOperations, ListDeletion, ListParams,
+        PickParams, PickWords,
+    };
+
+    /// Made-up names throughout: the field, the picker and their lists know only what the definition tells them.
+    fn labelled() -> SurfaceDefinition {
+        let mut definition = definition();
+        let mut marks = label("marks", "~", true, &["Section", "Point"]);
+        marks.edit = Some(LabelEdit {
+            operations: LabelEditOperations {
+                add: "mark".into(),
+                remove: "unmark".into(),
+                rename: "rebrand".into(),
+                recolour: "tint".into(),
+                reorder: "shuffle".into(),
+                delete: "erase".into(),
+            },
+            params: ListParams {
+                name: "word".into(),
+                colour: "hue".into(),
+                after: "behind".into(),
+            },
+            words: LabelEditWords {
+                list: "Marks".into(),
+                add: "Add mark".into(),
+                remove: "Unmark".into(),
+            },
+            deletion: ListDeletion {
+                threshold: 1,
+                message: "{count} things carry ~{name}. Erase it?".into(),
+            },
+        });
+        let mut phase = label("phase", "phase:", false, &["Point"]);
+        phase.pick = Some(LabelPick {
+            operations: LabelPickOperations {
+                set: "stage".into(),
+                clear: "unstage".into(),
+                add: "coin".into(),
+                rename: "rebrand".into(),
+                recolour: "tint".into(),
+                reorder: "shuffle".into(),
+                delete: "erase".into(),
+            },
+            params: PickParams {
+                value: "phase".into(),
+                list: ListParams {
+                    name: "word".into(),
+                    colour: "hue".into(),
+                    after: "behind".into(),
+                },
+            },
+            words: PickWords {
+                list: "Phases".into(),
+                value: "Phase".into(),
+                clear: "No phase".into(),
+            },
+            deletion: ListDeletion {
+                threshold: 1,
+                message: "{count} points are {name}. Erase it?".into(),
+            },
+        });
+        definition.labels = vec![marks, phase];
+        definition
+    }
+
+    fn option(id: &str, name: &str, colour: &str) -> SurfaceOption {
+        SurfaceOption {
+            id: id.into(),
+            name: name.into(),
+            colour: colour.into(),
+            implicit: false,
+        }
+    }
+
+    fn carrying(mut node: SurfaceNode, marks: &[&str], phase: &[&str]) -> SurfaceNode {
+        node.labels = vec![
+            LabelValues {
+                label: "marks".into(),
+                values: marks.iter().map(|m| (*m).to_owned()).collect(),
+            },
+            LabelValues {
+                label: "phase".into(),
+                values: phase.iter().map(|p| (*p).to_owned()).collect(),
+            },
+        ];
+        node
+    }
+
+    /// The section 1 holds the points 2, 3 and 4; 1 carries fast, 2 carries fast and cheap, spelt as the list does
+    /// not, and is DONE, spelt as the list does not either; 3 carries nothing, and 4 is done.
+    fn model(read_only: bool) -> SurfaceModel {
+        SurfaceModel {
+            title: "Marks".into(),
+            cause: causes::OPEN.into(),
+            read_only_reason: if read_only { "Read only.".into() } else { String::new() },
+            nodes: vec![
+                carrying(level("1", "", "Orders"), &["fast"], &[]),
+                carrying(entry("2", "1", "Take an order"), &["fast", "cheap"], &["DONE"]),
+                carrying(entry("3", "1", "Cancel an order"), &[], &[]),
+                carrying(entry("4", "1", "Refund an order"), &[], &["done"]),
+            ],
+            option_lists: vec![
+                OptionList {
+                    label: "marks".into(),
+                    options: vec![
+                        option("mark/fast", "fast", "green"),
+                        option("mark/cheap", "Cheap", "blue"),
+                        option("mark/slow", "slow", "default"),
+                    ],
+                },
+                OptionList {
+                    label: "phase".into(),
+                    options: vec![
+                        option("phase/draft", "draft", "gray"),
+                        option("phase/done", "done", "green"),
+                        option("phase/gone", "gone", "red"),
+                    ],
+                },
+            ],
+            ..SurfaceModel::default()
+        }
+    }
+
+    fn surface(read_only: bool) -> Surface {
+        Surface::with(model(read_only), labelled(), 1100.0)
+    }
+
+    impl Surface {
+        /// Whether the widget of `role` named `name` has the keyboard.
+        fn keyboard_in(&self, role: Role, name: &str) -> bool {
+            self.nodes
+                .iter()
+                .find(|(_, n)| n.role() == role && n.label() == Some(name))
+                .is_some_and(|(id, _)| {
+                    self.ctx
+                        .memory(|m| m.focused())
+                        .is_some_and(|f| f.accesskit_id() == *id)
+                })
+        }
+
+        /// The widget of `role` named `name` asks for the keyboard, as a screen reader asks.
+        fn ask_focus(&mut self, role: Role, name: &str) {
+            let (id, _) = self
+                .nodes
+                .iter()
+                .find(|(_, n)| n.role() == role && n.label() == Some(name))
+                .expect("it is drawn");
+            let request = egui::accesskit::ActionRequest {
+                action: egui::accesskit::Action::Focus,
+                target_tree: egui::accesskit::TreeId::ROOT,
+                target_node: *id,
+                data: None,
+            };
+            self.frame(vec![egui::Event::AccessKitActionRequest(request)]);
+            self.frame(Vec::new());
+        }
+
+        /// The rows of the open list, in their order, each with whether it is chosen.
+        fn rows(&self) -> Vec<(String, bool)> {
+            let mut rows: Vec<(f64, String, bool)> = self
+                .nodes
+                .values()
+                .filter(|n| n.role() == Role::ListBoxOption)
+                .map(|n| {
+                    (
+                        n.bounds().map_or(0.0, |b| b.y0),
+                        n.label().unwrap_or_default().to_owned(),
+                        n.is_selected() == Some(true),
+                    )
+                })
+                .collect();
+            rows.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            rows.into_iter().map(|(_, name, chosen)| (name, chosen)).collect()
+        }
+
+        /// Opens the field's list of the box numbered `number` from the control among its icons.
+        fn open_list(&mut self, number: &str) {
+            let name = self
+                .nodes
+                .values()
+                .filter(|n| n.role() == Role::TreeItem)
+                .filter_map(|n| n.label())
+                .find(|l| l.starts_with(&format!("{number} ")))
+                .expect("the box is drawn")
+                .to_owned();
+            // The control shows under the pointer.
+            let over = self.half_of(&name, false);
+            self.frame(vec![egui::Event::PointerMoved(over)]);
+            self.click(Role::Button, &format!("Add mark to {number}"));
+            self.frame(Vec::new());
+            self.get(Role::Dialog, &format!("Marks of {number}"));
+        }
+
+        /// Opens the picker of the box named `name` from its value, selecting the box first.
+        fn open_picker(&mut self, name: &str, number: &str, value: &str) {
+            self.click_box(name);
+            self.click(Role::Button, &format!("Phase of {number}: {value}"));
+            self.frame(Vec::new());
+            self.get(Role::Dialog, &format!("Phase of {number}"));
+        }
+
+        /// Opens the editor of the list from the open field's list or picker.
+        fn open_editor(&mut self, list: &str, options: &str) {
+            self.click(Role::Button, &format!("Edit {list}"));
+            self.frame(Vec::new());
+            self.get(Role::Dialog, &format!("Options of {options}"));
+        }
+
+        /// Types `text` in the field named `name` in place of what it holds, and Enter.
+        fn retype(&mut self, name: &str, text: &str) {
+            self.click(Role::TextInput, name);
+            self.key(egui::Key::A, egui::Modifiers::COMMAND);
+            self.type_text(text);
+            self.key(egui::Key::Enter, egui::Modifiers::NONE);
+        }
+
+        /// Presses the page away from every box and list.
+        fn press_outside(&mut self) {
+            self.click_at(egui::pos2(self.window - 20.0, 780.0));
+        }
+
+        fn top_of(&self, role: Role, name: &str) -> (f64, f64) {
+            let at = self.get(role, name).bounds().expect("it has bounds");
+            (at.x0, at.y0)
+        }
+    }
+
+    #[test]
+    fn the_field_shows_the_values_a_node_carries_first_below_the_title_and_the_picker_after_it() {
+        let surface = surface(false);
+
+        let field = surface.get(Role::Button, "Marks of [2]: fast, cheap").bounds().unwrap();
+        let picker = surface.get(Role::Button, "Phase of [2]: DONE").bounds().unwrap();
+        let shown: Vec<&str> = surface
+            .texts
+            .iter()
+            .map(String::as_str)
+            .filter(|t| ["#cheap", "DONE"].contains(t))
+            .collect();
+
+        // The carried spelling, the field first and the picker after it in the same row.
+        assert_eq!(shown, ["#cheap", "DONE"]);
+        assert!(field.x1 < picker.x0 && (field.y0 - picker.y0).abs() < 1.0);
+        let title = surface.get(Role::TreeItem, "[2] Take an order").bounds().unwrap();
+        assert!(field.y0 > title.y0 + LINE_HEIGHT as f64 - 1.0, "below the title");
+    }
+
+    #[test]
+    fn the_way_to_add_a_value_is_among_the_boxs_controls_and_nothing_changes_a_document_that_cannot_be_changed() {
+        let mut surface = surface(false);
+        let at = surface.half_of("[3] Cancel an order", false);
+        surface.frame(vec![egui::Event::PointerMoved(at)]);
+        let control = surface.get(Role::Button, "Add mark to [3]").bounds().unwrap();
+        let notes = surface.get(Role::Button, "New note on [3]").bounds().unwrap();
+        assert!(
+            (control.y0 - notes.y0).abs() < 1.0 || control.x0 == notes.x0,
+            "beside the box's other icons"
+        );
+
+        let mut surface = surface_read_only();
+        surface.frame(vec![egui::Event::PointerMoved(at)]);
+        surface.click_box("[3] Cancel an order");
+        assert!(surface.find(Role::Button, "Add mark to [3]").is_none());
+        assert!(surface.find(Role::Button, "Marks of [2]: fast, cheap").is_none());
+        assert!(surface.drawn("#fast"));
+    }
+
+    fn surface_read_only() -> Surface {
+        surface(true)
+    }
+
+    #[test]
+    fn the_list_has_the_keyboard_searches_and_picks_a_member_with_the_lists_spelling_and_opens_from_the_values_too() {
+        let mut surface = surface(false);
+
+        surface.open_list("[3]");
+        let selected = surface.tab.selected.clone();
+        let focused = surface.keyboard_in(Role::ComboBox, "Add mark to [3]");
+        surface.type_text("CHE");
+        let offered = surface.rows();
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+        surface.ask_focus(Role::Button, "Marks of [2]: fast, cheap");
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+        surface.frame(Vec::new());
+
+        assert_eq!(
+            selected, "3",
+            "opening the list selects its box, as any press on it does"
+        );
+        assert!(focused);
+        assert_eq!(
+            offered,
+            [("Cheap".to_owned(), false), ("Create “CHE”".to_owned(), false)]
+        );
+        assert_eq!(surface.sent(), [sent("mark", "3", &[("word", "Cheap")])]);
+        surface.get(Role::Dialog, "Marks of [2]");
+        assert!(surface.keyboard_in(Role::ComboBox, "Add mark to [2]"));
+    }
+
+    #[test]
+    fn a_value_is_created_from_text_that_names_no_member_as_typed() {
+        let mut surface = surface(false);
+
+        surface.open_list("[3]");
+        surface.type_text("SLOW");
+        let exact = surface.rows();
+        surface.key(egui::Key::A, egui::Modifiers::COMMAND);
+        surface.type_text("brand new");
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+        // Text that names a member in another case is that member, and nothing to create.
+        assert_eq!(exact, [("slow".to_owned(), false)]);
+        assert_eq!(surface.sent(), [sent("mark", "3", &[("word", "brand new")])]);
+    }
+
+    #[test]
+    fn a_value_is_taken_off_by_its_cross_and_by_picking_it_again_with_the_spelling_the_node_carries() {
+        let mut surface = surface(false);
+
+        surface.open_list("[2]");
+        let chosen: Vec<String> = surface.rows().into_iter().filter(|r| r.1).map(|r| r.0).collect();
+        surface.click(Role::Button, "Unmark fast");
+        surface.click(Role::ListBoxOption, "Cheap");
+
+        assert_eq!(chosen, ["fast", "Cheap"]);
+        assert!(
+            surface.keyboard_in(Role::ComboBox, "Add mark to [2]"),
+            "the search keeps the keyboard"
+        );
+        assert_eq!(
+            surface.sent(),
+            [
+                sent("unmark", "2", &[("word", "fast")]),
+                sent("unmark", "2", &[("word", "cheap")])
+            ]
+        );
+    }
+
+    #[test]
+    fn the_list_keeps_its_keys_from_the_page_and_closes_on_escape_and_on_a_press_outside() {
+        let mut surface = surface(false);
+
+        // Delete in the list is not the page's delete of the selected box; Escape closes; so does a press outside.
+        surface.open_list("[2]");
+        surface.ask_focus(Role::Button, "Unmark fast");
+        surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+        // Nothing in the list has the keyboard once its empty part is pressed; the keys are still its own.
+        let corner = surface.get(Role::Dialog, "Marks of [2]").bounds().unwrap();
+        surface.click_at(egui::pos2(corner.x0 as f32 + 3.0, corner.y0 as f32 + 3.0));
+        surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+        surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+        let after_escape = surface.find(Role::Dialog, "Marks of [2]").is_some();
+        surface.open_list("[2]");
+        surface.press_outside();
+
+        assert!(surface.gestures().is_empty());
+        assert!(!after_escape);
+        assert!(surface.find(Role::Dialog, "Marks of [2]").is_none());
+    }
+
+    #[test]
+    fn the_lists_editor_opens_where_the_list_was_its_names_in_one_column() {
+        let mut surface = surface(false);
+
+        surface.open_list("[2]");
+        let list = surface.top_of(Role::Dialog, "Marks of [2]");
+        surface.open_editor("marks", "Marks");
+
+        let editor = surface.top_of(Role::Dialog, "Options of Marks");
+        assert!((list.0 - editor.0).abs() < 1.0 && (list.1 - editor.1).abs() < 1.0);
+        let names: Vec<f64> = ["fast", "Cheap", "slow"]
+            .iter()
+            .map(|o| surface.top_of(Role::TextInput, &format!("Name of {o}")).0)
+            .collect();
+        assert!(
+            names.iter().all(|x| (x - names[0]).abs() < 0.5),
+            "every tag as wide as the widest: {names:?}"
+        );
+        let handle = surface.get(Role::Image, "Move option fast").bounds().unwrap().x1;
+        let widest = ["fast", "Cheap", "slow"]
+            .iter()
+            .map(|o| {
+                surface.ctx.fonts_mut(|f| {
+                    f.layout_no_wrap((*o).to_owned(), egui::FontId::proportional(12.0), egui::Color32::WHITE)
+                        .size()
+                        .x
+                })
+            })
+            .fold(0.0, f32::max);
+        assert!(
+            names[0] - handle >= f64::from(widest + 14.0) - 0.5,
+            "the widest tag fits its column"
+        );
+        assert!(surface.find(Role::Dialog, "Marks of [2]").is_none());
+    }
+
+    #[test]
+    fn a_member_is_renamed_and_recoloured_each_one_gesture_naming_the_member_and_none_is_added_there() {
+        let mut surface = surface(false);
+
+        surface.open_list("[2]");
+        surface.open_editor("marks", "Marks");
+        surface.retype("Name of fast", "quick");
+        surface.click(Role::ComboBox, "Colour of Cheap");
+        surface.click(Role::Button, "Blue");
+        surface.click(Role::ComboBox, "Colour of Cheap");
+        surface.click(Role::Button, "Red");
+
+        assert_eq!(
+            surface.sent(),
+            [
+                sent("rebrand", "mark/fast", &[("word", "quick")]),
+                sent("tint", "mark/cheap", &[("hue", "red")]),
+            ]
+        );
+        assert!(surface.find(Role::TextInput, "New option").is_none());
+    }
+
+    #[test]
+    fn a_member_is_put_in_its_place_as_the_member_it_goes_after_or_first_with_none() {
+        let mut surface = surface(false);
+
+        surface.open_list("[2]");
+        surface.open_editor("marks", "Marks");
+        surface.click(Role::Button, "Move fast down");
+        surface.click(Role::Button, "Move slow up");
+        surface.click(Role::Button, "Move Cheap up");
+
+        assert_eq!(
+            surface.sent(),
+            [
+                sent("shuffle", "mark/fast", &[("behind", "mark/cheap")]),
+                sent("shuffle", "mark/slow", &[("behind", "mark/fast")]),
+                sent("shuffle", "mark/cheap", &[("behind", "")]),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_member_is_dragged_into_its_place_the_list_standing_as_it_would_once_it_is_dropped() {
+        let mut surface = surface(false);
+        surface.open_list("[2]");
+        surface.open_editor("marks", "Marks");
+        let from = surface.centre(Role::Image, "Move option fast");
+        let step =
+            surface.top_of(Role::TextInput, "Name of Cheap").1 - surface.top_of(Role::TextInput, "Name of fast").1;
+
+        let press = |pressed, at| egui::Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        let to = from + egui::vec2(0.0, 2.0 * step as f32);
+        surface.frame(vec![egui::Event::PointerMoved(from)]);
+        surface.frame(vec![press(true, from)]);
+        surface.frame(vec![egui::Event::PointerMoved(from + egui::vec2(0.0, 6.0))]);
+        surface.frame(vec![egui::Event::PointerMoved(to)]);
+        surface.frame(Vec::new());
+        let mut order: Vec<(f64, &str)> = ["fast", "Cheap", "slow"]
+            .iter()
+            .map(|o| (surface.top_of(Role::TextInput, &format!("Name of {o}")).1, *o))
+            .collect();
+        order.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        let sent_while_dragged = surface.gestures().len();
+        surface.frame(vec![press(false, to)]);
+        surface.frame(Vec::new());
+
+        assert_eq!(order.iter().map(|o| o.1).collect::<Vec<_>>(), ["Cheap", "slow", "fast"]);
+        assert_eq!(sent_while_dragged, 0);
+        assert_eq!(
+            surface.sent(),
+            [sent("shuffle", "mark/fast", &[("behind", "mark/slow")])]
+        );
+    }
+
+    #[test]
+    fn a_member_nothing_carries_is_deleted_at_once_and_one_carried_asks_first_in_the_definitions_words() {
+        let mut surface = surface(false);
+
+        surface.open_list("[2]");
+        surface.open_editor("marks", "Marks");
+        surface.click(Role::Button, "Delete slow");
+        let sent_at_once = surface.gestures().len();
+        surface.click(Role::Button, "Delete fast");
+        surface.get(Role::AlertDialog, "Delete fast?");
+        let asked = surface.drawn("2 things carry ~fast. Erase it?");
+        let before = surface.gestures().len();
+        surface.click(Role::Button, "Delete");
+
+        // Two boxes carry fast.
+        assert_eq!(sent_at_once, 1);
+        assert!(asked);
+        assert_eq!(before, 1);
+        assert_eq!(
+            surface.sent(),
+            [sent("erase", "mark/slow", &[]), sent("erase", "mark/fast", &[])]
+        );
+    }
+
+    #[test]
+    fn a_label_of_one_value_shows_it_after_the_others_and_the_way_to_give_one_only_on_the_selected_box() {
+        let mut surface = surface(false);
+        let unselected = surface.find(Role::Button, "Phase of [3]: none").is_some();
+
+        surface.click_box("[3] Cancel an order");
+
+        assert!(!unselected);
+        surface.get(Role::Button, "Phase of [3]: none");
+        assert!(surface.drawn("Phase"));
+        assert!(surface.drawn("DONE"));
+    }
+
+    #[test]
+    fn a_document_that_cannot_change_offers_no_picker_and_still_shows_the_value() {
+        let mut surface = surface(true);
+        surface.click_box("[3] Cancel an order");
+
+        assert!(surface.named(Role::Button).iter().all(|n| !n.starts_with("Phase of")));
+        assert!(surface.drawn("DONE"));
+    }
+
+    #[test]
+    fn a_member_is_picked_from_the_searched_list_as_one_gesture_naming_the_node_and_nothing_for_the_value_it_has() {
+        let mut surface = surface(false);
+
+        surface.open_picker("[2] Take an order", "[2]", "DONE");
+        let focused = surface.keyboard_in(Role::ComboBox, "Phase of [2]");
+        let chosen: Vec<String> = surface.rows().into_iter().filter(|r| r.1).map(|r| r.0).collect();
+        surface.click(Role::ListBoxOption, "done");
+        let closed = surface.find(Role::Dialog, "Phase of [2]").is_none();
+        surface.open_picker("[2] Take an order", "[2]", "DONE");
+        surface.type_text("dr");
+        let offered = surface.rows();
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+        // No offer to create a member here, which the list's editor does.
+        assert!(focused);
+        assert_eq!(chosen, ["done"]);
+        assert!(closed);
+        assert_eq!(offered, [("draft".to_owned(), false)]);
+        assert_eq!(surface.sent(), [sent("stage", "2", &[("phase", "draft")])]);
+    }
+
+    #[test]
+    fn the_arrows_mark_another_member_and_enter_picks_it() {
+        let mut surface = surface(false);
+
+        surface.open_picker("[3] Cancel an order", "[3]", "none");
+        surface.key(egui::Key::ArrowDown, egui::Modifiers::NONE);
+        surface.key(egui::Key::ArrowDown, egui::Modifiers::NONE);
+        surface.key(egui::Key::ArrowUp, egui::Modifiers::NONE);
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+        assert_eq!(surface.sent(), [sent("stage", "3", &[("phase", "done")])]);
+    }
+
+    #[test]
+    fn an_open_list_closes_when_the_document_can_no_longer_be_changed() {
+        let mut surface = surface(false);
+
+        surface.open_list("[2]");
+        surface.outside(model(true), causes::OUTSIDE);
+
+        assert!(surface.find(Role::Dialog, "Marks of [2]").is_none());
+    }
+
+    #[test]
+    fn the_value_is_cleared_and_no_clear_is_offered_without_one() {
+        let mut surface = surface(false);
+
+        surface.open_picker("[2] Take an order", "[2]", "DONE");
+        surface.click(Role::Button, "No phase");
+        surface.open_picker("[3] Cancel an order", "[3]", "none");
+
+        assert_eq!(surface.sent(), [sent("unstage", "2", &[])]);
+        assert!(surface.find(Role::Button, "No phase").is_none());
+    }
+
+    #[test]
+    fn the_picker_keeps_its_keys_from_the_page_and_closes_on_a_press_outside_and_on_its_value() {
+        let mut surface = surface(false);
+
+        surface.open_picker("[2] Take an order", "[2]", "DONE");
+        surface.ask_focus(Role::Button, "No phase");
+        surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+        surface.press_outside();
+        let outside = surface.find(Role::Dialog, "Phase of [2]").is_none();
+        surface.open_picker("[2] Take an order", "[2]", "DONE");
+        surface.click(Role::Button, "Phase of [2]: DONE");
+
+        assert!(surface.gestures().is_empty());
+        assert!(outside);
+        assert!(surface.find(Role::Dialog, "Phase of [2]").is_none());
+    }
+
+    #[test]
+    fn a_member_is_added_on_the_document_and_renamed_recoloured_and_moved_each_one_gesture_naming_it() {
+        let mut surface = surface(false);
+
+        surface.open_picker("[2] Take an order", "[2]", "DONE");
+        surface.open_editor("phases", "Phases");
+        surface.retype("New option", "review");
+        surface.retype("Name of draft", "sketch");
+        surface.click(Role::ComboBox, "Colour of done");
+        surface.click(Role::Button, "Blue");
+        surface.click(Role::Button, "Move gone up");
+
+        assert_eq!(
+            surface.sent(),
+            [
+                sent("coin", "document", &[("word", "review")]),
+                sent("rebrand", "phase/draft", &[("word", "sketch")]),
+                sent("tint", "phase/done", &[("hue", "blue")]),
+                sent("shuffle", "phase/gone", &[("behind", "phase/draft")]),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_member_carried_in_any_case_asks_first_before_it_is_deleted() {
+        let mut surface = surface(false);
+
+        surface.open_picker("[2] Take an order", "[2]", "DONE");
+        surface.open_editor("phases", "Phases");
+        surface.click(Role::Button, "Delete gone");
+        surface.click(Role::Button, "Delete done");
+        surface.get(Role::AlertDialog, "Delete done?");
+        let asked = surface.drawn("2 points are done. Erase it?");
+        let before = surface.gestures().len();
+        surface.click(Role::Button, "Delete");
+
+        // DONE and done are two points.
+        assert!(asked);
+        assert_eq!(before, 1);
+        assert_eq!(
+            surface.sent(),
+            [sent("erase", "phase/gone", &[]), sent("erase", "phase/done", &[])]
+        );
+    }
+}
