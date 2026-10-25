@@ -12,7 +12,9 @@
 //! controls at the end of every level and of the page, or by the selected node's actions and their keys, its title
 //! then open for typing; a title or a description typed where it stands; a node dragged by its grip; and deleted, asking
 //! first when anything concerns it. A box's notes are listed, added, changed, resolved and removed from the icon at its
-//! top right ([`notes`], T042). A change from outside while a title or a description is being typed shows the file
+//! top right ([`notes`], T042). The bar above the page narrows it by a query and sorts each level's entries, writing
+//! nothing, and stores the query under a name ([`narrowing`], T048); a finding stays listed whatever the query hides,
+//! and selecting it takes out of the query the words that hide its node. A change from outside while a title or a description is being typed shows the file
 //! around the field and asks, on a bar over the page, whether to drop the text or keep it (T033).
 //!
 //! It knows no designer type: which type is a level, which an entry, which labels they carry and which operation each
@@ -20,6 +22,7 @@
 
 pub mod editing;
 pub mod layout;
+pub mod narrowing;
 pub mod notes;
 mod view;
 
@@ -36,6 +39,7 @@ use eframe::egui;
 
 use editing::{Attribute, Deleting, DropHint, EntryDrop, OpenField};
 use layout::HierarchyIndex;
+use narrowing::FilterBar;
 use notes::NoteList;
 
 pub use view::show;
@@ -98,6 +102,9 @@ pub struct HierarchyTab {
     pub deleting: Option<Deleting>,
     /// The list of notes open on a box, from its icon.
     pub notes: Option<NoteList>,
+    /// The query the filter bar applies, as typed: the page's own, never sent until it is stored.
+    pub query: String,
+    pub filter_bar: FilterBar,
     next_edit: u64,
     id: egui::Id,
 }
@@ -145,6 +152,8 @@ impl HierarchyTab {
             hint: None,
             deleting: None,
             notes: None,
+            query: String::new(),
+            filter_bar: FilterBar::default(),
             next_edit: 0,
             id: egui::Id::unique(("hierarchy", body.to_path_buf())),
         };
@@ -433,12 +442,18 @@ impl HierarchyTab {
         self.selected = id.to_owned();
     }
 
-    /// Shows the node a finding names: the focus that keeps it in sight, every level above it expanded, selected.
+    /// Shows the node a finding names: the query without the words that hide it, the focus that keeps it in sight,
+    /// every level above it expanded, selected.
     pub fn reveal(&mut self, id: &str) {
         let index = HierarchyIndex::of(&self.model.nodes);
         let Some(plan) = index.reveal_of(id, &self.focus.id, self.fit(), |n| self.is_collapsed(n)) else {
             return;
         };
+        let words = self.words();
+        let unhidden = narrowing::unhiding(&self.model, &index, &words, id);
+        if unhidden.len() != words.len() {
+            self.query = narrowing::query_text(&unhidden);
+        }
         self.set_focus(&plan.focus);
         for level in plan.expand {
             self.toggle(&level);

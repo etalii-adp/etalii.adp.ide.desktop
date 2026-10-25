@@ -175,7 +175,9 @@ impl HierarchyIndex<'_> {
         }
         // The page's first column holds the edge's level, or the top levels for the whole page; the node's level
         // stands as many columns to the right as it is deeper.
-        while levels.len() as isize - 1 - edge.max(0) >= fit as isize {
+        // An unmeasured page fits every level: `usize::MAX` cast as it is would read as -1.
+        let fit = isize::try_from(fit).unwrap_or(isize::MAX);
+        while levels.len() as isize - 1 - edge.max(0) >= fit {
             edge += 1;
         }
         Some(RevealPlan {

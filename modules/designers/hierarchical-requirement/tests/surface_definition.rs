@@ -168,3 +168,125 @@ fn it_asks_before_a_delete_as_the_confirm_of_its_delete_says() {
         .to_owned();
     assert_eq!(defined.deletion.question("REQ-0004", 3), written);
 }
+
+/// The names of the params `operation` of the definition takes, sorted.
+fn params_of(des: &Json, operation: &str) -> Vec<String> {
+    let mut params: Vec<String> = des["operations"][operation]["params"]
+        .as_object()
+        .map(|p| p.keys().cloned().collect())
+        .unwrap_or_default();
+    params.sort_unstable();
+    params
+}
+
+fn sorted(names: &[&String]) -> Vec<String> {
+    let mut names: Vec<String> = names.iter().map(|n| (*n).clone()).collect();
+    names.sort_unstable();
+    names
+}
+
+#[test]
+fn it_edits_the_tags_with_the_tag_operations_its_definition_has_and_asks_before_a_delete_as_its_confirm_says() {
+    let des = specification();
+    let defined = surface::definition();
+    let edited: Vec<&str> = defined
+        .labels
+        .iter()
+        .filter(|l| l.edit.is_some())
+        .map(|l| l.label.as_str())
+        .collect();
+    assert_eq!(edited, ["tags"], "only the tags are edited here");
+    let edit = defined.labels[0].edit.as_ref().unwrap();
+    let (o, p) = (&edit.operations, &edit.params);
+    for (operation, params) in [
+        (&o.add, vec![&p.name]),
+        (&o.remove, vec![&p.name]),
+        (&o.rename, vec![&p.name]),
+        (&o.recolour, vec![&p.colour]),
+        (&o.reorder, vec![&p.after]),
+        (&o.delete, vec![]),
+    ] {
+        assert!(
+            des["operations"].get(operation).is_some(),
+            "{operation} is an operation of the definition"
+        );
+        assert_eq!(params_of(&des, operation), sorted(&params), "{operation}");
+    }
+    assert_eq!(des["operations"][&o.add]["label"], edit.words.add.as_str());
+    assert_eq!(des["operations"][&o.remove]["label"], edit.words.remove.as_str());
+    let confirm = &des["operations"][&o.delete]["confirm"];
+    assert_eq!(confirm["threshold"], edit.deletion.threshold as u64);
+    let written = confirm["message"]["cel"]
+        .as_str()
+        .unwrap()
+        .replace(
+            "string(count) + ' entries carry #' + self.name + '",
+            "'3 entries carry #ux",
+        )
+        .trim_matches('\'')
+        .to_owned();
+    assert_eq!(edit.deletion.question("ux", 3), written);
+}
+
+#[test]
+fn it_picks_the_category_and_the_state_with_the_operations_its_definition_has_and_asks_before_a_delete_as_its_confirm_says()
+ {
+    let des = specification();
+    let defined = surface::definition();
+    let picked: Vec<_> = defined.labels.iter().filter(|l| l.pick.is_some()).collect();
+    assert_eq!(
+        picked.iter().map(|l| l.label.as_str()).collect::<Vec<_>>(),
+        ["category", "state"]
+    );
+    for label in picked {
+        let pick = label.pick.as_ref().unwrap();
+        let (o, p, w) = (&pick.operations, &pick.params, &pick.words);
+        assert_eq!(p.value, label.label);
+        for (operation, params) in [
+            (&o.set, vec![&p.value]),
+            (&o.clear, vec![]),
+            (&o.add, vec![&p.list.name, &p.list.colour]),
+            (&o.rename, vec![&p.list.name]),
+            (&o.recolour, vec![&p.list.colour]),
+            (&o.reorder, vec![&p.list.after]),
+            (&o.delete, vec![]),
+        ] {
+            assert!(
+                des["operations"].get(operation).is_some(),
+                "{operation} is an operation of the definition"
+            );
+            assert_eq!(params_of(&des, operation), sorted(&params), "{operation}");
+        }
+        assert_eq!(des["operations"][&o.set]["label"], w.value.as_str());
+        assert_eq!(des["operations"][&o.clear]["label"], w.clear.as_str());
+        assert_eq!(label.value_word(), w.value);
+        let confirm = &des["operations"][&o.delete]["confirm"];
+        assert_eq!(confirm["threshold"], pick.deletion.threshold as u64);
+        let written = confirm["message"]["cel"]
+            .as_str()
+            .unwrap()
+            .replace(
+                "string(count) + ' requirements are ' + self.name + '",
+                "'3 requirements are draft",
+            )
+            .trim_matches('\'')
+            .to_owned();
+        assert_eq!(pick.deletion.question("draft", 3), written, "{}", label.label);
+    }
+}
+
+#[test]
+fn it_stores_renames_and_removes_filters_with_the_operations_its_definition_has_and_sorts_by_the_keys_of_its_notation()
+{
+    let des = specification();
+    let defined = surface::definition();
+    let filters = defined.filters.as_ref().unwrap();
+    let (o, p) = (&filters.operations, &filters.params);
+    assert_eq!(des["surface"]["filters"]["type"], "Filter");
+    assert_eq!(params_of(&des, &o.store), sorted(&[&p.name, &p.query]));
+    assert_eq!(params_of(&des, &o.rename), sorted(&[&p.name]));
+    assert!(des["operations"].get(&o.remove).is_some());
+    assert_eq!(params_of(&des, &o.remove), Vec::<String>::new());
+    let keys: Vec<&str> = filters.sort_keys.iter().map(|k| k.key.as_str()).collect();
+    assert_eq!(keys, ["number", "title"]);
+}

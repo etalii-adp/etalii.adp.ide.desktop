@@ -170,6 +170,8 @@ fn label(label: &str, prefix: &str, many: bool, on: &[&str]) -> LabelDefinition 
         many,
         look: None,
         on: on.iter().map(|t| (*t).to_owned()).collect(),
+        edit: None,
+        pick: None,
     }
 }
 
@@ -235,6 +237,7 @@ fn definition() -> SurfaceDefinition {
             threshold: 1,
             message: "Drop {number}? {count} things concern it.".into(),
         },
+        filters: None,
         widths: None,
         shortcut_keys: vec!["Enter".into()],
     }
@@ -323,6 +326,11 @@ impl Surface {
 
     /// A page `width` points wide, as `pageWidth` gives the standalone test's.
     fn at(model: SurfaceModel, width: f32) -> Surface {
+        Surface::with(model, definition(), width)
+    }
+
+    /// A page `width` points wide drawn by `definition`.
+    fn with(model: SurfaceModel, definition: SurfaceDefinition, width: f32) -> Surface {
         let gestures = Rc::new(RefCell::new(Vec::new()));
         let script = Rc::new(RefCell::new(Script::default()));
         let session = Recorder {
@@ -332,7 +340,7 @@ impl Surface {
             changes: Vec::new(),
         };
         let path = Path::new("requirements.md");
-        let tab = HierarchyTab::with_session(path, path, Box::new(session), definition());
+        let tab = HierarchyTab::with_session(path, path, Box::new(session), definition);
         let ctx = egui::Context::default();
         theme::install(&ctx);
         ctx.set_theme(egui::Theme::Dark);
@@ -1938,4 +1946,806 @@ fn a_document_that_cannot_change_only_shows_its_notes() {
             .count()
             == 0
     );
+}
+
+// ---- Revealing a node (the standalone host's `references/reveal.test.ts` at a7fdf03; T044) ----
+
+/// 1 holds 2, which holds 3, which holds 4, which holds the entry 5; 6 stands beside 1 and holds the entry 7. 2 and 4
+/// are collapsed.
+fn deep() -> Vec<SurfaceNode> {
+    let mut nodes = vec![
+        level("1", "", "1"),
+        level("2", "1", "2"),
+        level("3", "2", "3"),
+        level("4", "3", "4"),
+        entry("5", "4", "5"),
+        level("6", "", "6"),
+        entry("7", "6", "7"),
+    ];
+    nodes[1].collapsed = true;
+    nodes[3].collapsed = true;
+    nodes
+}
+
+fn revealed(target: &str, focused: &str, fit: usize) -> Option<(String, Vec<String>)> {
+    let nodes = deep();
+    let index = HierarchyIndex::of(&nodes);
+    index
+        .reveal_of(target, focused, fit, |n| n.collapsed)
+        .map(|plan| (plan.focus, plan.expand))
+}
+
+#[test]
+fn a_reveal_keeps_the_focus_when_the_node_is_inside_it_and_fits_and_expands_every_collapsed_level_above_it() {
+    // 2 is the focus and collapsed, so it is expanded too.
+    assert_eq!(
+        revealed("5", "2", usize::MAX),
+        Some(("2".into(), vec!["2".into(), "4".into()]))
+    );
+}
+
+#[test]
+fn a_reveal_moves_the_focus_to_the_deepest_level_the_node_shares_with_it_and_to_the_whole_page_when_they_share_none() {
+    let focus = |target, focused| revealed(target, focused, usize::MAX).unwrap().0;
+    assert_eq!(focus("5", "6"), "");
+    assert_eq!(focus("7", "4"), "");
+    assert_eq!(focus("3", "4"), "3");
+}
+
+#[test]
+fn a_reveal_moves_the_focus_down_only_as_far_as_the_nodes_level_needs_to_fit_the_page() {
+    // 5 stands in 4, the fourth level; two columns show 3 and 4, one column 4 alone.
+    let focus = |target, focused, fit| revealed(target, focused, fit).unwrap().0;
+    assert_eq!(focus("5", "", 2), "3");
+    assert_eq!(focus("5", "1", 1), "4");
+    assert_eq!(focus("5", "2", 3), "2");
+    assert_eq!(focus("1", "", 1), "");
+}
+
+#[test]
+fn a_reveal_asks_for_nothing_to_be_expanded_when_nothing_hides_the_node_and_shows_no_node_the_document_lacks() {
+    assert_eq!(revealed("7", "", usize::MAX), Some((String::new(), Vec::new())));
+    assert_eq!(revealed("99", "", usize::MAX), None);
+}
+
+// ---- The query (the standalone host's `narrowing/filterQuery.test.ts` at a7fdf03; T044, T048) ----
+
+mod query {
+    use super::*;
+    use crate::hierarchy::narrowing::*;
+
+    /// Made-up names throughout: the query knows only the prefixes the definition gives its labels.
+    fn labels() -> Vec<LabelDefinition> {
+        vec![
+            label("marks", "~", true, &["Section", "Point"]),
+            label("k", "k", false, &["Point"]),
+            label("kind", "kind:", false, &["Point"]),
+            label("phase", "phase:", false, &["Point"]),
+        ]
+    }
+
+    fn values(label: &str, values: &[&str]) -> LabelValues {
+        LabelValues {
+            label: label.into(),
+            values: values.iter().map(|v| (*v).to_owned()).collect(),
+        }
+    }
+
+    fn point(id: &str, parent: &str, role: &str, title: &str, marks: &[&str], kind: &str, phase: &str) -> SurfaceNode {
+        let mut node = node(id, role, "", parent, title);
+        node.number = if role == roles::LEVEL {
+            format!("S-{id}")
+        } else {
+            format!("P-{id}")
+        };
+        let one = |v: &&str| if v.is_empty() { 0 } else { 1 };
+        node.labels = vec![
+            values("marks", marks),
+            values("kind", &[kind][..one(&kind)]),
+            values("phase", &[phase][..one(&phase)]),
+        ];
+        node
+    }
+
+    /// Two top sections, Backend (1) and Frontend (5); Backend holds the points 2 and 3 and the section Billing (4)
+    /// with the point 9; Frontend, which carries safe, holds the points 6 and 10. The numbers sort as 2, 3, 9, 10, not
+    /// as text.
+    fn model() -> SurfaceModel {
+        let (l, e) = (roles::LEVEL, roles::ENTRY);
+        SurfaceModel {
+            nodes: vec![
+                point("1", "", l, "Backend", &[], "", ""),
+                point("3", "1", e, "Store an order", &["Fast"], "rule", "done"),
+                point("2", "1", e, "audit an order", &["safe"], "goal", ""),
+                point("4", "1", l, "Billing", &[], "", ""),
+                point("9", "4", e, "Charge a card", &["safe", "fast"], "", "draft"),
+                point("5", "", l, "Frontend", &["safe"], "", ""),
+                point("10", "5", e, "Show an order", &["fast"], "goal", "draft"),
+                point("6", "5", e, "Book a slot", &[], "rule", "done"),
+            ],
+            option_lists: vec![OptionList {
+                label: "phase".into(),
+                options: ["draft", "done"]
+                    .iter()
+                    .map(|name| SurfaceOption {
+                        id: format!("phase/{name}"),
+                        name: (*name).into(),
+                        colour: "gray".into(),
+                        implicit: false,
+                    })
+                    .collect(),
+            }],
+            ..SurfaceModel::default()
+        }
+    }
+
+    /// The titles the query leaves on the page, in the file's order.
+    fn shown_in(page: &SurfaceModel, query: &str) -> Vec<String> {
+        let index = HierarchyIndex::of(&page.nodes);
+        let narrowing = Narrowing::of(page, &index, &parse_query(query, &labels()));
+        page.nodes
+            .iter()
+            .filter(|n| narrowing.shows(n))
+            .map(|n| n.title.clone())
+            .collect()
+    }
+
+    fn shown(query: &str) -> Vec<String> {
+        shown_in(&model(), query)
+    }
+
+    /// The titles of the entries of `level` in the query's order.
+    fn ordered_in(page: &SurfaceModel, query: &str, level: &str) -> Vec<String> {
+        let index = HierarchyIndex::of(&page.nodes);
+        let narrowing = Narrowing::of(page, &index, &parse_query(query, &labels()));
+        let entries = page
+            .nodes
+            .iter()
+            .filter(|n| n.parent_id == level && n.role == roles::ENTRY)
+            .collect();
+        narrowing.order(entries).iter().map(|n| n.title.clone()).collect()
+    }
+
+    fn ordered(query: &str, level: &str) -> Vec<String> {
+        ordered_in(&model(), query, level)
+    }
+
+    #[test]
+    fn a_query_reads_each_word_by_the_longest_prefix_that_fits_it_and_knows_the_item_and_sort_words_in_any_case() {
+        let words = parse_query("  ~fast kind:rule kx ITEM:back* Sort:Phase plain ", &labels());
+
+        // kind: is not the k label followed by ind:rule; a prefix alone is no word of its label.
+        let read: Vec<String> = words
+            .iter()
+            .map(|w| format!("{:?} {} {}", w.kind, w.label, w.value))
+            .collect();
+        assert_eq!(
+            read,
+            [
+                "Label marks fast",
+                "Label kind rule",
+                "Label k x",
+                "Item  back*",
+                "Sort  phase",
+                "Unknown  plain"
+            ]
+        );
+        let alone: Vec<WordKind> = parse_query("~ item:", &labels()).iter().map(|w| w.kind).collect();
+        assert_eq!(alone, [WordKind::Unknown, WordKind::Unknown]);
+        assert_eq!(query_text(&words), "~fast kind:rule kx ITEM:back* Sort:Phase plain");
+    }
+
+    #[test]
+    fn a_query_counts_the_first_sort_word_and_changes_the_sort_in_its_place_or_adds_it_last_or_takes_every_one_out() {
+        let words = parse_query("~fast sort:title kind:goal sort:number", &labels());
+
+        assert_eq!(sort_of(&words), "title");
+        assert_eq!(query_text(&with_sort(&words, "phase")), "~fast sort:phase kind:goal");
+        assert_eq!(
+            query_text(&with_sort(&parse_query("~fast", &labels()), "number")),
+            "~fast sort:number"
+        );
+        assert_eq!(query_text(&with_sort(&words, "")), "~fast kind:goal");
+    }
+
+    #[test]
+    fn narrowing_leaves_everything_when_the_query_is_empty_or_only_sorts() {
+        assert_eq!(shown("").len(), 8);
+        assert_eq!(shown("sort:title").len(), 8);
+        let page = model();
+        let index = HierarchyIndex::of(&page.nodes);
+        assert!(!Narrowing::of(&page, &index, &parse_query("sort:title", &labels())).narrows);
+    }
+
+    #[test]
+    fn narrowing_leaves_the_entries_that_carry_a_tag_in_any_case_with_the_levels_that_contain_them() {
+        assert_eq!(
+            shown("~FAST"),
+            [
+                "Backend",
+                "Store an order",
+                "Billing",
+                "Charge a card",
+                "Frontend",
+                "Show an order"
+            ]
+        );
+    }
+
+    #[test]
+    fn narrowing_takes_the_words_of_one_label_as_alternatives_and_combines_the_labels() {
+        // Safe or fast, and goal; then draft, and the kind of 9 is none, so it goes.
+        assert_eq!(
+            shown("~safe ~fast kind:goal"),
+            ["Backend", "audit an order", "Frontend", "Show an order"]
+        );
+        assert_eq!(shown("kind:rule kind:goal phase:draft"), ["Frontend", "Show an order"]);
+    }
+
+    #[test]
+    fn narrowing_narrows_by_state_and_by_category_alone() {
+        let expected = ["Backend", "Store an order", "Frontend", "Book a slot"];
+        assert_eq!(shown("phase:done"), expected);
+        assert_eq!(shown("kind:Rule"), expected);
+    }
+
+    #[test]
+    fn narrowing_selects_levels_by_a_title_pattern_of_star_and_question_mark_in_any_case_with_everything_in_them_and_keeps_the_levels_above()
+     {
+        // Billing stays with Backend above it; b?ck* is Backend alone.
+        assert_eq!(shown("item:bill*"), ["Backend", "Billing", "Charge a card"]);
+        assert_eq!(
+            shown("item:B?CK*"),
+            [
+                "Backend",
+                "Store an order",
+                "audit an order",
+                "Billing",
+                "Charge a card"
+            ]
+        );
+        assert!(shown("item:end").is_empty());
+        assert!(shown("item:?lling").is_empty());
+    }
+
+    #[test]
+    fn narrowing_combines_a_pattern_with_the_labels_the_entries_that_carry_them_in_the_levels_it_selects() {
+        assert_eq!(
+            shown("item:back* ~fast"),
+            ["Backend", "Store an order", "Billing", "Charge a card"]
+        );
+        assert_eq!(
+            shown("item:billing item:frontend phase:draft"),
+            ["Backend", "Billing", "Charge a card", "Frontend", "Show an order"]
+        );
+    }
+
+    #[test]
+    fn narrowing_leaves_nothing_for_a_value_no_entry_carries() {
+        assert!(shown("~none").is_empty());
+    }
+
+    #[test]
+    fn sorting_keeps_the_files_order_without_a_sort_and_sorts_by_number_as_numbers_and_by_title_in_any_case() {
+        assert_eq!(ordered("", "5"), ["Show an order", "Book a slot"]);
+        assert_eq!(ordered("sort:number", "5"), ["Book a slot", "Show an order"]);
+        assert_eq!(ordered("sort:title", "1"), ["audit an order", "Store an order"]);
+    }
+
+    #[test]
+    fn sorting_by_a_label_of_one_value_follows_its_lists_order_those_without_a_value_last_and_keeps_the_files_order_of_equals()
+     {
+        // A third Frontend point without a phase, and a fourth that is done.
+        let mut page = model();
+        page.nodes
+            .push(point("11", "5", roles::ENTRY, "Undo a slot", &[], "", ""));
+        page.nodes
+            .push(point("12", "5", roles::ENTRY, "Rebook a slot", &[], "", "done"));
+
+        assert_eq!(
+            ordered_in(&page, "sort:phase", "5"),
+            ["Show an order", "Book a slot", "Rebook a slot", "Undo a slot"]
+        );
+    }
+
+    #[test]
+    fn sorting_keeps_the_files_order_for_a_key_it_does_not_know() {
+        assert_eq!(ordered("sort:colour", "5"), ["Show an order", "Book a slot"]);
+    }
+
+    fn unhidden(query: &str, node: &str) -> String {
+        let page = model();
+        let index = HierarchyIndex::of(&page.nodes);
+        query_text(&unhiding(&page, &index, &parse_query(query, &labels()), node))
+    }
+
+    #[test]
+    fn unhiding_keeps_a_query_that_already_shows_the_node() {
+        assert_eq!(unhidden("~fast sort:title", "3"), "~fast sort:title");
+        assert_eq!(unhidden("~fast", "1"), "~fast");
+    }
+
+    #[test]
+    fn unhiding_drops_only_the_words_that_hide_it_the_labels_it_does_not_carry_and_the_patterns_it_stands_outside() {
+        // 6 is a rule, done, without marks, in Frontend.
+        assert_eq!(unhidden("~fast kind:rule sort:number", "6"), "kind:rule sort:number");
+        assert_eq!(unhidden("item:back* phase:done", "6"), "phase:done");
+        assert_eq!(unhidden("item:front* ~fast ~safe", "2"), "~fast ~safe");
+    }
+
+    #[test]
+    fn unhiding_drops_every_label_word_for_a_level_which_holds_no_entry_that_stays() {
+        assert_eq!(unhidden("item:front* ~none sort:title", "1"), "sort:title");
+        assert_eq!(unhidden("item:back* ~none", "4"), "item:back*");
+        assert_eq!(unhidden("~safe", "5"), "");
+    }
+
+    fn sort_keys() -> Vec<adp_desl::hierarchy::definition::SortKey> {
+        vec![adp_desl::hierarchy::definition::SortKey {
+            key: "number".into(),
+            label: "By number".into(),
+        }]
+    }
+
+    fn offered(typed: &str) -> Vec<String> {
+        completions_of(typed, &labels(), &model().option_lists, &sort_keys())
+            .into_iter()
+            .map(|c| c.word)
+            .collect()
+    }
+
+    #[test]
+    fn completing_finds_the_word_the_caret_stands_in_and_what_of_it_is_typed() {
+        assert_eq!(
+            word_at("~fast pha sort:number", 8),
+            WordAt {
+                start: 6,
+                end: 9,
+                typed: "ph".into()
+            }
+        );
+    }
+
+    #[test]
+    fn completing_offers_the_members_of_a_labels_list_with_its_prefix_in_any_case_then_the_prefixes_and_the_sort_keys_that_fit()
+     {
+        assert_eq!(offered("PHASE:D"), ["phase:draft", "phase:done"]);
+        assert_eq!(offered("so"), ["sort:", "sort:number"]);
+    }
+
+    #[test]
+    fn completing_writes_the_whole_word_the_caret_stands_in_a_space_after_a_word_and_none_after_a_prefix() {
+        let labels = labels();
+        let at = |text: &str, caret, completion| completed(text, &word_at(text, caret), completion, &labels);
+
+        // The caret inside a word takes the whole word; what follows is parted from a prefix by one space.
+        assert_eq!(at("~fxst", 2, "~fast"), ("~fast ".into(), 6));
+        assert_eq!(at("ph   item:x", 2, "phase:"), ("phase: item:x".into(), 6));
+        assert_eq!(at("~safe so", 8, "sort:"), ("~safe sort:".into(), 11));
+    }
+
+    #[test]
+    fn completing_offers_the_prefixes_for_nothing_typed_and_nothing_again_for_a_word_written_in_full() {
+        assert_eq!(offered(""), ["~", "k", "kind:", "phase:", "item:", "sort:"]);
+        assert!(offered("phase:done").is_empty());
+    }
+}
+
+// ---- The filter bar (the standalone host's `narrowing/FilterBar.test.tsx` at a7fdf03; T044, T048) ----
+
+mod filter_bar {
+    use super::*;
+    use adp_desl::hierarchy::definition::{FilterOperations, FilterParams, Filters, SortKey};
+    use adp_desl::hierarchy::model::SurfaceFilter;
+
+    /// The page's definition with a filter bar; made-up names throughout: the bar knows only what the definition
+    /// tells it.
+    fn filtered() -> SurfaceDefinition {
+        SurfaceDefinition {
+            labels: vec![
+                label("marks", "~", true, &["Section", "Point"]),
+                label("phase", "phase:", false, &["Point"]),
+            ],
+            filters: Some(Filters {
+                operations: FilterOperations {
+                    store: "keep".into(),
+                    rename: "relabel".into(),
+                    remove: "forget".into(),
+                },
+                params: FilterParams {
+                    name: "called".into(),
+                    query: "words".into(),
+                },
+                sort_keys: vec![SortKey {
+                    key: "number".into(),
+                    label: "By number".into(),
+                }],
+                entries: "points".into(),
+            }),
+            ..definition()
+        }
+    }
+
+    fn point(id: &str, parent: &str, role: &str, title: &str, marks: &[&str], phase: &str) -> SurfaceNode {
+        let mut node = node(id, role, "", parent, title);
+        let phases: &[&str] = if phase.is_empty() {
+            &[]
+        } else {
+            std::slice::from_ref(&phase)
+        };
+        node.labels = [("marks", marks), ("phase", phases)]
+            .iter()
+            .map(|(label, values)| LabelValues {
+                label: (*label).into(),
+                values: values.iter().map(|v| (*v).to_owned()).collect(),
+            })
+            .collect();
+        node
+    }
+
+    /// Orders (1) holds 3, 2 and Refunds (4) with 5; Stock (6) holds 7. Two of four points carry fast; one filter is
+    /// stored.
+    fn model() -> SurfaceModel {
+        let (l, e) = (roles::LEVEL, roles::ENTRY);
+        let phase = |name: &str, colour: &str| SurfaceOption {
+            id: format!("phase/{name}"),
+            name: name.into(),
+            colour: colour.into(),
+            implicit: false,
+        };
+        SurfaceModel {
+            title: "Points".into(),
+            cause: causes::OPEN.into(),
+            nodes: vec![
+                point("1", "", l, "Orders", &[], ""),
+                point("3", "1", e, "Take an order", &["fast"], "done"),
+                point("2", "1", e, "Cancel an order", &[], "draft"),
+                point("4", "1", l, "Refunds", &[], ""),
+                point("5", "4", e, "Refund in full", &["fast"], ""),
+                point("6", "", l, "Stock", &[], ""),
+                point("7", "6", e, "Count the stock", &[], "draft"),
+            ],
+            option_lists: vec![OptionList {
+                label: "phase".into(),
+                options: vec![phase("draft", "gray"), phase("done", "green")],
+            }],
+            filters: vec![SurfaceFilter {
+                id: "filter/Quick ones".into(),
+                name: "Quick ones".into(),
+                query: "~fast".into(),
+            }],
+            ..SurfaceModel::default()
+        }
+    }
+
+    fn page(model: SurfaceModel) -> Surface {
+        Surface::with(model, filtered(), 1280.0)
+    }
+
+    impl Surface {
+        /// The titles of the boxes drawn, in the order they were.
+        fn titles(&self) -> Vec<String> {
+            self.boxes()
+                .iter()
+                .map(|b| b.split_once(' ').map_or(b.clone(), |(_, title)| title.to_owned()))
+                .collect()
+        }
+
+        /// What the bar's count says.
+        fn count(&self) -> String {
+            let status = self
+                .nodes
+                .values()
+                .find(|n| n.role() == Role::Status)
+                .expect("the bar counts the entries");
+            status.label().unwrap_or_default().to_owned()
+        }
+
+        /// Gives the query field the keyboard, the caret at the end of what it holds.
+        fn focus_query(&mut self) {
+            self.click(Role::SearchInput, "Filter");
+            self.key(egui::Key::End, egui::Modifiers::NONE);
+        }
+
+        /// Types `text` at the end of the query.
+        fn type_query(&mut self, text: &str) {
+            self.focus_query();
+            self.type_text(text);
+            self.frame(Vec::new());
+        }
+
+        /// The words offered under the field, in their order, each as its word and its hint: the selectable rows of the
+        /// list, one of them marked.
+        fn offered(&self) -> Vec<String> {
+            let mut offered: Vec<(f64, String)> = self
+                .nodes
+                .values()
+                .filter(|n| n.role() == Role::Button && n.toggled().is_some())
+                .map(|n| (n.bounds().unwrap().y0, n.label().unwrap_or_default().to_owned()))
+                .collect();
+            offered.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            offered.into_iter().map(|o| o.1).collect()
+        }
+
+        /// Picks `option` in the choice named `choice`.
+        fn choose(&mut self, choice: &str, option: &str) {
+            self.click(Role::ComboBox, choice);
+            self.click(Role::ListBoxOption, option);
+        }
+    }
+
+    #[test]
+    fn the_bar_is_offered_only_by_a_definition_that_declares_filters() {
+        let surface = Surface::of(model());
+        assert!(surface.find(Role::SearchInput, "Filter").is_none());
+    }
+
+    #[test]
+    fn the_bar_narrows_the_page_as_the_query_is_typed_keeping_the_levels_that_contain_what_stays_and_counts_the_entries()
+     {
+        let mut surface = page(model());
+        let before = surface.count();
+
+        surface.type_query("~FAST");
+
+        // Narrowing writes nothing (FR-049).
+        assert_eq!(before, "4 points");
+        assert_eq!(
+            surface.titles(),
+            ["Orders", "Take an order", "Refunds", "Refund in full"]
+        );
+        assert_eq!(surface.count(), "2 of 4 points");
+        assert!(surface.gestures().is_empty());
+    }
+
+    #[test]
+    fn the_bar_selects_levels_by_a_title_pattern_with_everything_in_them() {
+        let mut surface = page(model());
+
+        surface.type_query("item:REF*");
+
+        assert_eq!(surface.titles(), ["Orders", "Refunds", "Refund in full"]);
+    }
+
+    #[test]
+    fn the_sort_menu_sorts_the_entries_within_each_level_writing_the_sort_into_the_query_and_nothing_to_the_file() {
+        let mut surface = page(model());
+        surface.click(Role::ComboBox, "Sort");
+        let offered = surface.named(Role::ListBoxOption);
+        surface.click(Role::ListBoxOption, "By number");
+        let by_number = surface.titles();
+        let sort_word = surface.tab.query.clone();
+
+        surface.choose("Sort", "phase");
+
+        // The levels keep their place, the entries within Orders sort; a point without a phase comes last.
+        assert_eq!(offered, ["File order", "By number", "phase"]);
+        assert_eq!(sort_word, "sort:number");
+        assert_eq!(
+            by_number,
+            [
+                "Orders",
+                "Cancel an order",
+                "Take an order",
+                "Refunds",
+                "Refund in full",
+                "Stock",
+                "Count the stock"
+            ]
+        );
+        assert_eq!(surface.tab.query, "sort:phase");
+        assert_eq!(surface.titles()[..3], ["Orders", "Cancel an order", "Take an order"]);
+        assert!(surface.gestures().is_empty());
+    }
+
+    #[test]
+    fn the_sort_menu_keeps_the_querys_other_words_and_takes_the_sort_out_for_the_files_order() {
+        let mut surface = page(model());
+        surface.type_query("~fast sort:phase item:ord*");
+
+        surface.choose("Sort", "By number");
+        let changed = surface.tab.query.clone();
+        surface.choose("Sort", "File order");
+
+        assert_eq!(changed, "~fast sort:number item:ord*");
+        assert_eq!(surface.tab.query, "~fast item:ord*");
+    }
+
+    #[test]
+    fn a_stored_filter_is_applied_by_picking_it_and_the_query_is_cleared() {
+        let mut surface = page(model());
+
+        surface.choose("Stored filters", "Quick ones");
+        let applied = surface.titles();
+        surface.click(Role::Button, "Clear the filter");
+
+        assert_eq!(applied, ["Orders", "Take an order", "Refunds", "Refund in full"]);
+        assert_eq!(surface.titles().len(), 7);
+    }
+
+    #[test]
+    fn the_applied_query_is_stored_under_a_name_as_one_gesture_on_the_document() {
+        let mut surface = page(model());
+        surface.type_query(" phase:draft sort:number ");
+
+        surface.click(Role::Button, "Store");
+        surface.type_text(" Drafts ");
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+        assert_eq!(
+            surface.sent(),
+            [sent(
+                "keep",
+                "document",
+                &[("called", "Drafts"), ("words", "phase:draft sort:number")]
+            )]
+        );
+    }
+
+    #[test]
+    fn the_stored_filter_that_is_applied_is_renamed_and_removed_by_naming_it() {
+        let mut surface = page(model());
+        surface.type_query("~fast");
+        let store_offered = surface.find(Role::Button, "Store").is_some();
+
+        surface.click(Role::Button, "Rename Quick ones");
+        let name = surface.field("New name of Quick ones");
+        surface.key(egui::Key::A, egui::Modifiers::COMMAND);
+        surface.type_text("Fast ones");
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+        surface.click(Role::Button, "Remove Quick ones");
+
+        // A filter already stored is not offered for storing again.
+        assert!(!store_offered);
+        assert_eq!(
+            name,
+            Some(("Quick ones".into(), true)),
+            "the field opens on the name, for typing"
+        );
+        assert_eq!(
+            surface.sent(),
+            [
+                sent("relabel", "filter/Quick ones", &[("called", "Fast ones")]),
+                sent("forget", "filter/Quick ones", &[]),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_rename_to_the_name_it_has_sends_nothing() {
+        let mut surface = page(model());
+        surface.type_query("~fast");
+
+        surface.click(Role::Button, "Rename Quick ones");
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+        assert!(surface.field("New name of Quick ones").is_none(), "the field closes");
+        assert!(surface.gestures().is_empty());
+    }
+
+    #[test]
+    fn escape_drops_a_name_being_typed_and_sends_nothing() {
+        let mut surface = page(model());
+        surface.type_query("~fast sort:title");
+
+        surface.click(Role::Button, "Store");
+        surface.type_text("Later");
+        surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+
+        assert!(surface.field("Name of the filter").is_none());
+        assert!(surface.gestures().is_empty(), "{:?}", surface.sent());
+        assert_eq!(surface.tab.query, "~fast sort:title", "the query stays");
+    }
+
+    #[test]
+    fn a_document_that_cannot_change_offers_nothing_to_store_rename_or_remove_and_still_narrows() {
+        let mut read_only = model();
+        read_only.read_only_reason = "Read only.".into();
+        let mut surface = page(read_only);
+
+        surface.type_query("~fast");
+
+        for name in ["Store", "Rename Quick ones", "Remove Quick ones"] {
+            assert!(surface.find(Role::Button, name).is_none(), "{name}");
+        }
+        assert_eq!(surface.titles().len(), 4);
+    }
+
+    fn with_marks() -> SurfaceModel {
+        let mut page = model();
+        page.option_lists.push(OptionList {
+            label: "marks".into(),
+            options: vec![SurfaceOption {
+                id: "marks/fast".into(),
+                name: "fast".into(),
+                colour: "default".into(),
+                implicit: true,
+            }],
+        });
+        page
+    }
+
+    #[test]
+    fn completing_lists_the_members_of_a_labels_list_with_its_prefix_under_the_field_and_tab_takes_the_one_marked() {
+        let mut surface = page(with_marks());
+        surface.type_query("~f");
+        let offered = surface.offered();
+
+        surface.key(egui::Key::Tab, egui::Modifiers::NONE);
+
+        assert_eq!(offered, ["~fast marks"]);
+        assert_eq!(surface.tab.query, "~fast ");
+        assert_eq!(
+            surface.titles(),
+            ["Orders", "Take an order", "Refunds", "Refund in full"]
+        );
+    }
+
+    #[test]
+    fn completing_keeps_a_prefix_open_for_its_name_then_offers_the_members_and_a_press_takes_one() {
+        let mut surface = page(model());
+        surface.type_query("~fast ph");
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+        let after_prefix = surface.tab.query.clone();
+        let offered = surface.offered();
+
+        let done = surface
+            .nodes
+            .values()
+            .find(|n| n.role() == Role::Button && n.label().is_some_and(|l| l.starts_with("phase:done")))
+            .and_then(|n| n.bounds())
+            .expect("phase:done is offered");
+        surface.click_at(egui::pos2(
+            ((done.x0 + done.x1) / 2.0) as f32,
+            ((done.y0 + done.y1) / 2.0) as f32,
+        ));
+
+        assert_eq!(after_prefix, "~fast phase:");
+        assert_eq!(offered, ["phase:draft phase", "phase:done phase"]);
+        assert_eq!(surface.tab.query, "~fast phase:done ");
+        assert_eq!(surface.titles(), ["Orders", "Take an order"]);
+    }
+
+    #[test]
+    fn completing_offers_nothing_after_escape_nor_while_the_field_does_not_have_the_keyboard() {
+        let mut surface = page(model());
+        surface.type_query("ph");
+        let typed = surface.offered();
+
+        surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+        let after_escape = surface.offered();
+        surface.type_text("a");
+        let after_typing = surface.offered();
+        surface.click_box("[7] Count the stock");
+
+        assert_eq!(typed, ["phase: phase", "phase:draft phase", "phase:done phase"]);
+        assert!(after_escape.is_empty());
+        assert_eq!(after_typing, ["phase: phase", "phase:draft phase", "phase:done phase"]);
+        assert!(surface.find(Role::SearchInput, "Filter").is_some());
+        assert!(surface.offered().is_empty());
+    }
+
+    #[test]
+    fn a_finding_the_filter_hides_stays_listed_and_selecting_it_shows_its_entry_by_taking_out_the_words_that_hide_it() {
+        // Count the stock carries no fast.
+        let mut findings = model();
+        findings.findings = vec![SurfaceFinding {
+            code: "std.duplicate".into(),
+            severity: "warning".into(),
+            message: "Count the stock twice.".into(),
+            node_id: "7".into(),
+            line: 9,
+        }];
+        let mut surface = page(findings);
+        surface.type_query("~fast sort:number");
+        let hidden = !surface.titles().contains(&"Count the stock".to_owned());
+
+        surface.click(Role::Link, "Count the stock twice.");
+
+        // The sort stays; the entry is shown and selected.
+        assert!(hidden);
+        assert_eq!(surface.tab.query, "sort:number");
+        assert!(surface.titles().contains(&"Count the stock".to_owned()));
+        assert_eq!(surface.tab.selected, "7");
+    }
 }

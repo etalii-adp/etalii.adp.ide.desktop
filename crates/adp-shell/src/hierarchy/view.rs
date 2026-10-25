@@ -15,6 +15,8 @@
 //!   level's content and of the page, a grip before the collapse control a box is dragged by, the place of the delete
 //!   at the box's bottom right, a title or a description typed in place where it stood and as high as it, and the
 //!   question a delete asks first. A box keeps its height whether it is selected or typed in.
+//! - The filter bar above the findings ([`super::narrowing`], T048), which leaves of the page what its query selects
+//!   and orders each level's entries by its sort.
 //! - Everything a frame is asked is collected while the page is drawn and carried out after it.
 
 use adp_desl::hierarchy::definition::{
@@ -32,6 +34,7 @@ use super::layout::{
     BOX_SPACING, ENTRY_MIN_WIDTH, GRIP_WIDTH, HEADER_GAP, HierarchyIndex, ICON_SIZE, IconsLayout, LINE_HEIGHT,
     PAGE_MARGIN, header_width, icons_layout,
 };
+use super::narrowing::Narrowing;
 use super::notes::NoteControl;
 use super::{HierarchyTab, is_line_id};
 use crate::a11y;
@@ -109,6 +112,11 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
     if !tab.refusal.is_empty() {
         bar(ui, &colours, |ui| {
             ui.label(RichText::new(&tab.refusal).color(colours.danger));
+        });
+    }
+    if let Some(filters) = tab.definition.filters.clone() {
+        bar(ui, &colours, |ui| {
+            super::narrowing::filter_bar(ui, tab, &filters, &colours, &font);
         });
     }
     findings(ui, tab, &colours, &font, &mut acts);
@@ -350,9 +358,11 @@ fn page(ui: &mut egui::Ui, tab: &mut HierarchyTab, colours: &Colours, font: &Fon
         .show(ui, |ui| {
             measured = (ui.available_width() - 2.0 * PAGE_MARGIN).max(0.0);
             let index = HierarchyIndex::of(&tab.model.nodes);
+            let narrowing = Narrowing::of(&tab.model, &index, &tab.words());
             let mut page = Page {
                 tab,
                 index: &index,
+                narrowing: &narrowing,
                 colours,
                 font,
                 fit: tab.fit(),
@@ -382,7 +392,8 @@ fn page(ui: &mut egui::Ui, tab: &mut HierarchyTab, colours: &Colours, font: &Fon
                 page.text_field(ui, place);
                 y += height + 2.0 * BOX_SPACING;
             }
-            let roots = tab.roots();
+            let mut roots = tab.roots();
+            roots.retain(|n| narrowing.shows(n));
             let hint = tab
                 .hint
                 .as_ref()
@@ -426,6 +437,8 @@ fn with_slot<'n>(shown: &[&'n SurfaceNode], hint: Option<&DropHint>) -> Vec<Opti
 struct Page<'a, 'm> {
     tab: &'a HierarchyTab,
     index: &'a HierarchyIndex<'m>,
+    /// What the filter bar's query leaves of the page, and the order of a level's entries.
+    narrowing: &'a Narrowing,
     colours: &'a Colours,
     font: &'a FontId,
     fit: usize,
@@ -453,10 +466,17 @@ impl Page<'_, '_> {
         } else {
             self.index.levels_below(&node.id)
         };
-        let children = self.index.children_of(&node.id);
+        let children: Vec<&SurfaceNode> = self
+            .index
+            .children_of(&node.id)
+            .iter()
+            .filter(|c| self.narrowing.shows(c))
+            .copied()
+            .collect();
         let mut content: Vec<&SurfaceNode> = Vec::new();
         if !collapsed {
-            content.extend(children.iter().filter(|c| c.role != roles::LEVEL));
+            let entries = children.iter().filter(|c| c.role != roles::LEVEL).copied().collect();
+            content.extend(self.narrowing.order(entries));
             if shows_sub_levels {
                 content.extend(children.iter().filter(|c| c.role == roles::LEVEL));
             }
