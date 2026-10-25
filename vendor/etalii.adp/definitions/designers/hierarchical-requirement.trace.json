@@ -1,0 +1,401 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "etalii/hierarchical-requirement",
+  "description": "hierarchical-requirement.atd",
+  "companion": {
+    "file": "hierarchical-requirement.md",
+    "sections": [
+      "What the languages cannot state"
+    ]
+  },
+  "items": [
+    {
+      "id": "what-the-languages-cannot-state/1",
+      "text": "The file format and the legend: the binding says how the file is read and written, and its template holds the legend; DESL only names the binding.",
+      "statedBy": "binding markdown"
+    },
+    {
+      "id": "what-the-languages-cannot-state/2",
+      "text": "The looks taken from the Knowledge designer: DESL's surface names which types play which part and what the page's layout is, not how a host draws a tag, a menu or a list.",
+      "hostConcern": "rendering",
+      "reason": "How a tag, a menu or a list is drawn, in the host's theme, fonts and controls, is rendering; the description names the colours (enum Colour) and the parts the surface's members play."
+    },
+    {
+      "id": "what-the-languages-cannot-state/3",
+      "text": "Which gesture starts which operation: the table above.",
+      "hostConcern": "gestures",
+      "reason": "The pointer and the keys are mapped by the host onto the intents the description names, one operation per gesture."
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "47-76",
+      "behaviour": "A file the binding cannot read (no envelope, not UTF-8) opens as an empty, read-only page with the one reason.",
+      "statedBy": "binding markdown"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "219-221",
+      "behaviour": "The last item number and the last requirement number given are read from the mark line, line 2.",
+      "statedBy": "binding markdown element marks"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "234-276",
+      "behaviour": "ITEM-NEW and REQ-NEW are given the next number in memory only: one more than the higher of the mark and the highest number written, counted apart per kind, in reading order.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "278-299",
+      "behaviour": "An entry's parent is the item it is nested in; a category and a state are read on requirements only; the title, the description and the tags come from the binding's rules.",
+      "statedBy": "binding markdown element requirement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "257-263",
+      "behaviour": "An entry is collapsed when the registration's collapsed block holds `<number>: yes`.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "305-322",
+      "behaviour": "An assessment's id is `assessment/<n>` by its place; its kind is read in any case and a ticked checkbox means resolved.",
+      "statedBy": "binding markdown element assessment"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "423-447",
+      "behaviour": "A list's members are its registration block's when there is one, else the initial members; the names entries carry that no member has are implicit members, spelt as first seen, coloured `default`.",
+      "statedBy": "labels tags"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "205-217",
+      "behaviour": "A stored column width is used only for a depth of 1 or more and a width of 120 to 2000 pixels; any other column has the host's width.",
+      "statedBy": "widths Column"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "349-354",
+      "behaviour": "An entry with an empty title is reported by std.required.",
+      "statedBy": "element Item attribute title"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "359-376",
+      "behaviour": "A requirement at the top level, and anything nested in a requirement, is reported by std.containment.",
+      "statedBy": "element Item"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/body.rs",
+      "lines": "377-413",
+      "behaviour": "A number in square brackets that names no entry, in a description or an assessment's number, text or detail, is reported by std.mentions at its line.",
+      "statedBy": "element Requirement attribute description"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/mapper.rs",
+      "lines": "291-297",
+      "behaviour": "std.missingId and std.mentions are warnings, fbl.unknown-block is information, every other finding an error.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/mapper.rs",
+      "lines": "246-288",
+      "behaviour": "A list's members come first and the values only entries carry follow; a member's id is `tag/`, `category/` or `state/` and its name in lower case.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/template.rs",
+      "lines": "11-20",
+      "behaviour": "A new document is the binding's template with the file's base name as its title, and no registration.",
+      "statedBy": "binding markdown template"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/body_edit.rs",
+      "lines": "110-172",
+      "behaviour": "Every edit of the body writes the number of each placeholder and raises the mark of each kind it numbered, adding the mark line when it is missing.",
+      "statedBy": "binding markdown element marks"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/structure.rs",
+      "lines": "191-226",
+      "behaviour": "A new top item goes last at the top level, a new sub-item last in its item, an entry added below directly after its target, and a new requirement after the item's last requirement or before its first sub-item.",
+      "statedBy": "operation addRequirement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/structure.rs",
+      "lines": "231-266",
+      "behaviour": "A moved item or requirement goes after the sibling named; without one, to the front of its kind within its own item, or where a new one would go in another item.",
+      "statedBy": "operation moveRequirement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/structure.rs",
+      "lines": "131-181",
+      "behaviour": "A move of an item into itself or into anything it contains is refused, as is a requirement moved to the top level.",
+      "statedBy": "operation moveItem"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/structure.rs",
+      "lines": "222-224",
+      "behaviour": "Deleting an entry removes its bullet with everything nested in it.",
+      "statedBy": "operation deleteEntry"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/assessments.rs",
+      "lines": "87-113",
+      "behaviour": "A new assessment goes at the end of Assessments, about the entry's number, a question unless another kind is given, and open.",
+      "statedBy": "operation addAssessment"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/assessments.rs",
+      "lines": "115-131",
+      "behaviour": "Changing an assessment sets its kind, text and detail; resolving switches it; removing deletes its bullet.",
+      "statedBy": "operation resolveAssessment"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/lists.rs",
+      "lines": "26-34",
+      "behaviour": "A typed name is trimmed and its spaces written as `-`; names compare ignoring case.",
+      "statedBy": "operation addTag"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/tags.rs",
+      "lines": "99-120",
+      "behaviour": "Adding a tag picks the member of that name in any case, with the list's spelling, or creates it last in the list; removing a tag removes it ignoring case.",
+      "statedBy": "operation addTag"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/tags.rs",
+      "lines": "121-163",
+      "behaviour": "Renaming a tag renames it on every entry that carries it, deleting it removes it from them, in the same step.",
+      "statedBy": "operation renameTag"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/classification.rs",
+      "lines": "141-240",
+      "behaviour": "Setting a category or a state writes a member's name; renaming or deleting a member renames or clears it on every requirement that carries it.",
+      "statedBy": "operation renameCategory"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/gestures.rs",
+      "lines": "38-65",
+      "behaviour": "Collapsing writes or removes `<number>: yes` in the registration's collapsed block, outside the undo history; an entry without its own number is collapsed on the page only.",
+      "statedBy": "operation toggleCollapsed"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/filters.rs",
+      "lines": "35-107",
+      "behaviour": "Storing, renaming and removing a filter write the registration's filters block only.",
+      "statedBy": "operation storeFilter"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/operations/registration.rs",
+      "lines": "18-38",
+      "behaviour": "A change to a list or a filter creates the registration when the document has none.",
+      "statedBy": "binding markdown"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "crates/adp-shell/src/hierarchy/narrowing.rs",
+      "lines": "63-173",
+      "behaviour": "The filter field reads `#tag`, `category:name`, `@state`, `item:pattern` and `sort:key` words; words of one kind are alternatives and kinds combine; narrowing writes nothing.",
+      "statedBy": "filters Filter"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "crates/adp-shell/src/hierarchy/narrowing.rs",
+      "lines": "176-212",
+      "behaviour": "Requirements sort by number, title, or a member's place in its list, a requirement without the value last.",
+      "statedBy": "filters Filter"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/commands.rs",
+      "lines": "68-73",
+      "behaviour": "An edit made against a file whose bytes differ from those the page was read from is refused, and the file is read again.",
+      "hostConcern": "undo-stack",
+      "reason": "Detecting a file another program changed and keeping one consistent history across writers is the host's file handling and undo stack; a description states each edit as splices with an exact undo."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/commands.rs",
+      "lines": "173-197",
+      "behaviour": "Undo gives back the exact bytes of every file of the step; when a file changed since, the history is dropped.",
+      "hostConcern": "undo-stack",
+      "reason": "Each transaction's one step with its exact undo is the description's; keeping and dropping the stack across steps and outside writes is the host's."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/session.rs",
+      "lines": "169-218",
+      "behaviour": "A file changed outside is read again, up to three times 20 ms apart while it cannot be read, keeping what is collapsed by number.",
+      "hostConcern": "undo-stack",
+      "reason": "Watching files and re-reading them after another program writes is the host's; reading itself is the binding's."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/session.rs",
+      "lines": "370-412",
+      "behaviour": "Ctrl+Enter adds an item or a requirement below the selected one, Ctrl+Shift+Enter a requirement in the selected item.",
+      "hostConcern": "gestures",
+      "reason": "Keys are mapped by the host onto the operations addItemBelow, addRequirementBelow and addRequirement, which the description states."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "crates/adp-shell/src/hierarchy/editing.rs",
+      "lines": "155-222",
+      "behaviour": "Dragging an item by its grip onto the lower half of another places it after, onto the upper half into it; a requirement goes after or before another; the drop sends moveItem or moveRequirement.",
+      "hostConcern": "gestures",
+      "reason": "The pointer gesture is the host's; what it does is the operations moveItem and moveRequirement."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "crates/adp-shell/src/hierarchy/mod.rs",
+      "lines": "357-390",
+      "behaviour": "Delete asks first when the entry holds anything or a text or an assessment names it.",
+      "statedBy": "operation deleteEntry"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "crates/adp-shell/src/hierarchy/mod.rs",
+      "lines": "425-529",
+      "behaviour": "The page shows as many levels as fit its width, marks deeper levels that do not fit, and focuses on any item with a trail back.",
+      "hostConcern": "rendering",
+      "reason": "How many levels fit and how focus is drawn is the host's drawing of DESL's hierarchy surface, which the description names with `surface hierarchy`."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "crates/adp-shell/src/hierarchy/notes.rs",
+      "lines": "56-98",
+      "behaviour": "An entry shows the icon of the kind of its one open assessment, an icon with a count for several, and a collapsed item counts everything inside it.",
+      "hostConcern": "rendering",
+      "reason": "The icons are the enumeration AssessmentKind's; drawing them and counting is the host's drawing of the surface's notes."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "crates/adp-shell/src/hierarchy/view.rs",
+      "lines": "954-1033",
+      "behaviour": "Tags, categories and states are drawn as rounded labels in their member's colour, the Knowledge designer's looks.",
+      "hostConcern": "rendering",
+      "reason": "The companion leaves the looks to the host: colours as theme tokens, typography and the shape of a label."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "eeb139d",
+      "path": "modules/designers/hierarchical-requirement/src/mapper.rs",
+      "lines": "299-308",
+      "behaviour": "The page's title is the file's first `# ` heading, else the file name without its extension.",
+      "hostConcern": "rendering",
+      "reason": "The title shown above the page is chrome the host draws; the heading is unbound text the binding keeps."
+    }
+  ]
+}

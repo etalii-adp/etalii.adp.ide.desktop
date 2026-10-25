@@ -233,3 +233,92 @@ fn recording_a_capability_writes_valid_fixtures_from_the_code_that_does_it() {
         "a capability without named code is refused"
     );
 }
+
+/// Records the Hierarchical Requirement Designer's cases into a new folder (etalii.adp spec 035, T167); the folder.
+fn record_requirements() -> tempfile::TempDir {
+    let folder = tempfile::tempdir().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_atd"))
+        .args(["record", "etalii/hierarchical-requirement", "--cases"])
+        .arg(folder.path())
+        .env("ATD_RECORDED_WITH", "0000000")
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    folder
+}
+
+#[test]
+fn recording_the_requirement_designer_keeps_its_golden_bytes_and_states_its_page_gestures() {
+    let cases = record_requirements();
+    let validator = validator("ConformanceFixture");
+    let scripts = repository().join("parity/scripts/etalii/hierarchical-requirement");
+    let mut recorded = 0;
+    for script in std::fs::read_dir(&scripts).unwrap().flatten() {
+        let path = script.path();
+        if path.extension().is_none_or(|e| e != "json") {
+            continue;
+        }
+        let name = path.file_stem().unwrap().to_string_lossy().into_owned();
+        let case = cases.path().join(&name);
+        let fixture = json(&case.join("conformance.json"));
+        let errors: Vec<String> = validator
+            .iter_errors(&fixture)
+            .map(|e| format!("{e} at {}", e.instance_path()))
+            .collect();
+        assert!(errors.is_empty(), "{name}: {errors:?}");
+        recorded += 1;
+
+        // A designer's case states no drawing; its reading and findings are the desktop host's at the commit that
+        // records them, its bytes the standalone host's golden.
+        assert!(fixture.get("drawing").is_none(), "{name}");
+        assert_eq!(fixture["provenance"]["reading"]["commit"], "0000000", "{name}");
+        assert_eq!(fixture["provenance"]["bytes"]["host"], "standalone", "{name}");
+        assert!(!fixture["read"]["elements"].as_array().unwrap().is_empty(), "{name}");
+
+        // The bytes the last step leaves are the golden's body, unchanged.
+        let body = fixture["inputs"]["body"].as_str().unwrap();
+        let steps = fixture["steps"].as_array().unwrap();
+        if let Some(last) = steps.iter().rev().find_map(|s| s["expectFile"].as_str()) {
+            let golden = repository()
+                .join("parity/goldens/etalii/hierarchical-requirement")
+                .join(&name)
+                .join(body);
+            if golden.is_file() {
+                assert_eq!(
+                    std::fs::read(case.join(last)).unwrap(),
+                    std::fs::read(golden).unwrap(),
+                    "{name}"
+                );
+            }
+        }
+        for step in steps {
+            if let Some(file) = step["expectFile"].as_str() {
+                assert!(case.join(file).is_file(), "{name}: {file}");
+            }
+        }
+    }
+    assert!(recorded > 0);
+
+    // A page gesture is the operation on its target; an edit by another writer is `outside`.
+    let tags = json(&cases.path().join("tags/conformance.json"));
+    assert_eq!(tags["steps"][0]["action"], "addTag");
+    assert_eq!(tags["steps"][0]["select"], serde_json::json!(["REQ-0009"]));
+    assert!(
+        tags["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s.get("refused").is_some())
+    );
+    let writers = json(&cases.path().join("two-writers/conformance.json"));
+    assert!(
+        writers["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s.get("outside").is_some())
+    );
+
+    // Recording again gives the same files.
+    assert_eq!(files(cases.path()), files(record_requirements().path()));
+}

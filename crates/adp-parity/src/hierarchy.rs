@@ -31,6 +31,25 @@ pub fn is_hierarchy(tool: &str) -> bool {
 /// Replays `case` on the copy of its fixture's folder at `project`, opened at `document` (relative to it): the body,
 /// or its registration.
 pub fn replay(case: &Case, project: &Path, document: &Path) -> Result<Verdict, String> {
+    replay_observed(case, project, document, &mut |_| {})
+}
+
+/// What a replay shows after the page opens (`step` none) and after each step: how the step went, the project's
+/// folder and the session (etalii.adp spec 035, T167).
+pub struct Observed<'a> {
+    pub step: Option<usize>,
+    pub outcome: &'a Result<(), String>,
+    pub project: &'a Path,
+    pub session: &'a RequirementSession,
+}
+
+/// [`replay`], showing `observe` the page once it opens and again after each step.
+pub fn replay_observed(
+    case: &Case,
+    project: &Path,
+    document: &Path,
+    observe: &mut dyn FnMut(&Observed),
+) -> Result<Verdict, String> {
     let opened = project.join(document);
     let (body, registration) = files_of(&opened);
     let mut page = Page {
@@ -42,11 +61,24 @@ pub fn replay(case: &Case, project: &Path, document: &Path) -> Result<Verdict, S
     if !model.read_only_reason.is_empty() {
         return Ok(Verdict::CannotOpen(model.read_only_reason));
     }
+    observe(&Observed {
+        step: None,
+        outcome: &Ok(()),
+        project,
+        session: &page.session,
+    });
 
     let mut steps = Vec::new();
     for (index, step) in case.script.steps.iter().enumerate() {
         let refusal_expected = expects_refusal(step);
-        let what = match (page.step(step), refusal_expected) {
+        let outcome = page.step(step);
+        observe(&Observed {
+            step: Some(index),
+            outcome: &outcome,
+            project,
+            session: &page.session,
+        });
+        let what = match (outcome, refusal_expected) {
             (Ok(()), false) | (Err(_), true) => None,
             (Ok(()), true) => Some("the standalone host refused it; the desktop host accepted it".to_owned()),
             (Err(reason), false) => Some(format!("the standalone host accepted it; the desktop host: {reason}")),
