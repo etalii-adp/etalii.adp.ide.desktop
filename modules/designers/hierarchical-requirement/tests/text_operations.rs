@@ -32,7 +32,11 @@ fn a_set_of_one_text_writes_the_fixtures_bytes() {
         let attributes = set["attributes"].as_object().unwrap();
         assert_eq!(attributes.len(), 1, "{fixture} step {step} sets one value");
         let (attribute, value) = attributes.iter().next().unwrap();
-        let operation = if attribute == "title" { SET_TITLE } else { SET_DESCRIPTION };
+        let operation = if attribute == "title" {
+            SET_TITLE
+        } else {
+            SET_DESCRIPTION
+        };
 
         // Act.
         let bytes = text::apply(

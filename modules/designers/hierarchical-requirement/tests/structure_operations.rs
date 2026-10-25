@@ -15,11 +15,29 @@ use serde_json::Value as Json;
 
 /// Every step of the corpus that shapes the hierarchy: the fixture, the step, and the gesture that makes it.
 const STEPS: [(&str, usize, &str, &str, &str); 9] = [
-    ("hierarchical-requirement-structure", 0, ADD_REQUIREMENT_BELOW, "REQ-0004", ""),
+    (
+        "hierarchical-requirement-structure",
+        0,
+        ADD_REQUIREMENT_BELOW,
+        "REQ-0004",
+        "",
+    ),
     ("hierarchical-requirement-structure", 1, ADD_ITEM, "ITEM-0001", ""),
-    ("hierarchical-requirement-structure", 2, MOVE_ITEM, "ITEM-0003", "item=ITEM-0004"),
+    (
+        "hierarchical-requirement-structure",
+        2,
+        MOVE_ITEM,
+        "ITEM-0003",
+        "item=ITEM-0004",
+    ),
     ("hierarchical-requirement-structure", 3, DELETE_ENTRY, "ITEM-0002", ""),
-    ("hierarchical-requirement-structure", 4, ADD_REQUIREMENT, "ITEM-0001", ""),
+    (
+        "hierarchical-requirement-structure",
+        4,
+        ADD_REQUIREMENT,
+        "ITEM-0001",
+        "",
+    ),
     ("hierarchical-requirement-structure/no-section", 0, ADD_TOP_ITEM, "", ""),
     ("hierarchical-requirement-new", 1, ADD_TOP_ITEM, "", ""),
     ("hierarchical-requirement-edits/no-mark", 2, ADD_TOP_ITEM, "", ""),
@@ -118,7 +136,14 @@ fn an_entry_holding_placeholders_is_deleted_and_moved_after_they_are_numbered() 
 fn a_move_within_its_parent_goes_after_the_sibling_named_or_to_the_front_of_its_kind() {
     let input = catalogue();
 
-    let first = structure::apply(&input, "catalogue.md", MOVE_REQUIREMENT, "REQ-0006", &params("item=ITEM-0003")).unwrap();
+    let first = structure::apply(
+        &input,
+        "catalogue.md",
+        MOVE_REQUIREMENT,
+        "REQ-0006",
+        &params("item=ITEM-0003"),
+    )
+    .unwrap();
     let last = structure::apply(
         &input,
         "catalogue.md",
@@ -138,8 +163,14 @@ fn a_move_within_its_parent_goes_after_the_sibling_named_or_to_the_front_of_its_
 fn a_requirement_moved_into_another_item_goes_where_a_new_requirement_would() {
     let input = catalogue();
 
-    let after_requirements =
-        structure::apply(&input, "catalogue.md", MOVE_REQUIREMENT, "REQ-0007", &params("item=ITEM-0001")).unwrap();
+    let after_requirements = structure::apply(
+        &input,
+        "catalogue.md",
+        MOVE_REQUIREMENT,
+        "REQ-0007",
+        &params("item=ITEM-0001"),
+    )
+    .unwrap();
     let into_empty = structure::apply(
         &input,
         "catalogue.md",
@@ -165,9 +196,18 @@ fn what_the_specification_rolls_back_or_makes_unavailable_is_refused_and_nothing
     };
     let into_itself = "ITEM-0001 cannot be moved into itself or into anything it holds.";
 
-    assert_eq!(refused(top_level, "alone.md", ADD_REQUIREMENT_BELOW, "REQ-0001", ""), NO_ITEM);
-    assert_eq!(refused(&catalogue, "catalogue.md", MOVE_ITEM, "ITEM-0001", "item=ITEM-0001"), into_itself);
-    assert_eq!(refused(&catalogue, "catalogue.md", MOVE_ITEM, "ITEM-0001", "item=ITEM-0002"), into_itself);
+    assert_eq!(
+        refused(top_level, "alone.md", ADD_REQUIREMENT_BELOW, "REQ-0001", ""),
+        NO_ITEM
+    );
+    assert_eq!(
+        refused(&catalogue, "catalogue.md", MOVE_ITEM, "ITEM-0001", "item=ITEM-0001"),
+        into_itself
+    );
+    assert_eq!(
+        refused(&catalogue, "catalogue.md", MOVE_ITEM, "ITEM-0001", "item=ITEM-0002"),
+        into_itself
+    );
     assert_eq!(
         refused(&catalogue, "catalogue.md", MOVE_ITEM, "ITEM-0003", "item=REQ-0001"),
         "REQ-0001 is a requirement, which holds nothing."
@@ -176,6 +216,12 @@ fn what_the_specification_rolls_back_or_makes_unavailable_is_refused_and_nothing
         refused(&catalogue, "catalogue.md", RENUMBER_DUPLICATE, "REQ-0001", ""),
         "REQ-0001 is the only entry with its number, which it keeps."
     );
-    assert_eq!(refused(&catalogue, "catalogue.md", DELETE_ENTRY, "ITEM-0099", ""), DRIFTED);
-    assert_eq!(refused(&catalogue, "catalogue.md", MOVE_ITEM, "ITEM-0003", "after=ITEM-0099"), DRIFTED);
+    assert_eq!(
+        refused(&catalogue, "catalogue.md", DELETE_ENTRY, "ITEM-0099", ""),
+        DRIFTED
+    );
+    assert_eq!(
+        refused(&catalogue, "catalogue.md", MOVE_ITEM, "ITEM-0003", "after=ITEM-0099"),
+        DRIFTED
+    );
 }

@@ -23,7 +23,7 @@
 
 use std::path::{Path, PathBuf};
 
-use adp_desl::hierarchy::model::{EditOutcome, Gesture, SurfaceChange, SurfaceModel, causes};
+use adp_desl::hierarchy::model::{EditOutcome, Gesture, SurfaceAction, SurfaceChange, SurfaceModel, causes, roles};
 use adp_desl::hierarchy::session::HierarchySurfaceSession;
 
 use crate::body::RequirementBody;
@@ -36,6 +36,9 @@ use crate::operations::{structure, text};
 /// What undo and redo are refused with while no gesture of this page is a step of the history.
 const NOTHING_TO_UNDO: &str = "There is nothing to undo.";
 const NOTHING_TO_REDO: &str = "There is nothing to redo.";
+/// The ids of the actions a selected entry offers, the standalone host's.
+pub const ADD_BELOW: &str = "hierarchical-requirement.add-below";
+pub const ADD_REQUIREMENT: &str = "hierarchical-requirement.add-requirement";
 
 /// One reading of the two files and the model made of it.
 struct Reading {
@@ -209,7 +212,8 @@ impl RequirementSession {
         let Some(expected) = self.reading.files.body.clone() else {
             return Err(gestures::DRIFTED.into());
         };
-        let gone = gesture.operation != structure::ADD_TOP_ITEM && model.nodes.iter().all(|n| n.id != gesture.target_id);
+        let gone =
+            gesture.operation != structure::ADD_TOP_ITEM && model.nodes.iter().all(|n| n.id != gesture.target_id);
         if gone {
             return Err(gestures::DRIFTED.into());
         }
@@ -283,6 +287,54 @@ impl HierarchySurfaceSession for RequirementSession {
             causes::EDIT,
         );
         Ok(())
+    }
+
+    /// The keys that add an entry directly below the selected one, with no dialog (the standalone host's
+    /// `HierarchicalRequirementContextActionProvider`): Ctrl+Enter an item below an item and a requirement below a
+    /// requirement, Ctrl+Shift+Enter a requirement to an item. The labels and the unavailable message are the
+    /// specification's.
+    fn actions(&self, node_id: &str) -> Vec<SurfaceAction> {
+        let Some(node) = self.reading.model.nodes.iter().find(|n| n.id == node_id) else {
+            return Vec::new();
+        };
+        let action = |id: &str, label: &str, icon: &str, shift: bool, operation: &str| SurfaceAction {
+            id: id.into(),
+            label: label.into(),
+            icon: icon.into(),
+            key: "Enter".into(),
+            shift,
+            unavailable: String::new(),
+            operation: operation.into(),
+        };
+        if node.role == roles::LEVEL {
+            return vec![
+                action(
+                    ADD_BELOW,
+                    "New item below",
+                    "mdi-plus-box-outline",
+                    false,
+                    structure::ADD_ITEM_BELOW,
+                ),
+                action(
+                    ADD_REQUIREMENT,
+                    "New requirement",
+                    "mdi-plus",
+                    true,
+                    structure::ADD_REQUIREMENT,
+                ),
+            ];
+        }
+        let mut below = action(
+            ADD_BELOW,
+            "New requirement below",
+            "mdi-plus",
+            false,
+            structure::ADD_REQUIREMENT_BELOW,
+        );
+        if node.parent_id.is_empty() {
+            below.unavailable = structure::NO_ITEM.into();
+        }
+        vec![below]
     }
 
     fn take_changes(&mut self) -> Vec<SurfaceChange> {

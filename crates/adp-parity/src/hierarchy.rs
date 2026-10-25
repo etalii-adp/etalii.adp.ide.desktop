@@ -9,6 +9,8 @@
 //! - `{ "outside": { "file", "replace": { "from", "to" } } }` writes the file outside the host, as an agent would,
 //!   and tells the session the file changed, as the watcher does.
 //! - `undo` and `redo` are the project's history, which in the desktop host is the session's.
+//! - `{ "action": "hierarchy.add", "args": { "entry", "value", "text" } }` is the explorer's add, as for a diagram: a
+//!   new document from the designer's template.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -105,6 +107,9 @@ impl Page {
         }
         if let Some(outside) = step.get("outside") {
             return self.outside(outside);
+        }
+        if step.get("action").and_then(Json::as_str) == Some("hierarchy.add") {
+            return crate::add_entry(&self.project, step.get("args").unwrap_or(&Json::Null));
         }
         if let Some(n) = step.get("undo") {
             return self.history(count(n), true);

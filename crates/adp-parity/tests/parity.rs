@@ -62,6 +62,26 @@ fn etalii_hierarchical_requirement_collapse() {
 }
 
 #[test]
+fn etalii_hierarchical_requirement_structure() {
+    check("etalii/hierarchical-requirement/structure");
+}
+
+#[test]
+fn etalii_hierarchical_requirement_structure_lf() {
+    check("etalii/hierarchical-requirement/structure-lf");
+}
+
+#[test]
+fn etalii_hierarchical_requirement_text() {
+    check("etalii/hierarchical-requirement/text");
+}
+
+#[test]
+fn etalii_hierarchical_requirement_new_document() {
+    check("etalii/hierarchical-requirement/new-document");
+}
+
+#[test]
 fn etalii_knowledge_cities_json() {
     check("etalii/knowledge/cities-json");
 }

@@ -5,7 +5,7 @@
 //! `tests/surface_definition.rs` holds each to the vendored definition.
 
 use adp_desl::hierarchy::definition::{
-    AddDefinition, LabelDefinition, LabelLook, MoveParams, Operations, SurfaceDefinition, Widths,
+    AddDefinition, Deletion, LabelDefinition, LabelLook, MoveParams, Operations, SurfaceDefinition, Widths,
 };
 
 use crate::model::{MAXIMUM_WIDTH, MINIMUM_WIDTH};
@@ -62,6 +62,14 @@ pub fn definition() -> SurfaceDefinition {
         move_params: MoveParams {
             into: "item".into(),
             after: "after".into(),
+        },
+        // The `confirm` of deleteEntry, its CEL written out: the count is the page's, from the model's references.
+        deletion: Deletion {
+            threshold: 1,
+            message:
+                "Delete {number} with everything in it? {count} entries, references or assessments concern it; the \
+                      references and assessments are kept, and reported."
+                    .into(),
         },
         // The widths of the columns of items, kept in the registration's widths block; Column.width's range.
         widths: Some(Widths {

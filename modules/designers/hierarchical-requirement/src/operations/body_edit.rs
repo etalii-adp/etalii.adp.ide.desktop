@@ -171,11 +171,7 @@ impl<'a> BodyEdit<'a> {
 /// order, then those given by the edit itself.
 fn order(document: &Document, given_ids: &[String], given: &BTreeMap<&'static str, u32>) -> Vec<&'static str> {
     let mut kinds: Vec<&'static str> = Vec::new();
-    let placeholders = document
-        .entries
-        .iter()
-        .filter(|e| e.placeholder)
-        .map(|e| e.type_name());
+    let placeholders = document.entries.iter().filter(|e| e.placeholder).map(|e| e.type_name());
     let own = given_ids
         .iter()
         .map(|id| if id.starts_with("ITEM-") { ITEM } else { REQUIREMENT });

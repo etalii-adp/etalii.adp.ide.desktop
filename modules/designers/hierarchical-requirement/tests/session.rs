@@ -348,7 +348,12 @@ fn a_text_set_on_the_page_is_written_as_one_step_that_undo_takes_back_and_redo_m
     let mut session = RequirementSession::open(folder.body(), Some(folder.registration()));
 
     session
-        .gesture(set("setDescription", "REQ-0007", "description", "A forgotten password is reset by e-mail."))
+        .gesture(set(
+            "setDescription",
+            "REQ-0007",
+            "description",
+            "A forgotten password is reset by e-mail.",
+        ))
         .unwrap();
     let changes = session.take_changes();
     assert_eq!(outcome(&changes), (true, String::new()));
@@ -358,13 +363,20 @@ fn a_text_set_on_the_page_is_written_as_one_step_that_undo_takes_back_and_redo_m
     assert_eq!(node.description, "A forgotten password is reset by e-mail.");
     let after = fs::read(folder.body()).unwrap();
     assert_ne!(after, before);
-    assert_eq!(fs::read(folder.registration()).unwrap(), registration, "the registration is untouched");
+    assert_eq!(
+        fs::read(folder.registration()).unwrap(),
+        registration,
+        "the registration is untouched"
+    );
 
     session.undo().unwrap();
     assert_eq!(fs::read(folder.body()).unwrap(), before);
     let undone = last_model(&session.take_changes());
     assert_eq!(undone.cause, causes::EDIT);
-    assert_eq!(undone.nodes.iter().find(|n| n.id == "REQ-0007").unwrap().description, "");
+    assert_eq!(
+        undone.nodes.iter().find(|n| n.id == "REQ-0007").unwrap().description,
+        ""
+    );
 
     session.redo().unwrap();
     assert_eq!(fs::read(folder.body()).unwrap(), after);
@@ -388,11 +400,19 @@ fn an_item_added_at_the_top_is_given_the_next_number_and_the_mark() {
     let changes = session.take_changes();
     assert_eq!(outcome(&changes), (true, String::new()));
     let model = last_model(&changes);
-    let added = model.nodes.iter().find(|n| n.id == "ITEM-0008").expect("the new item is ITEM-0008");
+    let added = model
+        .nodes
+        .iter()
+        .find(|n| n.id == "ITEM-0008")
+        .expect("the new item is ITEM-0008");
     assert_eq!((added.title.as_str(), added.parent_id.as_str()), ("New item", ""));
     let text = fs::read_to_string(folder.body()).unwrap();
     // The web shop holds a REQ-NEW, which every edit numbers as reading did, so the requirements' mark moves too.
-    assert!(text.contains("<!-- last: ITEM-0008 REQ-0013 -->"), "the marks are set: {}", &text[..200]);
+    assert!(
+        text.contains("<!-- last: ITEM-0008 REQ-0013 -->"),
+        "the marks are set: {}",
+        &text[..200]
+    );
     assert!(!model.nodes.iter().any(|n| n.number == "REQ-NEW"));
 }
 
@@ -419,4 +439,60 @@ fn a_text_gesture_without_its_value_or_with_a_title_of_two_lines_is_refused_at_o
     );
     assert!(session.take_changes().is_empty());
     assert_eq!(fs::read(folder.body()).unwrap(), before);
+}
+
+/// A selected entry offers the keys that add directly below it, as the standalone host's context actions do, and an
+/// action is its operation sent for the entry.
+#[test]
+fn a_selected_entry_offers_the_keys_that_add_below_it_and_one_adds_directly_after_it() {
+    let folder = WebShopFolder::new();
+    let mut session = RequirementSession::open(folder.body(), Some(folder.registration()));
+
+    let item: Vec<(String, bool, String)> = session
+        .actions("ITEM-0001")
+        .into_iter()
+        .map(|a| (a.label, a.shift, a.operation))
+        .collect();
+    assert_eq!(
+        item,
+        [
+            ("New item below".to_owned(), false, "addItemBelow".to_owned()),
+            ("New requirement".to_owned(), true, "addRequirement".to_owned()),
+        ]
+    );
+    let below = session.actions("REQ-0001");
+    assert_eq!(below.len(), 1);
+    assert_eq!(
+        (below[0].label.as_str(), below[0].key.as_str(), below[0].shift),
+        ("New requirement below", "Enter", false)
+    );
+    assert_eq!(below[0].unavailable, "");
+    assert!(
+        session.actions("REQ-9999").is_empty(),
+        "a node the file does not have offers nothing"
+    );
+
+    session
+        .gesture(Gesture {
+            edit_id: "below".into(),
+            operation: below[0].operation.clone(),
+            target_id: "REQ-0001".into(),
+            ..Gesture::default()
+        })
+        .unwrap();
+    let model = last_model(&session.take_changes());
+    let parent = &model.nodes.iter().find(|n| n.id == "REQ-0001").unwrap().parent_id;
+    let siblings: Vec<&str> = model
+        .nodes
+        .iter()
+        .filter(|n| &n.parent_id == parent)
+        .map(|n| n.title.as_str())
+        .collect();
+    let at = model
+        .nodes
+        .iter()
+        .filter(|n| &n.parent_id == parent)
+        .position(|n| n.id == "REQ-0001")
+        .unwrap();
+    assert_eq!(siblings[at + 1], "New requirement", "directly below it: {siblings:?}");
 }

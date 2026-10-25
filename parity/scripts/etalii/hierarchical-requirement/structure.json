@@ -1,0 +1,21 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "addTopItem", "target": "", "params": {}}},
+    {"hierarchy": {"operation": "addItem", "target": "ITEM-0004", "params": {}}},
+    {"hierarchy": {"operation": "addItemBelow", "target": "ITEM-0005", "params": {}}},
+    {"hierarchy": {"operation": "addRequirement", "target": "ITEM-0006", "params": {}}},
+    {"hierarchy": {"operation": "addRequirementBelow", "target": "REQ-0001", "params": {}}},
+    {"hierarchy": {"operation": "moveItem", "target": "ITEM-0003", "params": {"item": "ITEM-0004", "after": "ITEM-0005"}}},
+    {"hierarchy": {"operation": "moveRequirement", "target": "REQ-0002", "params": {"item": "ITEM-0006", "after": ""}}},
+    {"hierarchy": {"operation": "moveRequirement", "target": "REQ-0009", "params": {"item": "ITEM-0006", "after": "REQ-0010"}}},
+    {"hierarchy": {"operation": "moveItem", "target": "ITEM-0004", "params": {"item": "ITEM-0005", "after": ""}, "expect": "refused"}},
+    {"hierarchy": {"operation": "deleteEntry", "target": "REQ-0008", "params": {}}},
+    {"hierarchy": {"operation": "deleteEntry", "target": "ITEM-0006", "params": {}}},
+    {"undo": {}},
+    {"undo": {}},
+    {"redo": {}}
+  ]
+}

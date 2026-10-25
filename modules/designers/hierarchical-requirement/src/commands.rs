@@ -113,7 +113,10 @@ impl Restore {
                 for done in restored {
                     let _ = write(&done.path, &done.after);
                 }
-                return Err(Undone::Failed(format!("Could not restore {}: {e}", name_of(&file.path))));
+                return Err(Undone::Failed(format!(
+                    "Could not restore {}: {e}",
+                    name_of(&file.path)
+                )));
             }
             restored.push(file);
         }

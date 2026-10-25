@@ -266,7 +266,11 @@ fn moved(
 }
 
 fn add(type_name: &str, id: &str, parent_id: Option<String>, index: Option<i64>) -> ModelChange {
-    let title = if type_name == ITEM { "New item" } else { "New requirement" };
+    let title = if type_name == ITEM {
+        "New item"
+    } else {
+        "New requirement"
+    };
     let attributes: Map = [("title", Value::String(title.into()))].into_iter().collect();
     ModelChange::Add {
         type_name: type_name.into(),

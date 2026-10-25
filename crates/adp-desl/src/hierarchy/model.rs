@@ -178,6 +178,22 @@ pub struct Gesture {
     pub params: BTreeMap<String, String>,
 }
 
+/// An action a selected node offers besides the page's own gestures, with its key: the host's ribbon shows it with that
+/// key, and the key or the ribbon sends its operation for the node, as a gesture.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct SurfaceAction {
+    pub id: String,
+    pub label: String,
+    pub icon: String,
+    /// The key it is run by with Ctrl or Cmd held, by the standalone host's names (`Enter`), and whether Shift is too.
+    pub key: String,
+    pub shift: bool,
+    /// Empty when it can run; otherwise the sentence that says why not.
+    pub unavailable: String,
+    /// The operation it sends for the node.
+    pub operation: String,
+}
+
 /// What became of an accepted gesture.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct EditOutcome {

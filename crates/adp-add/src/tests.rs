@@ -635,5 +635,9 @@ fn a_new_requirement_document_is_the_template_with_its_name_as_title_and_no_regi
     assert!(text.starts_with(
         "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0007 REQ-0009 -->\r\n# lending\r\n"
     ));
-    assert_eq!(text.split('\n').count(), text.split("\r\n").count(), "every line ends in CRLF");
+    assert_eq!(
+        text.split('\n').count(),
+        text.split("\r\n").count(),
+        "every line ends in CRLF"
+    );
 }
