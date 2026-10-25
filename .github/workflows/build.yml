@@ -51,8 +51,8 @@ jobs:
 
   # ATD, the ADP tool language (etalii.adp spec 035, T044, T107): the `atd` the other hosts ship (built without
   # `record`) checks every vendored example and the refused corpus, the toolchain's tests run against that same
-  # specification, the language server builds for WebAssembly as VS Code runs it, and what the other hosts ship carries
-  # only licences compatible with Apache-2.0. A pull request whose branch etalii.adp also has is built from that
+  # specification, the language server builds for WebAssembly as VS Code runs it and validates there as `atd` does,
+  # and what the other hosts ship carries only licences compatible with Apache-2.0. A pull request whose branch etalii.adp also has is built from that
   # branch's specification (ATD_SPEC_DIR), so a construct and its checker land together.
   atd:
     runs-on: ubuntu-latest
@@ -84,6 +84,14 @@ jobs:
         run: |
           rustup target add wasm32-unknown-unknown
           cargo build --release -p adp-atd-lsp --lib --target wasm32-unknown-unknown
+      - name: Validate every vendored description's cases through the WebAssembly module, as atd validate does (T162)
+        run: |
+          version=$(cargo pkgid -p wasm-bindgen | sed 's/.*[@#]//')
+          if [ "$(wasm-bindgen --version 2>/dev/null)" != "wasm-bindgen $version" ]; then
+            cargo install wasm-bindgen-cli --version "$version" --locked
+          fi
+          wasm-bindgen --target nodejs --out-dir target/atd-lsp-wasm target/wasm32-unknown-unknown/release/adp_atd_lsp.wasm
+          ATD=target/release/atd node crates/adp-atd-lsp/tests/wasm/validate.mjs target/atd-lsp-wasm
       - name: Check the licences of atd
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
