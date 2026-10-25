@@ -32,7 +32,7 @@
           "order": "drawOrder(self)",
           "notice": {
             "text": {
-              "cel": "'Showing ' + string(budget('drawn').shown) + ' of ' + string(budget('drawn').total)"
+              "cel": "'Showing ' + string(budget('drawn').shown) + ' of ' + string(budget('drawn').total) + ' elements — this query is larger than the diagram draws'"
             },
             "severity": "warning",
             "position": "top"
@@ -1000,7 +1000,16 @@
             "text": {
               "attribute": "display"
             },
-            "position": "center",
+            "position": {
+              "anchor": [
+                0.5,
+                0.5
+              ],
+              "offset": [
+                0,
+                2
+              ]
+            },
             "editable": false,
             "wrap": "none",
             "overflow": "ellipsis",
@@ -1014,9 +1023,6 @@
         "copyable": false,
         "connectable": false,
         "doubleClick": "none",
-        "tooltip": {
-          "cel": "self.display"
-        },
         "refusals": {
           "reparent": [
             "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
@@ -1038,7 +1044,16 @@
             "text": {
               "attribute": "display"
             },
-            "position": "center",
+            "position": {
+              "anchor": [
+                0.5,
+                0.5
+              ],
+              "offset": [
+                0,
+                2
+              ]
+            },
             "editable": false,
             "wrap": "none",
             "overflow": "ellipsis",
@@ -1074,8 +1089,7 @@
             "visible": {
               "cel": "self.definingExpression != ''"
             },
-            "wrap": "none",
-            "overflow": "ellipsis"
+            "wrap": "none"
           }
         ],
         "badges": [
@@ -1097,17 +1111,13 @@
             },
             "visible": {
               "cel": "self.projected"
-            },
-            "tooltip": "Projected: this variable leaves the query."
+            }
           }
         ],
         "deletable": false,
         "copyable": false,
         "connectable": false,
         "doubleClick": "none",
-        "tooltip": {
-          "cel": "'?' + self.name + (self.projected ? ' (projected)' : '') + ', ' + string(self.joinCount) + ' join(s)'"
-        },
         "refusals": {
           "reparent": [
             "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
@@ -1133,7 +1143,16 @@
             "text": {
               "attribute": "display"
             },
-            "position": "center",
+            "position": {
+              "anchor": [
+                0.5,
+                0.5
+              ],
+              "offset": [
+                0,
+                2
+              ]
+            },
             "editable": false,
             "wrap": "none",
             "overflow": "ellipsis",
@@ -1166,7 +1185,16 @@
             "text": {
               "attribute": "display"
             },
-            "position": "center",
+            "position": {
+              "anchor": [
+                0.5,
+                0.5
+              ],
+              "offset": [
+                0,
+                2
+              ]
+            },
             "editable": false,
             "wrap": "none",
             "overflow": "ellipsis",
@@ -1208,9 +1236,6 @@
         "copyable": false,
         "connectable": false,
         "doubleClick": "none",
-        "tooltip": {
-          "cel": "self.full"
-        },
         "refusals": {
           "reparent": [
             "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
@@ -1238,7 +1263,16 @@
             "text": {
               "attribute": "display"
             },
-            "position": "center",
+            "position": {
+              "anchor": [
+                0.5,
+                0.5
+              ],
+              "offset": [
+                0,
+                2
+              ]
+            },
             "editable": false,
             "wrap": "none",
             "overflow": "ellipsis",
@@ -1275,9 +1309,6 @@
         "copyable": false,
         "connectable": false,
         "doubleClick": "none",
-        "tooltip": {
-          "cel": "self.text"
-        },
         "refusals": {
           "reparent": [
             "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
@@ -1410,7 +1441,7 @@
           }
         },
         "sourceMarker": "none",
-        "targetMarker": "arrow",
+        "targetMarker": "arrowFilled",
         "labels": [
           {
             "id": "predicate",
@@ -1470,7 +1501,7 @@
           }
         },
         "sourceMarker": "none",
-        "targetMarker": "arrow",
+        "targetMarker": "arrowFilled",
         "labels": [
           {
             "id": "name",
@@ -1647,7 +1678,7 @@
               "kind": "computed",
               "id": "projected",
               "label": "Projected",
-              "value": "'No'",
+              "value": "No",
               "readOnlyReasons": [
                 "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
               ]
@@ -1662,7 +1693,7 @@
               "kind": "computed",
               "id": "joins",
               "label": "Joins",
-              "value": "'0'",
+              "value": "0",
               "readOnlyReasons": [
                 "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
               ]
@@ -1671,7 +1702,7 @@
               "kind": "computed",
               "id": "definition",
               "label": "Defined by",
-              "value": "''",
+              "value": "",
               "readOnlyReasons": [
                 "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
               ]
@@ -1714,7 +1745,7 @@
               "kind": "computed",
               "id": "annotation",
               "label": "Type",
-              "value": "''",
+              "value": "",
               "readOnlyReasons": [
                 "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
               ]

@@ -1,0 +1,21 @@
+sankey: 1
+# What a Sankey diagram reads is what its author wrote.
+format: "{value} TWh"
+thickness: 1.5
+nodes:
+  - id: 007
+    name: on
+    column: "1"
+  - id: "12"
+    name: 2050   # a year, not a number
+    colour: teal
+  - just text
+  - {id: x, name: X}
+flows:
+  - from: 007
+    to: 12
+    value: "12"
+    step: 0x10
+  - from: 12
+    to: 007
+    value: lots

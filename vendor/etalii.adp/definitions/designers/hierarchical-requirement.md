@@ -28,7 +28,7 @@ A requirement document is one Markdown file for one subject (an application, a p
 
 - **The Markdown file holds everything an agent needs**: every item and requirement with its number, title and description, the tags it carries, a requirement's category and state, the references and the assessments. It is a DED 0.2 definition ([DED](../../specifications/ded/DED-specification.md), section 2): its line 1 is DED's envelope, which names the designer type.
 - **The extension is a plain `.md`**, claimed `shared` with the envelope as its marker (DED section 4): a Markdown file is a requirement document when, and only when, its line 1 is the envelope naming `etalii/hierarchical-requirement`. It opens in the designer without a registration.
-- **The registration** is an `.adp` file whose line 1 is `etalii/hierarchical-requirement`. It holds only what an agent does not need to read: the colours and order of the tag, category and state lists, what is collapsed, and the stored filters. It is created by the first such setting the person changes. Deleting it loses those and nothing else; an agent never reads or writes it.
+- **The registration** is an `.adp` file whose line 1 is `etalii/hierarchical-requirement`. It holds only what an agent does not need to read: the colours and order of the tag, category and state lists, what is collapsed, the stored filters, and the widths the person gave the columns of items. It is created by the first such setting the person changes. Deleting it loses those and nothing else; an agent never reads or writes it.
 
 ## The file
 
@@ -174,7 +174,9 @@ states:
 collapsed:
   ITEM-0002: yes
 filters:
-  Open security: #security state:proposed sort:state
+  Open security: #security @proposed sort:state
+widths:
+  1: 320
 ```
 
 Line 1 is the origin, then `body: <file name>`, which may be left out when the registration and the document have the same base name, then the blocks, in this order. A block is its name and a colon on a line, then entries `<key>: <value>` indented two spaces; the key is everything before the last `: `, and a value is one line that holds no `: `.
@@ -186,25 +188,26 @@ Line 1 is the origin, then `body: <file name>`, which may be left out when the r
 | `states` | The state list | name: colour | as arranged | yes |
 | `collapsed` | The collapsed items and requirements | number: `yes` | in the byte order of the numbers as written, so every `ITEM-` before every `REQ-` | no: undo takes back the last change to the requirements, not the last box folded |
 | `filters` | The stored filters | name: query | as arranged | yes |
+| `widths` | The widths of the columns of items the person dragged | depth: pixels, `1` for the top items | as written | yes |
 
 - **Colours** are the Knowledge designer's, Notion's ten names: `default`, `gray`, `brown`, `orange`, `yellow`, `green`, `blue`, `purple`, `pink`, `red`.
-- **A block is absent or complete.** While `categories` is absent the list is functional `blue`, non-functional `purple` and technical `brown`; while `states` is absent it is proposed `gray`, accepted `green`, rejected `red` and done `blue`. `tags` and `filters` start empty. The first change to a list writes the whole list.
+- **A block is absent or complete.** While `categories` is absent the list is functional `blue`, non-functional `purple` and technical `brown`; while `states` is absent it is proposed `gray`, accepted `green`, rejected `red` and done `blue`. `tags`, `filters` and `widths` start empty; a column without a width has the designer's. The first change to a list writes the whole list.
 - **Implicit members.** A tag, a category or a state that an entry carries and its list does not hold is a member all the same: it stands after the stored members, in the order it first appears in the file, with the colour `default`, spelt as it first appears. It is never reported, and an agent never has to touch the registration. When the list is next written, it is stored with the others.
 - **What is collapsed** is stored for numbered entries only: an entry without a usable number is collapsed for the session. An entry whose number is no longer in the file is removed with the next write.
-- **Deleting the registration** loses the colours, the order, what was collapsed, the stored filters, and a tag, category or state that no entry carries. It loses no tag, category, state, reference or assessment that the file holds, and the starting categories and states come back.
+- **Deleting the registration** loses the colours, the order, what was collapsed, the stored filters, the widths of the columns, and a tag, category or state that no entry carries. It loses no tag, category, state, reference or assessment that the file holds, and the starting categories and states come back.
 
 ## Stored filters
 
-A filter is words separated by spaces, in the file's own notation:
+A filter is words separated by spaces, in the file's own notation, except that a state is written with `@`, which is shorter to type than `state:`:
 
 | Word | Selects |
 |---|---|
 | `#name` | Entries that carry the tag. |
-| `category:name`, `state:name` | Requirements with that category or state. |
+| `category:name`, `@name` | Requirements with that category, or with that state. |
 | `item:pattern` | Items whose title matches the pattern, with everything in them: `*` is any run of characters and `?` one character, in any case; the pattern has no space, so `?` or `*` stands for one. |
 | `sort:key` | The order of the requirements within each item: `number`, `title`, `category` or `state`, ascending. A category or a state sorts by its place in its list, and a requirement without it stands last. Of several `sort:` words the first counts. |
 
-Words of one kind are alternatives, and kinds combine. An item is shown when an `item:` word selects it or one above it, or none is given, and it holds an entry that is shown or no entry word is given. Narrowing, sorting, collapsing and focusing on an item never change the Markdown file; only storing a filter writes the registration.
+Words of one kind are alternatives, and kinds combine. An item is shown when an `item:` word selects it or one above it, or none is given, and it holds an entry that is shown or no entry word is given. Narrowing, sorting, collapsing and focusing on an item never change the Markdown file; only storing a filter writes the registration. The filter field completes a word as it is typed, from the tags, categories and states and their prefixes.
 
 ## The JSON form
 
@@ -264,6 +267,7 @@ Where it differs: there is no table, no column, no view tab and no property grid
 | The category and state lists: add, rename, colour, drag, delete | `addCategory`, `renameCategory`, `recolourCategory`, `moveCategory`, `deleteCategory`, and the same for `State` | As the tag list |
 | The assessment icon and its list | `addAssessment`, `changeAssessment`, `resolveAssessment`, `removeAssessment` | The file, under `Assessments`; resolving replaces one character, except on an assessment written without a checkbox, whose line is written again with one |
 | Storing the applied filter under a name; renaming or removing a stored one | `storeFilter`, `renameFilter`, `removeFilter` | The registration's `filters` block |
+| Dragging the right edge of a column of items; taking its width away | `addColumnWidth` the first time, then `setColumnWidth`; `resetColumnWidth` | The registration's `widths` block |
 | Narrowing, sorting, focusing on an item, selecting a reference box | none | Nothing |
 | Giving a duplicate a new number, from its finding | none: part of the `counter` strategy (DESL section 5.3.5) | The file: the new number and line 2 |
 

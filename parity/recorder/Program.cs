@@ -10,9 +10,11 @@ using EtAlii.Adp.TestSupport.Host;
 //
 //   dotnet run --project parity/recorder -- [script.json | folder ...] [--allow-dirty] [--any-commit] [--verbose] [--elements]
 //
-// Without a script or folder it records every script under parity/scripts/.
+// Without a script or folder it records every script under parity/scripts/ whose reference commit is the standalone
+// worktree's. A script's reference commit is the one a `reference` file in its folder or a folder above it names
+// (etalii.adp spec 036, research R3), else spec 030's.
 
-const string referenceCommit = "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e";
+const string defaultReferenceCommit = "8b6ccfca4f4a65e43c1a1a73a3224abe7ebf800e";
 
 var options = args.Where(arg => arg.StartsWith("--", StringComparison.Ordinal)).ToHashSet(StringComparer.Ordinal);
 var targets = args.Where(arg => !arg.StartsWith("--", StringComparison.Ordinal)).ToList();
@@ -31,13 +33,7 @@ var repository = FindRepository(Directory.GetCurrentDirectory()) ?? FindReposito
 var parity = Path.Combine(repository, "parity");
 var scriptsRoot = Path.Combine(parity, "scripts");
 
-// The oracle is the standalone host at the reference commit, unchanged.
 var commit = Git(standaloneRoot, "rev-parse HEAD").Trim();
-if (commit != referenceCommit && !options.Contains("--any-commit"))
-{
-    Console.Error.WriteLine($"The standalone host at {standaloneRoot} is at {commit}, not the reference commit {referenceCommit}. Pass --any-commit to record from it anyway.");
-    return 2;
-}
 
 var dirty = Git(standaloneRoot, "status --porcelain --untracked-files=no").Trim();
 if (dirty.Length > 0 && !options.Contains("--allow-dirty"))
@@ -67,6 +63,30 @@ if (scripts.Count == 0)
 {
     Console.Error.WriteLine($"No scripts found under {scriptsRoot}.");
     return 2;
+}
+
+// The oracle is the standalone host at each script's reference commit, unchanged. A script named on the command line
+// whose reference is another commit is refused; a folder's scripts at another commit are left for a run from that
+// commit's worktree.
+if (!options.Contains("--any-commit"))
+{
+    var elsewhere = scripts.Where(script => ReferenceOf(script) != commit).ToList();
+    var named = elsewhere.Where(script => targets.Any(target => Path.GetFullPath(target) == script)).ToList();
+    if (named.Count > 0)
+    {
+        Console.Error.WriteLine($"The standalone host at {standaloneRoot} is at {commit}, not the reference commit {ReferenceOf(named[0])} of {Path.GetRelativePath(repository, named[0])}. Pass --any-commit to record from it anyway.");
+        return 2;
+    }
+    if (elsewhere.Count > 0)
+    {
+        output.WriteLine($"Leaving {elsewhere.Count} script(s) whose reference commit is not {commit} for a run from that commit's worktree.");
+    }
+    scripts = scripts.Except(elsewhere).ToList();
+    if (scripts.Count == 0)
+    {
+        Console.Error.WriteLine($"No script under the given folders has {commit} as its reference commit.");
+        return 2;
+    }
 }
 
 // WebApplicationFactory finds the standalone host's content root through the manifest beside the
@@ -199,6 +219,21 @@ static void CopyFolder(string from, string to)
         Directory.CreateDirectory(Path.GetDirectoryName(target)!);
         File.Copy(file, target);
     }
+}
+
+// The reference commit of a script: the first line of the nearest `reference` file in its folder or a folder above it,
+// up to parity/scripts/, else spec 030's.
+string ReferenceOf(string script)
+{
+    for (var folder = Path.GetDirectoryName(script); folder != null && folder.StartsWith(scriptsRoot, StringComparison.Ordinal); folder = Path.GetDirectoryName(folder))
+    {
+        var file = Path.Combine(folder, "reference");
+        if (File.Exists(file))
+        {
+            return File.ReadLines(file).First().Trim();
+        }
+    }
+    return defaultReferenceCommit;
 }
 
 static string? FindRepository(string start)

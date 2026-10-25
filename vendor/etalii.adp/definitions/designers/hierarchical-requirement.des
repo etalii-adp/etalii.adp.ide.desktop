@@ -24,7 +24,7 @@
   },
   "metamodel": {
     "document": {
-      "children": { "allowed": ["Item", "Assessment", "Tag", "Category", "State", "Filter"], "doc": "A requirement stands in an item, so std.containment reports one at the top level (DESL section 4.6)." },
+      "children": { "allowed": ["Item", "Assessment", "Tag", "Category", "State", "Filter", "Column"], "doc": "A requirement stands in an item, so std.containment reports one at the top level (DESL section 4.6)." },
       "attributes": {
         "lastItem": { "type": "string", "pattern": "^ITEM-[0-9]+$", "doc": "The last item number the counter gave: the mark of Item's counter (DESL section 5.3.5), on line 2 of the file." },
         "lastRequirement": { "type": "string", "pattern": "^REQ-[0-9]+$", "doc": "The last requirement number the counter gave: the mark of Requirement's counter." }
@@ -152,9 +152,19 @@
         "labelAttribute": "name",
         "attributes": {
           "name": { "type": "string", "required": true, "doc": "What it is found under (FR-048): the key of its entry in the registration's filters block, which may hold `: `, since the key is everything before the last one (FBL section 8.1)." },
-          "query": { "type": "string", "required": true, "pattern": "^(?:[^:\\r\\n]|:[^ \\r\\n])*:?$", "doc": "Words separated by spaces, in the file's notation (DESL section 7.7.3): `#security state:proposed item:back* sort:state`." }
+          "query": { "type": "string", "required": true, "pattern": "^(?:[^:\\r\\n]|:[^ \\r\\n])*:?$", "doc": "Words separated by spaces, in the file's notation (DESL section 7.7.3): `#security @proposed item:back* sort:state`." }
         },
         "doc": "A stored filter with its sorting, kept in the filters block."
+      },
+      "Column": {
+        "label": "Column",
+        "icon": "mdi-arrow-expand-horizontal",
+        "labelAttribute": "level",
+        "attributes": {
+          "level": { "type": "string", "required": true, "pattern": "^[1-9][0-9]*$", "doc": "The depth of the items the column holds, 1 for the top items: the key of its entry in the registration's widths block." },
+          "width": { "type": "int", "required": true, "min": 120, "max": 2000, "doc": "The column's width in pixels." }
+        },
+        "doc": "The width of one column of items, which the user sets by dragging its right edge (DESL section 7.7.1), kept in the widths block."
       }
     }
   },
@@ -180,7 +190,8 @@
         "Tag": { "strategy": "derived", "expression": "'tag/' + self.name.lowerAscii()" },
         "Category": { "strategy": "derived", "expression": "'category/' + self.name.lowerAscii()" },
         "State": { "strategy": "derived", "expression": "'state/' + self.name.lowerAscii()" },
-        "Filter": { "strategy": "derived", "expression": "'filter/' + self.name" }
+        "Filter": { "strategy": "derived", "expression": "'filter/' + self.name" },
+        "Column": { "strategy": "derived", "expression": "'column/' + self.level" }
       }
     },
     "settings": {
@@ -209,7 +220,8 @@
         "doc": "FR-031."
       },
       "collapsed": { "attribute": "collapsed", "of": ["Item", "Requirement"], "doc": "Only a collapsed entry is stored, `<number>: yes` (FR-020)." },
-      "filters": { "type": "Filter", "key": "name", "value": "query", "initial": [], "doc": "FR-048." }
+      "filters": { "type": "Filter", "key": "name", "value": "query", "initial": [], "doc": "FR-048." },
+      "widths": { "type": "Column", "key": "level", "value": "width", "initial": [], "doc": "Only a column whose width the user set is stored, `<depth>: <pixels>`; the others have the host's width (DESL section 7.7.1)." }
     }
   },
   "surface": {
@@ -219,11 +231,12 @@
     "labels": {
       "tags": { "on": ["Item", "Requirement"], "options": { "type": "Tag", "name": "name", "colour": "colour" }, "prefix": "#", "doc": "Drawn as tags below the title (FR-026)." },
       "category": { "on": ["Requirement"], "options": { "type": "Category", "name": "name", "colour": "colour" }, "prefix": "category:" },
-      "state": { "on": ["Requirement"], "options": { "type": "State", "name": "name", "colour": "colour" }, "prefix": "state:" }
+      "state": { "on": ["Requirement"], "options": { "type": "State", "name": "name", "colour": "colour" }, "prefix": "@" }
     },
     "notes": { "type": "Assessment", "about": "about", "kind": "kind", "text": "text", "detail": "detail", "resolved": "resolved" },
     "collapsed": "collapsed",
     "filters": { "type": "Filter", "name": "name", "query": "query" },
+    "widths": { "type": "Column", "level": "level", "width": "width" },
     "ids": "shown",
     "doc": "Both parties point at an entry by its number, so it is shown beside the title (FR-009)."
   },
@@ -576,6 +589,26 @@
       "label": "Remove",
       "for": ["Filter"],
       "actions": [{ "delete": "self" }]
+    },
+    "addColumnWidth": {
+      "label": "Set width",
+      "for": "document",
+      "params": { "level": { "type": "string", "required": true, "pattern": "^[1-9][0-9]*$" }, "width": { "type": "int", "required": true, "min": 120, "max": 2000 } },
+      "actions": [{ "create": { "type": "'Column'", "attributes": { "level": "p.level", "width": "p.width" } } }],
+      "doc": "Dragging the right edge of a column whose width is not stored yet: the column of that depth gets the width (DESL section 7.7.1)."
+    },
+    "setColumnWidth": {
+      "label": "Set width",
+      "for": ["Column"],
+      "params": { "width": { "type": "int", "required": true, "min": 120, "max": 2000 } },
+      "actions": [{ "set": { "width": "p.width" } }],
+      "doc": "Dragging the right edge of a column whose width is stored."
+    },
+    "resetColumnWidth": {
+      "label": "Reset width",
+      "for": ["Column"],
+      "actions": [{ "delete": "self" }],
+      "doc": "Gives the column the host's width again."
     }
   }
 }
