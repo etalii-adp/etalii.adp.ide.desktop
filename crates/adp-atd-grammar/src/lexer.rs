@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use etalii_lark::lexer::{BasicLexer, LexerConf, LexerState};
+use etalii_lark::lexer::{BasicLexer, LexerConf, LexerState, LineCounter};
 use etalii_lark::{Lark, TerminalDef};
 
 use crate::Grammar;
@@ -122,7 +122,18 @@ impl Lexer {
     /// lexer reads it. `None` when nothing matches.
     pub fn next(&self, text: &str, position: usize, candidates: &[usize]) -> Option<Lexeme> {
         let lexer = self.lexer(candidates)?;
-        let mut state = LexerState::new(text, position, text.len());
+        // Started at `position` by its byte offset alone: `LexerState::new` counts the lines of all the text before
+        // it, which made reading a file's trivia token by token quadratic in its length. Lines and columns are not
+        // read here, and ATD's terminals have no anchors (ATD §3), so what matches is the same.
+        let mut state = LexerState {
+            text,
+            end: text.len(),
+            line_ctr: LineCounter {
+                pos: position,
+                ..LineCounter::default()
+            },
+            last_token: None,
+        };
         let token = lexer.next_token(&mut state, None).ok()??;
         let terminal = self.matchers.iter().position(|m| m.definition.name == token.kind)?;
         Some(Lexeme {
