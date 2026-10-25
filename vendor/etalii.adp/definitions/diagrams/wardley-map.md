@@ -1,229 +1,156 @@
-# Wardley map (`wardley/map`)
+# Wardley map
 
-This is the companion to [`wardley-map.dis`](wardley-map.dis), the DISL specification of the Wardley map diagram type. The `.dis` holds everything DISL can say: the positioned elements and their attributes, the two links, evolutions, pipelines and the commentary elements, the unit-square coordinate system, the notation, the toolbox, context menus and property forms, the rules and the operations. This file holds everything it cannot: the `.owm` text format and its byte-identical round trip, the identity sidecar, the evolution-stage bands, the legacy pipeline form, the gestures DISL has no words for, and the places where the `.dis` could only approximate what the standalone implementation does.
+[wardley-map.dis](wardley-map.dis) specifies ADP's **Wardley map** (`wardley/map`) in DISL 0.3. The specification holds everything DISL 0.3 can state: the metamodel, the unit-square coordinates with the four evolution stages as ranges of the evolution axis and the axes' end labels, the notation, the toolbox, the context menus with their pickers, the forms with their checks and read-only reasons, the constraints with their codes, sentences and order, the operations with their refusals, the deletion confirmation, the ids, and the persistence through the plugin that reads and writes the `.owm` text. This page holds what DISL 0.3 and FBL 0.2 cannot state, and what a runtime will meet that neither says, so that a host implementing the diagram type from the specification ends up with the tool that exists today.
 
-Every statement here is tied to the source that shows it. Paths are in [etalii.adp.ide.standalone](https://github.com/etalii-adp/etalii.adp.ide.standalone) on `develop`; `src/diagrams/wardley-map/` is abbreviated to `wardley-map/`, and `wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap/` to `backend/`. "Req" refers to the standalone spec `wardley-map`, which was removed from the tree and is read with `git show "ece03c36^:.spec-workflow/archive/specs/wardley-map/requirements.md"` (and `design.md`, `tasks.md` beside it).
+The reference implementation is the standalone module [`src/diagrams/wardley-map/`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/wardley-map) in etalii.adp.ide.standalone, converted to this specification by that repository's specification `wardley-map-disl-fbl`. Every sentence, label and code in the specification and below is the one its parity transcript records (`backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Parity/wardley-map.transcript.json`), and every fixture named is under `backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/`. Paths are relative to `src/diagrams/wardley-map/` in the standalone repository.
+
+## Contents
+
+1. [What the diagram is for](#what-the-diagram-is-for)
+2. [The document on disk](#the-document-on-disk)
+3. [Identities](#identities)
+4. [What DISL cannot express](#what-disl-cannot-express)
+5. [Language gaps](#language-gaps)
+6. [Definition defects repaired](#definition-defects-repaired)
+7. [Other differences a runtime will meet](#other-differences-a-runtime-will-meet)
+8. [What remains in the module, and why](#what-remains-in-the-module-and-why)
+9. [Sources](#sources)
+
+## What the diagram is for
+
+A Wardley map places the components of a value chain by two measures: how visible each is to the user whose need anchors the chain (top to bottom), and how evolved it is, from genesis through custom built and product to commodity (left to right). Links say what depends on what; an evolution says where a component is heading; pipelines, inertia and the market, ecosystem, build, buy and outsource decorators say how it is sourced. The map is for arguing about a strategy rather than asserting one.
+
+- **Origin.** The method is Simon Wardley's and the text format is that of Online Wardley Maps, which is why the origin is `wardley/`.
+- **State.** ⚗️ Prototype, the state its row in the standalone `docs/tools.md` carries, recorded under `x-adp.state`.
+- **Out of scope by decision**: editing the `.owm` as text with a live preview, as onlinewardleymaps.com and its editor extensions do.
+
+## The document on disk
+
+A map is an `.adp` registration whose first line is `wardley/map` and a body, `<name>.owm` (`.wm` is read too), in the Online Wardley Maps text format. A new map's body is `title <name>` and a line ending. The fixtures are certified against the real Online Wardley Maps parser vendored by `cli-owm` 0.0.2 (`Fixtures/readme.md`, `certify.mjs`).
+
+| Statement | Model |
+| --- | --- |
+| `title Text`, `style Name`, `size [w, h]` | Diagram attributes; `style` and `size` are kept and not drawn. A second `title` wins (`two-titles.owm`). |
+| `component Name [v, m] label [dx, dy] (decorator) inertia url(name)` | `Component`; what follows the coordinates may come in any order (`lenient-trailer.owm`) |
+| `anchor Name [v, m]`, `submap Name [v, m] url(name)` | `Anchor`, `Submap` |
+| `url name [address]` | `Url` |
+| `A->B`, `A+>B`, optionally `; context` | `Dependency`, `Flow`; the ends are names |
+| `evolve Name m`, `evolve Name->NewName m` | `Evolution`; only the first of a component is used (`evolve-twice.owm`) |
+| `pipeline Parent` and a `{ component Child [m] }` block | `Pipeline` and `PipelineComponent`; the brace is on the line below (`pipelines-both-forms.owm`) |
+| `pipeline Parent [a, b]` | `Pipeline` in the older two-coordinate form, its numbers kept as written |
+| `note text [v, m]` | `Note` |
+| `annotation N [v, m] text`, `annotation N [[v, m], [v, m]] text` | `Annotation`, its occurrences drawn as `AnnotationPin`s; `annotations [v, m]` is kept and not drawn |
+| `accelerator Name [v, m]`, `deaccelerator Name [v, m]` | `Accelerator` |
+| `pioneers`, `settlers`, `townplanners [v1, m1, v2, m2]` | `Attitude`; the corners may be given in any order |
+| `y_axis`, `x_axis`, `evolution`, `presentation`, any other line, `// comment` | Not modelled and kept byte for byte (`unmodelled-statements.owm`, `comments-everywhere.owm`); a `//` after a `:` is not a comment, so `https://` survives |
+
+Coordinates are written `[visibility, maturity]`; the specification places `x` from maturity and `y` from visibility. `market` and `ecosystem` are decorators, not statement kinds: `market Foo [0.6, 0.8]` is a parse error for the real parser (`Fixtures/readme.md`). A document ADP did not change is written back byte for byte, every line ending, blank-line run and missing final ending included (`crlf-line-endings.owm`, `lf-line-endings.owm`, `mixed-line-endings.owm`, `no-trailing-newline.owm`, `blank-line-runs.owm`); an edit rewrites only the lines it changes, and a new statement is appended at the end.
+
+The specification names the required plugin `net.etalii.adp.wardley.owm` as its persistence format, because FBL 0.2 cannot read this format as the tool does (gaps 1 to 6). The plugin's `doc` lists its own refusals.
+
+## Identities
+
+The body holds no ids; a statement names another element by its name. Every element is given a ShortGuid, a version 4 GUID written as 25 characters of base 36 (`persistence.ids`), kept beside the body in `<name>.identities.json`, keyed by the element's kind and a natural key: a component's name, a link's ends and kind, a pipeline's parent, a pipeline component's parent and name, a note's text, an annotation's number, an accelerator's name, an attitude's kind and corners. A missing or stale file is reconciled against the body on opening, so ids survive an edit made in another tool where the key still matches.
+
+Two elements with one key (two components of one name, one link stated twice, two notes of one text) each get an id of their own, ruled by the user in chat on 2026-10-11 ("both get a unique id. everything is changed to cope with it."). The rulings of 2026-10-12 settle what follows from that: a later holder's entry carries its ordinal in its key and is first stored with the next save that writes the map; a statement naming a repeated name attaches to the first holder in document order; a link, an evolution or a pipeline drawn from a later holder first gives that holder a new name with a number after it; a rename renames the selected holder only; adding or renaming to a name the map already has stays refused; and after an edit made outside ADP the ids follow the order of the holders (`same-key-twice.owm`, `duplicate-names.owm`). None of this is in the specification, which DISL and FBL cannot say (gaps 7 and 8).
+
+## What DISL cannot express
+
+- **A submap that is not in the project** (gap 9). `wardley.submap-missing`, a warning, runs over every `url` definition's address, resolves it against the project root, and is located on the definition's line: "'Linked' points at 'linked.owm', which is not in this project." or "This map defines 'also-missing.owm', which is not in this project." (`submap-addresses.owm`). DISL's `fs.exists` resolves against the folder of the subject, and its own example in 12.4 states the rule on `Submap` with `self.url`, which in this tool is the name of a definition, not an address. The specification lists the code in `constraints.order` and states no rule for it.
+- **A number written by the format's own invariant pattern** (gap 10). `wardley.coordinate-out-of-range` writes the value as `0.####` whatever the locale: `[0.5, 1.00005]` gives "The maturity of 'Far' is 1.0001, and a Wardley map's axes run from 0 to 1." (`out-of-range.owm`). DISL's `formatNumber` is ICU formatting in `env.locale`; the specification calls the plugin function `fixedNumber`, with `formatNumber(n, '0.####')` as its fallback.
+- **The label of a picker's confirm button, and a picker of one** (gap 11). Link to… and Flow to… confirm with "Link" and "Flow"; Remove link… asks nothing when the element has one link and offers "Remove link" with the button "Remove" otherwise (the transcript's choice requests). `connect` with `target: "pick"` has a title and an empty text but no confirm label, and always asks.
+- **Findings of one code in the order of their kinds** (gap 12). `wardley.coordinate-out-of-range` is reported collection by collection: components, pipelines, evolutions, notes, accelerators, attitudes, annotations, so `out-of-range.owm` lists lines 2, 3, 4, 17, 19, 9, 10, 11, 12, 13. DISL 8.6 orders findings of one code by location.
+- **The wire ids** are under `x-wardley`, as ruled for every converted tool (Peter, 2026-10-06, "Spec all but wire ids"): the toolbox's ids, the action ids keyed by operation or kind with `<Type>/<kind>` overrides and a `<decorator>` placeholder, the property ids keyed by form item, and the element type ids.
+
+## Language gaps
+
+Each gap is a candidate change to DISL or FBL, found by the standalone conversion. None is worked around in the specification by stating something the tool does not do. Gaps 1 to 10 were found by reading the module against the languages (section C of the conversion's requirements); gaps 11 and 12 by writing the specification against the transcript.
+
+| # | Gap | Construct | Fixture | Would resolve it |
+| --- | --- | --- | --- | --- |
+| 1 | A block whose brace is on the line below its statement | FBL 4.7 `blocks` (a block opens only on a statement whose last character is `{`); `lines` has no containment | `pipelines-both-forms.owm` | A rule option that lets a statement own the block the next statement opens, or a `blocks` option naming the brace style |
+| 2 | Braces that do not balance, and a brace that opens nothing | FBL 4.7 (an unbalanced body is unreadable; any statement ending in `{` opens a block) | `unclosed-pipeline.owm`, `brace-ending-statements.owm` | Only a statement matched by a rule with `opens`, or by a block rule, opens a block; an unclosed block ends at the end of the body with a finding |
+| 3 | A comment that trails a statement | FBL 4.6 `comment` (whole lines only); `re-emit-line` rewrites the comment with the statement | `comments-everywhere.owm`, `trailing-comments.owm` | A binding-level `trailingComment` expression, cut before rules match and kept outside every re-emitted span |
+| 4 | A slot found by search inside a group | FBL 2.5 expression subset (no lookaround), `word` slots of one word, one order per `line` expression | `lenient-trailer.owm` | A slot that finds a segment of several words anywhere in a group, in any order |
+| 5 | One set-valued attribute stored as the presence of words | FBL 3.3 (one attribute, one place) | `decorators.owm` | A slot whose value is the set of words present, unknown words kept |
+| 6 | A list of structured values inside one statement | FBL `lines`/`blocks` slots (one string per group) | `annotations-and-labels.owm` | A slot that yields a list of groups, each splice-able |
+| 7 | The Wardley map's identity file is an array of `{id, kind, key}` | FBL 8.7, which describes `{base}.identities.json` as an object mapping a key to an id | `examples/example 2/annotations-and-labels.identities.json`, `examples/example 2/strategy-vocabulary.identities.json` | FBL 8.7 describing the array the tool writes, or a way to read and write it |
+| 8 | The key space of `identities:`, an id of its own for each holder of one key, what a change of the key's attribute does to an entry, and whether identity writes are undone | FBL 8.6 (one block of `<key>: <id>`, keys not per rule, a second holder gets `std.duplicateId` and an id that is not stored; nothing on rekeying or history) | `same-key-twice.owm`, `duplicate-names.owm` | Keys per rule or kind, an ordinal for a later holder, a rekey when the attribute a key is computed from changes, and a sentence on whether an identity write is part of the edit's history |
+| 9 | `fs.exists` against the project root, and the Wardley example | DISL 12.4 `fs.exists` (the subject's folder), its example on `Submap` | `submap-addresses.owm` | A base-folder argument or a `project` root for `fs.exists`, and the example rewritten over `Url` addresses |
+| 10 | A number written by a fixed invariant pattern | DISL 12.4 `formatNumber` (ICU in `env.locale`) | `out-of-range.owm` | A `formatNumber` that takes an invariant locale, or a separate invariant formatter |
+| 11 | A picker's confirm label, and a picker of one | DISL 9 `connect` with `target: "pick"` (`pickerTitle`, `emptyText`); a choice dialog with no confirm label | The transcript's choice requests for Link to…, Flow to… and Remove link… | A `pickerConfirm` label, and a `single: "run"` that runs without asking when there is one candidate |
+| 12 | Findings within one code ordered by kind, not line | DISL 8.6 ordering, `constraints.order` (8.1) | `out-of-range.owm` | An ordering option that keeps a built-in's findings in the order of the collections it walks |
+
+### 1 to 4. FBL: what the `.owm` grammar needs
+
+The four together are why the body is still read by a plugin. Gap 1 alone blocks every map with a pipeline, because the one nested construct of the format is written with its brace below. Gaps 2 to 4 are what the parser reads leniently today, which the conversion keeps reading (its question Q2): a pipeline that is never closed keeps its children and the map stays editable, only adding to that pipeline being refused ("'X' has a pipeline that is missing its closing brace."); a `//` cuts any line except after a `:`; and `label [dx, dy]`, `( market )`, `inertia` and `url(name)` are found anywhere after the coordinates.
+
+### 5 and 6. FBL: decorators and annotation positions
+
+The specification models the five decorators as the booleans `market`, `ecosystem`, `build`, `buy` and `outsource`, with the row `wardley.decorators` computed over them and the five toggles as one `forEach` menu entry, and an annotation's occurrences as `positions`, the text between its outer brackets, from which the derived node type `AnnotationPin` and the per-occurrence `wardley.coordinate-out-of-range` (the rule `annotationOutOfRange`) read the numbers with the plugin function `positions`. Both shapes are what a binding could bind, once these gaps are answered; until then the plugin reads them.
+
+### 7 and 8. FBL: the identity file
+
+Read through FBL 0.2, every existing map would get new ids and keep a stale file beside it (gap 7), and two holders of one key would get one id between them or an id that is not stored (gap 8), both against the rulings under [Identities](#identities).
+
+### 9. DISL: the project root
+
+The rule needs the address resolved where the tool resolves it. Stating it with `fs.exists` would state a rule the tool does not apply, so the specification states none.
+
+### 10. DISL: the invariant number
+
+The first half of this gap as section C records it, `oncePerGroup` reporting at the second or last holder where the tool reports at the first, is struck: the rule `duplicateName` is stated at the first holder by a `when` over `positionIn`, with the lines of every holder from `location()`. What remains is the number.
+
+### 11. DISL: the picker's button and a picker of one
+
+Found writing the menus against the transcript. The specification's `connect` entries carry their title and empty text; the confirm labels and the unlink of one link stay in the module's map of wire ids.
+
+### 12. DISL: the order within one code
+
+Found writing the constraints against the transcript. `constraints.order` puts the codes in the tool's order; within `wardley.coordinate-out-of-range` a runtime following DISL lists the findings by line.
+
+## Definition defects repaired
+
+A definition defect is the specification saying something the tool does not do, or leaving out something it does. The earlier definition was written against DISL 0.1; these were repaired by the rewrite at DISL 0.3, and the last by the task that loaded it in the standalone library:
+
+| Finding | Was | Is |
+| --- | --- | --- |
+| A1 | DISL 0.1, which the standalone client refuses | DISL 0.3 |
+| A2 | The text format and its round trip named only as a plugin | The required plugin `net.etalii.adp.wardley.owm` stated as what it is, with its refusals; `format: "fbl"` waits on gaps 1 to 6 |
+| A2 | Ids outside the document called not expressible | `persistence.ids` `uuid-v4` in `base36`, stable; the sidecar's shape is gaps 7 and 8 |
+| A2 | References by name that may dangle called not expressible | The rules `danglingSource`, `danglingTarget`, `evolveTargetMissing` and `pipelineParentMissing`, which name the end as written through `writtenEnd` |
+| A2 | The evolution stages as an enum and a derived attribute | `axis.ranges`: Genesis, Custom Built, Product (+rental), Commodity (+utility) at 0.175, 0.4 and 0.7, as bands of increasing opacity with dashed separators; `stage` reads `axisRange()` |
+| A2 | No end labels | `endLabels`: "Invisible" at the bottom, "Visible" at the top |
+| A2 | A fixed canvas | `fit: "stretch"` over bounds of 1000 by 1000 with a margin of 90 |
+| A2 | The label offset as view data | A label `offset` bound to the attribute `labelOffset`, default `[15, 4]` |
+| A2 | Static menu labels and a confirmation without the name | CEL Messages: Evolve to… or Change evolution target…, Mark as or Clear for inertia and each decorator, and "Remove '{name}', and every link and evolution that names it?" |
+| A2 | Link to… and Flow to… without a picker | `connect` with `target: "pick"`, the other elements' names as candidates, sorted |
+| A2 | Read-only rows without their reason | `readOnlyReasons` on every read-only row, and `behavior.reasons.readOnlyFile` "This map's file is read-only." |
+| A2 | `wardley.submap-missing` called not expressible | Stated as not expressible for the right reason, the project root (gap 9) |
+| A2 | Clamping a drag and refusing a typed value not told apart | `outOfRange` on both axes: a drag stops at the edge, a typed value is refused with "Both of a Wardley map's axes run from 0 to 1, so a position outside that is off the map." |
+| A3 | `urls` a diagram list, `decorators` one list, `AnnotationPin` a stored child | `Url` a node type; five boolean decorators; `positions` text and a derived `AnnotationPin` |
+| A4 | No wire ids | The `x-wardley` block |
+| A9 | An evolution a node type of its own, and a warning for a second `evolve` | The rows Evolves to and Becomes on the component, whose `parse.write` creates, sets or removes the `evolve`; no warning, because the tool gives none |
+| A7 | `wardley.duplicate-name` located on the element's name, which names nothing | At the first holder, with the lines of all holders |
+| Task 4 | The next annotation number taken with `.max()` on a list, which is no function of DISL's CEL, so the standalone loader refused the specification | `math.greatest` over the numbers, one of the math extension's functions DISL requires (12.1) |
+
+`std.duplicateId` is off, because every holder of a repeated key has an id of its own. `std.unreadableEntry` is kept on, as `wardley.line-passed-over`, a warning worded by the reader ("This line is not a statement of a Wardley map, so it was passed over.", "This component statement could not be read, so it was passed over.", "This evolve statement could not be read, so it was passed over.", "This line inside a pipeline is not a component of it, so it was passed over."), because the tool reports those lines today and this keeps the reading as it is.
+
+## Other differences a runtime will meet
+
+- **Decorator order.** The row `wardley.decorators` lists the decorators in the order market, ecosystem, build, buy, outsource, whatever order the statement writes them in; the toggles write a new decorator after the last one.
+- **Sorting names.** The pickers sort their candidates by `upper(name)`; the tool sorts ordinally ignoring case. The two agree on ASCII names; CEL's `upper()` folds case by Unicode rules, so names that differ in a character outside ASCII may sort differently.
+- **Annotation positions.** The plugin function `positions` reads the occurrences as the module's parser does; a host without the plugin uses its CEL fallback, which splits the text on its brackets and commas and converts each number with `double()`, so one number that will not convert fails the whole evaluation where the parser passes over the statement.
+- **The evolution axis is no longer an element.** The tool sent the stages to its canvas as a synthetic element `wardley/map+evolution-axis`; the specification's `axis.ranges` replace it.
+- **New elements land at 0.5, 0.5**, and a new pipeline component at maturity 0.5, because the drop point does not reach the add.
+
+## What remains in the module, and why
+
+At this step the module still reads and writes the body, holds the ids, and hands out its own toolbox, menus, rows and findings; the conversion's later tasks derive those from this specification. What stays when they are done, and the gap or host concern that keeps it, is recorded here by the conversion's last task.
 
 ## Sources
 
-| Source | What it contributed |
-|---|---|
-| `backend/` (`WardleyParser.cs`, `WardleyWriter.cs`, `WardleyIdentities.cs`, `WardleyValidator.cs`, `WardleyRuleSet.cs`, `WardleyContextActionProvider.cs`, `WardleyContextPropertyProvider.cs`, `WardleyToolboxProvider.cs`, `WardleyAxis.cs`, `WardleyEvolution.cs`, `WardleyEditability.cs`, `WardleyElementMapper.cs`, `Commands/`, `_Model/`) | The model, the `.owm` reader and writer, identities, rules, actions, properties, toolbox, the coordinate conversion and the stages. |
-| `wardley-map/client/` (`WardleyCanvas.tsx`, `wardley.css`, `register.ts`, `readme.md`) | The notation: sizes, strokes, dashes, bands, labels and the drag. |
-| `wardley-map/api/wardley-map.proto` | The element payload on the wire. |
-| `wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/readme.md` | The certification of the fixtures against the real Online Wardley Maps parser, and what it found. |
-| `wardley-map/examples/` | The shipped examples (`example 1/tea.owm`). |
-| `.spec-workflow/archive/specs/wardley-map/` (in history before `ece03c36`) | Requirements 1-15, the design and the 27 tasks, all done. |
-| Notion, "Tools" database, row "Wardley map" | Kind Diagram, state Prototype, family "Strategy & landscape mapping", focus areas, purpose and "why specialized" (used in the `.dis` `doc`). |
-| `docs/tools.md` in the standalone repository | The catalogue row: Prototype, Diagram, `wardley/map`. |
-| The project's conversations | Nothing Wardley-specific beyond the catalogue work; the only earlier mention is the standalone pull request "ansible and wardley styles" (#68). |
-
-## 1. Identity
-
-- **Origin tag** `wardley/map`, title "Wardley map", icon `mdi-chart-line`, description "A value chain positioned against evolution, so a strategy can be argued about rather than asserted." (`backend/Diagram.cs`). The `.dis` uses `net.etalii.adp.wardley.map` as its language id, following the `net.etalii.adp.<vendor>.<type>` pattern of the other definitions.
-- **Catalogue**: Diagram, Prototype (standalone `docs/tools.md`; Notion "Tools"). Purpose in Notion: "Map a value chain by how visible each component is to users and how evolved it is."
-- **Out of scope by decision** (design.md): editing the `.owm` as text with a live preview, as onlinewardleymaps.com, the VS Code extension and the Obsidian plugin do. The round trip below is what such an editor would need; it is simply not this diagram's job.
-
-## 2. Files: registration and body
-
-- A map is two files: an `.adp` registration whose first line is `wardley/map`, and the body, `<name>.owm` (`backend/ServiceCollection.AddWardleyMap.cs`). DISL's `persistence.files` can name the body but not a registration file owned by the host.
-- The `.wm` extension is read as well as `.owm` (`backend/WardleyParser.cs`, Req 2). DISL has one `fileExtension`.
-- A new map's body is exactly `title <baseName>\n`, with an LF terminator (`backend/ServiceCollection.AddWardleyMap.cs`). DISL can set a diagram attribute default, but not a default computed from the file name, nor the bytes of an empty document.
-- A third file, `<name>.identities.json`, sits beside the body (section 4).
-
-## 3. The `.owm` format
-
-DISL's persistence is a structured serialization (JSON, YAML and the like). A Wardley map is stored in the Online Wardley Maps text DSL instead, so the `.dis` names a required `plugin:net.etalii.adp.wardley.owm` format. What the plugin does is below.
-
-### 3.1 Statements
-
-| Statement | Model | Notes |
-|---|---|---|
-| `title Text` | diagram `title` | |
-| `style Name` | diagram `style` | Kept; not rendered. |
-| `size [width, height]` | diagram `size` | Pixels of the reference renderer; kept, not used (the canvas fits the pane). |
-| `component Name [v, m] label [dx, dy] (decorators) inertia url(name)` | `Component` | The label offset is in pixels and kept as view data (`labelOffsets`). |
-| `anchor Name [v, m]` | `Anchor` | |
-| `submap Name [v, m] url(name)` | `Submap` | |
-| `url name [address]` | diagram `urls` | |
-| `A->B`, `A+>B`, optionally `; context` | `Dependency`, `Flow` | Endpoints are names. |
-| `evolve Name m`, `evolve Name->NewName m` | `Evolution` | |
-| `pipeline Parent { component Child [m] ... }` | `Pipeline` + `PipelineComponent` | Nested form. |
-| `pipeline Parent [a, b]` | `Pipeline` with `form: legacy`, `legacyExtent` | Legacy form, section 5. |
-| `note text [v, m]` | `Note` | |
-| `annotation N [v, m] text`, `annotation N [[v, m], [v, m], ...] text` | `Annotation` + `AnnotationPin`s | |
-| `annotations [v, m]` | diagram `annotationsPosition` | Kept; the legend is not drawn. |
-| `accelerator Name [v, m]`, `deaccelerator Name [v, m]` | `Accelerator` | |
-| `pioneers|settlers|townplanners [v1, m1, v2, m2]` | `Attitude` | |
-| `y_axis`, `x_axis`, `evolution`, `presentation`, any unknown keyword | not modelled | Preserved verbatim (`backend/WardleyParser.cs`, Req 3). |
-| `// comment` | not modelled | Anywhere on a line, except where `//` follows `:` (so `https://` in a url is not a comment). |
-
-Coordinates are written `[visibility, maturity]`, in that order; the fixtures readme records that the real parser confirms it ("the module's most error-prone single line"). DISL's placement binds `x` to maturity and `y` to visibility, which is the swap `backend/WardleyAxis.cs` makes: canvas x = maturity, canvas y = 1 − visibility.
-
-### 3.2 Vocabulary settled by certification
-
-The fixtures are certified against the real Online Wardley Maps parser vendored by `cli-owm` 0.0.2 (`Fixtures/readme.md`, `certify.mjs`). Certification found that **`market` and `ecosystem` are decorators, not statement kinds**: `market Foo [0.6, 0.8]` is a parse error and the real form is `component Foo [0.6, 0.8] (market)`. So there are three statement kinds and five decorators, and `inertia` is a separate boolean. This contradicts Req 5.1 and 6.3, which the implementation corrected; the `.dis` follows the implementation. Unknown decorators are ignored when reading and preserved in the text (`backend/WardleyDecorators.cs`).
-
-### 3.3 Byte-identical round trip
-
-- A document ADP did not change is written back byte for byte, including each line's own terminator (LF, CRLF, mixed, or none on the last line) and runs of blank lines (Req 3.1; `backend/WardleyWriter.cs`; fixtures `crlf-line-endings.owm`, `mixed-line-endings.owm`, `no-trailing-newline.owm`, `blank-line-runs.owm`).
-- An edit splices only the span of text it changes: a move rewrites the coordinate span, a rename rewrites every span that names the element (links, evolutions, pipelines), a toggle rewrites the decorator or `inertia` span (`backend/WardleyWriter.cs`).
-- New statements are appended at the end of the document.
-- DISL's `persistence` aims at byte-identical output from two runtimes writing the same model; it has no notion of preserving an existing document's own bytes, comments or unmodelled statements. That is the plugin's whole job.
-
-### 3.4 Undo
-
-- A move is undone by restoring the exact original line (`backend/Commands/RestoreWardleyLineCommand.cs`).
-- Add, remove and rename are undone by restoring the whole previous document text (`backend/Commands/WardleyElementCommandHandlers.cs`).
-- A reload caused by an external change to the file is not an undoable step.
-
-DISL says every transaction is undoable; it does not say how the stored text is restored, which here decides whether an undone edit leaves the file byte-identical.
-
-## 4. Identifiers
-
-- The `.owm` text has no element ids; references are by name. ADP gives every element a ShortGuid (base36) and keeps them in the sidecar `<name>.identities.json`, keyed by a kind plus a natural key: component name; link source, target and kind; pipeline parent; pipeline parent plus child name; note text; annotation number; accelerator; attitude (`backend/WardleyIdentities.cs`, `backend/WardleyIdentityKeys.cs`, `_Model/WardleyIdentityKind.cs`).
-- The sidecar is an optimisation. A missing or stale one is reconciled against the document on load, so ids survive edits made in other tools where the natural key still matches (`WardleyIdentities.Reconcile.Tests.cs`).
-- A rename carries the element's id to its new name, because the writer matches names by span rather than by text.
-- The `.dis` declares `ids.strategy: uuid-v4` because DISL has no strategy for "ids held outside the document, keyed by a natural key". Section 11 lists this as a gap.
-
-## 5. Pipelines
-
-- **Nested form** `pipeline Parent { component Child [m] }`: a child has a maturity only, and is drawn at the parent's visibility. Dragging a child changes its maturity only. The `.dis` expresses this with a computed `y` and `movable: {x: true, y: false}`.
-- **Legacy form** `pipeline Parent [a, b]`: no children; the two numbers are kept as written (`LegacyExtent`) and written back unchanged. "Add to pipeline…" is not offered on a legacy pipeline. The `.dis` marks `form` and `legacyExtent` read-only and disables the operation, but it cannot say "keep this statement's text as it is", which the plugin does.
-- An empty pipeline is allowed (fixture `pipelines-both-forms.owm`).
-- The canvas draws **no pipeline box** (`client/WardleyCanvas.tsx`); only its components are drawn. The `.dis` gives `Pipeline` the `none` shape.
-- On the wire, adding to and removing from a pipeline are the core's Group and Ungroup requests (`api/wardley-map.proto`, `backend/WardleyContextActionProvider.cs`).
-
-## 6. Notation details DISL does not pin down
-
-### 6.1 Canvas space
-
-- The client draws in a square space of 1000 units with a margin of 90 and a mark radius (`DOT`) of 9 (`client/WardleyCanvas.tsx`). The `.dis` sets canvas bounds 1000 × 1000 and marks of 18 × 18.
-- The space is **stretched to the pane's aspect ratio**, so the map always fills its pane. DISL canvas bounds are fixed; it has no "fit and stretch" mode.
-- The document's `size [w, h]` is not used for this.
-
-### 6.2 Evolution stages as bands
-
-- The evolution axis is divided into four stages: Genesis [0, 0.175), Custom Built [0.175, 0.4), Product (+rental) [0.4, 0.7), Commodity (+utility) [0.7, 1] (`backend/WardleyEvolution.cs`). The boundaries are the reference renderer's offsets 3.5, 8 and 14 divided by its 20-unit scale.
-- The backend sends them to the client as a synthetic element, `wardley/map+evolution-axis`, rather than the client hard-coding them (`backend/WardleyElementTypes.cs`, `backend/WardleyElementMapper.cs`).
-- The client draws each stage as a vertical band of increasing opacity (0.35, 0.5, 0.65, 0.8), separated by dashed lines (dash 6 6), with the stage's name as a label at font size 20 (`client/wardley.css`).
-- DISL has ordinal axes with bands and alternate grid fills, but no way to divide a **linear** axis into named, unequal ranges with their own fills and labels. The `.dis` carries the stages as the `EvolutionStage` enum and a derived `stage` attribute, which is what the property grid shows.
-
-### 6.3 Axes
-
-- The vertical axis is labelled "Value chain", with end labels "Visible" at the top and "Invisible" at the bottom; the horizontal axis is labelled "Evolution"; both axis lines have stroke width 2 (`client/WardleyCanvas.tsx`). DISL axes have one `label`; the two end labels are not expressible.
-
-### 6.4 Marks and labels
-
-- Component: circle, surface fill, text-colour stroke of width 2. Anchor: filled square. Submap: a ring inside a fainter outer ring (outer stroke 1, opacity 0.6). All match the `.dis`.
-- The name label sits beside the mark at (DOT + 6, 4), or at the document's own `label [dx, dy]` offset when the component has one. The label offset is read-only in ADP: it is shown in the property grid when present and written back unchanged, but the label cannot be dragged. DISL's label `position` is static, so the per-element offset is carried as the `labelOffsets` view data the `.dis` declares.
-- The decorators and "inertia" are shown as one muted line under the name, joined by " · ", 12 px, 14 below the name's baseline.
-- Inertia is also drawn as a vertical bar at the mark's right + 4, from 6 above the mark to 6 below it, stroke width 4 with a round cap. The `.dis` approximates it with a `line` badge.
-
-### 6.5 Links and evolutions
-
-- Dependency: straight, muted, width 1.5, no marker. Flow: text colour, width 3, no marker. Links are not selectable on the canvas; they are selected and removed through the component's context menu or the property grid (`client/WardleyCanvas.tsx`).
-- Evolution: a dashed ring (dash 4 3) at the target maturity and the component's visibility, joined to the component by a dashed line (dash 8 6, width 2) with no marker. Neither is selectable nor draggable; the target is changed with "Change evolution target…".
-
-### 6.6 Commentary
-
-- Attitudes: a background rectangle with fill opacity 0.05 and a dashed (4 4) border, labelled with its kind. The corners are written `[v1, m1, v2, m2]` and may be given in any order; the client takes the minimum and maximum of each axis (`client/WardleyCanvas.tsx`). DISL's `x`/`x2` and `y`/`y2` bindings assume `x < x2` and `y < y2`.
-- Accelerators: a short rule 16 wide with the name at offset (22, 4); a deaccelerator is dashed.
-- Notes: 14 px text.
-- Annotations: every occurrence is a circle of radius 11 with stroke width 1.5, carrying the number, with the text as its tooltip. The `.dis` models occurrences as `AnnotationPin` children so each is placed; the standalone model holds them as a coordinate list on one annotation (`_Model/WardleyAnnotation.cs`).
-- The annotation legend (`annotations [v, m]`) is parsed and kept but not drawn.
-
-## 7. Interactions
-
-### 7.1 Moving
-
-- Only components, anchors, submaps and pipeline components are draggable. The drag is **clamped** to the map (0..1 on both axes) on the client and then sent as one `MoveElementTo` document command (`client/WardleyCanvas.tsx`, `backend/Commands/MoveWardleyElementCommand.cs`).
-- A value typed into the property grid outside 0..1 is **refused**, not clamped (`backend/WardleyContextPropertyProvider.cs`).
-- DISL's `std.axisBounds` prevents a placement outside the bounds; it does not distinguish clamping a drag from refusing a typed value.
-
-### 7.2 Adding
-
-- The toolbox order is Component, Anchor, Market, Ecosystem, Submap, Pipeline, Note, Annotation, each with its description text (`backend/WardleyToolboxProvider.cs`). There is no Link entry: links are made from a component's context menu.
-- The standalone asks for the name (or the note's text) **before** creating the element, rather than creating it and editing the label. The `.dis` says `after: editLabel`, which is the nearest DISL has.
-- New elements land at [0.5, 0.5], because no drop position reaches the toolbox provider. This is a known gap against Req 13.4, which asks for the drop position (section 10).
-- A new annotation takes the number one past the highest in use.
-- Pipeline is dropped on a component, which it starts the pipeline of, or adds to.
-
-### 7.3 Context actions
-
-Nothing is offered on a read-only file: `backend/WardleyEditability.cs` reads the file system's read-only attribute, and the reason shown is "This map's file is read-only." The `.dis` uses `env.readOnly`.
-
-For a component (and anchor or submap), in this order (`backend/WardleyContextActionProvider.cs`):
-
-- **Rename…** (F2).
-- **Remove** (Delete), with the confirmation "Remove '{name}', and every link and evolution that names it?", styled as dangerous. The `.dis` confirmation cannot interpolate the name: an operation's `confirm` is plain localized text.
-- **Evolve to…** when the component does not evolve, **Change evolution target…** when it does; **Stop evolving** only when it does.
-- **Mark as having inertia** / **Clear inertia**.
-- One toggle per decorator, id `wardley.toggle-<decorator>`, labelled **Mark as <decorator>** or **Clear <decorator>**.
-- **Link to…** and **Flow to…**, answered by a choice list of the other elements' names; **Remove link…** only when the component has links, again with a choice list.
-- **Start a pipeline…** when the component has no pipeline, **Add to pipeline…** when it has a nested one; neither on a legacy pipeline.
-
-For a pipeline component: **Remove from pipeline** (Delete). For a link: **Remove link** (Delete). Notes, annotations, accelerators and attitudes have no actions.
-
-DISL context tools have a static `label`; labels that change with the element's state, and entries answered by a picker of names, are not expressible. The `.dis` lists each entry once with its primary label.
-
-### 7.4 Properties
-
-Groups Identity, Position, Strategy and Links (`backend/WardleyContextPropertyProvider.cs`):
-
-- Component: Name, Kind (read-only), Visibility, Maturity, Evolution stage (read-only), Label offset (read-only, only when present), Evolves to, Becomes (the `->NewName` of an evolve), Inertia (a toggle, always shown), Decorators (a comma list), Url, or "Opens" for a submap (read-only).
-- Pipeline component: Name (read-only), Kind "pipeline component", Visibility (the parent's, read-only), Maturity, Stage.
-- Link: From, To and Kind (read-only), Context (editable, shown only when present).
-- Pipeline: Name, Visibility, Components.
-
-Every read-only row carries its reason as a full sentence. DISL form items have `readOnly` but no reason text.
-
-## 8. Rules DISL cannot state
-
-The standalone rules are `backend/WardleyRuleSet.cs` and `backend/WardleyValidator.cs`:
-
-| Rule | Severity | In the `.dis` |
-|---|---|---|
-| `wardley.link-target-missing` | error | `std.references` |
-| `wardley.evolve-target-missing` | error | `std.references` |
-| `wardley.pipeline-parent-missing` | error | `std.references` |
-| `wardley.coordinate-out-of-range` | error | `std.facets` on `Fraction`; covers every positioned value, including pipeline components, evolve targets, notes, accelerators, attitudes and annotations |
-| `wardley.duplicate-name` | error | `uniqueName`, among components, anchors and submaps only |
-| `wardley.anchor-missing` | warning | `anchorMissing`, only when there are components |
-| `wardley.url-undefined` | warning | `urlUndefined` |
-| `wardley.submap-missing` | warning | **not expressible** |
-
-- **Dangling references are kept.** Because references are names in text, a link or evolve naming a missing component stays in the document and is reported, rather than being impossible as a DISL reference would be. `std.references` reports; it cannot describe a reference that exists only as text.
-- **`wardley.submap-missing`** needs the file system: it fires when a submap's url address looks like a local path (no scheme, no `:`), resolves inside the project root, and does not exist. CEL has no file-system access.
-- **Locations** are reported as lines of the `.owm` for link problems and as elements otherwise; DISL problems attach to elements and attributes only.
-- `url` addresses are untrusted: they are never fetched or opened automatically.
-
-## 9. Runtime behaviour specific to the standalone host
-
-- **Several connections** to one map receive deltas, filtered to the viewport each client is showing (`backend/WardleyElementMapper.cs`, `backend/ServiceCollection.AddWardleyMap.cs`).
-- **External edits**: when the `.owm` or its registration changes on disk, the store re-reads it and every open session hears. A read that fails keeps the last good document; only the watcher's delete clears it (`backend/WardleyDocumentStore.cs`). Saves are published atomically.
-- **Layout** is manual only; there is no arrange command.
-- **Fixtures** are marked `-text` in `.gitattributes` so their bytes survive checkout; no third-party map content is committed, because the Wardley mapping method's material is CC BY-SA 4.0 (`Fixtures/readme.md`).
-
-## 10. Known gaps in the standalone implementation
-
-- Links to pipeline components are reported as missing, because link endpoints are checked against components only (inferred from `backend/WardleyValidator.cs`). The `.dis` also limits link ends to `Positioned`, matching the implementation.
-- Only the first `evolve` statement for a component is used (`FirstOrDefault` in `backend/WardleyElementMapper.cs`); the `.dis` warns with `oneEvolutionPerComponent`.
-- Toolbox adds land at [0.5, 0.5] instead of at the drop position (Req 13.4).
-- The annotation legend is not drawn; `style` and `size` do not affect rendering.
-- Multi-selection is out of scope (design.md, after the core context service).
-
-## 11. What DISL 0.1 lacks for this type
-
-- A persistence format that is a **text DSL with byte-preserving round trip**, comments and unmodelled statements; the `.dis` delegates it to a required plugin.
-- **Ids held outside the document**, keyed by natural keys, in a sidecar.
-- **References by name** that may dangle and are rewritten on rename.
-- **Named, unequal ranges on a linear axis** drawn as bands with labels.
-- **End labels** on an axis.
-- A canvas that **stretches to the pane**.
-- **Per-element label offsets** in the model rather than in view data.
-- **State-dependent context-menu labels**, and a context tool answered by a **picker of existing elements**.
-- An operation **confirmation that interpolates** the element's name.
-- A **read-only reason** on form items.
-- Rules that consult the **file system**.
-- Distinguishing **clamping a drag** from **refusing a typed value**.
+- Module code, fixtures and parity transcript: `src/diagrams/wardley-map/` in etalii.adp.ide.standalone.
+- The conversion's findings, A1 to A10 and B1 to B15, its language gaps (section C) and its open questions: `.spec-workflow/specs/wardley-map-disl-fbl/requirements.md` in etalii.adp.ide.standalone.
+- The certification of the fixtures against the Online Wardley Maps parser: `backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/readme.md`.
+- Catalogue row: `docs/tools.md` in etalii.adp.ide.standalone, row for `wardley/map`.

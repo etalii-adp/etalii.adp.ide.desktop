@@ -4,7 +4,7 @@
 
 |   |   |
 |---|---|
-| Date | 2026-10-14 |
+| Date | 2026-10-24 |
 | Kind | designer |
 | Role | specification language |
 | File extension | `.des` |
@@ -18,7 +18,7 @@
 
 ## Status of this document
 
-This is a draft, version 0.2. It holds what the designer types defined so far need and nothing more (constitution principle V), and any construct may change before 1.0 (constitution principle IV). DESL 0.1 (2026-10-09, spec 013) holds what the Knowledge designer (`definitions/designers/knowledge.des`) needs. DESL 0.2 (2026-10-14, spec 028, for the Hierarchical Requirement Designer) adds five constructs: the surface kind `hierarchy` (section 7.7), the id strategy `counter` (section 5.3.5), the facet `mentions` with the built-in `std.mentions` (sections 4.3, 6.5), the action `move` (section 8.2), and `persistence.settings`, the part of the model a document's registration keeps (section 5.5). Every valid 0.1 specification is a valid 0.2 specification with the same meaning. DESL defines every construct it uses; it takes nothing from the specification languages of the other kinds of tool. Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*.
+This is a draft, version 0.2. It holds what the designer types defined so far need and nothing more (constitution principle V), and any construct may change before 1.0 (constitution principle IV). DESL 0.1 (2026-10-09, spec 013) holds what the Knowledge designer (`definitions/designers/knowledge.des`) needs. DESL 0.2 (2026-10-14, spec 028, for the Hierarchical Requirement Designer) adds five constructs: the surface kind `hierarchy` (section 7.7), the id strategy `counter` (section 5.3.5), the facet `mentions` with the built-in `std.mentions` (sections 4.3, 6.5), the action `move` (section 8.2), and `persistence.settings`, the part of the model a document's registration keeps (section 5.5); by the maintainer's ruling of 2026-10-24 it also gives a hierarchy the widths of its columns of levels, which the user changes by dragging (`widths`, section 7.7). Every valid 0.1 specification is a valid 0.2 specification with the same meaning. DESL defines every construct it uses; it takes nothing from the specification languages of the other kinds of tool. Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*.
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY** and **OPTIONAL** are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in bold capitals.
 
@@ -580,6 +580,7 @@ A **hierarchy** shows **levels**, elements drawn as boxes that contain boxes, an
 | `notes`     | `{type, about, kind, text, detail, resolved}` | The notes' element type: `about`, a `string` attribute with a `mentions` facet (4.3) naming the level or entry a note is about; `kind`, an enumeration whose values carry icons (4.4); `text` and `detail`, its text; `resolved`, a bool. |
 | `collapsed` | attribute name | The `bool` attribute, on the levels' and the entries' types, that folds a level or an entry. |
 | `filters`   | `{type, name, query}` | The stored filters' element type, with the attributes that name one and hold its query (7.7.3). |
+| `widths`    | `{type, level, width}` | The element type whose elements keep the widths of the columns of levels (7.7.1): `level`, a `string` attribute holding the column's depth as a whole number, `1` for the top levels; `width`, an `int` attribute holding its width in pixels. |
 | `ids`       | `"shown"` (default), `"hidden"` | Whether an element's id is shown beside its title. |
 
 #### 7.7.1 Layout
@@ -590,6 +591,7 @@ Every host draws the same page:
 - A level is a box. Its entries, then its levels, stand to its right, each in the order of the document, and the box is as high as what stands to its right. Neighbouring boxes share their borders. A level's top-level elements stand one below the other at the left edge of the page.
 - Each level and entry shows its title, its id when `ids` is `shown`, and its description when it has one, under the title. A mention in a description is drawn as a box holding the id and the current title of the element it names, and a broken one as broken.
 - A collapsed level or entry shows its id, its title, its labels and its notes icon only.
+- **Column widths.** The levels of one depth stand in one column, as wide as the element of the `widths` type for that depth says, or as wide as the host draws a level when there is none. The user changes a column's width by dragging its right edge; the host then creates or sets that element, and a host **SHOULD** offer to take it away, which gives the column the host's width again. A width is the depth's in the document, not its place on a focused page. Without `widths` the columns have the host's width and cannot be changed.
 - **Focus.** The page shows as many levels as fit its width, marks a level whose deeper levels do not fit, and lets the user make any level the left edge of the page, with a trail of the levels above it that leads back to each of them. Focus is the viewer's and is not stored.
 - **Notes.** A level or entry shows, at its top right, the icon of the kind of its one unresolved note, an icon that stands for several when it has more, and a way to add the first when it has none. A collapsed level's icon also stands for the unresolved notes of everything inside it. Choosing the icon opens the notes it stands for as a list.
 
@@ -609,11 +611,13 @@ A filter's `query` is words separated by spaces:
 
 | Word | Selects |
 |------|---------|
-| `<prefix><name>` | Entries whose label attribute with that `prefix` names that member, ignoring case: `#security` with the prefix `#`, `category:functional` with the default prefix of `category`. |
+| `<prefix><name>` | Entries whose label attribute with that `prefix` names that member, ignoring case: `#security` with the prefix `#`, `@proposed` with the prefix `@`, `category:functional` with the default prefix of `category`. |
 | `item:pattern` | Levels whose title matches the pattern, with everything in them. `*` is any run of characters and `?` one character, in any case; the pattern holds no space. |
 | `sort:key` | The order of the entries within each level: `number` (by id), `title`, or the name of a label attribute, ascending; a label sorts by its member's place in its list, and an entry without it stands last. Of several `sort:` words the first counts. |
 
 Words of one kind are alternatives, and kinds combine. A level is shown when an `item:` word selects it or one above it, or no `item:` word is given, and it holds an entry that is shown or no entry word is given. Narrowing and sorting change nothing in the document. A stored filter is an element of the `filters` type, which `persistence.settings` keeps in the registration (5.5).
+
+A host **SHOULD** complete a word as it is typed, offering the members of the label whose prefix the word starts with, and the prefixes themselves, so that a user need not remember either.
 
 ---
 

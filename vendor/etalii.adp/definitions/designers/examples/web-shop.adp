@@ -23,5 +23,5 @@ collapsed:
   ITEM-0003: yes
   REQ-0002: yes
 filters:
-  Open security: #security state:proposed sort:state
+  Open security: #security @proposed sort:state
   Backend: item:back* sort:number

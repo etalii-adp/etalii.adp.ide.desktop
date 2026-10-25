@@ -1285,7 +1285,7 @@
       ]
     },
     "Hierarchy": {
-      "description": "(DESL 0.2) The hierarchy kind of surface: levels drawn as boxes that contain boxes, entries, labels, notes, what is collapsed, stored filters and whether ids are shown. See section 7.7.",
+      "description": "(DESL 0.2) The hierarchy kind of surface: levels drawn as boxes that contain boxes, entries, labels, notes, what is collapsed, stored filters, the widths of the columns of levels and whether ids are shown. See section 7.7.",
       "type": "object",
       "properties": {
         "kind": {
@@ -1314,6 +1314,9 @@
         },
         "filters": {
           "$ref": "#/$defs/Filters"
+        },
+        "widths": {
+          "$ref": "#/$defs/Widths"
         },
         "ids": {
           "enum": [
@@ -1470,6 +1473,33 @@
         "type",
         "name",
         "query"
+      ]
+    },
+    "Widths": {
+      "description": "(DESL 0.2) The widths of a hierarchy's columns of levels: their element type, and the attributes of a column's depth and its width in pixels. See section 7.7.1.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/TypeRef"
+        },
+        "level": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "width": {
+          "$ref": "#/$defs/SimpleId"
+        },
+        "doc": {
+          "$ref": "#/$defs/Doc"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "type",
+        "level",
+        "width"
       ]
     },
     "Columns": {

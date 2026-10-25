@@ -285,6 +285,41 @@ const BEYOND_THE_STANDALONE_LIBRARY: [&str; 22] = [
     "error at /toolbox/groups/0/tools/7/initial/number/cel: The function 'max' is not supported by this CEL evaluator. (context create)",
 ];
 
+/// The standalone host's diagnostics at `8b6ccfc` on the Sankey, SPARQL query and Wardley map definitions as etalii.adp
+/// `aceb229` writes them (etalii.adp spec 036, research R2), which this runtime does not give: the calls of `formatNumber`
+/// and the functions that call it, as [`BEYOND_THE_STANDALONE_LIBRARY`] says, and a budget that counts the elements of a type by
+/// its name with the `budget` function (DISL section 3.2.1), which this runtime has and that loader does not.
+const BEYOND_THE_STANDALONE_LOADER_ON_THE_REFRESHED_DEFINITIONS: [&str; 28] = [
+    "error at /functions/valueText/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /functions/rowNumber/cel: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /functions/formatValue/cel: 'formatValue' calls 'valueText', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).",
+    "error at /forms/node/items/2/items/0/value/cel: The function 'rowNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/flow/items/2/items/0/display/cel: The function 'rowNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/flow/items/2/items/1/display/cel: The function 'rowNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /behavior/hooks/0/actions/0/set/quantity: The function 'remainder' is not supported by this CEL evaluator. (context hook)",
+    "error at /language/limits/budgets/drawn/measure/count/0: 'Scope' is not a variable here; available: self, index, diagram, env. (context budget)",
+    "error at /language/limits/budgets/drawn/measure/count/1: 'Term' is not a variable here; available: self, index, diagram, env. (context budget)",
+    "error at /language/limits/budgets/drawn/measure/count/2: 'TriplePattern' is not a variable here; available: self, index, diagram, env. (context budget)",
+    "error at /language/limits/budgets/drawn/measure/count/3: 'ProjectedJoin' is not a variable here; available: self, index, diagram, env. (context budget)",
+    "error at /language/limits/budgets/drawn/measure/count/4: 'Annotation' is not a variable here; available: self, index, diagram, env. (context budget)",
+    "error at /language/limits/budgets/drawn/notice/text/cel: The function 'budget' is not supported by this CEL evaluator. (context budget)",
+    "error at /plugins/net.etalii.adp.wardley.functions/celFunctions/1/fallback: The function 'formatNumber' is not supported by this CEL evaluator.",
+    "error at /functions/outOfRange/cel: The function 'fixedNumber' is not supported by this CEL evaluator.",
+    "error at /metamodel/dataTypes/MapPosition/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context dataTypeDisplay)",
+    "error at /metamodel/dataTypes/MapSize/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context dataTypeDisplay)",
+    "error at /metamodel/dataTypes/LabelOffset/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context dataTypeDisplay)",
+    "error at /forms/positioned/items/1/items/0/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/positioned/items/1/items/1/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/positioned/items/2/items/0/value/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/pipelineComponent/items/1/items/0/value/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/pipelineComponent/items/1/items/1/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/pipeline/items/1/items/0/value/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/pipeline/items/1/items/1/value/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /forms/evolveDialog/items/0/initial: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)",
+    "error at /constraints/builtIn/std.facets/message/cel: The function 'outOfRange' is not supported by this CEL evaluator. (context constraint+detail)",
+    "error at /constraints/rules/5/message/cel: The function 'outOfRange' is not supported by this CEL evaluator. (context constraint)",
+];
+
 /// The library functions of DISL section 12.4 this runtime implements and the standalone host's evaluator did not:
 /// where the standalone host's loader refused a call of one of them, this one loads it.
 const BEYOND_THE_STANDALONE_HOST: [&str; 6] = [
@@ -311,6 +346,7 @@ fn expected_here(recorded: &str) -> String {
             .iter()
             .any(|f| line.contains(&format!("The function '{f}' is not supported by this CEL evaluator.")))
             || BEYOND_THE_STANDALONE_LIBRARY.contains(&line)
+            || BEYOND_THE_STANDALONE_LOADER_ON_THE_REFRESHED_DEFINITIONS.contains(&line)
             || NOT_YET_HERE.contains(&line)
     };
     let mut out = String::new();

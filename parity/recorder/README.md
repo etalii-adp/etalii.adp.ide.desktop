@@ -22,10 +22,19 @@ dotnet run --project parity/recorder
 |---|---|
 | `--elements` | Prints every element of the document as the diagram stream sends it when it opens: ids, types, positions. For writing a script. |
 | `--verbose` | Lets the standalone host's own log through. |
-| `--any-commit` | Records from a worktree that is not at `8b6ccfc`. |
+| `--any-commit` | Records from a worktree that is not at a script's reference commit. |
 | `--allow-dirty` | Records from a worktree with local changes. |
 
 Without the last two the recorder refuses, because a golden is only evidence of the standalone host's behaviour when it was recorded from the reference commit's code.
+
+### A second reference commit
+
+A designer added to the standalone host after `8b6ccfc` is recorded at a later commit of its own (etalii.adp spec 036, research R3). A file named `reference` in a script's folder, or in a folder above it under `parity/scripts/`, holds that commit on its first line; a script with none is recorded at `8b6ccfc`. A run records the scripts whose reference commit is the worktree's, says how many it left for another commit, and refuses a script named on the command line whose reference is another commit. The Hierarchical Requirement Designer's scripts are recorded at `a7fdf03` from a worktree of their own:
+
+```bash
+git -C ../etalii.adp.ide.standalone worktree add --detach ../standalone-a7fdf03 a7fdf039c204535e9fc3a14f456e6f5a36a685ce
+dotnet run --project parity/recorder -p:StandaloneRoot=../standalone-a7fdf03/ -- parity/scripts/etalii/hierarchical-requirement
+```
 
 ## How it runs the standalone host
 

@@ -27,8 +27,10 @@ use adp_fbl::{
 use serde_json::Value as Json;
 
 /// The fixtures the standalone host vendored at 8b6ccfc under `Conformance/fixtures`, which its
-/// `ConformanceFixturesTests` runs.
-const STANDALONE_FIXTURES: [&str; 15] = [
+/// `ConformanceFixturesTests` runs, and `sankey-written-text`, which etalii.adp added with the Sankey binding and
+/// the standalone host runs from `a7fdf03`.
+const STANDALONE_FIXTURES: [&str; 16] = [
+    "sankey-written-text",
     "agent-activity-edits",
     "agent-activity-new",
     "agent-activity-read",

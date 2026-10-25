@@ -100,8 +100,9 @@ fn a_tool_type_claims_the_extensions_of_its_specification_and_bindings() {
 /// Azure DevOps pipeline, the Databricks job, the functional decomposition graph and the OWL ontology load since the
 /// graph functions `successors`, `predecessors`, `reachable` and `inCycle` (DISL section 12.4) are `adp-disl`'s; the
 /// C4 views since a type map holds names only (section 11.2); and the RDF graph and SKOS thesaurus since budgets
-/// (section 3.2.1) and `diagram.knots` are.
-const NOT_LOADING: [&str; 2] = ["etalii/sankey", "wardley/map"];
+/// (section 3.2.1) and `diagram.knots` are; and the Sankey diagram since etalii.adp `aceb229` declares its functions
+/// before the ones that call them (etalii.adp spec 036, research R2).
+const NOT_LOADING: [&str; 1] = ["wardley/map"];
 
 #[test]
 fn the_vendored_specifications_that_do_not_load_are_listed_with_their_errors() {
@@ -122,14 +123,15 @@ fn the_vendored_specifications_that_do_not_load_are_listed_with_their_errors() {
         "generic/dependencies",
         "c4/container",
         "w3c/rdf",
+        "etalii/sankey",
     ] {
         let tool_type = catalogue.by_origin(origin).unwrap();
         assert!(tool_type.is_usable(), "{origin}: {:?}", tool_type.findings);
     }
-    let sankey = catalogue.by_origin("etalii/sankey").unwrap();
+    let wardley = catalogue.by_origin("wardley/map").unwrap();
     assert!(
-        sankey.findings.iter().any(|f| f.severity == FindingSeverity::Error),
+        wardley.findings.iter().any(|f| f.severity == FindingSeverity::Error),
         "{:?}",
-        sankey.findings
+        wardley.findings
     );
 }

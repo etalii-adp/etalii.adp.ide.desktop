@@ -1,0 +1,43 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A Sankey diagram whose values a YAML reader would type otherwise (FBL 0.5, sections 4.1.5 and 5.2): ids 007 and \"12\", a name on, a year 2050, a quoted column and value, a value written 0x10 and one that is no number. Every value reads as the text it was written with, so the end written 12 names the node \"12\" and the end written 007 the node 007; the tool turns a number's text into its value and reports what will not read, which is why no slot is typed here. A key the tool does not read is listed by the computed unknownKeys, an entry that is not a mapping is taken by the Unreadable rule, and an entry written as a flow mapping is a node whose members no key slot binds, read through the computed written attribute. Opening and saving without an edit writes the bytes that were read.",
+  "binding": "../../sankey.fbl#skv",
+  "input": "written.skv",
+  "read": {
+    "elements": [
+      {
+        "id": "007",
+        "type": "Node",
+        "attributes": {
+          "storedId": "007",
+          "name": "on",
+          "column": "1"
+        }
+      },
+      {
+        "id": "12",
+        "type": "Node",
+        "attributes": {
+          "storedId": "12",
+          "name": "2050"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "std.missingId",
+        "line": 13
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read, the plain on, 007 and 0x10 and the quoted \"12\" included.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "sankey: 1\r\n# What a Sankey diagram reads is what its author wrote.\r\nformat: \"{value} TWh\"\r\nthickness: 1.5\r\nnodes:\r\n  - id: 007\r\n    name: on\r\n    column: \"1\"\r\n  - id: \"12\"\r\n    name: 2050   # a year, not a number\r\n    colour: teal\r\n  - just text\r\n  - {id: x, name: X}\r\nflows:\r\n  - from: 007\r\n    to: 12\r\n    value: \"12\"\r\n    step: 0x10\r\n  - from: 12\r\n    to: 007\r\n    value: lots\r\n"
+    }
+  ]
+}

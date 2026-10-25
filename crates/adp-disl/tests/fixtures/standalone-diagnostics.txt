@@ -26,9 +26,9 @@ warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not r
 # diagrams/helm-chart.dis loaded=True
 # diagrams/mindmap.dis loaded=True
 # diagrams/sankey.dis loaded=False
-error at /functions/uniqueName/cel: 'uniqueName' calls 'labelOf', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
-error at /functions/formatNumber2/cel: The function 'formatNumber' is not supported by this CEL evaluator.
-error at /functions/formatValue/cel: 'formatValue' calls 'formatNumber2', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/valueText/cel: The function 'formatNumber' is not supported by this CEL evaluator.
+error at /functions/rowNumber/cel: The function 'formatNumber' is not supported by this CEL evaluator.
+error at /functions/formatValue/cel: 'formatValue' calls 'valueText', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
 error at /functions/nodeDisplay/cel: 'nodeDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
 error at /functions/flowDisplay/cel: 'flowDisplay' calls 'formatValue', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
 error at /functions/remainder/cel: The function 'sum' is not supported by this CEL evaluator.
@@ -37,9 +37,17 @@ error at /notation/nodes/Node/labels/1/text/cel: The function 'nodeDisplay' is n
 error at /notation/nodes/Node/labels/4/text/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)
 error at /notation/nodes/Node/tooltip/cel: The function 'nodeDisplay' is not supported by this CEL evaluator. (context element)
 error at /notation/edges/Flow/tooltip/cel: The function 'flowDisplay' is not supported by this CEL evaluator. (context element)
-error at /behavior/hooks/0/actions/0/set/name: The function 'uniqueName' is not supported by this CEL evaluator. (context hook)
-error at /behavior/hooks/1/actions/0/set/quantity: The function 'remainder' is not supported by this CEL evaluator. (context hook)
-# diagrams/sparql-query.dis loaded=True
+error at /forms/node/items/2/items/0/value/cel: The function 'rowNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/flow/items/2/items/0/display/cel: The function 'rowNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/flow/items/2/items/1/display/cel: The function 'rowNumber' is not supported by this CEL evaluator. (context form)
+error at /behavior/hooks/0/actions/0/set/quantity: The function 'remainder' is not supported by this CEL evaluator. (context hook)
+# diagrams/sparql-query.dis loaded=False
+error at /language/limits/budgets/drawn/measure/count/0: 'Scope' is not a variable here; available: self, index, diagram, env. (context budget)
+error at /language/limits/budgets/drawn/measure/count/1: 'Term' is not a variable here; available: self, index, diagram, env. (context budget)
+error at /language/limits/budgets/drawn/measure/count/2: 'TriplePattern' is not a variable here; available: self, index, diagram, env. (context budget)
+error at /language/limits/budgets/drawn/measure/count/3: 'ProjectedJoin' is not a variable here; available: self, index, diagram, env. (context budget)
+error at /language/limits/budgets/drawn/measure/count/4: 'Annotation' is not a variable here; available: self, index, diagram, env. (context budget)
+error at /language/limits/budgets/drawn/notice/text/cel: The function 'budget' is not supported by this CEL evaluator. (context budget)
 # diagrams/supply-chain.dis loaded=False
 error at /functions/formatAmount/cel: The function 'formatNumber' is not supported by this CEL evaluator.
 error at /functions/bandWidth/cel: The function 'max' is not supported by this CEL evaluator.
@@ -57,9 +65,29 @@ error at /notation/edges/Flow/labels/1/text/cel: The function 'formatAmount' is 
 # diagrams/w3c-shacl.dis loaded=True
 # diagrams/w3c-skos.dis loaded=True
 # diagrams/wardley-map.dis loaded=False
+error at /plugins/net.etalii.adp.wardley.functions/celFunctions/1/fallback: The function 'formatNumber' is not supported by this CEL evaluator.
+error at /functions/stageLabel/cel: The function 'axisRange' is not supported by this CEL evaluator.
+error at /functions/outOfRange/cel: The function 'fixedNumber' is not supported by this CEL evaluator.
+error at /metamodel/dataTypes/MapPosition/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context dataTypeDisplay)
+error at /metamodel/dataTypes/MapSize/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context dataTypeDisplay)
+error at /metamodel/dataTypes/LabelOffset/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context dataTypeDisplay)
+error at /metamodel/types/Positioned/attributes/stage/derived: The function 'stageLabel' is not supported by this CEL evaluator. (context element)
+error at /metamodel/types/PipelineComponent/attributes/stage/derived: The function 'stageLabel' is not supported by this CEL evaluator. (context element)
 error at /notation/nodes/Component/badges/0/visible/attribute: 'inertia' is not a variable here; available: self, diagram, env. (context element)
-error at /toolbox/groups/0/tools/7/initial/number/cel: The function 'max' is not supported by this CEL evaluator. (context create)
-error at /behavior/operations/addToPipeline/actions/0/then/0/create/attributes/form: ''nested'' is read here as an expression, but the loader compiles none at this position (DISL §2.5, step 8 of §14.1).
+error at /notation/nodes/Anchor/badges/0/visible/attribute: 'inertia' is not a variable here; available: self, diagram, env. (context element)
+error at /notation/nodes/Submap/badges/0/visible/attribute: 'inertia' is not a variable here; available: self, diagram, env. (context element)
+error at /toolbox/contextMenus/0/tools/6/candidateLabel/cel: 'item' is not a variable here; available: self, diagram, env. (context element)
+error at /toolbox/contextMenus/0/tools/7/candidateLabel/cel: 'item' is not a variable here; available: self, diagram, env. (context element)
+error at /forms/positioned/items/1/items/0/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/positioned/items/1/items/1/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/positioned/items/2/items/0/value/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/pipelineComponent/items/1/items/0/value/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/pipelineComponent/items/1/items/1/display/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/pipeline/items/1/items/0/value/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/pipeline/items/1/items/1/value/cel: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)
+error at /forms/evolveDialog/items/0/initial: The function 'fixedNumber' is not supported by this CEL evaluator. (context form)
+error at /constraints/builtIn/std.facets/message/cel: The function 'outOfRange' is not supported by this CEL evaluator. (context constraint+detail)
+error at /constraints/rules/5/message/cel: The function 'outOfRange' is not supported by this CEL evaluator. (context constraint)
 # disl/c4-container.dis loaded=False
 warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not read (DISL §2.9).
 error at /functions/inView/cel: The function 'matchesGlob' is not supported by this CEL evaluator.
