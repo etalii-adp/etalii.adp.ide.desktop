@@ -2749,3 +2749,345 @@ mod filter_bar {
         assert_eq!(surface.tab.selected, "7");
     }
 }
+
+// ---- References (the standalone host's `references/References.test.tsx` at a7fdf03; T044, T046) ----
+
+mod references {
+    use super::*;
+    use crate::hierarchy::references::{Part, parts};
+
+    fn numbered(id: &str, parent: &str, role: &str, title: &str) -> SurfaceNode {
+        let mut node = node(id, role, "", parent, title);
+        node.number = format!("N-{id}");
+        node
+    }
+
+    fn reference(start: usize, length: usize, target: &str) -> Reference {
+        Reference {
+            start,
+            length,
+            target_id: target.into(),
+        }
+    }
+
+    /// Orders (1) holds Take an order (2) and Payment (3), which holds Refunds (4) with Refund in full (5); Payment
+    /// and Refunds collapsed when `collapsed`. Shipping (6) holds Ship it (7), whose description refers to 5, and a
+    /// point with no number of its own. Take an order refers to a number nothing has.
+    fn model(collapsed: bool) -> SurfaceModel {
+        let (l, e) = (roles::LEVEL, roles::ENTRY);
+        let mut take = numbered("2", "1", e, "Take an order");
+        take.description = "Was [N-99] once.".into();
+        take.references = vec![reference(4, 6, "")];
+        let mut ship = numbered("7", "6", e, "Ship it");
+        ship.description = "After [N-5] at the latest.".into();
+        ship.references = vec![reference(6, 5, "5")];
+        let mut payment = numbered("3", "1", l, "Payment");
+        payment.collapsed = collapsed;
+        let mut refunds = numbered("4", "3", l, "Refunds");
+        refunds.collapsed = collapsed;
+        let mut unnumbered = numbered("line/40", "6", e, "Unnumbered");
+        unnumbered.number = "[?]".into();
+        SurfaceModel {
+            title: "Shop".into(),
+            cause: causes::OPEN.into(),
+            nodes: vec![
+                numbered("1", "", l, "Orders"),
+                take,
+                payment,
+                refunds,
+                numbered("5", "4", e, "Refund in full"),
+                numbered("6", "", l, "Shipping"),
+                ship,
+                unnumbered,
+            ],
+            ..SurfaceModel::default()
+        }
+    }
+
+    impl Surface {
+        /// Opens the description of the box named `name` for typing, by a double click at its start, the caret then
+        /// put at its end.
+        fn open_description(&mut self, name: &str) {
+            let at = self.get(Role::TreeItem, name).bounds().unwrap();
+            self.double_click_at(egui::pos2(at.x0 as f32 + 16.0, at.y1 as f32 - 14.0));
+            self.key(egui::Key::End, egui::Modifiers::COMMAND);
+        }
+
+        /// The rows of the lookup.
+        fn lookup_rows(&self) -> Vec<String> {
+            let mut rows: Vec<(f64, String)> = self
+                .nodes
+                .values()
+                .filter(|n| n.role() == Role::ListBoxOption)
+                .map(|n| (n.bounds().unwrap().y0, n.label().unwrap_or_default().to_owned()))
+                .collect();
+            rows.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            rows.into_iter().map(|r| r.1).collect()
+        }
+
+        /// Whether the widget of `role` named `name` has the keyboard.
+        fn has_keyboard(&self, role: Role, name: &str) -> bool {
+            let Some((id, _)) = self
+                .nodes
+                .iter()
+                .find(|(_, n)| n.role() == role && n.label() == Some(name))
+            else {
+                return false;
+            };
+            self.ctx
+                .memory(|m| m.focused())
+                .is_some_and(|f| f.accesskit_id() == *id)
+        }
+
+        /// Where the caret stands in the open field on the node `id`, in characters.
+        fn caret(&self, id: &str) -> Option<usize> {
+            let field = self.tab.id().with(("field", id));
+            egui::text_edit::TextEditState::load(&self.ctx, field)
+                .and_then(|s| s.cursor.char_range())
+                .map(|r| r.primary.index.0)
+        }
+
+        /// The widget of `role` named `name` asks for the keyboard, as a screen reader asks.
+        fn focus(&mut self, role: Role, name: &str) {
+            let (id, _) = self
+                .nodes
+                .iter()
+                .find(|(_, n)| n.role() == role && n.label() == Some(name))
+                .expect("it is drawn");
+            let request = egui::accesskit::ActionRequest {
+                action: egui::accesskit::Action::Focus,
+                target_tree: egui::accesskit::TreeId::ROOT,
+                target_node: *id,
+                data: None,
+            };
+            self.frame(vec![egui::Event::AccessKitActionRequest(request)]);
+            self.frame(Vec::new());
+        }
+    }
+
+    #[test]
+    fn a_texts_references_are_its_parts_by_their_utf16_offsets_and_one_that_does_not_fit_stays_text() {
+        let text = "Na\u{1F600}h [N-5] and [N-6].";
+        // The emoji is two code units, one character.
+        // One runs past the text's end, and one starts inside another.
+        let found = parts(
+            text,
+            &[
+                reference(6, 5, "5"),
+                reference(16, 5, ""),
+                reference(15, 9, "x"),
+                reference(8, 4, "y"),
+            ],
+        );
+
+        assert_eq!(
+            found,
+            [
+                Part::Text("Na\u{1F600}h ".into()),
+                Part::Reference {
+                    written: "[N-5]".into(),
+                    target_id: "5".into()
+                },
+                Part::Text(" and ".into()),
+                Part::Reference {
+                    written: "[N-6]".into(),
+                    target_id: String::new()
+                },
+                Part::Text(".".into()),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_lookup_opens_for_one_hash_typed_and_nothing_else_changed() {
+        use crate::hierarchy::references::hash_typed;
+        assert_eq!(hash_typed("ab", "a#b"), Some(1));
+        assert_eq!(hash_typed("ab", "ab#"), Some(2));
+        assert_eq!(hash_typed("ab", "#ba"), None, "the rest changed too");
+        assert_eq!(hash_typed("ab", "a#xb"), None, "more than the hash");
+        assert_eq!(hash_typed("ab", "axb"), None);
+    }
+
+    #[test]
+    fn the_arrows_mark_another_row_of_the_lookup_and_enter_takes_it() {
+        let mut surface = Surface::of(model(false));
+        surface.open_description("N-7 Ship it");
+        surface.type_text("#");
+        surface.type_text("refund");
+
+        surface.key(egui::Key::ArrowDown, egui::Modifiers::NONE);
+        surface.key(egui::Key::ArrowDown, egui::Modifiers::NONE);
+        surface.key(egui::Key::ArrowUp, egui::Modifiers::NONE);
+        surface.key(egui::Key::ArrowDown, egui::Modifiers::NONE);
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+        // Down past the last row stays on it.
+        let text = "After [N-5] at the latest.[N-5]";
+        assert_eq!(surface.field("Description of N-7"), Some((text.to_owned(), true)));
+    }
+
+    #[test]
+    fn a_hash_opens_the_lookup_of_every_numbered_level_and_entry_narrowed_by_number_or_title() {
+        let mut surface = Surface::of(model(false));
+        surface.open_description("N-7 Ship it");
+
+        surface.type_text("#");
+        // The lookup opens in the frame after the `#`, and its area is drawn unseen in its first.
+        surface.frame(Vec::new());
+
+        // The lookup has the keyboard, and lists every node with a number, by number and title.
+        assert!(surface.has_keyboard(Role::ComboBox, "Refer to"));
+        assert_eq!(
+            surface.lookup_rows(),
+            [
+                "N-1 Orders",
+                "N-2 Take an order",
+                "N-3 Payment",
+                "N-4 Refunds",
+                "N-5 Refund in full",
+                "N-6 Shipping",
+                "N-7 Ship it"
+            ]
+        );
+        surface.type_text("refund");
+        assert_eq!(surface.lookup_rows(), ["N-4 Refunds", "N-5 Refund in full"]);
+        for _ in 0..6 {
+            surface.key(egui::Key::Backspace, egui::Modifiers::NONE);
+        }
+        surface.type_text("n-2");
+        assert_eq!(surface.lookup_rows(), ["N-2 Take an order"]);
+    }
+
+    #[test]
+    fn the_pick_is_written_as_its_bracketed_number_in_place_of_the_hash_and_the_field_stays_open_until_it_is_committed()
+    {
+        let mut surface = Surface::of(model(false));
+        surface.open_description("N-7 Ship it");
+        surface.type_text(" ");
+        surface.type_text("#");
+
+        surface.type_text("refunds");
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+        // The lookup is gone, the text holds the reference, and nothing was sent yet.
+        assert!(surface.find(Role::ComboBox, "Refer to").is_none());
+        let text = "After [N-5] at the latest. [N-4]";
+        assert_eq!(surface.field("Description of N-7"), Some((text.to_owned(), true)));
+        assert_eq!(surface.caret("7"), Some(text.chars().count()));
+        assert!(surface.gestures().is_empty());
+
+        surface.key(egui::Key::Enter, egui::Modifiers::COMMAND);
+
+        assert_eq!(surface.sent(), [sent("redescribe", "7", &[("description", text)])]);
+    }
+
+    #[test]
+    fn escape_in_the_lookup_goes_back_to_the_text_with_the_hash_kept_and_nothing_committed() {
+        let mut surface = Surface::of(model(false));
+        surface.open_description("N-7 Ship it");
+        surface.type_text("#");
+
+        surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+
+        assert!(surface.find(Role::ComboBox, "Refer to").is_none());
+        let text = "After [N-5] at the latest.#";
+        assert_eq!(surface.field("Description of N-7"), Some((text.to_owned(), true)));
+        assert_eq!(surface.caret("7"), Some(text.chars().count()));
+        assert!(surface.gestures().is_empty());
+    }
+
+    #[test]
+    fn leaving_the_lookup_for_the_page_commits_the_text_and_a_title_opens_no_lookup() {
+        let mut surface = Surface::of(model(false));
+        surface.open_description("N-7 Ship it");
+        surface.type_text("#");
+        assert!(
+            surface.gestures().is_empty(),
+            "going from the field to the lookup is no leaving"
+        );
+
+        surface.click_box("N-1 Orders");
+
+        assert_eq!(
+            surface.sent(),
+            [sent(
+                "redescribe",
+                "7",
+                &[("description", "After [N-5] at the latest.#")]
+            )]
+        );
+        let title = surface.half_of("N-6 Shipping", false);
+        surface.double_click_at(title);
+        surface.key(egui::Key::End, egui::Modifiers::NONE);
+        surface.type_text("#");
+        surface.frame(Vec::new());
+        surface.frame(Vec::new());
+        assert!(surface.find(Role::ComboBox, "Refer to").is_none());
+        assert!(
+            surface
+                .field("Title of N-6")
+                .is_some_and(|(text, _)| text == "Shipping#")
+        );
+    }
+
+    #[test]
+    fn a_reference_stands_as_a_box_with_its_targets_number_and_current_title_and_one_that_names_nothing_as_written_marked()
+     {
+        let surface = Surface::of(model(false));
+
+        let ship = surface.get(Role::TreeItem, "N-7 Ship it").bounds().unwrap();
+        let reference = surface.get(Role::Button, "N-5 Refund in full").bounds().unwrap();
+        assert!(
+            ship.x0 <= reference.x0 && reference.x1 <= ship.x1 && ship.y0 <= reference.y0 && reference.y1 <= ship.y1
+        );
+        assert!(surface.drawn("After N-5 Refund in full at the latest."));
+        assert!(
+            surface
+                .find(Role::Image, "[N-99] names nothing in this document")
+                .is_some()
+        );
+        let broken = surface
+            .texts
+            .iter()
+            .find(|t| t.starts_with("Was "))
+            .expect("the description is drawn");
+        assert!(broken.ends_with("[N-99] once."), "as written: {broken}");
+    }
+
+    #[test]
+    fn selecting_a_reference_shows_its_target_by_the_focus_that_keeps_it_in_sight_expanding_its_collapsed_levels() {
+        // The page focused on Shipping, so Orders and all in it are out of sight.
+        let mut surface = Surface::of(model(true));
+        let shipping = surface.centre(Role::TreeItem, "N-6 Shipping");
+        surface.frame(vec![egui::Event::PointerMoved(shipping)]);
+        surface.click(Role::Button, "Focus on N-6 Shipping");
+        assert!(!surface.drawn("Orders"));
+
+        surface.click(Role::Button, "N-5 Refund in full");
+
+        // The whole page again, and only the collapse of the two levels that hide the target is sent.
+        assert_eq!(surface.tab.trail_current(), Some(""));
+        assert_eq!(surface.sent(), [sent("fold", "3", &[]), sent("fold", "4", &[])]);
+        assert_eq!(surface.tab.selected, "5");
+    }
+
+    #[test]
+    fn a_reference_shows_its_target_from_the_keyboard_too_by_enter_on_its_box() {
+        let mut surface = Surface::of(model(false));
+
+        surface.focus(Role::Button, "N-5 Refund in full");
+        surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+        assert_eq!(surface.tab.selected, "5");
+    }
+
+    #[test]
+    fn a_double_click_on_a_reference_does_not_open_the_description_for_typing() {
+        let mut surface = Surface::of(model(false));
+
+        let at = surface.centre(Role::Button, "N-5 Refund in full");
+        surface.double_click_at(at);
+
+        assert!(surface.tab.field.is_none());
+    }
+}

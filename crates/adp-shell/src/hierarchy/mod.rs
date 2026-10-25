@@ -14,7 +14,9 @@
 //! first when anything concerns it. A box's notes are listed, added, changed, resolved and removed from the icon at its
 //! top right ([`notes`], T042). The bar above the page narrows it by a query and sorts each level's entries, writing
 //! nothing, and stores the query under a name ([`narrowing`], T048); a finding stays listed whatever the query hides,
-//! and selecting it takes out of the query the words that hide its node. A change from outside while a title or a description is being typed shows the file
+//! and selecting it takes out of the query the words that hide its node. A reference in a description stands as a
+//! box with its target's number and title and shows the target when selected, and `#` typed in a description opens
+//! the lookup it is picked from ([`references`], T046). A change from outside while a title or a description is being typed shows the file
 //! around the field and asks, on a bar over the page, whether to drop the text or keep it (T033).
 //!
 //! It knows no designer type: which type is a level, which an entry, which labels they carry and which operation each
@@ -24,6 +26,7 @@ pub mod editing;
 pub mod layout;
 pub mod narrowing;
 pub mod notes;
+pub mod references;
 mod view;
 
 #[cfg(test)]

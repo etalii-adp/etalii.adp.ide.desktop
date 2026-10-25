@@ -40,13 +40,15 @@ impl Attribute {
 }
 
 /// The field open on the page: the node, which of its texts, and what has been typed so far.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OpenField {
     pub node_id: String,
     pub attribute: Attribute,
     pub text: String,
     /// What the field is, for a screen reader: "Title of REQ-0004". Kept with the field, which can outlive its box.
     pub label: String,
+    /// The lookup a `#` typed in a description opened, while it is open.
+    pub lookup: Option<super::references::Lookup>,
 }
 
 impl OpenField {
@@ -61,6 +63,7 @@ impl OpenField {
             attribute,
             text: attribute.of(node).to_owned(),
             label: format!("{name} of {}", node.number),
+            lookup: None,
         }
     }
 }

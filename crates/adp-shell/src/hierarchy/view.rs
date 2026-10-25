@@ -17,6 +17,9 @@
 //!   question a delete asks first. A box keeps its height whether it is selected or typed in.
 //! - The filter bar above the findings ([`super::narrowing`], T048), which leaves of the page what its query selects
 //!   and orders each level's entries by its sort.
+//! - A reference in a description as a box ([`super::references`], T046): its target's number on a raised ground and
+//!   its current title, a press or Enter on it showing the target; one that names nothing as written, marked broken and
+//!   outlined dashed. The lookup a `#` opens stands under the field it was typed in.
 //! - Everything a frame is asked is collected while the page is drawn and carried out after it.
 
 use adp_desl::hierarchy::definition::{
@@ -36,6 +39,7 @@ use super::layout::{
 };
 use super::narrowing::Narrowing;
 use super::notes::NoteControl;
+use super::references::{self, Part};
 use super::{HierarchyTab, is_line_id};
 use crate::a11y;
 use crate::icons;
@@ -62,6 +66,25 @@ const PAGE_ADD_PADDING: f32 = 4.0;
 const ADD_ICON: f32 = 16.0;
 /// The left padding of the place a dragged node would be dropped at, which shows its number and title (`.hs-drop-slot`).
 const SLOT_PADDING: f32 = 40.0;
+
+/// The space between a reference's box and its text, on either side.
+const REFERENCE_PADDING: f32 = 4.0;
+
+/// Where a reference stands in a description's laid out text, in characters, the node it names, empty for none, and
+/// what a screen reader calls it.
+struct ReferenceSpan {
+    start: usize,
+    end: usize,
+    target_id: String,
+    name: String,
+}
+
+/// A reference's box on the page.
+struct ReferenceBox {
+    place: Rect,
+    target_id: String,
+    name: String,
+}
 
 /// What a frame of the page asked for, carried out once the page is drawn.
 enum Act {
@@ -699,6 +722,7 @@ impl Page<'_, '_> {
         y = self.labels(&painter, node, Pos2::new(left + BOX_SPACING, y), text_right);
         let mut description_field = None;
         let mut description_area = None;
+        let mut references = Vec::new();
         if !collapsed {
             let at = Pos2::new(left + BOX_SPACING, y + DESCRIPTION_TOP);
             let width = text_width - BOX_SPACING;
@@ -708,9 +732,11 @@ impl Page<'_, '_> {
                 description_field = Some(Rect::from_min_size(at, Vec2::new(width, height)));
                 y += DESCRIPTION_TOP + height + DESCRIPTION_BOTTOM - BOX_SPACING;
             } else if !node.description.is_empty() {
-                let galley = painter.layout_job(self.text_job(&node.description, width));
+                let (job, spans) = self.description_job(node, width);
+                let galley = painter.layout_job(job);
                 let height = galley.size().y;
                 description_area = Some(Rect::from_min_size(at, Vec2::new(width, height)));
+                references = self.reference_boxes(&painter, &galley, at, spans);
                 painter.galley(at, galley, colours.text);
                 y += DESCRIPTION_TOP + height + DESCRIPTION_BOTTOM - BOX_SPACING;
             }
@@ -759,6 +785,34 @@ impl Page<'_, '_> {
                 self.acts.push(Act::Open(node.id.clone(), Attribute::Title));
             } else if description_area.is_some_and(|area| area.contains(pointer)) {
                 self.acts.push(Act::Open(node.id.clone(), Attribute::Description));
+            }
+        }
+
+        // Each reference in the description, over the box: selecting one shows its target, and one that names nothing
+        // only says so.
+        for (i, reference) in references.iter().enumerate() {
+            let sense = if reference.target_id.is_empty() {
+                Sense::hover()
+            } else {
+                Sense::click()
+            };
+            let response = ui.interact(reference.place, id.with(("reference", i)), sense);
+            if reference.target_id.is_empty() {
+                a11y::describe(&response, Role::Image, &reference.name);
+                response.on_hover_text(&reference.name);
+            } else {
+                a11y::describe(&response, Role::Button, &reference.name);
+                if response.hovered() {
+                    ui.painter().rect_stroke(
+                        reference.place,
+                        3.0,
+                        Stroke::new(1.0, colours.focus),
+                        StrokeKind::Inside,
+                    );
+                }
+                if response.clicked() {
+                    self.acts.push(Act::Reveal(reference.target_id.clone()));
+                }
             }
         }
 
@@ -871,8 +925,10 @@ impl Page<'_, '_> {
             state.store(ui.ctx(), id);
         }
         let mut ended = false;
-        // Escape is egui's own end of a focus too, so it is no leaving that keeps the text, whoever has the focus.
-        if ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
+        let looking = field.lookup.is_some();
+        // Escape is egui's own end of a focus too, so it is no leaving that keeps the text, whoever has the focus;
+        // while the lookup is open it closes the lookup alone.
+        if !looking && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
             self.acts.push(Act::Cancel);
             ended = true;
         } else if ui.memory(|m| m.has_focus(id)) {
@@ -895,6 +951,7 @@ impl Page<'_, '_> {
             job.sections[0].format.line_height = Some(LINE_HEIGHT);
             ui.painter().layout_job(job)
         };
+        let before = field.text.clone();
         let mut edit = egui::TextEdit::multiline(&mut field.text)
             .id(id)
             .frame(egui::Frame::NONE)
@@ -910,6 +967,15 @@ impl Page<'_, '_> {
         if title && field.text.contains(['\r', '\n']) {
             field.text = field.text.replace("\r\n", " ").replace(['\n', '\r'], " ");
         }
+        // One `#` typed into a description opens the lookup in place of it (FR-017).
+        // It is drawn from the next frame on, so that the `#` it was opened by is not typed into it too.
+        if !title && field.lookup.is_none() {
+            field.lookup = references::hash_typed(&before, &field.text).map(references::Lookup::at);
+            if field.lookup.is_some() {
+                ui.ctx().request_repaint();
+                return;
+            }
+        }
         response.ctx.accesskit_node_builder(response.id, |node| {
             if title {
                 node.set_role(Role::TextInput);
@@ -922,10 +988,174 @@ impl Page<'_, '_> {
             Stroke::new(1.0, self.colours.border),
             StrokeKind::Inside,
         );
-        // Leaving for the conflict's bar is no leaving that keeps the text: the bar decides on it.
-        if response.lost_focus() && !ended && !self.tab.conflict {
+        // Leaving for the conflict's bar is no leaving that keeps the text: the bar decides on it; nor is leaving for
+        // the lookup, whose own leaving is.
+        if response.lost_focus() && !ended && !self.tab.conflict && field.lookup.is_none() {
             self.acts.push(Act::Commit);
         }
+        let Some(lookup) = field.lookup.as_mut() else {
+            return;
+        };
+        let candidates = references::candidates(&self.tab.model.nodes);
+        let looked = references::lookup(
+            ui,
+            lookup,
+            &candidates,
+            place,
+            id.with("lookup"),
+            self.colours,
+            self.font,
+        );
+        // The caret goes back to the text: after the reference a pick wrote, or after the `#` a close kept.
+        let caret = match looked {
+            None => return,
+            Some(references::Looked::Left) => {
+                field.lookup = None;
+                self.acts.push(Act::Commit);
+                return;
+            }
+            Some(references::Looked::Closed) => lookup.at + 1,
+            Some(references::Looked::Picked(number)) => {
+                let (text, caret) = references::picked(&field.text, lookup.at, &number);
+                field.text = text;
+                caret
+            }
+        };
+        field.lookup = None;
+        ui.memory_mut(|m| m.request_focus(id));
+        let mut state = egui::text_edit::TextEditState::load(ui.ctx(), id).unwrap_or_default();
+        state
+            .cursor
+            .set_char_range(Some(egui::text::CCursorRange::one(egui::text::CCursor::new(caret))));
+        state.store(ui.ctx(), id);
+    }
+
+    /// A description's layout `width` wide, each reference in it as a box with its target's number and current title,
+    /// and one that names nothing as written, marked broken (`ReferenceText`); and where each reference stands in the
+    /// laid out text, in characters.
+    fn description_job(&self, node: &SurfaceNode, width: f32) -> (LayoutJob, Vec<ReferenceSpan>) {
+        let colours = self.colours;
+        let mut job = LayoutJob::default();
+        job.wrap.max_width = width.max(1.0);
+        let format = |colour, background| {
+            let mut format = egui::TextFormat::simple(self.font.clone(), colour);
+            format.line_height = Some(LINE_HEIGHT);
+            format.background = background;
+            format
+        };
+        let mut spans = Vec::new();
+        let mut chars = 0;
+        let mut after_box = false;
+        for part in references::parts(&node.description, &node.references) {
+            let lead = if after_box { REFERENCE_PADDING } else { 0.0 };
+            match part {
+                Part::Text(text) => {
+                    chars += text.chars().count();
+                    job.append(&text, lead, format(colours.text, Color32::TRANSPARENT));
+                    after_box = false;
+                }
+                Part::Reference { written, target_id } => {
+                    let start = chars;
+                    let target = self
+                        .index
+                        .by_id
+                        .get(target_id.as_str())
+                        .filter(|_| !target_id.is_empty());
+                    let name = match target {
+                        Some(target) => {
+                            let title = format!(" {}", target.title);
+                            job.append(
+                                &target.number,
+                                lead + REFERENCE_PADDING,
+                                format(colours.muted, colours.raised),
+                            );
+                            job.append(&title, 0.0, format(colours.text, colours.raised));
+                            chars += target.number.chars().count() + title.chars().count();
+                            format!("{} {}", target.number, target.title)
+                        }
+                        None => {
+                            let icon = icons::text("mdi-link-variant-off");
+                            let mut mark = egui::TextFormat::simple(icons::font(self.font.size), colours.danger);
+                            mark.line_height = Some(LINE_HEIGHT);
+                            job.append(&icon, lead + REFERENCE_PADDING, mark);
+                            job.append(&written, 2.0, format(colours.danger, Color32::TRANSPARENT));
+                            chars += icon.chars().count() + written.chars().count();
+                            format!("{written} names nothing in this document")
+                        }
+                    };
+                    spans.push(ReferenceSpan {
+                        start,
+                        end: chars,
+                        target_id: if target.is_some() { target_id } else { String::new() },
+                        name,
+                    });
+                    after_box = true;
+                }
+            }
+        }
+        (job, spans)
+    }
+
+    /// Where each reference of a description laid out as `galley` at `at` stands, its outline drawn: from its first
+    /// character to its last, or to the end of its first row when it wraps.
+    fn reference_boxes(
+        &self,
+        painter: &egui::Painter,
+        galley: &egui::Galley,
+        at: Pos2,
+        spans: Vec<ReferenceSpan>,
+    ) -> Vec<ReferenceBox> {
+        spans
+            .into_iter()
+            .map(|span| {
+                let start = galley.pos_from_cursor(egui::text::CCursor::new(span.start));
+                let end = galley.pos_from_cursor(egui::text::CCursor::new(span.end));
+                let right = if (end.top() - start.top()).abs() < 1.0 {
+                    end.left()
+                } else {
+                    galley
+                        .rows
+                        .iter()
+                        .find(|r| r.rect().contains(start.center()))
+                        .map_or(end.left(), |r| r.rect().right())
+                };
+                let place = Rect::from_min_max(
+                    Pos2::new(start.left() - REFERENCE_PADDING, start.top()),
+                    Pos2::new(right + REFERENCE_PADDING, start.bottom()),
+                )
+                .translate(at.to_vec2());
+                let broken = span.target_id.is_empty();
+                let stroke = Stroke::new(
+                    1.0,
+                    if broken {
+                        self.colours.danger
+                    } else {
+                        self.colours.border
+                    },
+                );
+                if broken {
+                    painter.add(egui::Shape::dashed_line(
+                        &[
+                            place.left_top(),
+                            place.right_top(),
+                            place.right_bottom(),
+                            place.left_bottom(),
+                            place.left_top(),
+                        ],
+                        stroke,
+                        3.0,
+                        2.0,
+                    ));
+                } else {
+                    painter.rect_stroke(place, 3.0, stroke, StrokeKind::Inside);
+                }
+                ReferenceBox {
+                    place,
+                    target_id: span.target_id,
+                    name: span.name,
+                }
+            })
+            .collect()
     }
 
     /// A text's layout `width` wide, in the page's font and line height.
