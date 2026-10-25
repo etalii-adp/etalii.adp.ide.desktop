@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Findings",
+  "findings": [
+    {
+      "code": "ATD6003",
+      "severity": "error",
+      "file": "counter-mark-not-string.atd",
+      "line": 20,
+      "column": 76,
+      "message": "The counter of `Item` keeps its mark in `lastItem`, which is an `int`; a mark is a `string` attribute of the document."
+    }
+  ]
+}

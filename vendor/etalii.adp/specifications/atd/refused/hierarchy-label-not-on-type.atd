@@ -1,0 +1,25 @@
+atd 0.1
+
+/// A hierarchy's label attribute stands on every type its `on` names (DESL §10.1); `tags` is not an attribute of
+/// `Requirement`: one finding, at the `labels` member (ATD §14.7).
+designer example/outline version "0.1.0" {
+  label "Outline"
+  model {
+    element Item {
+      attribute title: string required
+      attribute tags: string many
+      contains Item, Requirement ordered
+    }
+    element Requirement {
+      attribute title: string required
+    }
+    element Tag {
+      attribute name: string required
+    }
+  }
+  surface hierarchy {
+    levels Item { title: title }
+    entries Requirement { title: title }
+    labels tags { on: [Item, Requirement], options: { type: Tag, name: name } }
+  }
+}

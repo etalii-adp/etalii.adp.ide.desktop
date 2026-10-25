@@ -1,3 +1,10 @@
+---
+id: fbl-specification
+type: submodule-design
+title: Format Binding Language (FBL) — normative specification
+status: draft
+parent: fbl
+---
 # FBL — Format Binding Language
 
 **Specification, version 0.8 (Draft)**

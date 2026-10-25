@@ -1,3 +1,10 @@
+---
+id: ded-specification
+type: submodule-design
+title: Designer Definition Language (DED) — normative specification
+status: draft
+parent: ded
+---
 # DED — Designer Definition Language
 
 **Specification, version 0.2 (Draft)**

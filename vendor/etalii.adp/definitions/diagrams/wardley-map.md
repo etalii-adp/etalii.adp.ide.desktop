@@ -87,7 +87,7 @@ The four together are why the body is still read by a plugin. Gap 1 alone blocks
 
 ### 5 and 6. FBL: decorators and annotation positions
 
-The specification models the five decorators as the booleans `market`, `ecosystem`, `build`, `buy` and `outsource`, with the row `wardley.decorators` computed over them and the five toggles as one `forEach` menu entry, and an annotation's occurrences as `positions`, the text between its outer brackets, from which the derived node type `AnnotationPin` and the per-occurrence `wardley.coordinate-out-of-range` (the rule `annotationOutOfRange`) read the numbers with the plugin function `positions`. Both shapes are what a binding could bind, once these gaps are answered; until then the plugin reads them.
+The specification models the five decorators as the booleans `market`, `ecosystem`, `build`, `buy` and `outsource`, with the row `wardley.decorators` computed over them and the five toggles as one `forEach` menu entry, and an annotation's occurrences as `positions`, the text between its outer brackets, from which the derived node type `AnnotationPin` and the per-occurrence `wardley.coordinate-out-of-range` (the rule `annotationOutOfRange`) read the numbers with the plugin function `positions`. The five booleans have no order, so the row reads the order the statement writes them in through the plugin function `writtenDecorators`, whose fallback lists them in the notation's order. Both shapes are what a binding could bind, once these gaps are answered; until then the plugin reads them.
 
 ### 7 and 8. FBL: the identity file
 
@@ -133,12 +133,17 @@ A definition defect is the specification saying something the tool does not do, 
 | A9 | An evolution a node type of its own, and a warning for a second `evolve` | The rows Evolves to and Becomes on the component, whose `parse.write` creates, sets or removes the `evolve`; no warning, because the tool gives none |
 | A7 | `wardley.duplicate-name` located on the element's name, which names nothing | At the first holder, with the lines of all holders |
 | Task 4 | The next annotation number taken with `.max()` on a list, which is no function of DISL's CEL, so the standalone loader refused the specification | `math.greatest` over the numbers, one of the math extension's functions DISL requires (12.1) |
+| Task 6 | The add, Rename… and pipeline dialogs accepting an empty name, which the tool refuses at once | A commit `validate` on each name field: "Every element needs a name.", or "A note needs something to say." for a note and an annotation |
+| Task 6 | Evolves to accepting an empty value on an element that is not evolving, which writes nothing | Refused with "'X' is not evolving." |
+| Task 6 | Decorators listed in the notation's order | In the order the statement writes them, through `writtenDecorators` (gap 5) |
+| Task 6 | Label offset shown as the struct itself | The item's `display`, `dx, dy` through `fixedNumber`; the data type's own `display` is not what a form row shows in the standalone runtime |
+| Task 6 | A pipeline's Components on one line | The `textarea` widget, as the tool shows them |
 
 `std.duplicateId` is off, because every holder of a repeated key has an id of its own. `std.unreadableEntry` is kept on, as `wardley.line-passed-over`, a warning worded by the reader ("This line is not a statement of a Wardley map, so it was passed over.", "This component statement could not be read, so it was passed over.", "This evolve statement could not be read, so it was passed over.", "This line inside a pipeline is not a component of it, so it was passed over."), because the tool reports those lines today and this keeps the reading as it is.
 
 ## Other differences a runtime will meet
 
-- **Decorator order.** The row `wardley.decorators` lists the decorators in the order market, ecosystem, build, buy, outsource, whatever order the statement writes them in; the toggles write a new decorator after the last one.
+- **Decorator order.** The row `wardley.decorators` lists the decorators in the order the statement writes them in through `writtenDecorators`; a host without the plugin lists them in the order market, ecosystem, build, buy, outsource. The toggles write a new decorator after the last one.
 - **Sorting names.** The pickers sort their candidates by `upper(name)`; the tool sorts ordinally ignoring case. The two agree on ASCII names; CEL's `upper()` folds case by Unicode rules, so names that differ in a character outside ASCII may sort differently.
 - **Annotation positions.** The plugin function `positions` reads the occurrences as the module's parser does; a host without the plugin uses its CEL fallback, which splits the text on its brackets and commas and converts each number with `double()`, so one number that will not convert fails the whole evaluation where the parser passes over the statement.
 - **The evolution axis is no longer an element.** The tool sent the stages to its canvas as a synthetic element `wardley/map+evolution-axis`; the specification's `axis.ranges` replace it.

@@ -1,3 +1,10 @@
+---
+id: did-specification
+type: submodule-design
+title: Diagram Definition Language (DID) — normative specification
+status: draft
+parent: did
+---
 # DID — Diagram Definition Language
 
 **Specification, version 0.2 (Working Draft)**

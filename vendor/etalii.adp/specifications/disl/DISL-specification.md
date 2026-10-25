@@ -1,3 +1,10 @@
+---
+id: disl-specification
+type: submodule-design
+title: Diagram Specification Language (DISL) — normative specification
+status: draft
+parent: disl
+---
 # DISL — Diagram Specification Language
 
 **Specification, version 0.6 (Draft)**

@@ -1,0 +1,619 @@
+atd 0.1
+
+/// The Hierarchical Requirement Designer: the requirements of one subject as nested boxes, kept in one Markdown file a
+/// person and an agent both read and write, specified by etalii.adp's spec 028.
+///
+/// A requirement document is one Markdown file: items, the parts of the subject, nest to any depth and hold
+/// requirements, each with a number that never changes, a title, a description, tags, a category and a state;
+/// assessments (questions, remarks, warnings and ideas) name the entry they are about; a reference names an entry by its
+/// number in square brackets. The designer shows the whole document as one page of boxes. The `.adp` registration
+/// beside the file keeps only what an agent does not need to read: the lists' colours and order, what is collapsed, the
+/// stored filters and the widths of the columns.
+///
+/// This description carries `hierarchical-requirement.des` and the binding `markdown` of `hierarchical-requirement.fbl`
+/// (in hierarchical-requirement.markdown.atd). The file format, the legend and the numbers are the binding's and its
+/// template's; the looks taken from the Knowledge designer and which gesture starts which operation are the host's
+/// (ATD §17), as `hierarchical-requirement.md` lists them.
+designer etalii/hierarchical-requirement version "0.1.0" {
+  label "Hierarchical Requirement Designer"
+  id: "net.etalii.adp.etalii.hierarchical-requirement"
+  authors: [{ name: "Peter Vrenken", url: "https://github.com/vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://etalii.net/adp"
+  icon: "mdi-file-tree-outline"
+  doc {
+    summary: "The requirements of one subject as boxes that contain boxes, in a Markdown file you and an agent both keep."
+    rationale: "Requirements are discussed by their place in the subject, not connected to one another: an item contains, a reference is a value in a description, and nothing is drawn connected, which is why this is a designer."
+    tags: ["requirements", "hierarchy", "markdown", "agents", "assessments"]
+    seeAlso: [
+      { title: "What DESL cannot express for this tool", href: "hierarchical-requirement.md" },
+      { title: "The Markdown binding", href: "hierarchical-requirement.markdown.atd" }
+    ]
+  }
+
+  import "hierarchical-requirement.markdown.atd"
+
+  model {
+    /// The requirement document. Its DED envelope (line 1, DED section 2) is the binding's header, not an attribute of
+    /// the model.
+    document {
+      /// A requirement stands in an item, so std.containment reports one at the top level (DESL section 4.6).
+      contains Item, Assessment, Tag, Category, State, Filter, Column
+      /// The last item number the counter gave: the mark of Item's counter (DESL section 5.3.5), on line 2 of the file.
+      attribute lastItem: string { pattern: r"^ITEM-[0-9]+$" }
+      /// The last requirement number the counter gave: the mark of Requirement's counter.
+      attribute lastRequirement: string { pattern: r"^REQ-[0-9]+$" }
+    }
+
+    /// A tag's, a category's or a state's colour: the Knowledge designer's enumeration, Notion's ten names. Each is a
+    /// light and a dark theme token in the host.
+    enum Colour {
+      default { label: "Default" }
+      gray { label: "Gray" }
+      brown { label: "Brown" }
+      orange { label: "Orange" }
+      yellow { label: "Yellow" }
+      green { label: "Green" }
+      blue { label: "Blue" }
+      purple { label: "Purple" }
+      pink { label: "Pink" }
+      red { label: "Red" }
+    }
+
+    /// What an assessment is (FR-033). The file writes the stored form, Question, Remark, Warning or Idea, and reads it
+    /// in any case. A thought is a remark. The icon that stands for several assessments is the host's.
+    enum AssessmentKind {
+      question { value: "Question", label: "Question", icon: "mdi-help-circle-outline" }
+      remark { value: "Remark", label: "Remark", icon: "mdi-comment-text-outline" }
+      warning { value: "Warning", label: "Warning", icon: "mdi-alert-outline" }
+      idea { value: "Idea", label: "Idea", icon: "mdi-lightbulb-outline" }
+    }
+
+    /// One level of the hierarchy, a part of the subject: a box whose requirements, then its items, stand to its right
+    /// (FR-016). Nested to any depth (FR-008).
+    element Item {
+      label "Item"
+      icon: "mdi-folder-outline"
+      labelAttribute: title
+      /// The one line on its bullet (FR-018).
+      attribute title: string required
+      /// The lines indented under its bullet. A reference `[REQ-0002]` in it names an entry; a link with a target,
+      /// `[REQ-0002](https://…)`, does not (FR-043).
+      attribute description: text {
+        mentions: { pattern: r"\[(?:ITEM|REQ)-\d+\]\([^)]*\)|\[(?<id>(?:ITEM|REQ)-\d+)\]", types: [Item, Requirement] }
+      }
+      /// The tags it carries, each naming a member of the tag list by name, ignoring case (DESL section 7.7.2).
+      attribute tags: string many { pattern: r"^[^\s#]+$" }
+      /// Folded on the page (FR-019). Kept in the registration's collapsed block, not in the file.
+      attribute collapsed: bool default false
+      contains Requirement, Item ordered
+    }
+
+    /// One requirement, in an item. It contains nothing.
+    element Requirement {
+      label "Requirement"
+      icon: "mdi-checkbox-blank-outline"
+      labelAttribute: title
+      /// The requirement itself (FR-018).
+      attribute title: string required
+      /// Optional clarification, with references as in an item's.
+      attribute description: text {
+        mentions: { pattern: r"\[(?:ITEM|REQ)-\d+\]\([^)]*\)|\[(?<id>(?:ITEM|REQ)-\d+)\]", types: [Item, Requirement] }
+      }
+      attribute tags: string many { pattern: r"^[^\s#]+$" }
+      /// At most one, naming a member of the category list (FR-030).
+      attribute category: string { pattern: r"^\S+$" }
+      /// At most one, naming a member of the state list (FR-031).
+      attribute state: string { pattern: r"^\S+$" }
+      attribute collapsed: bool default false
+    }
+
+    /// A question, remark, warning or idea about one entry, written by an agent or a person (FR-032 to FR-035).
+    element Assessment {
+      label "Assessment"
+      icon: "mdi-comment-question-outline"
+      labelAttribute: text
+      attribute kind: AssessmentKind required
+      /// The number of the one item or requirement it is about (FR-035). A mention, so that it is kept as written and
+      /// reported when it names nothing (FR-039).
+      attribute about: string required { mentions: { pattern: r"^(?<id>\S+)$", types: [Item, Requirement] } }
+      /// What follows the colon.
+      attribute text: string {
+        mentions: { pattern: r"\[(?:ITEM|REQ)-\d+\]\([^)]*\)|\[(?<id>(?:ITEM|REQ)-\d+)\]", types: [Item, Requirement] }
+      }
+      /// The lines indented under it.
+      attribute detail: text {
+        mentions: { pattern: r"\[(?:ITEM|REQ)-\d+\]\([^)]*\)|\[(?<id>(?:ITEM|REQ)-\d+)\]", types: [Item, Requirement] }
+      }
+      /// `[x]` in the file. A resolved assessment stays and no longer counts towards the icon (FR-038).
+      attribute resolved: bool default false
+    }
+
+    /// A member of the tag list, kept in the registration's tags block in its order.
+    element Tag {
+      label "Tag"
+      labelAttribute: name
+      /// No whitespace: typing a space in the designer writes `-`.
+      attribute name: string required { pattern: r"^[^\s#]+$" }
+      attribute colour: Colour default default
+    }
+
+    /// A member of the category list, kept in the categories block.
+    element Category {
+      label "Category"
+      labelAttribute: name
+      attribute name: string required { pattern: r"^\S+$" }
+      attribute colour: Colour default default
+    }
+
+    /// A member of the state list, kept in the states block.
+    element State {
+      label "State"
+      labelAttribute: name
+      attribute name: string required { pattern: r"^\S+$" }
+      attribute colour: Colour default default
+    }
+
+    /// A stored filter with its sorting, kept in the filters block.
+    element Filter {
+      label "Filter"
+      icon: "mdi-filter-outline"
+      labelAttribute: name
+      /// What it is found under (FR-048): the key of its entry in the registration's filters block, which may hold
+      /// `: `, since the key is everything before the last one (FBL section 8.1).
+      attribute name: string required
+      /// Words separated by spaces, in the file's notation (DESL section 7.7.3): `#security @proposed item:back*
+      /// sort:state`.
+      attribute query: string required { pattern: r"^(?:[^:\r\n]|:[^ \r\n])*:?$" }
+    }
+
+    /// The width of one column of items, which the user sets by dragging its right edge (DESL section 7.7.1), kept in
+    /// the widths block.
+    element Column {
+      label "Column"
+      icon: "mdi-arrow-expand-horizontal"
+      labelAttribute: level
+      /// The depth of the items the column holds, 1 for the top items: the key of its entry in the registration's
+      /// widths block.
+      attribute level: string required { pattern: r"^[1-9][0-9]*$" }
+      /// The column's width in pixels.
+      attribute width: int required { min: 120, max: 2000 }
+    }
+  }
+
+  persistence {
+    format: fbl
+    typeMap: {
+      Marks: { as: document, doc: "Line 2 of the file holds the last numbers the counters gave." }
+      Unreadable: { as: unreadable, doc: "A bullet under Requirements or Assessments in no known form: reported by std.unreadableEntry, kept with everything nested in it, and not read (FR-053)." }
+    }
+    ids: {
+      missing: assign
+      types: {
+        Item: { strategy: counter, prefix: "ITEM-", digits: 4, mark: lastItem, placeholder: "NEW", doc: "ITEM-0001 onwards; ITEM-NEW is numbered with the next edit (FR-009 to FR-013)." }
+        Requirement: { strategy: counter, prefix: "REQ-", digits: 4, mark: lastRequirement, placeholder: "NEW", doc: "REQ-0001 onwards, counted apart from the items (FR-010)." }
+        Assessment: {
+          strategy: derived
+          expression: ('assessment/' + string(self.positionIn(document.elementsOfType('Assessment'))))
+          ephemeral: true
+          reason: "An assessment is known by its place, which changes when the file is edited, so nothing can be kept for it."
+          doc: "Nothing refers to an assessment (R7)."
+        }
+        Tag: { strategy: derived, expression: ('tag/' + self.name.lowerAscii()) }
+        Category: { strategy: derived, expression: ('category/' + self.name.lowerAscii()) }
+        State: { strategy: derived, expression: ('state/' + self.name.lowerAscii()) }
+        Filter: { strategy: derived, expression: ('filter/' + self.name) }
+        Column: { strategy: derived, expression: ('column/' + self.level) }
+      }
+    }
+    settings: {
+      tags: { type: Tag, key: name, value: colour, initial: [], doc: "The tag list starts empty: every tag an entry carries is an implicit member (DESL section 7.7.2)." }
+      categories: {
+        type: Category, key: name, value: colour
+        initial: [{ name: functional, colour: blue }, { name: non-functional, colour: purple }, { name: technical, colour: brown }]
+        doc: "FR-030."
+      }
+      states: {
+        type: State, key: name, value: colour
+        initial: [{ name: proposed, colour: gray }, { name: accepted, colour: green }, { name: rejected, colour: red }, { name: done, colour: blue }]
+        doc: "FR-031."
+      }
+      collapsed: { attribute: collapsed, of: [Item, Requirement], doc: "Only a collapsed entry is stored, `<number>: yes` (FR-020)." }
+      filters: { type: Filter, key: name, value: query, initial: [], doc: "FR-048." }
+      widths: { type: Column, key: level, value: width, initial: [], doc: "Only a column whose width the user set is stored, `<depth>: <pixels>`; the others have the host's width (DESL section 7.7.1)." }
+    }
+  }
+
+  /// Both parties point at an entry by its number, so it is shown beside the title (FR-009).
+  surface hierarchy {
+    levels Item { title: title, description: description }
+    entries Requirement { title: title, description: description }
+    /// Drawn as tags below the title (FR-026).
+    labels tags { on: [Item, Requirement], options: { type: Tag, name: name, colour: colour }, prefix: "#" }
+    labels category { on: [Requirement], options: { type: Category, name: name, colour: colour }, prefix: "category:" }
+    labels state { on: [Requirement], options: { type: State, name: name, colour: colour }, prefix: "@" }
+    notes Assessment { about: about, kind: kind, text: text, detail: detail, resolved: resolved }
+    filters Filter { name: name, query: query }
+    widths Column { level: level, width: width }
+    collapsed: collapsed
+    ids: shown
+  }
+
+  // ---------------------------------------------------------------- Items and requirements
+
+  /// The control at the end of the page, and the first item of an empty document: an item at the top level, after the
+  /// last one. The host selects its title for typing (FR-022).
+  operation addTopItem "New item" for document {
+    create Item { title: 'New item' }
+  }
+
+  /// The control at the end of an item's content: a sub-item after the item's last child (R25).
+  operation addItem "New item" for Item {
+    create Item { title: 'New item' } in self
+  }
+
+  /// The key from a selected item: a sibling directly below it.
+  operation addItemBelow "New item below" for Item {
+    create Item { title: 'New item' } in self.parent after self
+  }
+
+  /// The control at the end of an item's content: a requirement after the item's last requirement, or before its first
+  /// sub-item when it has none (R25).
+  operation addRequirement "New requirement" for Item {
+    let requirements = self.childrenOfType('Requirement')
+    let items = self.childrenOfType('Item')
+    if requirements.size() > 0 {
+      create Requirement { title: 'New requirement' } in self after requirements[requirements.size() - 1]
+    }
+    if requirements.size() == 0 && items.size() > 0 {
+      create Requirement { title: 'New requirement' } in self before items[0]
+    }
+    if requirements.size() == 0 && items.size() == 0 {
+      create Requirement { title: 'New requirement' } in self
+    }
+  }
+
+  /// The key from a selected requirement: a new one directly below it, ready for typing, with no dialog (User Story 4
+  /// scenario 3).
+  operation addRequirementBelow "New requirement below" for Requirement {
+    unavailable [{ when: (self.parent == null), message: "This requirement stands in no item. Indent it under one first." }]
+    create Requirement { title: 'New requirement' } in self.parent after self
+  }
+
+  /// Typing in a title. The binding refuses an empty title.
+  operation setTitle "Title" for Item, Requirement {
+    param title: string required { minLength: 1 }
+    set title = p.title
+  }
+
+  /// Typing in a description, a picked reference included (FR-040, FR-041): typing `#` opens the lookup, and picking an
+  /// entry writes its number in square brackets. The empty text removes the description's lines.
+  operation setDescription "Description" for Item, Requirement {
+    param description: text default ""
+    set description = p.description
+  }
+
+  /// Dragging an item, with everything in it, below another item or to another place (FR-023). Within one parent it is
+  /// a reorder, to another a move; no number changes (FR-011). A move into the item itself or into anything it contains
+  /// is rolled back (DESL section 8.2).
+  operation moveItem "Move" for Item {
+    param item: Item { doc: "The item it goes into; absent, the top level." }
+    param after: Item { doc: "The sibling it goes after there; absent, after the last item there, or to the front within its own parent." }
+    let into = has(p.item) ? p.item : null
+    let siblings = has(p.item) ? p.item.childrenOfType('Item').filter(i, i != self) : document.elementsOfType('Item').filter(i, i.parent == null && i != self)
+    if self.parent == into {
+      if has(p.after) {
+        reorder self after p.after
+      }
+      if !has(p.after) && siblings.size() > 0 {
+        reorder self before siblings[0]
+      }
+    } else {
+      if has(p.after) {
+        move self into into after p.after
+      }
+      if !has(p.after) {
+        move self into into
+      }
+    }
+  }
+
+  /// Dragging a requirement to another item or another place (FR-023). Its number, and every reference and assessment
+  /// naming it, are unchanged (SC-003).
+  operation moveRequirement "Move" for Requirement {
+    param item: Item required { doc: "The item it goes into." }
+    param after: Requirement { doc: "The requirement it goes after there; absent, where a new requirement would go, or to the front within its own item." }
+    let requirements = p.item.childrenOfType('Requirement').filter(r, r != self)
+    let items = p.item.childrenOfType('Item')
+    if self.parent == p.item {
+      if has(p.after) {
+        reorder self after p.after
+      }
+      if !has(p.after) && requirements.size() > 0 {
+        reorder self before requirements[0]
+      }
+    } else {
+      if has(p.after) {
+        move self into p.item after p.after
+      }
+      if !has(p.after) && requirements.size() > 0 {
+        move self into p.item after requirements[requirements.size() - 1]
+      }
+      if !has(p.after) && requirements.size() == 0 && items.size() > 0 {
+        move self into p.item before items[0]
+      }
+      if !has(p.after) && requirements.size() == 0 && items.size() == 0 {
+        move self into p.item
+      }
+    }
+  }
+
+  /// Delete, with what it contains. Asks first when it contains anything, or when a reference or an assessment names it
+  /// (FR-024). Its number is never given again (FR-012); its references and assessments are kept as written and
+  /// reported by std.mentions (FR-039, FR-044).
+  operation deleteEntry "Delete" for Item, Requirement {
+    confirm {
+      message: ('Delete ' + self.id + ' with everything in it? ' + string(count) + ' entries, references or assessments concern it; the references and assessments are kept, and reported.')
+      count: (self.children.size() + document.elementsOfType('Assessment').filter(a, a.about == self.id || a.text.contains('[' + self.id + ']') || a.detail.contains('[' + self.id + ']')).size() + (document.elementsOfType('Item') + document.elementsOfType('Requirement')).filter(e, e.description.contains('[' + self.id + ']')).size())
+      doc: "What is nested in the entry, the assessments about it or mentioning it, and the descriptions that mention it. CEL cannot tell a mention from a link with a target, so a link counts too, which only asks once more."
+      threshold: 1
+    }
+    delete self
+  }
+
+  /// The control to the left of a title (FR-019). Written to the registration's collapsed block, outside the history.
+  /// An entry without a usable number is collapsed for the session only (DESL section 5.3.3).
+  operation toggleCollapsed for Item, Requirement {
+    label (self.collapsed ? 'Expand' : 'Collapse')
+    set collapsed = !self.collapsed
+  }
+
+  // ---------------------------------------------------------------- Tags
+
+  /// Typing in the tag field, then Enter: a name equal to a tag's name in any case picks that tag, with the list's
+  /// spelling; a name that equals none creates the tag, at the end of the list (FR-027). Tags are written before the
+  /// category and the state, in the order they were added.
+  operation addTag "Add tag" for Item, Requirement {
+    param name: string required { minLength: 1 }
+    let name = p.name.trim().replace(' ', '-')
+    let found = document.elementsOfType('Tag').filter(t, t.name.lowerAscii() == name.lowerAscii())
+    if found.size() == 0 {
+      create Tag { name: name, colour: 'default' }
+    }
+    if !self.tags.exists(t, t.lowerAscii() == name.lowerAscii()) {
+      set tags = self.tags + [found.size() > 0 ? found[0].name : name]
+    }
+  }
+
+  /// The tag's cross on an entry.
+  operation removeTag "Remove tag" for Item, Requirement {
+    param name: string required
+    set tags = self.tags.filter(t, t.lowerAscii() != p.name.lowerAscii())
+  }
+
+  /// Every entry that carries the tag follows, in the same undoable step (FR-028).
+  operation renameTag "Rename" for Tag {
+    param name: string required { minLength: 1 }
+    let old = self.name.lowerAscii()
+    let name = p.name.trim().replace(' ', '-')
+    for e in document.elementsOfType('Item') + document.elementsOfType('Requirement') limit 100000 {
+      if e.tags.exists(t, t.lowerAscii() == old) {
+        set e.tags = e.tags.map(t, t.lowerAscii() == old ? name : t)
+      }
+    }
+    set name = name
+  }
+
+  /// Writes the registration only (User Story 7 scenario 3).
+  operation recolourTag "Colour" for Tag {
+    param colour: Colour required
+    set colour = p.colour
+  }
+
+  /// Dragging a tag in the list: a remove-entry and an insert-entry in the kept tags block.
+  operation moveTag "Move" for Tag {
+    param after: Tag
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before document.elementsOfType('Tag')[0]
+    }
+  }
+
+  /// Every carrier loses it in the same step (FR-028).
+  operation deleteTag "Delete" for Tag {
+    confirm {
+      message: (string(count) + ' entries carry #' + self.name + '. Delete it and remove it from them?')
+      count: ((document.elementsOfType('Item') + document.elementsOfType('Requirement')).filter(e, e.tags.exists(t, t.lowerAscii() == self.name.lowerAscii())).size())
+      threshold: 1
+    }
+    for e in document.elementsOfType('Item') + document.elementsOfType('Requirement') limit 100000 {
+      if e.tags.exists(t, t.lowerAscii() == self.name.lowerAscii()) {
+        set e.tags = e.tags.filter(t, t.lowerAscii() != self.name.lowerAscii())
+      }
+    }
+    delete self
+  }
+
+  // ---------------------------------------------------------------- Categories
+
+  /// Picking a category on a requirement (FR-030). It is written after the tags.
+  operation setCategory "Category" for Requirement {
+    param category: Category required
+    set category = p.category.name
+  }
+
+  operation clearCategory "No category" for Requirement {
+    unset category
+  }
+
+  /// Adds to the category list. Its first change writes the whole list, the initial members with it (DESL section 5.5).
+  operation addCategory "New category" for document {
+    param name: string required { minLength: 1 }
+    param colour: Colour default default
+    create Category { name: p.name.trim().replace(' ', '-'), colour: p.colour }
+  }
+
+  /// Every requirement that carries it follows, in the same step (R25).
+  operation renameCategory "Rename" for Category {
+    param name: string required { minLength: 1 }
+    let old = self.name.lowerAscii()
+    let name = p.name.trim().replace(' ', '-')
+    for r in document.elementsOfType('Requirement').filter(r, r.category.lowerAscii() == old) limit 100000 {
+      set r.category = name
+    }
+    set name = name
+  }
+
+  operation recolourCategory "Colour" for Category {
+    param colour: Colour required
+    set colour = p.colour
+  }
+
+  /// The list's order is the order a sort by category follows (DESL section 7.7.3).
+  operation moveCategory "Move" for Category {
+    param after: Category
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before document.elementsOfType('Category')[0]
+    }
+  }
+
+  operation deleteCategory "Delete" for Category {
+    confirm {
+      message: (string(count) + ' requirements are ' + self.name + '. Delete it and clear them?')
+      count: (document.elementsOfType('Requirement').filter(r, r.category.lowerAscii() == self.name.lowerAscii()).size())
+      threshold: 1
+    }
+    for r in document.elementsOfType('Requirement').filter(r, r.category.lowerAscii() == self.name.lowerAscii()) limit 100000 {
+      unset r.category
+    }
+    delete self
+  }
+
+  // ---------------------------------------------------------------- States
+
+  /// Picking a state on a requirement (FR-031). It is written after the tags and the category.
+  operation setState "State" for Requirement {
+    param state: State required
+    set state = p.state.name
+  }
+
+  operation clearState "No state" for Requirement {
+    unset state
+  }
+
+  operation addState "New state" for document {
+    param name: string required { minLength: 1 }
+    param colour: Colour default default
+    create State { name: p.name.trim().replace(' ', '-'), colour: p.colour }
+  }
+
+  operation renameState "Rename" for State {
+    param name: string required { minLength: 1 }
+    let old = self.name.lowerAscii()
+    let name = p.name.trim().replace(' ', '-')
+    for r in document.elementsOfType('Requirement').filter(r, r.state.lowerAscii() == old) limit 100000 {
+      set r.state = name
+    }
+    set name = name
+  }
+
+  operation recolourState "Colour" for State {
+    param colour: Colour required
+    set colour = p.colour
+  }
+
+  operation moveState "Move" for State {
+    param after: State
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before document.elementsOfType('State')[0]
+    }
+  }
+
+  operation deleteState "Delete" for State {
+    confirm {
+      message: (string(count) + ' requirements are ' + self.name + '. Delete it and clear them?')
+      count: (document.elementsOfType('Requirement').filter(r, r.state.lowerAscii() == self.name.lowerAscii()).size())
+      threshold: 1
+    }
+    for r in document.elementsOfType('Requirement').filter(r, r.state.lowerAscii() == self.name.lowerAscii()) limit 100000 {
+      unset r.state
+    }
+    delete self
+  }
+
+  // ---------------------------------------------------------------- Assessments
+
+  /// From the icon at the top right of an entry, or its list (FR-036, FR-037): an open assessment at the end of
+  /// Assessments, the section appended when the file has none (R7).
+  operation addAssessment "New assessment" for Item, Requirement {
+    param kind: AssessmentKind default question
+    param text: string required
+    create Assessment { kind: p.kind, about: self.id, text: p.text }
+  }
+
+  /// Editing an assessment in the list. What it is about is not changed.
+  operation changeAssessment "Change" for Assessment {
+    param kind: AssessmentKind required
+    param text: string required
+    param detail: text default ""
+    set kind = p.kind
+    set text = p.text
+    set detail = p.detail
+  }
+
+  /// A switch between `[ ]` and `[x]`: one replace-value of one character (R7, R25).
+  operation resolveAssessment for Assessment {
+    label (self.resolved ? 'Reopen' : 'Resolve')
+    set resolved = !self.resolved
+  }
+
+  operation removeAssessment "Remove" for Assessment {
+    delete self
+  }
+
+  // ---------------------------------------------------------------- Stored filters and column widths
+
+  /// Keeps the applied filter with its sorting under a name, after the stored ones (FR-048). Applying a filter or a
+  /// sort writes nothing (FR-049).
+  operation storeFilter "Store filter" for document {
+    param name: string required { minLength: 1 }
+    param query: string required { minLength: 1 }
+    create Filter { name: p.name, query: p.query }
+  }
+
+  operation renameFilter "Rename" for Filter {
+    param name: string required { minLength: 1 }
+    set name = p.name
+  }
+
+  operation removeFilter "Remove" for Filter {
+    delete self
+  }
+
+  /// Dragging the right edge of a column whose width is not stored yet: the column of that depth gets the width (DESL
+  /// section 7.7.1).
+  operation addColumnWidth "Set width" for document {
+    param level: string required { pattern: r"^[1-9][0-9]*$" }
+    param width: int required { min: 120, max: 2000 }
+    create Column { level: p.level, width: p.width }
+  }
+
+  /// Dragging the right edge of a column whose width is stored.
+  operation setColumnWidth "Set width" for Column {
+    param width: int required { min: 120, max: 2000 }
+    set width = p.width
+  }
+
+  /// Gives the column the host's width again.
+  operation resetColumnWidth "Reset width" for Column {
+    delete self
+  }
+}
