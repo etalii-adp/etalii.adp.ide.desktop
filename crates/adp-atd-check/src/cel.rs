@@ -310,6 +310,17 @@ pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut 
         }
         out.push((at, field.to_owned(), name));
     }
+    // `a && b` reads `b` only where `a` holds, so an `x.isA('T')` among `a`'s conjuncts makes `x` a `T` in `b`
+    // (ATD §14.2): a form for a base type may show a subtype's attribute behind that guard.
+    if node.get("call").and_then(Json::as_str) == Some("_&&_")
+        && let Some([left, right]) = node["args"].as_array().map(Vec::as_slice)
+    {
+        unknown_members(left, scope, symbols, out);
+        let mut narrowed = scope.clone();
+        type_guards(left, symbols, &mut narrowed);
+        unknown_members(right, &narrowed, symbols, out);
+        return;
+    }
     match node {
         Json::Object(map) => {
             for (key, value) in map {
@@ -319,6 +330,31 @@ pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut 
             }
         }
         Json::Array(items) => items.iter().for_each(|item| unknown_members(item, scope, symbols, out)),
+        _ => {}
+    }
+}
+
+/// The variables a condition proves to be of a type: each `x.isA('T')` among its `&&` conjuncts, `T` a type.
+fn type_guards(node: &Json, symbols: &Symbols, scope: &mut Scope) {
+    match node.get("call").and_then(Json::as_str) {
+        Some("_&&_") => {
+            for arg in node["args"].as_array().into_iter().flatten() {
+                type_guards(arg, symbols, scope);
+            }
+        }
+        Some("isA") => {
+            if let Some(variable) = node["target"].get("ident").and_then(Json::as_str)
+                && let Some(name) = node["args"]
+                    .get(0)
+                    .and_then(|a| a.get("literal"))
+                    .and_then(Json::as_str)
+                && symbols.is_type(name)
+            {
+                scope
+                    .variables
+                    .insert(variable.to_owned(), Ty::Element(name.to_owned()));
+            }
+        }
         _ => {}
     }
 }
