@@ -234,6 +234,264 @@ fn recording_a_capability_writes_valid_fixtures_from_the_code_that_does_it() {
     );
 }
 
+/// Records capability `name`'s fixtures into a new folder; the folder.
+fn record_capability(name: &str) -> tempfile::TempDir {
+    let folder = tempfile::tempdir().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_atd"))
+        .args(["record", "--capability", name, "--cases"])
+        .arg(folder.path())
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{name}: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    folder
+}
+
+/// The fixtures of capability `name`, recorded twice and found the same both times and valid against
+/// `$defs/CapabilityFixture`, by file name.
+fn fixtures_of(name: &str) -> BTreeMap<String, Value> {
+    let written = files(record_capability(name).path());
+    assert_eq!(
+        files(record_capability(name).path()),
+        written,
+        "{name}: recording again gives the same fixtures"
+    );
+    let validator = validator("CapabilityFixture");
+    written
+        .into_iter()
+        .map(|(file, bytes)| {
+            let fixture: Value = serde_json::from_slice(&bytes).unwrap();
+            let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+            assert!(errors.is_empty(), "{name} {file}: {errors:?}");
+            (file, fixture)
+        })
+        .collect()
+}
+
+fn number(value: &Value) -> f64 {
+    value.as_f64().unwrap()
+}
+
+#[test]
+fn recording_row_packing_puts_no_two_items_closer_than_the_gap_on_a_row() {
+    let fixtures = fixtures_of("layout.rowPacking");
+    for tool in ["timeline-roadmap", "timeline-add", "hypecycle-graph-coal-technologies"] {
+        assert!(fixtures.contains_key(&format!("{tool}-read.json")), "{tool}");
+    }
+    for (file, fixture) in &fixtures {
+        let gap = number(&fixture["args"]["gap"]);
+        let positions = &fixture["output"]["positions"];
+        let nodes = fixture["input"]["nodes"].as_array().unwrap();
+        assert_eq!(
+            positions.as_object().unwrap().len(),
+            nodes.len(),
+            "{file}: every item gets a row"
+        );
+        // Each item's rows, and where it runs across.
+        let placed: Vec<(i64, i64, f64, f64)> = nodes
+            .iter()
+            .map(|node| {
+                let at = &positions[node["id"].as_str().unwrap()];
+                let left = number(&node["attributes"]["left"]);
+                assert_eq!(number(&at["x"]), left, "{file}: only rows change");
+                let top = at["y"].as_i64().unwrap();
+                (
+                    top,
+                    top + node["height"].as_i64().unwrap(),
+                    left,
+                    left + number(&node["width"]),
+                )
+            })
+            .collect();
+        for (index, first) in placed.iter().enumerate() {
+            for second in &placed[index + 1..] {
+                let share_a_row = first.0 < second.1 && second.0 < first.1;
+                let clear = first.3 + gap <= second.2 + 0.02 || second.3 + gap <= first.2 + 0.02;
+                assert!(!share_a_row || clear, "{file}: {first:?} and {second:?} crowd one row");
+            }
+        }
+        // A pair kept apart never shares a row.
+        for edge in fixture["input"]["edges"].as_array().unwrap() {
+            if edge["attributes"]["apart"] == true {
+                let row = |end: &str| positions[edge[end].as_str().unwrap()]["y"].clone();
+                assert_ne!(row("source"), row("target"), "{file}: {edge}");
+            }
+        }
+    }
+}
+
+#[test]
+fn recording_row_packed_keeps_every_row_and_packs_it_left_to_right() {
+    let fixtures = fixtures_of("layout.rowPacked");
+    assert!(fixtures.contains_key("hypecycle-graph-coal-technologies-read.json"));
+    for (file, fixture) in &fixtures {
+        let gap = number(&fixture["args"]["gap"]);
+        let step = number(&fixture["args"]["rowStep"]);
+        let output = &fixture["output"];
+        let mut rows: BTreeMap<i64, Vec<(f64, f64, f64)>> = BTreeMap::new();
+        for node in fixture["input"]["nodes"].as_array().unwrap() {
+            let id = node["id"].as_str().unwrap();
+            let at = &output["positions"][id];
+            assert_eq!(at["y"], node["position"]["y"], "{file}: {id} keeps its row");
+            let width = output["sizes"][id]["width"]
+                .as_f64()
+                .unwrap_or_else(|| number(&node["width"]));
+            if let Some(packed) = node["attributes"]["packedWidth"].as_f64() {
+                assert_eq!(width, packed, "{file}: {id} is drawn at its packed width");
+            }
+            let (top, height) = (number(&node["position"]["y"]), number(&node["height"]));
+            let leading = node["attributes"]["leading"].as_f64().unwrap_or(0.0);
+            let (first, last) = (
+                (top / step).floor() as i64,
+                ((top + height - 1.0) / step).floor() as i64,
+            );
+            for row in first..=last.max(first) {
+                rows.entry(row)
+                    .or_default()
+                    .push((number(&at["x"]), number(&at["x"]) + width, leading));
+            }
+        }
+        for (row, mut placed) in rows {
+            placed.sort_by(|a, b| a.0.total_cmp(&b.0));
+            for pair in placed.windows(2) {
+                assert!(
+                    pair[0].1 + gap + pair[1].2 <= pair[1].0 + 0.02,
+                    "{file}: row {row} crowds {pair:?}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn recording_the_tidy_tree_hangs_every_row_one_layer_below_its_parent() {
+    let fixtures = fixtures_of("layout.tidyTree");
+    assert!(fixtures.contains_key("agent-behavior-modelling-research-assistant-read.json"));
+    for (file, fixture) in &fixtures {
+        let layer = number(&fixture["args"]["layerGap"]);
+        let gap = number(&fixture["args"]["nodeGap"]);
+        let positions = &fixture["output"]["positions"];
+        let nodes = fixture["input"]["nodes"].as_array().unwrap();
+        assert_eq!(positions.as_object().unwrap().len(), nodes.len(), "{file}");
+        let minimum = nodes
+            .iter()
+            .map(|n| number(&positions[n["id"].as_str().unwrap()]["x"]))
+            .fold(f64::INFINITY, f64::min);
+        assert_eq!(minimum, 0.0, "{file}: the leftmost node is at zero");
+        for node in nodes {
+            let at = &positions[node["id"].as_str().unwrap()];
+            let Some(parent) = node["parent"].as_str() else {
+                assert_eq!(number(&at["y"]), 0.0, "{file}: a root is on the first row");
+                continue;
+            };
+            let above = &positions[parent];
+            assert_eq!(
+                number(&at["y"]),
+                number(&above["y"]) + number(&node["height"]) + layer,
+                "{file}"
+            );
+        }
+        // Siblings in their order, left to right, at least the gap apart.
+        for node in nodes {
+            for other in nodes {
+                if node["parent"] == other["parent"] && node["order"].as_i64() < other["order"].as_i64() {
+                    let (left, right) = (
+                        &positions[node["id"].as_str().unwrap()],
+                        &positions[other["id"].as_str().unwrap()],
+                    );
+                    assert!(
+                        number(&left["x"]) + number(&node["width"]) + gap <= number(&right["x"]) + 0.02,
+                        "{file}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn recording_the_self_organising_arrangement_moves_every_element_clear_of_the_others_or_refuses() {
+    let fixtures = fixtures_of("arrange.selfOrganising");
+    let mut refused = 0;
+    for (file, fixture) in &fixtures {
+        let elements = fixture["input"]["elements"].as_array().unwrap();
+        let separation = number(&fixture["args"]["separation"]);
+        if let Some(findings) = fixture["output"]["findings"].as_array() {
+            assert!(
+                elements.len() > fixture["args"]["budget"].as_u64().unwrap() as usize,
+                "{file}"
+            );
+            assert!(findings[0]["message"].as_str().unwrap().contains("more than"), "{file}");
+            refused += 1;
+            continue;
+        }
+        let actions = fixture["output"]["actions"].as_array().unwrap();
+        assert_eq!(actions.len(), elements.len(), "{file}: every element is moved");
+        let boxes: Vec<(f64, f64, f64, f64)> = elements
+            .iter()
+            .zip(actions)
+            .map(|(element, action)| {
+                assert_eq!(action["kind"], "move");
+                assert_eq!(action["target"], element["id"], "{file}: in the elements' order");
+                (
+                    number(&action["x"]),
+                    number(&action["y"]),
+                    number(&element["width"]),
+                    number(&element["height"]),
+                )
+            })
+            .collect();
+        for (index, a) in boxes.iter().enumerate() {
+            for b in &boxes[index + 1..] {
+                let apart_x = (a.0 - b.0).abs() >= (a.2 + b.2) / 2.0 + separation - 0.05;
+                let apart_y = (a.1 - b.1).abs() >= (a.3 + b.3) / 2.0 + separation - 0.05;
+                assert!(apart_x || apart_y, "{file}: {a:?} and {b:?} overlap");
+            }
+        }
+    }
+    assert_eq!(refused, 1, "one fixture records the refusal past the budget");
+}
+
+#[test]
+fn recording_the_forward_bezier_leaves_each_dependent_rightward_and_enters_each_dependency_from_its_left() {
+    let fixtures = fixtures_of("routing.forwardBezier");
+    let mut loops = 0;
+    for (file, fixture) in &fixtures {
+        let routes = &fixture["output"]["routes"];
+        for edge in fixture["input"]["edges"].as_array().unwrap() {
+            let (source, target) = (&edge["source"], &edge["target"]);
+            let route = routes[edge["id"].as_str().unwrap()].as_array().unwrap();
+            assert_eq!(route.len(), 2, "{file}: a move and one curve");
+            let (start, curve) = (&route[0]["points"][0], route[1]["points"].as_array().unwrap());
+            assert_eq!(route[1]["op"], "cubic");
+            let middle = |b: &Value| number(&b["y"]) + number(&b["height"]) / 2.0;
+            let near = |a: f64, b: f64| (a - b).abs() < 0.011;
+            assert!(
+                near(number(&start["x"]), number(&source["x"]) + number(&source["width"])),
+                "{file}"
+            );
+            assert!(near(number(&start["y"]), middle(source)), "{file}");
+            assert!(near(number(&curve[2]["x"]), number(&target["x"])), "{file}");
+            assert!(near(number(&curve[2]["y"]), middle(target)), "{file}");
+            if number(&target["x"]) < number(&source["x"]) + number(&source["width"]) {
+                assert!(
+                    number(&curve[0]["x"]) > number(&start["x"]),
+                    "{file}: it leaves rightward"
+                );
+                assert!(
+                    number(&curve[1]["x"]) < number(&curve[2]["x"]),
+                    "{file}: it arrives from the left"
+                );
+                loops += 1;
+            }
+        }
+    }
+    assert!(loops > 0, "a dependency sitting behind its dependent loops round");
+}
+
 /// Records the Hierarchical Requirement Designer's cases into a new folder (etalii.adp spec 035, T167); the folder.
 fn record_requirements() -> tempfile::TempDir {
     let folder = tempfile::tempdir().unwrap();
