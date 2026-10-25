@@ -8,6 +8,7 @@
 
 pub mod capability;
 pub mod check;
+mod hierarchy;
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -127,14 +128,19 @@ pub fn record(origin: &str, cases: &Path, description: Option<&str>) -> Result<V
             return Err(format!("{name}: a designer's table is not recorded yet"));
         }
         let folder = cases.join(name.rsplit('/').next().unwrap_or(&name));
-        record_case(&case, &folder, &description)?;
+        if adp_parity::hierarchy::is_hierarchy(&case.script.tool) {
+            hierarchy::record_case(&case, &folder, &description)?;
+        } else {
+            record_case(&case, &folder, &description)?;
+        }
         written.push(folder);
     }
     Ok(written)
 }
 
-/// Records one script as the case in `folder`, which is made anew.
-fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), String> {
+/// Copies the case's fixture's folder to `folder`, made anew, and names its inputs: the body, the registration, and
+/// every other file of the folder. Returns the body's file name and the inputs.
+fn copy_inputs(case: &Case, folder: &Path) -> Result<(String, Map<String, Json>), String> {
     let fixtures = adp_parity::repository_root().join(if case.minted { "parity/cases" } else { "parity/fixtures" });
     let fixture = fixtures.join(&case.script.fixture);
     let source = fixture.parent().ok_or("a fixture has a folder")?;
@@ -169,6 +175,12 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
         }
     }
 
+    Ok((body, inputs))
+}
+
+/// Records one script as the case in `folder`, which is made anew.
+fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), String> {
+    let (body, inputs) = copy_inputs(case, folder)?;
     let origin = case.script.tool.clone();
     let body_path = PathBuf::from(&body);
     let mut seen: Vec<Seen> = Vec::new();

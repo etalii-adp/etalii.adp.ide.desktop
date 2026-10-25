@@ -14,13 +14,15 @@ path = "src/main.rs"
 [lints]
 workspace = true
 
-# `atd record` runs the desktop host's modules and its canvas's recording painter, so it is built only with the
-# `record` feature: the `atd` shipped into other hosts is built without it (spec 035, T050).
+# `atd record` runs the desktop host's modules (a hierarchy designer's through `adp-desl`'s session) and its canvas's
+# recording painter, so it is built only with the `record` feature: the `atd` shipped into other hosts is built
+# without it (spec 035, T050).
 [features]
 default = ["record"]
-record = ["dep:adp-diagram", "dep:adp-diagram-mindmap", "dep:adp-parity", "dep:adp-shell", "dep:adp-theme"]
+record = ["dep:adp-desl", "dep:adp-diagram", "dep:adp-diagram-mindmap", "dep:adp-parity", "dep:adp-shell", "dep:adp-theme"]
 
 [dependencies]
+adp-desl = { path = "../adp-desl", optional = true }
 adp-diagram = { path = "../adp-diagram", optional = true }
 adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap", optional = true }
 adp-parity = { path = "../adp-parity", optional = true }

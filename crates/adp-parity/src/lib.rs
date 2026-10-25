@@ -480,16 +480,9 @@ pub struct Observed<'a> {
     pub generated: Vec<String>,
 }
 
-/// Replays `case` in a copy of its fixture's folder, and compares the files its golden lists; an error is a script
-/// or golden the runner cannot read.
-pub fn replay(case: &Case) -> Result<Verdict, String> {
-    replay_observed(case, &mut |_| {})
-}
-
-/// [`replay`], showing `observe` the document once it opens and again after each step. A designer's script is
-/// replayed without being shown.
-pub fn replay_observed(case: &Case, observe: &mut dyn FnMut(&Observed)) -> Result<Verdict, String> {
-    // A case without a golden keeps its documents beside its script.
+/// A copy of the case's fixture's folder, and the document the script opens in it (relative to it): the body, or its
+/// registration. A case without a golden keeps its documents beside its script.
+fn prepare(case: &Case) -> Result<(tempfile::TempDir, PathBuf), String> {
     let fixtures = repository_root().join(if case.minted { "parity/cases" } else { "parity/fixtures" });
     let fixture = fixtures.join(&case.script.fixture);
     let folder = fixture
@@ -503,6 +496,29 @@ pub fn replay_observed(case: &Case, observe: &mut dyn FnMut(&Observed)) -> Resul
         .strip_prefix(folder)
         .map_err(|_| format!("{opened} is not in the fixture's folder"))?
         .to_path_buf();
+    Ok((project, document))
+}
+
+/// A hierarchy designer's script replayed as [`replay`] does, showing `observe` the page once it opens and again after
+/// each step (etalii.adp spec 035, T167): `atd record` records a designer's conformance case from these.
+pub fn replay_hierarchy_observed(
+    case: &Case,
+    observe: &mut dyn FnMut(&hierarchy::Observed),
+) -> Result<Verdict, String> {
+    let (project, document) = prepare(case)?;
+    hierarchy::replay_observed(case, project.path(), &document, observe)
+}
+
+/// Replays `case` in a copy of its fixture's folder, and compares the files its golden lists; an error is a script
+/// or golden the runner cannot read.
+pub fn replay(case: &Case) -> Result<Verdict, String> {
+    replay_observed(case, &mut |_| {})
+}
+
+/// [`replay`], showing `observe` the document once it opens and again after each step. A designer's script is
+/// replayed without being shown here; [`replay_hierarchy_observed`] shows a hierarchy designer's.
+pub fn replay_observed(case: &Case, observe: &mut dyn FnMut(&Observed)) -> Result<Verdict, String> {
+    let (project, document) = prepare(case)?;
     if table::is_table(&case.script.tool) {
         return table::replay(case, project.path(), &document);
     }

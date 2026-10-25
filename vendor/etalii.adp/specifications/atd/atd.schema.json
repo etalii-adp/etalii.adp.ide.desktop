@@ -3003,7 +3003,7 @@
       ]
     },
     "ConformanceStep": {
-      "description": "One gesture of a case and what it must produce (ATD §2.3). Exactly one of `action`, `property`, `move`, `create`, `connect`, `delete`, `undo` and `redo`; `select` before it.",
+      "description": "One gesture of a case and what it must produce (ATD §2.3). Exactly one of `action`, `property`, `move`, `create`, `connect`, `delete`, `outside`, `undo` and `redo`; `select` before it.",
       "type": "object",
       "properties": {
         "select": {
@@ -3104,6 +3104,36 @@
           "items": {
             "type": "string"
           }
+        },
+        "outside": {
+          "description": "A file of the case written outside the host, as another program or an agent would, and the host told it changed: the first occurrence of `from` in `file` replaced by `to`.",
+          "type": "object",
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "replace": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "from",
+                "to"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "file",
+            "replace"
+          ]
         },
         "undo": {
           "const": true
