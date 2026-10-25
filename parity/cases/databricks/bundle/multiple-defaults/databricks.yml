@@ -1,0 +1,17 @@
+bundle:
+  name: two_defaults
+
+resources:
+  jobs:
+    nightly:
+      name: Nightly
+
+targets:
+  dev:
+    mode: development
+    default: true
+  staging:
+    mode: development
+    default: true
+  prod:
+    mode: production
