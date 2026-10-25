@@ -76,6 +76,15 @@ impl Node {
     }
 }
 
+/// One item of a word slot of an attribute with `many` (FBL 0.7 section 4.6): its value, the span the value is
+/// written in (the word's group `value`, or the whole word), and the word it is in.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct WordItem {
+    pub value: String,
+    pub value_span: Span,
+    pub word: Word,
+}
+
 /// What reading one slot of one entry gave.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct SlotRead {
@@ -87,6 +96,9 @@ pub(crate) struct SlotRead {
     pub node: Node,
     /// For a group read as words: every word of the group, so references inside it can be rewritten one by one.
     pub words: Option<Rc<Vec<Word>>>,
+    /// For a word slot of an attribute with `many` (FBL 0.7 section 4.6): every word of the group it holds, in
+    /// order; None for any other slot.
+    pub items: Option<Rc<Vec<WordItem>>>,
     /// The quote the value is written in on the wire, when the span includes one.
     pub quote: Option<String>,
     /// The value as written, before maps or conversion, for keeping a map's wire value.

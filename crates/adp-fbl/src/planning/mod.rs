@@ -66,8 +66,32 @@ pub enum ModelChange {
         id: String,
         new_id: String,
     },
+    /// Changes an entry of a block of the registration that the binding declares (FBL 0.7 sections 8.1, 8.4, 15.3).
+    Setting(Setting),
     /// Saves without a change: no splice (FBL section 15.3).
     Save,
+}
+
+/// A change to an entry of a declared block (FBL 0.7 sections 8.1, 8.4, 15.3): gives the entry `key` of `block` a new
+/// `value`, moves it to `position` in a `kept` block, renames it to `rename`, or removes it. A setting with a position
+/// and no value moves the entry; one with a value and no entry of that key adds it.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Setting {
+    pub block: String,
+    pub key: String,
+    pub value: Option<String>,
+    pub position: Option<SettingPosition>,
+    pub rename: Option<String>,
+    pub remove_entry: bool,
+}
+
+/// Where an entry of a `kept` block goes (FBL 0.7 section 8.4, 15.3): at `index` among the block's entries as they are
+/// without it, or directly after or before the entry with the key `after` or `before`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct SettingPosition {
+    pub index: Option<i64>,
+    pub after: Option<String>,
+    pub before: Option<String>,
 }
 
 /// One edit: the splices one model change was planned as, in body order, applied together, recorded together and
