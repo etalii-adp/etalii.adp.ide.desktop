@@ -90,6 +90,45 @@ pub struct Widths {
     pub max: u32,
 }
 
+/// What the notes of a node are made, changed and taken away by: the operation each gesture of the list sends, the
+/// params they carry, and the words of the list. An add names the node, the others the note.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NotesDefinition {
+    pub operations: NoteOperations,
+    pub params: NoteParams,
+    pub words: NoteWords,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NoteOperations {
+    /// A new open note about the node; its params are the kind and the text.
+    pub add: String,
+    /// A note's kind, text and detail written anew.
+    pub change: String,
+    /// A note resolved, or reopened when it is resolved.
+    pub resolve: String,
+    pub remove: String,
+}
+
+/// The names of the params: the kind, as the model names it, the one-line text and the lines below it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NoteParams {
+    pub kind: String,
+    pub text: String,
+    pub detail: String,
+}
+
+/// What the list and its controls say.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NoteWords {
+    pub list: String,
+    pub add: String,
+    pub change: String,
+    pub resolve: String,
+    pub reopen: String,
+    pub remove: String,
+}
+
 /// When a delete asks first, and in which words: the specification's `confirm` of its delete.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Deletion {
@@ -120,6 +159,8 @@ pub struct SurfaceDefinition {
     pub note_icons: Vec<(String, String)>,
     /// The icon that stands for several open notes.
     pub several_notes_icon: String,
+    /// The notes' list, opened from the icon at a box's top right (FR-015, FR-016).
+    pub notes: NotesDefinition,
     pub operations: Operations,
     pub move_params: MoveParams,
     pub deletion: Deletion,

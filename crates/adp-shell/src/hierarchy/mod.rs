@@ -11,7 +11,8 @@
 //! On a document that can change it is changed in place ([`editing`], T038): an entry or a level added by the
 //! controls at the end of every level and of the page, or by the selected node's actions and their keys, its title
 //! then open for typing; a title or a description typed where it stands; a node dragged by its grip; and deleted, asking
-//! first when anything concerns it. A change from outside while a title or a description is being typed shows the file
+//! first when anything concerns it. A box's notes are listed, added, changed, resolved and removed from the icon at its
+//! top right ([`notes`], T042). A change from outside while a title or a description is being typed shows the file
 //! around the field and asks, on a bar over the page, whether to drop the text or keep it (T033).
 //!
 //! It knows no designer type: which type is a level, which an entry, which labels they carry and which operation each
@@ -19,6 +20,7 @@
 
 pub mod editing;
 pub mod layout;
+pub mod notes;
 mod view;
 
 #[cfg(test)]
@@ -34,6 +36,7 @@ use eframe::egui;
 
 use editing::{Attribute, Deleting, DropHint, EntryDrop, OpenField};
 use layout::HierarchyIndex;
+use notes::NoteList;
 
 pub use view::show;
 
@@ -93,6 +96,8 @@ pub struct HierarchyTab {
     pub hint: Option<DropHint>,
     /// A delete waiting on its question's answer.
     pub deleting: Option<Deleting>,
+    /// The list of notes open on a box, from its icon.
+    pub notes: Option<NoteList>,
     next_edit: u64,
     id: egui::Id,
 }
@@ -139,6 +144,7 @@ impl HierarchyTab {
             dragging: None,
             hint: None,
             deleting: None,
+            notes: None,
             next_edit: 0,
             id: egui::Id::unique(("hierarchy", body.to_path_buf())),
         };
@@ -205,6 +211,22 @@ impl HierarchyTab {
             .is_some_and(|d| !self.model.nodes.iter().any(|n| n.id == d.node_id))
         {
             self.deleting = None;
+        }
+        if self
+            .notes
+            .as_ref()
+            .is_some_and(|n| !self.model.nodes.iter().any(|node| node.id == n.node_id))
+        {
+            self.notes = None;
+        }
+    }
+
+    /// The icon at a box's top right: opens the box's list of notes, or closes it when it is the one open.
+    pub fn toggle_notes(&mut self, node_id: &str) {
+        if self.notes.as_ref().is_some_and(|n| n.node_id == node_id) {
+            self.notes = None;
+        } else {
+            self.notes = Some(NoteList::on(node_id, &self.definition));
         }
     }
 

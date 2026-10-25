@@ -20,7 +20,7 @@
 //! The standalone host writes on a task and watches the files; here a gesture is written when it is taken, and the
 //! core tells the session of a change from outside with [`HierarchySurfaceSession::file_changed`], so the session
 //! needs no thread of its own. Of the operations, etalii.adp spec 036 has built `toggleCollapsed`, the text and the
-//! structure operations so far; the others are refused with the reason until theirs.
+//! structure operations and those on assessments so far; the others are refused with the reason until theirs.
 
 use std::path::{Path, PathBuf};
 
@@ -32,7 +32,7 @@ use crate::commands::{EditCommand, Restore, Undone};
 use crate::documents::{self, Files, Writer};
 use crate::gestures;
 use crate::mapper;
-use crate::operations::{structure, text};
+use crate::operations::{assessments, structure, text};
 
 /// What undo and redo are refused with while no gesture of this page is a step of the history.
 const NOTHING_TO_UNDO: &str = "There is nothing to undo.";
@@ -243,6 +243,10 @@ impl RequirementSession {
                 return Err(refusal.into());
             }
         }
+        let refusal = assessments::refusal(&gesture.operation, &gesture.params);
+        if !refusal.is_empty() {
+            return Err(refusal);
+        }
         let model = &self.reading.model;
         if !model.read_only_reason.is_empty() {
             return Err(model.read_only_reason.clone());
@@ -250,8 +254,11 @@ impl RequirementSession {
         let Some(expected) = self.reading.files.body.clone() else {
             return Err(gestures::DRIFTED.into());
         };
-        let gone =
-            gesture.operation != structure::ADD_TOP_ITEM && model.nodes.iter().all(|n| n.id != gesture.target_id);
+        let gone = if assessments::targets_an_assessment(&gesture.operation) {
+            model.notes.iter().all(|n| n.id != gesture.target_id)
+        } else {
+            gesture.operation != structure::ADD_TOP_ITEM && model.nodes.iter().all(|n| n.id != gesture.target_id)
+        };
         if gone {
             return Err(gestures::DRIFTED.into());
         }
@@ -297,7 +304,10 @@ impl HierarchySurfaceSession for RequirementSession {
     }
 
     fn gesture(&mut self, gesture: Gesture) -> Result<(), String> {
-        if text::handles(&gesture.operation) || structure::handles(&gesture.operation) {
+        if text::handles(&gesture.operation)
+            || structure::handles(&gesture.operation)
+            || assessments::handles(&gesture.operation)
+        {
             return self.body_gesture(gesture);
         }
         let setting = gestures::plan(&self.reading.model, &gesture)?;

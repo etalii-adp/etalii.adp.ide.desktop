@@ -1,11 +1,12 @@
 //! What the Hierarchical Requirement Designer declares for the hierarchy surface (spec 029 R9), the standalone host's
 //! `client/hierarchicalRequirementDefinition.ts` at a7fdf03: its levels are items and its entries requirements, the
 //! labels its `.des` gives under `surface.labels`, the icon of each assessment kind from its `AssessmentKind`, the icon
-//! R10 settles for several open assessments, and the operations its gestures send with their labels.
-//! `tests/surface_definition.rs` holds each to the vendored definition.
+//! R10 settles for several open assessments, the operations and words of the assessments' list, and the operations
+//! its gestures send with their labels. `tests/surface_definition.rs` holds each to the vendored definition.
 
 use adp_desl::hierarchy::definition::{
-    AddDefinition, Deletion, LabelDefinition, LabelLook, MoveParams, Operations, SurfaceDefinition, Widths,
+    AddDefinition, Deletion, LabelDefinition, LabelLook, MoveParams, NoteOperations, NoteParams, NoteWords,
+    NotesDefinition, Operations, SurfaceDefinition, Widths,
 };
 
 use crate::model::{MAXIMUM_WIDTH, MINIMUM_WIDTH};
@@ -48,6 +49,27 @@ pub fn definition() -> SurfaceDefinition {
         .map(|(k, i)| ((*k).to_owned(), (*i).to_owned()))
         .collect(),
         several_notes_icon: "mdi-comment-multiple-outline".into(),
+        notes: NotesDefinition {
+            operations: NoteOperations {
+                add: "addAssessment".into(),
+                change: "changeAssessment".into(),
+                resolve: "resolveAssessment".into(),
+                remove: "removeAssessment".into(),
+            },
+            params: NoteParams {
+                kind: "kind".into(),
+                text: "text".into(),
+                detail: "detail".into(),
+            },
+            words: NoteWords {
+                list: "Assessments".into(),
+                add: "New assessment".into(),
+                change: "Change".into(),
+                resolve: "Resolve".into(),
+                reopen: "Reopen".into(),
+                remove: "Remove".into(),
+            },
+        },
         operations: Operations {
             toggle_collapsed: "toggleCollapsed".into(),
             set_title: "setTitle".into(),

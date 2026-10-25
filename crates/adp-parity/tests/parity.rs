@@ -82,6 +82,11 @@ fn etalii_hierarchical_requirement_two_writers() {
 }
 
 #[test]
+fn etalii_hierarchical_requirement_assessments() {
+    check("etalii/hierarchical-requirement/assessments");
+}
+
+#[test]
 fn etalii_hierarchical_requirement_new_document() {
     check("etalii/hierarchical-requirement/new-document");
 }

@@ -125,6 +125,24 @@ fn it_sends_only_operations_its_definition_has_labelled_and_with_the_params_it_n
         expected.sort_unstable();
         assert_eq!(params, expected, "{moved}");
     }
+    // The notes' list: its gestures, their params and the words its definition labels them with.
+    let notes = &defined.notes;
+    let (n, p, w) = (&notes.operations, &notes.params, &notes.words);
+    for (operation, params, label) in [
+        (&n.add, vec![&p.kind, &p.text], &w.add),
+        (&n.change, vec![&p.kind, &p.text, &p.detail], &w.change),
+        (&n.remove, vec![], &w.remove),
+    ] {
+        let declared = &operations[operation];
+        assert_eq!(declared["label"], label.as_str(), "{operation}");
+        for param in params {
+            assert!(declared["params"].get(param).is_some(), "{operation} takes {param}");
+        }
+    }
+    assert_eq!(
+        operations[&n.resolve]["label"]["cel"],
+        format!("self.resolved ? '{}' : '{}'", w.reopen, w.resolve).as_str()
+    );
     let column = &des["metamodel"]["types"]["Column"]["attributes"]["width"];
     assert_eq!(
         (widths.min, widths.max),
