@@ -4,7 +4,7 @@
 
 use std::path::Path;
 
-use super::model::{Gesture, SurfaceChange, SurfaceModel};
+use super::model::{Gesture, SurfaceAction, SurfaceChange, SurfaceModel};
 
 /// One open hierarchy surface on one connection.
 pub trait HierarchySurfaceSession {
@@ -14,6 +14,12 @@ pub trait HierarchySurfaceSession {
     /// Takes one gesture. `Ok` when it is accepted - a [`SurfaceChange::Model`] and a [`SurfaceChange::Outcome`] for
     /// its `edit_id` follow, in that order - or the sentence saying why it is refused, in which case nothing changed.
     fn gesture(&mut self, gesture: Gesture) -> Result<(), String>;
+
+    /// The actions the node `node_id` offers when it is selected, each with its key; none by default.
+    fn actions(&self, node_id: &str) -> Vec<SurfaceAction> {
+        let _ = node_id;
+        Vec::new()
+    }
 
     /// What changed since the last call, in order.
     fn take_changes(&mut self) -> Vec<SurfaceChange>;

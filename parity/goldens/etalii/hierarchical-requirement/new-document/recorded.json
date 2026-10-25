@@ -1,0 +1,32 @@
+{
+  "script": "parity/scripts/etalii/hierarchical-requirement/new-document.json",
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/new-document/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/new-document/web-shop.adp",
+  "standaloneCommit": "a7fdf039c204535e9fc3a14f456e6f5a36a685ce",
+  "recorderVersion": "1.0.0",
+  "platform": "linux",
+  "recordedAt": "2026-10-25T06:10:03Z",
+  "edits": 2,
+  "changed": [
+    "notes/lending.md"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry notes; choice 'Add diagram' answered 'etalii/hierarchical-requirement@.md'"
+    },
+    {
+      "step": 1,
+      "kind": "action",
+      "rpc": "ContextService.ExecuteAction + SubmitInteraction",
+      "outcome": "accepted",
+      "detail": "on the entry notes; choice 'Add diagram' answered 'etalii/hierarchical-requirement@.md'"
+    }
+  ]
+}

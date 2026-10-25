@@ -134,3 +134,19 @@ fn it_sends_only_operations_its_definition_has_labelled_and_with_the_params_it_n
         )
     );
 }
+
+#[test]
+fn it_asks_before_a_delete_as_the_confirm_of_its_delete_says() {
+    let des = specification();
+    let defined = surface::definition();
+    let confirm = &des["operations"][defined.operations.delete.as_str()]["confirm"];
+    assert_eq!(confirm["threshold"], defined.deletion.threshold as u64);
+    // The CEL's message with `self.id` and `count` filled in.
+    let cel = confirm["message"]["cel"].as_str().unwrap();
+    let written = cel
+        .replace("'Delete ' + self.id + ' with", "'Delete REQ-0004 with")
+        .replace("' + string(count) + '", "3")
+        .trim_matches('\'')
+        .to_owned();
+    assert_eq!(defined.deletion.question("REQ-0004", 3), written);
+}

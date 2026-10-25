@@ -77,6 +77,12 @@ internal sealed partial class Replay
                     }
                 }
 
+                // A prompt is an action's, such as the explorer's add, as the diagram's stream hands it on.
+                if (message.MessageCase == WorkspaceMessage.MessageOneofCase.Context && message.Context.MessageCase == Context.Wire.ContextMessage.MessageOneofCase.Prompt)
+                {
+                    await _prompts.Writer.WriteAsync(message.Context.Prompt, _streams.Token);
+                }
+
                 if (message.MessageCase != WorkspaceMessage.MessageOneofCase.HierarchySurface || !message.HierarchySurface.StreamId.Equals(_hierarchyStream))
                 {
                     continue;

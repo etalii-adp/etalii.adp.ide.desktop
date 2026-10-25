@@ -1,8 +1,8 @@
 //! What a designer declares for the hierarchy surface to draw it (DESL section 7.7, spec 029 R9), as a table designer
 //! declares its table: the labels its nodes carry, the icons of its notes, and which operation of its specification each
 //! gesture sends. A port of the standalone host's `hierarchySurfaceDefinition.ts` at a7fdf03, as far as the page drawn
-//! so far reads it (etalii.adp spec 036); the parts of the labels' fields, the notes, the filters and the deletion
-//! arrive with the gestures that send them. The surface names none of these itself.
+//! so far reads it (etalii.adp spec 036); the parts of the labels' fields, the notes and the filters arrive with the
+//! gestures that send them. The surface names none of these itself.
 
 /// How a label's values look on the page, so labels side by side tell apart.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -90,6 +90,24 @@ pub struct Widths {
     pub max: u32,
 }
 
+/// When a delete asks first, and in which words: the specification's `confirm` of its delete.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Deletion {
+    /// It asks when this many nodes, notes or texts concern the node, or more.
+    pub threshold: usize,
+    /// What it asks, with `{number}` for the node's number and `{count}` for that count.
+    pub message: String,
+}
+
+impl Deletion {
+    /// The question for the node numbered `number`, which `count` things concern.
+    pub fn question(&self, number: &str, count: usize) -> String {
+        self.message
+            .replace("{number}", number)
+            .replace("{count}", &count.to_string())
+    }
+}
+
 /// What a designer declares for the hierarchy surface.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SurfaceDefinition {
@@ -104,6 +122,7 @@ pub struct SurfaceDefinition {
     pub several_notes_icon: String,
     pub operations: Operations,
     pub move_params: MoveParams,
+    pub deletion: Deletion,
     /// How the columns' widths are kept; none when the page's own widths are not changed.
     pub widths: Option<Widths>,
     /// The keys a selected node sends to the host as a shortcut, with Ctrl or Cmd held.
@@ -118,3 +137,7 @@ pub const ADD_NOTE_ICON: &str = "mdi-comment-plus-outline";
 pub const FOCUS_ICON: &str = "mdi-target";
 /// The icon of the control at a selected box's bottom right that deletes its node.
 pub const DELETE_ICON: &str = "mdi-delete-outline";
+/// The icon of the grip a node is dragged by.
+pub const GRIP_ICON: &str = "mdi-drag-vertical";
+/// The icon of the control on a selected box with no description that opens one for typing.
+pub const ADD_DESCRIPTION_ICON: &str = "mdi-text-box-plus-outline";

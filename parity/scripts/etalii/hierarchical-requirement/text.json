@@ -1,0 +1,15 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "setTitle", "target": "REQ-0003", "params": {"title": "A customer pays by card, iDEAL, PayPal or Klarna."}}},
+    {"hierarchy": {"operation": "setDescription", "target": "REQ-0006", "params": {"description": "Activity is any request the customer makes.\nSee [REQ-0007] for signing in, and [ITEM-0005] for the mail it sends."}}},
+    {"hierarchy": {"operation": "setDescription", "target": "REQ-0001", "params": {"description": "As fast as [REQ-0002] asks."}}},
+    {"hierarchy": {"operation": "setTitle", "target": "ITEM-0003", "params": {"title": "Checkout without an account"}}},
+    {"hierarchy": {"operation": "setDescription", "target": "REQ-0004", "params": {"description": ""}}},
+    {"hierarchy": {"operation": "setTitle", "target": "REQ-0007", "params": {"title": "Two\nlines"}, "expect": "refused"}},
+    {"undo": {}},
+    {"redo": {}}
+  ]
+}

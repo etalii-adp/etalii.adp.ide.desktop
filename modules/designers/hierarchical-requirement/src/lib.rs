@@ -10,18 +10,24 @@
 //! - [`mapper`]: the document onto the host-neutral `adp_desl::hierarchy` surface.
 //! - [`designer`]: the definition the add offers, and the envelope claim that recognises a document.
 //! - [`surface`]: what the designer declares for the hierarchy surface to draw it.
+//! - [`template`]: what a new document starts as.
 //! - [`session`], [`gestures`] and [`documents`]: one open document on one connection, the operations a gesture
 //!   names, and how its two files are read and written.
+//! - [`operations`] and [`commands`]: the operations that change the body, and one such edit made as a step that
+//!   undo takes back.
 
 pub mod body;
+pub mod commands;
 pub mod definition;
 pub mod designer;
 pub mod documents;
 pub mod gestures;
 pub mod mapper;
 pub mod model;
+pub mod operations;
 pub mod session;
 pub mod surface;
+pub mod template;
 pub mod vocabulary;
 
 pub use definition::ORIGIN;

@@ -11,24 +11,34 @@
 //!   binding's `createOnFirstPlacement` says (FBL 0.7 section 8.4). Collapsing is such a setting, and is no undo step
 //!   either: the `collapsed` block is declared outside the history.
 //!
+//! - **An edit of the body, of a text or of the hierarchy, is one step of the session's history**, planned against
+//!   the bytes this session's page was made from; a file that holds others by the time it runs is not written, and
+//!   the page is read again (FR-024). Undo gives the bytes back exactly; once another program has written the file,
+//!   it says so once and the steps before are gone.
+//!
 //! The standalone host writes on a task and watches the files; here a gesture is written when it is taken, and the
 //! core tells the session of a change from outside with [`HierarchySurfaceSession::file_changed`], so the session
-//! needs no thread of its own. Of the operations, this pull request of etalii.adp spec 036 builds `toggleCollapsed`;
-//! the others are refused with the reason until theirs.
+//! needs no thread of its own. Of the operations, etalii.adp spec 036 has built `toggleCollapsed`, the text and the
+//! structure operations so far; the others are refused with the reason until theirs.
 
 use std::path::{Path, PathBuf};
 
-use adp_desl::hierarchy::model::{EditOutcome, Gesture, SurfaceChange, SurfaceModel, causes};
+use adp_desl::hierarchy::model::{EditOutcome, Gesture, SurfaceAction, SurfaceChange, SurfaceModel, causes, roles};
 use adp_desl::hierarchy::session::HierarchySurfaceSession;
 
 use crate::body::RequirementBody;
+use crate::commands::{EditCommand, Restore, Undone};
 use crate::documents::{self, Files, Writer};
 use crate::gestures;
 use crate::mapper;
+use crate::operations::{structure, text};
 
 /// What undo and redo are refused with while no gesture of this page is a step of the history.
 const NOTHING_TO_UNDO: &str = "There is nothing to undo.";
 const NOTHING_TO_REDO: &str = "There is nothing to redo.";
+/// The ids of the actions a selected entry offers, the standalone host's.
+pub const ADD_BELOW: &str = "hierarchical-requirement.add-below";
+pub const ADD_REQUIREMENT: &str = "hierarchical-requirement.add-requirement";
 
 /// One reading of the two files and the model made of it.
 struct Reading {
@@ -45,6 +55,9 @@ pub struct RequirementSession {
     write: Writer,
     reading: Reading,
     changes: Vec<SurfaceChange>,
+    /// The steps written through this session, the latest last, and those undone, the latest undone last.
+    restores: Vec<Restore>,
+    undone: Vec<EditCommand>,
 }
 
 impl RequirementSession {
@@ -69,6 +82,8 @@ impl RequirementSession {
             registration_path,
             write,
             changes: Vec::new(),
+            restores: Vec::new(),
+            undone: Vec::new(),
         };
         session.reading = session
             .build(&files, causes::OPEN)
@@ -163,13 +178,78 @@ impl RequirementSession {
         taken
     }
 
-    /// A write of this session's has ended: the model as the files now are, then what became of it.
-    fn settle(&mut self, outcome: EditOutcome) {
-        if !self.read_again(causes::EDIT) {
+    /// A write of this session's has ended: the model as the files now are, as following `cause`, then what became
+    /// of it.
+    fn settle(&mut self, outcome: EditOutcome, cause: &str) {
+        if !self.read_again(cause) {
             self.changes
                 .push(SurfaceChange::Model(Box::new(self.reading.model.clone())));
         }
         self.changes.push(SurfaceChange::Outcome(outcome));
+    }
+}
+
+impl RequirementSession {
+    /// Takes a change of the body, of an entry's text or of the hierarchy: refused at once when the page cannot be
+    /// changed, the entry is gone or a text cannot be written; otherwise made as one step, against the bytes the page
+    /// was made from. A refused step is followed by the page read again: it was refused because the file is not what
+    /// the page showed.
+    fn body_gesture(&mut self, gesture: Gesture) -> Result<(), String> {
+        if text::handles(&gesture.operation) {
+            let attribute = text::attribute_of(&gesture.operation);
+            let Some(value) = gesture.params.get(attribute) else {
+                return Err(format!("'{}' needs its {attribute}.", gesture.operation));
+            };
+            let refusal = text::refusal(&gesture.operation, value);
+            if !refusal.is_empty() {
+                return Err(refusal.into());
+            }
+        }
+        let model = &self.reading.model;
+        if !model.read_only_reason.is_empty() {
+            return Err(model.read_only_reason.clone());
+        }
+        let Some(expected) = self.reading.files.body.clone() else {
+            return Err(gestures::DRIFTED.into());
+        };
+        let gone =
+            gesture.operation != structure::ADD_TOP_ITEM && model.nodes.iter().all(|n| n.id != gesture.target_id);
+        if gone {
+            return Err(gestures::DRIFTED.into());
+        }
+        let command = EditCommand {
+            body_path: self.body_path.clone(),
+            operation: gesture.operation.clone(),
+            target_id: gesture.target_id.clone(),
+            params: gesture.params.clone(),
+            expected,
+        };
+        let written = command.execute(&mut self.write);
+        let (written, error) = match written {
+            Ok(restore) => {
+                if let Some(restore) = restore {
+                    self.restores.push(restore);
+                    self.undone.clear();
+                }
+                (true, String::new())
+            }
+            Err(error) => (false, error),
+        };
+        let cause = if written { causes::EDIT } else { causes::OUTSIDE };
+        self.settle(
+            EditOutcome {
+                edit_id: gesture.edit_id,
+                written,
+                error,
+            },
+            cause,
+        );
+        Ok(())
+    }
+
+    /// Whether a step written through this session can be undone.
+    pub fn can_undo(&self) -> bool {
+        !self.restores.is_empty()
     }
 }
 
@@ -179,6 +259,9 @@ impl HierarchySurfaceSession for RequirementSession {
     }
 
     fn gesture(&mut self, gesture: Gesture) -> Result<(), String> {
+        if text::handles(&gesture.operation) || structure::handles(&gesture.operation) {
+            return self.body_gesture(gesture);
+        }
         let setting = gestures::plan(&self.reading.model, &gesture)?;
         let known_ids = self
             .reading
@@ -195,12 +278,63 @@ impl HierarchySurfaceSession for RequirementSession {
             known_ids,
             &mut self.write,
         );
-        self.settle(EditOutcome {
-            edit_id: gesture.edit_id,
-            written: written.is_ok(),
-            error: written.err().unwrap_or_default(),
-        });
+        self.settle(
+            EditOutcome {
+                edit_id: gesture.edit_id,
+                written: written.is_ok(),
+                error: written.err().unwrap_or_default(),
+            },
+            causes::EDIT,
+        );
         Ok(())
+    }
+
+    /// The keys that add an entry directly below the selected one, with no dialog (the standalone host's
+    /// `HierarchicalRequirementContextActionProvider`): Ctrl+Enter an item below an item and a requirement below a
+    /// requirement, Ctrl+Shift+Enter a requirement to an item. The labels and the unavailable message are the
+    /// specification's.
+    fn actions(&self, node_id: &str) -> Vec<SurfaceAction> {
+        let Some(node) = self.reading.model.nodes.iter().find(|n| n.id == node_id) else {
+            return Vec::new();
+        };
+        let action = |id: &str, label: &str, icon: &str, shift: bool, operation: &str| SurfaceAction {
+            id: id.into(),
+            label: label.into(),
+            icon: icon.into(),
+            key: "Enter".into(),
+            shift,
+            unavailable: String::new(),
+            operation: operation.into(),
+        };
+        if node.role == roles::LEVEL {
+            return vec![
+                action(
+                    ADD_BELOW,
+                    "New item below",
+                    "mdi-plus-box-outline",
+                    false,
+                    structure::ADD_ITEM_BELOW,
+                ),
+                action(
+                    ADD_REQUIREMENT,
+                    "New requirement",
+                    "mdi-plus",
+                    true,
+                    structure::ADD_REQUIREMENT,
+                ),
+            ];
+        }
+        let mut below = action(
+            ADD_BELOW,
+            "New requirement below",
+            "mdi-plus",
+            false,
+            structure::ADD_REQUIREMENT_BELOW,
+        );
+        if node.parent_id.is_empty() {
+            below.unavailable = structure::NO_ITEM.into();
+        }
+        vec![below]
     }
 
     fn take_changes(&mut self) -> Vec<SurfaceChange> {
@@ -208,11 +342,44 @@ impl HierarchySurfaceSession for RequirementSession {
     }
 
     fn undo(&mut self) -> Result<(), String> {
-        Err(NOTHING_TO_UNDO.into())
+        let Some(restore) = self.restores.pop() else {
+            return Err(NOTHING_TO_UNDO.into());
+        };
+        match restore.undo(&mut self.write) {
+            Ok(()) => {
+                self.undone.push(restore.redo);
+                self.read_again(causes::EDIT);
+                Ok(())
+            }
+            // The record is spent, and so is every one before it: they were made against a file that is gone.
+            Err(Undone::Outdated(reason)) => {
+                self.restores.clear();
+                self.undone.clear();
+                Err(reason)
+            }
+            Err(Undone::Failed(reason)) => {
+                self.restores.push(restore);
+                Err(reason)
+            }
+        }
     }
 
     fn redo(&mut self) -> Result<(), String> {
-        Err(NOTHING_TO_REDO.into())
+        let Some(command) = self.undone.pop() else {
+            return Err(NOTHING_TO_REDO.into());
+        };
+        match command.execute(&mut self.write) {
+            Ok(restore) => {
+                self.restores.extend(restore);
+                self.read_again(causes::EDIT);
+                Ok(())
+            }
+            Err(reason) => {
+                self.undone.clear();
+                self.read_again(causes::OUTSIDE);
+                Err(reason)
+            }
+        }
     }
 
     fn file_changed(&mut self, path: &Path) {

@@ -1,6 +1,6 @@
 //! The hierarchy tab's tests: the layout rules (the standalone host's `iconsLayout.test.ts` and the fit test of
 //! `ColumnEdge.test.tsx` at a7fdf03; etalii.adp spec 036, T023), and the page drawn headless and pressed through its
-//! accessibility tree (`HierarchySurface.test.tsx`; T026 to T029).
+//! accessibility tree (`HierarchySurface.test.tsx`; T026 to T029), and changed there (`editing/AddControl.test.tsx`; T038).
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -8,11 +8,11 @@ use std::path::Path;
 use std::rc::Rc;
 
 use adp_desl::hierarchy::definition::{
-    AddDefinition, FOCUS_ICON, HIDDEN_LEVELS_ICON, LabelDefinition, MoveParams, Operations, SurfaceDefinition,
+    AddDefinition, Deletion, FOCUS_ICON, HIDDEN_LEVELS_ICON, LabelDefinition, MoveParams, Operations, SurfaceDefinition,
 };
 use adp_desl::hierarchy::model::{
-    EditOutcome, Gesture, LabelValues, OptionList, SurfaceChange, SurfaceFinding, SurfaceModel, SurfaceNode,
-    SurfaceOption, causes, roles,
+    EditOutcome, Gesture, LabelValues, Note, OptionList, Reference, SurfaceAction, SurfaceChange, SurfaceFinding,
+    SurfaceModel, SurfaceNode, SurfaceOption, causes, roles,
 };
 use adp_desl::hierarchy::session::HierarchySurfaceSession;
 use eframe::egui::{
@@ -21,6 +21,7 @@ use eframe::egui::{
 };
 
 use super::HierarchyTab;
+use super::editing::{self, Attribute, DropHint, DropKind, EntryDrop};
 use super::layout::*;
 use crate::icons;
 use crate::theme::{self, Palette};
@@ -84,11 +85,22 @@ fn the_spec_sizes_are_the_standalone_hosts() {
 
 // ---- The page (the standalone host's `HierarchySurface.test.tsx` at a7fdf03; T026 to T029) ----
 
-/// A session that keeps one model and records the gestures it is sent, each written at once.
+/// A session that keeps one model and records the gestures it is sent, each written at once: the model a test queued
+/// next, or the one it has, comes back, or the refusal a test set.
 struct Recorder {
     model: SurfaceModel,
     gestures: Rc<RefCell<Vec<Gesture>>>,
+    script: Rc<RefCell<Script>>,
     changes: Vec<SurfaceChange>,
+}
+
+/// What a test has the session answer.
+#[derive(Default)]
+struct Script {
+    /// The models the next gestures bring, in order.
+    next: Vec<SurfaceModel>,
+    /// The sentence the next gestures are not written with.
+    refusal: String,
 }
 
 impl HierarchySurfaceSession for Recorder {
@@ -97,14 +109,34 @@ impl HierarchySurfaceSession for Recorder {
     }
 
     fn gesture(&mut self, gesture: Gesture) -> Result<(), String> {
+        let mut script = self.script.borrow_mut();
+        if !script.next.is_empty() {
+            self.model = script.next.remove(0);
+        }
         self.changes.push(SurfaceChange::Model(Box::new(self.model.clone())));
         self.changes.push(SurfaceChange::Outcome(EditOutcome {
             edit_id: gesture.edit_id.clone(),
-            written: true,
-            error: String::new(),
+            written: script.refusal.is_empty(),
+            error: script.refusal.clone(),
         }));
         self.gestures.borrow_mut().push(gesture);
         Ok(())
+    }
+
+    /// Every node offers Ctrl+Enter, below it, and Ctrl+Shift+Enter, inside it.
+    fn actions(&self, _node_id: &str) -> Vec<SurfaceAction> {
+        let action = |id: &str, shift: bool, operation: &str| SurfaceAction {
+            id: id.into(),
+            label: id.into(),
+            key: "Enter".into(),
+            shift,
+            operation: operation.into(),
+            ..SurfaceAction::default()
+        };
+        vec![
+            action("below", false, "jot-below"),
+            action("inside", true, "jot-inside"),
+        ]
     }
 
     fn take_changes(&mut self) -> Vec<SurfaceChange> {
@@ -132,11 +164,11 @@ fn label(label: &str, prefix: &str, many: bool, on: &[&str]) -> LabelDefinition 
     }
 }
 
-fn add(operation: &str, label: &str) -> AddDefinition {
+fn add(operation: &str, label: &str, icon: &str) -> AddDefinition {
     AddDefinition {
         operation: operation.into(),
         label: label.into(),
-        icon: "mdi-plus".into(),
+        icon: icon.into(),
     }
 }
 
@@ -158,9 +190,9 @@ fn definition() -> SurfaceDefinition {
             toggle_collapsed: "fold".into(),
             set_title: "retitle".into(),
             set_description: "redescribe".into(),
-            add_top_level: add("open", "New section"),
-            add_entry: add("jot", "New point"),
-            add_level: add("nest", "New section"),
+            add_top_level: add("open", "New section", "mdi-plus"),
+            add_entry: add("jot", "New point", "mdi-note-plus-outline"),
+            add_level: add("nest", "New section", "mdi-folder-plus-outline"),
             move_level: "shift".into(),
             move_entry: "slide".into(),
             delete: "drop".into(),
@@ -168,6 +200,10 @@ fn definition() -> SurfaceDefinition {
         move_params: MoveParams {
             into: "section".into(),
             after: "behind".into(),
+        },
+        deletion: Deletion {
+            threshold: 1,
+            message: "Drop {number}? {count} things concern it.".into(),
         },
         widths: None,
         shortcut_keys: vec!["Enter".into()],
@@ -234,11 +270,15 @@ fn three_levels() -> SurfaceModel {
     }
 }
 
+/// A gesture as a test reads it: its operation, its target and its params.
+type Sent = (String, String, Vec<(String, String)>);
+
 /// One page in a headless window, its frames' texts and accessibility tree kept.
 struct Surface {
     ctx: egui::Context,
     tab: HierarchyTab,
     gestures: Rc<RefCell<Vec<Gesture>>>,
+    script: Rc<RefCell<Script>>,
     /// The window's width; the page is narrower by its margins.
     window: f32,
     time: f64,
@@ -254,9 +294,11 @@ impl Surface {
     /// A page `width` points wide, as `pageWidth` gives the standalone test's.
     fn at(model: SurfaceModel, width: f32) -> Surface {
         let gestures = Rc::new(RefCell::new(Vec::new()));
+        let script = Rc::new(RefCell::new(Script::default()));
         let session = Recorder {
             model,
             gestures: gestures.clone(),
+            script: script.clone(),
             changes: Vec::new(),
         };
         let path = Path::new("requirements.md");
@@ -269,6 +311,7 @@ impl Surface {
             ctx,
             tab,
             gestures,
+            script,
             window: width + 2.0 * PAGE_MARGIN,
             time: 0.0,
             texts: Vec::new(),
@@ -403,6 +446,112 @@ impl Surface {
 
     fn gestures(&self) -> Vec<Gesture> {
         self.gestures.borrow().clone()
+    }
+
+    /// The gestures sent, each as its operation, its target and its params.
+    fn sent(&self) -> Vec<Sent> {
+        self.gestures()
+            .into_iter()
+            .map(|g| (g.operation, g.target_id, g.params.into_iter().collect()))
+            .collect()
+    }
+
+    /// Presses `key` with `modifiers` and lets the page settle.
+    fn key(&mut self, key: egui::Key, modifiers: egui::Modifiers) {
+        let event = |pressed| egui::Event::Key {
+            key,
+            physical_key: None,
+            pressed,
+            repeat: false,
+            modifiers,
+        };
+        self.frame(vec![event(true), event(false)]);
+        self.frame(Vec::new());
+        self.frame(Vec::new());
+    }
+
+    /// Types `text` into what has the keyboard.
+    fn type_text(&mut self, text: &str) {
+        self.frame(vec![egui::Event::Text(text.to_owned())]);
+        self.frame(Vec::new());
+    }
+
+    /// Clicks twice at `at`, quickly, and lets the page settle.
+    fn double_click_at(&mut self, at: egui::Pos2) {
+        let button = |pressed| egui::Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        self.frame(vec![egui::Event::PointerMoved(at)]);
+        self.frame(vec![button(true), button(false), button(true), button(false)]);
+        self.frame(Vec::new());
+        self.frame(Vec::new());
+    }
+
+    /// Presses the grip of the box numbered `number` and moves to `to`, frame by frame, without letting go.
+    fn drag_to(&mut self, number: &str, to: egui::Pos2) {
+        let from = self.centre(Role::Button, &format!("Drag {number}"));
+        let press = egui::Event::PointerButton {
+            pos: from,
+            button: egui::PointerButton::Primary,
+            pressed: true,
+            modifiers: egui::Modifiers::NONE,
+        };
+        self.frame(vec![egui::Event::PointerMoved(from)]);
+        self.frame(vec![press]);
+        // In one move, as the standalone test puts the box under the pointer: a place shown on the way would move it.
+        self.frame(vec![egui::Event::PointerMoved(to)]);
+        self.frame(Vec::new());
+    }
+
+    /// Lets go of the pointer where it is, and lets the page settle.
+    fn release(&mut self) {
+        let at = self
+            .ctx
+            .input(|i| i.pointer.latest_pos())
+            .expect("the pointer is on the page");
+        self.frame(vec![egui::Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed: false,
+            modifiers: egui::Modifiers::NONE,
+        }]);
+        self.frame(Vec::new());
+        self.frame(Vec::new());
+    }
+
+    /// Drags the box numbered `number` by its grip to `to`, and drops it there.
+    fn drag_and_drop(&mut self, number: &str, to: egui::Pos2) {
+        self.drag_to(number, to);
+        self.release();
+    }
+
+    /// A point in the lower or the upper half of the box named `name`, away from its controls.
+    fn half_of(&self, name: &str, lower: bool) -> egui::Pos2 {
+        let at = self.get(Role::TreeItem, name).bounds().unwrap();
+        let y = if lower { at.y1 - 4.0 } else { at.y0 + 4.0 };
+        egui::pos2(((at.x0 + at.x1) / 2.0) as f32, y as f32)
+    }
+
+    /// The height of the box named `name`.
+    fn height_of(&self, name: &str) -> f64 {
+        let at = self.get(Role::TreeItem, name).bounds().unwrap();
+        at.y1 - at.y0
+    }
+
+    /// The field open on the page, by its name: its value, and whether it has the keyboard.
+    fn field(&self, name: &str) -> Option<(String, bool)> {
+        let (id, node) = self
+            .nodes
+            .iter()
+            .find(|(_, n)| matches!(n.role(), Role::TextInput | Role::MultilineTextInput) && n.label() == Some(name))?;
+        let focused = self
+            .ctx
+            .memory(|m| m.focused())
+            .is_some_and(|f| f.accesskit_id() == *id);
+        Some((node.value().unwrap_or_default().to_owned(), focused))
     }
 }
 
@@ -749,4 +898,455 @@ fn a_read_only_document_collapses_on_the_page_alone() {
     // Assert.
     assert!(surface.gestures().is_empty());
     assert!(!surface.drawn("Pay by card"));
+}
+
+// ---- Changing the page (the standalone host's `editing/AddControl.test.tsx` at a7fdf03; T038) ----
+
+/// 1 holds the points 2 and 3 and the section 4, which holds the point 5; 6 stands at the top beside 1.
+fn plan(nodes: Option<Vec<SurfaceNode>>) -> SurfaceModel {
+    SurfaceModel {
+        title: "Plan".into(),
+        cause: causes::OPEN.into(),
+        nodes: nodes.unwrap_or_else(|| {
+            vec![
+                level("1", "", "Orders"),
+                entry("2", "1", "Take"),
+                entry("3", "1", "Keep"),
+                level("4", "1", "Payment"),
+                entry("5", "4", "Pay"),
+                level("6", "", "Shipping"),
+            ]
+        }),
+        ..SurfaceModel::default()
+    }
+}
+
+fn sent(operation: &str, target: &str, params: &[(&str, &str)]) -> Sent {
+    (
+        operation.into(),
+        target.into(),
+        params.iter().map(|(k, v)| ((*k).into(), (*v).into())).collect(),
+    )
+}
+
+#[test]
+fn the_add_controls_stand_at_the_end_of_every_level_and_of_the_page_and_add_without_a_dialog() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+
+    // Act.
+    surface.click(Role::Button, "New point in [4]");
+    surface.click(Role::Button, "New section in [1]");
+    surface.click(Role::Button, "New section");
+
+    // Assert: every level has both, the page one, each sent at once, and nothing asked.
+    let points = surface
+        .nodes
+        .values()
+        .filter(|n| n.role() == Role::Button && n.label().is_some_and(|l| l.starts_with("New point in ")))
+        .count();
+    assert_eq!(points, 3);
+    assert_eq!(
+        surface.sent(),
+        [sent("jot", "4", &[]), sent("nest", "1", &[]), sent("open", "", &[])]
+    );
+    assert!(surface.tab.deleting.is_none());
+    // Each add is its icon alone, below what the level holds.
+    assert!(surface.drawn(&icons::text("mdi-note-plus-outline")));
+    assert!(surface.drawn(&icons::text("mdi-folder-plus-outline")));
+    let pay = surface.get(Role::TreeItem, "[5] Pay").bounds().unwrap();
+    let control = surface.get(Role::Button, "New point in [4]").bounds().unwrap();
+    assert!(control.y0 > pay.y1 && control.x0 > pay.x0, "under what [4] holds");
+}
+
+#[test]
+fn the_added_nodes_title_opens_for_typing_when_it_arrives_and_it_is_selected() {
+    // Arrange: the add's model brings 7 at the end of 4.
+    let mut surface = Surface::of(plan(None));
+    let mut after = plan(None).nodes;
+    after.insert(5, entry("7", "4", "New point"));
+    surface.script.borrow_mut().next.push(plan(Some(after)));
+
+    // Act.
+    surface.click(Role::Button, "New point in [4]");
+
+    // Assert.
+    assert_eq!(surface.sent(), [sent("jot", "4", &[])]);
+    assert_eq!(surface.field("Title of [7]"), Some(("New point".to_owned(), true)));
+    assert_eq!(surface.tab.selected, "7");
+}
+
+#[test]
+fn nothing_opens_when_the_add_was_refused() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+    let mut after = plan(None).nodes;
+    after.push(entry("7", "6", "Written by another program"));
+    surface.script.borrow_mut().next.push(plan(Some(after)));
+    surface.script.borrow_mut().refusal = "No more points here.".into();
+
+    // Act.
+    surface.click(Role::Button, "New point in [4]");
+
+    // Assert.
+    assert!(surface.tab.field.is_none());
+    assert!(surface.drawn("No more points here."));
+}
+
+#[test]
+fn ctrl_enter_and_ctrl_shift_enter_on_a_selected_node_run_its_actions_and_open_what_was_added() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+    surface.click_box("[3] Keep");
+
+    // Act: inside it, plain Enter, then below it with the node the action brings.
+    surface.key(egui::Key::Enter, egui::Modifiers::COMMAND | egui::Modifiers::SHIFT);
+    surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+    let mut after = plan(None).nodes;
+    after.insert(3, entry("8", "1", "New point"));
+    surface.script.borrow_mut().next.push(plan(Some(after)));
+    surface.key(egui::Key::Enter, egui::Modifiers::COMMAND);
+
+    // Assert: each its action's operation for the node; plain Enter is no key of the page's.
+    assert_eq!(
+        surface.sent(),
+        [sent("jot-inside", "3", &[]), sent("jot-below", "3", &[])]
+    );
+    assert_eq!(surface.field("Title of [8]"), Some(("New point".to_owned(), true)));
+}
+
+#[test]
+fn the_added_node_is_found_though_an_edit_numbered_a_placeholder_named_by_its_line() {
+    // Arrange: a placeholder, line/9, is given a number by the edit that adds 13.
+    let before = [level("1", "", "Orders"), entry("line/9", "1", "Not numbered yet")];
+    let after = [
+        level("1", "", "Orders"),
+        entry("12", "1", "Not numbered yet"),
+        entry("13", "1", "New point"),
+    ];
+
+    // Act and assert.
+    assert_eq!(editing::added_node(&before, &after).map(|n| n.id.as_str()), Some("13"));
+    assert_eq!(editing::added_node(&after, &after), None);
+}
+
+#[test]
+fn a_title_is_typed_in_place_and_kept_by_enter_and_a_description_by_ctrl_enter() {
+    // Arrange.
+    let mut surface = Surface::of(three_levels());
+
+    // Act: the title opened by a double click on it, typed over and kept.
+    let title = surface.half_of("[2] Take an order", false);
+    surface.double_click_at(title);
+    assert_eq!(surface.field("Title of [2]"), Some(("Take an order".to_owned(), true)));
+    surface.type_text("Take any order");
+    surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+    // Act: the description opened, a line added, Enter a line break, and Ctrl+Enter keeps it.
+    let description = surface.half_of("[2] Take an order", true);
+    surface.double_click_at(description + egui::vec2(0.0, -10.0));
+    assert!(surface.field("Description of [2]").is_some_and(|(_, focused)| focused));
+    surface.key(egui::Key::End, egui::Modifiers::COMMAND);
+    surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+    surface.type_text("Or a closed one.");
+    surface.key(egui::Key::Enter, egui::Modifiers::COMMAND);
+
+    // Assert.
+    assert_eq!(
+        surface.sent(),
+        [
+            sent("retitle", "2", &[("title", "Take any order")]),
+            sent(
+                "redescribe",
+                "2",
+                &[("description", "Any open order can be taken.\nOr a closed one.")]
+            ),
+        ]
+    );
+    assert!(surface.tab.field.is_none());
+}
+
+#[test]
+fn escape_drops_what_was_typed_and_an_unchanged_text_is_no_edit() {
+    // Arrange.
+    let mut surface = Surface::of(three_levels());
+    let title = surface.half_of("[4] Pay by card", false);
+
+    // Act: typed over and dropped; opened again and left as it was.
+    surface.double_click_at(title);
+    surface.type_text("Pay by cash");
+    surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+    surface.double_click_at(title);
+    surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+    // Assert.
+    assert!(surface.gestures().is_empty(), "{:?}", surface.sent());
+    assert!(surface.tab.field.is_none());
+}
+
+#[test]
+fn a_box_is_as_high_unselected_selected_and_with_its_title_or_description_open() {
+    // Arrange: an entry with a description, one without, which offers to add one, and a level whose title leaves its
+    // controls a column, with the place of its delete below them.
+    let mut model = three_levels();
+    model.nodes[6].title = "Shipping to every country we deliver to".into();
+    let mut surface = Surface::of(model);
+    let heights = |surface: &Surface| {
+        (
+            surface.height_of("[2] Take an order"),
+            surface.height_of("[4] Pay by card"),
+            surface.height_of("[7] Shipping to every country we deliver to"),
+        )
+    };
+    let unselected = heights(&surface);
+
+    // Act and assert: Story 7, scenario 7.
+    surface.click_box("[7] Shipping to every country we deliver to");
+    assert_eq!(heights(&surface), unselected, "a level selected");
+    surface.click_box("[2] Take an order");
+    surface.click_box("[4] Pay by card");
+    assert_eq!(heights(&surface), unselected, "selected");
+    surface.tab.open_field("2", Attribute::Title);
+    surface.frame(Vec::new());
+    assert_eq!(heights(&surface), unselected, "its title open");
+    surface.tab.open_field("2", Attribute::Description);
+    surface.frame(Vec::new());
+    assert_eq!(heights(&surface), unselected, "its description open");
+}
+
+#[test]
+fn a_level_is_moved_with_everything_in_it_after_a_level_from_its_lower_half_and_into_it_from_its_upper_one() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+
+    // Act.
+    let lower = surface.half_of("[6] Shipping", true);
+    surface.drag_and_drop("[4]", lower);
+    let upper = surface.half_of("[6] Shipping", false);
+    surface.drag_and_drop("[4]", upper);
+
+    // Assert: one move each, naming the level; what it holds goes with it.
+    assert_eq!(
+        surface.sent(),
+        [
+            sent("shift", "4", &[("behind", "6"), ("section", "")]),
+            sent("shift", "4", &[("behind", ""), ("section", "6")]),
+        ]
+    );
+}
+
+#[test]
+fn an_entry_is_moved_alone_after_or_before_another_entry_or_into_a_level() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+
+    // Act.
+    let take = surface.half_of("[2] Take", true);
+    surface.drag_and_drop("[5]", take);
+    let keep = surface.half_of("[3] Keep", false);
+    surface.drag_and_drop("[5]", keep);
+    let shipping = surface.half_of("[6] Shipping", true);
+    surface.drag_and_drop("[2]", shipping);
+
+    // Assert.
+    assert_eq!(
+        surface.sent(),
+        [
+            sent("slide", "5", &[("behind", "2"), ("section", "1")]),
+            sent("slide", "5", &[("behind", "2"), ("section", "1")]),
+            sent("slide", "2", &[("behind", ""), ("section", "6")]),
+        ]
+    );
+}
+
+#[test]
+fn the_dragged_node_is_shown_where_it_would_stand_and_dropped_there_from_that_place() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+    let take = surface.half_of("[2] Take", true);
+
+    // Act: dragged over the lower half of Take, not yet dropped.
+    surface.drag_to("[5]", take);
+
+    // Assert: its place drawn after Take with its number and title, and the node itself still in its own.
+    assert!(surface.drawn("[5] Pay"));
+    let slot = surface.tab.hint.clone().expect("a drop is shown");
+    assert_eq!((slot.node_id.as_str(), slot.kind), ("2", DropKind::After));
+    assert!(surface.find(Role::TreeItem, "[5] Pay").is_some());
+    assert!(surface.gestures().is_empty());
+    let keep = surface.get(Role::TreeItem, "[3] Keep").bounds().unwrap();
+    let take_box = surface.get(Role::TreeItem, "[2] Take").bounds().unwrap();
+    assert!(keep.y0 > take_box.y1 + 10.0, "the place stands between Take and Keep");
+
+    // Act: the place moved Keep away from under the pointer; over the place the drop stays, and is made there.
+    let over = egui::pos2(take.x, (take_box.y1 + keep.y0) as f32 / 2.0);
+    surface.frame(vec![egui::Event::PointerMoved(over)]);
+    assert!(surface.tab.hint.is_some());
+    surface.release();
+
+    // Assert.
+    assert_eq!(
+        surface.sent(),
+        [sent("slide", "5", &[("behind", "2"), ("section", "1")])]
+    );
+    assert!(surface.tab.hint.is_none() && !surface.drawn("[5] Pay"));
+}
+
+#[test]
+fn a_drop_without_a_sibling_is_shown_where_the_move_puts_it() {
+    // Arrange: 1 shows 2, 3 and 4.
+    let model = plan(None);
+    let index = HierarchyIndex::of(&model.nodes);
+    let shown = index.children_of("1").to_vec();
+    let hint = |id: &str, into: &str| {
+        let over = index.by_id[into];
+        DropHint::of(
+            index.by_id[id],
+            over,
+            EntryDrop {
+                into: into.into(),
+                after: String::new(),
+            },
+        )
+    };
+
+    // Act and assert: an entry of its own level to the front, one from another after the last entry; a level of its
+    // own level before the first level, one from another at the end.
+    assert_eq!(editing::slot_index(&shown, &hint("3", "1")), Some(0));
+    assert_eq!(editing::slot_index(&shown, &hint("5", "1")), Some(2));
+    assert_eq!(editing::slot_index(&shown, &hint("4", "1")), Some(2));
+    assert_eq!(editing::slot_index(&shown, &hint("6", "1")), Some(3));
+}
+
+#[test]
+fn a_level_is_not_dropped_into_itself_or_into_what_it_holds() {
+    let model = plan(None);
+    let index = HierarchyIndex::of(&model.nodes);
+    let node = |id: &str| index.by_id[id];
+    assert_eq!(editing::drop_of(&index, node("1"), node("1"), false), None);
+    assert_eq!(editing::drop_of(&index, node("1"), node("4"), false), None);
+    assert_eq!(editing::drop_of(&index, node("1"), node("5"), true), None);
+    assert_eq!(editing::drop_of(&index, node("2"), node("2"), true), None);
+}
+
+#[test]
+fn delete_deletes_at_once_a_node_nothing_concerns() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+    surface.click_box("[3] Keep");
+
+    // Act.
+    surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+
+    // Assert.
+    assert_eq!(surface.sent(), [sent("drop", "3", &[])]);
+    assert!(surface.tab.deleting.is_none());
+}
+
+fn note(id: &str, about: &str, names: Option<&str>) -> Note {
+    Note {
+        id: id.into(),
+        kind: "Doubt".into(),
+        about: format!("[{about}]"),
+        about_id: about.into(),
+        references: names
+            .map(|target| {
+                vec![Reference {
+                    start: 0,
+                    length: 3,
+                    target_id: target.into(),
+                }]
+            })
+            .unwrap_or_default(),
+        ..Note::default()
+    }
+}
+
+#[test]
+fn delete_asks_first_in_the_definitions_words_when_the_node_holds_anything_or_is_named() {
+    // Arrange: 4 holds 5; a note is about it, another names it, and 2's description names it.
+    let mut model = plan(None);
+    model.nodes[1].references = vec![Reference {
+        start: 0,
+        length: 3,
+        target_id: "4".into(),
+    }];
+    model.notes = vec![note("0", "4", None), note("1", "6", Some("4")), note("2", "6", None)];
+    let mut surface = Surface::of(model);
+    surface.click_box("[4] Payment");
+
+    // Act: asked, cancelled, asked again and confirmed.
+    surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+    assert!(surface.drawn("Drop [4]? 4 things concern it."));
+    surface.click(Role::Button, "Cancel");
+    assert!(surface.gestures().is_empty() && surface.tab.deleting.is_none());
+    surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+    surface.click(Role::Button, "Delete");
+
+    // Assert.
+    assert_eq!(surface.sent(), [sent("drop", "4", &[])]);
+    assert!(!surface.drawn("Drop [4]? 4 things concern it."));
+}
+
+#[test]
+fn a_selected_boxs_delete_stands_at_its_bottom_right_and_always_asks_first() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+    assert!(surface.find(Role::Button, "Delete [3] Keep").is_none());
+    surface.click_box("[3] Keep");
+
+    // Assert: 6 points from the box's right and bottom.
+    let keep = surface.get(Role::TreeItem, "[3] Keep").bounds().unwrap();
+    let control = surface.get(Role::Button, "Delete [3] Keep").bounds().unwrap();
+    assert_eq!((keep.x1 - control.x1, keep.y1 - control.y1), (6.0, 6.0));
+
+    // Act: nothing concerns it, and it still asks.
+    surface.click(Role::Button, "Delete [3] Keep");
+    assert!(surface.drawn("Delete [3] Keep? Nothing else concerns it."));
+    assert!(surface.gestures().is_empty());
+
+    // Act: confirmed; then a level that holds something asks in the definition's words.
+    surface.click(Role::Button, "Delete");
+    surface.click_box("[4] Payment");
+    surface.click(Role::Button, "Delete [4] Payment");
+
+    // Assert.
+    assert!(surface.drawn("Drop [4]? 1 things concern it."));
+    assert_eq!(surface.sent(), [sent("drop", "3", &[])]);
+}
+
+#[test]
+fn a_document_that_cannot_change_offers_no_add_no_grip_and_no_delete() {
+    // Arrange.
+    let mut model = plan(None);
+    model.read_only_reason = "Read only.".into();
+    let mut surface = Surface::of(model);
+
+    // Act.
+    surface.click_box("[3] Keep");
+    surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+
+    // Assert.
+    assert!(surface.find(Role::Button, "Delete [3] Keep").is_none());
+    assert!(surface.find(Role::Button, "Drag [3]").is_none());
+    assert!(surface.find(Role::Button, "New section").is_none());
+    assert!(surface.gestures().is_empty());
+}
+
+#[test]
+fn an_open_field_keeps_delete_and_enter_for_itself() {
+    // Arrange.
+    let mut surface = Surface::of(plan(None));
+    surface.click_box("[3] Keep");
+    let title = surface.half_of("[3] Keep", false);
+    surface.double_click_at(title);
+    assert!(surface.field("Title of [3]").is_some());
+
+    // Act.
+    surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+    surface.key(egui::Key::Enter, egui::Modifiers::COMMAND);
+
+    // Assert: the Enter kept the field, whose text Delete changed, and nothing else was sent.
+    assert!(surface.tab.field.is_none());
+    assert!(surface.sent().iter().all(|(operation, _, _)| operation == "retitle"));
 }

@@ -8,9 +8,15 @@
 //! [`view`] `HierarchySurfaceBox.tsx`, `CollapseToggle.tsx`, `HierarchySurfaceTrail.tsx` and `FindingList.tsx`; the
 //! layout rules are [`layout`]. Its look is `hierarchySurface.css` in VS Code's colours, the tags the table's own.
 //!
+//! On a document that can change it is changed in place ([`editing`], T038): an entry or a level added by the
+//! controls at the end of every level and of the page, or by the selected node's actions and their keys, its title
+//! then open for typing; a title or a description typed where it stands; a node dragged by its grip; and deleted, asking
+//! first when anything concerns it.
+//!
 //! It knows no designer type: which type is a level, which an entry, which labels they carry and which operation each
 //! gesture sends are the designer's [`SurfaceDefinition`].
 
+pub mod editing;
 pub mod layout;
 mod view;
 
@@ -21,10 +27,11 @@ use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use adp_desl::hierarchy::definition::SurfaceDefinition;
-use adp_desl::hierarchy::model::{Gesture, SurfaceChange, SurfaceModel, SurfaceNode, roles};
+use adp_desl::hierarchy::model::{Gesture, SurfaceAction, SurfaceChange, SurfaceModel, SurfaceNode, roles};
 use adp_desl::hierarchy::session::HierarchySurfaceSession;
 use eframe::egui;
 
+use editing::{Attribute, Deleting, DropHint, EntryDrop, OpenField};
 use layout::HierarchyIndex;
 
 pub use view::show;
@@ -71,6 +78,15 @@ pub struct HierarchyTab {
     pub notice: Option<String>,
     /// The gestures sent whose outcome has not arrived.
     pub pending: usize,
+    /// The title or description open for typing, the one thing on the page that can be unsaved.
+    pub field: Option<OpenField>,
+    /// Whether the field opened since the last frame, which gives it the keyboard with its text selected.
+    pub field_opened: bool,
+    /// The node being dragged by its grip, and where it would go now.
+    pub dragging: Option<SurfaceNode>,
+    pub hint: Option<DropHint>,
+    /// A delete waiting on its question's answer.
+    pub deleting: Option<Deleting>,
     next_edit: u64,
     id: egui::Id,
 }
@@ -110,6 +126,11 @@ impl HierarchyTab {
             refusal: String::new(),
             notice: None,
             pending: 0,
+            field: None,
+            field_opened: false,
+            dragging: None,
+            hint: None,
+            deleting: None,
             next_edit: 0,
             id: egui::Id::unique(("hierarchy", body.to_path_buf())),
         };
@@ -164,6 +185,13 @@ impl HierarchyTab {
         if !self.selected.is_empty() && !self.model.nodes.iter().any(|n| n.id == self.selected) {
             self.selected.clear();
         }
+        if self
+            .deleting
+            .as_ref()
+            .is_some_and(|d| !self.model.nodes.iter().any(|n| n.id == d.node_id))
+        {
+            self.deleting = None;
+        }
     }
 
     /// Sends one gesture: an operation of the specification, the node it is about, and its parameters.
@@ -181,6 +209,139 @@ impl HierarchyTab {
             Err(reason) => self.refusal = reason,
         }
         self.drain();
+    }
+
+    /// Sends an add, from a control or a key: the node it brings is shown, where the page's width hides it too,
+    /// selected, and its title is open for typing. A refused add opens nothing.
+    pub fn add(&mut self, operation: &str, target: &str) {
+        let before = self.model.nodes.clone();
+        self.gesture(operation, target, BTreeMap::new());
+        if !self.refusal.is_empty() {
+            return;
+        }
+        let Some(added) = editing::added_node(&before, &self.model.nodes).cloned() else {
+            return;
+        };
+        self.reveal(&added.id);
+        self.field = Some(OpenField::on(&added, Attribute::Title));
+        self.field_opened = true;
+    }
+
+    /// The actions the selected node offers with their keys, for the ribbon; none on a document that cannot change.
+    pub fn actions(&self) -> Vec<SurfaceAction> {
+        if self.read_only() || self.selected.is_empty() {
+            return Vec::new();
+        }
+        self.session.actions(&self.selected)
+    }
+
+    /// Runs the selected node's action `id`: its operation sent for the node, as an add.
+    pub fn run_action(&mut self, id: &str) {
+        let Some(action) = self.actions().into_iter().find(|a| a.id == id) else {
+            return;
+        };
+        if !action.unavailable.is_empty() {
+            self.refusal = action.unavailable;
+            return;
+        }
+        let target = self.selected.clone();
+        self.add(&action.operation, &target);
+    }
+
+    /// A key pressed with Ctrl or Cmd on the selected node: the action it runs, if the definition sends that key.
+    pub fn shortcut(&mut self, key: &str, shift: bool) {
+        if !self.definition.shortcut_keys.iter().any(|k| k == key) {
+            return;
+        }
+        if let Some(action) = self.actions().into_iter().find(|a| a.key == key && a.shift == shift) {
+            self.run_action(&action.id);
+        }
+    }
+
+    /// Opens `attribute` of `node_id` for typing.
+    pub fn open_field(&mut self, node_id: &str, attribute: Attribute) {
+        if self.read_only() {
+            return;
+        }
+        if let Some(node) = self.model.nodes.iter().find(|n| n.id == node_id) {
+            self.field = Some(OpenField::on(node, attribute));
+            self.field_opened = true;
+        }
+    }
+
+    /// Keeps what the field holds: a gesture, unless nothing changed. A node the file no longer has is still sent:
+    /// refusing it is the file's to say.
+    pub fn commit_field(&mut self) {
+        let Some(field) = self.field.take() else {
+            return;
+        };
+        let node = self.model.nodes.iter().find(|n| n.id == field.node_id);
+        if node.is_some_and(|n| field.attribute.of(n) == field.text) {
+            return;
+        }
+        let operation = match field.attribute {
+            Attribute::Title => self.definition.operations.set_title.clone(),
+            Attribute::Description => self.definition.operations.set_description.clone(),
+        };
+        let params = BTreeMap::from([(field.attribute.param().to_owned(), field.text)]);
+        self.gesture(&operation, &field.node_id, params);
+    }
+
+    /// Drops what the field holds.
+    pub fn cancel_field(&mut self) {
+        self.field = None;
+    }
+
+    /// Delete on a node: by the key, at once when nothing concerns it, otherwise after the definition's question; by the
+    /// control on its box (`ask`), always after a question that says what it takes. A node without a number of its own,
+    /// or one of a document that cannot change, is not deleted.
+    pub fn delete(&mut self, node_id: &str, ask: bool) {
+        if self.read_only() || is_line_id(node_id) {
+            return;
+        }
+        let index = HierarchyIndex::of(&self.model.nodes);
+        let Some(node) = index.by_id.get(node_id).copied() else {
+            return;
+        };
+        let count = editing::delete_count(&self.model, &index, node_id);
+        let question = if count >= self.definition.deletion.threshold {
+            self.definition.deletion.question(&node.number, count)
+        } else if ask {
+            format!("Delete {} {}? Nothing else concerns it.", node.number, node.title)
+        } else {
+            let operation = self.definition.operations.delete.clone();
+            self.gesture(&operation, node_id, BTreeMap::new());
+            return;
+        };
+        self.deleting = Some(Deleting {
+            node_id: node_id.to_owned(),
+            question,
+        });
+    }
+
+    /// The answer to a delete's question: deleted, or nothing.
+    pub fn answer_delete(&mut self, delete: bool) {
+        let Some(deleting) = self.deleting.take() else {
+            return;
+        };
+        if delete {
+            let operation = self.definition.operations.delete.clone();
+            self.gesture(&operation, &deleting.node_id, BTreeMap::new());
+        }
+    }
+
+    /// Drops `dragged` where `drop` says: one move, with everything in it.
+    pub fn move_to(&mut self, dragged: &SurfaceNode, drop: EntryDrop) {
+        let operation = if dragged.role == roles::LEVEL {
+            self.definition.operations.move_level.clone()
+        } else {
+            self.definition.operations.move_entry.clone()
+        };
+        let params = BTreeMap::from([
+            (self.definition.move_params.into.clone(), drop.into),
+            (self.definition.move_params.after.clone(), drop.after),
+        ]);
+        self.gesture(&operation, &dragged.id, params);
     }
 
     /// Whether `node` is shown collapsed: as the file says, or turned on the page alone.

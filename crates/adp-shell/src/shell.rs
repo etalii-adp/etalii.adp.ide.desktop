@@ -1277,8 +1277,34 @@ impl Shell {
                     (!open.editor.buffer.is_modified()).then(|| "There are no changes to save.".to_owned());
             }
             Some(Tab::Table(_)) => situation.save = Some("A table's edits are written as they are made.".to_owned()),
-            Some(Tab::Hierarchy(_)) => {
-                situation.save = Some("A document's edits are written as they are made.".to_owned())
+            Some(Tab::Hierarchy(tab)) => {
+                situation.save = Some("A document's edits are written as they are made.".to_owned());
+                // The selected entry's actions, each with its key, as the standalone host's ribbon shows them.
+                let actions = tab.actions();
+                if !actions.is_empty() {
+                    situation.selection = Some(format!("{}#{}", tab.path.display(), tab.selected));
+                    situation.actions = vec![adp_context::ActionGroup {
+                        actions: actions
+                            .into_iter()
+                            .map(|a| {
+                                let shortcut = adp_context::Shortcut {
+                                    key: a.key,
+                                    primary: true,
+                                    shift: a.shift,
+                                    alt: false,
+                                };
+                                let action = adp_context::Action::new(a.id, a.label)
+                                    .with_icon(a.icon)
+                                    .with_shortcut(shortcut);
+                                if a.unavailable.is_empty() {
+                                    action
+                                } else {
+                                    action.unavailable(a.unavailable)
+                                }
+                            })
+                            .collect(),
+                    }];
+                }
             }
             Some(Tab::Diagram(tab)) => {
                 situation.save = Some("A diagram's edits are written as they are made.".to_owned());
@@ -1324,6 +1350,10 @@ impl Shell {
                 }
             }
             Command::Run(action_id) => {
+                if let Some(page) = self.tabs.get_mut(self.active).and_then(Tab::hierarchy_mut) {
+                    page.run_action(&action_id);
+                    return;
+                }
                 let Some(root) = self
                     .tabs
                     .get(self.active)
@@ -2842,5 +2872,49 @@ mod tests {
             .clear();
         assert_eq!(shell.notice.as_deref(), Some("There is nothing to undo."));
         assert_eq!(std::fs::read_to_string(&registration).unwrap(), written);
+    }
+
+    #[test]
+    fn the_ribbon_offers_the_selected_entrys_add_below_with_its_key_and_undo_takes_the_add_back() {
+        let folder = tempfile::tempdir().unwrap();
+        requirement_project(folder.path());
+        let body = folder.path().join("web-shop.md");
+        let original = std::fs::read(&body).unwrap();
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+        shell.handle(Request::Open("web-shop.md".into()));
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        frame(&ctx, &mut shell);
+        shell.tabs[0].hierarchy_mut().unwrap().select("REQ-0001");
+
+        // The ribbon shows the action with its key, as the standalone host's does.
+        let situation = shell.situation();
+        let below = &situation.actions[0].actions[0];
+        assert_eq!(below.label, "New requirement below");
+        assert_eq!(
+            below.shortcut,
+            Some(adp_context::Shortcut {
+                key: "Enter".into(),
+                primary: true,
+                shift: false,
+                alt: false
+            })
+        );
+
+        // Run from the ribbon: written directly below it, and its title open for typing.
+        shell.ribbon_command(Command::Run(below.id.clone()));
+        let written = std::fs::read_to_string(&body).unwrap();
+        let at = written.find("REQ-0001 ").unwrap();
+        let next = written[at..].split("\r\n").nth(1).unwrap();
+        assert!(next.trim_start().contains("New requirement"), "directly below: {next}");
+        let page = shell.tabs[0].hierarchy().unwrap();
+        let field = page.field.as_ref().expect("its title is open");
+        assert_eq!(field.text, "New requirement");
+        assert_eq!(page.selected, field.node_id);
+
+        // Undo is the page's: the file as it was.
+        shell.ribbon_command(Command::Undo);
+        assert_eq!(std::fs::read(&body).unwrap(), original);
     }
 }

@@ -755,21 +755,7 @@ impl Replay<'_> {
     /// The explorer's add on the entry named `args.entry` - a folder to create in, a file to register - answered
     /// with `value` and `text`, as `adp-add` does it for the shell.
     fn add(&self, args: &Json) -> Result<(), String> {
-        let entry = args
-            .get("entry")
-            .and_then(Json::as_str)
-            .ok_or("an add names its entry")?;
-        let path = entry_named(self.workspace.root(), entry).ok_or_else(|| format!("no entry '{entry}'"))?;
-        let target = if path.is_dir() {
-            adp_add::AddTarget::Folder(path)
-        } else {
-            adp_add::AddTarget::File(path)
-        };
-        let value = args.get("value").and_then(Json::as_str).unwrap_or_default();
-        let text = args.get("text").and_then(Json::as_str).unwrap_or_default();
-        adp_add::AddCatalogue::standalone()
-            .commit(&target, value, text)
-            .map(|_| ())
+        add_entry(self.workspace.root(), args)
     }
 
     /// A connect gesture from `source` released on empty canvas at `point` (`rel:a->new:x,y`), as the canvas runs it:
@@ -872,6 +858,26 @@ impl Replay<'_> {
         }
         Err("the runner does not map a text editor's save onto the desktop session".to_owned())
     }
+}
+
+/// The explorer's add on the entry of `root` named `args.entry` - a folder to create in, a file to register - answered
+/// with `value` and `text`, as `adp-add` does it for the shell.
+pub(crate) fn add_entry(root: &Path, args: &Json) -> Result<(), String> {
+    let entry = args
+        .get("entry")
+        .and_then(Json::as_str)
+        .ok_or("an add names its entry")?;
+    let path = entry_named(root, entry).ok_or_else(|| format!("no entry '{entry}'"))?;
+    let target = if path.is_dir() {
+        adp_add::AddTarget::Folder(path)
+    } else {
+        adp_add::AddTarget::File(path)
+    };
+    let value = args.get("value").and_then(Json::as_str).unwrap_or_default();
+    let text = args.get("text").and_then(Json::as_str).unwrap_or_default();
+    adp_add::AddCatalogue::standalone()
+        .commit(&target, value, text)
+        .map(|_| ())
 }
 
 /// The first entry under `root` named `name`, breadth first in name order, as the recorder looks an entry up.
