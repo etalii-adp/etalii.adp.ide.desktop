@@ -25,6 +25,7 @@ pub fn definition() -> DesignerDefinition {
             DesignerFormat::new("JSON", ".json"),
             DesignerFormat::new("XML", ".xml"),
         ],
+        claim: None,
     }
 }
 

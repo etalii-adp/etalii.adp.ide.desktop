@@ -26,6 +26,7 @@ use crate::add_dialog::{AddDialog, DialogOutcome};
 use crate::canvas::{DiagramHost, DiagramTab};
 use crate::documents::OpenText;
 use crate::explorer::{Explorer, Request};
+use crate::hierarchy::HierarchyTab;
 use crate::highlight::Highlighter;
 use crate::ribbon::{Command, Ribbon, Situation};
 use crate::table::TableTab;
@@ -44,13 +45,14 @@ struct OpenProject {
     problem_set: Option<ProblemSet>,
 }
 
-/// What a tab shows: a text in its editor, or a diagram on its canvas.
+/// What a tab shows: a text in its editor, a diagram on its canvas, a table, or a page of nested boxes.
 // A window holds a handful of tabs, so the text editor's size is not worth a box of its own.
 #[allow(clippy::large_enum_variant)]
 pub enum Tab {
     Text(OpenText),
     Diagram(Box<DiagramTab>),
     Table(Box<TableTab>),
+    Hierarchy(Box<HierarchyTab>),
 }
 
 impl Tab {
@@ -96,12 +98,27 @@ impl Tab {
         }
     }
 
+    pub fn hierarchy(&self) -> Option<&HierarchyTab> {
+        match self {
+            Tab::Hierarchy(tab) => Some(tab),
+            _ => None,
+        }
+    }
+
+    pub fn hierarchy_mut(&mut self) -> Option<&mut HierarchyTab> {
+        match self {
+            Tab::Hierarchy(tab) => Some(tab),
+            _ => None,
+        }
+    }
+
     /// The file the tab was opened on.
     pub fn path(&self) -> &Path {
         match self {
             Tab::Text(open) => open.file.path(),
             Tab::Diagram(tab) => &tab.path,
             Tab::Table(tab) => &tab.path,
+            Tab::Hierarchy(tab) => &tab.path,
         }
     }
 
@@ -110,6 +127,7 @@ impl Tab {
             Tab::Text(open) => open.name(),
             Tab::Diagram(tab) => tab.name(),
             Tab::Table(tab) => tab.name(),
+            Tab::Hierarchy(tab) => tab.name(),
         }
     }
 
@@ -118,6 +136,7 @@ impl Tab {
             Tab::Text(open) => open.title(),
             Tab::Diagram(tab) => tab.title(),
             Tab::Table(tab) => tab.title(),
+            Tab::Hierarchy(tab) => tab.title(),
         }
     }
 
@@ -299,13 +318,30 @@ impl Shell {
     /// Opens a file in a tab, or focuses the tab it already has: a diagram that a usable tool type claims, by its
     /// body or its registration, on its canvas, anything else in the text editor.
     pub fn open_document(&mut self, path: &Path, root: &Path) {
-        if let Some(index) = self
-            .tabs
-            .iter()
-            .position(|t| t.diagram().is_some_and(|d| d.shows(path)) || t.table().is_some_and(|d| d.shows(path)))
-        {
+        if let Some(index) = self.tabs.iter().position(|t| {
+            t.diagram().is_some_and(|d| d.shows(path))
+                || t.table().is_some_and(|d| d.shows(path))
+                || t.hierarchy().is_some_and(|d| d.shows(path))
+        }) {
             self.active = index;
             return;
+        }
+        // A requirement document - a Markdown file with the envelope, or its registration - opens as its page, ahead of
+        // every other owner of its extension (etalii.adp spec 036, research R6).
+        if crate::hierarchy::claims(path) {
+            match HierarchyTab::open(path) {
+                Ok(tab) => {
+                    self.notice = Some(format!(
+                        "Opened {} as {}",
+                        tab.name(),
+                        adp_designer_hierarchical_requirement::ORIGIN
+                    ));
+                    self.tabs.push(Tab::Hierarchy(Box::new(tab)));
+                    self.active = self.tabs.len() - 1;
+                    return;
+                }
+                Err(reason) => self.notice = Some(reason),
+            }
         }
         // A Knowledge designer document - a knowledge file or its registration - opens as its table.
         if crate::table::claims(path) {
@@ -478,6 +514,9 @@ impl Shell {
             // A table reads its file again when it changed, and a table it relates to when that one did.
             for table in self.tabs.iter_mut().filter_map(Tab::table_mut) {
                 table.changed_on_disk(&path);
+            }
+            for page in self.tabs.iter_mut().filter_map(Tab::hierarchy_mut) {
+                page.changed_on_disk(&path);
             }
         }
     }
@@ -898,9 +937,16 @@ impl Shell {
     /// Undoes (or redoes) the active tab's last edit: a table's on its session, a diagram's on its project's diagram
     /// history, else the workspace's.
     fn history(&mut self, undo: bool) {
-        // A table's edits are its session's.
+        // A table's edits are its session's, and so are a page's.
         if let Some(table) = self.tabs.get_mut(self.active).and_then(Tab::table_mut) {
             let outcome = if undo { table.undo() } else { table.redo() };
+            if let Err(reason) = outcome {
+                self.notice = Some(reason);
+            }
+            return;
+        }
+        if let Some(page) = self.tabs.get_mut(self.active).and_then(Tab::hierarchy_mut) {
+            let outcome = if undo { page.undo() } else { page.redo() };
             if let Err(reason) = outcome {
                 self.notice = Some(reason);
             }
@@ -959,6 +1005,7 @@ impl Shell {
             Some(Tab::Text(open)) => ui.memory(|m| m.has_focus(open.editor.id())),
             Some(Tab::Diagram(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.canvas_id())),
             Some(Tab::Table(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.grid_id())),
+            Some(Tab::Hierarchy(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.id())),
             None => false,
         };
         if !editor_focused {
@@ -1230,6 +1277,9 @@ impl Shell {
                     (!open.editor.buffer.is_modified()).then(|| "There are no changes to save.".to_owned());
             }
             Some(Tab::Table(_)) => situation.save = Some("A table's edits are written as they are made.".to_owned()),
+            Some(Tab::Hierarchy(_)) => {
+                situation.save = Some("A document's edits are written as they are made.".to_owned())
+            }
             Some(Tab::Diagram(tab)) => {
                 situation.save = Some("A diagram's edits are written as they are made.".to_owned());
                 situation.diagram = true;
@@ -1522,6 +1572,15 @@ impl Shell {
                 .frame(Frame::NONE.fill(palette.editor_background))
                 .show(ui, |ui| crate::table::show(ui, tab, theme, palette));
             self.after_table();
+            return;
+        }
+        if let Some(Tab::Hierarchy(tab)) = self.tabs.get_mut(self.active) {
+            egui::CentralPanel::default()
+                .frame(Frame::NONE.fill(palette.editor_background))
+                .show(ui, |ui| crate::hierarchy::show(ui, tab, theme, palette));
+            if let Some(notice) = tab.notice.take() {
+                self.notice = Some(notice);
+            }
             return;
         }
         if let Some(Tab::Diagram(tab)) = self.tabs.get_mut(self.active) {
@@ -2710,5 +2769,78 @@ mod tests {
             }),
             "the open tab follows the disk as the explorer does"
         );
+    }
+
+    /// The Hierarchical Requirement Designer's web shop example, its body and its registration, in `folder`.
+    fn requirement_project(folder: &Path) {
+        let examples = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../modules/designers/hierarchical-requirement/tests/examples");
+        for name in ["web-shop.md", "web-shop.adp"] {
+            std::fs::copy(examples.join(name), folder.join(name)).unwrap();
+        }
+        std::fs::write(folder.join("notes.md"), "# Notes\r\n\r\nNothing claims this file.\r\n").unwrap();
+    }
+
+    #[test]
+    fn a_requirement_document_opens_as_its_page_from_either_file_and_ordinary_markdown_as_text() {
+        let folder = tempfile::tempdir().unwrap();
+        requirement_project(folder.path());
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+        shell.handle(Request::Open("web-shop.adp".into()));
+        shell.handle(Request::Open("web-shop.md".into()));
+        assert_eq!(shell.tabs.len(), 1, "the registration and its body are one page");
+        let page = shell.tabs[0]
+            .hierarchy()
+            .expect("a requirement document opens as its page");
+        assert_eq!(page.model.title, "Web shop");
+        assert!(page.model.nodes.iter().any(|n| n.id == "ITEM-0002"));
+
+        shell.handle(Request::Open("notes.md".into()));
+        assert_eq!(shell.tabs.len(), 2);
+        assert!(
+            shell.tabs[1].text().is_some(),
+            "Markdown without the envelope opens in the text editor"
+        );
+    }
+
+    #[test]
+    fn collapsing_on_the_page_is_written_to_the_registration_and_is_no_step_of_undo() {
+        let folder = tempfile::tempdir().unwrap();
+        requirement_project(folder.path());
+        let registration = folder.path().join("web-shop.adp");
+        let body = std::fs::read(folder.path().join("web-shop.md")).unwrap();
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+        shell.handle(Request::Open("web-shop.md".into()));
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        frame(&ctx, &mut shell);
+
+        shell.tabs[0].hierarchy_mut().unwrap().toggle("ITEM-0002");
+        frame(&ctx, &mut shell);
+        let written = std::fs::read_to_string(&registration).unwrap();
+        assert!(written.contains("  ITEM-0002: yes"), "{written}");
+        assert!(
+            shell.tabs[0]
+                .hierarchy()
+                .unwrap()
+                .model
+                .nodes
+                .iter()
+                .any(|n| n.id == "ITEM-0002" && n.collapsed),
+            "the page shows what the file now says"
+        );
+        assert_eq!(
+            std::fs::read(folder.path().join("web-shop.md")).unwrap(),
+            body,
+            "the body is untouched"
+        );
+
+        ctx.run_ui(ctrl(egui::Key::Z), |ui| shell.show(ui))
+            .textures_delta
+            .clear();
+        assert_eq!(shell.notice.as_deref(), Some("There is nothing to undo."));
+        assert_eq!(std::fs::read_to_string(&registration).unwrap(), written);
     }
 }

@@ -7,7 +7,8 @@ Reads the standalone host's tool catalogue, docs/tools.md, at the commit (defaul
 
 - crates/adp-core/catalogue/tools.json: every tool type the standalone host lists, in its order, with its origin, display
   name, kind, group and state (FR-021, research R3); those without a module have the states identified, specified
-  and to-do;
+  and to-do; a tool type the standalone host added after the reference commit is taken from docs/tools.md at its own
+  commit (LATER) and placed where that listing puts it;
 - parity/inventory.md: one row per capability of the standalone host's workspace and per tool type it has a module
   for, in the format of etalii.adp spec 030 contracts/parity.md (FR-010).
 
@@ -36,6 +37,11 @@ STATES = {
     "Implemented": "implemented",
 }
 WITHOUT_MODULE = {"identified", "specified", "to-do"}
+
+# Tool types added to the standalone host after the reference commit, each with the commit its row is taken from: a
+# designer recorded at a later commit of its own (etalii.adp spec 036, research R3 and R6). They join the catalogue
+# only; the inventory stays the reference commit's.
+LATER = {"etalii/hierarchical-requirement": "a7fdf039c204535e9fc3a14f456e6f5a36a685ce"}
 
 ROW = re.compile(
     r'<tr><td style="white-space: nowrap;">[^&<]*&nbsp;(?P<state>[^<]+)</td>'
@@ -111,6 +117,18 @@ def tool_types(tools_md: str) -> list[dict]:
     return rows
 
 
+def with_later(clone: pathlib.Path, types: list[dict]) -> list[dict]:
+    """Return the reference commit's tool types with every LATER one inserted after the row it follows at its commit."""
+    result = list(types)
+    for origin, commit in LATER.items():
+        later = tool_types(show(clone, commit, "docs/tools.md"))
+        index = next(i for i, t in enumerate(later) if t["origin"] == origin)
+        before = later[index - 1]["origin"] if index > 0 else None
+        at = next((i + 1 for i, t in enumerate(result) if t["origin"] == before), 0)
+        result.insert(at, later[index])
+    return result
+
+
 def existing_rows() -> dict[str, tuple[str, str]]:
     """Return {capability: (check, state)} of the current inventory, to keep what was filled in."""
     if not INVENTORY.exists():
@@ -143,8 +161,9 @@ def main() -> None:
     identity = [t for t in types if t["state"] in WITHOUT_MODULE]
     CATALOGUE.parent.mkdir(parents=True, exist_ok=True)
     CATALOGUE.write_text(
-        json.dumps({"source": {"repository": "etalii-adp/etalii.adp.ide.standalone", "path": "docs/tools.md", "commit": commit},
-                    "toolTypes": types}, indent=2, ensure_ascii=False) + "\n",
+        json.dumps({"source": {"repository": "etalii-adp/etalii.adp.ide.standalone", "path": "docs/tools.md", "commit": commit,
+                               "later": LATER},
+                    "toolTypes": with_later(clone, types)}, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
         newline="\n",
     )

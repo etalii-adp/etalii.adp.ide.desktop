@@ -20,7 +20,7 @@
 //! knows no file format.
 
 pub mod header;
-mod view;
+pub(crate) mod view;
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};

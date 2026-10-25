@@ -72,12 +72,13 @@ fn the_tree_groups_the_standalone_hosts_tool_types_by_vendor_with_their_titles_a
             "Agent Behavior Modelling",
             "Agent activity diagram",
             "Functional decomposition graph",
+            "Hierarchical Requirement Designer",
             "Knowledge",
             "Sankey diagram",
             "Supply chain diagram"
         ]
     );
-    let knowledge = &etalii.children[3];
+    let knowledge = &etalii.children[4];
     assert!(!knowledge.selectable);
     assert_eq!(knowledge.state, Some(ToolState::Prototype));
     let formats: Vec<(&str, &str)> = knowledge
@@ -95,14 +96,21 @@ fn the_tree_groups_the_standalone_hosts_tool_types_by_vendor_with_their_titles_a
     );
     assert_eq!(knowledge.children[0].suggested_value, "knowledge");
 
-    // The 78 diagram definitions and the designer's three formats; editors are not added here.
+    let requirements = &etalii.children[3];
+    assert_eq!(requirements.state, Some(ToolState::Prototype));
+    assert_eq!(
+        requirements.children.iter().map(|o| o.id.as_str()).collect::<Vec<_>>(),
+        ["etalii/hierarchical-requirement@.md"]
+    );
+
+    // The 78 diagram definitions and the designers' four formats; editors are not added here.
     fn leaves(options: &[AddOption]) -> usize {
         options
             .iter()
             .map(|o| usize::from(o.selectable) + leaves(&o.children))
             .sum()
     }
-    assert_eq!(leaves(&prompt.options), 78 + 3);
+    assert_eq!(leaves(&prompt.options), 78 + 4);
     assert!(find(&prompt.options, "editor/json").is_none());
     assert!(
         find(&prompt.options, "airflow/dag").is_none(),
@@ -552,4 +560,52 @@ fn an_agent_behavior_model_is_written_as_the_standalone_host_writes_a_new_one() 
         "{body}"
     );
     assert!(body.contains("\r\n- **Ask the user** asks its question and waits for the answer.\r\n"));
+}
+
+/// The option of the Hierarchical Requirement Designer's one format.
+const REQUIREMENTS: &str = "etalii/hierarchical-requirement@.md";
+
+fn listing(folder: &Path) -> Vec<String> {
+    let mut names: Vec<String> = fs::read_dir(folder)
+        .unwrap()
+        .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    names
+}
+
+/// A file of the name that carries the envelope is the document already: it is accepted and opened as it is, and
+/// nothing is written (spec 029 FR-003; the standalone host's `DesignerAddOptions.Existing.Tests.cs` at a7fdf03).
+#[test]
+fn an_existing_file_that_carries_the_envelope_is_accepted_and_nothing_is_written() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("plan.md");
+    let body = "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n# Mine\r\n\r\n## Requirements\r\n\r\n- ITEM-0001 Kept\r\n";
+    fs::write(&path, body).unwrap();
+    let adds = AddCatalogue::standalone();
+    let created = adds
+        .commit(&AddTarget::Folder(folder.path().to_path_buf()), REQUIREMENTS, "plan")
+        .unwrap();
+    assert_eq!(created, path);
+    assert_eq!(listing(folder.path()), ["plan.md"]);
+    assert_eq!(read(&path), body);
+}
+
+/// A file of the name without the envelope is refused, naming the line it would need, and is left alone.
+#[test]
+fn an_existing_file_without_the_envelope_is_refused_naming_the_line_it_needs() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("plan.md");
+    fs::write(&path, "# Plan\r\n").unwrap();
+    let adds = AddCatalogue::standalone();
+    let refused = adds
+        .commit(&AddTarget::Folder(folder.path().to_path_buf()), REQUIREMENTS, "plan")
+        .unwrap_err();
+    assert!(refused.contains("first line"), "{refused}");
+    assert!(
+        refused.contains("<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->"),
+        "{refused}"
+    );
+    assert_eq!(listing(folder.path()), ["plan.md"]);
+    assert_eq!(read(&path), "# Plan\r\n");
 }

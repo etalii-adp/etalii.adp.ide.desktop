@@ -170,8 +170,10 @@ pub fn style(theme: &Theme) -> egui::Style {
 /// 100 pixels (egui's own is 40 on a desktop).
 pub const WHEEL_STEP: f32 = 100.0;
 
-/// Installs both themes, lets egui follow the system's light or dark setting, and gives the wheel the browser's step.
+/// Installs both themes and the icons' font, lets egui follow the system's light or dark setting, and gives the wheel the
+/// browser's step.
 pub fn install(ctx: &egui::Context) {
+    crate::icons::install(ctx);
     ctx.set_style_of(egui::Theme::Dark, style(&Theme::dark()));
     ctx.set_style_of(egui::Theme::Light, style(&Theme::light()));
     ctx.set_theme(egui::ThemePreference::System);

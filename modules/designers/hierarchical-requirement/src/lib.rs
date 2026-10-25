@@ -8,16 +8,20 @@
 //!   says that the binding does not carry.
 //! - [`model`] and [`body`]: the document, and how a Markdown file and its registration are read into it.
 //! - [`mapper`]: the document onto the host-neutral `adp_desl::hierarchy` surface.
+//! - [`designer`]: the definition the add offers, and the envelope claim that recognises a document.
+//! - [`surface`]: what the designer declares for the hierarchy surface to draw it.
 //! - [`session`], [`gestures`] and [`documents`]: one open document on one connection, the operations a gesture
 //!   names, and how its two files are read and written.
 
 pub mod body;
 pub mod definition;
+pub mod designer;
 pub mod documents;
 pub mod gestures;
 pub mod mapper;
 pub mod model;
 pub mod session;
+pub mod surface;
 pub mod vocabulary;
 
 pub use definition::ORIGIN;

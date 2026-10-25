@@ -19,24 +19,24 @@ const INDENT: f32 = 20.0;
 const CHECK_ROOM: f32 = 18.0;
 
 /// The colours the table draws with: VS Code's, by role.
-pub(super) struct Colours {
-    pub(super) surface: Color32,
-    pub(super) text: Color32,
-    pub(super) muted: Color32,
-    pub(super) border: Color32,
-    pub(super) raised: Color32,
-    pub(super) selected: Color32,
-    pub(super) focus: Color32,
-    pub(super) danger: Color32,
-    pub(super) danger_bg: Color32,
-    pub(super) warning: Color32,
-    pub(super) warning_bg: Color32,
+pub(crate) struct Colours {
+    pub(crate) surface: Color32,
+    pub(crate) text: Color32,
+    pub(crate) muted: Color32,
+    pub(crate) border: Color32,
+    pub(crate) raised: Color32,
+    pub(crate) selected: Color32,
+    pub(crate) focus: Color32,
+    pub(crate) danger: Color32,
+    pub(crate) danger_bg: Color32,
+    pub(crate) warning: Color32,
+    pub(crate) warning_bg: Color32,
     /// The active theme, which an option's colour is chosen for.
     kind: Kind,
 }
 
 impl Colours {
-    fn of(theme: &Theme, palette: &Palette) -> Colours {
+    pub(crate) fn of(theme: &Theme, palette: &Palette) -> Colours {
         let c = |ids: &[&str], fallback: Color32| theme::color(theme, ids, fallback);
         Colours {
             surface: palette.editor_background,
@@ -65,7 +65,7 @@ impl Colours {
 
     /// An option's colour by its theme name: the standalone host's own ten (`--color-table-option-*`), which VS Code
     /// has no colours for, in the active theme (`adp_designer_knowledge::theme`).
-    pub(super) fn option(&self, name: &str) -> Color32 {
+    pub(crate) fn option(&self, name: &str) -> Color32 {
         adp_theme::Rgba::parse(adp_designer_knowledge::theme::option(name, self.kind))
             .map(|c| Color32::from_rgba_unmultiplied(c.r, c.g, c.b, c.a))
             .unwrap_or(self.raised)

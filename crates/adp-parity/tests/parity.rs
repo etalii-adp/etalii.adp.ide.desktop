@@ -57,6 +57,11 @@ fn etalii_agent_behavior_modelling_research_assistant() {
 }
 
 #[test]
+fn etalii_hierarchical_requirement_collapse() {
+    check("etalii/hierarchical-requirement/collapse");
+}
+
+#[test]
 fn etalii_knowledge_cities_json() {
     check("etalii/knowledge/cities-json");
 }
