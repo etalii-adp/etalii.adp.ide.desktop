@@ -78,6 +78,7 @@ pub fn load_diagram(
     let extensions = DislExtensions {
         environment: Some(Box::new(move |mut environment| {
             environment.add_function(host_attribute());
+            environment.add_function(end_id());
             let script = Script::with_functions(functions, environment, options);
             let extended = script.environment().clone();
             *made.borrow_mut() = Some(script);
@@ -119,6 +120,34 @@ fn host_attribute() -> Function {
         Ok(element.host_attributes().get(name).cloned().unwrap_or(Value::Null))
     };
     Function::new("hostAttribute", Style::Global, 2, 2, Some(Rc::new(body)))
+}
+
+/// What a call of `endId` that is not over a relation and one of its two ends answers.
+pub const END_ID_MISUSED: &str = "endId() takes a relation of the document and 'source' or 'target'.";
+
+/// `endId(relation, end)` (ATD §12.8): the id `relation`'s `end` (`source` or `target`) was read or created with,
+/// also when it reaches no element, else the id of the element it reaches; null when it has neither.
+fn end_id() -> Function {
+    let body = |call: &Call<'_>| -> Result<Value, String> {
+        let (Some(relation), Some(end)) = (
+            call.arguments.first().and_then(DislElement::from_value),
+            call.arguments.get(1).and_then(Value::as_str),
+        ) else {
+            return Err(END_ID_MISUSED.to_owned());
+        };
+        if !relation.is_relation() {
+            return Err(END_ID_MISUSED.to_owned());
+        }
+        let (written, reached) = match end {
+            "source" => (relation.source_id(), relation.source()),
+            "target" => (relation.target_id(), relation.target()),
+            _ => return Err(END_ID_MISUSED.to_owned()),
+        };
+        Ok(written
+            .or_else(|| reached.map(|e| e.id()))
+            .map_or(Value::Null, Value::String))
+    };
+    Function::new("endId", Style::Global, 2, 2, Some(Rc::new(body)))
 }
 
 /// The script's budget: the description's `limits.steps` when lower than the default (ATD §7.15).

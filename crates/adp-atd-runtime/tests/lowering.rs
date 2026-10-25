@@ -349,3 +349,60 @@ diagram test/links version "0.1.0" {
         )]
     );
 }
+
+#[test]
+fn a_rule_reads_the_id_a_relations_end_was_read_with_also_when_it_reaches_nothing() {
+    let text = r#"atd 0.1
+diagram test/links version "0.1.0" {
+  label "Links"
+  id: "org.example.links"
+  model {
+    element Item {
+      attribute name: string
+    }
+    relation Link {
+      source: { types: [Item] }
+      target: { types: [Item] }
+    }
+  }
+  constraints {
+    builtin std.references { enabled: false }
+    constraint dangling for Link {
+      when endId(self, "target") != null
+      rule has(self.target)
+      message ("A link names '" + endId(self, "target") + "', which no item holds; it starts at '" + endId(self, "source") + "'.")
+      code: "links.dangling"
+    }
+  }
+}
+"#;
+    let path = PathBuf::from("/test/ends.atd");
+    let loaded = load(&Memory(BTreeMap::from([(path.clone(), text.to_owned())])), &path);
+    let diagram = DislDiagram::new(&loaded.specification);
+    let item = diagram.add_node("Item", "a", Map::default()).unwrap();
+    let link = |id: &str, target: Option<&str>| {
+        let mut new = adp_disl::NewElement::new("Link", id);
+        new.source = Some(item.clone());
+        new.target_id = target.map(str::to_owned);
+        diagram.add(new).unwrap();
+    };
+    link("dangling", Some("ghost"));
+    link("unwritten", None);
+
+    let findings = adp_disl::derivation::constraints::evaluate(
+        &loaded.specification,
+        &diagram,
+        &adp_disl::DislConstraintOptions::default(),
+    );
+    let reported: Vec<(String, String)> = findings
+        .iter()
+        .map(|f| (f.element_ids.join(","), f.message.clone()))
+        .collect();
+    assert_eq!(
+        reported,
+        [(
+            "dangling".to_owned(),
+            "A link names 'ghost', which no item holds; it starts at 'a'.".to_owned()
+        )]
+    );
+}

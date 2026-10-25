@@ -102,8 +102,9 @@ pub const LIBRARY: &[&str] = &[
     "least",
     "sqrt",
     "trunc",
-    // ATD §12.8: a host attribute the binding read, by name.
+    // ATD §12.8: a host attribute the binding read, by name, and the id a relation's end was read with.
     "hostAttribute",
+    "endId",
 ];
 
 /// Functions that read what a script may not (ATD §12.5): a call of one is `ATD7001`, not an unknown name.
