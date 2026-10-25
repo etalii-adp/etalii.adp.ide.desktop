@@ -45,6 +45,7 @@ fn sidecar_binding() -> FblBinding {
         comment: None,
         report_unmatched: false,
         blocks: Vec::new(),
+        sections: Vec::new(),
         rules: Vec::new(),
         registration: RegistrationSettings::default(),
         template: None,

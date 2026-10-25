@@ -27,6 +27,7 @@ pub enum Family {
     Xml,
     Lines,
     Blocks,
+    Bullets,
 }
 
 /// One binding (FBL section 3): how one format maps to a language's model.
@@ -45,6 +46,8 @@ pub struct FblBinding {
     pub comment: Option<String>,
     pub report_unmatched: bool,
     pub blocks: Vec<BlockRule>,
+    /// The sections of a `bullets` body (FBL 0.7 section 4.8), each found by its first matching heading.
+    pub sections: Vec<SectionRule>,
     /// Elements before relations, in binding order: the order rules are offered an entry (FBL section 5.1).
     pub rules: Vec<Rule>,
     pub registration: RegistrationSettings,
@@ -166,6 +169,14 @@ pub struct BlockRule {
     pub view: Option<String>,
 }
 
+/// A section of a `bullets` body (FBL 0.7 section 4.8): its name, and the expression its heading's text matches.
+#[derive(Debug, Clone)]
+pub struct SectionRule {
+    pub name: String,
+    pub heading: String,
+    pub case_insensitive: bool,
+}
+
 /// An element rule or a relation rule (FBL sections 5.1 and 5.4).
 #[derive(Debug, Clone, Default)]
 pub struct Rule {
@@ -261,6 +272,8 @@ pub struct Slot {
     pub parent: Option<String>,
     pub capture: Option<String>,
     pub value: Option<String>,
+    /// The continuation of a `bullets` item (FBL 0.7 section 4.8): its lines before its first nested item.
+    pub continuation: bool,
     pub word: Option<String>,
     pub flag: bool,
 }
@@ -286,6 +299,8 @@ impl Slot {
             format!("capture {c}")
         } else if self.value.is_some() {
             "value".into()
+        } else if self.continuation {
+            "continuation".into()
         } else {
             "slot".into()
         }

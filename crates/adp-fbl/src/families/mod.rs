@@ -7,6 +7,7 @@
 //! json member or item, an xml element, or a lines or blocks statement. What a family knows besides is its own
 //! kind of [`FamilyKind`].
 
+pub(crate) mod bullets;
 pub(crate) mod json;
 pub(crate) mod lines;
 pub(crate) mod tree;
@@ -133,6 +134,7 @@ impl Family {
         let kind = match family {
             FamilyName::Lines => FamilyKind::Lines(lines::LinesData::new(false)),
             FamilyName::Blocks => FamilyKind::Lines(lines::LinesData::new(true)),
+            FamilyName::Bullets => FamilyKind::Lines(lines::LinesData::bullets()),
             FamilyName::Yaml => FamilyKind::Yaml(tree::TreeData::new(&binding, &options)),
             FamilyName::Json => FamilyKind::Json(tree::TreeData::new(&binding, &options)),
             FamilyName::Xml => FamilyKind::Xml(xml::XmlData::default()),
@@ -156,6 +158,7 @@ impl Family {
             FamilyKind::Yaml(_) => "yaml",
             FamilyKind::Json(_) => "json",
             FamilyKind::Xml(_) => "xml",
+            FamilyKind::Lines(l) if l.bullets.is_some() => "bullets",
             FamilyKind::Lines(l) if l.blocks => "blocks",
             FamilyKind::Lines(_) => "lines",
         }
@@ -186,6 +189,7 @@ impl Family {
             FamilyKind::Yaml(_) => self.yaml_parse(),
             FamilyKind::Json(_) => self.json_parse(),
             FamilyKind::Xml(_) => self.xml_parse(),
+            FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_parse(),
             FamilyKind::Lines(_) => self.lines_parse(),
         }
     }
@@ -239,6 +243,7 @@ impl Family {
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_candidates(rule),
             FamilyKind::Xml(_) => self.xml_candidates(rule),
+            FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_candidates(rule),
             FamilyKind::Lines(_) => self.lines_candidates(rule),
         }
     }
@@ -258,6 +263,7 @@ impl Family {
         claimed_by: &dyn Fn(EntryId) -> Option<String>,
     ) -> bool {
         match &self.kind {
+            FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_admits(entry, claimed_by),
             FamilyKind::Lines(l) if l.blocks => {
                 let Some(within) = within else { return true };
                 let name = match self.entries[entry].parent {
@@ -330,6 +336,7 @@ impl Family {
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_read(candidate, slot),
             FamilyKind::Xml(_) => self.xml_read(candidate, slot, html_paragraphs),
+            FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_read(candidate, slot),
             FamilyKind::Lines(_) => self.lines_read(candidate, slot),
         }
     }
@@ -364,14 +371,17 @@ impl Family {
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_header_holds(header),
             FamilyKind::Xml(_) => self.xml_header_holds(header),
+            FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_header_holds(header),
             FamilyKind::Lines(_) => self.lines_header_holds(header),
         }
     }
 
     /// Findings about entries no rule claimed, once reading is done.
     pub fn after_read(&self, claimed_by: &dyn Fn(EntryId) -> Option<String>) {
-        if let FamilyKind::Lines(_) = &self.kind {
-            self.lines_after_read(claimed_by);
+        match &self.kind {
+            FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_after_read(claimed_by),
+            FamilyKind::Lines(_) => self.lines_after_read(claimed_by),
+            _ => {}
         }
     }
 
@@ -402,6 +412,7 @@ impl Family {
             FamilyKind::Yaml(_) => self.yaml_insert(plan, request),
             FamilyKind::Json(_) => self.json_insert(plan, request),
             FamilyKind::Xml(_) => self.xml_insert(plan, request),
+            FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_insert(plan, request),
             FamilyKind::Lines(_) => self.lines_insert(plan, request),
         }
     }
@@ -417,6 +428,31 @@ impl Family {
                 Ok(())
             }
         }
+    }
+
+    /// Whether a new or moved entry takes its place from its position among its siblings, and a move may change its
+    /// parent (FBL 0.7 section 6.3): true for a family whose nesting is its indentation, false where the binding's
+    /// insert place alone decides.
+    pub fn places_by_position(&self) -> bool {
+        self.is_bullets()
+    }
+
+    /// Moves an element's entry, with everything it contains, to `index` among `parent`'s children as they are
+    /// without it (the top level when it is none). Only a family that [`Family::places_by_position`] plans one.
+    pub fn move_to_position(
+        &self,
+        plan: &mut Plan<'_>,
+        element: usize,
+        parent: Option<usize>,
+        index: usize,
+    ) -> Planning {
+        if self.is_bullets() {
+            return self.bullets_move_to(plan, element, parent, index);
+        }
+        let type_name = &self.rule(plan.reading.element(element).rule).type_name;
+        refuse(format!(
+            "This file's binding cannot move a {type_name} to another parent; only a persistence plugin can."
+        ))
     }
 
     /// Moves an element's entry among its siblings: a `remove-entry` where it is and an `insert-entry` of the same
