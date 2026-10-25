@@ -14,7 +14,8 @@ use std::rc::Rc;
 
 use adp_atd_check::{Description, Symbols};
 use adp_atd_script::{Options, STEPS, Script};
-use adp_disl::{DislDiagnostic, DislExtensions, DislLoader, DislPluginFunctions, DislSpecification};
+use adp_cel::{Call, Function, Style, Value};
+use adp_disl::{DislDiagnostic, DislElement, DislExtensions, DislLoader, DislPluginFunctions, DislSpecification};
 use serde_json::Value as Json;
 
 pub use self::disl::LoweredDiagram;
@@ -75,7 +76,8 @@ pub fn load_diagram(
         })
         .unwrap_or_default();
     let extensions = DislExtensions {
-        environment: Some(Box::new(move |environment| {
+        environment: Some(Box::new(move |mut environment| {
+            environment.add_function(host_attribute());
             let script = Script::with_functions(functions, environment, options);
             let extended = script.environment().clone();
             *made.borrow_mut() = Some(script);
@@ -98,6 +100,25 @@ pub fn load_diagram(
         json: lowered.specification,
         script,
     })
+}
+
+/// What a call of `hostAttribute` that is not over an element and a name answers.
+pub const HOST_ATTRIBUTE_MISUSED: &str =
+    "hostAttribute() takes an element of the document and the name of a host attribute.";
+
+/// `hostAttribute(element, name)` (ATD §12.8): the value the binding read into the host attribute `name` of
+/// `element` (persistence's `hostAttributes`, DISL §11.2), as it read it; null when it read none.
+fn host_attribute() -> Function {
+    let body = |call: &Call<'_>| -> Result<Value, String> {
+        let (Some(element), Some(name)) = (
+            call.arguments.first().and_then(DislElement::from_value),
+            call.arguments.get(1).and_then(Value::as_str),
+        ) else {
+            return Err(HOST_ATTRIBUTE_MISUSED.to_owned());
+        };
+        Ok(element.host_attributes().get(name).cloned().unwrap_or(Value::Null))
+    };
+    Function::new("hostAttribute", Style::Global, 2, 2, Some(Rc::new(body)))
 }
 
 /// The script's budget: the description's `limits.steps` when lower than the default (ATD §7.15).
