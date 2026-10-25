@@ -1,0 +1,19 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "addTag", "target": "REQ-0009", "params": {"name": "Privacy"}}},
+    {"hierarchy": {"operation": "addTag", "target": "REQ-0008", "params": {"name": "  vendor lock "}}},
+    {"hierarchy": {"operation": "removeTag", "target": "REQ-0001", "params": {"name": "search"}}},
+    {"hierarchy": {"operation": "renameTag", "target": "tag/security", "params": {"name": "infosec"}}},
+    {"hierarchy": {"operation": "recolourTag", "target": "tag/core", "params": {"colour": "orange"}}},
+    {"hierarchy": {"operation": "moveTag", "target": "tag/privacy", "params": {"after": "tag/customer"}}},
+    {"hierarchy": {"operation": "moveTag", "target": "tag/legal", "params": {"after": ""}}},
+    {"hierarchy": {"operation": "deleteTag", "target": "tag/mail", "params": {}}},
+    {"hierarchy": {"operation": "addTag", "target": "REQ-0003", "params": {"name": "a#b"}}, "expect": "refused"},
+    {"hierarchy": {"operation": "renameTag", "target": "tag/legal", "params": {"name": "Customer"}}, "expect": "refused"},
+    {"undo": 2},
+    {"redo": 1}
+  ]
+}

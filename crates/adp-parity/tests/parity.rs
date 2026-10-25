@@ -87,6 +87,26 @@ fn etalii_hierarchical_requirement_assessments() {
 }
 
 #[test]
+fn etalii_hierarchical_requirement_tags() {
+    check("etalii/hierarchical-requirement/tags");
+}
+
+#[test]
+fn etalii_hierarchical_requirement_classification() {
+    check("etalii/hierarchical-requirement/classification");
+}
+
+#[test]
+fn etalii_hierarchical_requirement_filters() {
+    check("etalii/hierarchical-requirement/filters");
+}
+
+#[test]
+fn etalii_hierarchical_requirement_references() {
+    check("etalii/hierarchical-requirement/references");
+}
+
+#[test]
 fn etalii_hierarchical_requirement_new_document() {
     check("etalii/hierarchical-requirement/new-document");
 }

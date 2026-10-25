@@ -1,0 +1,13 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "setDescription", "target": "REQ-0008", "params": {"description": "Its outage is shown on [ITEM-0005], and [REQ-0004] waits for it."}}},
+    {"hierarchy": {"operation": "setDescription", "target": "REQ-0010", "params": {"description": "See [REQ-0099](https://example.com/privacy), a link and no reference.\nRequests reach [REQ-0009] first."}}},
+    {"hierarchy": {"operation": "moveRequirement", "target": "REQ-0004", "params": {"item": "ITEM-0005", "after": "REQ-0008"}}},
+    {"hierarchy": {"operation": "deleteEntry", "target": "REQ-0003", "params": {}}},
+    {"undo": 1},
+    {"redo": 1}
+  ]
+}

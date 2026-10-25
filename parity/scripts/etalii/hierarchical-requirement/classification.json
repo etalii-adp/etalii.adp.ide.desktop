@@ -1,0 +1,22 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "setCategory", "target": "REQ-0005", "params": {"category": "Technical"}}},
+    {"hierarchy": {"operation": "setState", "target": "REQ-0010", "params": {"state": "proposed"}}},
+    {"hierarchy": {"operation": "clearState", "target": "REQ-0002", "params": {}}},
+    {"hierarchy": {"operation": "clearCategory", "target": "REQ-0008", "params": {}}},
+    {"hierarchy": {"operation": "addCategory", "target": "document", "params": {"name": "legal", "colour": "pink"}}},
+    {"hierarchy": {"operation": "addState", "target": "document", "params": {"name": "in review"}}},
+    {"hierarchy": {"operation": "renameCategory", "target": "category/non-functional", "params": {"name": "quality"}}},
+    {"hierarchy": {"operation": "recolourState", "target": "state/done", "params": {"colour": "purple"}}},
+    {"hierarchy": {"operation": "moveCategory", "target": "category/technical", "params": {"after": ""}}},
+    {"hierarchy": {"operation": "moveState", "target": "state/proposed", "params": {"after": "state/rejected"}}},
+    {"hierarchy": {"operation": "deleteState", "target": "state/rejected", "params": {}}},
+    {"hierarchy": {"operation": "setState", "target": "REQ-0001", "params": {"state": "urgent"}}, "expect": "refused"},
+    {"hierarchy": {"operation": "addCategory", "target": "document", "params": {"name": "Functional"}}, "expect": "refused"},
+    {"undo": 3},
+    {"redo": 2}
+  ]
+}
