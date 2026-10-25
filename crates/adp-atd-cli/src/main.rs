@@ -1,5 +1,5 @@
-//! `atd`, the command line of ATD (etalii.adp spec 035, contracts/checker.md): `check`, `fmt`, `tree`, `tables` and
-//! `validate`. Exit codes: 0 when there is nothing to report, 1 when there is, 2 on a usage or an I/O error.
+//! `atd`, the command line of ATD (etalii.adp spec 035, contracts/checker.md): `check`, `fmt`, `tree`, `tables`,
+//! `validate` and `new`. Exit codes: 0 when there is nothing to report, 1 when there is, 2 on a usage or an I/O error.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -22,6 +22,8 @@ const USAGE: &str = "usage: atd [--spec-dir <dir>] <command> …
   fmt [--check] <path>…                      write files in the canonical layout
   tree <file>                                print a file's abstract tree
   tables [--grammar <file.lark>]             print the normalized parse tables
+  new --kind <kind> --origin <vendor/type> --name <name> [--out <dir>]
+                                             write a new description of a kind from its template
   validate [--json] [--case <name>] <root.atd>
                                              replay the description's conformance cases through its runtime
   record <origin> --cases <dir> [--description <path>]
@@ -58,8 +60,45 @@ fn main() -> ExitCode {
         "tables" => tables_command(rest, spec_dir.as_deref()),
         "fmt" => fmt_command(rest),
         "validate" => validate_command(rest),
+        "new" => new_command(rest),
         "record" => record_command(rest),
         other => usage(&format!("`{other}` is not a command")),
+    }
+}
+
+/// `atd new`: the template of a kind, with its origin and name, written as `<type>.atd` into `--out` (the current
+/// folder by default) and its path printed; an existing file is never overwritten (FR-060, T134).
+fn new_command(args: &[String]) -> ExitCode {
+    let value = |flag: &str| args.iter().position(|a| a == flag).and_then(|i| args.get(i + 1));
+    let (Some(kind), Some(origin), Some(name)) = (value("--kind"), value("--origin"), value("--name")) else {
+        return usage("new needs --kind, --origin and --name");
+    };
+    let refuse = |problem: &str| {
+        eprintln!("atd new: {problem}");
+        ExitCode::from(1)
+    };
+    let text = match kind
+        .parse()
+        .and_then(|kind| adp_atd_format::templates::template(kind, origin, name))
+    {
+        Ok(text) => text,
+        Err(problem) => return refuse(&problem),
+    };
+    let folder = value("--out").map_or_else(|| PathBuf::from("."), PathBuf::from);
+    let file = folder.join(adp_atd_format::templates::file_name(origin).expect("a valid origin names a file"));
+    let written = std::fs::create_dir_all(&folder).and_then(|()| {
+        std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&file)
+            .and_then(|mut out| std::io::Write::write_all(&mut out, text.as_bytes()))
+    });
+    match written {
+        Ok(()) => {
+            println!("{}", file.display());
+            ExitCode::SUCCESS
+        }
+        Err(problem) => refuse(&format!("{}: {problem}", file.display())),
     }
 }
 

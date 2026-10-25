@@ -238,6 +238,12 @@ impl Server {
                 "textDocument/semanticTokens/range" => Some(self.semantic_tokens(params, Some(&params["range"]))),
                 "atd/check" => Some(self.atd_check(params)),
                 "atd/tree" => Some(self.atd_tree(params)),
+                "atd/newDescription" => {
+                    return vec![match Self::atd_new_description(params) {
+                        Ok(result) => response(id, result),
+                        Err(problem) => error_response(id, -32602, &problem),
+                    }];
+                }
                 "atd/validate" => {
                     return vec![match self.atd_validate(params) {
                         Ok(result) => response(id, result),
@@ -706,6 +712,14 @@ impl Server {
     fn atd_check(&self, params: &Json) -> Json {
         let path = uri_to_path(params["uri"].as_str().unwrap_or(""));
         adp_atd_check::findings_json(&self.check(&path).findings)
+    }
+
+    /// `atd/newDescription`: the template of `kind` with its `origin` and `name`, the text `atd new` writes (T134).
+    fn atd_new_description(params: &Json) -> Result<Json, String> {
+        let text = |key: &str| params[key].as_str().ok_or_else(|| format!("`{key}` is missing."));
+        let kind = text("kind")?.parse()?;
+        let text = adp_atd_format::templates::template(kind, text("origin")?, text("name")?)?;
+        Ok(json!({ "text": text }))
     }
 
     /// `atd/validate`: each case handed in, its files in base64, replayed through the runtime of the description

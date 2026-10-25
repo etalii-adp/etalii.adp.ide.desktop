@@ -1,0 +1,72 @@
+atd 0.1
+
+/// __NAME__: a table of rows with one text value per field, kept in a YAML file.
+designer __ORIGIN__ version "0.1.0" {
+  label "__NAME__"
+
+  model {
+    element Field {
+      attribute name: string required
+      labelAttribute: name
+    }
+    element Row {
+      contains Value as values
+    }
+    element Value {
+      attribute field: Field required
+      attribute text: text
+    }
+  }
+
+  surface table {
+    columns Field { name: name }
+    rows Row
+    cells Value { column: field }
+    valueType text "Text" {
+      key: text
+      editor: text
+      comparisons: [is, contains]
+      sort: text
+    }
+  }
+
+  operation addRow "New row" for document {
+    create Row
+  }
+
+  binding document family yaml {
+    label "__NAME__"
+    claims { extensions: [".__TYPE__.yaml"], origins: ["__ORIGIN__"] }
+    text { newline: lf, indent: 2 }
+    header { key: designer, value: "__ORIGIN__", required: true }
+
+    element Field as field at "/fields/*" {
+      id from key "id"
+      attribute name from key "name" { empty: refuse }
+      insert { place: after-last, container: "/fields", keys: [id, name] }
+      remove { cascade: [value] }
+    }
+    element Row as row at "/rows/*" {
+      id from key "id"
+      insert { place: after-last, container: "/rows", create: { at: end }, keys: [id] }
+      remove {}
+    }
+    element Value as value at "/rows/*/values/*" {
+      parent row slot values
+      attribute field from key "field" {
+        empty: refuse
+        references field by id
+      }
+      attribute text from key "text" { empty: remove }
+      insert { place: after-last, container: "values", create: { at: { after: id } }, keys: [field, text] }
+      remove { container: remove-when-empty }
+    }
+
+    template """designer: __ORIGIN__
+fields:
+  - id: {newid:field}
+    name: Name
+rows: []
+"""
+  }
+}

@@ -6,6 +6,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use adp_atd_syntax::{Child, Node, Parse, TokenKind, parse};
 
+pub mod templates;
+
 /// The widest line a block of settings is kept on.
 pub const WIDTH: usize = 120;
 
