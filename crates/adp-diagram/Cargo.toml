@@ -13,7 +13,8 @@ workspace = true
 [dependencies]
 adp-cel = { path = "../adp-cel" }
 adp-context = { path = "../adp-context" }
-adp-core = { path = "../adp-core" }
+# Without the platform's state folder, which the ATD crates built on this one do not need (deny.toml).
+adp-core = { path = "../adp-core", default-features = false }
 adp-disl = { path = "../adp-disl" }
 adp-documents = { path = "../adp-documents" }
 adp-fbl = { path = "../adp-fbl" }
