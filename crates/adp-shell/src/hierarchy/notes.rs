@@ -383,11 +383,7 @@ impl Drawn<'_> {
         let muted = self.colours.muted;
         let colour = if note.resolved { muted } else { self.colours.text };
         ui.horizontal_top(|ui| {
-            let icon = ui.label(
-                RichText::new(icons::text(icon_of(self.definition, &note.kind)))
-                    .font(icons::font(self.font.size))
-                    .color(self.colours.warning),
-            );
+            let icon = icons::mark(ui, icon_of(self.definition, &note.kind), self.font.size, self.colours.warning);
             a11y::describe(&icon, Role::Image, &note.kind);
             icon.on_hover_text(&note.kind);
             ui.label(RichText::new(&note.about).font(self.font.clone()).color(muted));

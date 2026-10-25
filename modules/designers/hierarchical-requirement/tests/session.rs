@@ -155,7 +155,11 @@ fn a_document_of_a_later_version_opens_read_only_with_the_reason() {
     let refused = session.gesture(toggle("REQ-0001"));
 
     // Shown, with the reason, and nothing it asks is done.
-    assert!(model.read_only_reason.contains("0.3"), "{}", model.read_only_reason);
+    // The standalone host's sentence, found different by the walk of etalii.adp spec 036 T059.
+    assert_eq!(
+        "This document is written in DED 0.3, and this application reads DED 0.2 and earlier. It is left exactly as it is and cannot be changed here.",
+        model.read_only_reason
+    );
     assert!(!model.nodes.is_empty());
     assert_eq!(Err(model.read_only_reason.clone()), refused);
     assert!(!body.with_extension("adp").exists());

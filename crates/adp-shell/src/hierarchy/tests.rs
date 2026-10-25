@@ -323,6 +323,10 @@ struct Surface {
     window: f32,
     time: f64,
     texts: Vec<String>,
+    /// Each run of the last frame's texts, with the family of the font it is drawn in.
+    runs: Vec<(String, egui::FontFamily)>,
+    /// The rectangles of the last frame that are filled with a colour that lets what is under it show.
+    veils: Vec<egui::Rect>,
     nodes: HashMap<NodeId, Node>,
     /// Whether the properties pane is drawn right of the page, as the shell draws it.
     pane: bool,
@@ -362,6 +366,8 @@ impl Surface {
             window: width + 2.0 * PAGE_MARGIN,
             time: 0.0,
             texts: Vec::new(),
+            veils: Vec::new(),
+            runs: Vec::new(),
             nodes: HashMap::new(),
             pane: false,
         };
@@ -399,6 +405,28 @@ impl Surface {
             super::show(ui, tab, &theme, &palette)
         });
         output.textures_delta.clear();
+        self.runs = output
+            .shapes
+            .iter()
+            .filter_map(|clipped| match &clipped.shape {
+                egui::Shape::Text(text) => Some(text.galley.job.clone()),
+                _ => None,
+            })
+            .flat_map(|job| {
+                job.sections
+                    .iter()
+                    .map(|s| (job.text[s.byte_range.start.0..s.byte_range.end.0].to_owned(), s.format.font_id.family.clone()))
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+        self.veils = output
+            .shapes
+            .iter()
+            .filter_map(|clipped| match &clipped.shape {
+                egui::Shape::Rect(rect) if rect.fill.a() > 0 && rect.fill.a() < 255 => Some(rect.rect),
+                _ => None,
+            })
+            .collect();
         self.texts = output
             .shapes
             .iter()
@@ -419,6 +447,20 @@ impl Surface {
     /// Whether a text was painted in the last frame.
     fn drawn(&self, text: &str) -> bool {
         self.texts.iter().any(|t| t == text)
+    }
+
+    /// What a screen reader would read of the last frame that is an icon's glyph: every name and value, of a widget it
+    /// is not told to pass over, holding a character of the private-use planes the icons' font draws from.
+    fn glyphs_read(&self) -> Vec<String> {
+        let private = |c: char| ('\u{E000}'..='\u{F8FF}').contains(&c) || c >= '\u{F0000}';
+        self.nodes
+            .values()
+            .filter(|n| !n.is_hidden())
+            .flat_map(|n| [n.label(), n.value()])
+            .flatten()
+            .filter(|text| text.chars().any(private))
+            .map(|text| text.escape_unicode().to_string())
+            .collect()
     }
 
     /// The names of the boxes drawn, in the order they were.
@@ -765,6 +807,28 @@ fn a_level_is_focused_by_its_mark_with_a_trail_leading_back_and_nothing_is_sent(
     assert!(surface.drawn("Shipping"));
     assert_eq!(surface.trail(), ["Requirements"]);
     assert!(surface.gestures().is_empty());
+}
+
+#[test]
+fn a_screen_reader_reads_no_icon_as_its_glyph_in_the_bars_the_trail_or_the_page() {
+    // Arrange: a read-only document, so that its lock shows, with a finding and a level focused, so that the trail
+    // has a step after its first.
+    let mut model = three_levels();
+    model.read_only_reason = "Read-only.".into();
+    model.findings = vec![SurfaceFinding {
+        code: "std.missingId".into(),
+        severity: "warning".into(),
+        message: "Refund in full has no number.".into(),
+        node_id: "6".into(),
+        line: 12,
+    }];
+    let mut surface = Surface::at(model, 760.0);
+
+    // Act.
+    surface.click(Role::Button, "1 more level: show the levels of [3] Payment");
+
+    // Assert.
+    assert_eq!(surface.glyphs_read(), Vec::<String>::new());
 }
 
 #[test]
@@ -1203,6 +1267,20 @@ fn a_box_is_as_high_unselected_selected_and_with_its_title_or_description_open()
 }
 
 #[test]
+fn a_description_stands_4_below_the_tags_and_12_above_the_boxs_bottom_edge() {
+    // Found by the walk of T054: the standalone host's description has 4 above it and 6 below it inside the box's
+    // padding of 6 (`.hs-description`); the page had 4 above it and none below it.
+    let mut model = three_levels();
+    model.nodes[1].description = String::new();
+    let without = Surface::of(model).height_of("[2] Take an order");
+
+    let with = Surface::of(three_levels()).height_of("[2] Take an order");
+
+    // One line of 20, 4 above it and 6 below it.
+    assert_eq!(with - without, f64::from(4.0 + LINE_HEIGHT + 6.0));
+}
+
+#[test]
 fn a_level_is_moved_with_everything_in_it_after_a_level_from_its_lower_half_and_into_it_from_its_upper_one() {
     // Arrange.
     let mut surface = Surface::of(plan(None));
@@ -1278,6 +1356,29 @@ fn the_dragged_node_is_shown_where_it_would_stand_and_dropped_there_from_that_pl
         [sent("slide", "5", &[("behind", "2"), ("section", "1")])]
     );
     assert!(surface.tab.hint.is_none() && !surface.drawn("[5] Pay"));
+}
+
+#[test]
+fn a_dragged_level_is_faded_with_everything_it_carries() {
+    // Found by the walk of T059: the standalone host fades the level and its content (`.hs-dragging`), the page only
+    // the level's own box.
+    let mut surface = Surface::of(three_levels());
+    let shipping = surface.half_of("[7] Shipping", true);
+
+    surface.drag_to("[3]", shipping);
+
+    let faded = |surface: &Surface, name: &str| {
+        let at = surface.get(Role::TreeItem, name).bounds().unwrap();
+        surface.veils.iter().any(|v| {
+            (f64::from(v.min.x) - at.x0).abs() < 0.5
+                && (f64::from(v.min.y) - at.y0).abs() < 0.5
+                && (f64::from(v.max.x) - at.x1).abs() < 0.5
+        })
+    };
+    assert!(faded(&surface, "[3] Payment"));
+    assert!(faded(&surface, "[4] Pay by card"));
+    assert!(faded(&surface, "[6] Refund in full"));
+    assert!(!faded(&surface, "[2] Take an order"));
 }
 
 #[test]
@@ -1782,6 +1883,7 @@ fn the_list_opens_from_the_icon_and_names_each_notes_entry_kind_text_and_detail_
     let third = row(&surface, "[3] Doubt: note n3");
     assert!(surface.inside(&third, Role::Button, "Settle").is_some());
     assert_eq!(surface.get(Role::Button, "2 open notes").is_expanded(), Some(true));
+    assert_eq!(surface.glyphs_read(), Vec::<String>::new());
 }
 
 #[test]
@@ -2748,6 +2850,84 @@ mod filter_bar {
     }
 
     #[test]
+    fn the_field_takes_what_the_bar_leaves_beside_the_sort_the_stored_filters_and_the_count() {
+        // Found by the walk of T054: the field kept a width of 260 where the standalone host's fills the bar.
+        let surface = page(model());
+
+        let field = surface.get(Role::SearchInput, "Filter").bounds().unwrap();
+        let sort = surface.get(Role::ComboBox, "Sort").bounds().unwrap();
+        let count = surface
+            .nodes
+            .values()
+            .find(|n| n.role() == Role::Status && n.label().is_some_and(|l| l.ends_with("points")))
+            .and_then(|n| n.bounds())
+            .unwrap();
+        assert!(field.x1 - field.x0 > 600.0, "{field:?}");
+        assert!(sort.x0 > field.x1);
+        assert!(
+            count.x1 <= f64::from(surface.window) && count.y0 < field.y1,
+            "the count stays on the field's line"
+        );
+    }
+
+    #[test]
+    fn the_field_gives_way_when_a_stored_filter_brings_its_controls_and_nothing_leaves_the_window() {
+        // Found while fixing the one above: an overflowing line widened the bar it was measured against, so the field
+        // kept its width and pushed Clear and the count out of the window.
+        let mut surface = page(model());
+        let wide = surface.get(Role::SearchInput, "Filter").bounds().unwrap();
+
+        surface.choose("Stored filters", "Quick ones");
+
+        let field = surface.get(Role::SearchInput, "Filter").bounds().unwrap();
+        let clear = surface.get(Role::Button, "Clear the filter").bounds().unwrap();
+        assert!(field.x1 - field.x0 < wide.x1 - wide.x0, "{field:?} {wide:?}");
+        assert!(clear.x1 <= f64::from(surface.window) && clear.y0 < field.y1, "{clear:?}");
+    }
+
+    #[test]
+    fn the_store_control_draws_its_icon_in_the_icon_font_and_its_word_in_the_pages() {
+        // Found by the walk of T059: the icon was written into the button's text, whose font has no such glyph.
+        let mut surface = page(model());
+        surface.type_query("phase:draft");
+
+        let family = |text: &str| surface.runs.iter().find(|r| r.0.trim() == text).map(|r| r.1.clone());
+        assert_eq!(family("Store"), Some(egui::FontFamily::Proportional));
+        assert_eq!(
+            family(&icons::text("mdi-bookmark-plus-outline")),
+            Some(icons::font(1.0).family)
+        );
+        // A screen reader reads the button as its word, not its icon's glyph.
+        assert_eq!(surface.glyphs_read(), Vec::<String>::new());
+    }
+
+    #[test]
+    fn the_list_of_completions_stands_under_the_field() {
+        // Found by the walk of T059: the list stood over the page's title, where the standalone host's stands under
+        // the field.
+        let mut surface = page(with_marks());
+        surface.type_query("~f");
+
+        let field = surface.get(Role::SearchInput, "Filter").bounds().unwrap();
+        let row = surface
+            .nodes
+            .values()
+            .find(|n| n.role() == Role::Button && n.toggled().is_some())
+            .and_then(|n| n.bounds())
+            .expect("a word is offered");
+        assert!(row.y0 >= field.y1, "{row:?} {field:?}");
+    }
+
+    #[test]
+    fn the_sort_menu_shows_its_choice_alone_its_icon_before_it_in_the_icon_font() {
+        // Found by the walk of T054: the icon was written into the menu's text, whose font has no such glyph.
+        let surface = page(model());
+
+        assert!(surface.drawn("File order"));
+        assert!(surface.drawn(&icons::text("mdi-sort")));
+    }
+
+    #[test]
     fn the_bar_is_a_search_landmark_holding_the_filter_the_sort_and_the_count() {
         let surface = page(model());
 
@@ -3657,6 +3837,17 @@ mod labels {
         surface.get(Role::Button, "Phase of [3]: none");
         assert!(surface.drawn("Phase"));
         assert!(surface.drawn("DONE"));
+    }
+
+    #[test]
+    fn the_way_to_give_a_value_keeps_its_place_on_a_box_that_is_not_selected_so_selecting_it_keeps_its_height() {
+        // Found by the walk of T059: a box with no labels grew by the row of its pickers when it was selected.
+        let mut surface = surface(false);
+        let unselected = surface.height_of("[3] Cancel an order");
+
+        surface.click_box("[3] Cancel an order");
+
+        assert_eq!(surface.height_of("[3] Cancel an order"), unselected);
     }
 
     #[test]

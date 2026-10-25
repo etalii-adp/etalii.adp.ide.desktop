@@ -325,3 +325,104 @@ Seen on the re-walk and not fixed: the *Group* panel lists its groups without th
 - [Re-walk: *Sum* chosen for *Population* (K7)](walks/story4-rewalk-calculation-sum.png)
 - [Re-walk: the delete question after the rows (K5)](walks/story4-rewalk-delete-question.png)
 - [Re-walk: ten wheel notches over 10,000 rows (K9)](walks/story4-rewalk-ten-notches.png)
+
+## The hierarchical requirement designer, Story 7: the page as the maintainer shaped it (etalii.adp spec 036, task T054)
+
+| | |
+|---|---|
+| Date | 2026-10-25 |
+| Platform | Ubuntu 24.04.5 in a cloud container, X virtual frame buffer at 1580 by 900, no compositor: a release build of `adp-shell` (`target/release/adp-desktop`) on branch `features/036-walks`, beside the standalone host at [`a7fdf03`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/a7fdf03) (its backend from its own build, its client from `vite`, in Chromium 1243 driven by Playwright 1.63 at the same 1580 by 900). Dark theme; light theme with a walk-only build that sets the desktop host's theme preference to light, because winit reports no system theme on X11 and the desktop host then stays dark |
+| Documents | One copy each of the web shop example (`web-shop.md` with its registration `web-shop.adp`), byte for byte the same in both hosts' folders, opened as a project |
+| How | Both windows at the same size, screenshots of each at every point, compared by eye and, for sizes, by the pixel rows and columns of the screenshots; the desktop host's bounds read from its accessibility tree through AT-SPI, the standalone host's from the DOM (`boundingBox`); every written file hashed (SHA-256) and the two hosts' files compared byte for byte after the same gesture |
+| Standalone behaviour | The standalone host at `a7fdf03` itself, and its source there (`HierarchySurfaceBox.tsx`, `iconsLayout.ts`, `hierarchySurface.css`, `columns/`) |
+
+### Results
+
+| Point | Scenario | Result |
+|---|---|---|
+| 7/1 | A column's edge dragged: every box of that depth follows, one step of undo, the width written in `widths` | pass: the same drag wrote the same `web-shop.adp` bytes in both hosts, and Ctrl+Z gave back the bytes before it |
+| 7/2 | Double-click or Home resets, the arrows step by 16, a refused gesture puts the column back | pass |
+| 7/3 | A width outside 120 to 2000, or not a number, is ignored | pass: `widths` edited to `90`, `5000` and `wide` by hand left the column at the page's width in both; a valid `300` applied in both |
+| 7/4 | One icon list, assessment first; a row at the title's end when everything fits, otherwise a column at the right | pass |
+| 7/5 | A wrapped title: handle, collapse and number as words of the first line, aligned to the top, later lines 12 from the box's edge | pass: the second line's first ink at 13 pixels from the box's edge, the standalone host's at 13 to 14 |
+| 7/6 | Padding 6, labels and description 12 from the left, 12 below the description | pass after fix W2 |
+| 7/7 | The same height unselected, selected and open for editing | pass in the desktop host: REQ-0003 is 104 pixels high in all three states in both hosts. The standalone host grows a box whose tags, category or state are empty when it is selected (REQ-0014, which has none, 32 to 52; REQ-0008 74 to 92), which the scenario forbids; the desktop host keeps the height (W5), and the difference is recorded below |
+| 7/8 | Hover controls hidden until the pointer is over the box; add item and add requirement are icons; "n more levels" at every level | pass |
+| 7/9 | The trail follows the selection and names items only | pass |
+| 7/10 | A new item or requirement is revealed and selected | pass |
+| 7/11 | The title field is one line high and starts after the number | pass |
+
+### Fixes made on this walk
+
+Each has a headless test in `crates/adp-shell/src/hierarchy/tests.rs` (or `theme.rs`) that was seen to fail against the defect before it passed.
+
+| # | What was seen | Fixed | Test |
+|---|---|---|---|
+| W1 | The sort control's icon was written into the menu's text, in a font without the glyph, so it showed as a box | The icon stands before the menu as its own label in the icons' font, as the filter's does before its field | `the_sort_menu_shows_its_choice_alone_its_icon_before_it_in_the_icon_font` |
+| W2 | Less than 12 pixels stood below a description | The space below a description is the description's top margin, its height and its bottom margin | `a_description_stands_4_below_the_tags_and_12_above_the_boxs_bottom_edge` |
+| W3 | The filter field kept its width when the bar's controls changed, and a stored filter's controls pushed the count out of the window | The field takes what the bar leaves, measured against the bar's right edge before anything is drawn | `the_field_takes_what_the_bar_leaves`, `the_field_gives_way_when_a_stored_filter_brings_its_controls_and_nothing_leaves_the_window` |
+| W4 | In the light theme, warnings were drawn in plain yellow, hard to read on the white page | Warnings take the theme's warning colour (`editorWarning.foreground` and its fallbacks), checked for a contrast of at least 3 in both themes | `a_warning_reads_on_the_editors_background_in_both_themes` |
+| W5 | Tags, category and state without a value show their picker only on the selected box, and selecting a box made it higher | An unselected box keeps the picker's place without drawing it, so selecting it keeps its height | `the_way_to_give_a_value_keeps_its_place_on_a_box_that_is_not_selected_so_selecting_it_keeps_its_height` |
+
+### Differences recorded, not fixed
+
+- The standalone host grows a box on selection (7/7); the desktop host follows the scenario. The keeping of the picker's place leaves a gap before a state on a box that has no tags or category, where the standalone host draws nothing until it is selected.
+- Fonts: the desktop host draws egui's Ubuntu-derived font where the standalone host draws the browser's, so text runs a few pixels wider or narrower, and bold titles are not bold.
+- Colours are VS Code's (desktop FR-044, spec 036 FR-008): in the light theme the item column is (250, 250, 253) where the standalone host's is (240, 240, 240).
+- The trail's links are not underlined, and the pickers are drawn as pills.
+
+### Screenshots
+
+- [Dark, desktop host](walks/hierarchy-story7-desktop-dark.png) and [standalone host](walks/hierarchy-story7-standalone-dark.png)
+- [Light, desktop host](walks/hierarchy-story7-desktop-light.png) and [standalone host](walks/hierarchy-story7-standalone-light.png)
+- [A requirement added, revealed and selected, its title open: desktop host](walks/hierarchy-story7-desktop-added.png) and [standalone host](walks/hierarchy-story7-standalone-added.png)
+- [After the fixes, dark, desktop host](walks/hierarchy-after-dark.png)
+
+## The hierarchical requirement designer, Stories 1 to 6 (etalii.adp spec 036, task T059)
+
+| | |
+|---|---|
+| Date | 2026-10-25 |
+| Platform | As for Story 7 above, both themes |
+| Documents | The same two folders, each with `web-shop.md` and `web-shop.adp`, and four documents made for the walk, the same bytes in both: `agent.md` (a requirement document an agent writes to), `plain.md` (Markdown without an envelope), `later.md` (an envelope of DED 0.3, later than either host reads) and `fresh.md` (a new document from the template) |
+| How | As for Story 7. The changes "from another program" were written with Python into both folders at once. The screen reader pass was made with the AT-SPI tree, read with `pyatspi` on the session bus with the screen reader flag on, as Orca would read it; no screen reader was run and nothing was heard, so this is a reading of what one would be told, not a walk with one |
+| Standalone behaviour | The standalone host at `a7fdf03` itself, beside it |
+
+### Results
+
+| Story | What was done | Result |
+|---|---|---|
+| 1 | The add dialog's catalogue; `web-shop.md`, `agent.md` without a registration, `plain.md` and `later.md` opened from the explorer; levels, the mark of hidden levels, focus, the trail, collapse | pass: the same etalii designers listed in both; an envelope without a registration opens in the designer, plain Markdown in the Markdown editor, DED 0.3 read-only; the same entries shown in both. The read-only reason now says the standalone host's sentence (W6) |
+| 1, screen reader | The AT-SPI tree of the open web shop page | pass after fix W7: the page is a tree named by the document, its boxes tree items with their numbers and titles, every picker, collapse control and grip a button named for its box, the trail and the filter bar landmarks, the filter an entry, sort and stored filters combo boxes, the count a status. [The tree as read](walks/hierarchy-atspi-web-shop.txt) |
+| 2 | Another program moved and retitled entries in `agent.md` while it was open with one entry collapsed; then Ctrl+Z | pass: the move and the new title shown at once, the collapsed entry still collapsed; Ctrl+Z said the same sentence as the standalone host and wrote nothing |
+| 3 | The conformance run | pass: 59 tests, none set aside (`cargo test -p adp-conformance`) |
+| 4 | `fresh.md` made from the template and given a title; items and requirements added; one dragged to another level | pass: the same bytes as the standalone host's after the title, with no registration written; the drop preview the same, the drop writing the same bytes. The desktop host prefills the new document's name with `hierarchical-requirement` |
+| 5 | Notes added, listed from the icon, resolved | pass: the same list, the same bytes after adding and after resolving, the icon of several notes in both |
+| 6 | `@pro` completed; the `@proposed` filter; the filter stored; a state picked | pass after fixes W8 and W9: completion offers `@proposed`, the filter leaves the same entries, storing it and picking a state write the same `.adp` and `.md` bytes in both; the three looks of the labels (tags, category, state) are distinct |
+
+### Fixes made on this walk
+
+| # | What was seen | Fixed | Test |
+|---|---|---|---|
+| W6 | The read-only reason of a later DED version was the desktop host's own sentence | It is the standalone host's: "This document is written in DED 0.3, and this application reads DED 0.2 and earlier. It is left exactly as it is and cannot be changed here." | `modules/designers/hierarchical-requirement/tests/session.rs` |
+| W7 | The screen reader was told the filter's and the sort's icons as labels named by their private-use glyphs (`\U000f0236`, `\U000f04ba`), and the trail's chevrons, the read-only lock, a finding's mark and a note's kind as text runs of their glyphs | The icons are painted, not laid out as labels: decorative ones are hidden from the accessibility tree, and those that say something (a finding's severity, a note's kind) are named | `a_screen_reader_reads_no_icon_as_its_glyph_in_the_bars_the_trail_or_the_page`, and the same check in the Store and notes list tests |
+| W8 | The Store button's icon was written into its text, in a font without the glyph | The icon is drawn in the icons' font and the word in the page's | `the_store_control_draws_its_icon_in_the_icon_font_and_its_word_in_the_pages` |
+| W9 | The list of completions opened above the field, over the trail | It opens under the field, as the standalone host's | `the_list_of_completions_stands_under_the_field` |
+| W10 | A dragged level was faded alone, while what it carries was drawn as before | Everything the dragged item carries is faded with it | `a_dragged_level_is_faded_with_everything_it_carries` |
+
+### Differences recorded, not fixed
+
+- The notes list's *Add* is a plain button, where the standalone host's is filled green; the count of several notes is drawn small and low, like a subscript.
+- The list of completions is as wide as the field; the standalone host's is as wide as its entries.
+- On X11 the desktop host cannot follow a light system theme (above).
+- Seen in the standalone host, not in the desktop host: after another program wrote `web-shop.md`, selecting REQ-0014 offered no *New requirement below* in the ribbon, Ctrl+Enter did nothing, and "This item is no longer available." was shown, also after the project was opened again. The desktop host added below it as before.
+
+### Screenshots
+
+- [Story 1, `agent.md` opened by its envelope: desktop host](walks/hierarchy-s1-d-agent.png) and [standalone host](walks/hierarchy-s1-s-agent.png)
+- [Story 1, `later.md` read-only: desktop host](walks/hierarchy-s1-d-later.png) and [standalone host](walks/hierarchy-s1-s-later.png)
+- [Story 2, the agent's change shown: desktop host](walks/hierarchy-s2-d-agent.png) and [standalone host](walks/hierarchy-s2-s-agent.png); [undo refused in the desktop host](walks/hierarchy-s2-d-undo.png)
+- [Story 4, the drop preview: desktop host](walks/hierarchy-s4-d-drag.png) and [standalone host](walks/hierarchy-s4-s-drag.png)
+- [Story 5, the notes list: desktop host](walks/hierarchy-s5-d-notes.png) and [standalone host](walks/hierarchy-s5-s-notes.png)
+- [Story 6, completion: desktop host](walks/hierarchy-s6-d-complete.png) and [standalone host](walks/hierarchy-s6-s-complete.png); [after W9, the list under the field](walks/hierarchy-after-complete.png)
+- [Story 6, a stored filter: desktop host](walks/hierarchy-s6-d-stored.png) and [standalone host](walks/hierarchy-s6-s-stored.png)

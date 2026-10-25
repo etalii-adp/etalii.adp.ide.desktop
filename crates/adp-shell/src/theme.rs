@@ -17,6 +17,21 @@ pub fn color(theme: &Theme, ids: &[&str], fallback: Color32) -> Color32 {
     theme.color_of(ids).map(color32).unwrap_or(fallback)
 }
 
+/// The colour of a warning: VS Code's `editorWarning.foreground`, which its default themes leave to the colour registry,
+/// so the warning icons they do name stand in for it (`problemsWarningIcon.foreground` in light, and
+/// `notificationsWarningIcon.foreground`, the registry's dark value). Never the plain yellow, which a light page cannot show.
+pub fn warning(theme: &Theme) -> Color32 {
+    color(
+        theme,
+        &[
+            "editorWarning.foreground",
+            "problemsWarningIcon.foreground",
+            "notificationsWarningIcon.foreground",
+        ],
+        Color32::from_rgb(0xbf, 0x88, 0x03),
+    )
+}
+
 /// The workspace's roles, resolved once per theme so drawing code names a role, never a colour.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Palette {
@@ -93,7 +108,7 @@ pub fn style(theme: &Theme) -> egui::Style {
     visuals.faint_bg_color = color(theme, &["list.hoverBackground"], palette.editor_background);
     visuals.code_bg_color = color(theme, &["textCodeBlock.background"], palette.editor_background);
     visuals.hyperlink_color = color(theme, &["textLink.foreground"], palette.focus);
-    visuals.warn_fg_color = color(theme, &["editorWarning.foreground"], Color32::YELLOW);
+    visuals.warn_fg_color = warning(theme);
     visuals.error_fg_color = color(theme, &["errorForeground"], Color32::RED);
     visuals.selection.bg_fill = color(
         theme,
@@ -210,6 +225,19 @@ mod tests {
             assert_eq!(style.text_styles[&TextStyle::Monospace].size, theme.sizes.editor_font);
             assert_eq!(style.spacing.interact_size.y, theme.sizes.row_height);
             assert_eq!(style.visuals.dark_mode, theme.kind == Kind::Dark);
+        }
+    }
+
+    /// Found by the walk of spec 036 T054: the theme files name no `editorWarning.foreground`, so a warning was drawn in
+    /// plain yellow, which cannot be read on the light page.
+    #[test]
+    fn a_warning_reads_on_the_editors_background_in_both_themes() {
+        for theme in [Theme::dark(), Theme::light()] {
+            let warning = warning(&theme);
+            let background = theme.color("editor.background").unwrap();
+            let rgba = adp_theme::Rgba { r: warning.r(), g: warning.g(), b: warning.b(), a: 255 };
+            let ratio = adp_theme::contrast::contrast_ratio(rgba, background);
+            assert!(ratio >= 3.0, "{}: {ratio}", theme.name);
         }
     }
 

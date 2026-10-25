@@ -27,6 +27,16 @@ pub fn describe(response: &Response, role: Role, name: &str) {
     });
 }
 
+/// Leaves the widget of `response` out of what a screen reader reads: an icon that only decorates the text beside it,
+/// whose glyph is a private-use character a reader would spell out.
+pub fn decoration(response: &Response) {
+    response.ctx.accesskit_node_builder(response.id, |node| {
+        node.clear_value();
+        node.clear_label();
+        node.set_hidden();
+    });
+}
+
 /// Names a field egui drew, keeping its role and its value: what a screen reader reads before the text typed in it.
 pub fn label(response: &Response, name: &str) {
     response
