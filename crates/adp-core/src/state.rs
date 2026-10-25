@@ -22,6 +22,7 @@ impl StateFolder {
     /// The platform's folder: `%AppData%\EtAlii\ADP Desktop` on Windows,
     /// `~/Library/Application Support/net.etalii.adp.desktop` on macOS and `$XDG_DATA_HOME/etalii-adp-desktop` (by
     /// default `~/.local/share/etalii-adp-desktop`) on Linux.
+    #[cfg(feature = "platform-state")]
     pub fn for_platform() -> io::Result<Self> {
         let base = directories::BaseDirs::new()
             .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "The home folder could not be found."))?;
@@ -85,17 +86,17 @@ impl StateFolder {
     }
 }
 
-#[cfg(target_os = "windows")]
+#[cfg(all(feature = "platform-state", target_os = "windows"))]
 fn platform_folder(data: &Path) -> PathBuf {
     data.join("EtAlii").join("ADP Desktop")
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "platform-state", target_os = "macos"))]
 fn platform_folder(data: &Path) -> PathBuf {
     data.join("net.etalii.adp.desktop")
 }
 
-#[cfg(not(any(target_os = "windows", target_os = "macos")))]
+#[cfg(all(feature = "platform-state", not(any(target_os = "windows", target_os = "macos"))))]
 fn platform_folder(data: &Path) -> PathBuf {
     data.join("etalii-adp-desktop")
 }

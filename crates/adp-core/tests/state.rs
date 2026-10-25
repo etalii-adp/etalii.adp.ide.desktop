@@ -45,6 +45,7 @@ fn a_damaged_file_is_an_error_naming_the_file() {
 }
 
 #[test]
+#[cfg(feature = "platform-state")]
 fn the_platform_folder_is_the_desktop_hosts_own() {
     let folder = StateFolder::for_platform().unwrap();
     let path = folder.root().to_string_lossy().to_string();
