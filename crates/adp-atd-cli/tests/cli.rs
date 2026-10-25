@@ -243,3 +243,74 @@ fn validate_reports_each_difference_at_its_construct() {
     let (code, _, err) = atd(&["validate", "--case", "no-such-case", &mindmap]);
     assert_eq!(code, 2, "{err}");
 }
+
+/// `atd new` (T134, contracts/checker.md): the template of each kind written as `<type>.atd` into `--out`, its path
+/// printed, and a description that `atd check` finds nothing in; an existing file is left as it is.
+#[test]
+fn new_writes_each_kinds_template_and_never_overwrites() {
+    for kind in ["diagram", "designer", "editor"] {
+        let out = tempfile::tempdir().unwrap();
+        let folder = out.path().to_string_lossy().into_owned();
+
+        let (code, stdout, stderr) = atd(&[
+            "new",
+            "--kind",
+            kind,
+            "--origin",
+            "acme/widgets",
+            "--name",
+            "Widgets",
+            "--out",
+            &folder,
+        ]);
+
+        assert_eq!(code, 0, "{kind}: {stderr}");
+        let file = out.path().join("widgets.atd");
+        assert_eq!(stdout.trim(), file.to_string_lossy());
+        let (code, stdout, _) = atd(&["check", &file.to_string_lossy()]);
+        assert_eq!((code, stdout.as_str()), (0, ""), "{kind}");
+        let written = std::fs::read_to_string(&file).unwrap();
+        assert!(written.contains(&format!("{kind} acme/widgets version")), "{kind}");
+
+        let (code, _, stderr) = atd(&[
+            "new",
+            "--kind",
+            kind,
+            "--origin",
+            "acme/widgets",
+            "--name",
+            "Other",
+            "--out",
+            &folder,
+        ]);
+
+        assert_eq!(code, 1, "{kind}");
+        assert!(stderr.starts_with("atd new: "), "{stderr}");
+        assert_eq!(std::fs::read_to_string(&file).unwrap(), written);
+    }
+}
+
+#[test]
+fn new_refuses_an_origin_or_a_kind_it_cannot_write_and_needs_all_three() {
+    let out = tempfile::tempdir().unwrap();
+    let folder = out.path().to_string_lossy().into_owned();
+
+    let (code, _, stderr) = atd(&[
+        "new", "--kind", "diagram", "--origin", "widgets", "--name", "W", "--out", &folder,
+    ]);
+    assert_eq!(code, 1);
+    assert!(
+        stderr.contains("'widgets' is not an origin of the form <vendor>/<type>."),
+        "{stderr}"
+    );
+
+    let (code, _, stderr) = atd(&[
+        "new", "--kind", "table", "--origin", "acme/w", "--name", "W", "--out", &folder,
+    ]);
+    assert_eq!(code, 1);
+    assert!(stderr.contains("'table' is not a kind of description"), "{stderr}");
+
+    let (code, _, _) = atd(&["new", "--kind", "diagram", "--origin", "acme/w"]);
+    assert_eq!(code, 2);
+    assert_eq!(std::fs::read_dir(out.path()).unwrap().count(), 0);
+}

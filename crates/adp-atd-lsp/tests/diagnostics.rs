@@ -145,3 +145,38 @@ fn validate_answers_each_case_with_its_differences_at_their_constructs() {
         "params": {"root": root, "cases": [{"name": "broken", "files": {"conformance.json": "not base64!"}}]}}));
     assert_eq!(refused[0]["error"]["code"], -32803);
 }
+
+/// `atd/newDescription` (T134, contracts/language-server.md): the text `atd new` writes, which the server's own
+/// diagnostics find nothing in; an origin it cannot write is an invalid-params error.
+#[test]
+fn new_description_answers_each_kinds_template() {
+    let mut server = Server::new();
+    server.handle(&json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"capabilities": {}}}));
+    for (i, kind) in ["diagram", "designer", "editor"].into_iter().enumerate() {
+        let answer = server.handle(&json!({"jsonrpc": "2.0", "id": 10 + i, "method": "atd/newDescription",
+            "params": {"kind": kind, "origin": "acme/widgets", "name": "Widgets"}}));
+        let text = answer[0]["result"]["text"].as_str().unwrap();
+        assert_eq!(
+            text,
+            adp_atd_format::templates::template(kind.parse().unwrap(), "acme/widgets", "Widgets").unwrap()
+        );
+        let uri = format!("file:///nowhere/{kind}/widgets.atd");
+        let published = server.handle(&json!({"jsonrpc": "2.0", "method": "textDocument/didOpen",
+            "params": {"textDocument": {"uri": uri, "languageId": "atd", "version": 1, "text": text}}}));
+        assert!(
+            published
+                .iter()
+                .any(|m| m["method"] == "textDocument/publishDiagnostics"),
+            "{kind}: {published:?}"
+        );
+        let diagnostics: Vec<&Value> = published
+            .iter()
+            .filter(|m| m["method"] == "textDocument/publishDiagnostics")
+            .flat_map(|m| m["params"]["diagnostics"].as_array().unwrap())
+            .collect();
+        assert!(diagnostics.is_empty(), "{kind}: {diagnostics:?}");
+    }
+    let refused = server.handle(&json!({"jsonrpc": "2.0", "id": 20, "method": "atd/newDescription",
+        "params": {"kind": "diagram", "origin": "widgets", "name": "Widgets"}}));
+    assert_eq!(refused[0]["error"]["code"], -32602);
+}

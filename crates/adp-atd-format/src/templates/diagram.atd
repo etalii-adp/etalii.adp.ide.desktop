@@ -1,0 +1,55 @@
+atd 0.1
+
+/// __NAME__: a diagram of nodes and the links between them, kept in a YAML file.
+diagram __ORIGIN__ version "0.1.0" {
+  label "__NAME__"
+
+  model {
+    element Node {
+      attribute name: string required
+      labelAttribute: name
+    }
+    relation Link from Node to Node
+  }
+
+  notation {
+    node Node {
+      shape roundedRect
+      label @name
+    }
+    edge Link {
+      marker target arrow
+    }
+  }
+
+  layout {
+    default layered
+    algorithm layered { algorithm: layered, direction: right }
+  }
+
+  binding document family yaml {
+    label "__NAME__"
+    claims { extensions: [".__TYPE__.yaml"], origins: ["__ORIGIN__"] }
+    text { newline: lf, indent: 2 }
+    header { key: diagram, value: "__ORIGIN__", required: true }
+
+    element Node as node at "/nodes/*" {
+      id from key "id"
+      attribute name from key "name" { empty: refuse }
+      insert { place: after-last, container: "/nodes", create: { at: end }, keys: [id, name] }
+      remove { cascade: [link] }
+    }
+
+    relation Link as link at "/links/*" {
+      source from key "from"
+      target from key "to"
+      insert { place: after-last, container: "/links", create: { at: end }, keys: [from, to] }
+      remove {}
+    }
+
+    template """diagram: __ORIGIN__
+nodes: []
+links: []
+"""
+  }
+}

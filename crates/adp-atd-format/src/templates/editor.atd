@@ -1,0 +1,30 @@
+atd 0.1
+
+/// __NAME__: an editor whose text is the document, with an outline of its headings.
+editor __ORIGIN__ version "0.1.0" {
+  label "__NAME__"
+
+  model {
+    element Heading {
+      attribute title: string required
+      labelAttribute: title
+    }
+  }
+
+  surface text {
+    files "*.__TYPE__.txt"
+    outline Heading by title
+    fold Heading
+  }
+
+  binding text family lines {
+    label "__NAME__"
+    claims files "*.__TYPE__.txt"
+
+    element Heading as heading line r"^# (?<title>.+)$" {
+      attribute title from group "title" { empty: refuse }
+      insert { place: end, emit: "# {title}" }
+      remove {}
+    }
+  }
+}
