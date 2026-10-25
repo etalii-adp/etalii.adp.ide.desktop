@@ -346,7 +346,7 @@ Seen on the re-walk and not fixed: the *Group* panel lists its groups without th
 | 7/4 | One icon list, assessment first; a row at the title's end when everything fits, otherwise a column at the right | pass |
 | 7/5 | A wrapped title: handle, collapse and number as words of the first line, aligned to the top, later lines 12 from the box's edge | pass: the second line's first ink at 13 pixels from the box's edge, the standalone host's at 13 to 14 |
 | 7/6 | Padding 6, labels and description 12 from the left, 12 below the description | pass after fix W2 |
-| 7/7 | The same height unselected, selected and open for editing | pass in the desktop host: REQ-0003 is 104 pixels high in all three states in both hosts. The standalone host grows a box whose tags, category or state are empty when it is selected (REQ-0014, which has none, 32 to 52; REQ-0008 74 to 92), which the scenario forbids; the desktop host keeps the height (W5), and the difference is recorded below |
+| 7/7 | The same height unselected, selected and open for editing | pass in the desktop host: REQ-0003 is 104 pixels high in all three states in both hosts. The standalone host grows a box whose tags, category or state are empty when it is selected (REQ-0014, which has none, 32 to 52; REQ-0008 74 to 92), which the scenario forbids; the desktop host keeps the height (W5), and the difference is recorded below and raised as [standalone #720](https://github.com/etalii-adp/etalii.adp.ide.standalone/issues/720) |
 | 7/8 | Hover controls hidden until the pointer is over the box; add item and add requirement are icons; "n more levels" at every level | pass |
 | 7/9 | The trail follows the selection and names items only | pass |
 | 7/10 | A new item or requirement is revealed and selected | pass |
@@ -415,7 +415,7 @@ Each has a headless test in `crates/adp-shell/src/hierarchy/tests.rs` (or `theme
 - The notes list's *Add* is a plain button, where the standalone host's is filled green; the count of several notes is drawn small and low, like a subscript.
 - The list of completions is as wide as the field; the standalone host's is as wide as its entries.
 - On X11 the desktop host cannot follow a light system theme (above).
-- Seen in the standalone host, not in the desktop host: after another program wrote `web-shop.md`, selecting REQ-0014 offered no *New requirement below* in the ribbon, Ctrl+Enter did nothing, and "This item is no longer available." was shown, also after the project was opened again. The desktop host added below it as before.
+- Seen in the standalone host, not in the desktop host: after another program wrote `web-shop.md`, selecting REQ-0014 offered no *New requirement below* in the ribbon, Ctrl+Enter did nothing, and "This item is no longer available." was shown, also after the project was opened again. The desktop host added below it as before. Raised as [standalone #721](https://github.com/etalii-adp/etalii.adp.ide.standalone/issues/721).
 
 ### Screenshots
 

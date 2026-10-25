@@ -415,7 +415,12 @@ impl Surface {
             .flat_map(|job| {
                 job.sections
                     .iter()
-                    .map(|s| (job.text[s.byte_range.start.0..s.byte_range.end.0].to_owned(), s.format.font_id.family.clone()))
+                    .map(|s| {
+                        (
+                            job.text[s.byte_range.start.0..s.byte_range.end.0].to_owned(),
+                            s.format.font_id.family.clone(),
+                        )
+                    })
                     .collect::<Vec<_>>()
             })
             .collect();
@@ -2882,7 +2887,10 @@ mod filter_bar {
         let field = surface.get(Role::SearchInput, "Filter").bounds().unwrap();
         let clear = surface.get(Role::Button, "Clear the filter").bounds().unwrap();
         assert!(field.x1 - field.x0 < wide.x1 - wide.x0, "{field:?} {wide:?}");
-        assert!(clear.x1 <= f64::from(surface.window) && clear.y0 < field.y1, "{clear:?}");
+        assert!(
+            clear.x1 <= f64::from(surface.window) && clear.y0 < field.y1,
+            "{clear:?}"
+        );
     }
 
     #[test]

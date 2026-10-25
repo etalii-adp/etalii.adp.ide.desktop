@@ -654,7 +654,11 @@ pub fn filter_bar(ui: &mut egui::Ui, tab: &mut HierarchyTab, filters: &Filters, 
 fn icon_and_word(ui: &egui::Ui, icon: &str, word: &str, font: &FontId) -> egui::text::LayoutJob {
     let colour = ui.visuals().text_color();
     let mut job = egui::text::LayoutJob::default();
-    job.append(&icons::text(icon), 0.0, egui::TextFormat::simple(icons::font(font.size), colour));
+    job.append(
+        &icons::text(icon),
+        0.0,
+        egui::TextFormat::simple(icons::font(font.size), colour),
+    );
     job.append(word, 4.0, egui::TextFormat::simple(font.clone(), colour));
     job
 }

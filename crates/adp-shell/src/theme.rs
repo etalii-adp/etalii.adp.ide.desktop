@@ -235,7 +235,12 @@ mod tests {
         for theme in [Theme::dark(), Theme::light()] {
             let warning = warning(&theme);
             let background = theme.color("editor.background").unwrap();
-            let rgba = adp_theme::Rgba { r: warning.r(), g: warning.g(), b: warning.b(), a: 255 };
+            let rgba = adp_theme::Rgba {
+                r: warning.r(),
+                g: warning.g(),
+                b: warning.b(),
+                a: 255,
+            };
             let ratio = adp_theme::contrast::contrast_ratio(rgba, background);
             assert!(ratio >= 3.0, "{}: {ratio}", theme.name);
         }
