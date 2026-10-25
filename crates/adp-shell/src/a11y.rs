@@ -24,6 +24,13 @@ pub fn describe(response: &Response, role: Role, name: &str) {
     });
 }
 
+/// Names a field egui drew, keeping its role and its value: what a screen reader reads before the text typed in it.
+pub fn label(response: &Response, name: &str) {
+    response
+        .ctx
+        .accesskit_node_builder(response.id, |node| node.set_label(name));
+}
+
 /// A row of a tree: its name, its depth from one, whether it is selected and, when it has children, whether they show.
 pub fn tree_item(response: &Response, name: &str, level: usize, selected: bool, expanded: Option<bool>) {
     describe(response, Role::TreeItem, name);

@@ -13,17 +13,19 @@ const FONT: &[u8] = include_bytes!("../assets/materialdesignicons-subset.ttf");
 pub const FAMILY: &str = "icons";
 
 /// Every glyph of the subset, by the name the standalone host's class names give it, in name order.
-pub const GLYPHS: [(&str, char); 37] = [
+pub const GLYPHS: [(&str, char); 40] = [
     ("mdi-alert-circle-outline", '\u{F05D6}'),
     ("mdi-alert-outline", '\u{F002A}'),
     ("mdi-arrow-expand-horizontal", '\u{F084E}'),
     ("mdi-bookmark-plus-outline", '\u{F00C4}'),
     ("mdi-bookmark-remove-outline", '\u{F137A}'),
+    ("mdi-check", '\u{F012C}'),
     ("mdi-check-circle-outline", '\u{F05E1}'),
     ("mdi-checkbox-blank-outline", '\u{F0131}'),
     ("mdi-chevron-double-right", '\u{F013E}'),
     ("mdi-chevron-down", '\u{F0140}'),
     ("mdi-chevron-right", '\u{F0142}'),
+    ("mdi-chevron-up", '\u{F0143}'),
     ("mdi-close", '\u{F0156}'),
     ("mdi-comment-multiple-outline", '\u{F0181}'),
     ("mdi-comment-plus-outline", '\u{F0183}'),
@@ -51,6 +53,7 @@ pub const GLYPHS: [(&str, char); 37] = [
     ("mdi-tag-plus-outline", '\u{F1222}'),
     ("mdi-target", '\u{F04FE}'),
     ("mdi-text-box-plus-outline", '\u{F0EAB}'),
+    ("mdi-trash-can-outline", '\u{F0A7A}'),
 ];
 
 /// The glyph of the icon `name` (`mdi-plus`), when the subset has it.

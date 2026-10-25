@@ -1,12 +1,13 @@
-//! The table's header (the standalone host's `header/ColumnHeader.tsx`, `header/columnActions.ts`,
-//! `header/OptionsEditor.tsx` and `header/RelationEditor.tsx` at 8b6ccfc): one cell per visible column with its kind's
-//! mark, its name and its sort. Pressing a header opens its menu - the Knowledge designer's `columnActions` - dragging
-//! it moves the column, and dragging its right border resizes it, sent once on release; a column is renamed in its
-//! own cell; its options and its relation are edited in a panel under it.
+//! The table's header (the standalone host's `header/ColumnHeader.tsx`, `header/columnActions.ts` and
+//! `header/RelationEditor.tsx` at 8b6ccfc): one cell per visible column with its kind's mark, its name and its sort.
+//! Pressing a header opens its menu - the Knowledge designer's `columnActions` - dragging it moves the column, and
+//! dragging its right border resizes it, sent once on release; a column is renamed in its own cell; its options
+//! ([`super::options`]) and its relation are edited in a panel under it.
 
 use adp_desl::table::model::{TableColumn, TableGesture};
 use eframe::egui::{self, Align2, FontId, Pos2, Rect, RichText, Sense, Stroke, StrokeKind, Vec2};
 
+use super::options::{OptionsEditing, options_editor, table_question};
 use super::view::{Asked, CELL_PADDING, Colours, arrow, check_box, kind_mark};
 use super::{ColumnPanel, HeaderDrag, ROW_HEIGHT, TableTab, kind_label};
 
@@ -18,12 +19,6 @@ const RESIZE_STRIP: f32 = 7.0;
 pub const ADD_COLUMN: f32 = 40.0;
 /// The setting a column names the other side of its two-way relation under (`OTHER_SIDE`).
 const OTHER_SIDE: &str = "otherSide";
-/// The ten colours an option may have (`OPTION_COLORS`).
-pub const OPTION_COLOURS: [&str; 10] = [
-    "default", "gray", "brown", "orange", "yellow", "green", "blue", "purple", "pink", "red",
-];
-/// The setting a column says under how many rows have one of its options (`USES_PREFIX`).
-const USES_PREFIX: &str = "uses:";
 
 /// A width a drag may leave a column with: whole points, and never narrower than the minimum (`resizedWidth`).
 pub fn resized_width(start: f32, dx: f32) -> f32 {
@@ -499,9 +494,8 @@ fn act(tab: &mut TableTab, column: &TableColumn, action: ColumnAction, frozen_up
             None
         }
         ColumnAction::Options => {
-            tab.panel_text.clear();
+            tab.options_editing = OptionsEditing::default();
             tab.panel_refusal.clear();
-            tab.panel_asking = None;
             tab.column_panel = Some(ColumnPanel::Options {
                 column_id: column.id.clone(),
             });
@@ -670,12 +664,11 @@ fn column_panel(ui: &mut egui::Ui, tab: &mut TableTab, colours: &Colours) {
     }
     if ui.input(|i| i.key_pressed(egui::Key::Escape)) || outside {
         tab.column_panel = None;
-        tab.panel_asking = None;
+        tab.options_editing = OptionsEditing::default();
     }
 }
 
-/// A column's options, each renamed, recoloured, moved up or down and deleted, and a new one added; every change one
-/// gesture, made as it is chosen (`OptionsEditor.tsx`).
+/// A column's options, edited in [`super::options`], every change one gesture made as it is chosen.
 fn options_panel(
     ui: &mut egui::Ui,
     tab: &mut TableTab,
@@ -683,104 +676,16 @@ fn options_panel(
     column: &TableColumn,
     gestures: &mut Vec<TableGesture>,
 ) {
-    let count = column.options.len();
-    for (index, option) in column.options.iter().enumerate() {
-        let gesture = |kind: &str| TableGesture::new(kind).column(&column.id).target(&option.id);
-        ui.horizontal(|ui| {
-            ui.label(
-                RichText::new(&option.name)
-                    .color(colours.text)
-                    .background_color(colours.option(&option.color)),
-            );
-            let key = format!("name:{}", option.id);
-            let name = tab.panel_text.entry(key.clone()).or_insert_with(|| option.name.clone());
-            let field = ui.add(egui::TextEdit::singleline(name).desired_width(120.0));
-            if field.lost_focus() {
-                let next = name.trim().to_owned();
-                tab.panel_text.remove(&key);
-                if !next.is_empty() && next != option.name {
-                    gestures.push(gesture("renameOption").values([next]));
-                }
-            } else if !field.has_focus() {
-                // The model's name is the truth: a rename refused, or made elsewhere, shows here.
-                *name = option.name.clone();
-            }
-            let shown = if OPTION_COLOURS.contains(&option.color.as_str()) {
-                option.color.as_str()
-            } else {
-                "default"
-            };
-            egui::ComboBox::from_id_salt(tab.id().with(("option-colour", &option.id)))
-                .selected_text(capitalised(shown))
-                .show_ui(ui, |ui| {
-                    for colour in OPTION_COLOURS {
-                        if ui.selectable_label(colour == shown, capitalised(colour)).clicked() && colour != shown {
-                            gestures.push(gesture("recolourOption").setting("colour", colour));
-                        }
-                    }
-                });
-            if ui
-                .add_enabled(index > 0, egui::Button::new("Up"))
-                .on_hover_text(format!("Move {} up", option.name))
-                .clicked()
-            {
-                gestures.push(gesture("moveOption").index(index as i64 - 1));
-            }
-            if ui
-                .add_enabled(index + 1 < count, egui::Button::new("Down"))
-                .on_hover_text(format!("Move {} down", option.name))
-                .clicked()
-            {
-                gestures.push(gesture("moveOption").index(index as i64 + 1));
-            }
-            let uses: usize = column
-                .settings
-                .get(&format!("{USES_PREFIX}{}", option.id))
-                .and_then(|u| u.parse().ok())
-                .unwrap_or(0);
-            if ui
-                .button("Delete")
-                .on_hover_text(format!("Delete {}", option.name))
-                .clicked()
-            {
-                if uses > 0 {
-                    tab.panel_asking = Some(option.id.clone());
-                } else {
-                    gestures.push(gesture("deleteOption"));
-                }
-            }
-            if tab.panel_asking.as_deref() == Some(option.id.as_str()) {
-                // An option some rows have is not deleted on one press: its author is told how many first.
-                ui.label(if uses == 1 {
-                    "1 row has this option. Deleting it clears that value.".to_owned()
-                } else {
-                    format!("{uses} rows have this option. Deleting it clears those values.")
-                });
-                if ui.button("Delete").clicked() {
-                    tab.panel_asking = None;
-                    gestures.push(gesture("deleteOption"));
-                }
-                if ui.button("Keep").clicked() {
-                    tab.panel_asking = None;
-                }
-            }
-        });
-    }
-    ui.horizontal(|ui| {
-        let adding = tab.panel_text.entry("new".to_owned()).or_default();
-        let field = ui.add(
-            egui::TextEdit::singleline(adding)
-                .hint_text("Add an option…")
-                .desired_width(160.0),
-        );
-        let entered = field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-        let name = adding.trim().to_owned();
-        let pressed = ui.add_enabled(!name.is_empty(), egui::Button::new("Add")).clicked();
-        if (entered || pressed) && !name.is_empty() {
-            gestures.push(TableGesture::new("addOption").column(&column.id).values([name]));
-            tab.panel_text.remove("new");
-        }
-    });
+    let id = tab.id().with(("options", &column.id));
+    gestures.extend(options_editor(
+        ui,
+        &mut tab.options_editing,
+        id,
+        column,
+        colours,
+        true,
+        &table_question,
+    ));
 }
 
 /// A relation's own settings: the table it relates to, said; how many rows a cell holds; and whether the other
@@ -847,12 +752,4 @@ fn relation_panel(
     if !tab.panel_refusal.is_empty() {
         ui.colored_label(colours.danger, &tab.panel_refusal);
     }
-}
-
-fn capitalised(word: &str) -> String {
-    let mut letters = word.chars();
-    letters
-        .next()
-        .map(|first| first.to_uppercase().chain(letters).collect())
-        .unwrap_or_default()
 }

@@ -20,10 +20,13 @@
 //! - A reference in a description as a box ([`super::references`], T046): its target's number on a raised ground and
 //!   its current title, a press or Enter on it showing the target; one that names nothing as written, marked broken and
 //!   outlined dashed. The lookup a `#` opens stands under the field it was typed in.
+//! - The labels below the title ([`super::labels`], T047): the field's values first, which open its list, as does its
+//!   control among the box's icons; then the labels only shown; then each picker, its value or, on the selected box,
+//!   the way to give one.
 //! - Everything a frame is asked is collected while the page is drawn and carried out after it.
 
 use adp_desl::hierarchy::definition::{
-    ADD_DESCRIPTION_ICON, DELETE_ICON, FOCUS_ICON, GRIP_ICON, HIDDEN_LEVELS_ICON, LabelLook,
+    ADD_DESCRIPTION_ICON, DELETE_ICON, FOCUS_ICON, GRIP_ICON, HIDDEN_LEVELS_ICON, LabelDefinition, LabelLook,
 };
 use adp_desl::hierarchy::model::{SurfaceNode, roles};
 use adp_theme::Theme;
@@ -33,6 +36,7 @@ use eframe::egui::{
 };
 
 use super::editing::{self, Attribute, DropHint, DropKind, OpenField};
+use super::labels;
 use super::layout::{
     BOX_SPACING, ENTRY_MIN_WIDTH, GRIP_WIDTH, HEADER_GAP, HierarchyIndex, ICON_SIZE, IconsLayout, LINE_HEIGHT,
     PAGE_MARGIN, header_width, icons_layout,
@@ -86,6 +90,30 @@ struct ReferenceBox {
     name: String,
 }
 
+/// The icon of the control that adds a value to a box's field, and the mark of a picker with no value
+/// (`.hs-tag-add`, `.hs-pick-empty`).
+const TAG_ADD_ICON: &str = "mdi-tag-plus-outline";
+const TAG_EMPTY_ICON: &str = "mdi-plus";
+
+/// One tag of a box's labels: its look, its text, its colour, the part of the row the page changes it is drawn in, and
+/// whether it is the way to give a value rather than one.
+struct Tag {
+    look: LabelLook,
+    text: String,
+    fill: Color32,
+    chip: Option<usize>,
+    empty: bool,
+}
+
+/// A part of a box's labels the page changes: a field's values, or a picker's value or the way to give one; the label,
+/// where it is drawn and what a screen reader calls it.
+struct Chip {
+    label: String,
+    pick: bool,
+    place: Rect,
+    name: String,
+}
+
 /// What a frame of the page asked for, carried out once the page is drawn.
 enum Act {
     Toggle(String),
@@ -104,6 +132,10 @@ enum Act {
     EndDrag,
     /// The icon at a box's top right: its list of notes opened or closed.
     ToggleNotes(String),
+    /// A label's field or its control: the node and the label whose list opens.
+    OpenLabels(String, String),
+    /// A label's picker: its list opened, or closed when it is open.
+    TogglePick(String, String),
     /// The conflict bar's two sides: drop what was typed, or keep it.
     ShowFile,
     KeepText,
@@ -161,6 +193,8 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
             Act::Cancel => tab.cancel_field(),
             Act::ShowFile => tab.show_file(),
             Act::ToggleNotes(id) => tab.toggle_notes(&id),
+            Act::OpenLabels(id, label) => tab.toggle_label_list(&id, &label, false),
+            Act::TogglePick(id, label) => tab.toggle_label_list(&id, &label, true),
             Act::KeepText => tab.keep_text(),
             Act::Delete(id, ask) => tab.delete(&id, ask),
             Act::StartDrag(id) => {
@@ -183,6 +217,12 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
         .and_then(|n| drawn.note_icons.iter().find(|(id, _)| *id == n.node_id))
         .map(|(_, rect)| *rect);
     super::notes::show(ui, tab, anchor, &colours, &font);
+    let anchor = tab
+        .label_list
+        .as_ref()
+        .and_then(|l| drawn.label_rows.iter().find(|(id, _)| *id == l.node_id))
+        .map(|(_, rect)| *rect);
+    super::labels::show(ui, tab, anchor, &colours, &font);
     confirm_delete(ui, tab);
 }
 
@@ -190,8 +230,8 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
 /// the definition sends with Ctrl or Cmd held, Shift too or not, which runs the selected node's action of that key.
 fn keys(ui: &mut egui::Ui, tab: &mut HierarchyTab, acts: &mut Vec<Act>) {
     let free = ui.memory(|m| m.focused().is_none_or(|f| f == tab.id()));
-    // An open list of notes keeps the keys for itself.
-    let busy = tab.field.is_some() || tab.deleting.is_some() || tab.notes.is_some();
+    // An open list of notes or of a label keeps the keys for itself.
+    let busy = tab.field.is_some() || tab.deleting.is_some() || tab.notes.is_some() || tab.label_list.is_some();
     if !free || busy || tab.selected.is_empty() || tab.read_only() {
         return;
     }
@@ -244,6 +284,8 @@ struct Drawn {
     slot: Option<Rect>,
     /// The icon at each box's top right, which its list of notes opens under.
     note_icons: Vec<(String, Rect)>,
+    /// The place of each box's labels, which a label's list opens under.
+    label_rows: Vec<(String, Rect)>,
 }
 
 /// Where the node being dragged would go with the pointer where it is: over the place the drop is shown at, the drop
@@ -654,6 +696,16 @@ impl Page<'_, '_> {
             let name = format!("Focus on {} {}", node.number, node.title);
             controls.push((FOCUS_ICON, name.clone(), name, Act::Focus(node.id.clone()), true));
         }
+        let field = labels::field_of(&tab.definition.labels, node).filter(|_| self.editable);
+        if let Some((field, edit)) = field.and_then(|f| f.edit.as_ref().map(|e| (f, e))) {
+            controls.push((
+                TAG_ADD_ICON,
+                format!("{} to {}", edit.words.add, node.number),
+                edit.words.add.clone(),
+                Act::OpenLabels(node.id.clone(), field.label.clone()),
+                true,
+            ));
+        }
         if offers_description {
             let name = "Add a description".to_owned();
             controls.push((
@@ -719,7 +771,13 @@ impl Page<'_, '_> {
         painter.galley(number_at, number, colours.muted);
         let title_bottom = y;
 
-        y = self.labels(&painter, node, Pos2::new(left + BOX_SPACING, y), text_right);
+        let (labels_bottom, chips) =
+            self.labels(&painter, node, Pos2::new(left + BOX_SPACING, y), text_right, selected);
+        y = labels_bottom;
+        self.drawn.label_rows.push((
+            node.id.clone(),
+            Rect::from_min_max(Pos2::new(left + BOX_SPACING, title_bottom), Pos2::new(text_right, y)),
+        ));
         let mut description_field = None;
         let mut description_area = None;
         let mut references = Vec::new();
@@ -813,6 +871,36 @@ impl Page<'_, '_> {
                 if response.clicked() {
                     self.acts.push(Act::Reveal(reference.target_id.clone()));
                 }
+            }
+        }
+
+        // The labels the page changes, over the box: a field's values and a picker open their lists.
+        for (i, chip) in chips.iter().enumerate() {
+            let response = ui.interact(chip.place, id.with(("label", i)), Sense::click());
+            a11y::describe(&response, Role::Button, &chip.name);
+            let open = tab
+                .label_list
+                .as_ref()
+                .is_some_and(|l| l.node_id == node.id && l.label == chip.label);
+            if chip.pick {
+                response
+                    .ctx
+                    .accesskit_node_builder(response.id, |n| n.set_expanded(open));
+            }
+            if response.hovered() {
+                ui.painter().rect_stroke(
+                    chip.place.expand(1.0),
+                    3.0,
+                    Stroke::new(1.0, colours.focus),
+                    StrokeKind::Outside,
+                );
+            }
+            if response.clicked() {
+                self.acts.push(if chip.pick {
+                    Act::TogglePick(node.id.clone(), chip.label.clone())
+                } else {
+                    Act::OpenLabels(node.id.clone(), chip.label.clone())
+                });
             }
         }
 
@@ -1179,70 +1267,151 @@ impl Page<'_, '_> {
         job
     }
 
-    /// The labels' values as tags below the title, in the definition's order and each in its look; the bottom of the
-    /// row, or `at`'s top when the node carries none.
-    fn labels(&self, painter: &egui::Painter, node: &SurfaceNode, at: Pos2, right: f32) -> f32 {
+    /// The labels' values as tags below the title, each in its look: the field's first, then the labels only shown, then
+    /// the pickers, a picker without a value showing the way to give one on the selected box of a document that can
+    /// change. The bottom of the row, or `at`'s top when it shows nothing, and the parts of it the page changes.
+    fn labels(
+        &self,
+        painter: &egui::Painter,
+        node: &SurfaceNode,
+        at: Pos2,
+        right: f32,
+        selected: bool,
+    ) -> (f32, Vec<Chip>) {
         let colours = self.colours;
         let font = FontId::proportional(TAG_FONT);
-        let mut tags: Vec<(LabelLook, String, Color32)> = Vec::new();
-        for label in self
+        let on: Vec<&LabelDefinition> = self
             .tab
             .definition
             .labels
             .iter()
             .filter(|l| l.on.contains(&node.type_name))
-        {
-            let Some(values) = node.labels.iter().find(|v| v.label == label.label) else {
+            .collect();
+        let field = labels::field_of(&self.tab.definition.labels, node);
+        let mut tags: Vec<Tag> = Vec::new();
+        let mut chips: Vec<Chip> = Vec::new();
+        let tag = |label: &LabelDefinition, text: &str, chip: Option<usize>, empty: bool| Tag {
+            look: label.look(),
+            text: text.to_owned(),
+            fill: colours.option(&self.colour_of(&label.label, text)),
+            chip,
+            empty,
+        };
+        if let Some(field) = field {
+            let values = labels::values_of(node, &field.label);
+            let chip = (self.editable && !values.is_empty()).then(|| {
+                let list = field
+                    .edit
+                    .as_ref()
+                    .map_or(field.label.as_str(), |e| e.words.list.as_str());
+                chips.push(Chip {
+                    label: field.label.clone(),
+                    pick: false,
+                    place: Rect::NOTHING,
+                    name: format!("{list} of {}: {}", node.number, values.join(", ")),
+                });
+                chips.len() - 1
+            });
+            tags.extend(values.iter().map(|v| tag(field, v, chip, false)));
+        }
+        for label in on.iter().filter(|l| Some(**l) != field && l.pick.is_none()) {
+            tags.extend(
+                labels::values_of(node, &label.label)
+                    .iter()
+                    .map(|v| tag(label, v, None, false)),
+            );
+        }
+        for label in on.iter().filter(|l| l.pick.is_some()) {
+            let value = labels::values_of(node, &label.label).first();
+            if !self.editable {
+                tags.extend(value.map(|v| tag(label, v, None, false)));
                 continue;
-            };
-            for value in &values.values {
-                tags.push((
-                    label.look(),
-                    value.clone(),
-                    colours.option(&self.colour_of(&label.label, value)),
-                ));
             }
+            if value.is_none() && !selected {
+                continue;
+            }
+            chips.push(Chip {
+                label: label.label.clone(),
+                pick: true,
+                place: Rect::NOTHING,
+                name: format!(
+                    "{} of {}: {}",
+                    label.value_word(),
+                    node.number,
+                    value.map_or("none", String::as_str)
+                ),
+            });
+            let chip = Some(chips.len() - 1);
+            tags.push(match value {
+                Some(v) => tag(label, v, chip, false),
+                None => tag(label, label.value_word(), chip, true),
+            });
         }
         if tags.is_empty() {
-            return at.y;
+            return (at.y, chips);
         }
         let mut x = at.x;
         let mut y = at.y + TAG_GAP;
-        for (look, value, fill) in tags {
-            let text = if look == LabelLook::Tag {
-                format!("#{value}")
+        for tag in tags {
+            let text = if tag.look == LabelLook::Tag && !tag.empty {
+                format!("#{}", tag.text)
             } else {
-                value
+                tag.text
             };
-            let galley = painter.layout_no_wrap(text, font.clone(), colours.text);
-            let dot = if look == LabelLook::Status { 6.0 + 5.0 } else { 0.0 };
-            let width = galley.size().x + 2.0 * TAG_PADDING + dot;
+            let text_colour = if tag.empty { colours.muted } else { colours.text };
+            let galley = painter.layout_no_wrap(text, font.clone(), text_colour);
+            let lead = if tag.empty {
+                TAG_FONT + 2.0
+            } else if tag.look == LabelLook::Status {
+                6.0 + 5.0
+            } else {
+                0.0
+            };
+            let width = galley.size().x + 2.0 * TAG_PADDING + lead;
             if x > at.x && x + width > right {
                 x = at.x;
                 y += TAG_HEIGHT + TAG_GAP;
             }
-            let tag = Rect::from_min_size(Pos2::new(x, y), Vec2::new(width, TAG_HEIGHT));
-            let radius = if look == LabelLook::Badge {
+            let place = Rect::from_min_size(Pos2::new(x, y), Vec2::new(width, TAG_HEIGHT));
+            let radius = if tag.look == LabelLook::Badge {
                 3.0
             } else {
                 TAG_HEIGHT / 2.0
             };
-            painter.rect_filled(tag, radius, fill);
-            if dot > 0.0 {
+            if tag.empty {
+                // The way to give a value: its word after a plus, outlined.
+                painter.rect_stroke(place, radius, Stroke::new(1.0, colours.border), StrokeKind::Inside);
+                painter.text(
+                    Pos2::new(place.left() + TAG_PADDING + TAG_FONT / 2.0, place.center().y),
+                    Align2::CENTER_CENTER,
+                    icons::text(TAG_EMPTY_ICON),
+                    icons::font(TAG_FONT),
+                    colours.muted,
+                );
+            } else {
+                painter.rect_filled(place, radius, tag.fill);
+            }
+            if tag.look == LabelLook::Status && !tag.empty {
                 painter.circle_filled(
-                    Pos2::new(tag.left() + TAG_PADDING + 3.0, tag.center().y),
+                    Pos2::new(place.left() + TAG_PADDING + 3.0, place.center().y),
                     3.0,
                     colours.text.gamma_multiply(0.6),
                 );
             }
             painter.galley(
-                Pos2::new(tag.left() + TAG_PADDING + dot, tag.center().y - galley.size().y / 2.0),
+                Pos2::new(
+                    place.left() + TAG_PADDING + lead,
+                    place.center().y - galley.size().y / 2.0,
+                ),
                 galley,
-                colours.text,
+                text_colour,
             );
-            x = tag.right() + TAG_GAP;
+            if let Some(chip) = tag.chip {
+                chips[chip].place = chips[chip].place.union(place);
+            }
+            x = place.right() + TAG_GAP;
         }
-        y + TAG_HEIGHT
+        (y + TAG_HEIGHT, chips)
     }
 
     /// The colour the option list of `label` gives `value`, matched by name or id as a person types it.
@@ -1262,9 +1431,6 @@ impl Page<'_, '_> {
             .unwrap_or_else(|| "default".to_owned())
     }
 
-    /// One of a box's controls: its icon in `place`, named `label` for a screen reader and showing `tooltip` under the
-    /// pointer; whether it was pressed. A control not `visible` keeps its place and takes no press.
-    #[allow(clippy::too_many_arguments)]
     /// The notes' icon in `place`: the mark of the open notes in the warning colour, with their count when there are
     /// several, or the way to add the first.
     fn note_icon(&self, ui: &mut egui::Ui, place: Rect, control: &NoteControl, id: egui::Id, open: bool) -> bool {
@@ -1300,6 +1466,8 @@ impl Page<'_, '_> {
         response.on_hover_text(&control.label).clicked()
     }
 
+    /// One of a box's controls: its icon in `place`, named `label` for a screen reader and showing `tooltip` under the
+    /// pointer; whether it was pressed.
     fn icon_button(
         &self,
         ui: &mut egui::Ui,
