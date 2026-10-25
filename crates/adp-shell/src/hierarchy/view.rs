@@ -59,7 +59,7 @@ const TAG_GAP: f32 = 4.0;
 const TAG_HEIGHT: f32 = 18.0;
 const TAG_PADDING: f32 = 7.0;
 const TAG_FONT: f32 = 11.0;
-/// The space above a description and below it.
+/// The space above a description and below it, inside the box's own padding: 12 stand below it (Story 7, scenario 6).
 const DESCRIPTION_TOP: f32 = 4.0;
 const DESCRIPTION_BOTTOM: f32 = 6.0;
 /// An add control's size, the space between two, the space around a level's row of them and around the page's, and
@@ -104,6 +104,9 @@ struct Tag {
     fill: Color32,
     chip: Option<usize>,
     empty: bool,
+    /// The way to give a value, which only the selected box shows: laid out on every box, so that selecting one does
+    /// not change its height, and drawn on the selected one alone.
+    hidden: bool,
 }
 
 /// A part of a box's labels the page changes: a field's values, or a picker's value or the way to give one; the label,
@@ -156,11 +159,8 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
     trail(ui, tab, &colours, &font, &mut acts);
     if tab.read_only() {
         bar(ui, &colours, |ui| {
-            ui.label(
-                RichText::new(icons::text("mdi-lock-outline"))
-                    .font(icons::font(font.size))
-                    .color(colours.muted),
-            );
+            let mark = icons::mark(ui, "mdi-lock-outline", font.size, colours.muted);
+            a11y::decoration(&mark);
             let reason = ui.label(RichText::new(&tab.model.read_only_reason).color(colours.muted));
             a11y::describe(&reason, Role::Status, &tab.model.read_only_reason);
         });
@@ -382,11 +382,8 @@ fn trail_steps(
 ) {
     trail_step(ui, title, current == Some(""), "", colours, acts);
     for (id, text) in path {
-        ui.label(
-            RichText::new(icons::text("mdi-chevron-right"))
-                .font(icons::font(font.size))
-                .color(colours.muted),
-        );
+        let mark = icons::mark(ui, "mdi-chevron-right", font.size, colours.muted);
+        a11y::decoration(&mark);
         trail_step(ui, text, current == Some(id.as_str()), id, colours, acts);
     }
 }
@@ -431,11 +428,7 @@ fn finding_row(ui: &mut egui::Ui, finding: &SurfaceFinding, colours: &Colours, f
                 "warning" => ("mdi-alert-outline", colours.warning),
                 _ => ("mdi-information-outline", colours.muted),
             };
-            let mark = ui.label(
-                RichText::new(icons::text(icon))
-                    .font(icons::font(font.size))
-                    .color(colour),
-            );
+            let mark = icons::mark(ui, icon, font.size, colour);
             a11y::describe(&mark, Role::Image, &finding.severity);
             if finding.node_id.is_empty() {
                 ui.label(RichText::new(&finding.message).color(colours.text));
@@ -835,7 +828,7 @@ impl Page<'_, '_> {
                 // Where the text stood and as high as it, ending short of the controls.
                 let height = self.field_height(&painter, width);
                 description_field = Some(Rect::from_min_size(at, Vec2::new(width, height)));
-                y += DESCRIPTION_TOP + height + DESCRIPTION_BOTTOM - BOX_SPACING;
+                y += DESCRIPTION_TOP + height + DESCRIPTION_BOTTOM;
             } else if !node.description.is_empty() {
                 let (job, spans) = self.description_job(node, width);
                 let galley = painter.layout_job(job);
@@ -843,7 +836,7 @@ impl Page<'_, '_> {
                 description_area = Some(Rect::from_min_size(at, Vec2::new(width, height)));
                 references = self.reference_boxes(&painter, &galley, at, spans);
                 painter.galley(at, galley, colours.text);
-                y += DESCRIPTION_TOP + height + DESCRIPTION_BOTTOM - BOX_SPACING;
+                y += DESCRIPTION_TOP + height + DESCRIPTION_BOTTOM;
             }
         }
         // The delete stands under the controls, in a row or a column: a box of one line keeps the room for both.
@@ -1007,8 +1000,11 @@ impl Page<'_, '_> {
         if let Some(place) = title_field.or(description_field) {
             self.text_field(ui, place);
         }
-        if tab.dragging.as_ref().is_some_and(|d| d.id == node.id) {
-            // The node being dragged stays in its place, faded.
+        let carried = |dragged: &SurfaceNode| {
+            dragged.id == node.id || self.index.ancestors_of(&node.id).iter().any(|a| a.id == dragged.id)
+        };
+        if tab.dragging.as_ref().is_some_and(carried) {
+            // The node being dragged stays in its place, faded with everything it carries (`.hs-dragging`).
             painter.rect_filled(outline, 0.0, colours.surface.gamma_multiply(0.55));
         }
         height
@@ -1343,6 +1339,7 @@ impl Page<'_, '_> {
             fill: colours.option(&self.colour_of(&label.label, text)),
             chip,
             empty,
+            hidden: false,
         };
         if let Some(field) = field {
             let values = labels::values_of(node, &field.label);
@@ -1375,6 +1372,10 @@ impl Page<'_, '_> {
                 continue;
             }
             if value.is_none() && !selected {
+                tags.push(Tag {
+                    hidden: true,
+                    ..tag(label, label.value_word(), None, true)
+                });
                 continue;
             }
             chips.push(Chip {
@@ -1420,6 +1421,10 @@ impl Page<'_, '_> {
                 y += TAG_HEIGHT + TAG_GAP;
             }
             let place = Rect::from_min_size(Pos2::new(x, y), Vec2::new(width, TAG_HEIGHT));
+            if tag.hidden {
+                x = place.right() + TAG_GAP;
+                continue;
+            }
             let radius = if tag.look == LabelLook::Badge {
                 3.0
             } else {

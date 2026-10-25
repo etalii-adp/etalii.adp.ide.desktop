@@ -296,7 +296,7 @@ impl TextEditor {
                             MarkLevel::Error => {
                                 color(theme, &["editorError.foreground", "errorForeground"], Color32::RED)
                             }
-                            MarkLevel::Warning => color(theme, &["editorWarning.foreground"], Color32::YELLOW),
+                            MarkLevel::Warning => crate::theme::warning(theme),
                             MarkLevel::Info => color(theme, &["editorInfo.foreground"], Color32::LIGHT_BLUE),
                         };
                         squiggle(&painter, left, right, top + row_height - 3.0, colour);

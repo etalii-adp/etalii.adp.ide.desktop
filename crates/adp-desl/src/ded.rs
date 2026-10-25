@@ -102,9 +102,11 @@ impl DedEnvelope {
     /// does not implement, or a designer type `installed` does not know. None when it is read as DED says.
     pub fn read_only_reason(&self, installed: impl Fn(&str) -> bool) -> Option<String> {
         if !DED_VERSIONS.contains(&self.ded.as_str()) {
+            // The standalone host's sentence (`DedEnvelope.ReadOnlyReason` at a7fdf03), naming the last version read.
             return Some(format!(
-                "This document is written in DED {}, a version this application does not know. It is left exactly as it is and cannot be changed here.",
-                self.ded
+                "This document is written in DED {}, and this application reads DED {} and earlier. It is left exactly as it is and cannot be changed here.",
+                self.ded,
+                DED_VERSIONS[DED_VERSIONS.len() - 1]
             ));
         }
         if !installed(&self.designer) {

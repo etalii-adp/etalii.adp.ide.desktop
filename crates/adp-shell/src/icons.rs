@@ -66,6 +66,17 @@ pub fn text(name: &str) -> String {
     glyph(name).map(String::from).unwrap_or_default()
 }
 
+/// Draws the icon `name` at `size` points in `colour` where the layout of `ui` places it next. It is painted rather than
+/// laid out as a label, so that no text of it reaches a screen reader: its glyph is a private-use character a reader
+/// spells out. Name the icon with [`crate::a11y::describe`] where it says something, or pass it over with
+/// [`crate::a11y::decoration`] where the text beside it does.
+pub fn mark(ui: &mut egui::Ui, name: &str, size: f32, colour: egui::Color32) -> egui::Response {
+    let galley = ui.painter().layout_no_wrap(text(name), font(size), colour);
+    let (rect, response) = ui.allocate_exact_size(galley.size(), egui::Sense::hover());
+    ui.painter().galley(rect.min, galley, colour);
+    response
+}
+
 /// The icons' font at `size` points.
 pub fn font(size: f32) -> FontId {
     FontId::new(size, FontFamily::Name(FAMILY.into()))

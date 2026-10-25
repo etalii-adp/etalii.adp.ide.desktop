@@ -59,7 +59,7 @@ impl Validator for EditorValidator {
 /// Draws the panel; returns the file and line the person double-clicked.
 pub fn show(ui: &mut egui::Ui, set: &ProblemSet, theme: &Theme) -> Option<(String, u32)> {
     let error = color(theme, &["editorError.foreground", "errorForeground"], Color32::RED);
-    let warning = color(theme, &["editorWarning.foreground"], Color32::YELLOW);
+    let warning = crate::theme::warning(theme);
     let info = color(theme, &["editorInfo.foreground"], Color32::LIGHT_BLUE);
     let muted = color(theme, &["descriptionForeground"], Color32::GRAY);
     let mut open = None;

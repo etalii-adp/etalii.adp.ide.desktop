@@ -57,7 +57,7 @@ impl Colours {
             focus: palette.focus,
             danger: c(&["errorForeground"], Color32::RED),
             danger_bg: c(&["inputValidation.errorBackground"], palette.notification_background),
-            warning: c(&["editorWarning.foreground"], Color32::YELLOW),
+            warning: crate::theme::warning(theme),
             warning_bg: c(&["inputValidation.warningBackground"], palette.notification_background),
             kind: theme.kind,
         }

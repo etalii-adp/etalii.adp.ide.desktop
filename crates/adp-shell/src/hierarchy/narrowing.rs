@@ -486,6 +486,8 @@ pub struct FilterBar {
     pub name: String,
     /// Whether the name field opened since the last frame, which gives it the keyboard.
     pub opened: bool,
+    /// The query field's width, which takes what the bar leaves beside what follows it; none until it was measured.
+    pub field_width: f32,
 }
 
 impl HierarchyTab {
@@ -561,76 +563,104 @@ impl HierarchyTab {
 /// is completed from a list under the field: the labels' members with their prefixes, the prefixes, and the sort keys;
 /// Tab or Enter takes the one marked, a click any, the arrows mark another and Escape closes it until the word changes.
 pub fn filter_bar(ui: &mut egui::Ui, tab: &mut HierarchyTab, filters: &Filters, colours: &Colours, font: &FontId) {
-    ui.label(
-        RichText::new(icons::text("mdi-filter-variant"))
-            .font(icons::font(font.size))
-            .color(colours.muted),
-    );
-    query_field(ui, tab, filters);
-    let words = tab.words();
-    let keys = sort_keys(&tab.definition.labels, &filters.sort_keys);
-    if let Some(key) = sort_menu(ui, tab.id().with("sort"), &keys, sort_of(&words)) {
-        tab.set_sort(&key);
-    }
-    let applied = tab.applied_filter().cloned();
-    if !tab.model.filters.is_empty() {
-        let shown = applied.as_ref().map_or("Stored filters", |f| f.name.as_str());
-        let mut picked = None;
-        let choice = egui::ComboBox::from_id_salt(tab.id().with("stored"))
-            .selected_text(shown)
-            .show_ui(ui, |ui| {
-                for filter in &tab.model.filters {
-                    let option = ui.selectable_label(applied.as_ref() == Some(filter), &filter.name);
-                    a11y::describe(&option, Role::ListBoxOption, &filter.name);
-                    if option.clicked() {
-                        picked = Some(filter.query.clone());
+    // The bar's right edge before anything is drawn: a line that overflows widens the bar's rectangle with it.
+    let right = ui.max_rect().right();
+    let mark = icons::mark(ui, "mdi-filter-variant", font.size, colours.muted);
+    a11y::decoration(&mark);
+    let field = query_field(ui, tab, filters);
+    // What follows the field stands together, so that its width is known wherever the bar wraps it.
+    let after = ui.horizontal(|ui| {
+        let words = tab.words();
+        let keys = sort_keys(&tab.definition.labels, &filters.sort_keys);
+        // The sort's icon stands before its menu, as the filter's before its field: drawn in the icon font, not the menu's.
+        let mark = icons::mark(ui, "mdi-sort", font.size, colours.muted);
+        a11y::decoration(&mark);
+        if let Some(key) = sort_menu(ui, tab.id().with("sort"), &keys, sort_of(&words)) {
+            tab.set_sort(&key);
+        }
+        let applied = tab.applied_filter().cloned();
+        if !tab.model.filters.is_empty() {
+            let shown = applied.as_ref().map_or("Stored filters", |f| f.name.as_str());
+            let mut picked = None;
+            let choice = egui::ComboBox::from_id_salt(tab.id().with("stored"))
+                .selected_text(shown)
+                .show_ui(ui, |ui| {
+                    for filter in &tab.model.filters {
+                        let option = ui.selectable_label(applied.as_ref() == Some(filter), &filter.name);
+                        a11y::describe(&option, Role::ListBoxOption, &filter.name);
+                        if option.clicked() {
+                            picked = Some(filter.query.clone());
+                        }
                     }
+                });
+            a11y::describe(&choice.response, Role::ComboBox, "Stored filters");
+            if let Some(query) = picked {
+                tab.query = query;
+            }
+        }
+        if tab.filter_bar.naming.is_some() {
+            name_field(ui, tab);
+        } else if !tab.read_only() {
+            if !tab.query.trim().is_empty() && applied.is_none() {
+                let store = ui
+                    .button(icon_and_word(ui, "mdi-bookmark-plus-outline", "Store", font))
+                    .on_hover_text("Store this filter under a name");
+                a11y::describe(&store, Role::Button, "Store");
+                if store.clicked() {
+                    tab.start_naming(Naming::Store);
                 }
-            });
-        a11y::describe(&choice.response, Role::ComboBox, "Stored filters");
-        if let Some(query) = picked {
-            tab.query = query;
-        }
-    }
-    if tab.filter_bar.naming.is_some() {
-        name_field(ui, tab);
-    } else if !tab.read_only() {
-        if !tab.query.trim().is_empty() && applied.is_none() {
-            let store = ui
-                .button(format!("{} Store", icons::text("mdi-bookmark-plus-outline")))
-                .on_hover_text("Store this filter under a name");
-            a11y::describe(&store, Role::Button, "Store");
-            if store.clicked() {
-                tab.start_naming(Naming::Store);
+            }
+            if let Some(filter) = &applied {
+                if icon_button(ui, "mdi-pencil-outline", &format!("Rename {}", filter.name), "Rename") {
+                    tab.start_naming(Naming::Rename(filter.clone()));
+                }
+                if icon_button(
+                    ui,
+                    "mdi-bookmark-remove-outline",
+                    &format!("Remove {}", filter.name),
+                    "Remove",
+                ) {
+                    tab.remove_filter(&filter.id);
+                }
             }
         }
-        if let Some(filter) = &applied {
-            if icon_button(ui, "mdi-pencil-outline", &format!("Rename {}", filter.name), "Rename") {
-                tab.start_naming(Naming::Rename(filter.clone()));
-            }
-            if icon_button(
-                ui,
-                "mdi-bookmark-remove-outline",
-                &format!("Remove {}", filter.name),
-                "Remove",
-            ) {
-                tab.remove_filter(&filter.id);
-            }
+        if !tab.query.is_empty() && icon_button(ui, "mdi-close", "Clear the filter", "Clear") {
+            tab.query.clear();
         }
+        let narrowing = tab.narrowing();
+        let entries: Vec<&SurfaceNode> = tab.model.nodes.iter().filter(|n| n.role == roles::ENTRY).collect();
+        let shown = entries.iter().filter(|n| narrowing.shows(n)).count();
+        let count = if shown == entries.len() {
+            format!("{} {}", entries.len(), filters.entries)
+        } else {
+            format!("{shown} of {} {}", entries.len(), filters.entries)
+        };
+        let status = ui.label(RichText::new(&count).color(colours.muted));
+        a11y::describe(&status, Role::Status, &count);
+    });
+    // The field takes what the bar has left, as the standalone host's does (`.hs-filter-field`, flex 1): the line from
+    // the field's left edge less what follows it, measured in this frame for the next. Measured by the group's width
+    // rather than by where it ended, so that a frame in which it wrapped does not narrow the field for the next one.
+    let spacing = ui.spacing().item_spacing.x;
+    let width = (right - field.left() - spacing - after.response.rect.width()).max(QUERY_MIN_WIDTH);
+    if (width - tab.filter_bar.field_width).abs() > 0.5 {
+        tab.filter_bar.field_width = width;
+        ui.ctx().request_repaint();
     }
-    if !tab.query.is_empty() && icon_button(ui, "mdi-close", "Clear the filter", "Clear") {
-        tab.query.clear();
-    }
-    let narrowing = tab.narrowing();
-    let entries: Vec<&SurfaceNode> = tab.model.nodes.iter().filter(|n| n.role == roles::ENTRY).collect();
-    let shown = entries.iter().filter(|n| narrowing.shows(n)).count();
-    let count = if shown == entries.len() {
-        format!("{} {}", entries.len(), filters.entries)
-    } else {
-        format!("{shown} of {} {}", entries.len(), filters.entries)
-    };
-    let status = ui.label(RichText::new(&count).color(colours.muted));
-    a11y::describe(&status, Role::Status, &count);
+}
+
+/// A control's text of an icon and a word, each in its own font: the icon font has no letters and the body font no
+/// icons, so one string in either draws the other as a missing glyph.
+fn icon_and_word(ui: &egui::Ui, icon: &str, word: &str, font: &FontId) -> egui::text::LayoutJob {
+    let colour = ui.visuals().text_color();
+    let mut job = egui::text::LayoutJob::default();
+    job.append(
+        &icons::text(icon),
+        0.0,
+        egui::TextFormat::simple(icons::font(font.size), colour),
+    );
+    job.append(word, 4.0, egui::TextFormat::simple(font.clone(), colour));
+    job
 }
 
 /// A control that is its icon alone, `name` for a screen reader and `tooltip` under the pointer; whether it was pressed.
@@ -640,8 +670,11 @@ fn icon_button(ui: &mut egui::Ui, icon: &str, name: &str, tooltip: &str) -> bool
     button.on_hover_text(tooltip).clicked()
 }
 
+/// The least width of the query field, the standalone host's `min-width`.
+const QUERY_MIN_WIDTH: f32 = 160.0;
+
 /// The query, typed in place, and the words that complete the one being typed.
-fn query_field(ui: &mut egui::Ui, tab: &mut HierarchyTab, filters: &Filters) {
+fn query_field(ui: &mut egui::Ui, tab: &mut HierarchyTab, filters: &Filters) -> egui::Rect {
     let id = tab.id().with("query");
     let placeholder = tab
         .definition
@@ -659,10 +692,13 @@ fn query_field(ui: &mut egui::Ui, tab: &mut HierarchyTab, filters: &Filters) {
     let labels = tab.definition.labels.clone();
     let lists = tab.model.option_lists.clone();
     let keys = filters.sort_keys.clone();
+    let given = tab.filter_bar.field_width.max(QUERY_MIN_WIDTH);
     let edit = egui::TextEdit::singleline(&mut tab.query)
         .hint_text(placeholder)
-        .desired_width(260.0);
+        .desired_width(given);
+    // Under the field, as the standalone host's list stands; above it only where there is no room below.
     let output = egui::CompletionPopup::new(id)
+        .align(egui::RectAlign::BOTTOM_START)
         .word_boundary(char::is_whitespace)
         .show(ui, edit, |query| {
             completions_of(query.word, &labels, &lists, &keys)
@@ -685,6 +721,7 @@ fn query_field(ui: &mut egui::Ui, tab: &mut HierarchyTab, filters: &Filters) {
             .set_char_range(Some(egui::text::CCursorRange::one(egui::text::CCursor::new(at))));
         state.store(ui.ctx(), id);
     }
+    output.text_edit.response.response.rect
 }
 
 /// The order of the entries within each level (FR-020): the file's, or by one of `keys`, a key the query holds that
@@ -703,7 +740,7 @@ fn sort_menu(ui: &mut egui::Ui, id: egui::Id, keys: &[SortKey], value: &str) -> 
         .map(|(_, label)| label.clone());
     let mut picked = None;
     let choice = egui::ComboBox::from_id_salt(id)
-        .selected_text(format!("{} {}", icons::text("mdi-sort"), shown.unwrap_or_default()))
+        .selected_text(shown.unwrap_or_default())
         .show_ui(ui, |ui| {
             for (key, label) in &options {
                 let option = ui.selectable_label(key == value, label);
