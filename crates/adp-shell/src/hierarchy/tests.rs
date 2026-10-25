@@ -105,6 +105,8 @@ struct Script {
     refusal: String,
     /// The model the watcher's next news of a change brings, as another program left the file.
     outside: Option<SurfaceModel>,
+    /// The sentence the next gestures are refused with at once, before anything is written.
+    at_once: String,
 }
 
 impl HierarchySurfaceSession for Recorder {
@@ -114,6 +116,10 @@ impl HierarchySurfaceSession for Recorder {
 
     fn gesture(&mut self, gesture: Gesture) -> Result<(), String> {
         let mut script = self.script.borrow_mut();
+        if !script.at_once.is_empty() {
+            self.gestures.borrow_mut().push(gesture);
+            return Err(script.at_once.clone());
+        }
         if !script.next.is_empty() {
             self.model = script.next.remove(0);
         }
@@ -3736,5 +3742,317 @@ mod labels {
             surface.sent(),
             [sent("erase", "phase/gone", &[]), sent("erase", "phase/done", &[])]
         );
+    }
+}
+
+/// The widths of the columns (the standalone host's `ColumnEdge.test.tsx` at a7fdf03; etalii.adp spec 036, T050 and
+/// T052): each column's right edge dragged, stepped and reset, one gesture each, and the levels that fit counted with
+/// the widths.
+mod columns {
+    use super::*;
+    use adp_desl::hierarchy::definition::Widths;
+    use adp_desl::hierarchy::model::ColumnWidth;
+
+    /// The standalone test's definition, keeping widths from 150 to 900.
+    fn resizing() -> SurfaceDefinition {
+        SurfaceDefinition {
+            widths: Some(Widths {
+                add: "widen".into(),
+                set: "rewiden".into(),
+                reset: "unwiden".into(),
+                level_param: "depth".into(),
+                width_param: "pixels".into(),
+                min: 150,
+                max: 900,
+            }),
+            ..definition()
+        }
+    }
+
+    fn width(id: &str, level: u32, width: u32) -> ColumnWidth {
+        ColumnWidth {
+            id: id.into(),
+            level,
+            width,
+        }
+    }
+
+    /// Orders (1) holds Payment (2), which holds Cards (3); Stock (4) stands beside Orders. The second column is kept
+    /// at 400, or the columns at `widths`.
+    fn page(widths: Vec<ColumnWidth>) -> SurfaceModel {
+        SurfaceModel {
+            title: "Plan".into(),
+            cause: causes::OPEN.into(),
+            nodes: vec![
+                level("1", "", "Orders"),
+                level("2", "1", "Payment"),
+                level("3", "2", "Cards"),
+                level("4", "", "Stock"),
+            ],
+            widths,
+            ..SurfaceModel::default()
+        }
+    }
+
+    fn kept() -> Vec<ColumnWidth> {
+        vec![width("width/2", 2, 400)]
+    }
+
+    impl Surface {
+        /// The width of the box named `name`.
+        fn width_of(&self, name: &str) -> f64 {
+            let at = self.get(Role::TreeItem, name).bounds().unwrap();
+            at.x1 - at.x0
+        }
+
+        /// A point on the right edge of the box named `name`, near its top.
+        fn edge_of(&self, name: &str) -> egui::Pos2 {
+            let at = self.get(Role::TreeItem, name).bounds().unwrap();
+            egui::pos2(at.x1 as f32, at.y0 as f32 + 10.0)
+        }
+
+        /// Presses the right edge of the box named `name` and moves `by` to the right, letting go when `release`.
+        fn drag_edge(&mut self, name: &str, by: f32, release: bool) {
+            let from = self.edge_of(name);
+            let to = from + egui::vec2(by, 0.0);
+            self.frame(vec![egui::Event::PointerMoved(from)]);
+            self.frame(vec![egui::Event::PointerButton {
+                pos: from,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: egui::Modifiers::NONE,
+            }]);
+            self.frame(vec![egui::Event::PointerMoved(from + egui::vec2(by / 2.0, 0.0))]);
+            self.frame(vec![egui::Event::PointerMoved(to)]);
+            self.frame(Vec::new());
+            if release {
+                self.release();
+            }
+        }
+
+        /// The edges drawn, each as its name and its value, with the range it is held to.
+        fn edges(&self) -> Vec<(String, f64, f64, f64)> {
+            let mut edges: Vec<(String, f64, f64, f64)> = self
+                .nodes
+                .values()
+                .filter(|n| n.role() == Role::Splitter)
+                .map(|n| {
+                    (
+                        n.label().unwrap_or_default().to_owned(),
+                        n.numeric_value().unwrap_or_default(),
+                        n.min_numeric_value().unwrap_or_default(),
+                        n.max_numeric_value().unwrap_or_default(),
+                    )
+                })
+                .collect();
+            edges.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            edges
+        }
+    }
+
+    #[test]
+    fn each_levels_box_is_drawn_at_its_columns_kept_width_and_the_pages_own_where_none_is_kept() {
+        // Act.
+        let surface = Surface::with(page(kept()), resizing(), 1280.0);
+
+        // Assert.
+        let widths: Vec<f64> = ["[1] Orders", "[4] Stock", "[2] Payment", "[3] Cards"]
+            .iter()
+            .map(|name| surface.width_of(name))
+            .collect();
+        assert_eq!(widths, [240.0, 240.0, 400.0, 240.0]);
+    }
+
+    #[test]
+    fn every_box_of_a_column_follows_a_drag_of_its_right_edge_and_the_width_is_kept_when_let_go_in_one_gesture() {
+        // Arrange.
+        let mut surface = Surface::with(page(kept()), resizing(), 1280.0);
+        let mut answered = kept();
+        answered.push(width("width/1", 1, 300));
+        surface.script.borrow_mut().next.push(page(answered));
+
+        // Act.
+        surface.drag_edge("[1] Orders", 60.0, false);
+        let during = [surface.width_of("[1] Orders"), surface.width_of("[4] Stock")];
+        let sent_during = surface.sent().len();
+        surface.release();
+
+        // Assert: a first width names the column's depth.
+        assert_eq!(during, [300.0, 300.0]);
+        assert_eq!(sent_during, 0);
+        assert_eq!(
+            surface.sent(),
+            [sent("widen", "document", &[("depth", "1"), ("pixels", "300")])]
+        );
+        assert_eq!(surface.width_of("[1] Orders"), 300.0);
+        assert!(surface.tab.selected.is_empty(), "pressing an edge selects no box");
+    }
+
+    #[test]
+    fn a_kept_width_is_changed_by_its_columns_id_a_width_is_held_to_the_range_and_a_press_that_moved_nothing_sends_nothing()
+     {
+        // Arrange.
+        let mut surface = Surface::with(page(kept()), resizing(), 1280.0);
+
+        // Act.
+        surface.drag_edge("[2] Payment", 600.0, true);
+        surface.click_at(surface.edge_of("[1] Orders"));
+        surface.drag_edge("[1] Orders", -500.0, true);
+
+        // Assert.
+        assert_eq!(
+            surface.sent(),
+            [
+                sent("rewiden", "width/2", &[("pixels", "900")]),
+                sent("widen", "document", &[("depth", "1"), ("pixels", "150")]),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_double_click_gives_a_kept_column_the_pages_own_width_again_and_the_keys_step_or_reset_a_focused_edge() {
+        // Arrange.
+        let mut surface = Surface::with(page(kept()), resizing(), 1280.0);
+
+        // Act: the first column keeps no width, so a double click on it sends nothing.
+        surface.double_click_at(surface.edge_of("[1] Orders"));
+        surface.double_click_at(surface.edge_of("[2] Payment"));
+        surface.click_at(surface.edge_of("[1] Orders"));
+        surface.key(egui::Key::ArrowRight, egui::Modifiers::NONE);
+        surface.key(egui::Key::ArrowLeft, egui::Modifiers::NONE);
+        surface.click_at(surface.edge_of("[2] Payment"));
+        surface.key(egui::Key::Home, egui::Modifiers::NONE);
+
+        // Assert.
+        assert_eq!(
+            surface.sent(),
+            [
+                sent("unwiden", "width/2", &[]),
+                sent("widen", "document", &[("depth", "1"), ("pixels", "256")]),
+                sent("widen", "document", &[("depth", "1"), ("pixels", "224")]),
+                sent("unwiden", "width/2", &[]),
+            ]
+        );
+        assert!(
+            surface.tab.selected.is_empty(),
+            "the page's keys are the edge's while it has the keyboard"
+        );
+    }
+
+    #[test]
+    fn a_column_goes_back_when_its_gesture_is_refused_and_shows_the_width_the_next_model_brings() {
+        // Arrange.
+        let mut surface = Surface::with(page(kept()), resizing(), 1280.0);
+        surface.script.borrow_mut().refusal = "No.".into();
+
+        // Act.
+        surface.drag_edge("[1] Orders", 100.0, true);
+        let refused = surface.width_of("[1] Orders");
+        surface.outside(page(vec![width("width/1", 1, 500)]), causes::OUTSIDE);
+
+        // Assert.
+        assert_eq!(refused, 240.0);
+        assert!(surface.drawn("No."));
+        assert_eq!(surface.width_of("[1] Orders"), 500.0);
+    }
+
+    #[test]
+    fn a_column_refused_at_once_goes_back_to_the_width_it_keeps() {
+        // Arrange.
+        let mut surface = Surface::with(page(kept()), resizing(), 1280.0);
+        surface.script.borrow_mut().at_once = "Not now.".into();
+
+        // Act.
+        surface.drag_edge("[1] Orders", 100.0, true);
+
+        // Assert.
+        assert_eq!(surface.sent().len(), 1);
+        assert_eq!(surface.width_of("[1] Orders"), 240.0);
+        assert!(surface.drawn("Not now."));
+    }
+
+    #[test]
+    fn a_drag_let_go_where_it_started_and_a_step_past_the_range_send_nothing() {
+        // Arrange: the first column kept at the narrowest, the second at the widest.
+        let mut surface = Surface::with(
+            page(vec![width("width/1", 1, 150), width("width/2", 2, 900)]),
+            resizing(),
+            1600.0,
+        );
+
+        // Act.
+        let from = surface.edge_of("[1] Orders");
+        surface.drag_edge("[1] Orders", 60.0, false);
+        surface.frame(vec![egui::Event::PointerMoved(from)]);
+        surface.frame(Vec::new());
+        surface.release();
+        surface.click_at(surface.edge_of("[1] Orders"));
+        surface.key(egui::Key::ArrowLeft, egui::Modifiers::NONE);
+        surface.click_at(surface.edge_of("[2] Payment"));
+        surface.key(egui::Key::ArrowRight, egui::Modifiers::NONE);
+
+        // Assert.
+        assert_eq!(surface.sent(), []);
+    }
+
+    #[test]
+    fn the_edges_are_named_by_their_column_and_say_their_width_and_range() {
+        // Act.
+        let surface = Surface::with(page(kept()), resizing(), 1280.0);
+
+        // Assert: one edge on each level's box.
+        assert_eq!(
+            surface.edges(),
+            [
+                ("Width of column 1".to_owned(), 240.0, 150.0, 900.0),
+                ("Width of column 1".to_owned(), 240.0, 150.0, 900.0),
+                ("Width of column 2".to_owned(), 400.0, 150.0, 900.0),
+                ("Width of column 3".to_owned(), 240.0, 150.0, 900.0),
+            ]
+        );
+    }
+
+    #[test]
+    fn no_edge_is_offered_on_a_document_that_cannot_be_changed_nor_by_a_definition_that_keeps_no_widths() {
+        // Act.
+        let mut read_only = page(kept());
+        read_only.read_only_reason = "Read only.".into();
+        let read_only = Surface::with(read_only, resizing(), 1280.0);
+        let unkept = Surface::with(page(kept()), definition(), 1280.0);
+
+        // Assert.
+        assert!(read_only.edges().is_empty());
+        assert!(unkept.edges().is_empty());
+    }
+
+    #[test]
+    fn the_levels_that_fit_are_counted_with_the_kept_widths_and_with_the_one_being_dragged() {
+        // Act: 280 for the entries, then 240 and 240 fit 800; 400 for the first leaves no room for a second.
+        let wide = Surface::with(page(vec![]), resizing(), 800.0);
+        let kept_wide = Surface::with(page(vec![width("width/1", 1, 400)]), resizing(), 800.0);
+        let mut dragged = Surface::with(page(vec![]), resizing(), 800.0);
+        dragged.drag_edge("[1] Orders", 60.0, false);
+
+        // Assert.
+        assert!(wide.find(Role::TreeItem, "[2] Payment").is_some());
+        assert!(kept_wide.find(Role::TreeItem, "[2] Payment").is_none());
+        assert!(dragged.find(Role::TreeItem, "[2] Payment").is_none());
+    }
+    #[test]
+    fn a_column_dragged_wider_than_the_page_has_room_for_stays_in_sight_until_it_is_let_go() {
+        // Arrange: 280 for the entries, 240 for the first column and 900 for the second do not fit 1280.
+        let mut surface = Surface::with(page(kept()), resizing(), 1280.0);
+
+        // Act.
+        surface.drag_edge("[2] Payment", 600.0, false);
+        let during = surface
+            .find(Role::TreeItem, "[2] Payment")
+            .map(|n| n.bounds().unwrap().width());
+        surface.release();
+
+        // Assert: once let go, the page shows what fits again, the session having answered with the width it had.
+        assert_eq!(during, Some(900.0));
+        assert_eq!(surface.sent(), [sent("rewiden", "width/2", &[("pixels", "900")])]);
+        assert!(surface.find(Role::TreeItem, "[2] Payment").is_some());
     }
 }

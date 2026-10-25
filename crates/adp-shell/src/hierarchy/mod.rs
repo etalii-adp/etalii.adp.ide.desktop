@@ -18,11 +18,13 @@
 //! box with its target's number and title and shows the target when selected, and `#` typed in a description opens
 //! the lookup it is picked from ([`references`], T046). A label's values are added, taken off and picked from its list,
 //! which is edited in the table's options editor ([`labels`], T047). A change from outside while a title or a description is being typed shows the file
-//! around the field and asks, on a bar over the page, whether to drop the text or keep it (T033).
+//! around the field and asks, on a bar over the page, whether to drop the text or keep it (T033). Each column of levels
+//! is as wide as its right edge was dragged to, kept in the registration ([`columns`], T052).
 //!
 //! It knows no designer type: which type is a level, which an entry, which labels they carry and which operation each
 //! gesture sends are the designer's [`SurfaceDefinition`].
 
+pub mod columns;
 pub mod editing;
 pub mod labels;
 pub mod layout;
@@ -113,6 +115,8 @@ pub struct HierarchyTab {
     /// The query the filter bar applies, as typed: the page's own, never sent until it is stored.
     pub query: String,
     pub filter_bar: FilterBar,
+    /// The widths of the columns of levels shown before the document has them.
+    pub columns: columns::ColumnWidths,
     next_edit: u64,
     id: egui::Id,
 }
@@ -163,6 +167,7 @@ impl HierarchyTab {
             label_list: None,
             query: String::new(),
             filter_bar: FilterBar::default(),
+            columns: columns::ColumnWidths::default(),
             next_edit: 0,
             id: egui::Id::unique(("hierarchy", body.to_path_buf())),
         };
@@ -207,6 +212,7 @@ impl HierarchyTab {
                         self.conflict = true;
                     }
                     self.model = *model;
+                    self.columns.answered();
                 }
                 SurfaceChange::Outcome(outcome) => {
                     self.pending = self.pending.saturating_sub(1);
@@ -479,8 +485,12 @@ impl HierarchyTab {
         index.ancestors_of(&self.focus.id).len() as u32 + if self.focus.inside { 2 } else { 1 }
     }
 
-    /// The width of the column of levels at `depth`, 1 for the top: the one the file keeps, or the default.
+    /// The width of the column of levels at `depth`, 1 for the top: as it is being changed, as the file keeps it, or
+    /// the default.
     pub fn column_width(&self, depth: u32) -> f32 {
+        if let Some(shown) = self.columns.shown(depth) {
+            return shown;
+        }
         self.model
             .widths
             .iter()
@@ -489,10 +499,15 @@ impl HierarchyTab {
             .unwrap_or(layout::LEVEL_WIDTH)
     }
 
-    /// How many levels fit the page as the last frame measured it.
+    /// How many levels fit the page as the last frame measured it, and at least those down to the column whose edge
+    /// is being dragged.
     pub fn fit(&self) -> usize {
         let root = self.root_level();
-        layout::levels_that_fit(self.width, |column| self.column_width(root + column as u32))
+        let fit = layout::levels_that_fit(self.width, |column| self.column_width(root + column as u32));
+        match self.columns.dragging() {
+            Some(level) if level >= root => fit.max((level - root + 1) as usize),
+            _ => fit,
+        }
     }
 
     /// The nodes the page starts at: the top, the focused level, or, focused inside, its sub-levels.

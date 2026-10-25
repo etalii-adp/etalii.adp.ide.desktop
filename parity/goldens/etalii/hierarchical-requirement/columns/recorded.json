@@ -1,0 +1,102 @@
+{
+  "script": "parity/scripts/etalii/hierarchical-requirement/columns.json",
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "standaloneCommit": "a7fdf039c204535e9fc3a14f456e6f5a36a685ce",
+  "recorderVersion": "1.0.0",
+  "platform": "linux",
+  "recordedAt": "2026-10-25T13:38:40Z",
+  "edits": 13,
+  "changed": [
+    "web-shop.adp"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "addColumnWidth document"
+    },
+    {
+      "step": 1,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "setColumnWidth column/1"
+    },
+    {
+      "step": 2,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "addColumnWidth document"
+    },
+    {
+      "step": 3,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "addColumnWidth document"
+    },
+    {
+      "step": 4,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "resetColumnWidth column/3"
+    },
+    {
+      "step": 5,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "A column is named by its depth, a whole number from 1."
+    },
+    {
+      "step": 6,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "A column is 120 to 2000 pixels wide."
+    },
+    {
+      "step": 7,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "A column is 120 to 2000 pixels wide."
+    },
+    {
+      "step": 8,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "could not be written: The file changed while you were editing, so this change was not written. The page now shows the file as it is."
+    },
+    {
+      "step": 9,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "The file changed while you were editing, so this change was not written. The page now shows the file as it is."
+    },
+    {
+      "step": 10,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 11,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    }
+  ]
+}
