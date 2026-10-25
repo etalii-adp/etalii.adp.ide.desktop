@@ -28,7 +28,7 @@
 use adp_desl::hierarchy::definition::{
     ADD_DESCRIPTION_ICON, DELETE_ICON, FOCUS_ICON, GRIP_ICON, HIDDEN_LEVELS_ICON, LabelDefinition, LabelLook,
 };
-use adp_desl::hierarchy::model::{SurfaceNode, roles};
+use adp_desl::hierarchy::model::{SurfaceFinding, SurfaceNode, roles};
 use adp_theme::Theme;
 use eframe::egui::{
     self, Align2, Color32, CornerRadius, FontId, Pos2, Rect, RichText, Sense, Stroke, StrokeKind, Vec2,
@@ -161,7 +161,8 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
                     .font(icons::font(font.size))
                     .color(colours.muted),
             );
-            ui.label(RichText::new(&tab.model.read_only_reason).color(colours.muted));
+            let reason = ui.label(RichText::new(&tab.model.read_only_reason).color(colours.muted));
+            a11y::describe(&reason, Role::Status, &tab.model.read_only_reason);
         });
     }
     if tab.conflict && tab.field.is_some() {
@@ -169,16 +170,25 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
     }
     if !tab.refusal.is_empty() {
         bar(ui, &colours, |ui| {
-            ui.label(RichText::new(&tab.refusal).color(colours.danger));
+            let refusal = ui.label(RichText::new(&tab.refusal).color(colours.danger));
+            a11y::describe(&refusal, Role::Alert, &tab.refusal);
         });
     }
     if let Some(filters) = tab.definition.filters.clone() {
-        bar(ui, &colours, |ui| {
-            super::narrowing::filter_bar(ui, tab, &filters, &colours, &font);
+        ui.scope_builder(a11y::region(Role::Search, "Narrow and sort"), |ui| {
+            bar(ui, &colours, |ui| {
+                super::narrowing::filter_bar(ui, tab, &filters, &colours, &font);
+            });
         });
     }
     findings(ui, tab, &colours, &font, &mut acts);
-    let drawn = page(ui, tab, &colours, &font, &mut acts);
+    // The page is a tree named by the document, busy while an edit waits on its answer.
+    let name = tab.model.title.clone();
+    let scope = ui.scope_builder(a11y::region(Role::Tree, &name), |ui| {
+        page(ui, tab, &colours, &font, &mut acts)
+    });
+    a11y::busy(&scope.response, tab.pending > 0);
+    let drawn = scope.inner;
     if tab.dragging.is_some() {
         tab.hint = drop_hint(ui, tab, &drawn);
     }
@@ -353,22 +363,38 @@ fn trail(ui: &mut egui::Ui, tab: &HierarchyTab, colours: &Colours, font: &FontId
         .iter()
         .map(|n| (n.id.clone(), format!("{} {}", n.number, n.title)))
         .collect();
-    bar(ui, colours, |ui| {
-        trail_step(ui, &title, current == Some(""), "", colours, acts);
-        for (id, text) in &path {
-            ui.label(
-                RichText::new(icons::text("mdi-chevron-right"))
-                    .font(icons::font(font.size))
-                    .color(colours.muted),
-            );
-            trail_step(ui, text, current == Some(id.as_str()), id, colours, acts);
-        }
+    ui.scope_builder(a11y::region(Role::Navigation, "Trail"), |ui| {
+        bar(ui, colours, |ui| {
+            trail_steps(ui, &title, &path, current, colours, font, acts)
+        });
     });
+}
+
+/// The trail's steps: the title, then each level with a chevron before it.
+fn trail_steps(
+    ui: &mut egui::Ui,
+    title: &str,
+    path: &[(String, String)],
+    current: Option<&str>,
+    colours: &Colours,
+    font: &FontId,
+    acts: &mut Vec<Act>,
+) {
+    trail_step(ui, title, current == Some(""), "", colours, acts);
+    for (id, text) in path {
+        ui.label(
+            RichText::new(icons::text("mdi-chevron-right"))
+                .font(icons::font(font.size))
+                .color(colours.muted),
+        );
+        trail_step(ui, text, current == Some(id.as_str()), id, colours, acts);
+    }
 }
 
 fn trail_step(ui: &mut egui::Ui, text: &str, current: bool, id: &str, colours: &Colours, acts: &mut Vec<Act>) {
     if current {
-        ui.label(RichText::new(text).strong().color(colours.text));
+        let step = ui.label(RichText::new(text).strong().color(colours.text));
+        a11y::current(&step);
     } else if ui.link(RichText::new(text).color(colours.text)).clicked() {
         acts.push(Act::Focus(id.to_owned()));
     }
@@ -384,35 +410,44 @@ fn findings(ui: &mut egui::Ui, tab: &HierarchyTab, colours: &Colours, font: &Fon
         .inner_margin(egui::Margin::symmetric(PAGE_MARGIN as i8, 4))
         .show(ui, |ui| {
             ui.set_width(ui.available_width());
-            for finding in &tab.model.findings {
-                ui.horizontal_wrapped(|ui| {
-                    ui.spacing_mut().item_spacing.x = BOX_SPACING;
-                    let (icon, colour) = match finding.severity.as_str() {
-                        "error" => ("mdi-alert-circle-outline", colours.danger),
-                        "warning" => ("mdi-alert-outline", colours.warning),
-                        _ => ("mdi-information-outline", colours.muted),
-                    };
-                    let mark = ui.label(
-                        RichText::new(icons::text(icon))
-                            .font(icons::font(font.size))
-                            .color(colour),
-                    );
-                    a11y::describe(&mark, Role::Image, &finding.severity);
-                    if finding.node_id.is_empty() {
-                        ui.label(RichText::new(&finding.message).color(colours.text));
-                    } else if ui.link(RichText::new(&finding.message).color(colours.text)).clicked() {
-                        acts.push(Act::Reveal(finding.node_id.clone()));
-                    }
-                    if finding.line > 0 {
-                        ui.label(RichText::new(format!("line {}", finding.line)).color(colours.muted));
-                    }
-                });
-                ui.add_space(2.0);
-            }
+            ui.scope_builder(a11y::region(Role::List, "Findings"), |ui| {
+                for finding in &tab.model.findings {
+                    finding_row(ui, finding, colours, font, acts);
+                }
+            });
         });
     let rect = response.response.rect;
     ui.painter()
         .hline(rect.x_range(), rect.bottom(), Stroke::new(1.0, colours.border));
+}
+
+/// One finding of the list: its severity's mark, its message, a link when it names a node, and its line.
+fn finding_row(ui: &mut egui::Ui, finding: &SurfaceFinding, colours: &Colours, font: &FontId, acts: &mut Vec<Act>) {
+    ui.scope_builder(a11y::region(Role::ListItem, &finding.message), |ui| {
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing.x = BOX_SPACING;
+            let (icon, colour) = match finding.severity.as_str() {
+                "error" => ("mdi-alert-circle-outline", colours.danger),
+                "warning" => ("mdi-alert-outline", colours.warning),
+                _ => ("mdi-information-outline", colours.muted),
+            };
+            let mark = ui.label(
+                RichText::new(icons::text(icon))
+                    .font(icons::font(font.size))
+                    .color(colour),
+            );
+            a11y::describe(&mark, Role::Image, &finding.severity);
+            if finding.node_id.is_empty() {
+                ui.label(RichText::new(&finding.message).color(colours.text));
+            } else if ui.link(RichText::new(&finding.message).color(colours.text)).clicked() {
+                acts.push(Act::Reveal(finding.node_id.clone()));
+            }
+            if finding.line > 0 {
+                ui.label(RichText::new(format!("line {}", finding.line)).color(colours.muted));
+            }
+        });
+        ui.add_space(2.0);
+    });
 }
 
 /// The page: one area that scrolls, the boxes laid out from its top left, and the add control at its end.

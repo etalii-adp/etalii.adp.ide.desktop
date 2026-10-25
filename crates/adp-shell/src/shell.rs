@@ -1783,10 +1783,43 @@ impl Shell {
             });
     }
 
+    /// The properties pane of the active hierarchy tab: the selected box under its file, and its actions.
+    fn hierarchy_pane(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
+        let Some(Tab::Hierarchy(tab)) = self.tabs.get_mut(self.active) else {
+            return;
+        };
+        let sizes = theme.sizes;
+        egui::Panel::right("hierarchy-pane")
+            .default_size(280.0)
+            .min_size(180.0)
+            .resizable(true)
+            .frame(
+                Frame::NONE
+                    .fill(palette.side_bar_background)
+                    .stroke(egui::Stroke::new(sizes.border_width, palette.border))
+                    .inner_margin(Margin::symmetric(12, 8)),
+            )
+            .show(ui, |ui| {
+                ui.label(
+                    RichText::new("PROPERTIES")
+                        .size(sizes.workbench_font - 2.0)
+                        .color(palette.side_bar_title),
+                );
+                ui.add_space(8.0);
+                egui::ScrollArea::vertical()
+                    .auto_shrink(false)
+                    .show(ui, |ui| crate::hierarchy::properties::show(ui, tab, theme, palette));
+            });
+    }
+
     /// The toolbox and the property grid of the active diagram, as two tabs of one pane right of the editor.
     fn diagram_panes(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
         if matches!(self.tabs.get(self.active), Some(Tab::Table(_))) {
             self.table_pane(ui, theme, palette);
+            return;
+        }
+        if matches!(self.tabs.get(self.active), Some(Tab::Hierarchy(_))) {
+            self.hierarchy_pane(ui, theme, palette);
             return;
         }
         let Some(Tab::Diagram(tab)) = self.tabs.get_mut(self.active) else {
