@@ -241,7 +241,7 @@ fn a_document_without_a_registration_opens_by_its_envelope() {
 }
 
 #[test]
-fn an_unknown_operation_and_one_not_built_yet_are_refused_with_the_reason() {
+fn an_unknown_operation_is_refused_with_the_reason_and_every_operation_is_built() {
     let folder = WebShopFolder::new();
     let mut session = RequirementSession::open(folder.body(), Some(folder.registration()));
     let gesture = |operation: &str| Gesture {
@@ -254,8 +254,9 @@ fn an_unknown_operation_and_one_not_built_yet_are_refused_with_the_reason() {
         Err("'addLink' is not an operation of the Hierarchical Requirement Designer.".to_owned()),
         session.gesture(gesture("addLink"))
     );
+    // The last operation built, the column widths, answers with its own refusal.
     assert_eq!(
-        Err("'addColumnWidth' cannot be done here yet.".to_owned()),
+        Err("A column is named by its depth, a whole number from 1.".to_owned()),
         session.gesture(gesture("addColumnWidth"))
     );
     assert!(session.take_changes().is_empty());

@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use crate::documents::Writer;
 use crate::gestures::DRIFTED;
 use crate::operations::lists::{ListEdit, ListFiles};
-use crate::operations::{assessments, classification, filters, structure, tags, text};
+use crate::operations::{assessments, classification, columns, filters, structure, tags, text};
 
 /// One edit of the body: an operation of the surface, with what it names and its params, planned against the bytes
 /// the person's page was made from.
@@ -74,6 +74,7 @@ impl EditCommand {
         if tags::handles(&self.operation)
             || classification::handles(&self.operation)
             || filters::handles(&self.operation)
+            || columns::handles(&self.operation)
         {
             let files = self.lists(&before, &name)?;
             return self.write(files, write);
@@ -120,6 +121,8 @@ impl EditCommand {
             classification::apply(files, operation, target, params)?
         } else if filters::handles(operation) {
             filters::apply(files, operation, target, params)?
+        } else if columns::handles(operation) {
+            columns::apply(files, operation, target, params)?
         } else {
             tags::apply(files, operation, target, params)?
         };

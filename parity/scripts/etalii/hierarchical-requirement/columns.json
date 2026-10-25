@@ -1,0 +1,19 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "addColumnWidth", "target": "document", "params": {"level": "1", "width": "360"}}},
+    {"hierarchy": {"operation": "setColumnWidth", "target": "column/1", "params": {"width": "420"}}},
+    {"hierarchy": {"operation": "addColumnWidth", "target": "document", "params": {"level": "3", "width": "2000"}}},
+    {"hierarchy": {"operation": "addColumnWidth", "target": "document", "params": {"level": "2", "width": "120"}}},
+    {"hierarchy": {"operation": "resetColumnWidth", "target": "column/3", "params": {}}},
+    {"hierarchy": {"operation": "addColumnWidth", "target": "document", "params": {"level": "0", "width": "300"}}, "expect": "refused"},
+    {"hierarchy": {"operation": "setColumnWidth", "target": "column/1", "params": {"width": "2001"}}, "expect": "refused"},
+    {"hierarchy": {"operation": "setColumnWidth", "target": "column/1", "params": {"width": "wide"}}, "expect": "refused"},
+    {"hierarchy": {"operation": "addColumnWidth", "target": "document", "params": {"level": "1", "width": "300"}}, "expect": "refused"},
+    {"hierarchy": {"operation": "resetColumnWidth", "target": "column/3", "params": {}}, "expect": "refused"},
+    {"undo": 2},
+    {"redo": 1}
+  ]
+}

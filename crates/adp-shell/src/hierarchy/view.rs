@@ -35,6 +35,7 @@ use eframe::egui::{
     accesskit::Role, text::LayoutJob,
 };
 
+use super::columns::{self, EdgeAct};
 use super::editing::{self, Attribute, DropHint, DropKind, OpenField};
 use super::labels;
 use super::layout::{
@@ -139,6 +140,8 @@ enum Act {
     /// The conflict bar's two sides: drop what was typed, or keep it.
     ShowFile,
     KeepText,
+    /// A column's edge dragged, let go, stepped or reset.
+    Edge(EdgeAct),
 }
 
 /// Draws the tab: the trail, the read-only reason, the conflict bar, a refusal, the findings and the page.
@@ -196,6 +199,7 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
             Act::OpenLabels(id, label) => tab.toggle_label_list(&id, &label, false),
             Act::TogglePick(id, label) => tab.toggle_label_list(&id, &label, true),
             Act::KeepText => tab.keep_text(),
+            Act::Edge(act) => tab.edge(act),
             Act::Delete(id, ask) => tab.delete(&id, ask),
             Act::StartDrag(id) => {
                 tab.dragging = tab.model.nodes.iter().find(|n| n.id == id).cloned();
@@ -576,7 +580,15 @@ impl Page<'_, '_> {
             content_height = top - at.y + ADD_SIZE + 2.0 * ADD_PADDING.y;
         }
         let own = Rect::from_min_size(at, Vec2::new(level_width, content_height));
-        self.boxed(ui, node, own, hidden).max(content_height)
+        let height = self.boxed(ui, node, own, hidden).max(content_height);
+        if self.tab.resizable() {
+            let column = Rect::from_min_size(at, Vec2::new(level_width, height));
+            let level = self.root_level + depth as u32;
+            if let Some(act) = columns::edge(ui, self.tab, level, &node.id, column, self.colours) {
+                self.acts.push(Act::Edge(act));
+            }
+        }
+        height
     }
 
     /// The add controls at `at`, each its icon alone with its label as the tooltip, named for a screen reader with the

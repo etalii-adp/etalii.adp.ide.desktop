@@ -33,7 +33,7 @@ use crate::commands::{EditCommand, Restore, Undone};
 use crate::documents::{self, Files, Writer};
 use crate::gestures;
 use crate::mapper;
-use crate::operations::{assessments, classification, filters, structure, tags, text};
+use crate::operations::{assessments, classification, columns, filters, structure, tags, text};
 
 /// What undo and redo are refused with while no gesture of this page is a step of the history.
 const NOTHING_TO_UNDO: &str = "There is nothing to undo.";
@@ -250,6 +250,7 @@ impl RequirementSession {
             tags::refusal(operation, params),
             classification::refusal(operation, params),
             filters::refusal(operation, params),
+            columns::refusal(operation, params),
         ] {
             if !refusal.is_empty() {
                 return Err(refusal);
@@ -273,9 +274,12 @@ impl RequirementSession {
                 .all(|o| o.id != target)
         } else if filters::targets_a_filter(operation) {
             model.filters.iter().all(|f| f.id != target)
+        } else if columns::targets_a_column(operation) {
+            model.widths.iter().all(|w| w.id != target)
         } else if classification::targets_the_document(operation)
             || operation == structure::ADD_TOP_ITEM
             || operation == filters::STORE_FILTER
+            || operation == columns::ADD_COLUMN_WIDTH
         {
             false
         } else {
@@ -333,6 +337,7 @@ impl HierarchySurfaceSession for RequirementSession {
             || tags::handles(&gesture.operation)
             || classification::handles(&gesture.operation)
             || filters::handles(&gesture.operation)
+            || columns::handles(&gesture.operation)
         {
             return self.body_gesture(gesture);
         }

@@ -107,6 +107,11 @@ fn etalii_hierarchical_requirement_references() {
 }
 
 #[test]
+fn etalii_hierarchical_requirement_columns() {
+    check("etalii/hierarchical-requirement/columns");
+}
+
+#[test]
 fn etalii_hierarchical_requirement_new_document() {
     check("etalii/hierarchical-requirement/new-document");
 }
