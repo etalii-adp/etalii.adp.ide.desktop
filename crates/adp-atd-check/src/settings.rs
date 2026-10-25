@@ -624,7 +624,10 @@ fn table_def(kind: &str, _: &Json) -> Vec<Def> {
 
 fn hierarchy_def(kind: &str, _: &Json) -> Vec<Def> {
     match kind {
-        "levels" | "entries" | "notes" | "filters" => vec![Def(DESL, "HierarchyMembers")],
+        "levels" | "entries" => vec![Def(DESL, "HierarchyMembers")],
+        "notes" => vec![Def(DESL, "Notes")],
+        "filters" => vec![Def(DESL, "Filters")],
+        "widths" => vec![Def(DESL, "Widths")],
         "labels" => vec![Def(DESL, "Labels")],
         _ => Vec::new(),
     }

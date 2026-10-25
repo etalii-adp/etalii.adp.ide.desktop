@@ -61,10 +61,13 @@ pub fn run(description: &Description, symbols: &Symbols, findings: &mut Vec<Find
         symbols,
         findings,
         catalogue: crate::embedded::catalogue().into_iter().map(|(n, _)| n).collect(),
+        kind: kind.to_owned(),
+        type_map: type_map(description),
     };
     for member in description.members() {
         checker.member(member);
     }
+    checker.persistence(description);
     checker.calls(description);
     for member in description.members() {
         checker.scoped(member, &[]);
@@ -190,6 +193,76 @@ struct Checker<'a> {
     symbols: &'a Symbols,
     findings: &'a mut Vec<Finding>,
     catalogue: BTreeSet<String>,
+    /// The description's kind: `diagram`, `designer` or `editor`.
+    kind: String,
+    /// `persistence`'s `typeMap`: each binding type it names, with what it maps it as and its attribute renames.
+    type_map: BTreeMap<String, TypeMapEntry>,
+}
+
+/// One entry of `persistence`'s `typeMap` (DISL §11.2, DESL §5.2).
+struct TypeMapEntry {
+    /// `document`, `header`, `unreadable`, or the name of a type.
+    as_: String,
+    /// The binding's attribute names, each with the model's name it stands for.
+    attributes: BTreeMap<String, String>,
+}
+
+/// The entry of a list of settings (`[{key, value, span}]`) under `key`.
+fn entry<'a>(settings: &'a Json, key: &str) -> Option<&'a Json> {
+    settings.as_array().into_iter().flatten().find(|s| s["key"] == key)
+}
+
+/// The settings of a settings map's value, or an empty list.
+fn map_of(value: &Json) -> &Json {
+    static EMPTY: Json = Json::Array(Vec::new());
+    value.get("settings").unwrap_or(&EMPTY)
+}
+
+/// A bare word's or a string's text.
+fn word(value: &Json) -> Option<&str> {
+    value.get("literal").and_then(Json::as_str)
+}
+
+/// The settings of the description's `persistence` constructs.
+fn persistence_settings(description: &Description) -> Vec<&Json> {
+    description
+        .members()
+        .filter(|m| m["kind"] == "persistence")
+        .flat_map(|m| m["settings"].as_array().into_iter().flatten())
+        .collect()
+}
+
+fn type_map(description: &Description) -> BTreeMap<String, TypeMapEntry> {
+    let mut out = BTreeMap::new();
+    for setting in persistence_settings(description) {
+        if setting["key"] != "typeMap" {
+            continue;
+        }
+        for item in map_of(&setting["value"]).as_array().into_iter().flatten() {
+            let settings = map_of(&item["value"]);
+            let Some(as_) = entry(settings, "as").and_then(|e| word(&e["value"])) else {
+                continue;
+            };
+            let attributes = entry(settings, "attributes")
+                .map(|e| {
+                    map_of(&e["value"])
+                        .as_array()
+                        .into_iter()
+                        .flatten()
+                        .filter_map(|a| Some((a["key"].as_str()?.to_owned(), word(&a["value"])?.to_owned())))
+                        .collect()
+                })
+                .unwrap_or_default();
+            out.insert(
+                item["key"].as_str().unwrap_or("").to_owned(),
+                TypeMapEntry {
+                    as_: as_.to_owned(),
+                    attributes,
+                },
+            );
+        }
+    }
+    out
 }
 
 impl Checker<'_> {
@@ -432,6 +505,9 @@ impl Checker<'_> {
                         self.type_ref(&type_ref["name"], false);
                     }
                 }
+                if member["kind"] == "hierarchySurface" {
+                    self.hierarchy(member);
+                }
             }
             "textSurface" => {
                 for item in member["members"].as_array().into_iter().flatten() {
@@ -492,6 +568,16 @@ impl Checker<'_> {
         for statement in body.as_array().into_iter().flatten() {
             match statement["kind"].as_str().unwrap_or("") {
                 "create" | "connect" => self.type_ref(&statement["type"]["name"], false),
+                "move" if statement.get("x").is_some() && self.kind != "diagram" => {
+                    self.findings.push(finding_at(
+                        "ATD3002",
+                        statement,
+                        format!(
+                            "A {} has no canvas; `move … to x, y` places a node on the canvas of a diagram.",
+                            self.kind
+                        ),
+                    ));
+                }
                 "retype" => {
                     if let Some(to) = statement.get("to").filter(|t| t.get("name").is_some()) {
                         self.type_ref(&to["name"], false);
@@ -621,18 +707,44 @@ impl Checker<'_> {
                 continue;
             }
             let type_name = text(&member["type"]["name"]).to_owned();
-            self.type_ref(&member["type"]["name"], false);
-            let attributes = self.symbols.attributes_of(&type_name);
+            let rule = member
+                .get("as")
+                .map(|a| text(a).to_owned())
+                .unwrap_or_else(|| type_name.clone());
+            // What the rule's type gives it to read and write (ATD §14.7): a model type its attributes; a key of the
+            // type map the document's, its type's, or none, through the entry's renames.
+            let (attributes, renames, mapped_as) = if self.symbols.is_type(&type_name) {
+                (Some(self.symbols.attributes_of(&type_name)), BTreeMap::new(), None)
+            } else if let Some(mapped) = self.type_map.get(&type_name) {
+                let attributes = match mapped.as_.as_str() {
+                    "document" => Some(self.symbols.document.clone()),
+                    "header" | "unreadable" => Some(BTreeMap::new()),
+                    other if self.symbols.is_type(other) => Some(self.symbols.attributes_of(other)),
+                    _ => None,
+                };
+                (attributes, mapped.attributes.clone(), Some(mapped.as_.clone()))
+            } else {
+                self.type_ref(&member["type"]["name"], false);
+                (None, BTreeMap::new(), None)
+            };
             for item in member["members"].as_array().into_iter().flatten() {
                 match item["kind"].as_str().unwrap_or("") {
-                    "attribute" if self.symbols.is_type(&type_name) => {
+                    "attribute" if attributes.is_some() => {
                         let attribute = text(&item["name"]);
-                        if !attributes.contains_key(attribute) {
-                            self.findings.push(finding_at(
-                                "ATD6001",
-                                &item["name"],
-                                format!("The binding reads `{attribute}`, which element type `{type_name}` does not declare."),
-                            ));
+                        let model_name = renames.get(attribute).map(String::as_str).unwrap_or(attribute);
+                        if !attributes.as_ref().is_some_and(|a| a.contains_key(model_name)) {
+                            let message = match mapped_as.as_deref() {
+                                Some(as_ @ ("header" | "unreadable")) => format!(
+                                    "`{type_name}` is mapped as {as_}, so its rule `{rule}` binds no attribute; it binds `{attribute}`."
+                                ),
+                                Some("document") => format!(
+                                    "The binding reads `{attribute}`, which the document does not declare (`{type_name}` is mapped as the document)."
+                                ),
+                                _ => format!(
+                                    "The binding reads `{attribute}`, which element type `{type_name}` does not declare."
+                                ),
+                            };
+                            self.findings.push(finding_at("ATD6001", &item["name"], message));
                         }
                         if let Some(references) = item.get("references") {
                             for rule in references["rules"].as_array().into_iter().flatten() {
@@ -652,6 +764,182 @@ impl Checker<'_> {
                     }
                     _ => {}
                 }
+            }
+        }
+    }
+
+    /// A hierarchy surface fits its types, as DESL \§10.1 requires of one (`ATD6002`, ATD \§14.7).
+    fn hierarchy(&mut self, surface: &Json) {
+        let members: Vec<&Json> = surface["members"].as_array().into_iter().flatten().collect();
+        let role = |kind: &str| {
+            members
+                .iter()
+                .find(|m| m["kind"] == kind)
+                .map(|m| (text(&m["type"]["name"]).to_owned(), *m))
+                .filter(|(t, _)| self.symbols.is_type(t))
+        };
+        let levels = role("levels");
+        let entries = role("entries");
+        if let (Some((level, at)), Some((entry_type, _))) = (&levels, &entries) {
+            let contained = self.symbols.contained_by(level);
+            let missing: Vec<&str> = [level.as_str(), entry_type.as_str()]
+                .into_iter()
+                .filter(|t| !contained.iter().any(|c| c == t))
+                .collect();
+            if !missing.is_empty() {
+                self.findings.push(finding_at(
+                    "ATD6002",
+                    at,
+                    format!(
+                        "The levels' type `{level}` contains itself and the entries' type; it does not contain `{}`.",
+                        missing.join("` or `")
+                    ),
+                ));
+            }
+        }
+        let both: Vec<String> = [&levels, &entries]
+            .into_iter()
+            .flatten()
+            .map(|(t, _)| t.clone())
+            .collect();
+        for member in &members {
+            match member["kind"].as_str().unwrap_or("") {
+                "labels" => {
+                    let attribute = text(&member["name"]).to_owned();
+                    let on = entry(&member["settings"], "on").map(|e| &e["value"]);
+                    let types: Vec<String> = on
+                        .and_then(|v| v.get("list"))
+                        .and_then(Json::as_array)
+                        .map(|l| l.iter().filter_map(word).map(str::to_owned).collect())
+                        .or_else(|| on.and_then(word).map(|w| vec![w.to_owned()]))
+                        .unwrap_or_default();
+                    if let Some(lacking) = types
+                        .iter()
+                        .find(|t| self.symbols.is_type(t) && !self.symbols.attributes_of(t).contains_key(&attribute))
+                    {
+                        self.findings.push(finding_at(
+                            "ATD6002",
+                            member,
+                            format!("The label attribute `{attribute}` is not an attribute of `{lacking}`, which its `on` names."),
+                        ));
+                    }
+                }
+                "setting" if member["setting"]["key"] == "collapsed" => {
+                    let Some(attribute) = word(&member["setting"]["value"]) else {
+                        continue;
+                    };
+                    if let Some(lacking) = both
+                        .iter()
+                        .find(|t| !self.symbols.attributes_of(t).contains_key(attribute))
+                    {
+                        self.findings.push(finding_at(
+                            "ATD6002",
+                            member,
+                            format!("`collapsed` names `{attribute}`, which is not an attribute of `{lacking}`."),
+                        ));
+                    }
+                }
+                "widths" => {
+                    let widths = text(&member["type"]["name"]).to_owned();
+                    if !self.symbols.is_type(&widths) {
+                        continue;
+                    }
+                    let attributes = self.symbols.attributes_of(&widths);
+                    for (part, wanted) in [("level", "string"), ("width", "int")] {
+                        let Some(setting) = entry(&member["settings"], part) else {
+                            continue;
+                        };
+                        let Some(name) = word(&setting["value"]) else {
+                            continue;
+                        };
+                        match attributes.get(name) {
+                            None => self.findings.push(finding_at(
+                                "ATD2001",
+                                setting,
+                                format!("No attribute `{name}` in element type `{widths}`."),
+                            )),
+                            Some(attribute) if text(&attribute["type"]["name"]) != wanted => {
+                                self.findings.push(finding_at(
+                                    "ATD6002",
+                                    member,
+                                    format!(
+                                        "The widths' `{part}` is a `{wanted}` attribute; `{name}` of `{widths}` is not."
+                                    ),
+                                ));
+                            }
+                            Some(_) => {}
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    /// A counter's mark is a `string` attribute of the document (`ATD6003`), and each setting a registration keeps is
+    /// a block every binding declares in its registration (`ATD6004`) (ATD \§14.7).
+    fn persistence(&mut self, description: &Description) {
+        let blocks: Vec<(String, BTreeSet<String>)> = self
+            .symbols
+            .bindings
+            .iter()
+            .map(|(name, decl)| {
+                let declared = decl.node["members"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .filter(|m| m["kind"] == "registration")
+                    .filter_map(|m| entry(&m["settings"], "blocks"))
+                    .flat_map(|b| map_of(&b["value"]).as_array().into_iter().flatten())
+                    .filter_map(|b| b["key"].as_str().map(str::to_owned))
+                    .collect();
+                (name.clone(), declared)
+            })
+            .collect();
+        for setting in persistence_settings(description) {
+            match setting["key"].as_str().unwrap_or("") {
+                "ids" => {
+                    let Some(types) = entry(map_of(&setting["value"]), "types") else {
+                        continue;
+                    };
+                    for rule in map_of(&types["value"]).as_array().into_iter().flatten() {
+                        let settings = map_of(&rule["value"]);
+                        if entry(settings, "strategy").and_then(|s| word(&s["value"])) != Some("counter") {
+                            continue;
+                        }
+                        let Some(mark) = entry(settings, "mark") else {
+                            continue;
+                        };
+                        let Some(name) = word(&mark["value"]) else {
+                            continue;
+                        };
+                        let owner = rule["key"].as_str().unwrap_or("");
+                        let message = match self.symbols.document.get(name) {
+                            Some(attribute) if text(&attribute["type"]["name"]) == "string" => continue,
+                            Some(attribute) => format!(
+                                "The counter of `{owner}` keeps its mark in `{name}`, which is an `{}`; a mark is a `string` attribute of the document.",
+                                text(&attribute["type"]["name"])
+                            ),
+                            None => format!(
+                                "The counter of `{owner}` keeps its mark in `{name}`, which is no attribute of the document; a mark is a `string` attribute of the document."
+                            ),
+                        };
+                        self.findings.push(finding_at("ATD6003", mark, message));
+                    }
+                }
+                "settings" => {
+                    for kept in map_of(&setting["value"]).as_array().into_iter().flatten() {
+                        let key = kept["key"].as_str().unwrap_or("");
+                        if let Some((binding, _)) = blocks.iter().find(|(_, declared)| !declared.contains(key)) {
+                            self.findings.push(finding_at(
+                                "ATD6004",
+                                kept,
+                                format!("The registration of binding `{binding}` keeps no block `{key}`, which `persistence` names among its settings."),
+                            ));
+                        }
+                    }
+                }
+                _ => {}
             }
         }
     }
