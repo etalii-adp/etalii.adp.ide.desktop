@@ -27,7 +27,7 @@ internal sealed record EditScript(
     /// <summary>How many steps change something: SC-004 counts these.</summary>
     public int EditCount => Steps.Sum(step => step switch
     {
-        ActionStep or PropertyStep or SaveTextStep or TableStep or ViewStep => 1,
+        ActionStep or PropertyStep or SaveTextStep or TableStep or ViewStep or HierarchyStep or OutsideStep => 1,
         MoveStep move => move.Refs.Count,
         UndoStep undo => undo.Count,
         RedoStep redo => redo.Count,
@@ -177,6 +177,39 @@ internal abstract record Step(int Index, bool ExpectRefusal)
             return new TableStep(index, refused, kindName, Text("row"), Text("column"), Text("view"), values, at, Text("target"), settings);
         }
 
+        if (step.TryGetProperty("hierarchy", out var hierarchy))
+        {
+            if (hierarchy.ValueKind != JsonValueKind.Object || !hierarchy.TryGetProperty("operation", out var operation) || operation.GetString() is not { Length: > 0 } operationName)
+            {
+                throw new ScriptException(path, $"step {index}: a hierarchy step is an object with an operation");
+            }
+
+            var target = hierarchy.TryGetProperty("target", out var t) && t.ValueKind == JsonValueKind.String ? t.GetString()! : "";
+            var parameters = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (hierarchy.TryGetProperty("params", out var p) && p.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var parameter in p.EnumerateObject())
+                {
+                    parameters[parameter.Name] = parameter.Value.GetString() ?? "";
+                }
+            }
+
+            // contracts/parity-scripts.md writes the refusal inside the gesture; a step's own expect says the same.
+            var expected = refused || (hierarchy.TryGetProperty("expect", out var e) && e.ValueKind == JsonValueKind.String && e.GetString() == "refused");
+            return new HierarchyStep(index, expected, operationName, target, parameters);
+        }
+
+        if (step.TryGetProperty("outside", out var outside))
+        {
+            if (outside.ValueKind != JsonValueKind.Object || !outside.TryGetProperty("file", out var file) || file.GetString() is not { Length: > 0 } fileName
+                || !outside.TryGetProperty("replace", out var replace) || !replace.TryGetProperty("from", out var from) || !replace.TryGetProperty("to", out var to))
+            {
+                throw new ScriptException(path, $"step {index}: an outside step names its file and what it replaces");
+            }
+
+            return new OutsideStep(index, refused, fileName, from.GetString() ?? "", to.GetString() ?? "");
+        }
+
         if (step.TryGetProperty("view", out var view))
         {
             return new ViewStep(index, refused, view.GetString() ?? throw new ScriptException(path, $"step {index}: a view step names the view"));
@@ -184,12 +217,12 @@ internal abstract record Step(int Index, bool ExpectRefusal)
 
         if (step.TryGetProperty("undo", out var undo))
         {
-            return new UndoStep(index, refused, undo.GetInt32());
+            return new UndoStep(index, refused, Count(undo));
         }
 
         if (step.TryGetProperty("redo", out var redo))
         {
-            return new RedoStep(index, refused, redo.GetInt32());
+            return new RedoStep(index, refused, Count(redo));
         }
 
         if (step.TryGetProperty("save", out var save))
@@ -206,8 +239,11 @@ internal abstract record Step(int Index, bool ExpectRefusal)
             return new SaveStep(index, refused);
         }
 
-        throw new ScriptException(path, $"step {index} is none of select, action, property, move, table, view, undo, redo or save");
+        throw new ScriptException(path, $"step {index} is none of select, action, property, move, table, view, hierarchy, outside, undo, redo or save");
     }
+
+    /// <summary>How many times an undo or a redo step goes: its number, or once for an object, as contracts/parity-scripts.md writes <c>{"undo": {}}</c>.</summary>
+    private static int Count(JsonElement value) => value.ValueKind == JsonValueKind.Number ? value.GetInt32() : 1;
 
     private static Answer ParseAnswer(JsonElement answer, int index, string path)
     {
@@ -255,6 +291,12 @@ internal sealed record TableStep(int Index, bool ExpectRefusal, string Kind, str
 
 /// <summary>The view a table's connection shows, sent with <c>DesignerService.SetTableView</c>.</summary>
 internal sealed record ViewStep(int Index, bool ExpectRefusal, string ViewId) : Step(Index, ExpectRefusal);
+
+/// <summary>One gesture of a hierarchy surface, sent with <c>DesignerService.HierarchySurfaceGesture</c>; its fields are the <c>HierarchySurfaceGestureRequest</c>'s.</summary>
+internal sealed record HierarchyStep(int Index, bool ExpectRefusal, string Operation, string Target, IReadOnlyDictionary<string, string> Params) : Step(Index, ExpectRefusal);
+
+/// <summary>A file of the project written outside the host, as an agent writes it: the first <c>From</c> in it replaced by <c>To</c>.</summary>
+internal sealed record OutsideStep(int Index, bool ExpectRefusal, string File, string From, string To) : Step(Index, ExpectRefusal);
 
 internal sealed record UndoStep(int Index, bool ExpectRefusal, int Count) : Step(Index, ExpectRefusal);
 

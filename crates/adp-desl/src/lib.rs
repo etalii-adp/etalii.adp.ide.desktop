@@ -9,10 +9,14 @@
 //!   core side (the standalone host's `KnowledgeViewEngine` and `KnowledgeGroups`, made host-neutral by going by the
 //!   DESL value type's editor, key and sort rather than by the Knowledge designer's type names), and the session a
 //!   connection holds, which answers a window of lines in the active view's order (`IDesignerSession`).
+//! - [`hierarchy`] is the surface a designer of the `hierarchy` kind lays out (DESL section 7.7): the model that
+//!   crosses to the shell and the session a connection holds (the standalone host's `HierarchySurfaceModel` and
+//!   `IHierarchySurfaceSession` at a7fdf03), knowing no designer type.
 //! - [`designer`] is what a designer module is (`DesignerDefinition`, `DesignerFormat`, `IDesignerSessionFactory`).
 
 pub mod ded;
 pub mod designer;
+pub mod hierarchy;
 pub(crate) mod json;
 pub mod loading;
 pub(crate) mod schema;
@@ -20,6 +24,7 @@ pub mod table;
 
 pub use ded::{DedEnvelope, DedFormat};
 pub use designer::{DesignerDefinition, DesignerFormat, DesignerSessionFactory};
+pub use hierarchy::session::HierarchySurfaceSession;
 pub use loading::diagnostic::{DeslDiagnostic, DeslSeverity};
 pub use loading::loader::{DeslLoadResult, DeslLoader};
 pub use loading::specification::{

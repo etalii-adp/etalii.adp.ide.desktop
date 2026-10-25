@@ -8,7 +8,6 @@ using EtAlii.Adp.Documents.Wire;
 using EtAlii.Adp.Editor.Wire;
 using EtAlii.Adp.Hierarchy.Wire;
 using EtAlii.Adp.Projects.Wire;
-using EtAlii.Adp.TestSupport.Host;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Path = EtAlii.Adp.Documents.Wire.Path;
@@ -135,6 +134,13 @@ internal sealed partial class Replay : IAsyncDisposable
         }
 
         _projectId = added.Added.Id;
+        if (IsHierarchy)
+        {
+            // A designer's document of the hierarchy kind is a page on the tab's one stream.
+            await OpenHierarchyAsync(cancellationToken);
+            return;
+        }
+
         if (IsTable)
         {
             // A designer's document is a table on the tab's one stream, not a diagram.
@@ -403,6 +409,8 @@ internal sealed partial class Replay : IAsyncDisposable
             SaveTextStep save => await RunSaveTextAsync(save, cancellationToken),
             TableStep table when IsTable => await RunTableAsync(table, cancellationToken),
             ViewStep view when IsTable => await RunViewAsync(view, cancellationToken),
+            HierarchyStep hierarchy when IsHierarchy => await RunHierarchyAsync(hierarchy, cancellationToken),
+            OutsideStep outside when IsHierarchy => await RunOutsideAsync(outside, cancellationToken),
             _ => throw new InvalidOperationException($"Step {step.Index} has no replay."),
         };
 
@@ -735,6 +743,7 @@ internal sealed partial class Replay : IAsyncDisposable
         }
 
         await DisposeTableAsync();
+        await DisposeHierarchyAsync();
         _contextCall?.Dispose();
         _diagramCall?.Dispose();
         _channel.Dispose();
