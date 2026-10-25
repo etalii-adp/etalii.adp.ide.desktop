@@ -32,12 +32,15 @@ use super::layout::{
     BOX_SPACING, ENTRY_MIN_WIDTH, GRIP_WIDTH, HEADER_GAP, HierarchyIndex, ICON_SIZE, IconsLayout, LINE_HEIGHT,
     PAGE_MARGIN, header_width, icons_layout,
 };
+use super::notes::NoteControl;
 use super::{HierarchyTab, is_line_id};
 use crate::a11y;
 use crate::icons;
 use crate::table::view::Colours;
 use crate::theme::Palette;
 
+/// The size of the count of several open notes beside their icon (`.hs-note-count`).
+const NOTE_COUNT_FONT: f32 = 10.0;
 /// The space between the labels' row and the title, and between the tags in it.
 const TAG_GAP: f32 = 4.0;
 /// A tag's height, its side padding and its font size (`.hs-look .table-option-tag`).
@@ -73,6 +76,8 @@ enum Act {
     Delete(String, bool),
     StartDrag(String),
     EndDrag,
+    /// The icon at a box's top right: its list of notes opened or closed.
+    ToggleNotes(String),
     /// The conflict bar's two sides: drop what was typed, or keep it.
     ShowFile,
     KeepText,
@@ -124,6 +129,7 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
             Act::Commit => tab.commit_field(),
             Act::Cancel => tab.cancel_field(),
             Act::ShowFile => tab.show_file(),
+            Act::ToggleNotes(id) => tab.toggle_notes(&id),
             Act::KeepText => tab.keep_text(),
             Act::Delete(id, ask) => tab.delete(&id, ask),
             Act::StartDrag(id) => {
@@ -140,6 +146,12 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
             }
         }
     }
+    let anchor = tab
+        .notes
+        .as_ref()
+        .and_then(|n| drawn.note_icons.iter().find(|(id, _)| *id == n.node_id))
+        .map(|(_, rect)| *rect);
+    super::notes::show(ui, tab, anchor, &colours, &font);
     confirm_delete(ui, tab);
 }
 
@@ -147,7 +159,9 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
 /// the definition sends with Ctrl or Cmd held, Shift too or not, which runs the selected node's action of that key.
 fn keys(ui: &mut egui::Ui, tab: &mut HierarchyTab, acts: &mut Vec<Act>) {
     let free = ui.memory(|m| m.focused().is_none_or(|f| f == tab.id()));
-    if !free || tab.field.is_some() || tab.deleting.is_some() || tab.selected.is_empty() || tab.read_only() {
+    // An open list of notes keeps the keys for itself.
+    let busy = tab.field.is_some() || tab.deleting.is_some() || tab.notes.is_some();
+    if !free || busy || tab.selected.is_empty() || tab.read_only() {
         return;
     }
     if ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Delete)) {
@@ -197,6 +211,8 @@ fn confirm_delete(ui: &mut egui::Ui, tab: &mut HierarchyTab) {
 struct Drawn {
     boxes: Vec<(String, Rect)>,
     slot: Option<Rect>,
+    /// The icon at each box's top right, which its list of notes opens under.
+    note_icons: Vec<(String, Rect)>,
 }
 
 /// Where the node being dragged would go with the pointer where it is: over the place the drop is shown at, the drop
@@ -567,6 +583,17 @@ impl Page<'_, '_> {
         // Each control's icon, its name, its tooltip, what it asks for, and whether it shows only where a person is
         // looking: the hidden levels' mark is always shown.
         let mut controls: Vec<(&'static str, String, String, Act, bool)> = Vec::new();
+        // The notes' icon first, so that it stands at the corner whatever else a box offers.
+        let notes = NoteControl::of(tab, self.index, node, collapsed);
+        if let Some(control) = &notes {
+            controls.push((
+                "",
+                control.label.clone(),
+                control.label.clone(),
+                Act::ToggleNotes(node.id.clone()),
+                !control.mark,
+            ));
+        }
         if hidden > 0 {
             let levels = if hidden == 1 { "level" } else { "levels" };
             controls.push((
@@ -668,10 +695,11 @@ impl Page<'_, '_> {
                 y += DESCRIPTION_TOP + height + DESCRIPTION_BOTTOM - BOX_SPACING;
             }
         }
-        let side_height = if layout == IconsLayout::Column {
-            controls.len() as f32 * ICON_SIZE
-        } else {
-            0.0
+        // The delete stands under the controls, in a row or a column: a box of one line keeps the room for both.
+        let side_height = match layout {
+            IconsLayout::Column => controls.len() as f32 * ICON_SIZE,
+            IconsLayout::Row if deletable && !controls.is_empty() => ICON_SIZE,
+            IconsLayout::Row => 0.0,
         } + if deletable { ICON_SIZE } else { 0.0 };
         let height = (y + BOX_SPACING - rect.top())
             .max(side_height + 2.0 * BOX_SPACING)
@@ -724,7 +752,7 @@ impl Page<'_, '_> {
         };
         let verb = if collapsed { "Expand" } else { "Collapse" };
         let name = format!("{verb} {} {}", node.number, node.title);
-        if self.icon_button(ui, toggle, chevron, &name, &name, id.with("toggle"), true) {
+        if self.icon_button(ui, toggle, chevron, &name, &name, id.with("toggle")) {
             self.acts.push(Act::Toggle(node.id.clone()));
         }
         if self.editable {
@@ -736,12 +764,21 @@ impl Page<'_, '_> {
                 IconsLayout::Row => Pos2::new(rect.right() - BOX_SPACING - (i + 1) as f32 * ICON_SIZE, top),
             };
             let place = Rect::from_min_size(at, Vec2::splat(ICON_SIZE));
+            if let (Act::ToggleNotes(_), Some(control)) = (&act, &notes) {
+                // The mark always, the way to add where a person is looking or while its list is open.
+                let open = tab.notes.as_ref().is_some_and(|n| n.node_id == node.id);
+                self.drawn.note_icons.push((node.id.clone(), place));
+                if (!looking || hovered || open) && self.note_icon(ui, place, control, id.with("notes"), open) {
+                    self.acts.push(act);
+                }
+                continue;
+            }
             // Focus where a person is looking, a description's add on the selected box alone, each kept in its place.
             let visible = match icon {
                 ADD_DESCRIPTION_ICON => selected && typing.is_none(),
                 _ => !looking || hovered,
             };
-            if self.icon_button(ui, place, icon, &label, &tooltip, id.with(icon), visible) {
+            if visible && self.icon_button(ui, place, icon, &label, &tooltip, id.with(icon)) {
                 self.acts.push(act);
             }
         }
@@ -754,7 +791,7 @@ impl Page<'_, '_> {
                 Vec2::splat(ICON_SIZE),
             );
             let name = format!("Delete {} {}", node.number, node.title);
-            if self.icon_button(ui, place, DELETE_ICON, &name, "Delete", id.with("delete"), true) {
+            if self.icon_button(ui, place, DELETE_ICON, &name, "Delete", id.with("delete")) {
                 self.acts.push(Act::Delete(node.id.clone(), true));
             }
         }
@@ -978,6 +1015,41 @@ impl Page<'_, '_> {
     /// One of a box's controls: its icon in `place`, named `label` for a screen reader and showing `tooltip` under the
     /// pointer; whether it was pressed. A control not `visible` keeps its place and takes no press.
     #[allow(clippy::too_many_arguments)]
+    /// The notes' icon in `place`: the mark of the open notes in the warning colour, with their count when there are
+    /// several, or the way to add the first.
+    fn note_icon(&self, ui: &mut egui::Ui, place: Rect, control: &NoteControl, id: egui::Id, open: bool) -> bool {
+        let response = ui.interact(place, id, Sense::click());
+        a11y::describe(&response, Role::Button, &control.label);
+        response
+            .ctx
+            .accesskit_node_builder(response.id, |node| node.set_expanded(open));
+        let colour = if control.mark {
+            self.colours.warning
+        } else if response.hovered() {
+            self.colours.text
+        } else {
+            self.colours.muted
+        };
+        let painter = ui.painter();
+        painter.text(
+            place.center(),
+            Align2::CENTER_CENTER,
+            icons::text(&control.icon),
+            icons::font(self.font.size),
+            colour,
+        );
+        if control.count > 1 {
+            painter.text(
+                place.right_bottom() + Vec2::new(1.0, 1.0),
+                Align2::RIGHT_BOTTOM,
+                control.count.to_string(),
+                FontId::proportional(NOTE_COUNT_FONT),
+                colour,
+            );
+        }
+        response.on_hover_text(&control.label).clicked()
+    }
+
     fn icon_button(
         &self,
         ui: &mut egui::Ui,
@@ -986,11 +1058,7 @@ impl Page<'_, '_> {
         label: &str,
         tooltip: &str,
         id: egui::Id,
-        visible: bool,
     ) -> bool {
-        if !visible {
-            return false;
-        }
         let response = ui.interact(place, id, Sense::click());
         a11y::describe(&response, Role::Button, label);
         let colour = if response.hovered() {

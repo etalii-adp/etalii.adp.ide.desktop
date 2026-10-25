@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 
 use crate::documents::Writer;
 use crate::gestures::DRIFTED;
-use crate::operations::{structure, text};
+use crate::operations::{assessments, structure, text};
 
 /// One edit of the body: an operation of the surface, with what it names and its params, planned against the bytes
 /// the person's page was made from.
@@ -75,6 +75,8 @@ impl EditCommand {
             text::apply(&before, &name, &self.operation, &self.target_id, value)?
         } else if structure::handles(&self.operation) {
             structure::apply(&before, &name, &self.operation, &self.target_id, &self.params)?
+        } else if assessments::handles(&self.operation) {
+            assessments::apply(&before, &name, &self.operation, &self.target_id, &self.params)?
         } else {
             return Err(format!("'{}' cannot be done here yet.", self.operation));
         };

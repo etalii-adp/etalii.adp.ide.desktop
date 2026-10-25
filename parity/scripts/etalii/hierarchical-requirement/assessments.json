@@ -1,0 +1,15 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "addAssessment", "target": "REQ-0008", "params": {"kind": "Warning", "text": "One provider is one point of failure."}}},
+    {"hierarchy": {"operation": "changeAssessment", "target": "assessment/0", "params": {"kind": "Remark", "text": "Is 30 minutes right on a phone?", "detail": "Asked by the mobile team."}}},
+    {"hierarchy": {"operation": "resolveAssessment", "target": "assessment/0", "params": {}}},
+    {"hierarchy": {"operation": "resolveAssessment", "target": "assessment/1", "params": {}}},
+    {"hierarchy": {"operation": "removeAssessment", "target": "assessment/3", "params": {}}},
+    {"hierarchy": {"operation": "addAssessment", "target": "REQ-0003", "params": {"kind": "Idea", "text": "Line one\nline two"}}, "expect": "refused"},
+    {"undo": {}},
+    {"redo": {}}
+  ]
+}

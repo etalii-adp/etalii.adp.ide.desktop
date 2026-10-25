@@ -3,12 +3,13 @@
 //! accessibility tree (`HierarchySurface.test.tsx`; T026 to T029), and changed there (`editing/AddControl.test.tsx`; T038).
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 use std::rc::Rc;
 
 use adp_desl::hierarchy::definition::{
-    AddDefinition, Deletion, FOCUS_ICON, HIDDEN_LEVELS_ICON, LabelDefinition, MoveParams, Operations, SurfaceDefinition,
+    AddDefinition, Deletion, FOCUS_ICON, HIDDEN_LEVELS_ICON, LabelDefinition, MoveParams, NoteOperations, NoteParams,
+    NoteWords, NotesDefinition, Operations, SurfaceDefinition,
 };
 use adp_desl::hierarchy::model::{
     EditOutcome, Gesture, LabelValues, Note, OptionList, Reference, SurfaceAction, SurfaceChange, SurfaceFinding,
@@ -23,6 +24,7 @@ use eframe::egui::{
 use super::HierarchyTab;
 use super::editing::{self, Attribute, DropHint, DropKind, EntryDrop};
 use super::layout::*;
+use super::notes;
 use crate::icons;
 use crate::theme::{self, Palette};
 
@@ -193,6 +195,27 @@ fn definition() -> SurfaceDefinition {
             ("Aside".into(), "mdi-comment-text-outline".into()),
         ],
         several_notes_icon: "mdi-comment-multiple-outline".into(),
+        notes: NotesDefinition {
+            operations: NoteOperations {
+                add: "remark".into(),
+                change: "reword".into(),
+                resolve: "settle".into(),
+                remove: "strike".into(),
+            },
+            params: NoteParams {
+                kind: "sort".into(),
+                text: "line".into(),
+                detail: "more".into(),
+            },
+            words: NoteWords {
+                list: "Notes".into(),
+                add: "New note".into(),
+                change: "Reword".into(),
+                resolve: "Settle".into(),
+                reopen: "Unsettle".into(),
+                remove: "Strike".into(),
+            },
+        },
         operations: Operations {
             toggle_collapsed: "fold".into(),
             set_title: "retitle".into(),
@@ -1482,4 +1505,437 @@ fn nothing_is_asked_for_the_pages_own_edit_nor_while_no_field_is_open() {
 
     // Assert.
     assert!(!surface.drawn(CONFLICT));
+}
+
+// ---- A box's notes (the standalone host's `notes/NoteIcon.test.tsx` at a7fdf03; T042) ----
+
+/// The section 1 holds the points 2 and 3 and the section 4, which holds the point 5.
+fn noted(notes: Vec<Note>) -> SurfaceModel {
+    SurfaceModel {
+        title: "Notes".into(),
+        cause: causes::OPEN.into(),
+        nodes: vec![
+            level("1", "", "Orders"),
+            entry("2", "1", "Take an order"),
+            entry("3", "1", "Cancel an order"),
+            level("4", "1", "Payment"),
+            entry("5", "4", "Pay by card"),
+        ],
+        notes,
+        ..SurfaceModel::default()
+    }
+}
+
+fn assessment(id: &str, about: &str, kind: &str) -> Note {
+    Note {
+        id: id.into(),
+        kind: kind.into(),
+        about: format!("[{about}]"),
+        about_id: about.into(),
+        text: format!("note {id}"),
+        ..Note::default()
+    }
+}
+
+fn resolved(mut note: Note) -> Note {
+    note.resolved = true;
+    note
+}
+
+fn collapsed_at(id: &str, mut model: SurfaceModel) -> SurfaceModel {
+    model.nodes.iter_mut().find(|n| n.id == id).unwrap().collapsed = true;
+    model
+}
+
+impl Surface {
+    /// The widget of `role` named `name` whose bounds lie within those of `outer`.
+    fn inside(&self, outer: &Node, role: Role, name: &str) -> Option<&Node> {
+        let o = outer.bounds()?;
+        self.nodes.values().find(|n| {
+            n.role() == role
+                && n.label() == Some(name)
+                && n.bounds().is_some_and(|b| {
+                    b.x0 >= o.x0 - 0.5 && b.x1 <= o.x1 + 0.5 && b.y0 >= o.y0 - 0.5 && b.y1 <= o.y1 + 0.5
+                })
+        })
+    }
+
+    /// The names of the widgets of `role`, top to bottom and left to right.
+    fn named(&self, role: Role) -> Vec<String> {
+        let mut found: Vec<(f64, f64, String)> = self
+            .nodes
+            .values()
+            .filter(|n| n.role() == role)
+            .map(|n| {
+                let at = n.bounds().unwrap_or_default();
+                (at.y0, at.x0, n.label().unwrap_or_default().to_owned())
+            })
+            .collect();
+        found.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        found.into_iter().map(|f| f.2).collect()
+    }
+
+    /// The icon at the top right of the box named `name`, under the pointer so that the way to add is shown.
+    fn note_icon(&mut self, name: &str) -> Option<String> {
+        let at = self.half_of(name, false);
+        self.frame(vec![egui::Event::PointerMoved(at)]);
+        let outer = self.get(Role::TreeItem, name).bounds()?;
+        self.nodes
+            .values()
+            .filter(|n| n.role() == Role::Button)
+            .filter_map(|n| Some((n.bounds()?, n.label()?.to_owned())))
+            .filter(|(b, _)| {
+                b.y0 >= outer.y0 && b.y1 <= outer.y0 + f64::from(2.0 * BOX_SPACING + ICON_SIZE) && b.x1 <= outer.x1
+            })
+            .max_by(|a, b| a.0.x1.partial_cmp(&b.0.x1).unwrap())
+            .map(|(_, label)| label)
+    }
+
+    /// Opens the list of the box named `name` from its icon.
+    fn open_notes(&mut self, name: &str) {
+        let label = self.note_icon(name).expect("the box has its notes' icon");
+        self.click(Role::Button, &label);
+    }
+
+    fn dialog(&self) -> Option<&Node> {
+        self.nodes.values().find(|n| n.role() == Role::Dialog)
+    }
+
+    /// Picks a kind in the list's choice named `label`.
+    fn choose_kind(&mut self, label: &str, kind: &str) {
+        self.click(Role::ComboBox, label);
+        self.click(Role::ListBoxOption, kind);
+    }
+}
+
+#[test]
+fn every_box_offers_the_way_to_add_the_first_note_first_of_its_controls_at_its_top_right() {
+    let mut surface = Surface::of(noted(Vec::new()));
+
+    for (name, number) in [
+        ("[1] Orders", "[1]"),
+        ("[2] Take an order", "[2]"),
+        ("[4] Payment", "[4]"),
+        ("[5] Pay by card", "[5]"),
+    ] {
+        assert_eq!(surface.note_icon(name), Some(format!("New note on {number}")), "{name}");
+        let icon = surface
+            .get(Role::Button, &format!("New note on {number}"))
+            .bounds()
+            .unwrap();
+        let outer = surface.get(Role::TreeItem, name).bounds().unwrap();
+        assert!(
+            (outer.x1 - BOX_SPACING as f64 - icon.x1).abs() < 0.5,
+            "{name}: the icon stands at the corner"
+        );
+    }
+}
+
+#[test]
+fn a_selected_box_of_one_line_has_its_delete_under_its_notes_icon_not_over_it() {
+    let mut surface = Surface::of(noted(vec![assessment("n1", "2", "Doubt")]));
+    surface.click_box("[2] Take an order");
+    surface.frame(Vec::new());
+
+    let icon = surface.get(Role::Button, "Doubt: note n1").bounds().unwrap();
+    let delete = surface.get(Role::Button, "Delete [2] Take an order").bounds().unwrap();
+    assert!(delete.y0 >= icon.y1, "{icon:?} {delete:?}");
+    assert!((delete.x1 - icon.x1).abs() < 0.5, "in the same column");
+}
+
+#[test]
+fn a_document_that_cannot_change_offers_no_way_to_add_a_note() {
+    let mut model = noted(Vec::new());
+    model.read_only_reason = "Read only.".into();
+    let mut surface = Surface::of(model);
+
+    assert_ne!(
+        surface.note_icon("[2] Take an order").as_deref(),
+        Some("New note on [2]")
+    );
+    assert!(surface.find(Role::Button, "New note on [2]").is_none());
+}
+
+#[test]
+fn one_open_note_shows_by_its_kind_and_several_by_their_count_in_the_words_of_the_list() {
+    let notes = vec![
+        assessment("n1", "2", "Aside"),
+        assessment("n2", "3", "Doubt"),
+        assessment("n3", "3", "Aside"),
+        resolved(assessment("n4", "3", "Doubt")),
+    ];
+    let definition = definition();
+    let ids = |id: &str| HashSet::from([id.to_owned()]);
+
+    // The kind's icon for one, the icon for several with their count; the resolved note is not counted.
+    let one = notes::mark_of(&notes, &ids("2"), &definition).unwrap();
+    assert_eq!((one.icon.as_str(), one.count), ("mdi-comment-text-outline", 1));
+    let two = notes::mark_of(&notes, &ids("3"), &definition).unwrap();
+    assert_eq!((two.icon.as_str(), two.count), ("mdi-comment-multiple-outline", 2));
+    assert_eq!(notes::mark_of(&notes, &ids("5"), &definition), None);
+
+    // On the page, by what they say.
+    let mut surface = Surface::of(noted(notes));
+    assert_eq!(
+        surface.note_icon("[2] Take an order").as_deref(),
+        Some("Aside: note n1")
+    );
+    assert_eq!(
+        surface.note_icon("[3] Cancel an order").as_deref(),
+        Some("2 open notes")
+    );
+    assert!(surface.drawn("2"), "the count is drawn beside the icon");
+}
+
+#[test]
+fn a_collapsed_section_counts_every_open_note_inside_it_and_only_its_own_while_open() {
+    let notes = vec![
+        assessment("n1", "2", "Aside"),
+        assessment("n2", "5", "Doubt"),
+        assessment("n3", "4", "Aside"),
+    ];
+
+    let mut surface = Surface::of(collapsed_at("1", noted(notes.clone())));
+    assert_eq!(surface.note_icon("[1] Orders").as_deref(), Some("3 open notes"));
+
+    let mut surface = Surface::of(noted(notes));
+    assert_eq!(surface.note_icon("[1] Orders").as_deref(), Some("New note on [1]"));
+}
+
+#[test]
+fn the_list_opens_from_the_icon_and_names_each_notes_entry_kind_text_and_detail_resolved_ones_too() {
+    // Arrange: a collapsed section lists everything inside it, in the file's order.
+    let mut aside = assessment("n1", "2", "Aside");
+    aside.detail = "Ask the shop.".into();
+    let notes = vec![
+        aside,
+        resolved(assessment("n2", "5", "Doubt")),
+        assessment("n3", "3", "Doubt"),
+    ];
+    let mut surface = Surface::of(collapsed_at("1", noted(notes)));
+
+    // Act.
+    surface.open_notes("[1] Orders");
+
+    // Assert.
+    let dialog = surface.dialog().expect("the list is open").clone();
+    assert_eq!(dialog.label(), Some("Notes of [1]"));
+    assert_eq!(
+        surface.named(Role::ListItem),
+        ["[2] Aside: note n1", "[5] Doubt: note n2", "[3] Doubt: note n3"]
+    );
+    assert!(surface.drawn("Ask the shop."));
+    assert!(surface.inside(&dialog, Role::Image, "Aside").is_some());
+    let row = |s: &Surface, name: &str| s.get(Role::ListItem, name).clone();
+    let second = row(&surface, "[5] Doubt: note n2");
+    assert_eq!(second.description(), Some("resolved"));
+    assert!(surface.inside(&second, Role::Button, "Unsettle").is_some());
+    let third = row(&surface, "[3] Doubt: note n3");
+    assert!(surface.inside(&third, Role::Button, "Settle").is_some());
+    assert_eq!(surface.get(Role::Button, "2 open notes").is_expanded(), Some(true));
+}
+
+#[test]
+fn a_note_is_added_about_the_boxs_node_with_the_kind_chosen_and_the_text_typed_and_none_without_a_text() {
+    // Arrange.
+    let mut surface = Surface::of(noted(Vec::new()));
+    surface.open_notes("[2] Take an order");
+
+    // Act: nothing typed but spaces, then Add.
+    surface.click(Role::MultilineTextInput, "New note about [2]");
+    surface.type_text("  ");
+    surface.click(Role::Button, "Add");
+    surface.click(Role::MultilineTextInput, "New note about [2]");
+    surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+    assert!(surface.gestures().is_empty());
+
+    // Act: the kind chosen, a text typed and Enter.
+    surface.choose_kind("Kind of the new one about [2]", "Aside");
+    surface.click(Role::MultilineTextInput, "New note about [2]");
+    surface.key(egui::Key::A, egui::Modifiers::COMMAND);
+    surface.type_text("Which shop?");
+    surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+    // Assert: one gesture, and the box neither selected nor its title opened by it.
+    assert_eq!(
+        surface.sent(),
+        [sent("remark", "2", &[("line", "Which shop?"), ("sort", "Aside")])]
+    );
+    assert!(surface.tab.field.is_none());
+}
+
+#[test]
+fn a_note_is_resolved_removed_and_changed_each_as_the_definitions_operation() {
+    // Arrange.
+    let mut surface = Surface::of(noted(vec![assessment("assessment/0", "2", "Doubt")]));
+    surface.open_notes("[2] Take an order");
+
+    // Act.
+    surface.click(Role::Button, "Settle");
+    surface.click(Role::Button, "Strike");
+    surface.click(Role::Button, "Reword");
+    assert_eq!(
+        surface.field("Text about [2]").map(|f| f.1),
+        Some(true),
+        "the text is ready for typing"
+    );
+    surface.choose_kind("Kind of [2]", "Aside");
+    surface.click(Role::MultilineTextInput, "Text about [2]");
+    surface.key(egui::Key::A, egui::Modifiers::COMMAND);
+    surface.type_text("Settled by the shop");
+    surface.click(Role::MultilineTextInput, "Detail about [2]");
+    surface.type_text("See the call.");
+    surface.click(Role::Button, "Reword");
+
+    // Assert.
+    assert_eq!(
+        surface.sent(),
+        [
+            sent("settle", "assessment/0", &[]),
+            sent("strike", "assessment/0", &[]),
+            sent(
+                "reword",
+                "assessment/0",
+                &[
+                    ("line", "Settled by the shop"),
+                    ("more", "See the call."),
+                    ("sort", "Aside")
+                ]
+            ),
+        ]
+    );
+}
+
+#[test]
+fn the_list_keeps_its_keys_from_the_page_and_closes_on_escape_and_on_a_press_outside() {
+    // Arrange.
+    let mut surface = Surface::of(noted(vec![assessment("n1", "2", "Doubt")]));
+    surface.click_box("[2] Take an order");
+    surface.open_notes("[2] Take an order");
+
+    // Act: Delete and Ctrl+Enter, which are the page's delete and add of the selected node.
+    surface.key(egui::Key::Delete, egui::Modifiers::NONE);
+    surface.key(egui::Key::Enter, egui::Modifiers::COMMAND);
+
+    // Assert.
+    assert!(surface.gestures().is_empty(), "{:?}", surface.sent());
+    assert!(surface.dialog().is_some());
+
+    // Act and assert: Escape, wherever the focus is, closes it.
+    surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+    assert!(surface.dialog().is_none());
+
+    // Act and assert: a press outside closes it too, here on the section above it.
+    surface.open_notes("[2] Take an order");
+    assert!(surface.dialog().is_some());
+    surface.click_box("[1] Orders");
+    assert!(surface.dialog().is_none());
+}
+
+#[test]
+fn escape_drops_a_change_and_keeps_the_list() {
+    let mut surface = Surface::of(noted(vec![assessment("n1", "2", "Doubt")]));
+    surface.open_notes("[2] Take an order");
+    surface.click(Role::Button, "Reword");
+    assert!(surface.field("Text about [2]").is_some());
+
+    surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+
+    assert!(surface.field("Text about [2]").is_none());
+    assert!(surface.dialog().is_some());
+    assert!(surface.gestures().is_empty());
+}
+
+#[test]
+fn the_list_stands_above_every_pane_under_the_boxs_icons() {
+    let mut surface = Surface::of(noted(vec![assessment("n1", "2", "Doubt")]));
+    surface.open_notes("[2] Take an order");
+
+    let dialog = surface.dialog().unwrap().bounds().unwrap();
+    let icon = surface.get(Role::Button, "Doubt: note n1").bounds().unwrap();
+    let centre = egui::pos2(
+        ((dialog.x0 + dialog.x1) / 2.0) as f32,
+        ((dialog.y0 + dialog.y1) / 2.0) as f32,
+    );
+    assert_eq!(
+        surface.ctx.layer_id_at(centre).map(|l| l.order),
+        Some(egui::Order::Foreground)
+    );
+    assert!(
+        (dialog.x1 - icon.x1).abs() < 1.0,
+        "its right edge on the icons': {dialog:?} {icon:?}"
+    );
+    assert!(dialog.y0 >= icon.y1, "under them");
+}
+
+#[test]
+fn a_new_note_is_its_kind_then_its_text_over_three_lines_then_add_below_on_the_right() {
+    let mut surface = Surface::of(noted(Vec::new()));
+    surface.open_notes("[2] Take an order");
+
+    // Each kind with its icon, in the definition's order.
+    surface.click(Role::ComboBox, "Kind of the new one about [2]");
+    assert_eq!(surface.named(Role::ListBoxOption), ["Doubt", "Aside"]);
+    surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+    assert!(surface.dialog().is_some(), "Escape closes the kinds, not the list");
+
+    let kind = surface
+        .get(Role::ComboBox, "Kind of the new one about [2]")
+        .bounds()
+        .unwrap();
+    let text = surface
+        .get(Role::MultilineTextInput, "New note about [2]")
+        .bounds()
+        .unwrap();
+    let add = surface.get(Role::Button, "Add").bounds().unwrap();
+    let dialog = surface.dialog().unwrap().bounds().unwrap();
+    assert!(kind.y1 <= text.y0 && text.y1 <= add.y0, "one below the other");
+    assert!(
+        text.y1 - text.y0 >= 3.0 * f64::from(LINE_HEIGHT) - 6.0,
+        "three lines high"
+    );
+    assert!(dialog.x1 - add.x1 < 12.0, "Add at the right");
+}
+
+#[test]
+fn a_notes_resolve_change_and_remove_are_icons_side_by_side_under_a_note_of_one_line() {
+    let mut surface = Surface::of(noted(vec![assessment("n1", "2", "Doubt")]));
+    surface.open_notes("[2] Take an order");
+
+    let row = surface.get(Role::ListItem, "[2] Doubt: note n1").clone();
+    let buttons: Vec<(f64, f64, String)> = ["Settle", "Reword", "Strike"]
+        .iter()
+        .map(|name| {
+            let b = surface.inside(&row, Role::Button, name).expect(name).bounds().unwrap();
+            assert!((b.x1 - b.x0 - 22.0).abs() < 0.5, "{name} is an icon");
+            (b.y0, b.x0, (*name).to_owned())
+        })
+        .collect();
+    assert!(
+        buttons.windows(2).all(|w| w[0].1 < w[1].1 && w[0].0 == w[1].0),
+        "{buttons:?}"
+    );
+}
+
+#[test]
+fn a_document_that_cannot_change_only_shows_its_notes() {
+    let mut model = noted(vec![assessment("n1", "2", "Doubt")]);
+    model.read_only_reason = "Read only.".into();
+    let mut surface = Surface::of(model);
+
+    surface.open_notes("[2] Take an order");
+
+    let dialog = surface.dialog().expect("the list is open").clone();
+    assert!(surface.drawn("note n1"));
+    assert!(
+        surface
+            .nodes
+            .values()
+            .filter(|n| n.role() == Role::Button || n.role() == Role::MultilineTextInput)
+            .filter(|n| surface
+                .inside(&dialog, n.role(), n.label().unwrap_or_default())
+                .is_some())
+            .count()
+            == 0
+    );
 }
