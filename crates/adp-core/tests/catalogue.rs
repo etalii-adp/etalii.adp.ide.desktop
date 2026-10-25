@@ -13,7 +13,7 @@ fn vendor() -> PathBuf {
 #[test]
 fn the_catalogue_lists_every_tool_type_of_the_standalone_host_in_its_groups() {
     let catalogue = Catalogue::standalone();
-    assert_eq!(catalogue.types.len(), 101);
+    assert_eq!(catalogue.types.len(), 102);
     let identity = catalogue.types.iter().filter(|t| !t.state.has_module()).count();
     assert_eq!(
         identity, 66,
@@ -43,21 +43,85 @@ fn every_vendored_specification_joins_the_tool_type_of_its_origin() {
         .filter(|t| t.specification.is_some())
         .map(|t| t.origin.as_str())
         .collect();
-    assert_eq!(specified.len(), 30, "{specified:?}");
+    assert_eq!(specified.len(), 31, "{specified:?}");
     for origin in [
         "w3c/owl",
         "etalii/sankey",
         "wardley/map",
         "etalii/knowledge",
+        "etalii/hierarchical-requirement",
         "c4/container",
     ] {
         assert!(specified.contains(&origin), "{origin} has its specification");
     }
-    assert_eq!(
-        catalogue.unlisted.iter().map(|u| u.origin.as_str()).collect::<Vec<_>>(),
-        ["etalii/hierarchical-requirement"],
-        "a specification the standalone host does not list is kept apart"
+    assert!(
+        catalogue.unlisted.is_empty(),
+        "every vendored specification is a tool type the standalone host lists: {:?}",
+        catalogue.unlisted
     );
+}
+
+/// The Hierarchical Requirement Designer, added to the standalone host after 8b6ccfc, is listed as `docs/tools.md`
+/// lists it at a7fdf03, the commit its scripts are recorded at (etalii.adp spec 036, T022 and T024, research R6).
+#[test]
+fn the_hierarchical_requirement_designer_is_listed_as_the_standalone_host_lists_it_at_its_own_commit() {
+    let catalogue = Catalogue::load(&vendor());
+    let designer = catalogue.by_origin("etalii/hierarchical-requirement").unwrap();
+    assert_eq!(
+        (
+            designer.display_name.as_str(),
+            designer.kind,
+            designer.group.as_str(),
+            designer.state
+        ),
+        (
+            "Hierarchical Requirement Designer",
+            ToolKind::Designer,
+            "15. Designers",
+            ToolState::Prototype
+        )
+    );
+    assert_eq!(designer.vendor(), "etalii");
+    assert!(designer.is_usable(), "{:?}", designer.findings);
+    let designers: Vec<&str> = catalogue
+        .groups()
+        .into_iter()
+        .find(|(g, _)| *g == "15. Designers")
+        .map(|(_, members)| members.iter().map(|t| t.origin.as_str()).collect())
+        .unwrap_or_default();
+    assert_eq!(designers, ["etalii/knowledge", "etalii/hierarchical-requirement"]);
+}
+
+const ENVELOPE: &str = "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n# Web shop\r\n";
+
+/// A `.md` whose first line is the envelope naming the designer opens in it, ahead of every other owner of `.md`; any
+/// other `.md` is not the designer's, since its claim is shared and decided by its marker (FBL section 12.3; etalii.adp
+/// spec 036, research R6).
+#[test]
+fn a_markdown_file_with_the_envelope_opens_in_the_designer_and_one_without_it_does_not() {
+    let catalogue = Catalogue::load(&vendor());
+    let origins = |name: &str, bytes: &[u8]| -> Vec<String> {
+        catalogue
+            .for_body(name, bytes)
+            .iter()
+            .map(|t| t.origin.clone())
+            .collect()
+    };
+    assert_eq!(
+        origins("web-shop.md", ENVELOPE.as_bytes()),
+        ["etalii/hierarchical-requirement"]
+    );
+    assert_eq!(origins("notes.md", b"# Notes\r\n\r\n- one\r\n"), Vec::<String>::new());
+    let other = "<!-- ded: 0.2 designer: etalii/knowledge -->\r\n";
+    assert_eq!(origins("other.md", other.as_bytes()), Vec::<String>::new());
+    assert!(
+        catalogue
+            .for_file("web-shop.md")
+            .iter()
+            .all(|t| t.origin != "etalii/hierarchical-requirement"),
+        "a shared claim is never decided by the extension alone"
+    );
+    assert_eq!(origins("ideas.mm", b"<map/>"), ["freeplane/mindmap"]);
 }
 
 #[test]

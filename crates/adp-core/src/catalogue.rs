@@ -106,6 +106,11 @@ pub struct ToolType {
     /// Its first binding's claim is `registrationOnly` (FBL section 3): a body of it opens only through a registration,
     /// never by its extension (the agent behavior model's `.md`, which every Markdown file shares).
     pub registration_only: bool,
+    /// Its first binding's claim is `shared` (FBL section 3): a body of it opens by its extension only when this marker
+    /// matches, ahead of the extension's other owners, and never without one (the requirement document's envelope, on a
+    /// `.md` that every Markdown file shares).
+    pub shared_marker: Option<adp_fbl::documents::Marker>,
+    pub shared: bool,
     pub findings: Vec<CatalogueFinding>,
 }
 
@@ -113,6 +118,12 @@ impl ToolType {
     /// Whether it can open a document: it has a specification and nothing loading it found is an error.
     pub fn is_usable(&self) -> bool {
         self.specification.is_some() && !self.findings.iter().any(|f| f.severity == FindingSeverity::Error)
+    }
+
+    /// Whether it is usable and one of its extensions ends `name`, ignoring case.
+    fn opens_by_extension(&self, name: &str) -> bool {
+        let lower = name.to_lowercase();
+        self.is_usable() && self.extensions.iter().any(|e| lower.ends_with(e.as_str()))
     }
 
     /// The vendor part of its origin (`c4` of `c4/container`).
@@ -170,6 +181,8 @@ impl Catalogue {
                     binding_files: Vec::new(),
                     extensions: Vec::new(),
                     registration_only: false,
+                    shared_marker: None,
+                    shared: false,
                     findings: Vec::new(),
                 })
                 .collect(),
@@ -191,6 +204,8 @@ impl Catalogue {
                     tool_type.binding_files = loaded.binding_files;
                     tool_type.extensions = loaded.extensions;
                     tool_type.registration_only = loaded.registration_only;
+                    tool_type.shared_marker = loaded.shared_marker;
+                    tool_type.shared = loaded.shared;
                     tool_type.findings = loaded.findings;
                 }
                 Some(tool_type) => tool_type.findings.push(CatalogueFinding {
@@ -235,15 +250,32 @@ impl Catalogue {
     }
 
     /// The usable tool types that open a file named `name`, by its extension, in catalogue order; a tool type whose
-    /// binding claims its bodies only through a registration is not one of them.
+    /// binding claims its bodies only through a registration, or shares its extension and is decided by its body's
+    /// marker ([`Catalogue::for_body`]), is not one of them.
     pub fn for_file(&self, name: &str) -> Vec<&ToolType> {
-        let lower = name.to_lowercase();
         self.types
             .iter()
-            .filter(|t| {
-                t.is_usable() && !t.registration_only && t.extensions.iter().any(|e| lower.ends_with(e.as_str()))
-            })
+            .filter(|t| !t.registration_only && !t.shared && t.opens_by_extension(name))
             .collect()
+    }
+
+    /// The usable tool types that open the body `bytes` of a file named `name`: those whose shared claim's marker
+    /// matches it, ahead of the extension's other owners, then [`Catalogue::for_file`] (FBL section 12.3; etalii.adp
+    /// spec 036, research R6).
+    pub fn for_body(&self, name: &str, bytes: &[u8]) -> Vec<&ToolType> {
+        let mut found: Vec<&ToolType> = self
+            .types
+            .iter()
+            .filter(|t| {
+                t.shared
+                    && t.opens_by_extension(name)
+                    && t.shared_marker
+                        .as_ref()
+                        .is_some_and(|m| adp_fbl::routing::marker_matches(m, bytes))
+            })
+            .collect();
+        found.extend(self.for_file(name));
+        found
     }
 }
 
@@ -270,6 +302,8 @@ struct LoadedSpecification {
     binding_files: Vec<PathBuf>,
     extensions: Vec<String>,
     registration_only: bool,
+    shared_marker: Option<adp_fbl::documents::Marker>,
+    shared: bool,
     findings: Vec<CatalogueFinding>,
 }
 
@@ -280,6 +314,8 @@ fn load_specification(file: &Path, vendor: &Path) -> LoadedSpecification {
         binding_files: Vec::new(),
         extensions: Vec::new(),
         registration_only: false,
+        shared_marker: None,
+        shared: false,
         findings: Vec::new(),
     };
     let finding = |pointer: &str, severity, message: String| CatalogueFinding {
@@ -351,6 +387,8 @@ fn load_specification(file: &Path, vendor: &Path) -> LoadedSpecification {
                         extensions.extend(binding.claims.extensions.iter().map(|e| dotted(e)));
                         if loaded.binding_files.is_empty() {
                             loaded.registration_only = binding.claims.registration_only;
+                            loaded.shared = binding.claims.shared;
+                            loaded.shared_marker = binding.claims.marker.clone().filter(|_| binding.claims.shared);
                         }
                     }
                     None => loaded.findings.push(finding(

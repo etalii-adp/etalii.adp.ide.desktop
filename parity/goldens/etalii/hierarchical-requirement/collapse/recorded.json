@@ -1,0 +1,39 @@
+{
+  "script": "parity/scripts/etalii/hierarchical-requirement/collapse.json",
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "standaloneCommit": "a7fdf039c204535e9fc3a14f456e6f5a36a685ce",
+  "recorderVersion": "1.0.0",
+  "platform": "linux",
+  "recordedAt": "2026-10-25T04:59:23Z",
+  "edits": 3,
+  "changed": [
+    "web-shop.adp"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "toggleCollapsed ITEM-0002"
+    },
+    {
+      "step": 1,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "toggleCollapsed ITEM-0002"
+    },
+    {
+      "step": 2,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "toggleCollapsed ITEM-0003"
+    }
+  ]
+}

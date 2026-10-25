@@ -116,10 +116,16 @@ impl AddCatalogue {
             definitions: definitions::standalone(),
             states,
             factories: document_factories(),
-            designers: vec![(
-                adp_designer_knowledge::designer::definition(),
-                Box::new(adp_designer_knowledge::designer::new_document),
-            )],
+            designers: vec![
+                (
+                    adp_designer_knowledge::designer::definition(),
+                    Box::new(adp_designer_knowledge::designer::new_document),
+                ),
+                (
+                    adp_designer_hierarchical_requirement::designer::definition(),
+                    Box::new(adp_designer_hierarchical_requirement::designer::new_document),
+                ),
+            ],
         }
     }
 
@@ -357,7 +363,24 @@ impl AddCatalogue {
             self.validate(target, text)?;
             let base_name = strip_extension(text);
             let body_name = format!("{base_name}{}", format.extension);
-            if folder.join(&body_name).exists() {
+            let body_path = folder.join(&body_name);
+            if let Some(claim) = designer.claim.as_ref().filter(|c| c.covers(&format.extension))
+                && body_path.is_file()
+            {
+                // The envelope decides: a file that carries it is the document already, and nothing is written; one
+                // that does not is refused with the line it needs, which no dialog offers to write (spec 029 R5).
+                let head = fs::read(&body_path).map_err(|e| e.to_string())?;
+                return if (claim.matches)(&body_name, &head) {
+                    Ok(body_path)
+                } else {
+                    Err(format!(
+                        "'{body_name}' has no envelope on its first line, so it is not a {} document. The first line \
+                         it would need is: {}",
+                        designer.title, claim.envelope
+                    ))
+                };
+            }
+            if body_path.exists() {
                 return Err(format!("An item named '{body_name}' already exists in this folder."));
             }
             let Some(content) = template(format, &body_name) else {

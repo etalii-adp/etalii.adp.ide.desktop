@@ -1,8 +1,9 @@
 //! The surface knows no designer type (etalii.adp spec 036, FR-012): no name of the Hierarchical Requirement
 //! Designer's vocabulary appears in its sources.
 
-const SOURCES: [(&str, &str); 3] = [
+const SOURCES: [(&str, &str); 4] = [
     ("mod.rs", include_str!("mod.rs")),
+    ("definition.rs", include_str!("definition.rs")),
     ("model.rs", include_str!("model.rs")),
     ("session.rs", include_str!("session.rs")),
 ];

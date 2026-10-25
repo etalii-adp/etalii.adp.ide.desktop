@@ -9,9 +9,12 @@
 //! thousand rows is a few dozen elements"). The bytes are counted by `stats_alloc`'s instrumented system allocator,
 //! which this test binary alone installs.
 //!
-//! The shell is a binary crate, so the test includes the two modules it drives - the table and the theme - by path.
+//! The shell is a binary crate, so the test includes the modules it drives - the table, the theme and the icons' font the theme installs - by path.
 
 // What of the table and the theme the benchmark does not drive is the shell's.
+#[allow(dead_code)]
+#[path = "../crates/adp-shell/src/icons.rs"]
+mod icons;
 #[allow(dead_code)]
 #[path = "../crates/adp-shell/src/table/mod.rs"]
 mod table;

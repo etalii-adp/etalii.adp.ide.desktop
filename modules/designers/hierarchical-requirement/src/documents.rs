@@ -33,6 +33,36 @@ pub fn registration_beside(body: &Path) -> PathBuf {
     body.with_extension("adp")
 }
 
+/// The requirement document a path opens: a body whose first line is the envelope, with no registration named, or a
+/// registration whose first line is this designer type's, with the body its `body:` line names or, without one, the
+/// `.md` of its base name beside it (FBL 0.7 section 8.1). None for any other path.
+pub fn document_at(path: &Path) -> Option<(PathBuf, Option<PathBuf>)> {
+    if !path.is_file() {
+        return None;
+    }
+    let bytes = std::fs::read(path).ok()?;
+    let name = path.file_name()?.to_string_lossy().into_owned();
+    if !path.extension().is_some_and(|e| e.eq_ignore_ascii_case("adp")) {
+        return crate::designer::claims(&name, &bytes).then(|| (path.to_path_buf(), None));
+    }
+    if !is_this_designers(&bytes) {
+        return None;
+    }
+    let text = String::from_utf8_lossy(&bytes);
+    let named = text
+        .split(['\r', '\n'])
+        .skip(1)
+        .find_map(|line| line.trim().strip_prefix("body:"))
+        .map(str::trim)
+        .filter(|n| !n.is_empty());
+    let folder = path.parent().unwrap_or(Path::new(""));
+    let body = match named {
+        Some(named) => folder.join(named),
+        None => path.with_extension("md"),
+    };
+    body.is_file().then(|| (body, Some(path.to_path_buf())))
+}
+
 /// Reads both files. A registration whose first line names another designer type is not this document's, and is
 /// not read.
 pub fn read(body: &Path, registration: &Path) -> Files {
