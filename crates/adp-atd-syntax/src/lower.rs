@@ -193,6 +193,47 @@ impl Lowerer<'_> {
         )
     }
 
+    /// A binding's, rule's, block's, section's or file rule's name (ATD §3.6, §11.3): names and dashed words, joined
+    /// by `.` as FBL's names are.
+    fn rule_name(&self, node: &Node) -> Json {
+        let mut parts = Vec::new();
+        self.collect_words(node, &mut parts);
+        json!({"text": parts.join("."), "span": self.node_span(node)})
+    }
+
+    fn collect_words(&self, node: &Node, parts: &mut Vec<String>) {
+        for child in &node.children {
+            match child {
+                Child::Token(t) => {
+                    let text = self.token_text(*t);
+                    if text != "." && self.parse.tokens[*t].kind != TokenKind::Trivia {
+                        parts.push(text.to_owned());
+                    }
+                }
+                Child::Node(n) => self.collect_words(n, parts),
+            }
+        }
+    }
+
+    /// The names a `rule_names` node lists; a grammar before dashed rule names lists them as `qualified` names.
+    fn rule_names(&self, node: &Node) -> Json {
+        let mut names = self.find_all(node, "rule_name");
+        if names.is_empty() {
+            names = self.find_all(node, "qualified");
+        }
+        Json::Array(names.iter().map(|n| self.rule_name(n)).collect())
+    }
+
+    /// A construct's own `rule_name`, or its `name` in a grammar before dashed rule names.
+    fn own_rule_name<'n>(&self, node: &'n Node) -> Option<&'n Node> {
+        self.find(node, "rule_name").or_else(|| self.find(node, "name"))
+    }
+
+    /// A construct's `rule_names`, or its `names` in a grammar before dashed rule names.
+    fn own_rule_names<'n>(&self, node: &'n Node) -> Option<&'n Node> {
+        self.find(node, "rule_names").or_else(|| self.find(node, "names"))
+    }
+
     fn type_ref(&self, node: &Node) -> Json {
         let mut object = Map::new();
         object.insert(
@@ -1187,6 +1228,7 @@ impl Lowerer<'_> {
                 if has_into {
                     o.insert("parent".into(), self.expr(exprs[exprs.len() - 1]));
                 }
+                self.options(node, &mut o);
             }
             "resize" => {
                 o.insert("target".into(), self.expr(exprs[0]));
@@ -1434,7 +1476,7 @@ impl Lowerer<'_> {
 
     fn binding(&self, node: &Node) -> Json {
         let mut o = self.object("binding", node);
-        o.insert("name".into(), self.name(self.find(node, "name").expect("a name")));
+        o.insert("name".into(), self.rule_name(self.own_rule_name(node).expect("a name")));
         if let Some(family) = self.find(node, "declared_family") {
             o.insert(
                 "family".into(),
@@ -1451,7 +1493,7 @@ impl Lowerer<'_> {
         let members: Vec<Json> = self
             .child_nodes(node)
             .into_iter()
-            .filter(|m| !matches!(m.kind(), "name" | "declared_family" | "capability_family"))
+            .filter(|m| !matches!(m.kind(), "rule_name" | "name" | "declared_family" | "capability_family"))
             .map(|m| self.binding_member(m))
             .collect();
         o.insert("members".into(), Json::Array(members));
@@ -1474,8 +1516,8 @@ impl Lowerer<'_> {
                     "type".into(),
                     self.type_ref(self.find(node, "type_ref").expect("a type")),
                 );
-                if let Some(name) = self.find(node, "name") {
-                    o.insert("as".into(), self.name(name));
+                if let Some(name) = self.own_rule_name(node) {
+                    o.insert("as".into(), self.rule_name(name));
                 }
                 for place in ["at", "line"] {
                     if let Some(p) = self.find(node, place) {
@@ -1485,7 +1527,7 @@ impl Lowerer<'_> {
                 let members: Vec<Json> = self
                     .child_nodes(node)
                     .into_iter()
-                    .filter(|m| !matches!(m.kind(), "type_ref" | "name" | "at" | "line"))
+                    .filter(|m| !matches!(m.kind(), "type_ref" | "rule_name" | "name" | "at" | "line"))
                     .map(|m| self.rule_member(m))
                     .collect();
                 o.insert("members".into(), Json::Array(members));
@@ -1514,7 +1556,7 @@ impl Lowerer<'_> {
                     "section"
                 };
                 let mut o = self.object(kind, node);
-                o.insert("name".into(), self.name(self.find(node, "name").expect("a name")));
+                o.insert("name".into(), self.rule_name(self.own_rule_name(node).expect("a name")));
                 if let Some(text) = self.string_token(node) {
                     o.insert(if kind == "block" { "line" } else { "heading" }.into(), json!(text));
                 }
@@ -1547,8 +1589,8 @@ impl Lowerer<'_> {
         if let Some(slot) = self.find(node, "slot") {
             o.insert("from".into(), self.slot(slot));
         }
-        if let Some(names) = self.find(node, "names") {
-            o.insert("rules".into(), self.names(names));
+        if let Some(names) = self.own_rule_names(node) {
+            o.insert("rules".into(), self.rule_names(names));
         }
         if node.kind() == "parent" {
             let names = self.find_all(node, "name");
@@ -1574,7 +1616,7 @@ impl Lowerer<'_> {
                             let names = self.find_all(member, "name");
                             o.insert(
                                 "references".into(),
-                                json!({"rules": self.names(self.find(member, "names").expect("rules")),
+                                json!({"rules": self.rule_names(self.own_rule_names(member).expect("rules")),
                                        "by": self.name(names.last().expect("by"))}),
                             );
                         }
