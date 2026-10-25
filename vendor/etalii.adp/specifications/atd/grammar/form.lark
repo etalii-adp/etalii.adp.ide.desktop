@@ -2,7 +2,7 @@
 // Uses from core: name, type_ref, setting, settings_block, doc_member, label_member, value, STRING.
 
 // `surface table { … }` names which element types and attributes play the parts of a table (DESL §7.2 to §7.6);
-// `surface hierarchy { … }` those of a hierarchy (DESL §7.7).
+// `surface hierarchy { … }` those of a hierarchy, the widths of its columns of levels among them (DESL §7.7).
 form_surface: "surface" "table" "{" table_member* "}" -> table_surface
             | "surface" "hierarchy" "{" hierarchy_member* "}" -> hierarchy_surface
 
@@ -24,6 +24,7 @@ value_type: "valueType" name [STRING] "{" value_type_member* "}"
                  | "entries" type_ref [settings_block] -> entries
                  | "notes" type_ref [settings_block] -> notes
                  | "filters" type_ref [settings_block] -> filters
+                 | "widths" type_ref [settings_block] -> widths
                  | "labels" name [settings_block] -> labels
                  | setting
                  | doc_member

@@ -45,7 +45,7 @@
       "version": "^1.0.0",
       "provides": ["celFunctions"],
       "required": false,
-      "doc": "What this specification needs and DISL's CEL cannot do: an end as it was written, a number in the format's own invariant form, and an annotation's positions. The standalone module implements them over its own reading (`WardleyFunctions`).",
+      "doc": "What this specification needs and DISL's CEL cannot do: an end as it was written, a number in the format's own invariant form, an annotation's positions, and the decorators in the order they are written. The standalone module implements them over its own reading (`WardleyFunctions`).",
       "celFunctions": [
         {
           "name": "writtenEnd",
@@ -70,6 +70,14 @@
           "cost": 10,
           "fallback": "text.contains('[') ? text.split(']').filter(s, s.contains('[')).map(s, s.split('[')[s.split('[').size() - 1].split(',').map(n, double(n.trim()))) : [text.split(',').map(n, double(n.trim()))]",
           "doc": "An annotation's occurrences, each as [visibility, maturity], from the text between the outer brackets of its statement: `0.4,0.5` is one, `[0.43,0.49],[0.08,0.79]` two (gap 6). The fallback reads well-formed text only."
+        },
+        {
+          "name": "writtenDecorators",
+          "params": [{"name": "element", "type": "dyn"}],
+          "returns": "string",
+          "cost": 1,
+          "fallback": "['market', 'ecosystem', 'build', 'buy', 'outsource'].filter(d, d == 'market' ? element.market : d == 'ecosystem' ? element.ecosystem : d == 'build' ? element.build : d == 'buy' ? element.buy : element.outsource).join(', ')",
+          "doc": "The decorators an element carries in the order its statement writes them, joined by `, `: `outsource, market` for `(outsource) (market)`. The model's five booleans have no order (gap 5). The fallback lists them in this notation's order."
         }
       ]
     }
@@ -138,8 +146,8 @@
     "decoratorList": {
       "params": [{"name": "n", "type": "Element"}],
       "returns": "string",
-      "cel": "decoratorNames().filter(d, decorated(n, d)).join(', ')",
-      "doc": "The decorators the element carries, as the Decorators row shows them: `market, buy`."
+      "cel": "writtenDecorators(n)",
+      "doc": "The decorators the element carries, as the Decorators row shows them: in the order the map writes them, `outsource, market`."
     },
     "decoratorWords": {
       "params": [{"name": "t", "type": "string"}],
@@ -1419,6 +1427,7 @@
               "id": "labelOffset",
               "label": "Label offset",
               "showAbsent": false,
+              "display": {"cel": "fixedNumber(value.dx) + ', ' + fixedNumber(value.dy)"},
               "readOnlyReasons": [
                 {"reason": "readOnlyFile"},
                 "A label offset is in pixels rather than on the map's scale, which is a property of the format ADP reproduces rather than edits. Change it where the map was written."
@@ -1438,7 +1447,7 @@
               "value": {"cel": "evolutionOf(self).size() > 0 ? fixedNumber(evolutionOf(self)[0].maturity) : ''"},
               "readOnlyReasons": [{"reason": "readOnlyFile"}],
               "parse": {
-                "accepts": "value.trim() == '' || readsAsFraction(value)",
+                "accepts": "value.trim() == '' ? evolutionOf(self).size() > 0 : readsAsFraction(value)",
                 "write": [
                   {"delete": "evolutionOf(self)[0]", "when": "value.trim() == '' && evolutionOf(self).size() > 0"},
                   {
@@ -1451,8 +1460,10 @@
                     "when": "value.trim() != '' && evolutionOf(self).size() == 0"
                   }
                 ],
-                "refusal": "An evolution target is a number between 0 and 1.",
-                "doc": "Empty stops the evolution; a number from 0 to 1 sets its target, or starts one. The row is shown only while the element evolves."
+                "refusal": {
+                  "cel": "value.trim() == '' ? \"'\" + self.name + \"' is not evolving.\" : \"An evolution target is a number between 0 and 1.\""
+                },
+                "doc": "Empty stops the evolution, and is refused on an element that is not evolving; a number from 0 to 1 sets its target, or starts one. The row is shown only while the element evolves."
               }
             },
             {
@@ -1635,7 +1646,7 @@
               "kind": "computed",
               "id": "children",
               "label": "Components",
-              "widget": "text",
+              "widget": "textarea",
               "value": {"cel": "self.children.map(c, c.name + ' (' + fixedNumber(c.maturity) + ')').join(', ')"},
               "readOnlyReasons": [
                 {"reason": "readOnlyFile"},
@@ -1702,7 +1713,14 @@
       "label": "Rename element",
       "icon": "mdi-pencil-outline",
       "submitLabel": "Rename",
-      "items": [{"attribute": "name", "label": "Name", "initial": "self.name"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Name",
+          "initial": "self.name",
+          "validate": [{"rule": "value.trim() != ''", "message": "Every element needs a name.", "timing": "commit"}]
+        }
+      ]
     },
     "evolveDialog": {
       "for": ["Positioned"],
@@ -1746,7 +1764,14 @@
       "label": {"cel": "'Add to ' + self.name + \"'s pipeline\""},
       "icon": "mdi-pipe",
       "submitLabel": "Add",
-      "items": [{"attribute": "name", "label": "Name", "initial": "''"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Name",
+          "initial": "''",
+          "validate": [{"rule": "value.trim() != ''", "message": "Every element needs a name.", "timing": "commit"}]
+        }
+      ]
     },
     "addComponentDialog": {
       "for": "diagram",
@@ -1754,7 +1779,14 @@
       "label": "Add component",
       "icon": "mdi-plus",
       "submitLabel": "Add",
-      "items": [{"attribute": "name", "label": "Name", "initial": "''"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Name",
+          "initial": "''",
+          "validate": [{"rule": "value.trim() != ''", "message": "Every element needs a name.", "timing": "commit"}]
+        }
+      ]
     },
     "addAnchorDialog": {
       "for": "diagram",
@@ -1762,7 +1794,14 @@
       "label": "Add anchor",
       "icon": "mdi-plus",
       "submitLabel": "Add",
-      "items": [{"attribute": "name", "label": "Name", "initial": "''"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Name",
+          "initial": "''",
+          "validate": [{"rule": "value.trim() != ''", "message": "Every element needs a name.", "timing": "commit"}]
+        }
+      ]
     },
     "addSubmapDialog": {
       "for": "diagram",
@@ -1770,7 +1809,14 @@
       "label": "Add submap",
       "icon": "mdi-plus",
       "submitLabel": "Add",
-      "items": [{"attribute": "name", "label": "Name", "initial": "''"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Name",
+          "initial": "''",
+          "validate": [{"rule": "value.trim() != ''", "message": "Every element needs a name.", "timing": "commit"}]
+        }
+      ]
     },
     "addMarketDialog": {
       "for": "diagram",
@@ -1778,7 +1824,14 @@
       "label": "Add market",
       "icon": "mdi-plus",
       "submitLabel": "Add",
-      "items": [{"attribute": "name", "label": "Name", "initial": "''"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Name",
+          "initial": "''",
+          "validate": [{"rule": "value.trim() != ''", "message": "Every element needs a name.", "timing": "commit"}]
+        }
+      ]
     },
     "addEcosystemDialog": {
       "for": "diagram",
@@ -1786,7 +1839,14 @@
       "label": "Add ecosystem",
       "icon": "mdi-plus",
       "submitLabel": "Add",
-      "items": [{"attribute": "name", "label": "Name", "initial": "''"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Name",
+          "initial": "''",
+          "validate": [{"rule": "value.trim() != ''", "message": "Every element needs a name.", "timing": "commit"}]
+        }
+      ]
     },
     "addNoteDialog": {
       "for": "diagram",
@@ -1794,7 +1854,14 @@
       "label": "Add note",
       "icon": "mdi-plus",
       "submitLabel": "Add",
-      "items": [{"attribute": "name", "label": "Text", "initial": "''"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Text",
+          "initial": "''",
+          "validate": [{"rule": "value.trim() != ''", "message": "A note needs something to say.", "timing": "commit"}]
+        }
+      ]
     },
     "addAnnotationDialog": {
       "for": "diagram",
@@ -1802,7 +1869,14 @@
       "label": "Add annotation",
       "icon": "mdi-plus",
       "submitLabel": "Add",
-      "items": [{"attribute": "name", "label": "Text", "initial": "''"}]
+      "items": [
+        {
+          "attribute": "name",
+          "label": "Text",
+          "initial": "''",
+          "validate": [{"rule": "value.trim() != ''", "message": "A note needs something to say.", "timing": "commit"}]
+        }
+      ]
     }
   },
   "constraints": {
@@ -1860,13 +1934,13 @@
       {
         "id": "duplicateName",
         "code": "wardley.duplicate-name",
-        "scope": "Positioned",
-        "when": "isFirstHolder(self)",
-        "rule": "holdersOf(self).size() == 1",
+        "scope": "diagram",
+        "forEach": "cel.bind(holders, diagram.nodesOfType('Positioned'), holders.map(n, n.name).distinct().size() == holders.size() ? [] : holders.filter(n, isFirstHolder(n)))",
+        "rule": "holdersOf(item).size() == 1",
         "message": {
-          "cel": "\"'\" + self.name + \"' is declared more than once (lines \" + holdersOf(self).map(n, string(n.location().orValue({'line': 0})['line'])).join(', ') + \"), so every link, evolve and pipeline that names it is ambiguous.\""
+          "cel": "\"'\" + item.name + \"' is declared more than once (lines \" + holdersOf(item).map(n, string(n.location().orValue({'line': 0})['line'])).join(', ') + \"), so every link, evolve and pipeline that names it is ambiguous.\""
         },
-        "doc": "Once per repeated name, at the first holder, with the lines of every holder. Adding or renaming to a name the map has is refused, so a repeated name only comes from a file written elsewhere."
+        "doc": "Once per repeated name, at the first holder, with the lines of every holder. Adding or renaming to a name the map has is refused, so a repeated name only comes from a file written elsewhere. The first holders are looked for only when a name is repeated, so a map without one is checked in one pass over its names rather than once per element."
       },
       {
         "id": "danglingSource",

@@ -1,10 +1,10 @@
 // ATD 0.1, module binding: FBL 0.8's bindings, one to one (ATD §11; FBL §3 to §13).
 // Uses from core: name, qualified, names, type_ref, value, setting, settings_block, doc_member, label_member, STRING,
-// INT. Uses from cel: expr.
+// INT, DASHED_WORD. Uses from cel: expr.
 
 // `binding freeplane family xml { … }`; `family capability <name>` reads the body with a persistence plugin's
 // contract (FBL §11); a binding without `family` is a folder binding (FBL §10).
-binding: "binding" name ["family" binding_family] "{" binding_member* "}"
+binding: "binding" rule_name ["family" binding_family] "{" binding_member* "}"
 binding_family: name -> declared_family
               | "capability" qualified -> capability_family
 
@@ -15,8 +15,8 @@ binding_family: name -> declared_family
                | "header" settings_block -> header
                | "registration" settings_block -> registration
                | "template" value -> template
-               | "block" name ["line" STRING] [settings_block] -> block_rule
-               | "section" name STRING [settings_block] -> section_rule
+               | "block" rule_name ["line" STRING] [settings_block] -> block_rule
+               | "section" rule_name STRING [settings_block] -> section_rule
                | element_rule
                | relation_rule
                | setting
@@ -25,18 +25,25 @@ binding_family: name -> declared_family
 
 // `element Topic at "node" { … }`: entries at a selector (yaml, json, xml) or statements matching a line (lines,
 // blocks, bullets) become elements of a type; `as` names the rule when one type has several (FBL §5.1).
-element_rule: "element" type_ref ["as" name] [rule_place] "{" rule_member* "}"
-relation_rule: "relation" type_ref ["as" name] [rule_place] "{" relation_rule_member* "}"
+element_rule: "element" type_ref ["as" rule_name] [rule_place] "{" rule_member* "}"
+relation_rule: "relation" type_ref ["as" rule_name] [rule_place] "{" relation_rule_member* "}"
 rule_place: "at" STRING -> at
           | "line" STRING -> line
+
+// The name of a binding, a rule, a block, a section or a file rule, where a binding declares or names it: FBL's names
+// (FBL §2.2) admit hyphens and dots, so a dashed word is a name here, `as unreadable-requirement` (ATD §3.6, §11.3).
+rule_name: rule_word ("." rule_word)*
+rule_names: rule_name ("," rule_name)*
+?rule_word: name
+          | DASHED_WORD
 
 ?rule_member: "id" "from" slot [settings_block] -> id_from
             | "id" settings_block -> id
             | "attribute" name ["from" slot] [attribute_binding_block] -> attribute_binding
-            | "parent" names ["slot" name] -> parent
-            | "within" names -> within
+            | "parent" rule_names ["slot" name] -> parent
+            | "within" rule_names -> within
             | "when" expr -> when
-            | "files" names -> files
+            | "files" rule_names -> files
             | "insert" settings_block -> insert
             | "remove" settings_block -> remove
             | setting
@@ -51,6 +58,6 @@ slot: name [slot_argument]
 ?slot_argument: STRING | INT | "(" expr ")" -> cel_slot
 
 attribute_binding_block: "{" attribute_binding_member* "}"
-?attribute_binding_member: "references" names "by" name -> references
+?attribute_binding_member: "references" rule_names "by" name -> references
                          | setting
                          | doc_member

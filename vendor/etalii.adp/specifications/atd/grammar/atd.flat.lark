@@ -38,7 +38,7 @@ word: NAME
     | "rows" | "rule" | "section" | "select" | "set" | "severity" | "shape" | "size" | "slot" | "snapping"
     | "source" | "state" | "style" | "surface" | "system" | "table" | "target" | "template" | "text" | "theme" | "to"
     | "token" | "tokens" | "tool" | "toolbox" | "unavailable" | "unset" | "valueType" | "variant" | "version"
-    | "view" | "viewpoint" | "views" | "when" | "with" | "within"
+    | "view" | "viewpoint" | "views" | "when" | "widths" | "with" | "within"
 qualified: name ("." name)*
 names: qualified ("," qualified)*
 type_ref: qualified ["<" type_ref ("," type_ref)* ">"]
@@ -252,7 +252,7 @@ script__if_stmt: "if" expr script__stmt_block ["else" (script__if_stmt | script_
        | "create" type_ref [script__assignments] ["in" expr] script__create_option* ["as" name] -> script__create_action
        | "connect" type_ref "from" expr "to" expr [script__assignments] ["as" name] -> script__connect_action
        | "delete" expr -> script__delete_action
-       | "move" expr ["to" expr "," expr] ["into" expr] -> script__move_action
+       | "move" expr ["to" expr "," expr] ["into" expr] [script__move_slot] [script__move_place] -> script__move_action
        | "resize" expr "to" expr "," expr -> script__resize_action
        | "retype" expr "to" type_ref -> script__retype_action
        | "reparent" expr "to" expr script__reparent_option* -> script__reparent_action
@@ -277,6 +277,9 @@ script__create_option: "after" expr -> script__after
              | "at" expr -> script__at
              | "size" expr -> script__size
              | "place" name -> script__place
+script__move_slot: "slot" name -> script__slot
+script__move_place: "after" expr -> script__after
+          | "before" expr -> script__before
 script__reparent_option: "slot" name -> script__slot
                | "after" expr -> script__after
                | "before" expr -> script__before
@@ -386,6 +389,7 @@ form__value_type: "valueType" name [STRING] "{" form__value_type_member* "}"
                  | "entries" type_ref [settings_block] -> form__entries
                  | "notes" type_ref [settings_block] -> form__notes
                  | "filters" type_ref [settings_block] -> form__filters
+                 | "widths" type_ref [settings_block] -> form__widths
                  | "labels" name [settings_block] -> form__labels
                  | setting
                  | doc_member
@@ -407,7 +411,7 @@ text__text_source: "capability" qualified -> text__capability_source
            | STRING -> text__named_source
 
 // ---- binding.lark
-binding: "binding" name ["family" binding__binding_family] "{" binding__binding_member* "}"
+binding: "binding" binding__rule_name ["family" binding__binding_family] "{" binding__binding_member* "}"
 binding__binding_family: name -> binding__declared_family
               | "capability" qualified -> binding__capability_family
 ?binding__binding_member: "claims" "files" STRING ("," STRING)* -> binding__claims_files
@@ -417,24 +421,28 @@ binding__binding_family: name -> binding__declared_family
                | "header" settings_block -> binding__header
                | "registration" settings_block -> binding__registration
                | "template" value -> binding__template
-               | "block" name ["line" STRING] [settings_block] -> binding__block_rule
-               | "section" name STRING [settings_block] -> binding__section_rule
+               | "block" binding__rule_name ["line" STRING] [settings_block] -> binding__block_rule
+               | "section" binding__rule_name STRING [settings_block] -> binding__section_rule
                | binding__element_rule
                | binding__relation_rule
                | setting
                | doc_member
                | label_member
-binding__element_rule: "element" type_ref ["as" name] [binding__rule_place] "{" binding__rule_member* "}"
-binding__relation_rule: "relation" type_ref ["as" name] [binding__rule_place] "{" binding__relation_rule_member* "}"
+binding__element_rule: "element" type_ref ["as" binding__rule_name] [binding__rule_place] "{" binding__rule_member* "}"
+binding__relation_rule: "relation" type_ref ["as" binding__rule_name] [binding__rule_place] "{" binding__relation_rule_member* "}"
 binding__rule_place: "at" STRING -> binding__at
           | "line" STRING -> binding__line
+binding__rule_name: binding__rule_word ("." binding__rule_word)*
+binding__rule_names: binding__rule_name ("," binding__rule_name)*
+?binding__rule_word: name
+          | DASHED_WORD
 ?binding__rule_member: "id" "from" binding__slot [settings_block] -> binding__id_from
             | "id" settings_block -> binding__id
             | "attribute" name ["from" binding__slot] [binding__attribute_binding_block] -> binding__attribute_binding
-            | "parent" names ["slot" name] -> binding__parent
-            | "within" names -> binding__within
+            | "parent" binding__rule_names ["slot" name] -> binding__parent
+            | "within" binding__rule_names -> binding__within
             | "when" expr -> binding__when
-            | "files" names -> binding__files
+            | "files" binding__rule_names -> binding__files
             | "insert" settings_block -> binding__insert
             | "remove" settings_block -> binding__remove
             | setting
@@ -445,7 +453,7 @@ binding__rule_place: "at" STRING -> binding__at
 binding__slot: name [binding__slot_argument]
 ?binding__slot_argument: STRING | INT | "(" expr ")" -> binding__cel_slot
 binding__attribute_binding_block: "{" binding__attribute_binding_member* "}"
-?binding__attribute_binding_member: "references" names "by" name -> binding__references
+?binding__attribute_binding_member: "references" binding__rule_names "by" name -> binding__references
                          | setting
                          | doc_member
 

@@ -1,0 +1,43 @@
+atd 0.1
+
+/// A binding type the type map maps as unreadable keeps its entries out of the model, so its rule binds no attribute
+/// (DESL §5.2): one finding, at the attribute (ATD §14.7).
+designer example/outline version "0.1.0" {
+  label "Outline"
+  model {
+    element Item {
+      attribute title: string required
+      contains Item, Requirement ordered
+    }
+    element Requirement {
+      attribute title: string required
+    }
+  }
+  persistence {
+    typeMap: { Unreadable: { as: unreadable } }
+  }
+  surface hierarchy {
+    levels Item { title: title }
+    entries Requirement { title: title }
+  }
+  binding outline family bullets {
+    claims files "*.outline.md"
+    section items "^Items$"
+    element Item as item line "^(?<id>ITEM-\d+)[ \t]+(?<title>.+)$" {
+      within items
+      id from group "id"
+      parent item
+      attribute title from group "title" { empty: refuse }
+    }
+    element Requirement as requirement line "^(?<id>REQ-\d+)[ \t]+(?<title>.+)$" {
+      within items
+      id from group "id"
+      parent item
+      attribute title from group "title" { empty: refuse }
+    }
+    element Unreadable as unreadable-entry line "^.*$" {
+      within items
+      attribute title from text
+    }
+  }
+}

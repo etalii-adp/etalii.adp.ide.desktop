@@ -1,3 +1,10 @@
+---
+id: edsl-specification
+type: submodule-design
+title: Editor Specification Language (EDSL) — normative specification
+status: draft
+parent: edsl
+---
 # EDSL — Editor Specification Language
 
 **Specification, no version yet (Placeholder)**

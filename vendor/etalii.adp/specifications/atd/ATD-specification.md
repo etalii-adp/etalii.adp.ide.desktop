@@ -1,3 +1,10 @@
+---
+id: atd-specification
+type: submodule-design
+title: ADP Tool Language (ATD) — normative specification
+status: draft
+parent: atd
+---
 # ATD, the ADP Tool Language
 
 **Specification, version 0.1 (Working Draft)**
@@ -6,7 +13,7 @@
 |--------------------------|----------------------------------------------------------------------------------------------|
 | Version                  | 0.1                                                                                          |
 | Status                   | Working Draft                                                                                |
-| Date                     | 2026-10-23                                                                                   |
+| Date                     | 2026-10-25                                                                                   |
 | Grammar                  | [`grammar/`](grammar/): `atd.lark` and the modules it imports, in ATD grammar notation (section 4) |
 | Tree schema              | `atd.schema.json` (JSON Schema, draft 2020-12), `$defs/Tree`; also `$defs/Findings`, `$defs/Trace`, `$defs/ConformanceFixture`, `$defs/Drawing`, `$defs/Capability`, `$defs/ParseTables` (Appendix A) |
 | Serves                   | every kind of tool: diagrams (with [DISL](../disl/DISL-specification.md)), designers (with [DESL](../desl/DESL-specification.md)), editors (in place of [EDSL](../edsl/EDSL-specification.md)), and their bindings (with [FBL](../fbl/FBL-specification.md)) |
@@ -166,7 +173,7 @@ Every token is of one class, which the language servers' semantic tokens and the
 | parameter reference | `PARAM_REF` | `#radius` |
 | origin | `ORIGIN` | `freeplane/mindmap` |
 | capability range | `CAPABILITY_RANGE` | `@^1` |
-| word | `DASHED_WORD` | `y-down`, `after-last` |
+| word | `DASHED_WORD` | `y-down`, `after-last`, `unreadable-requirement` |
 | operator and punctuation | every other string terminal | `&&`, `->`, `{`, `:` |
 | comment | `COMMENT`, `BLOCK_COMMENT` | `// …`, `/* … */` |
 
@@ -184,7 +191,7 @@ The terminals are defined in the grammar's modules (section 4.3); this section s
 - **ATTR_REF** `@path`, **TOKEN_REF** `$name`, **PARAM_REF** `#name`: references to an attribute, a theme token and a parameter (section 6.1).
 - **ORIGIN** `<vendor>/<type>`: a tool type's origin, offered only where an origin is expected (section 5.1).
 - **CAPABILITY_RANGE**: `@` followed by a semver range (`@^1`, `@~1.2`, `@>=1.0`), directly after a capability's name (section 13.2).
-- **DASHED_WORD**: a bare word with hyphens (`y-down`, `remove-when-empty`), a literal only (section 6.1).
+- **DASHED_WORD**: a bare word with hyphens (`y-down`, `remove-when-empty`): a literal (section 6.1), and, where a binding declares or names a binding, a rule, a block, a section or a file rule, a name (section 11.3).
 - **VERSION** `<major>.<minor>`: the language version in the header (section 5.1).
 
 ### 3.5 The regular expression subset
@@ -206,7 +213,7 @@ The lexer is **contextual**. At each position, the candidates are the terminals 
 2. of matches of the same length, the terminal of the higher priority (no terminal of ATD 0.1 states one, so all are of priority 0);
 3. of those, a string terminal wins over a pattern terminal.
 
-**Keywords are soft** (FR-008). A keyword is a string terminal that spells a name. By rule 3 it wins over `NAME` only where the state can shift it; elsewhere the same word is a `NAME`. Where the grammar expects a name, it expects the rule `name`, which admits `NAME` and every keyword (Appendix B), so a keyword can always stand as a name. A setting's key and an assignment's target are tokens of their own (`KEY`, `ASSIGN`), so any word, keywords included, can be a key or a local variable. `atd-grammar.py --probe` puts every keyword in the place of every name of the examples and checks that the parser reads it as that name.
+**Keywords are soft** (FR-008). A keyword is a string terminal that spells a name. By rule 3 it wins over `NAME` only where the state can shift it; elsewhere the same word is a `NAME`. Where the grammar expects a name, it expects the rule `name`, which admits `NAME` and every keyword (Appendix B), so a keyword can always stand as a name. A setting's key and an assignment's target are tokens of their own (`KEY`, `ASSIGN`), so any word, keywords included, can be a key or a local variable. The names of a binding and of its rules, blocks, sections and file rules are FBL's (FBL §2.2), which admit `-` and `.`: where a binding declares or names one, the grammar expects the rule `rule_name`, a `name` or a `DASHED_WORD`, or several joined by `.` (`unreadable-requirement`, `by-id.v2`). `atd-grammar.py --probe` puts every keyword in the place of every name of the examples and checks that the parser reads it as that name.
 
 **CEL's reserved words** (`as`, `break`, `const`, `continue`, `else`, `false`, `for`, `function`, `if`, `import`, `in`, `let`, `loop`, `namespace`, `null`, `package`, `return`, `true`, `var`, `void`, `while`) stay reserved inside CEL, as CEL requires: the rule `word`, which CEL's identifiers use, lists every keyword but those, and the checker refuses one of them used as an identifier in an expression (`ATD4003`). Outside CEL they are names like any other keyword; `true`, `false` and `null` are not keywords of ATD at all, but bare words, which section 6.6 reads as JSON's literals.
 
@@ -463,7 +470,7 @@ A construct's documentation is its `///` comments (section 3.2) and its `doc <va
 
 ### 7.13 Persistence and ids
 
-`persistence { … }` holds DISL's and DESL's `Persistence` as settings, ids and id strategies among them (`ids: { strategy: …, prefix: …, types: { … } }`, DISL §11.5, DESL §5.3), and the type map, view data and migrations. A binding is a `binding` of the description (section 11), never a reference to a file.
+`persistence { … }` holds DISL's and DESL's `Persistence` as settings, ids and id strategies among them (`ids: { strategy: …, prefix: …, types: { … } }`, DISL §11.5, DESL §5.3, the `counter` strategy with its `mark` among them), the part of the model a registration keeps (`settings`, DESL §5.5), and the type map, view data and migrations. The type map (`typeMap`) names the binding types that are not types of the model, as DESL §5.2 does: a binding rule may name a key of it as its type (section 14.7). A binding is a `binding` of the description (section 11), never a reference to a file.
 
 ### 7.14 Plugins
 
@@ -551,7 +558,7 @@ The surface of a designer (`grammar/form.lark`): which element types and attribu
 
 ### 9.3 The hierarchy
 
-`surface hierarchy { … }` (DESL §7.7) holds `levels <Type> { … }`, `entries <Type> { … }`, `notes <Type> { … }`, `filters <Type> { … }` and `labels <attribute> { … }`, each with the attributes that play its parts as settings, and settings of DESL's `Hierarchy` (`collapsed`, `ids`).
+`surface hierarchy { … }` (DESL §7.7) holds `levels <Type> { … }`, `entries <Type> { … }`, `notes <Type> { … }`, `filters <Type> { … }`, `widths <Type> { … }` and `labels <attribute> { … }`, each with the attributes that play its parts as settings (DESL's `HierarchyMembers`, `Notes`, `Filters`, `Widths` and `Labels`), and settings of DESL's `Hierarchy` (`collapsed`, `ids`). `widths` names the element type that keeps the widths of the columns of levels, which the user changes by dragging (DESL §7.7.1): its settings `level` and `width` name the attributes of a column's depth and of its width in pixels.
 
 ---
 
@@ -618,7 +625,7 @@ A description **MAY** have several bindings, one per format family, as DESL's `p
 
 ### 11.3 Rules, slots and attribute bindings
 
-`element <Type> [as <name>] [at "<selector>" | line "<regex>"] { … }` is an element rule (FBL §5.1), `relation <Type> [as <name>] […] { … }` a relation rule (FBL §5.4). The name after `as` is FBL's rule `name`; without it the rule's name is its type's. Members:
+`element <Type> [as <name>] [at "<selector>" | line "<regex>"] { … }` is an element rule (FBL §5.1), `relation <Type> [as <name>] […] { … }` a relation rule (FBL §5.4). The name after `as` is FBL's rule `name`, written as FBL writes it, hyphens and dots included (`as unreadable-requirement`, section 3.6); without it the rule's name is its type's. The same holds for every name a binding declares or names: the binding's own, a block's, a section's, and those `parent`, `within`, `files` and `references` name. Members:
 
 - `id from <slot> [{ … }]` or `id { … }` (FBL §5.3);
 - `attribute <name> [from <slot>] [{ … }]`: an attribute binding (FBL §5.2), its options as settings (`empty`, `absent`, `default`, `number`, `time`, `style`, `map`, `override`, `content`, `create`, `readOnly`, `read`, `quoted`, `fallback`), and `references <rules> by <name>` for FBL's `reference` (`by id` for a reference by stored id, FBL §5.7);
@@ -702,7 +709,7 @@ The actions of DISL §9.4 and DESL §8.2 are statements, each allowed only where
 | `create <Type> [{ <attr>: <CEL> … }] [in <CEL>] [after <CEL> \| before <CEL>] [slot <name>] [at <CEL>] [size <CEL>] [place <name>] [as <name>]` | `create` |
 | `connect <Type> from <CEL> to <CEL> [{ … }] [as <name>]` | `connect` |
 | `delete <CEL>` | `delete` |
-| `move <CEL> [to <CEL>, <CEL>] [into <CEL>]` | `move` |
+| `move <CEL> [to <CEL>, <CEL>] [into <CEL>] [slot <name>] [after <CEL> \| before <CEL>]` | `move` (DISL), and DESL §8.2's `move` |
 | `resize <CEL> to <CEL>, <CEL>` | `resize` |
 | `retype <CEL> to <Type>` | `retype` |
 | `reparent <CEL> to <CEL> [slot <name>] [after <CEL> \| before <CEL>]` | `reparent` |
@@ -721,6 +728,8 @@ The actions of DISL §9.4 and DESL §8.2 are statements, each allowed only where
 | `let`, `if`, `for` | `let`, `if` with `then` and `else`, `forEach` with `as` and `do` |
 
 DISL's `when` on an action is an `if` around it. A name an action binds with `as` is a local of the statements after it.
+
+`move` is DISL's in a diagram and DESL's in a designer (DESL §8.2). `into` names the new parent, `null` for the document's own elements; `slot` its slot; `after` or `before`, at most one, a sibling there, the element going last without either. The element keeps its id, its attributes and everything it contains; a move into the element itself or into something it contains, or into a parent or slot that does not allow its type, rolls the transaction back; a move whose parent and slot are the element's own is a `reorder`. `to <x>, <y>` sets a node's position on the canvas and is admitted in diagrams only (`ATD3002`).
 
 ### 12.4 The transaction
 
@@ -812,7 +821,7 @@ A description admits only the constructs its kind allows (FR-005). This table is
 |---|---|---|---|
 | Element types, attributes, enums, data types, ids, containment | yes | yes | yes |
 | Relation types, ports, derived relations | yes | no (`ATD3001` at the construct) | no (`ATD3001`) |
-| `coordinates`, `notation`, `toolbox`, `layout`, `viewpoint` | yes | no (`ATD3002`) | no (`ATD3002`) |
+| `coordinates`, `notation`, `toolbox`, `layout`, `viewpoint`, and a `move`'s `to <x>, <y>` | yes | no (`ATD3002`) | no (`ATD3002`) |
 | `form` | yes | yes | no (`ATD3002`) |
 | `surface table`, `surface hierarchy` | no (`ATD3002`) | yes | no (`ATD3002`) |
 | `surface text` | no (`ATD3002`) | no (`ATD3002`) | yes |
@@ -847,9 +856,13 @@ Each construct's settings are checked against the `$defs` entry of DISL, DESL or
 
 The model, the surface and the bindings are checked together, so that one cause gives one finding, where it is:
 
-- a binding rule's type, and every attribute it reads or writes, **MUST** be the model's (`ATD6001` at the binding, once, not again where the attribute is used);
+- a binding rule's type **MUST** be a type of the model or a key of `persistence`'s `typeMap` (DISL §11.2, DESL §5.2), as DESL §10.1 says (`ATD2002` otherwise). A key mapped `as: document` reads and writes the attributes of `document { … }`; one mapped to a type, that type's; each through the entry's `attributes`, which rename the binding's attributes to the model's. A key mapped `as: header` or `as: unreadable` keeps its entries out of the model, and its rules bind no attribute; an `unreadable` entry is reported by `std.unreadableEntry`;
+- every attribute a binding rule reads or writes **MUST** be one of those its type gives it (`ATD6001` at the binding, once, not again where the attribute is used);
 - a notation, form, surface or outline names the model's types and attributes (`ATD2002`, `ATD2001`);
 - a rule a binding names (`parent`, `within`, `cascade`, `references`) is one of its rules (`ATD2004`), as FBL §14.1 requires.
+- a hierarchy surface fits its types, as DESL §10.1 requires of one (`ATD6002`, at the member of `surface hierarchy` that does not fit): the levels' type contains itself and the entries' type; each `labels` attribute is an attribute of every type of its `on`; the `collapsed` attribute is one of the levels' type and of the entries' type; the `widths` type's `level` is a `string` attribute and its `width` an `int` attribute. A type or an attribute a member names that does not exist is `ATD2002` or `ATD2001`, not `ATD6002`;
+- a `counter` id rule's `mark` (DESL §5.3.5) is a `string` attribute of `document { … }` (`ATD6003`, at the setting `mark`);
+- each key of `persistence`'s `settings` (DESL §5.5) is a block that every binding of the description declares in its `registration`'s `blocks` (`ATD6004`, at the key); the types and attributes a setting names are the model's (`ATD2002`, `ATD2001`).
 
 ### 14.8 The script
 
@@ -890,6 +903,9 @@ A finding has a code `ATD<nnnn>`, by range:
 | `ATD5002` | A setting's value the schema does not admit. |
 | `ATD5003` | A literal where the schema wants an expression. |
 | `ATD6001` | A binding that reads or writes an attribute the model does not declare. |
+| `ATD6002` | A hierarchy surface that does not fit its types (section 14.7). |
+| `ATD6003` | A `counter` id rule whose mark is not a `string` attribute of the document. |
+| `ATD6004` | A setting of `persistence` that no binding's registration keeps as a block, or that one binding does not. |
 | `ATD7001` | A call of a function outside CEL's library and the description (a clock, randomness, a file, …). |
 | `ATD7002` | An impure function called from a position that only reads. |
 | `ATD7003` | A path of a function that neither returns nor fails. |
@@ -983,6 +999,8 @@ Beside this document, each a complete description that checks without findings:
 
 And the worked examples of section 2: `fixtures/mindmap/basic/`, `mindmap.trace.json` with `mindmap.md`, and `capabilities/*/contract.json`.
 
+The tool descriptions under `definitions/` are examples too, and `atd-grammar.py --probe` reads them with those beside this document: `definitions/designers/hierarchical-requirement.atd`, with its part `hierarchical-requirement.markdown.atd`, is a designer with a hierarchy surface, the widths of its columns, `move` with a place, binding types the type map maps as the document and as unreadable, and rule names with hyphens.
+
 ### 19.2 The walk
 
 `walk/walk.json` (`$defs/Walk`) is the walk of 30 edits and requests over the examples that every language server meets alike (SC-005): completion in a binding rule's attribute position, a rename across a description's files, typing on after a syntax error, formatting twice, and a description with a part.
@@ -1000,6 +1018,7 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 ## Changes
 
 - **0.1** (2026-10-23, spec 035): the first version.
+- **0.1, amendment of 2026-10-25** (spec 035, batch 3, for the Hierarchical Requirement Designer): `widths <Type> { … }` in `surface hierarchy`, carrying DESL 0.2's `widths` (§9.3, C.2); `move` takes `slot`, and `after` or `before`, so that it carries DESL §8.2's `move` (§12.3, C.2); a binding's, rule's, block's, section's and file rule's name may hold hyphens and dots, as FBL's names do (§3.6, §11.3); a binding rule's type may be a key of `persistence`'s `typeMap` (§7.13, §14.7); and DESL 0.2's checks of a hierarchy, a counter's mark and a registration's settings are `ATD6002`, `ATD6003` and `ATD6004` (§14.7, §15.1). ATD 0.1 had no released grammar, so the amendment changes it in place; every example and tool description in this repository that checked before still checks, with the same meaning.
 
 
 ---
@@ -1151,9 +1170,9 @@ Every keyword of ATD 0.1, by the module that defines it, with the documentation 
 
 | Keyword | Documentation |
 |---|---|
-| `after` | In `create`, `reparent` and `reorder`: the sibling the element is placed directly after (DISL §9.4, positional create). |
+| `after` | In `create`, `move`, `reparent` and `reorder`: the sibling the element is placed directly after (DISL §9.4, positional create; DESL §8.2). |
 | `at` | In a binding rule: `at "<selector>"`, where the entries are (FBL §4.2). In `create`: the point the element is placed at. |
-| `before` | In `create`, `reparent` and `reorder`: the sibling the element is placed directly before. |
+| `before` | In `create`, `move`, `reparent` and `reorder`: the sibling the element is placed directly before. |
 | `break` | Leaves the nearest loop (§12.2). A CEL reserved word. |
 | `by` | In `reorder`: the number of places to move by. In `outline`: the attribute that nests the outline. In `references`: the attribute that names the referenced entry, or `id`. |
 | `call` | `call <operation>(<args>)` runs another operation; `call plugin <name>(<args>)` delegates to a plugin action (§12.3). |
@@ -1167,11 +1186,11 @@ Every keyword of ATD 0.1, by the module that defines it, with the documentation 
 | `fn` | `fn <name>(<params>) [-> <Type>] [recursion <n>] { … }`: a script function, callable from CEL (§12.1). |
 | `highlight` | `highlight <CEL> [{ durationMs: <n> }]`: applies the `highlighted` state (§12.3). |
 | `if` | `if <CEL> { … } [else …]`: a conditional (§12.2). A CEL reserved word. |
-| `into` | In `move`: the new parent. |
+| `into` | In `move`: the new parent, `null` for the document's own elements. |
 | `layout` | `layout { … }`: a diagram's layouts (§8.8). As a statement, `layout <name> [on <CEL>]`: runs a layout (§12.3). |
 | `let` | `let <name> [: <Type>] = <CEL>`: an immutable local (§12.2). A CEL reserved word. |
 | `limit` | In a loop: `limit <n>`, the most iterations it may take; reaching it stops the call (§12.2). |
-| `move` | `move <CEL> [to <x>, <y>] [into <parent>]`: changes an element's placement (§12.3). |
+| `move` | `move <CEL> [to <x>, <y>] [into <parent>] [slot <name>] [after <CEL> \| before <CEL>]`: changes an element's placement, its parent and its place among its siblings (§12.3, DESL §8.2). |
 | `notify` | `notify <CEL> [severity <name>]`: shows a message (§12.3). |
 | `open` | `open <CEL>`: opens a link, as DISL §9.4 says (§12.3). |
 | `openForm` | `openForm <form> for <CEL>`: opens a form for an element (§12.3). |
@@ -1186,7 +1205,7 @@ Every keyword of ATD 0.1, by the module that defines it, with the documentation 
 | `select` | `select <CEL>`: changes the selection (§12.3). |
 | `set` | `set <path> = <CEL>`: assigns an attribute (§12.3). |
 | `size` | In `create`: the new element's size. |
-| `slot` | In `create`, `reparent` and a binding's `parent`: the containment slot. |
+| `slot` | In `create`, `move`, `reparent` and a binding's `parent`: the containment slot. |
 | `unset` | `unset <path>`: removes an attribute's stored value (§12.3). |
 | `var` | `var <name> [: <Type>] = <CEL>`: a mutable local (§12.2). A CEL reserved word. |
 | `view` | `view <CEL> { <key>: <CEL> … }`: changes view data (§12.3, DISL §9.4). |
@@ -1248,6 +1267,7 @@ Every keyword of ATD 0.1, by the module that defines it, with the documentation 
 | `table` | `surface table { … }`: a designer's surface of rows and columns (§9.1, DESL §7.2). |
 | `valueType` | In `surface table`: `valueType <key> ["<label>"] { … }`, a value type (DESL §7.5). |
 | `views` | In `surface table`: `views <Type> { … }`, the views' element type (DESL §7.4). |
+| `widths` | In `surface hierarchy`: `widths <Type> { … }`, the element type that keeps the widths of the columns of levels, with the attributes of a column's depth and its width (DESL §7.7.1). |
 
 ### B.6 `text.lark`
 
@@ -2823,7 +2843,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 
 ### C.2 DESL 0.2
 
-218 properties.
+223 properties.
 
 | JSON pointer | ATD | Section |
 |---|---|---|
@@ -2960,7 +2980,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/Action/properties/as` | `as name` of `create` and `connect`, the loop variable of `for` | §12.3 |
 | `desl.schema.json#/$defs/Action/properties/delete` | `delete` | §12.3 |
 | `desl.schema.json#/$defs/Action/properties/reorder` | `reorder … by|after|before …` | §12.3 |
-| `desl.schema.json#/$defs/Action/properties/move` | `move … to x, y into parent` | §12.3 |
+| `desl.schema.json#/$defs/Action/properties/move` | `move … into parent slot name after|before …` | §12.3 |
 | `desl.schema.json#/$defs/Action/properties/let` | `let name = expression` | §12.3 |
 | `desl.schema.json#/$defs/Action/properties/if` | `if expression { … }` | §12.3 |
 | `desl.schema.json#/$defs/Action/properties/then` | the block of `if` | §12.3 |
@@ -2984,6 +3004,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/Hierarchy/properties/notes` | `notes Type { … }` | §9.3 |
 | `desl.schema.json#/$defs/Hierarchy/properties/collapsed` | the setting `collapsed` of `surface hierarchy` | §9.3 |
 | `desl.schema.json#/$defs/Hierarchy/properties/filters` | `filters Type { … }` | §9.3 |
+| `desl.schema.json#/$defs/Hierarchy/properties/widths` | `widths Type { … }` | §9.3 |
 | `desl.schema.json#/$defs/Hierarchy/properties/ids` | the setting `ids` of `surface hierarchy` | §9.3 |
 | `desl.schema.json#/$defs/Hierarchy/properties/doc` | the setting `doc` of `surface hierarchy` | §9.3 |
 | `desl.schema.json#/$defs/HierarchyMembers/properties/type` | the key `type` in a value of HierarchyMembers (a settings map, §6.4) | §6.4 |
@@ -3005,6 +3026,10 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/Filters/properties/name` | the key `name` in a value of Filters (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/Filters/properties/query` | the key `query` in a value of Filters (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/Filters/properties/doc` | the key `doc` in a value of Filters (a settings map, §6.4) | §6.4 |
+| `desl.schema.json#/$defs/Widths/properties/type` | the type after `widths` | §9.3 |
+| `desl.schema.json#/$defs/Widths/properties/level` | the setting `level` of `widths` | §9.3 |
+| `desl.schema.json#/$defs/Widths/properties/width` | the setting `width` of `widths` | §9.3 |
+| `desl.schema.json#/$defs/Widths/properties/doc` | the setting `doc` of `widths` | §9.3 |
 | `desl.schema.json#/$defs/Columns/properties/type` | the type after `columns` | §9.1 |
 | `desl.schema.json#/$defs/Columns/properties/name` | the setting `name` of `columns` | §9.1 |
 | `desl.schema.json#/$defs/Columns/properties/valueType` | the setting `valueType` of `columns` | §9.1 |

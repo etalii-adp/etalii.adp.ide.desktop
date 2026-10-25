@@ -30,7 +30,7 @@ if_stmt: "if" expr stmt_block ["else" (if_stmt | stmt_block)]
        | "create" type_ref [assignments] ["in" expr] create_option* ["as" name] -> create_action
        | "connect" type_ref "from" expr "to" expr [assignments] ["as" name] -> connect_action
        | "delete" expr -> delete_action
-       | "move" expr ["to" expr "," expr] ["into" expr] -> move_action
+       | "move" expr ["to" expr "," expr] ["into" expr] [move_slot] [move_place] -> move_action
        | "resize" expr "to" expr "," expr -> resize_action
        | "retype" expr "to" type_ref -> retype_action
        | "reparent" expr "to" expr reparent_option* -> reparent_action
@@ -60,6 +60,13 @@ create_option: "after" expr -> after
              | "at" expr -> at
              | "size" expr -> size
              | "place" name -> place
+
+// The slot a moved element goes into (DESL §8.2).
+move_slot: "slot" name -> slot
+
+// Where a moved element goes among its new siblings: at most one place (DESL §8.2); without one, last.
+move_place: "after" expr -> after
+          | "before" expr -> before
 
 reparent_option: "slot" name -> slot
                | "after" expr -> after

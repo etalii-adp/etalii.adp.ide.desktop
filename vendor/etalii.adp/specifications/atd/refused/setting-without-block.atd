@@ -1,0 +1,43 @@
+atd 0.1
+
+/// What a registration keeps is a block every binding declares (DESL §5.5); the binding `outline` keeps no block
+/// `collapsed`: one finding, at the key (ATD §14.7).
+designer example/outline version "0.1.0" {
+  label "Outline"
+  model {
+    element Item {
+      attribute title: string required
+      attribute collapsed: bool default false
+      contains Item, Requirement ordered
+    }
+    element Requirement {
+      attribute title: string required
+      attribute collapsed: bool default false
+    }
+  }
+  persistence {
+    settings: { collapsed: { attribute: collapsed, of: [Item, Requirement] } }
+  }
+  surface hierarchy {
+    levels Item { title: title }
+    entries Requirement { title: title }
+    collapsed: collapsed
+  }
+  binding outline family bullets {
+    claims files "*.outline.md"
+    section items "^Items$"
+    element Item as item line "^(?<id>ITEM-\d+)[ \t]+(?<title>.+)$" {
+      within items
+      id from group "id"
+      parent item
+      attribute title from group "title" { empty: refuse }
+    }
+    element Requirement as requirement line "^(?<id>REQ-\d+)[ \t]+(?<title>.+)$" {
+      within items
+      id from group "id"
+      parent item
+      attribute title from group "title" { empty: refuse }
+    }
+    registration { blocks: { folded: { order: ordinal, keys: ids, history: false } } }
+  }
+}
