@@ -12,15 +12,16 @@
 //!   binding's `createOnFirstPlacement` says (FBL 0.7 section 8.4). Collapsing is such a setting, and is no undo step
 //!   either: the `collapsed` block is declared outside the history.
 //!
-//! - **An edit of the body, of a text or of the hierarchy, is one step of the session's history**, planned against
-//!   the bytes this session's page was made from; a file that holds others by the time it runs is not written, and
-//!   the page is read again (FR-024). Undo gives the bytes back exactly; once another program has written the file,
+//! - **An edit of the body, of a text or of the hierarchy, or of a list the registration keeps, is one step of the
+//!   session's history**, planned against the bytes this session's page was made from; a file that holds others by
+//!   the time it runs is not written, and the page is read again (FR-024). Undo gives the bytes back exactly; once another program has written the file,
 //!   it says so once and the steps before are gone.
 //!
 //! The standalone host writes on a task and watches the files; here a gesture is written when it is taken, and the
 //! core tells the session of a change from outside with [`HierarchySurfaceSession::file_changed`], so the session
 //! needs no thread of its own. Of the operations, etalii.adp spec 036 has built `toggleCollapsed`, the text and the
-//! structure operations and those on assessments so far; the others are refused with the reason until theirs.
+//! structure operations, those on assessments, and those on tags, categories, states and stored filters so far; the
+//! others are refused with the reason until theirs.
 
 use std::path::{Path, PathBuf};
 
@@ -32,7 +33,7 @@ use crate::commands::{EditCommand, Restore, Undone};
 use crate::documents::{self, Files, Writer};
 use crate::gestures;
 use crate::mapper;
-use crate::operations::{assessments, structure, text};
+use crate::operations::{assessments, classification, filters, structure, tags, text};
 
 /// What undo and redo are refused with while no gesture of this page is a step of the history.
 const NOTHING_TO_UNDO: &str = "There is nothing to undo.";
@@ -243,9 +244,16 @@ impl RequirementSession {
                 return Err(refusal.into());
             }
         }
-        let refusal = assessments::refusal(&gesture.operation, &gesture.params);
-        if !refusal.is_empty() {
-            return Err(refusal);
+        let (operation, params) = (gesture.operation.as_str(), &gesture.params);
+        for refusal in [
+            assessments::refusal(operation, params),
+            tags::refusal(operation, params),
+            classification::refusal(operation, params),
+            filters::refusal(operation, params),
+        ] {
+            if !refusal.is_empty() {
+                return Err(refusal);
+            }
         }
         let model = &self.reading.model;
         if !model.read_only_reason.is_empty() {
@@ -254,10 +262,24 @@ impl RequirementSession {
         let Some(expected) = self.reading.files.body.clone() else {
             return Err(gestures::DRIFTED.into());
         };
-        let gone = if assessments::targets_an_assessment(&gesture.operation) {
-            model.notes.iter().all(|n| n.id != gesture.target_id)
+        let target = gesture.target_id.as_str();
+        let gone = if assessments::targets_an_assessment(operation) {
+            model.notes.iter().all(|n| n.id != target)
+        } else if tags::targets_a_tag(operation) || classification::targets_a_member(operation) {
+            model
+                .option_lists
+                .iter()
+                .flat_map(|l| &l.options)
+                .all(|o| o.id != target)
+        } else if filters::targets_a_filter(operation) {
+            model.filters.iter().all(|f| f.id != target)
+        } else if classification::targets_the_document(operation)
+            || operation == structure::ADD_TOP_ITEM
+            || operation == filters::STORE_FILTER
+        {
+            false
         } else {
-            gesture.operation != structure::ADD_TOP_ITEM && model.nodes.iter().all(|n| n.id != gesture.target_id)
+            model.nodes.iter().all(|n| n.id != target)
         };
         if gone {
             return Err(gestures::DRIFTED.into());
@@ -268,6 +290,7 @@ impl RequirementSession {
             target_id: gesture.target_id.clone(),
             params: gesture.params.clone(),
             expected,
+            registration_path: self.registration_path.clone(),
         };
         let written = command.execute(&mut self.write);
         let (written, error) = match written {
@@ -307,6 +330,9 @@ impl HierarchySurfaceSession for RequirementSession {
         if text::handles(&gesture.operation)
             || structure::handles(&gesture.operation)
             || assessments::handles(&gesture.operation)
+            || tags::handles(&gesture.operation)
+            || classification::handles(&gesture.operation)
+            || filters::handles(&gesture.operation)
         {
             return self.body_gesture(gesture);
         }

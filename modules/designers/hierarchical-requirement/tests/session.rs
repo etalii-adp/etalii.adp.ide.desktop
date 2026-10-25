@@ -255,8 +255,8 @@ fn an_unknown_operation_and_one_not_built_yet_are_refused_with_the_reason() {
         session.gesture(gesture("addLink"))
     );
     assert_eq!(
-        Err("'addTag' cannot be done here yet.".to_owned()),
-        session.gesture(gesture("addTag"))
+        Err("'addColumnWidth' cannot be done here yet.".to_owned()),
+        session.gesture(gesture("addColumnWidth"))
     );
     assert!(session.take_changes().is_empty());
 }

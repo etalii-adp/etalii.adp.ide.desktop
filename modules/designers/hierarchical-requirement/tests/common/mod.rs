@@ -126,3 +126,47 @@ pub fn models(changes: &[SurfaceChange]) -> Vec<SurfaceModel> {
         })
         .collect()
 }
+
+/// Params in their written form, `name=value|name=value`, none for an empty text.
+pub fn params(written: &str) -> std::collections::BTreeMap<String, String> {
+    written
+        .split('|')
+        .filter(|pair| !pair.is_empty())
+        .map(|pair| {
+            let (name, value) = pair.split_once('=').unwrap();
+            (name.to_owned(), value.to_owned())
+        })
+        .collect()
+}
+
+/// A gesture of `operation` on `target`, with its params written as [`params`] reads them.
+pub fn gesture(operation: &str, target: &str, written: &str) -> Gesture {
+    Gesture {
+        edit_id: format!("edit-{operation}-{target}"),
+        operation: operation.into(),
+        target_id: target.into(),
+        params: params(written),
+    }
+}
+
+/// What step `step` of the conformance fixture `fixture` expects.
+pub fn expect(fixture: &str, step: usize) -> String {
+    let json: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(self::fixture(fixture).join("fixture.json")).unwrap()).unwrap();
+    json["steps"][step]["expect"].as_str().unwrap().to_owned()
+}
+
+/// Runs `operation` on `target` through `session` and checks it was written.
+pub fn run(
+    session: &mut impl adp_desl::hierarchy::session::HierarchySurfaceSession,
+    operation: &str,
+    target: &str,
+    written: &str,
+) {
+    session.gesture(gesture(operation, target, written)).unwrap();
+    assert_eq!(
+        Some((true, String::new())),
+        outcome(&session.take_changes()),
+        "{operation} {target}"
+    );
+}

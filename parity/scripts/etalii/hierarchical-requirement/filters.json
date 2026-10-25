@@ -1,0 +1,15 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "storeFilter", "target": "document", "params": {"name": " Done ", "query": " state:done sort:title "}}},
+    {"hierarchy": {"operation": "storeFilter", "target": "document", "params": {"name": "Backend", "query": "item:back* sort:title"}}},
+    {"hierarchy": {"operation": "renameFilter", "target": "filter/Open security", "params": {"name": "Security, open"}}},
+    {"hierarchy": {"operation": "removeFilter", "target": "filter/Done", "params": {}}},
+    {"hierarchy": {"operation": "storeFilter", "target": "document", "params": {"name": "Empty", "query": " "}}, "expect": "refused"},
+    {"hierarchy": {"operation": "removeFilter", "target": "filter/Gone", "params": {}}, "expect": "refused"},
+    {"undo": 2},
+    {"redo": 1}
+  ]
+}

@@ -50,6 +50,11 @@ impl<'a> BodyEdit<'a> {
         self.sets_of(element_id).insert(attribute, value);
     }
 
+    /// Whether the operation set any attribute, before what [`BodyEdit::write`] adds of its own.
+    pub fn sets_any(&self) -> bool {
+        !self.sets.is_empty()
+    }
+
     /// A change of the body's structure, an add, a move or a remove, planned with the rest.
     pub fn change(&mut self, change: ModelChange) {
         self.changes.push(change);

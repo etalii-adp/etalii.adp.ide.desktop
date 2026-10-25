@@ -1,0 +1,124 @@
+{
+  "script": "parity/scripts/etalii/hierarchical-requirement/classification.json",
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "standaloneCommit": "a7fdf039c204535e9fc3a14f456e6f5a36a685ce",
+  "recorderVersion": "1.0.0",
+  "platform": "linux",
+  "recordedAt": "2026-10-25T09:00:40Z",
+  "edits": 18,
+  "changed": [
+    "web-shop.adp",
+    "web-shop.md"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "setCategory REQ-0005"
+    },
+    {
+      "step": 1,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "setState REQ-0010"
+    },
+    {
+      "step": 2,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "clearState REQ-0002"
+    },
+    {
+      "step": 3,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "clearCategory REQ-0008"
+    },
+    {
+      "step": 4,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "addCategory document"
+    },
+    {
+      "step": 5,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "addState document"
+    },
+    {
+      "step": 6,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "renameCategory category/non-functional"
+    },
+    {
+      "step": 7,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "recolourState state/done"
+    },
+    {
+      "step": 8,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "moveCategory category/technical"
+    },
+    {
+      "step": 9,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "moveState state/proposed"
+    },
+    {
+      "step": 10,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "deleteState state/rejected"
+    },
+    {
+      "step": 11,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "could not be written: 'urgent' is not a state of this document."
+    },
+    {
+      "step": 12,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "could not be written: There is already a category named Functional."
+    },
+    {
+      "step": 13,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "3 time(s)"
+    },
+    {
+      "step": 14,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    }
+  ]
+}

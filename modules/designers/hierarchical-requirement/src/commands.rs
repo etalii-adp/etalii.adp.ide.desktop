@@ -12,7 +12,8 @@ use std::path::{Path, PathBuf};
 
 use crate::documents::Writer;
 use crate::gestures::DRIFTED;
-use crate::operations::{assessments, structure, text};
+use crate::operations::lists::{ListEdit, ListFiles};
+use crate::operations::{assessments, classification, filters, structure, tags, text};
 
 /// One edit of the body: an operation of the surface, with what it names and its params, planned against the bytes
 /// the person's page was made from.
@@ -28,6 +29,9 @@ pub struct EditCommand {
     /// The body's bytes as the page was read from them. A file that holds other bytes now was changed since, and the
     /// edit is refused rather than made to a file the person did not see (FBL 0.7 section 7.2, spec 029 FR-024).
     pub expected: Vec<u8>,
+    /// The registration, which an operation on a list writes in the same step: the tag list's colours and order are
+    /// kept there (spec 029 R17). It is created with the first such change when there is none.
+    pub registration_path: PathBuf,
 }
 
 /// One file of a step: what it held before the step, and what the step left it holding.
@@ -67,6 +71,13 @@ impl EditCommand {
         if before != self.expected {
             return Err(DRIFTED.into());
         }
+        if tags::handles(&self.operation)
+            || classification::handles(&self.operation)
+            || filters::handles(&self.operation)
+        {
+            let files = self.lists(&before, &name)?;
+            return self.write(files, write);
+        }
         let after = if text::handles(&self.operation) {
             let value = self
                 .params
@@ -80,17 +91,77 @@ impl EditCommand {
         } else {
             return Err(format!("'{}' cannot be done here yet.", self.operation));
         };
-        if after == before {
-            // Nothing to write and nothing to undo.
-            return Ok(None);
-        }
-        write(&self.body_path, &after).map_err(|e| format!("{name} could not be written: {e}"))?;
-        Ok(Some(Restore {
-            files: vec![FileState {
+        let file = FileState {
+            path: self.body_path.clone(),
+            before,
+            after,
+        };
+        self.write(vec![file], write)
+    }
+
+    /// What an operation on a list the registration keeps writes, the tags, the categories, the states or the
+    /// filters: the body when its entries change, and the registration when the list does, the body first. A
+    /// registration the body has none of is created as the step's starting point, outside the step.
+    fn lists(&self, body: &[u8], name: &str) -> Result<Vec<FileState>, String> {
+        let registration_name = name_of(&self.registration_path);
+        let registration = match std::fs::read(&self.registration_path) {
+            Ok(bytes) => Some(bytes),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+            Err(e) => return Err(format!("{registration_name} could not be read: {e}")),
+        };
+        let files = ListFiles {
+            body,
+            body_name: name,
+            registration: registration.as_deref(),
+            registration_name: &registration_name,
+        };
+        let (operation, target, params) = (&self.operation, &self.target_id, &self.params);
+        let edit: ListEdit = if classification::handles(operation) {
+            classification::apply(files, operation, target, params)?
+        } else if filters::handles(operation) {
+            filters::apply(files, operation, target, params)?
+        } else {
+            tags::apply(files, operation, target, params)?
+        };
+        let mut states = Vec::new();
+        if let Some(after) = edit.body {
+            states.push(FileState {
                 path: self.body_path.clone(),
+                before: body.to_vec(),
+                after,
+            });
+        }
+        if let (Some(before), Some(after)) = (edit.registration_before, edit.registration_after) {
+            states.push(FileState {
+                path: self.registration_path.clone(),
                 before,
                 after,
-            }],
+            });
+        }
+        Ok(states)
+    }
+
+    /// Writes each file the step changes, every one or none, and returns what puts them back. A step that changes no
+    /// byte writes nothing and leaves nothing to undo.
+    fn write(&self, files: Vec<FileState>, write: &mut Writer) -> Result<Option<Restore>, String> {
+        let files: Vec<FileState> = files.into_iter().filter(|f| f.after != f.before).collect();
+        if files.is_empty() {
+            return Ok(None);
+        }
+        let mut written: Vec<&FileState> = Vec::new();
+        for file in &files {
+            if let Err(e) = write(&file.path, &file.after) {
+                // What was written before this one is put back: a step is every file or none. A registration this
+                // step created is put back as created, which is not part of the step (FBL 0.7 section 8.4).
+                for done in written {
+                    let _ = write(&done.path, &done.before);
+                }
+                return Err(format!("{} could not be written: {e}", name_of(&file.path)));
+            }
+            written.push(file);
+        }
+        Ok(Some(Restore {
+            files,
             redo: self.clone(),
         }))
     }

@@ -1,0 +1,74 @@
+{
+  "script": "parity/scripts/etalii/hierarchical-requirement/filters.json",
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "standaloneCommit": "a7fdf039c204535e9fc3a14f456e6f5a36a685ce",
+  "recorderVersion": "1.0.0",
+  "platform": "linux",
+  "recordedAt": "2026-10-25T09:01:48Z",
+  "edits": 9,
+  "changed": [
+    "web-shop.adp"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "storeFilter document"
+    },
+    {
+      "step": 1,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "storeFilter document"
+    },
+    {
+      "step": 2,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "renameFilter filter/Open security"
+    },
+    {
+      "step": 3,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "removeFilter filter/Done"
+    },
+    {
+      "step": 4,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "There is no filter to store."
+    },
+    {
+      "step": 5,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "The file changed while you were editing, so this change was not written. The page now shows the file as it is."
+    },
+    {
+      "step": 6,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "2 time(s)"
+    },
+    {
+      "step": 7,
+      "kind": "redo",
+      "rpc": "ContextService.ExecuteAction(history.redo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    }
+  ]
+}
