@@ -49,6 +49,10 @@ const PRIMITIVES: &[&str] = &[
 /// Names that stand for the document itself where a construct names types it applies to.
 const DOCUMENT_TYPES: &[&str] = &["document", "diagram"];
 
+/// What a context tool set opens on besides element types (DISL §7.3): `diagram` the empty canvas, `connection` a
+/// pending connection.
+const CONTEXT_TARGETS: &[&str] = &["diagram", "connection"];
+
 fn text(name: &Json) -> &str {
     name["text"].as_str().unwrap_or("")
 }
@@ -63,6 +67,11 @@ pub fn run(description: &Description, symbols: &Symbols, findings: &mut Vec<Find
         catalogue: crate::embedded::catalogue().into_iter().map(|(n, _)| n).collect(),
         kind: kind.to_owned(),
         type_map: type_map(description),
+        operations: description
+            .members()
+            .filter(|member| member["kind"] == "operation")
+            .cloned()
+            .collect(),
     };
     for member in description.members() {
         checker.member(member);
@@ -197,6 +206,8 @@ struct Checker<'a> {
     kind: String,
     /// `persistence`'s `typeMap`: each binding type it names, with what it maps it as and its attribute renames.
     type_map: BTreeMap<String, TypeMapEntry>,
+    /// The description's operations, whose `paramsForm` makes a form's fields parameters.
+    operations: Vec<Json>,
 }
 
 /// One entry of `persistence`'s `typeMap` (DISL §11.2, DESL §5.2).
@@ -483,12 +494,15 @@ impl Checker<'_> {
             "toolbox" => self.generic_types(member),
             "form" => {
                 let types = self.types_of(member, "for", true);
+                let params = self.params_of_form(text(&member["name"]));
                 for item in member["members"].as_array().into_iter().flatten() {
                     if item["kind"] == "field"
                         && let Some(name) = item.get("name")
                     {
                         let name_text = text(name).to_owned();
-                        self.attribute_of(&types, &name_text, name);
+                        if !params.contains(&name_text) {
+                            self.attribute_of(&types, &name_text, name);
+                        }
                     }
                 }
             }
@@ -543,10 +557,32 @@ impl Checker<'_> {
         out
     }
 
+    /// The parameters of every operation that names the form `form` as its `paramsForm`, whose fields they are
+    /// (DISL §7.5).
+    fn params_of_form(&self, form: &str) -> BTreeSet<String> {
+        let mut out = BTreeSet::new();
+        for operation in &self.operations {
+            let names_form =
+                operation["settings"].as_array().into_iter().flatten().any(|setting| {
+                    setting["key"] == "paramsForm" && setting["value"]["literal"].as_str() == Some(form)
+                });
+            if names_form {
+                for param in operation["params"].as_array().into_iter().flatten() {
+                    out.insert(text(&param["name"]).to_owned());
+                }
+            }
+        }
+        out
+    }
+
     fn generic_types(&mut self, node: &Json) {
         for item in node["members"].as_array().into_iter().flatten() {
             if item["kind"] == "context" {
-                self.types_of(item, "names", false);
+                for name in item["names"].as_array().into_iter().flatten() {
+                    if !CONTEXT_TARGETS.contains(&text(name)) {
+                        self.type_ref(name, false);
+                    }
+                }
             }
             if item.get("members").is_some() {
                 self.generic_types(item);
