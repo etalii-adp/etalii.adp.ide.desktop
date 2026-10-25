@@ -1,12 +1,22 @@
 //! A registration (`.adp`) in the line form of FBL section 8.1 (the standalone host's `Registration/
 //! RegistrationDocument` and `OpenRegistration`): the origin on line 1, headers, the `layout:` and `identities:`
-//! blocks, and whatever follows them kept as unbound content. Every part keeps its span, so the registration is
+//! blocks and the blocks the binding declares, and whatever follows them kept as unbound content. A block the binding
+//! does not declare is read past and kept as it is (FBL 0.7 section 8.1). Every part keeps its span, so the registration is
 //! written by splices like any body (FBL section 8.4): placing an element writes its layout entry in the ordinal
 //! order of ids, with numbers in `{decimals: 3}` form and the registration's own line ending (FBL section 8.3).
 
+mod blocks;
+#[cfg(test)]
+mod blocks_tests;
 pub mod legacy_sidecar;
 
 use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
+use std::sync::LazyLock;
+
+use regex::Regex;
+
+use crate::documents::types::{FblBinding, RegistrationBlockDeclaration};
 
 use crate::history::{SplicedFile, UndoResult};
 use crate::model::{Finding, FindingSeverity, SourceLocation, codes};
@@ -54,20 +64,33 @@ pub struct RegistrationDocument {
     pub headers: Vec<RegistrationHeader>,
     pub layout: Option<RegistrationBlock>,
     pub identities: Option<RegistrationBlock>,
+    /// Every block read, in the order the registration holds them, those the binding does not declare included.
+    pub blocks: Vec<RegistrationBlock>,
+    /// The names of the blocks neither FBL nor the binding declares (FBL 0.7 section 8.1): kept as they are written.
+    pub undeclared: Vec<String>,
     /// Where a new block goes: the end of the header region's last line.
     pub after_headers: usize,
 }
 
-fn block_name(content: &str) -> Option<&'static str> {
-    match content.trim_end_matches([' ', '\t']) {
-        "layout:" => Some("layout"),
-        "identities:" => Some("identities"),
-        _ => None,
-    }
+/// A line that opens a block (FBL section 8.1): a Name and a colon, with nothing but whitespace after it.
+static BLOCK_LINE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^(?<name>[A-Za-z_][A-Za-z0-9_.-]*):[ \t]*$").expect("the block line pattern"));
+
+fn block_name(content: &str) -> Option<&str> {
+    BLOCK_LINE
+        .captures(content)
+        .and_then(|c| c.name("name"))
+        .map(|m| m.as_str())
 }
 
 impl RegistrationDocument {
+    /// Reads a registration whose binding declares no block.
     pub fn read(bytes: Vec<u8>) -> RegistrationDocument {
+        Self::read_declared(bytes, &[])
+    }
+
+    /// Reads a registration whose binding declares the blocks `declared` (FBL 0.7 section 8.1).
+    pub fn read_declared(bytes: Vec<u8>, declared: &[String]) -> RegistrationDocument {
         let text = BodyText::new(bytes);
         let lines = text.lines().to_vec();
         let origin = text.text(text.bom_length(), lines[0].content_end).trim().to_owned();
@@ -101,6 +124,8 @@ impl RegistrationDocument {
             headers,
             layout: None,
             identities: None,
+            blocks: Vec::new(),
+            undeclared: Vec::new(),
             after_headers,
             text,
         };
@@ -111,20 +136,31 @@ impl RegistrationDocument {
                 index += 1;
                 continue;
             }
-            let Some(name) = block_name(content) else { break };
-            if (name == "layout" && document.layout.is_some())
-                || (name == "identities" && document.identities.is_some())
-            {
+            let Some(name) = block_name(content).map(str::to_owned) else {
+                break;
+            };
+            // A second block of one name ends the blocks: it and what follows are unbound content.
+            if document.blocks.iter().any(|b| b.name == name) {
                 break;
             }
-            let block = read_block(&document.text, name, &mut index);
+            let block = read_block(&document.text, &name, &mut index);
             if name == "layout" {
-                document.layout = Some(block);
-            } else {
-                document.identities = Some(block);
+                document.layout = Some(block.clone());
+            } else if name == "identities" {
+                document.identities = Some(block.clone());
+            } else if !declared.contains(&name) {
+                document.undeclared.push(name);
             }
+            document.blocks.push(block);
         }
         document
+    }
+
+    /// The block `name`, when the registration has it and it is FBL's or declared.
+    pub fn block(&self, name: &str) -> Option<&RegistrationBlock> {
+        self.blocks
+            .iter()
+            .find(|b| b.name == name && !self.undeclared.contains(&b.name))
     }
 
     pub(crate) fn text(&self) -> &BodyText {
@@ -182,31 +218,85 @@ impl RegistrationDocument {
             .collect()
     }
 
-    /// Layout entries for ids the model does not have (FBL section 8.5): reported as `fbl.stale-view-data`.
-    pub fn stale_entries(&self, ids: &HashSet<String>, file_name: &str) -> Vec<Finding> {
-        self.layout
+    /// The blocks neither FBL nor the binding declares, reported once each as `fbl.unknown-block` (FBL 0.7 section
+    /// 8.1).
+    pub fn unknown_blocks(&self, file_name: &str) -> Vec<Finding> {
+        self.blocks
+            .iter()
+            .filter(|b| self.undeclared.contains(&b.name))
+            .map(|b| {
+                self.located(
+                    codes::UNKNOWN_BLOCK,
+                    format!(
+                        "The block '{}' is neither FBL's nor the binding's; it is kept as it is.",
+                        b.name
+                    ),
+                    Span::new(b.name_line.start, b.name_line.start + b.name.len() + 1),
+                    file_name,
+                )
+            })
+            .collect()
+    }
+
+    /// Layout entries for ids the model does not have (FBL section 8.5), and the entries of the declared blocks
+    /// keyed by ids (FBL 0.7 section 8.1): reported as `fbl.stale-view-data`, applied to nothing, and removed at the
+    /// registration's next write.
+    pub fn stale_entries(
+        &self,
+        ids: &HashSet<String>,
+        file_name: &str,
+        declarations: &[RegistrationBlockDeclaration],
+    ) -> Vec<Finding> {
+        let mut findings: Vec<Finding> = self
+            .layout
             .iter()
             .flat_map(|b| &b.entries)
             .filter(|e| !ids.contains(&e.key))
             .map(|e| {
-                let (line, column) = self.text.position(e.key_span.start);
-                Finding {
-                    code: codes::STALE_VIEW_DATA.into(),
-                    severity: FindingSeverity::Info,
-                    message: format!(
+                self.located(
+                    codes::STALE_VIEW_DATA,
+                    format!(
                         "The layout keeps a position for '{}', which the file no longer has; it is removed at the next save of the registration.",
                         e.key
                     ),
-                    location: Some(SourceLocation {
-                        file: file_name.to_owned(),
-                        line,
-                        column,
-                        length: self.text.code_points(e.key_span.start, e.key_span.end),
-                    }),
-                    detail: None,
-                }
+                    e.key_span,
+                    file_name,
+                )
             })
-            .collect()
+            .collect();
+        for declaration in declarations.iter().filter(|d| d.keyed_by_ids) {
+            let Some(block) = self.block(&declaration.name) else {
+                continue;
+            };
+            for entry in block.entries.iter().filter(|e| !ids.contains(&e.key)) {
+                findings.push(self.located(
+                    codes::STALE_VIEW_DATA,
+                    format!(
+                        "The block '{}' keeps an entry for '{}', which the file no longer has; it is removed at the next save of the registration.",
+                        block.name, entry.key
+                    ),
+                    entry.key_span,
+                    file_name,
+                ));
+            }
+        }
+        findings
+    }
+
+    fn located(&self, code: &str, message: String, span: Span, file_name: &str) -> Finding {
+        let (line, column) = self.text.position(span.start);
+        Finding {
+            code: code.into(),
+            severity: FindingSeverity::Info,
+            message,
+            location: Some(SourceLocation {
+                file: file_name.to_owned(),
+                line,
+                column,
+                length: self.text.code_points(span.start, span.end),
+            }),
+            detail: None,
+        }
     }
 }
 
@@ -247,11 +337,22 @@ fn read_block(text: &BodyText, name: &str, index: &mut usize) -> RegistrationBlo
     }
 }
 
+/// The members a declared block stands for while it is absent, by the block's name, in their order: the initial
+/// and the implicit members of its list, which the specification gives and the body implies (DESL 0.2 sections 5.5,
+/// 7.7.2). None, or no members for a block, writes the changed entry alone.
+pub type AbsentMembers = Rc<dyn Fn(&str) -> Option<Vec<(String, String)>>>;
+
 /// An open registration (FBL section 8): its bytes, its line form, and its own history.
-#[derive(Debug)]
 pub struct OpenRegistration {
     file: SplicedFile,
     document: RegistrationDocument,
+    /// The blocks the binding declares (FBL 0.7 section 8.1), in the order it declares them.
+    declarations: Vec<RegistrationBlockDeclaration>,
+    /// The headers the binding declares (FBL section 8.1).
+    headers: Vec<String>,
+    /// The first change to an absent block whose list has members writes them all, with the change applied (FBL 0.7
+    /// section 8.4).
+    pub absent_members: Option<AbsentMembers>,
     /// The ids the reading has, when known. A layout entry for any other id is stale and is removed as part of the
     /// next placement (FBL section 8.5).
     pub known_ids: Option<HashSet<String>>,
@@ -265,11 +366,42 @@ pub struct OpenRegistration {
     pub created_block_ending: Option<String>,
 }
 
+impl std::fmt::Debug for OpenRegistration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OpenRegistration")
+            .field("document", &self.document)
+            .field("declarations", &self.declarations)
+            .field("known_ids", &self.known_ids)
+            .finish_non_exhaustive()
+    }
+}
+
 impl OpenRegistration {
     pub fn open(bytes: Vec<u8>) -> OpenRegistration {
+        Self::open_declared(bytes, Vec::new(), Vec::new())
+    }
+
+    /// Opens a registration through its binding, which declares its headers and blocks (FBL 0.7 section 8.1).
+    pub fn open_with(bytes: Vec<u8>, binding: &FblBinding) -> OpenRegistration {
+        Self::open_declared(
+            bytes,
+            binding.registration.blocks.clone(),
+            binding.registration.headers.clone(),
+        )
+    }
+
+    fn open_declared(
+        bytes: Vec<u8>,
+        declarations: Vec<RegistrationBlockDeclaration>,
+        headers: Vec<String>,
+    ) -> OpenRegistration {
+        let declared: Vec<String> = declarations.iter().map(|d| d.name.clone()).collect();
         OpenRegistration {
-            document: RegistrationDocument::read(bytes.clone()),
+            document: RegistrationDocument::read_declared(bytes.clone(), &declared),
             file: SplicedFile::new(bytes),
+            declarations,
+            headers,
+            absent_members: None,
             known_ids: None,
             ephemeral: None,
             known_keys: None,
@@ -281,8 +413,36 @@ impl OpenRegistration {
         self.file.bytes()
     }
 
+    pub fn can_undo(&self) -> bool {
+        self.file.can_undo()
+    }
+
     pub fn document(&self) -> &RegistrationDocument {
         &self.document
+    }
+
+    /// The entries of the declared block `block` (FBL 0.7 section 8.1), by key and value in their order, or None
+    /// when the registration does not hold it.
+    pub fn block_entries(&self, block: &str) -> Option<Vec<(String, String)>> {
+        self.document
+            .block(block)
+            .map(|b| b.entries.iter().map(|e| (e.key.clone(), e.value.clone())).collect())
+    }
+
+    /// What reading the registration reports (FBL sections 8.1, 8.5, 0.7 section 8.1): the headers and blocks
+    /// neither FBL nor the binding declares, and, when the known ids are set, the entries for ids the body does not
+    /// have.
+    pub fn findings(&self, file_name: &str) -> Vec<Finding> {
+        let mut findings = self.document.unknown_headers(&self.headers, file_name);
+        findings.extend(self.document.unknown_blocks(file_name));
+        if let Some(ids) = &self.known_ids {
+            findings.extend(self.document.stale_entries(ids, file_name, &self.declarations));
+        }
+        findings
+    }
+
+    fn declaration(&self, name: &str) -> Option<&RegistrationBlockDeclaration> {
+        self.declarations.iter().find(|d| d.name == name)
     }
 
     fn plan(&self, change: &ModelChange) -> PlanResult {
@@ -303,14 +463,45 @@ impl OpenRegistration {
                 splices: self.plan_identify(key, id),
                 snapshot: false,
             }),
-            _ => PlanResult::Invalid("A registration is changed only by placing elements and storing ids.".into()),
+            ModelChange::Setting(setting) => {
+                let Some(declaration) = self.declaration(&setting.block) else {
+                    return PlanResult::Refused(format!("The binding declares no block '{}'.", setting.block));
+                };
+                let members = self.absent_members.as_ref().and_then(|members| members(&setting.block));
+                match blocks::plan(
+                    &self.document,
+                    &self.declarations,
+                    declaration,
+                    setting,
+                    self.known_ids.as_ref(),
+                    members,
+                ) {
+                    Ok(splices) => PlanResult::Planned(PlannedEdit {
+                        splices,
+                        snapshot: false,
+                    }),
+                    Err(refused) => PlanResult::Refused(refused.reason),
+                }
+            }
+            _ => PlanResult::Invalid(
+                "A registration is changed only by placing elements, storing ids and writing settings.".into(),
+            ),
         }
     }
 
+    /// Plans and applies `change`. A setting of a block declared `history: false` is applied outside the history
+    /// (FBL 0.7 section 7.1): no undo step, and the history carried over it.
     pub fn change(&mut self, change: &ModelChange) -> PlanResult {
         let result = self.plan(change);
         if let PlanResult::Planned(edit) = &result {
-            match self.file.apply(edit) {
+            let outside = matches!(change, ModelChange::Setting(setting)
+                if self.declaration(&setting.block).is_some_and(|d| !d.in_history));
+            let applied = if outside {
+                self.file.apply_outside_history(edit)
+            } else {
+                self.file.apply(edit)
+            };
+            match applied {
                 Ok(true) => self.reread(),
                 Ok(false) => {}
                 Err(problem) => return PlanResult::Invalid(problem),
@@ -336,7 +527,8 @@ impl OpenRegistration {
     }
 
     fn reread(&mut self) {
-        self.document = RegistrationDocument::read(self.file.bytes().to_vec());
+        let declared: Vec<String> = self.declarations.iter().map(|d| d.name.clone()).collect();
+        self.document = RegistrationDocument::read_declared(self.file.bytes().to_vec(), &declared);
     }
 
     fn plan_place(&self, id: &str, x: f64, y: f64) -> Vec<Splice> {
@@ -490,6 +682,61 @@ impl OpenRegistration {
         };
         splices.push(splice(Operation::InsertEntry, at, at, entry_text));
         ordered(splices)
+    }
+}
+
+/// The registration to write beside a body the first time the user places an element or changes a setting a
+/// declared block keeps, when the binding's `registration.createOnFirstPlacement` is true (FBL section 8.4, 0.7
+/// section 8.4; the standalone host's `Registration/RegistrationCreation`). It is written before the edit is planned,
+/// outside the history: the origin line, then `body: <name>` when the base names differ, in the body's dominant line
+/// ending. `body_name` is the body's path relative to the registration's folder, `/`-separated. Refused with a reason
+/// when the binding does not create one, or when a file of that name exists (`existing`) that is not a registration
+/// of this origin and body; an existing one that is gives its own bytes.
+pub fn create_registration(
+    binding: &FblBinding,
+    origin: &str,
+    registration_name: &str,
+    body_name: &str,
+    body: &[u8],
+    existing: Option<&[u8]>,
+) -> Result<Vec<u8>, String> {
+    if !binding.registration.create_on_first_placement {
+        return Err(format!(
+            "'{body_name}' has no registration, and its tool type keeps its view data only in one, so the change cannot be kept."
+        ));
+    }
+    let named = base_name(registration_name) != base_name(body_name);
+    if let Some(existing) = existing {
+        let document = RegistrationDocument::read(existing.to_vec());
+        let body_of = document
+            .body()
+            .map(str::to_owned)
+            .or_else(|| (!named).then(|| body_name.to_owned()));
+        return if document.origin == origin && body_of.as_deref() == Some(body_name) {
+            Ok(existing.to_vec())
+        } else {
+            Err(format!(
+                "'{registration_name}' exists and is no registration of '{body_name}', so none is created beside it."
+            ))
+        };
+    }
+    let newline = BodyText::new(body.to_vec())
+        .dominant_ending()
+        .map(str::to_owned)
+        .unwrap_or_else(|| binding.text.newline.clone());
+    let mut text = format!("{origin}{newline}");
+    if named {
+        text.push_str(&format!("body: {body_name}{newline}"));
+    }
+    Ok(text.into_bytes())
+}
+
+/// A path's file name without its last extension, as .NET's `Path.GetFileNameWithoutExtension` gives it.
+fn base_name(path: &str) -> &str {
+    let file = path.rsplit(['/', '\\']).next().unwrap_or(path);
+    match file.rfind('.') {
+        Some(dot) => &file[..dot],
+        None => file,
     }
 }
 

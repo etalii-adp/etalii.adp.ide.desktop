@@ -64,6 +64,7 @@ pub mod codes {
     pub const MISSING_BODY: &str = "fbl.missing-body";
     pub const STALE_VIEW_DATA: &str = "fbl.stale-view-data";
     pub const UNKNOWN_HEADER: &str = "fbl.unknown-header";
+    pub const UNKNOWN_BLOCK: &str = "fbl.unknown-block";
     pub const REGEX_TIMEOUT: &str = "fbl.regex-timeout";
     pub const UNCONVERTED_VALUE: &str = "fbl.unconverted-value";
     pub const UNPARSEABLE: &str = "std.unparseable";
@@ -154,6 +155,9 @@ pub type DeriveId = Rc<dyn Fn(&IdRequest<'_>) -> Option<String>>;
 /// The type a tool type's specification gives an attribute of an element type, by the two names.
 pub type AttributeType = Rc<dyn Fn(&str, &str) -> Option<String>>;
 
+/// Whether a tool type's specification gives an attribute of an element type `many`, by the two names.
+pub type Many = Rc<dyn Fn(&str, &str) -> bool>;
+
 /// The caller's settings for reading and writing one body.
 #[derive(Clone)]
 pub struct FblOptions {
@@ -168,6 +172,14 @@ pub struct FblOptions {
     /// The type the tool type's specification gives an attribute; with it, an entry holding a value that does not
     /// convert is an unreadable entry (FBL section 7.4).
     pub attribute_type: Option<AttributeType>,
+    /// Whether the tool type's specification gives an attribute `many`. A word slot of such an attribute holds every
+    /// word of its group that matches, as a list (FBL 0.7 section 4.6); without this, it holds the first. A binding
+    /// does not carry it.
+    pub many: Option<Many>,
+    /// The binding types the tool type's specification maps as unreadable (DESL section 5.2): an entry a rule of such
+    /// a type takes is an unreadable entry, reported and kept, and nothing nested in it is looked into (FBL 0.7
+    /// sections 4.8, 7.4).
+    pub unreadable_types: HashSet<String>,
     /// The attributes whose type is a date or a date-time, each as `rule.attribute`, which FBL section 6.3 needs
     /// to write a value that reads as a timestamp plain or quoted.
     pub time_attributes: HashSet<String>,
@@ -196,6 +208,8 @@ impl Default for FblOptions {
             max_entries: 500_000,
             derive_id: None,
             attribute_type: None,
+            many: None,
+            unreadable_types: HashSet::new(),
             time_attributes: HashSet::new(),
             report_unbound_keys: false,
             registration_headers: Vec::new(),
@@ -217,6 +231,10 @@ impl fmt::Debug for FblOptions {
 impl FblOptions {
     pub fn attribute_type(&self, element: &str, attribute: &str) -> Option<String> {
         self.attribute_type.as_ref().and_then(|f| f(element, attribute))
+    }
+
+    pub fn many(&self, element: &str, attribute: &str) -> bool {
+        self.many.as_ref().is_some_and(|f| f(element, attribute))
     }
 }
 

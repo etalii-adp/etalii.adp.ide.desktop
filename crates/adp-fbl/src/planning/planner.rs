@@ -15,6 +15,11 @@ use crate::text::Span;
 
 pub(crate) fn plan(reading: &BodyReading, change: &ModelChange) -> PlanResult {
     if reading.unreadable().is_some() {
+        // A save writes the bytes that were read, which an unreadable body keeps (FBL sections 6.6, 7.5): nothing to
+        // splice.
+        if matches!(change, ModelChange::Save) {
+            return PlanResult::Planned(PlannedEdit::default());
+        }
         return PlanResult::Refused("The file could not be read, so it is never written.".into());
     }
     if let Some(reason) = &reading.binding_rc().read_only {
@@ -56,9 +61,9 @@ pub(crate) fn plan(reading: &BodyReading, change: &ModelChange) -> PlanResult {
                 "This file's binding cannot change an element's type; only a persistence plugin can.".into(),
             );
         }
-        ModelChange::Place { .. } | ModelChange::Identify { .. } => {
+        ModelChange::Place { .. } | ModelChange::Identify { .. } | ModelChange::Setting(_) => {
             return PlanResult::Invalid(
-                "Placements and stored ids are edits of the registration, not of the body.".into(),
+                "Placements, stored ids and settings are edits of the registration, not of the body.".into(),
             );
         }
     };
@@ -136,6 +141,18 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
     let element = reading.element(index);
     let element_rule = reading.family.rule(element.rule);
     refuse_read_only(element_rule, "changed")?;
+    // An id read from the entry (FBL section 3.3) is rewritten where it was read.
+    let id_binding = element_rule.id.as_ref().and_then(|i| i.from.as_ref()).map(|from| {
+        AttributeBinding::of_slot(Slot {
+            key: from.key.clone(),
+            xml_attribute: from.xml_attribute.clone(),
+            text: from.text,
+            child: from.child.clone(),
+            group: from.group.clone(),
+            capture: from.capture.clone(),
+            ..Slot::default()
+        })
+    });
     let mut changes: Vec<SlotChange<'_>> = Vec::new();
     let mut new_key: Option<String> = None;
     for (attribute, requested) in attributes.iter() {
@@ -162,8 +179,9 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
         } else {
             let (r, b) = binding_of(reading, index, attribute);
             rule = r;
-            binding = b;
+            binding = b.or(if attribute == "id" { id_binding.as_ref() } else { None });
             read = match b {
+                None if binding.is_some() => element.id_read.as_deref().cloned().unwrap_or_else(SlotRead::absent),
                 None => SlotRead::absent(),
                 Some(b) => {
                     if r == element.rule

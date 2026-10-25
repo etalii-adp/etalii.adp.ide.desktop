@@ -22,16 +22,19 @@ use adp_cel::{Map, Value};
 use adp_fbl::documents::{self, FblBinding, ProblemSeverity};
 use adp_fbl::{
     BodyReading, FblModel, FblOptions, IdRequest, ModelChange, OpenBody, OpenRegistration, Operation, PlanResult,
-    PlannedEdit, Splice, UndoResult,
+    PlannedEdit, Setting, SettingPosition, Splice, UndoResult,
 };
 use serde_json::Value as Json;
+
+#[path = "standalone/hierarchical_requirement.rs"]
+mod hierarchical_requirement;
 
 /// The fixtures the standalone host vendored at 8b6ccfc under `Conformance/fixtures`, which its
 /// `ConformanceFixturesTests` runs, and those the standalone host runs from `a7fdf03` that this port has the features
 /// of: `sankey-written-text`, which etalii.adp added with the Sankey binding, and the bullets family's (FBL 0.7 section
 /// 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`, which etalii.adp holds and the standalone host does
 /// not vendor.
-const STANDALONE_FIXTURES: [&str; 20] = [
+const STANDALONE_FIXTURES: [&str; 21] = [
     "behavior-tree-read/first-add",
     "bullets-edits",
     "bullets-edits/no-section",
@@ -47,6 +50,7 @@ const STANDALONE_FIXTURES: [&str; 20] = [
     "insert-empty-json",
     "insert-empty-yaml",
     "mindmap-nodes",
+    "registration-blocks",
     "registration-layout",
     "structurizr-open-block",
     "timeline-bom-lf",
@@ -80,44 +84,19 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
     ("knowledge-xml", 150, 150),
 ];
 
-/// The fixtures of FBL 0.7 features this port does not have yet: the hierarchical-requirement tool type's, and the
-/// registration's own blocks (FBL 0.7 sections 7.1 and 8.1), which etalii.adp spec 036 ports from the standalone host
-/// at a7fdf03 after the bullets family. They are out of scope here, not failing: etalii.adp's splice replay
-/// (`fixtures.rs`) still runs every one of them. Beside them, the fixtures of FBL 0.8's constants an insert writes (section
-/// 6.2), which this port does not have yet either.
-const NOT_SUPPORTED: [&str; 29] = [
+/// The fixtures of features this port does not have yet: FBL 0.8's constants an insert writes (section 6.2), and one
+/// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
+/// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
+/// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
+const NOT_SUPPORTED: [&str; 5] = [
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
     "behavior-tree-read",
-    "hierarchical-requirement-assessments",
-    "hierarchical-requirement-assessments/first-assessment",
-    "hierarchical-requirement-category-state",
-    "hierarchical-requirement-category-state/list",
-    "hierarchical-requirement-collapsed",
-    "hierarchical-requirement-collapsed/stale",
-    "hierarchical-requirement-collapsed/unknown-block",
-    "hierarchical-requirement-edits",
-    "hierarchical-requirement-edits/no-mark",
-    "hierarchical-requirement-edits/numbering",
-    "hierarchical-requirement-faults",
-    "hierarchical-requirement-faults/no-envelope",
-    "hierarchical-requirement-faults/not-utf8",
-    "hierarchical-requirement-filters",
-    "hierarchical-requirement-new",
-    "hierarchical-requirement-read",
-    "hierarchical-requirement-read/no-section",
-    "hierarchical-requirement-references",
-    "hierarchical-requirement-references/deleted",
-    "hierarchical-requirement-structure",
-    "hierarchical-requirement-structure/no-section",
-    "hierarchical-requirement-tag-list",
-    "hierarchical-requirement-tags",
     "insert-constant-json",
     "insert-constant-json-read",
     "insert-constant-yaml",
     "insert-constant-yaml-read",
-    "registration-blocks",
 ];
 
 fn vendor() -> PathBuf {
@@ -354,13 +333,35 @@ enum Subject {
         body: Box<OpenBody>,
         binding: Rc<FblBinding>,
     },
-    Registration(Box<OpenRegistration>),
+    /// A registration opened through its binding (FBL 0.7 section 8.1). When its body is beside it, the body is read
+    /// too, as the document the registration opens: its elements are the reading's, and the ids the registration's
+    /// stale entries are told by (FBL section 8.5); the findings are the body's and the registration's.
+    Registration {
+        registration: Box<OpenRegistration>,
+        read: Option<FblModel>,
+    },
 }
 
 impl Subject {
-    fn open(input: Vec<u8>, name: &str, binding: Rc<FblBinding>) -> Subject {
+    fn open(input: Vec<u8>, name: &str, binding: Rc<FblBinding>, folder: &Path) -> Subject {
         if name.to_lowercase().ends_with(".adp") {
-            return Subject::Registration(Box::new(OpenRegistration::open(input)));
+            let mut registration = OpenRegistration::open_with(input, &binding);
+            let body_name = registration.document().body().map(str::to_owned);
+            let read = body_name.and_then(|body_name| {
+                let bytes = fs::read(folder.join(&body_name)).ok()?;
+                let options = FblOptions {
+                    file_name: body_name,
+                    ..FblOptions::default()
+                };
+                let mut model = OpenBody::open(bytes, binding.clone(), Rc::new(options)).model();
+                registration.known_ids = Some(model.elements.iter().map(|e| e.id.clone()).collect());
+                model.findings.extend(registration.findings(name));
+                Some(model)
+            });
+            return Subject::Registration {
+                registration: Box::new(registration),
+                read,
+            };
         }
         let binding_name = binding.name.clone();
         let derive_name = binding_name.clone();
@@ -382,20 +383,20 @@ impl Subject {
     fn bytes(&self) -> Vec<u8> {
         match self {
             Subject::Body { body, .. } => body.bytes().to_vec(),
-            Subject::Registration(registration) => registration.bytes().to_vec(),
+            Subject::Registration { registration, .. } => registration.bytes().to_vec(),
         }
     }
 
     fn model(&self) -> Option<FblModel> {
         match self {
             Subject::Body { body, .. } => Some(body.model()),
-            Subject::Registration(_) => None,
+            Subject::Registration { read, .. } => read.clone(),
         }
     }
 
     fn change(&mut self, change: &ModelChange) -> PlanResult {
         match self {
-            Subject::Registration(registration) => registration.change(change),
+            Subject::Registration { registration, .. } => registration.change(change),
             Subject::Body { body, binding } => {
                 if let ModelChange::Remove { id } = change {
                     let unsets = unsets(body, binding, id);
@@ -411,14 +412,14 @@ impl Subject {
     fn undo(&mut self) -> UndoResult {
         match self {
             Subject::Body { body, .. } => body.undo(),
-            Subject::Registration(registration) => registration.undo(),
+            Subject::Registration { registration, .. } => registration.undo(),
         }
     }
 
     fn redo(&mut self) -> UndoResult {
         match self {
             Subject::Body { body, .. } => body.redo(),
-            Subject::Registration(registration) => registration.redo(),
+            Subject::Registration { registration, .. } => registration.redo(),
         }
     }
 }
@@ -492,6 +493,9 @@ fn remove_with(body: &mut OpenBody, remove: &ModelChange, unsets: Vec<ModelChang
 /// they are before the change, the moved element included; an `after` or `before` is the place of that sibling, found
 /// in `model` among the elements with the same parent and type.
 fn read_change(edit: &Json, model: Option<&FblModel>) -> Result<ModelChange, String> {
+    if let Some(setting) = edit.get("setting") {
+        return Ok(ModelChange::Setting(read_setting(setting)));
+    }
     if let Some(moved) = edit.get("move") {
         let id = moved["element"].as_str().unwrap_or_default();
         let parent = moved["parent"].as_str();
@@ -542,6 +546,23 @@ fn read_change(edit: &Json, model: Option<&FblModel>) -> Result<ModelChange, Str
         });
     }
     Err(format!("Unknown fixture edit: {edit}."))
+}
+
+/// A fixture's change to an entry of a block the binding declares (FBL 0.7 sections 8.4, 15.3).
+fn read_setting(setting: &Json) -> Setting {
+    let text = |name: &str| setting.get(name).and_then(Json::as_str).map(str::to_owned);
+    Setting {
+        block: text("block").unwrap_or_default(),
+        key: text("key").unwrap_or_default(),
+        value: text("value"),
+        position: setting.get("position").map(|at| SettingPosition {
+            index: at.get("index").and_then(Json::as_i64),
+            after: at.get("after").and_then(Json::as_str).map(str::to_owned),
+            before: at.get("before").and_then(Json::as_str).map(str::to_owned),
+        }),
+        rename: text("rename"),
+        remove_entry: setting.get("remove").and_then(Json::as_bool) == Some(true),
+    }
 }
 
 /// The model change's index for a fixture's position among `parent`'s children of `type_name`.
@@ -690,7 +711,7 @@ fn run(name: &str, folder: &Path, fixture: &Json) -> Result<usize, String> {
     let (binding, binding_text) = load_binding(fixture, folder)?;
     let input_name = fixture["input"].as_str().unwrap_or_default();
     let input = fs::read(folder.join(input_name)).map_err(|e| e.to_string())?;
-    let mut subject = Subject::open(input, input_name, binding);
+    let mut subject = Subject::open(input, input_name, binding, folder);
     if let Some(read) = fixture.get("read")
         && let Some(model) = subject.model()
     {
@@ -747,11 +768,14 @@ fn run(name: &str, folder: &Path, fixture: &Json) -> Result<usize, String> {
                 describe(&actual)
             ));
         }
-        let expect = match step.get("expect").and_then(Json::as_str) {
-            Some(text) => text.as_bytes().to_vec(),
-            None => {
-                fs::read(folder.join(step["expectFile"].as_str().unwrap_or_default())).map_err(|e| e.to_string())?
-            }
+        // A step that names no document leaves the one it started from.
+        let expect = match (
+            step.get("expect").and_then(Json::as_str),
+            step.get("expectFile").and_then(Json::as_str),
+        ) {
+            (Some(text), _) => text.as_bytes().to_vec(),
+            (None, Some(file)) => fs::read(folder.join(file)).map_err(|e| e.to_string())?,
+            (None, None) => before,
         };
         if expect != subject.bytes() {
             return Err(format!(
@@ -789,11 +813,13 @@ fn every_vendored_fixture() -> Vec<String> {
 
 #[test]
 fn every_vendored_fixture_is_run_or_named_as_not_supported() {
+    let designer = hierarchical_requirement::fixtures();
     let known: HashSet<&str> = STANDALONE_FIXTURES
         .iter()
         .chain(KNOWLEDGE_FIXTURES.iter())
         .chain(NOT_SUPPORTED.iter())
         .copied()
+        .chain(designer.iter().map(String::as_str))
         .collect();
     let unknown: Vec<String> = every_vendored_fixture()
         .into_iter()
@@ -915,7 +941,7 @@ fn an_unchanged_save_of_the_input_plans_no_splice_and_keeps_its_bytes() {
     let mut failures = Vec::new();
     for name in STANDALONE_FIXTURES {
         let (binding, input, input_name, _) = binding_and_input(name);
-        let mut subject = Subject::open(input.clone(), &input_name, binding);
+        let mut subject = Subject::open(input.clone(), &input_name, binding, &fixture_folder(name));
         match subject.change(&ModelChange::Save) {
             PlanResult::Planned(edit) if edit.splices.is_empty() && subject.bytes() == input => {}
             other => failures.push(format!("{name}: {other:?}")),

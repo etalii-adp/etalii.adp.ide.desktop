@@ -410,8 +410,23 @@ pub struct RemoveSettings {
 pub struct RegistrationSettings {
     pub headers: Vec<String>,
     pub create_on_first_placement: bool,
+    /// The blocks the binding declares (FBL 0.7 section 8.1), in the order it declares them, which is the order they
+    /// are written in (section 8.4).
+    pub blocks: Vec<RegistrationBlockDeclaration>,
     pub resource_capture: Option<String>,
     pub legacy_layout: Option<String>,
+}
+
+/// A block of the registration that a binding declares (FBL 0.7 section 8.1, `registration.blocks`): its name,
+/// whether its entries stand where the edit put them (`kept`) or in the ordinal order of their keys, whether its keys
+/// are element ids, which are pruned when stale (FBL section 8.5), and whether its writes are steps of the history
+/// (FBL section 7.1).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RegistrationBlockDeclaration {
+    pub name: String,
+    pub kept: bool,
+    pub keyed_by_ids: bool,
+    pub in_history: bool,
 }
 
 #[derive(Debug, Clone)]

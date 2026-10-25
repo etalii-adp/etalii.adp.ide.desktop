@@ -17,7 +17,7 @@ use crate::model::{FindingSeverity, codes};
 use crate::planning::new_text;
 use crate::planning::plan::{Plan, Planning, refuse};
 use crate::rules::reading::BodyReading;
-use crate::rules::{Candidate, InsertRequest, Node, ReadElement, SlotChange, SlotRead, Word};
+use crate::rules::{Candidate, InsertRequest, Node, ReadElement, SlotChange, SlotRead, Word, WordItem};
 use crate::splice::Operation;
 use crate::text::Span;
 
@@ -399,6 +399,53 @@ impl Family {
         }
     }
 
+    /// Reads a word slot of an attribute with `many` (FBL 0.7 section 4.6): every word of its group that matches, in
+    /// order, each an item. A slot that holds no item is absent, so the first is written as an insertion is. None
+    /// for a slot that is no word slot.
+    pub(super) fn lines_read_many(&self, candidate: &Candidate, slot: &Slot) -> Option<SlotRead> {
+        let (Some(word), false, Some(group_name)) = (&slot.word, slot.flag, &slot.group) else {
+            return None;
+        };
+        let groups = self.groups(candidate);
+        let held = group(&groups, group_name);
+        let items = held.map(|g| self.items(word, g)).unwrap_or_default();
+        let mut read = SlotRead::new(
+            Value::list(items.iter().map(|item| Value::from(item.value.as_str())).collect()),
+            held.map(|g| g.span),
+            !items.is_empty(),
+            true,
+        );
+        read.node = Node::Group;
+        read.items = Some(Rc::new(items));
+        Some(read)
+    }
+
+    /// The words of `group` that match `expression`, in order, each with its value (FBL 0.7 section 4.6).
+    fn items(&self, expression: &str, group: &Group) -> Vec<WordItem> {
+        let regex = self.regex(expression, false);
+        let mut items = Vec::new();
+        for word in self.words(group.span) {
+            let raw = self.text.text_of(word.span).to_owned();
+            let Some(m) = regex.captures(&raw) else { continue };
+            match m.name("value") {
+                Some(value) => {
+                    let offset = word.span.start + value.start();
+                    items.push(WordItem {
+                        value: value.as_str().to_owned(),
+                        value_span: Span::new(offset, offset + value.as_str().len()),
+                        word,
+                    });
+                }
+                None => items.push(WordItem {
+                    value: word.text.clone(),
+                    value_span: word.span,
+                    word,
+                }),
+            }
+        }
+        items
+    }
+
     /// The words of a group (FBL section 4.6): runs of non-whitespace, where a run starting with `"` extends to the
     /// next `"` and includes both quotes.
     fn words(&self, span: Span) -> Vec<Word> {
@@ -558,9 +605,25 @@ impl Family {
                 continue;
             }
             if change.is_empty && binding.empty.as_deref() == Some("remove") {
-                if read.present {
+                if let Some(items) = &read.items {
+                    for item in items.iter() {
+                        pending.push((
+                            Operation::RemoveKey,
+                            self.with_space_before(item.word.span),
+                            String::new(),
+                        ));
+                    }
+                } else if read.present {
                     pending.push((Operation::RemoveKey, self.removable(read), String::new()));
                 }
+                continue;
+            }
+            if let Some(items) = &read.items {
+                let offset = match items.last() {
+                    Some(last) => last.word.span.end,
+                    None => self.word_insert_point(element, change),
+                };
+                self.write_items(&mut pending, offset, change, items);
                 continue;
             }
             if read.present
@@ -578,6 +641,15 @@ impl Family {
             }
             if let Some((offset, text)) = self.insert_point(element, change) {
                 pending.push((Operation::InsertKey, Span::new(offset, offset), text));
+            } else if let Some(word) = self.unplaced_word(element, change) {
+                // A word the emit does not place goes after the words of its group (FBL 0.7 section 4.6); one it
+                // places, with the line.
+                let offset = self.word_insert_point(element, change);
+                pending.push((
+                    Operation::InsertKey,
+                    Span::new(offset, offset),
+                    format!(" {}", word_text(word, &new_text::plain(&change.value, None))),
+                ));
             } else {
                 re_emit = true;
             }
@@ -619,16 +691,139 @@ impl Family {
             .target_read
             .as_ref()
             .and_then(|r| r.value.as_str().map(str::to_owned));
-        let line = self.render_line(
-            emit,
-            element.rule,
-            &values,
-            Some(&id),
-            source.as_deref(),
-            target.as_deref(),
-        );
+        // A mapped value the edit leaves is written again as it was written, in its own case (FBL 0.7 section 6.2).
+        let kept: HashMap<String, String> = rule
+            .attributes
+            .iter()
+            .filter(|(name, a)| a.map.is_some() && a.word.is_none() && changes.iter().all(|c| c.attribute != **name))
+            .filter_map(|(name, _)| {
+                let read = element.slot(name).filter(|r| r.present)?;
+                Some((name.clone(), self.text.text_of(read.span?).to_owned()))
+            })
+            .collect();
+        let line = new_text::render(emit, &|name| {
+            if let Some(written) = kept.get(name) {
+                return Some(written.clone());
+            }
+            let value = values.get(name).cloned().unwrap_or_default();
+            self.quoted(
+                element.rule,
+                emit,
+                name,
+                &value,
+                self.placeholder(
+                    element.rule,
+                    name,
+                    &values,
+                    Some(&id),
+                    source.as_deref(),
+                    target.as_deref(),
+                ),
+            )
+        });
         plan.add_span(Operation::ReEmitLine, self.re_emit_span(statement), line);
         Ok(())
+    }
+
+    /// A set of a word slot of an attribute with `many` (FBL 0.7 section 6.3): the difference between the items
+    /// held and the new list. The items of their longest common subsequence stay; between two of them, an item
+    /// removed and one added are one `replace-value`, and the rest are `remove-key`s and `insert-key`s at `offset`,
+    /// after the slot's last item, in the new list's order.
+    fn write_items(
+        &self,
+        pending: &mut Vec<(Operation, Span, String)>,
+        offset: usize,
+        change: &SlotChange<'_>,
+        items: &[WordItem],
+    ) {
+        let wanted: Vec<String> = match &change.value {
+            Value::List(values) => values.iter().map(|v| new_text::plain(v, None)).collect(),
+            _ => Vec::new(),
+        };
+        let held: Vec<&str> = items.iter().map(|item| item.value.as_str()).collect();
+        let kept = common_subsequence(&held, &wanted);
+        let mut added = Vec::new();
+        let (mut i, mut j) = (0, 0);
+        for (anchor_held, anchor_wanted) in kept.into_iter().chain(std::iter::once((held.len(), wanted.len()))) {
+            let removed: Vec<usize> = (i..anchor_held).collect();
+            let inserted: Vec<usize> = (j..anchor_wanted).collect();
+            let paired = removed.len().min(inserted.len());
+            for k in 0..paired {
+                pending.push((
+                    Operation::ReplaceValue,
+                    items[removed[k]].value_span,
+                    wanted[inserted[k]].clone(),
+                ));
+            }
+            for r in &removed[paired..] {
+                pending.push((
+                    Operation::RemoveKey,
+                    self.with_space_before(items[*r].word.span),
+                    String::new(),
+                ));
+            }
+            added.extend(inserted[paired..].iter().map(|w| wanted[*w].clone()));
+            i = anchor_held + 1;
+            j = anchor_wanted + 1;
+        }
+        let word = change.binding.word.as_deref().unwrap_or_default();
+        for value in added {
+            pending.push((
+                Operation::InsertKey,
+                Span::new(offset, offset),
+                format!(" {}", word_text(word, &value)),
+            ));
+        }
+    }
+
+    /// The word expression of a word slot whose word the rule's emit does not place, when the change is to one.
+    fn unplaced_word<'b>(&self, element: &ReadElement, change: &SlotChange<'b>) -> Option<&'b str> {
+        let binding = change.binding;
+        let word = binding.word.as_deref()?;
+        if binding.flag || binding.group.is_none() {
+            return None;
+        }
+        let emit = self.rule(element.rule).insert.as_ref().and_then(|i| i.emit.as_ref());
+        if emit.is_some_and(|emit| {
+            new_text::parts(emit)
+                .iter()
+                .any(|p| p.placeholder.as_deref() == Some(change.attribute.as_str()))
+        }) {
+            return None;
+        }
+        Some(word)
+    }
+
+    /// Where a word a set adds is written (FBL 0.7 section 6.3): right after the last word of the group held by the
+    /// slot or by a word slot listed before it in the rule's attributes on the same group, else at the start of the
+    /// group, else at the end of the statement's own line.
+    fn word_insert_point(&self, element: &ReadElement, change: &SlotChange<'_>) -> usize {
+        let groups = self.groups(&element.candidate);
+        let name = change.binding.group.as_deref().unwrap_or_default();
+        let start = match group(&groups, name) {
+            Some(g) => g.span.start,
+            None => self.statement(element.entry()).first_line_span.end,
+        };
+        let mut end: Option<usize> = None;
+        for (attribute, binding) in &self.rule(element.rule).attributes {
+            if binding.group == change.binding.group
+                && binding.word.is_some()
+                && let Some(read) = element.slot(attribute)
+            {
+                let last = match (&read.items, &read.node) {
+                    (Some(items), _) => items.last().map(|item| item.word.span.end),
+                    (None, Node::Word(word)) if read.present => Some(word.span.end),
+                    _ => None,
+                };
+                if let Some(last) = last {
+                    end = Some(end.map_or(last, |e| e.max(last)));
+                }
+            }
+            if *attribute == change.attribute {
+                break;
+            }
+        }
+        end.unwrap_or(start)
     }
 
     /// Whether the line, with `pending` applied, still reads as the change says where a value is removed: the rule
@@ -674,7 +869,8 @@ impl Family {
         }
         for change in changes {
             let Some(group) = &change.binding.group else { continue };
-            if !change.is_empty {
+            // A word slot's group stays when its word goes, so it is the words that tell (FBL 0.7 section 4.6).
+            if !change.is_empty || change.binding.word.is_some() {
                 continue;
             }
             let own = rule
@@ -742,6 +938,10 @@ impl Family {
         let mut start = span.start;
         while start < span.end && matches!(self.text.bytes()[start], b' ' | b'\t') {
             start += 1;
+        }
+        // A value that is whitespace alone, as the space of an open checkbox `[ ]` is, is the value itself.
+        if start == span.end {
+            return span;
         }
         span.with_start(start)
     }
@@ -992,6 +1192,89 @@ impl Family {
 }
 
 /// Whether `value` is the number `read` already holds, however it is spelled there.
+/// The pairs of places, in `held` and in `wanted`, of a longest common subsequence of the two.
+fn common_subsequence(held: &[&str], wanted: &[String]) -> Vec<(usize, usize)> {
+    let mut lengths = vec![vec![0usize; wanted.len() + 1]; held.len() + 1];
+    for a in (0..held.len()).rev() {
+        for b in (0..wanted.len()).rev() {
+            lengths[a][b] = if held[a] == wanted[b] {
+                lengths[a + 1][b + 1] + 1
+            } else {
+                lengths[a + 1][b].max(lengths[a][b + 1])
+            };
+        }
+    }
+    let mut pairs = Vec::new();
+    let (mut x, mut y) = (0, 0);
+    while x < held.len() && y < wanted.len() {
+        if held[x] == wanted[y] {
+            pairs.push((x, y));
+            x += 1;
+            y += 1;
+        } else if lengths[x + 1][y] >= lengths[x][y + 1] {
+            x += 1;
+        } else {
+            y += 1;
+        }
+    }
+    pairs
+}
+
+/// The word a word slot writes for `value`: its `word` expression with the group `value` replaced by the value and
+/// the anchors taken off, as `^#(?<value>[^\s#]+)$` writes `#value`.
+fn word_text(expression: &str, value: &str) -> String {
+    let mut pattern = expression.trim_start_matches('^');
+    if pattern.ends_with('$') && !pattern.ends_with("\\$") {
+        pattern = &pattern[..pattern.len() - 1];
+    }
+    let Some(open) = pattern.find("(?<value>") else {
+        return value.to_owned();
+    };
+    let bytes = pattern.as_bytes();
+    let mut depth = 0;
+    let mut close = open;
+    while close < bytes.len() {
+        match bytes[close] {
+            b'\\' => close += 1,
+            b'(' => depth += 1,
+            b')' => {
+                depth -= 1;
+                if depth == 0 {
+                    break;
+                }
+            }
+            _ => {}
+        }
+        close += 1;
+    }
+    let after = pattern.get((close + 1).min(pattern.len())..).unwrap_or_default();
+    format!(
+        "{}{value}{}",
+        unescape_pattern(&pattern[..open]),
+        unescape_pattern(after)
+    )
+}
+
+/// .NET's `Regex.Unescape` for the literal parts of a word expression: a backslash takes the next character as it
+/// is.
+fn unescape_pattern(text: &str) -> String {
+    let mut out = String::new();
+    let mut chars = text.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            match chars.next() {
+                Some('n') => out.push('\n'),
+                Some('t') => out.push('\t'),
+                Some(other) => out.push(other),
+                None => out.push('\\'),
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
 fn same_number(read: &SlotRead, value: &Value) -> bool {
     let Some(number) = value.as_number() else { return false };
     read.wire

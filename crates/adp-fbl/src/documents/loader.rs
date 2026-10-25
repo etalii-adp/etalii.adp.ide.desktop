@@ -450,7 +450,7 @@ fn read_binding(name: &str, json: &Json, pointer: &str, problems: &mut Vec<LoadP
             })
             .collect(),
         rules,
-        registration: read_registration(json),
+        registration: read_registration(json, pointer, problems),
         template: json.get("template").map(|t| TemplateSettings {
             text: s(t, "text").unwrap_or_default(),
             by_origin: t
@@ -741,10 +741,11 @@ fn read_attribute(json: &Json) -> AttributeBinding {
     }
 }
 
-fn read_registration(json: &Json) -> RegistrationSettings {
+fn read_registration(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>) -> RegistrationSettings {
     let Some(r) = json.get("registration") else {
         return RegistrationSettings::default();
     };
+    let blocks = read_blocks(r, &format!("{pointer}/registration"), problems);
     RegistrationSettings {
         headers: r
             .get("headers")
@@ -752,9 +753,64 @@ fn read_registration(json: &Json) -> RegistrationSettings {
             .map(|h| h.keys().cloned().collect())
             .unwrap_or_default(),
         create_on_first_placement: flag(r, "createOnFirstPlacement"),
+        blocks,
         resource_capture: r.get("resource").and_then(|res| s(res, "capture")),
         legacy_layout: s(r, "legacyLayout"),
     }
+}
+
+/// A registration's declared blocks (FBL 0.7 section 8.1): each a Name, with its order, its keys and whether it is in
+/// the history.
+fn read_blocks(
+    registration: &Json,
+    pointer: &str,
+    problems: &mut Vec<LoadProblem>,
+) -> Vec<RegistrationBlockDeclaration> {
+    let mut blocks = Vec::new();
+    let Some(declared) = registration.get("blocks") else {
+        return blocks;
+    };
+    let Some(declared) = declared.as_object() else {
+        problems.push(error(
+            format!("{pointer}/blocks"),
+            "A registration's blocks is an object.",
+        ));
+        return blocks;
+    };
+    for (name, block) in declared {
+        let at = format!("{pointer}/blocks/{}", escape(name));
+        if !block.is_object() {
+            problems.push(error(at, "A declared block is an object."));
+            continue;
+        }
+        if !is_name(name) || name == "layout" || name == "identities" {
+            problems.push(error(
+                at,
+                format!(
+                    "'{name}' cannot name a declared block: it is a Name, and neither layout nor identities (FBL 8.1)."
+                ),
+            ));
+            continue;
+        }
+        let order = s(block, "order").unwrap_or_else(|| "ordinal".into());
+        if order != "ordinal" && order != "kept" {
+            problems.push(error(
+                format!("{at}/order"),
+                "A block's order is \"ordinal\" or \"kept\".",
+            ));
+        }
+        let keys = s(block, "keys").unwrap_or_else(|| "names".into());
+        if keys != "names" && keys != "ids" {
+            problems.push(error(format!("{at}/keys"), "A block's keys are \"names\" or \"ids\"."));
+        }
+        blocks.push(RegistrationBlockDeclaration {
+            name: name.clone(),
+            kept: order == "kept",
+            keyed_by_ids: keys == "ids",
+            in_history: block.get("history") != Some(&Json::Bool(false)),
+        });
+    }
+    blocks
 }
 
 // ---- the checks of FBL section 14.1 steps 4 to 6 that need no DISL specification ----

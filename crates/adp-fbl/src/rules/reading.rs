@@ -398,6 +398,12 @@ impl BodyReading {
                             continue;
                         }
                     }
+                    if self.options().unreadable_types.contains(&rule.type_name) {
+                        // The specification maps the rule's type as unreadable (FBL 0.7 section 4.8, DESL section
+                        // 5.2): the entry is the rule's, an unreadable entry, and what it holds is not looked into.
+                        error = Some("it is in no form this file's entries are written in.".into());
+                        break;
+                    }
                     let line = self.family.text.position(self.family.entries[entry].own.start).0;
                     let mut element = ReadElement {
                         rule: rule_index,
@@ -603,7 +609,12 @@ impl BodyReading {
         let binding = self.family.binding.clone();
         let rule = &binding.rules[element.rule];
         for (name, attribute) in &rule.attributes {
-            let read = self.read_slot(&element.candidate, &attribute.slot, Some(attribute), element.rule);
+            let many = attribute.word.is_some() && !attribute.flag && self.options().many(&rule.type_name, name);
+            let read = if many {
+                self.read_many(&element.candidate, attribute, element.rule)
+            } else {
+                self.read_slot(&element.candidate, &attribute.slot, Some(attribute), element.rule)
+            };
             element.slots.push((name.clone(), read.clone()));
             let mut value = if read.present { read.value.clone() } else { Value::Null };
             let mode = read_mode::of(rule, name, attribute, self.options());
@@ -615,7 +626,9 @@ impl BodyReading {
             if read.present
                 && let Some(map) = &attribute.map
                 && let Some(wire) = value.as_str()
-                && let Some((_, mapped)) = map.iter().find(|(k, _)| k == wire)
+                && let Some((_, mapped)) = map
+                    .iter()
+                    .find(|(k, _)| k == wire || (rule.case_insensitive && k.to_uppercase() == wire.to_uppercase()))
             {
                 value = Value::from(mapped.as_str());
                 scalar = false;
@@ -632,6 +645,7 @@ impl BodyReading {
             }
             if read.present
                 && !attribute.flag
+                && read.items.is_none()
                 && mode == ReadMode::Typed
                 && let Some(type_name) = self.options().attribute_type(&rule.type_name, name)
             {
@@ -735,6 +749,25 @@ impl BodyReading {
         if let Some(reason) = reason
             && read.writable
         {
+            read.writable = false;
+            read.reason = Some(reason);
+        }
+        read
+    }
+
+    /// Reads a word slot of an attribute the tool type's specification gives `many` (FBL 0.7 section 4.6): every
+    /// word of the group that matches, each an item, read-only as [`Self::read_slot`] says.
+    fn read_many(&self, candidate: &Candidate, attribute: &AttributeBinding, rule: usize) -> SlotRead {
+        let mut read = self.family.read_many(candidate, &attribute.slot);
+        if read.items.is_none() {
+            return self.read_slot(candidate, &attribute.slot, Some(attribute), rule);
+        }
+        let reason = attribute
+            .read_only
+            .clone()
+            .or_else(|| self.binding().rules[rule].read_only.clone())
+            .or_else(|| self.binding().read_only.clone());
+        if let Some(reason) = reason {
             read.writable = false;
             read.reason = Some(reason);
         }

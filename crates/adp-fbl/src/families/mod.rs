@@ -341,6 +341,16 @@ impl Family {
         }
     }
 
+    /// Reads a word slot of an attribute the tool type's specification gives `many` (FBL 0.7 section 4.6): every
+    /// word of the group that matches, each an item; a slot of a family without words, or no word slot, as any slot.
+    pub fn read_many(&self, candidate: &Candidate, slot: &Slot) -> SlotRead {
+        let many = match &self.kind {
+            FamilyKind::Lines(_) if !slot.continuation => self.lines_read_many(candidate, slot),
+            _ => None,
+        };
+        many.unwrap_or_else(|| self.read(candidate, slot, false))
+    }
+
     /// Reads the slot named `name` of an enclosing entry, for a `parent` slot naming no attribute.
     pub fn read_raw(&self, entry: EntryId, name: &str) -> SlotRead {
         match &self.kind {
