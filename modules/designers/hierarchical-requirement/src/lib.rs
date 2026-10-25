@@ -15,9 +15,13 @@
 //!   names, and how its two files are read and written.
 //! - [`operations`] and [`commands`]: the operations that change the body, and one such edit made as a step that
 //!   undo takes back.
+//! - [`selection`] and [`context_actions`]: an entry found by the id its box carries, and the keys that add one
+//!   below it.
+//! - [`samples`]: the generated document the performance criterion is measured on.
 
 pub mod body;
 pub mod commands;
+pub mod context_actions;
 pub mod definition;
 pub mod designer;
 pub mod documents;
@@ -25,6 +29,8 @@ pub mod gestures;
 pub mod mapper;
 pub mod model;
 pub mod operations;
+pub mod samples;
+pub mod selection;
 pub mod session;
 pub mod surface;
 pub mod template;

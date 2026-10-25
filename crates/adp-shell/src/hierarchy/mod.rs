@@ -30,6 +30,7 @@ pub mod labels;
 pub mod layout;
 pub mod narrowing;
 pub mod notes;
+pub mod properties;
 pub mod references;
 pub mod search;
 mod view;

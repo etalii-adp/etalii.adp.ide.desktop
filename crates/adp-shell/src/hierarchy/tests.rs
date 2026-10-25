@@ -107,6 +107,8 @@ struct Script {
     outside: Option<SurfaceModel>,
     /// The sentence the next gestures are refused with at once, before anything is written.
     at_once: String,
+    /// Why the action inside a node cannot run, when it cannot.
+    unavailable: String,
 }
 
 impl HierarchySurfaceSession for Recorder {
@@ -143,10 +145,9 @@ impl HierarchySurfaceSession for Recorder {
             operation: operation.into(),
             ..SurfaceAction::default()
         };
-        vec![
-            action("below", false, "jot-below"),
-            action("inside", true, "jot-inside"),
-        ]
+        let mut inside = action("inside", true, "jot-inside");
+        inside.unavailable = self.script.borrow().unavailable.clone();
+        vec![action("below", false, "jot-below"), inside]
     }
 
     fn take_changes(&mut self) -> Vec<SurfaceChange> {
@@ -323,6 +324,8 @@ struct Surface {
     time: f64,
     texts: Vec<String>,
     nodes: HashMap<NodeId, Node>,
+    /// Whether the properties pane is drawn right of the page, as the shell draws it.
+    pane: bool,
 }
 
 impl Surface {
@@ -360,6 +363,7 @@ impl Surface {
             time: 0.0,
             texts: Vec::new(),
             nodes: HashMap::new(),
+            pane: false,
         };
         // The page measures itself in its first frame and lays out by that in the next; the window is widened by
         // whatever the page's frame takes besides its margins.
@@ -385,7 +389,15 @@ impl Surface {
         let theme = adp_theme::Theme::dark();
         let palette = Palette::of(&theme);
         let tab = &mut self.tab;
-        let mut output = self.ctx.run_ui(input, |ui| super::show(ui, tab, &theme, &palette));
+        let pane = self.pane;
+        let mut output = self.ctx.run_ui(input, |ui| {
+            if pane {
+                egui::Panel::right("pane")
+                    .default_size(280.0)
+                    .show(ui, |ui| super::properties::show(ui, tab, &theme, &palette));
+            }
+            super::show(ui, tab, &theme, &palette)
+        });
         output.textures_delta.clear();
         self.texts = output
             .shapes
@@ -440,6 +452,29 @@ impl Surface {
                 .collect();
             panic!("{role:?} '{name}' is drawn: {all:?}")
         })
+    }
+
+    /// The role and name of every node the widget of `role` named `name` stands in, nearest first.
+    fn ancestors(&self, role: Role, name: &str) -> Vec<(Role, String)> {
+        let mut at = *self
+            .nodes
+            .iter()
+            .find(|(_, n)| n.role() == role && n.label() == Some(name))
+            .unwrap_or_else(|| panic!("{role:?} '{name}' is drawn"))
+            .0;
+        let mut found = Vec::new();
+        while let Some((id, parent)) = self.nodes.iter().find(|(_, n)| n.children().contains(&at)) {
+            found.push((parent.role(), parent.label().unwrap_or_default().to_owned()));
+            at = *id;
+        }
+        found
+    }
+
+    /// Whether the widget of `role` named `name` stands in one of `within`'s role named `group`.
+    fn stands_in(&self, role: Role, name: &str, within: Role, group: &str) -> bool {
+        self.ancestors(role, name)
+            .iter()
+            .any(|(r, n)| *r == within && n == group)
     }
 
     /// The centre of the widget of `role` named `name`.
@@ -2713,6 +2748,14 @@ mod filter_bar {
     }
 
     #[test]
+    fn the_bar_is_a_search_landmark_holding_the_filter_the_sort_and_the_count() {
+        let surface = page(model());
+
+        assert!(surface.stands_in(Role::SearchInput, "Filter", Role::Search, "Narrow and sort"));
+        assert!(surface.stands_in(Role::ComboBox, "Sort", Role::Search, "Narrow and sort"));
+    }
+
+    #[test]
     fn completing_offers_nothing_after_escape_nor_while_the_field_does_not_have_the_keyboard() {
         let mut surface = page(model());
         surface.type_query("ph");
@@ -4054,5 +4097,167 @@ mod columns {
         assert_eq!(during, Some(900.0));
         assert_eq!(surface.sent(), [sent("rewiden", "width/2", &[("pixels", "900")])]);
         assert!(surface.find(Role::TreeItem, "[2] Payment").is_some());
+    }
+}
+
+// ---- The properties pane (etalii.adp spec 036, T057) ----
+
+mod properties {
+    use super::*;
+
+    #[test]
+    fn the_pane_names_the_selected_box_under_its_file_with_its_kind_and_where_it_stands() {
+        // Arrange.
+        let mut surface = Surface::of(three_levels());
+        surface.pane = true;
+        surface.frame(Vec::new());
+        assert!(surface.drawn("Select a box to see its properties."));
+
+        // Act.
+        surface.click_box("[4] Pay by card");
+
+        // Assert.
+        assert!(surface.drawn("requirements.md › [4] Pay by card"));
+        assert!(surface.drawn("Point"));
+        assert!(surface.drawn("[3] Payment"));
+
+        // A top level stands in the document.
+        surface.click_box("[1] Orders");
+        assert!(surface.drawn("Section"));
+        assert!(surface.drawn("Requirements"));
+    }
+
+    #[test]
+    fn each_action_is_a_button_with_its_key_that_runs_it_and_one_that_cannot_run_says_why() {
+        // Arrange.
+        let mut surface = Surface::of(three_levels());
+        surface.pane = true;
+        surface.script.borrow_mut().unavailable = "Nothing goes in here.".into();
+        surface.click_box("[2] Take an order");
+
+        // Assert: both offered, each with the key that does the same.
+        let below = surface.get(Role::Button, "below");
+        assert_eq!(below.keyboard_shortcut(), Some("Ctrl+Enter"));
+        assert!(!below.is_disabled());
+        let inside = surface.get(Role::Button, "inside");
+        assert_eq!(inside.keyboard_shortcut(), Some("Ctrl+Shift+Enter"));
+        assert!(inside.is_disabled());
+        assert_eq!(inside.description(), Some("Nothing goes in here."));
+
+        // Act: the one that can run is pressed.
+        surface.click(Role::Button, "below");
+
+        // Assert.
+        assert_eq!(surface.sent(), [sent("jot-below", "2", &[])]);
+    }
+}
+
+// ---- What a screen reader is told (etalii.adp spec 036, FR-011, T055; the standalone host's ARIA at a7fdf03) ----
+
+mod accessibility {
+    use super::*;
+
+    #[test]
+    fn the_page_is_a_tree_named_by_the_document_its_boxes_its_items_at_their_depth() {
+        // Arrange.
+        let surface = Surface::of(three_levels());
+
+        // Assert.
+        assert!(surface.stands_in(Role::TreeItem, "[1] Orders", Role::Tree, "Requirements"));
+        assert!(surface.stands_in(Role::TreeItem, "[6] Refund in full", Role::Tree, "Requirements"));
+        let deep = surface.get(Role::TreeItem, "[6] Refund in full");
+        assert_eq!((deep.level(), deep.is_expanded()), (Some(4), Some(true)));
+        assert!(!surface.get(Role::Tree, "Requirements").is_busy());
+    }
+
+    #[test]
+    fn the_page_is_busy_while_an_edit_waits_on_its_answer() {
+        // Arrange.
+        let mut surface = Surface::of(three_levels());
+
+        // Act.
+        surface.tab.pending = 1;
+        surface.frame(Vec::new());
+
+        // Assert.
+        assert!(surface.get(Role::Tree, "Requirements").is_busy());
+    }
+
+    #[test]
+    fn the_trail_is_a_navigation_whose_step_at_the_pages_left_edge_is_the_current_one() {
+        // Arrange.
+        let mut surface = Surface::of(three_levels());
+        let current = |surface: &Surface| {
+            surface
+                .nodes
+                .values()
+                .filter(|n| n.aria_current() == Some(egui::accesskit::AriaCurrent::Page))
+                .map(|n| n.value().unwrap_or_default().to_owned())
+                .collect::<Vec<_>>()
+        };
+
+        // Act.
+        surface.click_box("[5] Refunds");
+
+        // Assert: the levels down to Refunds are links in the trail, and the title, the whole page, is the current step.
+        for step in ["[1] Orders", "[3] Payment", "[5] Refunds"] {
+            assert!(surface.stands_in(Role::Link, step, Role::Navigation, "Trail"), "{step}");
+        }
+        assert_eq!(current(&surface), ["Requirements"]);
+
+        // Act: Payment made the page's left edge.
+        surface.click(Role::Link, "[3] Payment");
+
+        // Assert.
+        assert_eq!(current(&surface), ["[3] Payment"]);
+        assert!(surface.find(Role::Link, "[3] Payment").is_none());
+        assert!(surface.stands_in(Role::Link, "Requirements", Role::Navigation, "Trail"));
+    }
+
+    #[test]
+    fn the_findings_are_a_list_of_items_each_named_by_its_message() {
+        // Arrange.
+        let mut model = three_levels();
+        model.findings = vec![SurfaceFinding {
+            code: "std.missingId".into(),
+            severity: "warning".into(),
+            message: "Refund in full has no number.".into(),
+            node_id: "6".into(),
+            line: 12,
+        }];
+
+        // Act.
+        let surface = Surface::of(model);
+
+        // Assert.
+        assert!(surface.stands_in(Role::ListItem, "Refund in full has no number.", Role::List, "Findings"));
+        assert!(surface.stands_in(
+            Role::Link,
+            "Refund in full has no number.",
+            Role::ListItem,
+            "Refund in full has no number."
+        ));
+        assert!(surface.find(Role::Image, "warning").is_some());
+    }
+
+    #[test]
+    fn the_read_only_reason_is_a_status_and_a_refusal_an_alert() {
+        // Arrange.
+        let mut model = three_levels();
+        model.read_only_reason = "This document was written by a later version.".into();
+        let read_only = Surface::of(model);
+        let mut refused = Surface::of(three_levels());
+
+        // Act.
+        refused.tab.refusal = "No more points here.".into();
+        refused.frame(Vec::new());
+
+        // Assert.
+        assert!(
+            read_only
+                .find(Role::Status, "This document was written by a later version.")
+                .is_some()
+        );
+        assert!(refused.find(Role::Alert, "No more points here.").is_some());
     }
 }

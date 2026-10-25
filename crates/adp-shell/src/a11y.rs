@@ -7,7 +7,10 @@
 //! window reads as VS Code's does: a tree of tree items, a tab list of tabs, a menu of menu items, a dialog by its
 //! title.
 
-use eframe::egui::{Response, WidgetInfo, accesskit::Role};
+use eframe::egui::{
+    Response, UiBuilder, WidgetInfo,
+    accesskit::{AriaCurrent, Role},
+};
 
 /// Gives the widget of `response` `role` and `name`, in place of what egui inferred. A widget egui drew carries its
 /// bounds and actions already; one the shell drew by hand gets them here.
@@ -60,6 +63,42 @@ pub fn menu_item(response: &Response, name: &str, shortcut: &str) {
             node.clear_keyboard_shortcut();
         } else {
             node.set_keyboard_shortcut(shortcut);
+        }
+    });
+}
+
+/// A button named `name`, with the key that does the same when it has one: an action offered outside a menu.
+pub fn button(response: &Response, name: &str, shortcut: &str) {
+    describe(response, Role::Button, name);
+    response.ctx.accesskit_node_builder(response.id, |node| {
+        if shortcut.is_empty() {
+            node.clear_keyboard_shortcut();
+        } else {
+            node.set_keyboard_shortcut(shortcut);
+        }
+    });
+}
+
+/// A part of a page that holds others, such as a landmark, a list or a tree: what a scope drawn with this builder is
+/// to a screen reader, its children inside it.
+pub fn region(role: Role, name: &str) -> UiBuilder {
+    UiBuilder::new().accessibility_role(role).accessibility_label(name)
+}
+
+/// Marks the widget of `response` as the current one of the set it stands in, as a trail's last step is.
+pub fn current(response: &Response) {
+    response
+        .ctx
+        .accesskit_node_builder(response.id, |node| node.set_aria_current(AriaCurrent::Page));
+}
+
+/// Says the widget of `response` is busy, or no longer, as a page waiting on an edit's answer is.
+pub fn busy(response: &Response, busy: bool) {
+    response.ctx.accesskit_node_builder(response.id, |node| {
+        if busy {
+            node.set_busy();
+        } else {
+            node.clear_busy();
         }
     });
 }

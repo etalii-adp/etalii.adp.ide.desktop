@@ -38,6 +38,13 @@ name = "canvas"
 path = "../../benches/canvas.rs"
 harness = false
 
+# SC-005 of the Hierarchical Requirement Designer (spec 036, T056, research R10): a large requirement document opened
+# and changed on disk, its times printed beside the bounds the module's tests hold.
+[[bench]]
+name = "hierarchy"
+path = "../../benches/hierarchy.rs"
+harness = false
+
 # The memory probe of SC-007 (spec 030, T091): the program left idle, its memory read; the standalone host is measured
 # on the same inputs by parity/memory/standalone.mjs.
 [[bench]]

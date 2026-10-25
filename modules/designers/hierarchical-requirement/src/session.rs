@@ -30,6 +30,7 @@ use adp_desl::hierarchy::session::HierarchySurfaceSession;
 
 use crate::body::RequirementBody;
 use crate::commands::{EditCommand, Restore, Undone};
+use crate::context_actions;
 use crate::documents::{self, Files, Writer};
 use crate::gestures;
 use crate::mapper;
@@ -45,10 +46,6 @@ pub const BETWEEN_READ_ATTEMPTS: std::time::Duration = std::time::Duration::from
 
 /// What is done between two reads of a file changed from outside.
 pub type Wait = Box<dyn FnMut()>;
-
-/// The ids of the actions a selected entry offers, the standalone host's.
-pub const ADD_BELOW: &str = "hierarchical-requirement.add-below";
-pub const ADD_REQUIREMENT: &str = "hierarchical-requirement.add-requirement";
 
 /// One reading of the two files and the model made of it.
 struct Reading {
@@ -368,52 +365,12 @@ impl HierarchySurfaceSession for RequirementSession {
         Ok(())
     }
 
-    /// The keys that add an entry directly below the selected one, with no dialog (the standalone host's
-    /// `HierarchicalRequirementContextActionProvider`): Ctrl+Enter an item below an item and a requirement below a
-    /// requirement, Ctrl+Shift+Enter a requirement to an item. The labels and the unavailable message are the
-    /// specification's.
+    /// The keys that add an entry directly below the selected one ([`context_actions`]).
     fn actions(&self, node_id: &str) -> Vec<SurfaceAction> {
         let Some(node) = self.reading.model.nodes.iter().find(|n| n.id == node_id) else {
             return Vec::new();
         };
-        let action = |id: &str, label: &str, icon: &str, shift: bool, operation: &str| SurfaceAction {
-            id: id.into(),
-            label: label.into(),
-            icon: icon.into(),
-            key: "Enter".into(),
-            shift,
-            unavailable: String::new(),
-            operation: operation.into(),
-        };
-        if node.role == roles::LEVEL {
-            return vec![
-                action(
-                    ADD_BELOW,
-                    "New item below",
-                    "mdi-plus-box-outline",
-                    false,
-                    structure::ADD_ITEM_BELOW,
-                ),
-                action(
-                    ADD_REQUIREMENT,
-                    "New requirement",
-                    "mdi-plus",
-                    true,
-                    structure::ADD_REQUIREMENT,
-                ),
-            ];
-        }
-        let mut below = action(
-            ADD_BELOW,
-            "New requirement below",
-            "mdi-plus",
-            false,
-            structure::ADD_REQUIREMENT_BELOW,
-        );
-        if node.parent_id.is_empty() {
-            below.unavailable = structure::NO_ITEM.into();
-        }
-        vec![below]
+        context_actions::offered(node.role == roles::LEVEL, !node.parent_id.is_empty())
     }
 
     fn take_changes(&mut self) -> Vec<SurfaceChange> {
