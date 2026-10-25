@@ -313,6 +313,19 @@ pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut 
         }
         out.push((at, field.to_owned(), name));
     }
+    // `x.isA('T') && …` and `x.isA('T') ? … : …` read `x` as a `T` on the side the test holds.
+    if let Some(call @ ("_&&_" | "_?_:_")) = node.get("call").and_then(Json::as_str)
+        && let Some(args) = node["args"].as_array()
+        && let [test, held, rest @ ..] = &args[..]
+        && let Some((variable, narrowed)) = narrowing(test, symbols)
+    {
+        unknown_members(test, scope, symbols, out);
+        unknown_members(held, &scope.clone().with(variable, Ty::Element(narrowed)), symbols, out);
+        if call == "_?_:_" {
+            rest.iter().for_each(|item| unknown_members(item, scope, symbols, out));
+        }
+        return;
+    }
     match node {
         Json::Object(map) => {
             for (key, value) in map {
@@ -324,6 +337,19 @@ pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut 
         Json::Array(items) => items.iter().for_each(|item| unknown_members(item, scope, symbols, out)),
         _ => {}
     }
+}
+
+/// The variable a test `x.isA('T')` names and the type `T` it holds it to be, when `T` is a type of the description.
+/// A conjunction narrows by its first test (`x.isA('T') && y ? …`).
+fn narrowing<'a>(test: &'a Json, symbols: &Symbols) -> Option<(&'a str, String)> {
+    match test.get("call").and_then(Json::as_str) {
+        Some("_&&_") => return narrowing(test["args"].get(0)?, symbols),
+        Some("isA") => {}
+        _ => return None,
+    }
+    let variable = test["target"].get("ident").and_then(Json::as_str)?;
+    let name = test["args"].get(0).filter(|a| a["type"] == "string")?["literal"].as_str()?;
+    symbols.is_type(name).then(|| (variable, name.to_owned()))
 }
 
 pub fn global_calls<'a>(node: &'a Json, out: &mut Vec<&'a Json>) {
