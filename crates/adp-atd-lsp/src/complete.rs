@@ -38,7 +38,7 @@ const BUILT_IN_FIELDS: &[&str] = &[
 
 pub fn completion(server: &Server, request: &Request) -> Json {
     let expected = adp_atd_syntax::expected_at(&request.text, request.offset);
-    let checked = server.check(&request.path);
+    let checked = server.described(&request.path);
     let keywords: Vec<&str> = expected
         .iter()
         .filter_map(|t| t.strip_prefix('"').and_then(|t| t.strip_suffix('"')))
