@@ -103,7 +103,7 @@ fn the_tree_groups_the_standalone_hosts_tool_types_by_vendor_with_their_titles_a
         ["etalii/hierarchical-requirement@.md"]
     );
 
-    // The 78 diagram definitions and the designers' four formats; editors are not added here.
+    // The 78 diagram definitions and the four formats of the designer types; editors are not added here.
     fn leaves(options: &[AddOption]) -> usize {
         options
             .iter()
