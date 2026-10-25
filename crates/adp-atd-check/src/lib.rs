@@ -211,6 +211,20 @@ pub fn check(files: &dyn Files, path: &Path) -> Checked {
     }
 }
 
+/// The description `path` belongs to with its names, as [`check`] reads and resolves them, without the checks that
+/// give findings: what completion needs, at a fraction of the cost of a check (SC-006). Its findings are those of
+/// reading the files alone.
+pub fn describe_with_symbols(files: &dyn Files, path: &Path) -> Checked {
+    let mut description = describe(files, path);
+    let findings = std::mem::take(&mut description.findings);
+    let symbols = description.has_trees().then(|| symbols::collect(&description));
+    Checked {
+        description,
+        symbols,
+        findings,
+    }
+}
+
 /// A finding with closest names gets one fix per name: the name replaced by it (FR-091).
 fn add_fixes(description: &Description, findings: &mut [Finding]) {
     for finding in findings

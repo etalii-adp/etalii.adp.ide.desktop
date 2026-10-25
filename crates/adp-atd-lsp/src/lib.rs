@@ -197,6 +197,21 @@ impl Server {
         checked
     }
 
+    /// The description `path` belongs to with its names, for completion: the current check when there is one,
+    /// else the description read and its names resolved without the checks that give findings (SC-006).
+    pub fn described(&self, path: &Path) -> Arc<Checked> {
+        if let Some((generation, checked)) = self.checked.borrow().get(path)
+            && *generation == self.generation
+        {
+            return checked.clone();
+        }
+        let files = OpenFiles {
+            documents: &self.documents,
+            under: self.files.as_ref(),
+        };
+        Arc::new(adp_atd_check::describe_with_symbols(&files, path))
+    }
+
     /// A document changed: every check made before is stale.
     fn changed(&mut self) {
         self.generation += 1;
