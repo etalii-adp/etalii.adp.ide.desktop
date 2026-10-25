@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using EtAlii.Adp.Parity.Recorder;
-using EtAlii.Adp.TestSupport.Host;
 
 // The parity recorder (etalii.adp spec 030, contracts/parity.md): replays edit scripts through the
 // standalone host's gRPC API and writes what the standalone host wrote as the goldens.

@@ -28,6 +28,7 @@
 //! A designer's script - the Knowledge designer's, whose document is a table - is replayed through its session rather
 //! than through `adp-diagram` ([`table`]).
 
+pub mod hierarchy;
 pub mod table;
 
 use std::cell::{Cell, RefCell};
@@ -504,6 +505,9 @@ pub fn replay_observed(case: &Case, observe: &mut dyn FnMut(&Observed)) -> Resul
         .to_path_buf();
     if table::is_table(&case.script.tool) {
         return table::replay(case, project.path(), &document);
+    }
+    if hierarchy::is_hierarchy(&case.script.tool) {
+        return hierarchy::replay(case, project.path(), &document);
     }
 
     // The ids the standalone host generated, handed out at the steps that made them; the Wardley map mints its ids

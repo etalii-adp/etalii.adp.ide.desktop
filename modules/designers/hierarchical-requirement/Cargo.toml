@@ -8,6 +8,16 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+adp-cel = { path = "../../../crates/adp-cel" }
+adp-desl = { path = "../../../crates/adp-desl" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
+regex = "1"
+serde_json = "1"
+
+[dev-dependencies]
+regex = "1"
+serde_json = "1"
+tempfile = "3"
 
 [lints]
 workspace = true

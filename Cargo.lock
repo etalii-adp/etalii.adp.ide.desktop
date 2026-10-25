@@ -323,6 +323,14 @@ dependencies = [
 [[package]]
 name = "adp-designer-hierarchical-requirement"
 version = "1.0.0"
+dependencies = [
+ "adp-cel",
+ "adp-desl",
+ "adp-fbl",
+ "regex",
+ "serde_json",
+ "tempfile",
+]
 
 [[package]]
 name = "adp-designer-knowledge"
@@ -801,6 +809,7 @@ dependencies = [
  "adp-add",
  "adp-context",
  "adp-core",
+ "adp-designer-hierarchical-requirement",
  "adp-designer-knowledge",
  "adp-desl",
  "adp-diagram",
@@ -824,6 +833,7 @@ dependencies = [
  "adp-diagram-timeline",
  "adp-diagram-wardley-map",
  "adp-disl",
+ "adp-fbl",
  "adp-history",
  "serde",
  "serde_json",

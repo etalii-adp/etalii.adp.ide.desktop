@@ -38,7 +38,7 @@ dotnet run --project parity/recorder -p:StandaloneRoot=../standalone-a7fdf03/ --
 
 ## How it runs the standalone host
 
-The recorder compiles against the standalone host's own sources in the worktree (a project reference to `src/backend/EtAlii.Adp.TestSupport.Host`, so `dotnet run` builds the standalone host with `dotnet build`, in Debug) and runs it in process, through `HostFixture`, the host the standalone host's own flow tests drive. That is the standalone host's `Program`, every module, every gRPC service, in the `developer` environment, served over an in-memory connection rather than a port, with two registrations replaced: its project list and its problem cache live in a temporary folder.
+The recorder compiles against the standalone host's own sources in the worktree (a project reference to `src/backend/EtAlii.Adp.TestSupport.Host` at `8b6ccfc`, or to `src/backend/EtAlii.Adp.Backend.Tests.Support`, where a later commit moved it, at `a7fdf03`; `Replay.Hierarchy.cs` is compiled only where the worktree has `src/designers/hierarchical-requirement`, so `dotnet run` builds the standalone host with `dotnet build`, in Debug) and runs it in process, through `HostFixture`, the host the standalone host's own flow tests drive. That is the standalone host's `Program`, every module, every gRPC service, in the `developer` environment, served over an in-memory connection rather than a port, with two registrations replaced: its project list and its problem cache live in a temporary folder.
 
 It does not start `EtAlii.Adp.Backend.Service` as a process because that process keeps both in `Environment.SpecialFolder.ApplicationData` and has no setting to move them: replaying a script would add its temporary project to the person's own project list and problem cache. Nothing else is needed headless: no browser, no certificate, no port.
 
@@ -62,12 +62,18 @@ A script is `parity/scripts/<tool>/<name>.json`, its goldens are `parity/goldens
 | `{ "table": { "kind", "row"?, "column"?, "view"?, "values"?, "index"?, "target"?, "settings"? } }` | `DesignerService.Edit` of a table (see "Tables" below): one `TableGesture` with these fields, the gesture kinds being the designer's own (`setCell`, `addRow`, `addSort`, `toggleGroup`, `addView`, ...). Without `view` the gesture names the view the connection shows, as the Knowledge designer's panel sends every gesture. The step waits for the edit's `TableEditOutcome` on the stream and is refused when the call answers with a sentence or the outcome says it was not written. |
 | `{ "view": "<view id>" }` | `DesignerService.SetTableView`: the view the connection shows, which the standalone host writes as the view the file is left in; the step waits for that edit's outcome (three seconds, after which it is taken to have written nothing, as for the view already shown). |
 | `{ "save": { "path"?, "content" } }` | `EditorService.SaveText` of a text editor's content (the document, or `path`). |
+| `{ "hierarchy": { "operation", "target"?, "params"? } }` | `DesignerService.HierarchySurfaceGesture` of a hierarchy (see "Hierarchies" below): one gesture with these fields, the operations being the designer's own (`toggleCollapsed`, ...). The step waits for the gesture's outcome and is refused when the call answers with a sentence or the outcome says it was not written. `expect` may stand inside the object. |
+| `{ "outside": { "file", "from", "to" } }` | Nothing is sent: the recorder replaces the first `from` in the project's `file` with `to`, as another program would, and waits up to ten seconds for a model whose cause is `outside`. |
 
 Every step may carry `"expect": "refused"`, for an edit the standalone host refuses: the recorder then fails when it is accepted. Without it, a refused step fails the recording, so a script never half-records.
 
 ### Tables
 
 A script whose tool is a designer whose document is a table - `etalii/knowledge` - is not opened as a diagram. The connection is the tab's one stream, `WorkspaceService.Watch` (no `ContextService.Watch` and no `DiagramService.Open`), and the registration is opened on it with `DesignerService.OpenTable` under a stream id of the recorder's, then `DesignerService.SetTableWindow` asks for the first 60 lines, as a tab does once it is laid out. The recorder reads the table stream for its baseline, the view the connection shows (from the baseline and every structure change) and the edits' outcomes. `table` and `view` steps are sent as the table above says; `undo` and `redo` run on the project's history as for a diagram, which is where the standalone host's `KnowledgeSessionFactory` writes every edit.
+
+### Hierarchies
+
+A script whose tool is a designer whose document is a hierarchy - `etalii/hierarchical-requirement` - is opened on the tab's one stream, `WorkspaceService.Watch`, with `DesignerService.OpenHierarchySurface`; the recorder waits for the first model. `hierarchy` steps are sent with `DesignerService.HierarchySurfaceGesture` and waited on by their outcome, `outside` steps change a file and wait for the model it causes, and `undo` and `redo` run on the project's history as for a diagram. `undo` and `redo` also take an object (`{ "undo": {} }`), read as once.
 
 ### Ids the standalone host generates
 
