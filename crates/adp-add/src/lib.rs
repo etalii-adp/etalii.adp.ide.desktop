@@ -389,6 +389,10 @@ impl AddCatalogue {
                     designer.title, format.title
                 ));
             };
+            if designer.claim.as_ref().is_some_and(|c| c.creates_registration) {
+                // The registration is created with the first setting the user changes (FBL section 8.4).
+                return create_all(folder, &[(body_name, content)]);
+            }
             let registration = format!("{}{NEW_LINE}body: {body_name}{NEW_LINE}", designer.origin);
             return create_all(
                 folder,

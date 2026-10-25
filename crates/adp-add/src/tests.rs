@@ -609,3 +609,31 @@ fn an_existing_file_without_the_envelope_is_refused_naming_the_line_it_needs() {
     assert_eq!(listing(folder.path()), ["plan.md"]);
     assert_eq!(read(&path), "# Plan\r\n");
 }
+
+/// A new requirement document is the binding's template with the file's base name as its title, CRLF, byte for byte,
+/// and no registration is written beside it (spec 029 FR-005, US4 scenario 2; the standalone host's
+/// `Template.Tests.cs` at a7fdf03).
+#[test]
+fn a_new_requirement_document_is_the_template_with_its_name_as_title_and_no_registration() {
+    let folder = tempfile::tempdir().unwrap();
+    let expected = fs::read(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../vendor/etalii.adp/specifications/fbl/fixtures/hierarchical-requirement-new/lending.md"),
+    )
+    .unwrap();
+    let adds = AddCatalogue::standalone();
+
+    let created = adds
+        .commit(&AddTarget::Folder(folder.path().to_path_buf()), REQUIREMENTS, "lending")
+        .unwrap();
+
+    assert_eq!(created, folder.path().join("lending.md"));
+    assert_eq!(listing(folder.path()), ["lending.md"]);
+    let written = fs::read(&created).unwrap();
+    assert_eq!(written, expected);
+    let text = String::from_utf8(written).unwrap();
+    assert!(text.starts_with(
+        "<!-- ded: 0.2 designer: etalii/hierarchical-requirement -->\r\n<!-- last: ITEM-0007 REQ-0009 -->\r\n# lending\r\n"
+    ));
+    assert_eq!(text.split('\n').count(), text.split("\r\n").count(), "every line ends in CRLF");
+}

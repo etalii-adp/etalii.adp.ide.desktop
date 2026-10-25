@@ -255,8 +255,8 @@ fn an_unknown_operation_and_one_not_built_yet_are_refused_with_the_reason() {
         session.gesture(gesture("addLink"))
     );
     assert_eq!(
-        Err("'setTitle' cannot be done here yet.".to_owned()),
-        session.gesture(gesture("setTitle"))
+        Err("'addAssessment' cannot be done here yet.".to_owned()),
+        session.gesture(gesture("addAssessment"))
     );
     assert!(session.take_changes().is_empty());
 }
@@ -306,4 +306,117 @@ fn a_file_that_stops_being_readable_keeps_the_last_page_read_only() {
     fs::write(folder.body(), text).unwrap();
     session.file_changed(&folder.body());
     assert_eq!("", session.model().read_only_reason);
+}
+
+fn set(operation: &str, target: &str, param: &str, value: &str) -> Gesture {
+    Gesture {
+        edit_id: format!("edit-{operation}-{target}"),
+        operation: operation.into(),
+        target_id: target.into(),
+        params: [(param.to_owned(), value.to_owned())].into_iter().collect(),
+    }
+}
+
+fn outcome(changes: &[SurfaceChange]) -> (bool, String) {
+    changes
+        .iter()
+        .find_map(|change| match change {
+            SurfaceChange::Outcome(outcome) => Some((outcome.written, outcome.error.clone())),
+            SurfaceChange::Model(_) => None,
+        })
+        .expect("an outcome follows a gesture")
+}
+
+fn last_model(changes: &[SurfaceChange]) -> SurfaceModel {
+    changes
+        .iter()
+        .rev()
+        .find_map(|change| match change {
+            SurfaceChange::Model(model) => Some((**model).clone()),
+            SurfaceChange::Outcome(_) => None,
+        })
+        .expect("a model is sent")
+}
+
+/// A title set on the page is written to the body as one step, shown as an edit; undo gives the bytes back exactly and
+/// redo makes the edit again (the standalone host's `Undo.Tests.cs` at a7fdf03, its first case).
+#[test]
+fn a_text_set_on_the_page_is_written_as_one_step_that_undo_takes_back_and_redo_makes_again() {
+    let folder = WebShopFolder::new();
+    let before = fs::read(folder.body()).unwrap();
+    let registration = fs::read(folder.registration()).unwrap();
+    let mut session = RequirementSession::open(folder.body(), Some(folder.registration()));
+
+    session
+        .gesture(set("setDescription", "REQ-0007", "description", "A forgotten password is reset by e-mail."))
+        .unwrap();
+    let changes = session.take_changes();
+    assert_eq!(outcome(&changes), (true, String::new()));
+    let edited = last_model(&changes);
+    assert_eq!(edited.cause, causes::EDIT);
+    let node = edited.nodes.iter().find(|n| n.id == "REQ-0007").unwrap();
+    assert_eq!(node.description, "A forgotten password is reset by e-mail.");
+    let after = fs::read(folder.body()).unwrap();
+    assert_ne!(after, before);
+    assert_eq!(fs::read(folder.registration()).unwrap(), registration, "the registration is untouched");
+
+    session.undo().unwrap();
+    assert_eq!(fs::read(folder.body()).unwrap(), before);
+    let undone = last_model(&session.take_changes());
+    assert_eq!(undone.cause, causes::EDIT);
+    assert_eq!(undone.nodes.iter().find(|n| n.id == "REQ-0007").unwrap().description, "");
+
+    session.redo().unwrap();
+    assert_eq!(fs::read(folder.body()).unwrap(), after);
+    assert_eq!(session.redo(), Err("There is nothing to redo.".to_owned()));
+}
+
+/// An item added at the top is numbered from the mark and written with it, and the placeholders with it.
+#[test]
+fn an_item_added_at_the_top_is_given_the_next_number_and_the_mark() {
+    let folder = WebShopFolder::new();
+    let mut session = RequirementSession::open(folder.body(), Some(folder.registration()));
+
+    session
+        .gesture(Gesture {
+            edit_id: "add".into(),
+            operation: "addTopItem".into(),
+            ..Gesture::default()
+        })
+        .unwrap();
+
+    let changes = session.take_changes();
+    assert_eq!(outcome(&changes), (true, String::new()));
+    let model = last_model(&changes);
+    let added = model.nodes.iter().find(|n| n.id == "ITEM-0008").expect("the new item is ITEM-0008");
+    assert_eq!((added.title.as_str(), added.parent_id.as_str()), ("New item", ""));
+    let text = fs::read_to_string(folder.body()).unwrap();
+    // The web shop holds a REQ-NEW, which every edit numbers as reading did, so the requirements' mark moves too.
+    assert!(text.contains("<!-- last: ITEM-0008 REQ-0013 -->"), "the marks are set: {}", &text[..200]);
+    assert!(!model.nodes.iter().any(|n| n.number == "REQ-NEW"));
+}
+
+/// What a text cannot be is refused at once, and nothing is sent or written.
+#[test]
+fn a_text_gesture_without_its_value_or_with_a_title_of_two_lines_is_refused_at_once() {
+    let folder = WebShopFolder::new();
+    let before = fs::read(folder.body()).unwrap();
+    let mut session = RequirementSession::open(folder.body(), Some(folder.registration()));
+
+    let without = Gesture {
+        operation: "setTitle".into(),
+        target_id: "REQ-0001".into(),
+        ..Gesture::default()
+    };
+    assert_eq!(session.gesture(without), Err("'setTitle' needs its title.".to_owned()));
+    assert_eq!(
+        session.gesture(set("setTitle", "REQ-0001", "title", "One\nTwo")),
+        Err("A title is one line; the description holds the lines below it.".to_owned())
+    );
+    assert_eq!(
+        session.gesture(set("setTitle", "REQ-0999", "title", "Gone")),
+        Err(adp_designer_hierarchical_requirement::gestures::DRIFTED.to_owned())
+    );
+    assert!(session.take_changes().is_empty());
+    assert_eq!(fs::read(folder.body()).unwrap(), before);
 }

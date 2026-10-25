@@ -37,8 +37,7 @@ pub fn claims(name: &str, head: &[u8]) -> bool {
     !adp_fbl::routing::candidates(name, head, [binding.as_ref()]).is_empty()
 }
 
-/// The body of a new requirement document named `file_name`: none yet, since the template arrives with the structure
-/// operations (etalii.adp spec 036, T036), so that adding one under a new name says the module is incomplete.
-pub fn new_document(_format: &DesignerFormat, _file_name: &str) -> Option<String> {
-    None
+/// The body of a new requirement document named `file_name`: the binding's template ([`crate::template`]).
+pub fn new_document(format: &DesignerFormat, file_name: &str) -> Option<String> {
+    crate::template::create(format, file_name)
 }
