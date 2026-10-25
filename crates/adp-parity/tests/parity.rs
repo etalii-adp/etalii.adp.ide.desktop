@@ -77,6 +77,11 @@ fn etalii_hierarchical_requirement_text() {
 }
 
 #[test]
+fn etalii_hierarchical_requirement_two_writers() {
+    check("etalii/hierarchical-requirement/two-writers");
+}
+
+#[test]
 fn etalii_hierarchical_requirement_new_document() {
     check("etalii/hierarchical-requirement/new-document");
 }

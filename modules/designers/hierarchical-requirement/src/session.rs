@@ -6,7 +6,8 @@
 //!   is one, and reads them again whenever either changes; it queues the whole model each time, and nothing when the
 //!   bytes are those it already holds.
 //! - **A file that stops being readable keeps the last page**, read-only and saying why, until it can be read again:
-//!   what the person was looking at does not vanish under them.
+//!   what the person was looking at does not vanish under them. A file changed from outside that cannot be read is
+//!   read again first, [`READ_ATTEMPTS`] times in all, since another program may be halfway through writing it.
 //! - **The registration is created with the first setting the person changes**, outside the history, as the
 //!   binding's `createOnFirstPlacement` says (FBL 0.7 section 8.4). Collapsing is such a setting, and is no undo step
 //!   either: the `collapsed` block is declared outside the history.
@@ -36,6 +37,14 @@ use crate::operations::{structure, text};
 /// What undo and redo are refused with while no gesture of this page is a step of the history.
 const NOTHING_TO_UNDO: &str = "There is nothing to undo.";
 const NOTHING_TO_REDO: &str = "There is nothing to redo.";
+/// How often a file changed from outside is read before it is taken as unreadable, and how long apart: the standalone
+/// host's `WatchedFile.ReadAttempts` and `BetweenReadAttempts` at a7fdf03.
+pub const READ_ATTEMPTS: usize = 3;
+pub const BETWEEN_READ_ATTEMPTS: std::time::Duration = std::time::Duration::from_millis(20);
+
+/// What is done between two reads of a file changed from outside.
+pub type Wait = Box<dyn FnMut()>;
+
 /// The ids of the actions a selected entry offers, the standalone host's.
 pub const ADD_BELOW: &str = "hierarchical-requirement.add-below";
 pub const ADD_REQUIREMENT: &str = "hierarchical-requirement.add-requirement";
@@ -53,6 +62,7 @@ pub struct RequirementSession {
     body_path: PathBuf,
     registration_path: PathBuf,
     write: Writer,
+    wait: Wait,
     reading: Reading,
     changes: Vec<SurfaceChange>,
     /// The steps written through this session, the latest last, and those undone, the latest undone last.
@@ -81,6 +91,7 @@ impl RequirementSession {
             body_path,
             registration_path,
             write,
+            wait: Box::new(|| std::thread::sleep(BETWEEN_READ_ATTEMPTS)),
             changes: Vec::new(),
             restores: Vec::new(),
             undone: Vec::new(),
@@ -89,6 +100,13 @@ impl RequirementSession {
             .build(&files, causes::OPEN)
             .unwrap_or_else(|| session.unreadable(files));
         session
+    }
+
+    /// The session with `wait` done between two reads of a file changed from outside: a test changes the file there
+    /// exactly when it chooses, and waits for nothing.
+    pub fn waiting(mut self, wait: Wait) -> Self {
+        self.wait = wait;
+        self
     }
 
     fn file_name(path: &Path) -> String {
@@ -176,6 +194,26 @@ impl RequirementSession {
                 .push(SurfaceChange::Model(Box::new(self.reading.model.clone())));
         }
         taken
+    }
+
+    /// Reads both files again after another program changed one, and queues the model when they changed. A body
+    /// that cannot be read as a requirement document is read again, up to [`READ_ATTEMPTS`] times, before the page is
+    /// made read-only; one that cannot be read at all by then keeps the last page as it is.
+    fn read_from_outside(&mut self) {
+        let mut attempt = 1;
+        let reading = loop {
+            let files = documents::read(&self.body_path, &self.registration_path);
+            let reading = self.build(&files, causes::OUTSIDE);
+            if reading.as_ref().is_some_and(|r| !r.unreadable) || attempt == READ_ATTEMPTS {
+                break reading;
+            }
+            attempt += 1;
+            (self.wait)();
+        };
+        if self.take(reading) {
+            self.changes
+                .push(SurfaceChange::Model(Box::new(self.reading.model.clone())));
+        }
     }
 
     /// A write of this session's has ended: the model as the files now are, as following `cause`, then what became
@@ -384,7 +422,7 @@ impl HierarchySurfaceSession for RequirementSession {
 
     fn file_changed(&mut self, path: &Path) {
         if path == self.body_path || path == self.registration_path {
-            self.read_again(causes::OUTSIDE);
+            self.read_from_outside();
         }
     }
 }

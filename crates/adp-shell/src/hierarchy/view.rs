@@ -73,9 +73,12 @@ enum Act {
     Delete(String, bool),
     StartDrag(String),
     EndDrag,
+    /// The conflict bar's two sides: drop what was typed, or keep it.
+    ShowFile,
+    KeepText,
 }
 
-/// Draws the tab: the trail, the read-only reason, a refusal, the findings and the page.
+/// Draws the tab: the trail, the read-only reason, the conflict bar, a refusal, the findings and the page.
 pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &Palette) {
     tab.drain();
     let colours = Colours::of(theme, palette);
@@ -94,6 +97,9 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
             );
             ui.label(RichText::new(&tab.model.read_only_reason).color(colours.muted));
         });
+    }
+    if tab.conflict && tab.field.is_some() {
+        conflict_bar(ui, &colours, &mut acts);
     }
     if !tab.refusal.is_empty() {
         bar(ui, &colours, |ui| {
@@ -117,6 +123,8 @@ pub fn show(ui: &mut egui::Ui, tab: &mut HierarchyTab, theme: &Theme, palette: &
             Act::Open(id, attribute) => tab.open_field(&id, attribute),
             Act::Commit => tab.commit_field(),
             Act::Cancel => tab.cancel_field(),
+            Act::ShowFile => tab.show_file(),
+            Act::KeepText => tab.keep_text(),
             Act::Delete(id, ask) => tab.delete(&id, ask),
             Act::StartDrag(id) => {
                 tab.dragging = tab.model.nodes.iter().find(|n| n.id == id).cloned();
@@ -218,6 +226,23 @@ fn bar(ui: &mut egui::Ui, colours: &Colours, content: impl FnOnce(&mut egui::Ui)
     let rect = response.response.rect;
     ui.painter()
         .hline(rect.x_range(), rect.bottom(), Stroke::new(1.0, colours.border));
+}
+
+/// The bar over the page when another program changed the file while a title or a description was being typed (the
+/// standalone host's `ConflictBar.tsx` at a7fdf03), in the shape of the text editors' conflict bar. It offers both sides
+/// and never drops the text by itself; the field does not commit when its focus leaves for the bar.
+fn conflict_bar(ui: &mut egui::Ui, colours: &Colours, acts: &mut Vec<Act>) {
+    bar(ui, colours, |ui| {
+        let sentence = "This file was changed outside the designer.";
+        let label = ui.label(RichText::new(sentence).color(colours.text));
+        a11y::describe(&label, Role::Alert, sentence);
+        if ui.button("Show the file").clicked() {
+            acts.push(Act::ShowFile);
+        }
+        if ui.button("Keep my text").clicked() {
+            acts.push(Act::KeepText);
+        }
+    });
 }
 
 /// The trail above the page, always shown: the document's title, then the levels down to the selected node, or to the
@@ -325,6 +350,22 @@ fn page(ui: &mut egui::Ui, tab: &mut HierarchyTab, colours: &Colours, font: &Fon
             let origin = ui.max_rect().min + Vec2::splat(PAGE_MARGIN);
             let width = measured.max(ENTRY_MIN_WIDTH);
             let mut y = origin.y;
+            // The file no longer has the node the field is open on, so its box is gone; the text is kept above the
+            // page instead, and committing it is for the file to refuse (R10).
+            let orphan = page
+                .field
+                .as_ref()
+                .is_some_and(|f| !index.by_id.contains_key(f.node_id.as_str()));
+            if orphan {
+                let inner = width - 2.0 * BOX_SPACING;
+                let height = page.field_height(ui.painter(), inner);
+                let place = Rect::from_min_size(
+                    Pos2::new(origin.x + BOX_SPACING, y + BOX_SPACING),
+                    Vec2::new(inner, height),
+                );
+                page.text_field(ui, place);
+                y += height + 2.0 * BOX_SPACING;
+            }
             let roots = tab.roots();
             let hint = tab
                 .hint
@@ -352,6 +393,7 @@ fn page(ui: &mut egui::Ui, tab: &mut HierarchyTab, colours: &Colours, font: &Fon
     tab.width = measured;
     tab.field = field;
     tab.field_opened = false;
+    tab.field_refocus = false;
     drawn
 }
 
@@ -760,6 +802,9 @@ impl Page<'_, '_> {
         };
         let id = self.tab.id().with(("field", &field.node_id));
         let title = field.attribute == Attribute::Title;
+        if self.tab.field_refocus {
+            ui.memory_mut(|m| m.request_focus(id));
+        }
         if self.tab.field_opened {
             ui.memory_mut(|m| m.request_focus(id));
             let mut state = egui::text_edit::TextEditState::load(ui.ctx(), id).unwrap_or_default();
@@ -820,7 +865,8 @@ impl Page<'_, '_> {
             Stroke::new(1.0, self.colours.border),
             StrokeKind::Inside,
         );
-        if response.lost_focus() && !ended {
+        // Leaving for the conflict's bar is no leaving that keeps the text: the bar decides on it.
+        if response.lost_focus() && !ended && !self.tab.conflict {
             self.acts.push(Act::Commit);
         }
     }

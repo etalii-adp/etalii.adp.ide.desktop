@@ -101,6 +101,8 @@ struct Script {
     next: Vec<SurfaceModel>,
     /// The sentence the next gestures are not written with.
     refusal: String,
+    /// The model the watcher's next news of a change brings, as another program left the file.
+    outside: Option<SurfaceModel>,
 }
 
 impl HierarchySurfaceSession for Recorder {
@@ -151,7 +153,12 @@ impl HierarchySurfaceSession for Recorder {
         Err("There is nothing to redo.".into())
     }
 
-    fn file_changed(&mut self, _path: &Path) {}
+    fn file_changed(&mut self, _path: &Path) {
+        if let Some(model) = self.script.borrow_mut().outside.take() {
+            self.model = model;
+            self.changes.push(SurfaceChange::Model(Box::new(self.model.clone())));
+        }
+    }
 }
 
 fn label(label: &str, prefix: &str, many: bool, on: &[&str]) -> LabelDefinition {
@@ -539,6 +546,15 @@ impl Surface {
     fn height_of(&self, name: &str) -> f64 {
         let at = self.get(Role::TreeItem, name).bounds().unwrap();
         at.y1 - at.y0
+    }
+
+    /// Another program leaves the file as `model` says, and the watcher tells the tab.
+    fn outside(&mut self, mut model: SurfaceModel, cause: &str) {
+        model.cause = cause.into();
+        self.script.borrow_mut().outside = Some(model);
+        self.tab.changed_on_disk(Path::new("requirements.md"));
+        self.frame(Vec::new());
+        self.frame(Vec::new());
     }
 
     /// The field open on the page, by its name: its value, and whether it has the keyboard.
@@ -1349,4 +1365,121 @@ fn an_open_field_keeps_delete_and_enter_for_itself() {
     // Assert: the Enter kept the field, whose text Delete changed, and nothing else was sent.
     assert!(surface.tab.field.is_none());
     assert!(surface.sent().iter().all(|(operation, _, _)| operation == "retitle"));
+}
+
+// ---- A change from outside while a field is open (the standalone host's `ConflictBar.test.tsx` at a7fdf03; T033) ----
+
+const CONFLICT: &str = "This file was changed outside the designer.";
+
+/// The page as another program left it: the first point renamed, and with `without` gone.
+fn renamed(without: Option<&str>) -> SurfaceModel {
+    let mut model = three_levels();
+    model.nodes.retain(|n| Some(n.id.as_str()) != without);
+    model.nodes.iter_mut().find(|n| n.id == "2").unwrap().title = "Take an order by phone".into();
+    model
+}
+
+/// Opens the title of the point `[4] Pay by card` and types over it.
+fn type_a_title(surface: &mut Surface) {
+    let title = surface.half_of("[4] Pay by card", false);
+    surface.double_click_at(title);
+    surface.type_text("Pay any card");
+}
+
+#[test]
+fn a_change_from_outside_while_a_field_is_open_shows_the_file_around_it_and_asks_what_to_do_with_the_text() {
+    // Arrange.
+    let mut surface = Surface::of(three_levels());
+    type_a_title(&mut surface);
+
+    // Act: another program renames the first point.
+    surface.outside(renamed(None), causes::OUTSIDE);
+
+    // Assert: the page is the file's, the text is still there, and the bar offers both sides.
+    assert!(surface.drawn(CONFLICT));
+    assert!(
+        surface.find(Role::Alert, CONFLICT).is_some(),
+        "the sentence is an alert"
+    );
+    assert!(surface.find(Role::TreeItem, "[2] Take an order by phone").is_some());
+    assert_eq!(
+        surface.field("Title of [4]").map(|f| f.0),
+        Some("Pay any card".to_owned())
+    );
+    surface.get(Role::Button, "Show the file");
+    surface.get(Role::Button, "Keep my text");
+    assert!(surface.gestures().is_empty());
+}
+
+#[test]
+fn show_the_file_drops_the_text_and_sends_nothing_though_the_focus_left_for_the_bar() {
+    // Arrange.
+    let mut surface = Surface::of(three_levels());
+    type_a_title(&mut surface);
+    surface.outside(renamed(None), causes::OUTSIDE);
+
+    // Act: the press on the button takes the focus from the field, which keeps no text by leaving for the bar.
+    surface.click(Role::Button, "Show the file");
+
+    // Assert.
+    assert!(!surface.drawn(CONFLICT));
+    assert!(surface.tab.field.is_none());
+    assert!(surface.find(Role::TreeItem, "[4] Pay by card").is_some());
+    assert!(surface.gestures().is_empty(), "{:?}", surface.sent());
+}
+
+#[test]
+fn keep_my_text_keeps_the_field_and_commits_it_as_an_edit_of_the_file_as_it_now_is() {
+    // Arrange.
+    let mut surface = Surface::of(three_levels());
+    type_a_title(&mut surface);
+    surface.outside(renamed(None), causes::OUTSIDE);
+
+    // Act.
+    surface.click(Role::Button, "Keep my text");
+    assert!(!surface.drawn(CONFLICT));
+    assert_eq!(surface.field("Title of [4]"), Some(("Pay any card".to_owned(), true)));
+    surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+    // Assert.
+    assert_eq!(surface.sent(), [sent("retitle", "4", &[("title", "Pay any card")])]);
+}
+
+#[test]
+fn the_text_of_a_number_the_file_no_longer_has_is_still_sent_for_the_file_to_refuse() {
+    // Arrange: another program removed the point being typed.
+    let mut surface = Surface::of(three_levels());
+    type_a_title(&mut surface);
+    surface.outside(renamed(Some("4")), causes::OUTSIDE);
+
+    // Act.
+    surface.click(Role::Button, "Keep my text");
+    surface.key(egui::Key::Enter, egui::Modifiers::NONE);
+
+    // Assert: the page cannot know the number is gone for good; the session refuses it with the sentence of R10.
+    assert_eq!(surface.sent(), [sent("retitle", "4", &[("title", "Pay any card")])]);
+}
+
+#[test]
+fn nothing_is_asked_for_the_pages_own_edit_nor_while_no_field_is_open() {
+    // Arrange.
+    let mut surface = Surface::of(three_levels());
+    type_a_title(&mut surface);
+
+    // Act: the page's own edit of another point arrives while the field is open.
+    surface.outside(renamed(None), causes::EDIT);
+
+    // Assert.
+    assert!(!surface.drawn(CONFLICT));
+    assert_eq!(
+        surface.field("Title of [4]").map(|f| f.0),
+        Some("Pay any card".to_owned())
+    );
+
+    // Act: the field closed, a change from outside.
+    surface.key(egui::Key::Escape, egui::Modifiers::NONE);
+    surface.outside(renamed(None), causes::OUTSIDE);
+
+    // Assert.
+    assert!(!surface.drawn(CONFLICT));
 }
