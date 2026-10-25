@@ -313,17 +313,26 @@ pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut 
         }
         out.push((at, field.to_owned(), name));
     }
-    // `x.isA('T') && …` and `x.isA('T') ? … : …` read `x` as a `T` on the side the test holds.
-    if let Some(call @ ("_&&_" | "_?_:_")) = node.get("call").and_then(Json::as_str)
-        && let Some(args) = node["args"].as_array()
-        && let [test, held, rest @ ..] = &args[..]
-        && let Some((variable, narrowed)) = narrowing(test, symbols)
+    // `a && b` reads `b` only where `a` holds, so an `x.isA('T')` among `a`'s conjuncts makes `x` a `T` in `b`
+    // (ATD §14.2): a form for a base type may show a subtype's attribute behind that guard.
+    if node.get("call").and_then(Json::as_str) == Some("_&&_")
+        && let Some([left, right]) = node["args"].as_array().map(Vec::as_slice)
     {
-        unknown_members(test, scope, symbols, out);
-        unknown_members(held, &scope.clone().with(variable, Ty::Element(narrowed)), symbols, out);
-        if call == "_?_:_" {
-            rest.iter().for_each(|item| unknown_members(item, scope, symbols, out));
-        }
+        unknown_members(left, scope, symbols, out);
+        let mut narrowed = scope.clone();
+        type_guards(left, symbols, &mut narrowed);
+        unknown_members(right, &narrowed, symbols, out);
+        return;
+    }
+    // `c ? a : b` reads `a` only where `c` holds, so an `x.isA('T')` among `c`'s conjuncts makes `x` a `T` in `a`.
+    if node.get("call").and_then(Json::as_str) == Some("_?_:_")
+        && let Some([condition, held, otherwise]) = node["args"].as_array().map(Vec::as_slice)
+    {
+        unknown_members(condition, scope, symbols, out);
+        let mut narrowed = scope.clone();
+        type_guards(condition, symbols, &mut narrowed);
+        unknown_members(held, &narrowed, symbols, out);
+        unknown_members(otherwise, scope, symbols, out);
         return;
     }
     match node {
@@ -339,17 +348,29 @@ pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut 
     }
 }
 
-/// The variable a test `x.isA('T')` names and the type `T` it holds it to be, when `T` is a type of the description.
-/// A conjunction narrows by its first test (`x.isA('T') && y ? …`).
-fn narrowing<'a>(test: &'a Json, symbols: &Symbols) -> Option<(&'a str, String)> {
-    match test.get("call").and_then(Json::as_str) {
-        Some("_&&_") => return narrowing(test["args"].get(0)?, symbols),
-        Some("isA") => {}
-        _ => return None,
+/// The variables a condition proves to be of a type: each `x.isA('T')` among its `&&` conjuncts, `T` a type.
+fn type_guards(node: &Json, symbols: &Symbols, scope: &mut Scope) {
+    match node.get("call").and_then(Json::as_str) {
+        Some("_&&_") => {
+            for arg in node["args"].as_array().into_iter().flatten() {
+                type_guards(arg, symbols, scope);
+            }
+        }
+        Some("isA") => {
+            if let Some(variable) = node["target"].get("ident").and_then(Json::as_str)
+                && let Some(name) = node["args"]
+                    .get(0)
+                    .and_then(|a| a.get("literal"))
+                    .and_then(Json::as_str)
+                && symbols.is_type(name)
+            {
+                scope
+                    .variables
+                    .insert(variable.to_owned(), Ty::Element(name.to_owned()));
+            }
+        }
+        _ => {}
     }
-    let variable = test["target"].get("ident").and_then(Json::as_str)?;
-    let name = test["args"].get(0).filter(|a| a["type"] == "string")?["literal"].as_str()?;
-    symbols.is_type(name).then(|| (variable, name.to_owned()))
 }
 
 pub fn global_calls<'a>(node: &'a Json, out: &mut Vec<&'a Json>) {
