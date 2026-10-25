@@ -115,3 +115,36 @@ fn a_context_tool_set_opens_on_the_empty_canvas_and_on_a_pending_connection() {
     );
     assert_eq!(findings(&text), vec!["ATD2002 26:17 No element type `canvas`."]);
 }
+
+#[test]
+fn a_binding_type_view_bind_stores_view_data_as_is_the_bindings_to_read() {
+    let text = r#"atd 0.1
+diagram example/board version "0.1.0" {
+  model {
+    element Card {
+      attribute title: string
+    }
+  }
+  persistence {
+    format: fbl
+    view: {
+      store: [pinned]
+      bind: { pinned: { type: Placement, element: element, x: x, y: y } }
+    }
+  }
+  binding board family yaml {
+    claims { extensions: [".board"] }
+    element Card as card at "/cards/*" {
+      id from key "id"
+      attribute title from key "title"
+    }
+    element Placement as placement at "/view/placements/*" {
+      attribute element from key "element"
+      attribute x from key "x"
+      attribute y from key "y"
+    }
+  }
+}
+"#;
+    assert_eq!(findings(text), Vec::<String>::new());
+}

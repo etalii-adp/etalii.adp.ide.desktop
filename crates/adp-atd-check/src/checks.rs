@@ -240,6 +240,27 @@ fn persistence_settings(description: &Description) -> Vec<&Json> {
 
 fn type_map(description: &Description) -> BTreeMap<String, TypeMapEntry> {
     let mut out = BTreeMap::new();
+    // The binding types `view.bind` stores view data as (DISL §11.6): the binding's, not the model's.
+    for setting in persistence_settings(description) {
+        if setting["key"] != "view" {
+            continue;
+        }
+        let Some(bind) = entry(map_of(&setting["value"]), "bind") else {
+            continue;
+        };
+        for item in map_of(&bind["value"]).as_array().into_iter().flatten() {
+            if let Some(type_name) = entry(map_of(&item["value"]), "type").and_then(|e| word(&e["value"])) {
+                out.insert(
+                    type_name.to_owned(),
+                    TypeMapEntry {
+                        as_: "view".to_owned(),
+                        attributes: BTreeMap::new(),
+                        host_attributes: BTreeSet::new(),
+                    },
+                );
+            }
+        }
+    }
     for setting in persistence_settings(description) {
         if setting["key"] != "typeMap" {
             continue;
@@ -748,8 +769,9 @@ impl Checker<'_> {
             let (attributes, renames, hosted, mapped_as) = if let Some(mapped) = self.type_map.get(&type_name) {
                 let attributes = match mapped.as_.as_str() {
                     "document" => Some(self.symbols.document.clone()),
-                    // A header is not in the model, so what its rule reads is the binding's alone (a version line).
-                    "header" => None,
+                    // A header and view data are not in the model, so what their rules read is the binding's alone (a
+                    // version line, a pinned position).
+                    "header" | "view" => None,
                     "unreadable" => Some(BTreeMap::new()),
                     other if self.symbols.is_type(other) => Some(self.symbols.attributes_of(other)),
                     _ => None,
