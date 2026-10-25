@@ -271,19 +271,23 @@ fn is_placeholder_name(name: &str) -> bool {
 }
 
 /// Renders an `emit` template (FBL section 6.2): placeholders `{name}` replaced by `value`; a `[ … ]` segment
-/// written only when every placeholder in it is non-empty. Any other `{` or `}` is literal.
+/// written only when every placeholder in it is non-empty; `\[` and `\]` a literal bracket (FBL 0.7 section 6.2). Any
+/// other `{` or `}` is literal.
 pub(crate) fn render(template: &str, value: &dyn Fn(&str) -> Option<String>) -> String {
     let mut output = String::new();
+    let mut start = 0;
     let mut i = 0;
     while i < template.len() {
-        let c = template.as_bytes()[i];
-        if c == b'['
-            && let Some(close) = template[i + 1..].find(']').map(|p| p + i + 1)
-            && close > 0
+        if is_escape(template, i) {
+            i += 2;
+            continue;
+        }
+        if template.as_bytes()[i] == b'['
+            && let Some(close) = unescaped(template, b']', i + 1)
         {
-            let segment = &template[i + 1..close];
+            output.push_str(&render_part(&template[start..i], value));
             let complete = std::cell::Cell::new(true);
-            let rendered = render_part(segment, &|name| {
+            let rendered = render_part(&template[i + 1..close], &|name| {
                 let v = value(name);
                 if v.as_deref().is_none_or(str::is_empty) {
                     complete.set(false);
@@ -294,26 +298,46 @@ pub(crate) fn render(template: &str, value: &dyn Fn(&str) -> Option<String>) -> 
                 output.push_str(&rendered);
             }
             i = close + 1;
+            start = i;
             continue;
         }
-        let next = template[i..].find('[').map(|p| p + i);
-        let end = next.unwrap_or(template.len());
-        output.push_str(&render_part(&template[i..end], value));
-        i = end;
-        if let Some(next) = next
-            && !template[next + 1..].contains(']')
-        {
-            output.push('[');
-            i += 1;
-        }
+        i += 1;
     }
+    output.push_str(&render_part(&template[start..], value));
     output
+}
+
+/// Whether `template` holds `\[` or `\]` at `at`: a literal bracket (FBL 0.7 section 6.2).
+fn is_escape(template: &str, at: usize) -> bool {
+    let bytes = template.as_bytes();
+    bytes[at] == b'\\' && at + 1 < bytes.len() && matches!(bytes[at + 1], b'[' | b']')
+}
+
+/// The index of the next `bracket` from `from` that is not escaped.
+fn unescaped(template: &str, bracket: u8, from: usize) -> Option<usize> {
+    let mut i = from;
+    while i < template.len() {
+        if is_escape(template, i) {
+            i += 2;
+            continue;
+        }
+        if template.as_bytes()[i] == bracket {
+            return Some(i);
+        }
+        i += 1;
+    }
+    None
 }
 
 fn render_part(part: &str, value: &dyn Fn(&str) -> Option<String>) -> String {
     let mut output = String::new();
     let mut i = 0;
     while i < part.len() {
+        if is_escape(part, i) {
+            output.push(part.as_bytes()[i + 1] as char);
+            i += 2;
+            continue;
+        }
         if part.as_bytes()[i] == b'{'
             && let Some(close) = part[i + 1..].find('}').map(|p| p + i + 1)
             && close > i + 1
@@ -356,7 +380,12 @@ pub(crate) fn parts(template: &str) -> Vec<EmitPart> {
     let mut i = 0;
     while i < template.len() {
         let c = template[i..].chars().next().expect("a character");
-        if c == '[' && segment.is_none() && template[i + 1..].find(']').is_some() {
+        if is_escape(template, i) {
+            literal.push(template.as_bytes()[i + 1] as char);
+            i += 2;
+            continue;
+        }
+        if c == '[' && segment.is_none() && unescaped(template, b']', i + 1).is_some() {
             flush(&mut parts, &mut literal, segment);
             segment = Some(segments);
             segments += 1;
@@ -393,6 +422,20 @@ pub(crate) fn parts(template: &str) -> Vec<EmitPart> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_escaped_bracket_is_written_as_a_bracket_and_opens_no_optional_part() {
+        let value = |name: &str| match name {
+            "id" => Some("t1".to_owned()),
+            _ => None,
+        };
+        assert_eq!(render("\\[{id}\\] {title}", &value), "[t1] ");
+        assert_eq!(render("\\[{id}\\][ {title}]", &value), "[t1]");
+        let parts = parts("\\[{id}\\][ {title}]");
+        assert_eq!(parts[0].literal.as_deref(), Some("["));
+        assert_eq!(parts[2].literal.as_deref(), Some("]"));
+        assert_eq!(parts[3].segment, Some(0));
+    }
 
     #[test]
     fn numbers_are_written_as_ecmascript_writes_them() {

@@ -27,9 +27,15 @@ use adp_fbl::{
 use serde_json::Value as Json;
 
 /// The fixtures the standalone host vendored at 8b6ccfc under `Conformance/fixtures`, which its
-/// `ConformanceFixturesTests` runs, and `sankey-written-text`, which etalii.adp added with the Sankey binding and
-/// the standalone host runs from `a7fdf03`.
-const STANDALONE_FIXTURES: [&str; 16] = [
+/// `ConformanceFixturesTests` runs, and those the standalone host runs from `a7fdf03` that this port has the features
+/// of: `sankey-written-text`, which etalii.adp added with the Sankey binding, and the bullets family's (FBL 0.7 section
+/// 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`, which etalii.adp holds and the standalone host does
+/// not vendor.
+const STANDALONE_FIXTURES: [&str; 20] = [
+    "behavior-tree-read/first-add",
+    "bullets-edits",
+    "bullets-edits/no-section",
+    "bullets-read",
     "sankey-written-text",
     "agent-activity-edits",
     "agent-activity-new",
@@ -74,18 +80,16 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
     ("knowledge-xml", 150, 150),
 ];
 
-/// The fixtures of FBL 0.7 features the standalone host does not have at 8b6ccfc, so neither has this port: the
-/// markdown-backed families of the bullets, behavior-tree and hierarchical-requirement tool types, and the
-/// registration's own blocks (FBL 0.7 sections 7.1 and 8.1). Their bindings are FBL 0.7 documents whose bodies no
-/// family of the library reads. They are out of scope here, not failing: etalii.adp's splice replay
+/// The fixtures of FBL 0.7 features this port does not have yet: the hierarchical-requirement tool type's, and the
+/// registration's own blocks (FBL 0.7 sections 7.1 and 8.1), which etalii.adp spec 036 ports from the standalone host
+/// at a7fdf03 after the bullets family. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. Beside them, the fixtures of FBL 0.8's constants an insert writes (section
 /// 6.2), which this port does not have yet either.
-const NOT_SUPPORTED: [&str; 33] = [
+const NOT_SUPPORTED: [&str; 29] = [
+    // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
+    // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
+    // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
     "behavior-tree-read",
-    "behavior-tree-read/first-add",
-    "bullets-edits",
-    "bullets-edits/no-section",
-    "bullets-read",
     "hierarchical-requirement-assessments",
     "hierarchical-requirement-assessments/first-assessment",
     "hierarchical-requirement-category-state",
@@ -175,6 +179,12 @@ fn natural_id(binding: &str, request: &IdRequest<'_>) -> Option<String> {
         ("aad", "diagram") => "diagram".into(),
         ("aad", "placement") => format!("pinned:{}", a("element")),
         ("aad", "group") => format!("groups:{}#{}", a("element"), a("group")),
+        // The agent behavior model (agent-behavior-modelling.dis, persistence.ids, strategy derived): a node's place
+        // in the tree, its parent's place, a dot and its position among its siblings counted from 1.
+        ("abm", _) => match request.parent_id {
+            Some(parent) => format!("{parent}.{}", request.position_in_slot + 1),
+            None => (request.position_in_slot + 1).to_string(),
+        },
         _ => return None,
     })
 }
@@ -477,7 +487,21 @@ fn remove_with(body: &mut OpenBody, remove: &ModelChange, unsets: Vec<ModelChang
     PlanResult::Planned(edit)
 }
 
-fn read_change(edit: &Json) -> Result<ModelChange, String> {
+/// A fixture's edit as a model change, as the standalone host's `ConformanceFixturesTests.ReadChange` reads it at
+/// `a7fdf03`. A position (FBL 0.7 section 11.2) is converted to the model change's index, which counts the siblings as
+/// they are before the change, the moved element included; an `after` or `before` is the place of that sibling, found
+/// in `model` among the elements with the same parent and type.
+fn read_change(edit: &Json, model: Option<&FblModel>) -> Result<ModelChange, String> {
+    if let Some(moved) = edit.get("move") {
+        let id = moved["element"].as_str().unwrap_or_default();
+        let parent = moved["parent"].as_str();
+        let type_name = model.and_then(|m| m.find(id)).map(|e| e.type_name.as_str());
+        return Ok(ModelChange::Move {
+            id: id.to_owned(),
+            new_parent_id: parent.map(str::to_owned),
+            index: position_index(&moved["position"], model, parent, type_name)?.unwrap_or(-1),
+        });
+    }
     if edit.get("save").is_some() {
         return Ok(ModelChange::Save);
     }
@@ -493,8 +517,16 @@ fn read_change(edit: &Json) -> Result<ModelChange, String> {
             id: add.get("id").and_then(Json::as_str).map(str::to_owned),
             attributes: attributes(&add["attributes"]),
             parent_id: add.get("parent").and_then(Json::as_str).map(str::to_owned),
-            index: None,
-            slot: None,
+            index: match add.get("position") {
+                Some(position) => position_index(
+                    position,
+                    model,
+                    add.get("parent").and_then(Json::as_str),
+                    add["type"].as_str(),
+                )?,
+                None => None,
+            },
+            slot: add.get("slot").and_then(Json::as_str).map(str::to_owned),
         });
     }
     if let Some(remove) = edit.get("remove") {
@@ -510,6 +542,42 @@ fn read_change(edit: &Json) -> Result<ModelChange, String> {
         });
     }
     Err(format!("Unknown fixture edit: {edit}."))
+}
+
+/// The model change's index for a fixture's position among `parent`'s children of `type_name`.
+fn position_index(
+    position: &Json,
+    model: Option<&FblModel>,
+    parent: Option<&str>,
+    type_name: Option<&str>,
+) -> Result<Option<i64>, String> {
+    if let Some(index) = position.get("index") {
+        return Ok(index.as_i64());
+    }
+    let siblings: Vec<&str> = model
+        .map(|m| {
+            m.elements
+                .iter()
+                .filter(|e| e.parent_id.as_deref() == parent && Some(e.type_name.as_str()) == type_name)
+                .map(|e| e.id.as_str())
+                .collect()
+        })
+        .unwrap_or_default();
+    let place = |sibling: &Json| {
+        let sibling = sibling.as_str().unwrap_or_default();
+        siblings
+            .iter()
+            .position(|s| *s == sibling)
+            .map(|at| at as i64)
+            .ok_or_else(|| format!("The position names '{sibling}', which is no sibling here."))
+    };
+    if let Some(after) = position.get("after") {
+        return Ok(Some(place(after)? + 1));
+    }
+    if let Some(before) = position.get("before") {
+        return Ok(Some(place(before)?));
+    }
+    Err(format!("Unknown fixture position: {position}."))
 }
 
 fn written(value: &Value) -> String {
@@ -571,6 +639,14 @@ fn check_read(model: &FblModel, read: &Json, name: &str) -> Result<(), String> {
             return Err(format!(
                 "{name}: '{id}' is a {}, where the fixture reads {}.",
                 found.type_name, element["type"]
+            ));
+        }
+        if let Some(parent) = element.get("parent")
+            && parent.as_str() != found.parent_id.as_deref()
+        {
+            return Err(format!(
+                "{name}: '{id}' is read in '{}', where the fixture reads {parent}.",
+                found.parent_id.as_deref().unwrap_or_default()
             ));
         }
         if let Some(attributes) = element.get("attributes") {
@@ -636,7 +712,8 @@ fn run(name: &str, folder: &Path, fixture: &Json) -> Result<usize, String> {
                 UndoResult::Refused(reason) => return Err(format!("{label}: refused with '{reason}'.")),
             }
         } else {
-            let result = subject.change(&read_change(&step["edit"])?);
+            let model = subject.model();
+            let result = subject.change(&read_change(&step["edit"], model.as_ref())?);
             if let Some(refused) = step.get("refused").and_then(Json::as_str) {
                 let PlanResult::Refused(reason) = result else {
                     return Err(format!("{label}: planned, where the fixture refuses with '{refused}'."));
@@ -1238,7 +1315,7 @@ fn read_knowledge_change(edit: &Json, model: &FblModel) -> Result<ModelChange, S
             index: index_before_the_move(model, id, moved["position"]["index"].as_i64().unwrap_or(0))?,
         });
     }
-    read_change(edit)
+    read_change(edit, Some(model))
 }
 
 /// Runs one Knowledge step, and says what went wrong, or none when it passed.

@@ -60,6 +60,8 @@ pub(crate) enum Node {
     },
     Group,
     Word(Word),
+    /// The continuation of a `bullets` item (FBL 0.7 section 4.8).
+    Continuation,
     /// A value read from an attribute's `override` slot, which writing removes (FBL section 5.2).
     Override(Box<Node>),
 }
@@ -205,4 +207,6 @@ pub(crate) struct InsertRequest {
     pub parent: Option<usize>,
     pub source: Option<usize>,
     pub target: Option<usize>,
+    /// The position among its siblings, for a family that places by position (FBL 0.7 section 6.3).
+    pub index: Option<i64>,
 }

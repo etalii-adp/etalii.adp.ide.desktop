@@ -10,6 +10,8 @@ use std::rc::Rc;
 use adp_cel::Value;
 
 use crate::documents::types::{AttributeBinding, HeaderSettings, Slot};
+use crate::families::bullets::BulletsData;
+use crate::families::bullets::parser::Bullet;
 use crate::families::{Entry, EntryId, EntryKind, Family, FamilyKind};
 use crate::model::{FindingSeverity, codes};
 use crate::planning::new_text;
@@ -31,6 +33,8 @@ pub(crate) struct Statement {
     pub is_header: Cell<bool>,
     /// The span of the first line's content, without trailing whitespace: what `re-emit-line` replaces.
     pub first_line_span: Span,
+    /// What a list item of the `bullets` family has besides (FBL 0.7 section 4.8); none for a statement.
+    pub bullet: Option<Box<Bullet>>,
 }
 
 /// A named group of one statement as one rule's `line` matched it.
@@ -46,6 +50,8 @@ type Groups = Rc<Vec<(String, Group)>>;
 #[derive(Debug, Default)]
 pub(crate) struct LinesData {
     pub blocks: bool,
+    /// Set for the `bullets` family, whose statements are its items and the lines outside them.
+    pub bullets: Option<BulletsData>,
     pub statements: Vec<EntryId>,
     matches: RefCell<HashMap<(String, EntryId), Option<Groups>>>,
     match_order: RefCell<Vec<(String, EntryId)>>,
@@ -56,6 +62,13 @@ impl LinesData {
     pub fn new(blocks: bool) -> Self {
         LinesData {
             blocks,
+            ..LinesData::default()
+        }
+    }
+
+    pub fn bullets() -> Self {
+        LinesData {
+            bullets: Some(BulletsData::default()),
             ..LinesData::default()
         }
     }
@@ -118,6 +131,11 @@ fn unescape(text: &str) -> String {
 }
 
 impl Family {
+    /// Every statement of the reading, in document order: for the `bullets` family, its items too.
+    pub(super) fn lines_statements(&self) -> &[EntryId] {
+        &self.lines_data().statements
+    }
+
     fn lines_data(&self) -> &LinesData {
         match &self.kind {
             FamilyKind::Lines(l) => l,
@@ -196,6 +214,7 @@ impl Family {
                     opens: false,
                     is_header: Cell::new(false),
                     first_line_span: own,
+                    bullet: None,
                 })),
             });
             let statement = self.entries.len() - 1;
@@ -230,7 +249,7 @@ impl Family {
     }
 
     /// The named groups of `statement` as `expression` matches them, cached by expression and statement.
-    fn match_groups(&self, expression: &str, case_insensitive: bool, statement: EntryId) -> Option<Groups> {
+    pub(super) fn match_groups(&self, expression: &str, case_insensitive: bool, statement: EntryId) -> Option<Groups> {
         let data = self.lines_data();
         let key = (expression.to_owned(), statement);
         if let Some(cached) = data.matches.borrow().get(&key) {
@@ -270,7 +289,12 @@ impl Family {
         true
     }
 
-    fn to_candidate(rule: Option<usize>, block: Option<usize>, entry: EntryId, groups: &Groups) -> Candidate {
+    pub(super) fn to_candidate(
+        rule: Option<usize>,
+        block: Option<usize>,
+        entry: EntryId,
+        groups: &Groups,
+    ) -> Candidate {
         Candidate {
             rule,
             block,
@@ -512,6 +536,10 @@ impl Family {
         for change in changes {
             let read = &change.read;
             let binding = change.binding;
+            if binding.continuation {
+                pending.extend(self.continuation_splice(element, change));
+                continue;
+            }
             if binding.flag {
                 if matches!(change.value, Value::Bool(true)) == read.present {
                     continue;
@@ -591,22 +619,14 @@ impl Family {
             .target_read
             .as_ref()
             .and_then(|r| r.value.as_str().map(str::to_owned));
-        let line = new_text::render(emit, &|name| {
-            let value = values.get(name).cloned().unwrap_or_default();
-            as_word(
-                emit,
-                name,
-                &value,
-                self.placeholder(
-                    element.rule,
-                    name,
-                    &values,
-                    Some(&id),
-                    source.as_deref(),
-                    target.as_deref(),
-                ),
-            )
-        });
+        let line = self.render_line(
+            emit,
+            element.rule,
+            &values,
+            Some(&id),
+            source.as_deref(),
+            target.as_deref(),
+        );
         plan.add_span(Operation::ReEmitLine, self.re_emit_span(statement), line);
         Ok(())
     }
@@ -782,7 +802,7 @@ impl Family {
                     .iter()
                     .filter(|p| p.segment == Some(segment))
                     .map(|p| match &p.literal {
-                        Some(literal) => literal.clone(),
+                        Some(literal) => literal.replace('[', "\\[").replace(']', "\\]"),
                         None => format!("{{{}}}", p.placeholder.as_deref().unwrap_or_default()),
                     }),
             )
@@ -790,7 +810,8 @@ impl Family {
             .collect();
         let segment_text = new_text::render(&template, &|name| {
             (name == change.attribute).then(|| {
-                as_word(
+                self.quoted(
+                    change.rule,
                     &template,
                     name,
                     &change.value,
@@ -821,22 +842,14 @@ impl Family {
         };
         let source = request.source.map(|s| reading.element(s).key.clone());
         let target = request.target.map(|t| reading.element(t).key.clone());
-        let line = new_text::render(emit, &|name| {
-            let value = request.values.get(name).cloned().unwrap_or_default();
-            as_word(
-                emit,
-                name,
-                &value,
-                self.placeholder(
-                    request.rule,
-                    name,
-                    &request.values,
-                    request.id.as_deref(),
-                    source.as_deref(),
-                    target.as_deref(),
-                ),
-            )
-        });
+        let line = self.render_line(
+            emit,
+            request.rule,
+            &request.values,
+            request.id.as_deref(),
+            source.as_deref(),
+            target.as_deref(),
+        );
         let insert = rule.insert.as_ref().expect("an insertable rule");
         let data = self.lines_data();
         let mut container: Option<EntryId> = None;
@@ -902,6 +915,40 @@ impl Family {
         let text = self.lines_new_line(offset, &format!("{}{line}", self.indentation(indent)));
         plan.add(Operation::InsertEntry, offset, offset, text);
         Ok(())
+    }
+
+    /// The line `emit` writes for an entry of `rule` with `values` (FBL section 6.3).
+    pub(super) fn render_line(
+        &self,
+        emit: &str,
+        rule: usize,
+        values: &adp_cel::Map,
+        id: Option<&str>,
+        source: Option<&str>,
+        target: Option<&str>,
+    ) -> String {
+        new_text::render(emit, &|name| {
+            let value = values.get(name).cloned().unwrap_or_default();
+            self.quoted(
+                rule,
+                emit,
+                name,
+                &value,
+                self.placeholder(rule, name, values, id, source, target),
+            )
+        })
+    }
+
+    /// `text` as placeholder `name` of `template` writes it: between quotes where it holds a space and the
+    /// placeholder's values are read as words (FBL section 4.6), which is every placeholder of a statement and, of an
+    /// item of the `bullets` family, only one of a word slot, so that an item's text is written as it is.
+    fn quoted(&self, rule: usize, template: &str, name: &str, value: &Value, text: Option<String>) -> Option<String> {
+        let quotes = !self.is_bullets() || self.rule(rule).attribute(name).is_some_and(|a| a.word.is_some());
+        if quotes {
+            as_word(template, name, value, text)
+        } else {
+            text
+        }
     }
 
     /// The text of a new line at `offset`, a line start or the end of a body without a final newline (FBL 6.3).

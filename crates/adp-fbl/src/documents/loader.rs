@@ -377,6 +377,7 @@ fn parse_family(name: Option<&str>) -> Option<Family> {
         "xml" => Some(Family::Xml),
         "lines" => Some(Family::Lines),
         "blocks" => Some(Family::Blocks),
+        "bullets" => Some(Family::Bullets),
         _ => None,
     }
 }
@@ -438,6 +439,14 @@ fn read_binding(name: &str, json: &Json, pointer: &str, problems: &mut Vec<LoadP
                 within: optional_strings(b, "within"),
                 case_insensitive: flag(b, "caseInsensitive"),
                 view: s(b, "view"),
+            })
+            .collect(),
+        sections: array(json, "sections")
+            .iter()
+            .map(|section| SectionRule {
+                name: s(section, "name").unwrap_or_default(),
+                heading: s(section, "heading").unwrap_or_default(),
+                case_insensitive: flag(section, "caseInsensitive"),
             })
             .collect(),
         rules,
@@ -656,6 +665,7 @@ fn read_slot(json: &Json) -> Slot {
         parent: s(json, "parent"),
         capture: s(json, "capture"),
         value: s(json, "value"),
+        continuation: flag(json, "continuation"),
         word: s(json, "word"),
         flag: flag(json, "flag"),
     }
@@ -756,6 +766,7 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
         .iter()
         .map(|r| r.name.as_str())
         .chain(binding.blocks.iter().map(|b| b.name.as_str()))
+        .chain(binding.sections.iter().map(|section| section.name.as_str()))
         .collect();
     let file_rules: Vec<&str> = binding.body.files.iter().filter_map(|f| f.name.as_deref()).collect();
 
@@ -773,6 +784,7 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
         check_within(block.within.as_deref(), &rule_names, &format!("{at}/within"), problems);
     }
 
+    check_sections(binding, pointer, problems);
     let element_count = binding.elements().count();
     for (i, rule) in rules.iter().enumerate() {
         let at = if rule.is_relation {
@@ -931,7 +943,7 @@ fn families_of(binding: &FblBinding, rule: &Rule) -> Vec<Family> {
 /// reads a scalar, so never in another family nor on a `value` or `capture` slot.
 fn check_scalar_options(attribute: &AttributeBinding, scalars: bool, pointer: &str, problems: &mut Vec<LoadProblem>) {
     let place = if !scalars {
-        "a slot of the xml, lines or blocks family"
+        "a slot of the xml, lines, blocks or bullets family"
     } else if attribute.value.is_some() {
         "a value slot"
     } else if attribute.capture.is_some() {
@@ -961,6 +973,25 @@ fn count_slots(s: &Slot) -> usize {
         + usize::from(s.parent.is_some())
         + usize::from(s.capture.is_some())
         + usize::from(s.value.is_some())
+        + usize::from(s.continuation)
+}
+
+/// The sections of a bullets body (FBL 0.7 section 4.8): a name each, used once, and a heading expression of FBL's
+/// subset.
+fn check_sections(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
+    let mut seen: Vec<&str> = Vec::new();
+    for (i, section) in binding.sections.iter().enumerate() {
+        let at = format!("{pointer}/sections/{i}");
+        if seen.contains(&section.name.as_str()) {
+            problems.push(error(
+                format!("{at}/name"),
+                format!("The section name '{}' is used twice.", section.name),
+            ));
+        } else {
+            seen.push(&section.name);
+        }
+        check_regex(&section.heading, &format!("{at}/heading"), problems);
+    }
 }
 
 fn check_slot(slot: &Slot, context: CelContext, pointer: &str, problems: &mut Vec<LoadProblem>) {

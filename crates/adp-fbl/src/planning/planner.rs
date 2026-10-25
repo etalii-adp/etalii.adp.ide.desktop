@@ -473,10 +473,12 @@ fn plan_add(
         parent,
         source,
         target,
+        index: index.filter(|_| reading.family.places_by_position()),
     };
     let mark = plan.mark();
     reading.family.insert(plan, &request)?;
-    if let Some(index) = index {
+    // A family whose nesting is its indentation places the entry at its index itself (FBL 0.7 section 6.3).
+    if let Some(index) = index.filter(|_| !reading.family.places_by_position()) {
         let siblings = siblings_under(reading, parent, rule);
         place_at(plan, mark, &siblings, index, type_name)?;
     }
@@ -556,6 +558,9 @@ fn plan_move(plan: &mut Plan<'_>, id: &str, new_parent_id: Option<&str>, index: 
         Some(p) => Some(element(reading, p)?),
         None => None,
     };
+    if reading.family.places_by_position() {
+        return plan_move_to(plan, moved, parent, index);
+    }
     if parent != element_ref.parent {
         return plan_reparent(plan, moved, parent, index);
     }
@@ -616,6 +621,58 @@ fn plan_reparent(plan: &mut Plan<'_>, moved: usize, parent: Option<usize>, index
     reading
         .family
         .move_to(plan, moved, parent, before, siblings.last().copied())?;
+    if rule.snapshot_undo {
+        plan.snapshot = true;
+    }
+    Ok(())
+}
+
+/// A move in a family that places by position (FBL 0.7 sections 5.5 and 6.3), to a sibling's place under the same
+/// parent or under another: not into the element itself or anything it contains, and not into a parent its rule cannot
+/// be nested in. The index counts the siblings before the move; the family is given it as they are without the element.
+fn plan_move_to(plan: &mut Plan<'_>, moved: usize, parent: Option<usize>, index: i64) -> Planning {
+    let reading = plan.reading;
+    let rule = reading.family.rule(reading.element(moved).rule);
+    if let Some(p) = parent {
+        if within(reading, p, moved) {
+            return refuse(format!("A {} cannot be moved into itself.", rule.type_name));
+        }
+        let parent_rule = reading.family.rule(reading.element(p).rule);
+        if let Some(containment) = &rule.parent
+            && !containment.rules.contains(&parent_rule.name)
+        {
+            return refuse(format!(
+                "A {} cannot be placed inside a {}.",
+                rule.type_name, parent_rule.type_name
+            ));
+        }
+    }
+    let slot = rule.parent.as_ref().and_then(|p| p.slot.as_deref());
+    let siblings: Vec<usize> = reading
+        .element_indices()
+        .iter()
+        .copied()
+        .filter(|&e| {
+            let other = reading.element(e);
+            let other_rule = reading.family.rule(other.rule);
+            other.parent == parent
+                && other_rule.parent.as_ref().and_then(|p| p.slot.as_deref()) == slot
+                && (parent.is_some() || other_rule.type_name == rule.type_name)
+        })
+        .collect();
+    let mut index = usize::try_from(index)
+        .ok()
+        .filter(|&i| i <= siblings.len())
+        .unwrap_or(siblings.len());
+    if let Some(current) = siblings.iter().position(|&s| s == moved) {
+        if index == current || index == current + 1 {
+            return Ok(()); // It is there already: no splice.
+        }
+        if index > current {
+            index -= 1;
+        }
+    }
+    reading.family.move_to_position(plan, moved, parent, index)?;
     if rule.snapshot_undo {
         plan.snapshot = true;
     }
