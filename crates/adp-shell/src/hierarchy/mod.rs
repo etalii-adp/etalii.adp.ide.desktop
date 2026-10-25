@@ -11,7 +11,8 @@
 //! On a document that can change it is changed in place ([`editing`], T038): an entry or a level added by the
 //! controls at the end of every level and of the page, or by the selected node's actions and their keys, its title
 //! then open for typing; a title or a description typed where it stands; a node dragged by its grip; and deleted, asking
-//! first when anything concerns it.
+//! first when anything concerns it. A change from outside while a title or a description is being typed shows the file
+//! around the field and asks, on a bar over the page, whether to drop the text or keep it (T033).
 //!
 //! It knows no designer type: which type is a level, which an entry, which labels they carry and which operation each
 //! gesture sends are the designer's [`SurfaceDefinition`].
@@ -27,7 +28,7 @@ use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use adp_desl::hierarchy::definition::SurfaceDefinition;
-use adp_desl::hierarchy::model::{Gesture, SurfaceAction, SurfaceChange, SurfaceModel, SurfaceNode, roles};
+use adp_desl::hierarchy::model::{Gesture, SurfaceAction, SurfaceChange, SurfaceModel, SurfaceNode, causes, roles};
 use adp_desl::hierarchy::session::HierarchySurfaceSession;
 use eframe::egui;
 
@@ -82,6 +83,11 @@ pub struct HierarchyTab {
     pub field: Option<OpenField>,
     /// Whether the field opened since the last frame, which gives it the keyboard with its text selected.
     pub field_opened: bool,
+    /// Whether another program changed the file while the field was open, which asks what to do with its text (the
+    /// standalone host's `ConflictBar.tsx` at a7fdf03; spec 029 R10, R11, FR-023). The page is already the file's.
+    pub conflict: bool,
+    /// Whether the field is to take the keyboard back, its text as it was typed.
+    pub field_refocus: bool,
     /// The node being dragged by its grip, and where it would go now.
     pub dragging: Option<SurfaceNode>,
     pub hint: Option<DropHint>,
@@ -128,6 +134,8 @@ impl HierarchyTab {
             pending: 0,
             field: None,
             field_opened: false,
+            conflict: false,
+            field_refocus: false,
             dragging: None,
             hint: None,
             deleting: None,
@@ -169,7 +177,13 @@ impl HierarchyTab {
     pub fn drain(&mut self) {
         for change in self.session.take_changes() {
             match change {
-                SurfaceChange::Model(model) => self.model = *model,
+                SurfaceChange::Model(model) => {
+                    // A change from outside while a field is open asks what to do with the text.
+                    if model.cause == causes::OUTSIDE && self.field.is_some() {
+                        self.conflict = true;
+                    }
+                    self.model = *model;
+                }
                 SurfaceChange::Outcome(outcome) => {
                     self.pending = self.pending.saturating_sub(1);
                     if !outcome.written && !outcome.error.is_empty() {
@@ -275,6 +289,7 @@ impl HierarchyTab {
         let Some(field) = self.field.take() else {
             return;
         };
+        self.conflict = false;
         let node = self.model.nodes.iter().find(|n| n.id == field.node_id);
         if node.is_some_and(|n| field.attribute.of(n) == field.text) {
             return;
@@ -290,6 +305,19 @@ impl HierarchyTab {
     /// Drops what the field holds.
     pub fn cancel_field(&mut self) {
         self.field = None;
+        self.conflict = false;
+    }
+
+    /// "Show the file" on the conflict's bar: the field closes and what was typed in it is dropped.
+    pub fn show_file(&mut self) {
+        self.cancel_field();
+    }
+
+    /// "Keep my text" on the conflict's bar: the field stays open with what was typed, and committing it is a new
+    /// edit of the file as it is now.
+    pub fn keep_text(&mut self) {
+        self.conflict = false;
+        self.field_refocus = self.field.is_some();
     }
 
     /// Delete on a node: by the key, at once when nothing concerns it, otherwise after the definition's question; by the

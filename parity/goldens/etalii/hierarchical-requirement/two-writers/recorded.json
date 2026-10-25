@@ -1,0 +1,60 @@
+{
+  "script": "parity/scripts/etalii/hierarchical-requirement/two-writers.json",
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "standaloneCommit": "a7fdf039c204535e9fc3a14f456e6f5a36a685ce",
+  "recorderVersion": "1.0.0",
+  "platform": "linux",
+  "recordedAt": "2026-10-25T06:50:31Z",
+  "edits": 6,
+  "changed": [
+    "web-shop.md"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "setTitle REQ-0004"
+    },
+    {
+      "step": 1,
+      "kind": "outside",
+      "rpc": "File.WriteAllText",
+      "outcome": "accepted",
+      "detail": "web-shop.md: '  - REQ-0007 Customers sign in with an e-mail address and a password. #security category:functional state:accepted\r\n' to ''"
+    },
+    {
+      "step": 2,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "refused",
+      "detail": "The file changed while you were editing, so this change was not written. The page now shows the file as it is."
+    },
+    {
+      "step": 3,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "refused",
+      "detail": "web-shop.md was changed by another program, so the edits made to it before that can no longer be undone."
+    },
+    {
+      "step": 4,
+      "kind": "hierarchy",
+      "rpc": "DesignerService.HierarchySurfaceGesture",
+      "outcome": "accepted",
+      "detail": "setTitle REQ-0009"
+    },
+    {
+      "step": 5,
+      "kind": "undo",
+      "rpc": "ContextService.ExecuteAction(history.undo)",
+      "outcome": "accepted",
+      "detail": "1 time(s)"
+    }
+  ]
+}

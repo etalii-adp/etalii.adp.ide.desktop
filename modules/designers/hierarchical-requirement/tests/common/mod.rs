@@ -8,6 +8,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use adp_designer_hierarchical_requirement::body::RequirementBody;
+use adp_desl::hierarchy::model::{Gesture, SurfaceChange, SurfaceModel};
 
 /// The module's examples, copied from etalii.adp byte for byte.
 pub fn examples_folder() -> PathBuf {
@@ -82,4 +83,46 @@ impl WebShopFolder {
     pub fn registration(&self) -> PathBuf {
         self.folder.path().join("web-shop.adp")
     }
+}
+
+impl WebShopFolder {
+    /// Another program changes the body, as an agent does: the text read, changed by `change` and written back.
+    pub fn write_as_an_agent(&self, change: impl FnOnce(&str) -> String) {
+        let text = fs::read_to_string(self.body()).unwrap();
+        fs::write(self.body(), change(&text)).unwrap();
+    }
+}
+
+/// The line ending `text` was written with, so an inserted line keeps it.
+pub fn newline_of(text: &str) -> &'static str {
+    if text.contains("\r\n") { "\r\n" } else { "\n" }
+}
+
+/// A gesture of `operation` on `target`, with its one param.
+pub fn set(operation: &str, target: &str, param: &str, value: &str) -> Gesture {
+    Gesture {
+        edit_id: format!("edit-{operation}-{target}"),
+        operation: operation.into(),
+        target_id: target.into(),
+        params: [(param.to_owned(), value.to_owned())].into_iter().collect(),
+    }
+}
+
+/// The outcome among `changes`: whether the gesture was written, and why not.
+pub fn outcome(changes: &[SurfaceChange]) -> Option<(bool, String)> {
+    changes.iter().find_map(|change| match change {
+        SurfaceChange::Outcome(outcome) => Some((outcome.written, outcome.error.clone())),
+        SurfaceChange::Model(_) => None,
+    })
+}
+
+/// The models among `changes`, in order.
+pub fn models(changes: &[SurfaceChange]) -> Vec<SurfaceModel> {
+    changes
+        .iter()
+        .filter_map(|change| match change {
+            SurfaceChange::Model(model) => Some((**model).clone()),
+            SurfaceChange::Outcome(_) => None,
+        })
+        .collect()
 }

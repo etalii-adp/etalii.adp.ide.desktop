@@ -1,0 +1,13 @@
+{
+  "tool": "etalii/hierarchical-requirement",
+  "fixture": "etalii/hierarchical-requirement/web-shop/web-shop.md",
+  "registration": "etalii/hierarchical-requirement/web-shop/web-shop.adp",
+  "steps": [
+    {"hierarchy": {"operation": "setTitle", "target": "REQ-0004", "params": {"title": "An order is confirmed by e-mail."}}},
+    {"outside": {"file": "web-shop.md", "replace": {"from": "  - REQ-0007 Customers sign in with an e-mail address and a password. #security category:functional state:accepted\r\n", "to": ""}}},
+    {"hierarchy": {"operation": "setTitle", "target": "REQ-0007", "params": {"title": "Customers sign in with a passkey."}, "expect": "refused"}},
+    {"undo": {}, "expect": "refused"},
+    {"hierarchy": {"operation": "setTitle", "target": "REQ-0009", "params": {"title": "Order data is kept for ten years, as tax law requires."}}},
+    {"undo": {}}
+  ]
+}
