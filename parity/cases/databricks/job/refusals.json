@@ -1,0 +1,57 @@
+{
+  "tool": "databricks/job",
+  "fixture": "databricks/job/refusals/job.yml",
+  "registration": "databricks/job/refusals/job.job.adp",
+  "steps": [
+    {
+      "select": [
+        "task:publish"
+      ]
+    },
+    {
+      "action": "databricks.rename-task",
+      "args": {
+        "value": "ingest"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "databricks.rename-task",
+      "args": {
+        "value": ""
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "databricks.assign-cluster",
+      "args": {
+        "target": "task:publish",
+        "value": "warp_core"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:ingest->task:ingest"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:ingest->task:quality_gate"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "databricks.disconnect:ingest",
+      "args": {
+        "target": "task:quality_gate"
+      }
+    },
+    {
+      "undo": 1
+    }
+  ]
+}

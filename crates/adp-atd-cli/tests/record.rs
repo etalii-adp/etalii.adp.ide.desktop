@@ -234,6 +234,84 @@ fn recording_a_capability_writes_valid_fixtures_from_the_code_that_does_it() {
     );
 }
 
+/// Records capability `name`'s fixtures into a new folder; the folder.
+fn record_capability(name: &str) -> tempfile::TempDir {
+    let folder = tempfile::tempdir().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_atd"))
+        .args(["record", "--capability", name, "--cases"])
+        .arg(folder.path())
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{name}: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    folder
+}
+
+#[test]
+fn recording_a_reader_writes_what_each_document_of_its_cases_reads_to() {
+    let fixtures = record_capability("reader.databricksBundle");
+    let validator = validator("CapabilityFixture");
+    let written = files(fixtures.path());
+    for expected in [
+        "job-nightly-ingest.json",
+        "bundle-lakehouse.json",
+        "pipeline-settings.json",
+    ] {
+        assert!(written.contains_key(expected), "{expected} in {:?}", written.keys());
+    }
+    for (name, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{name}: {errors:?}");
+        assert!(
+            !fixture["input"]["body"].as_str().unwrap().is_empty() || name.starts_with("bundle-empty"),
+            "{name}"
+        );
+        assert!(
+            fixture["output"]["elements"].is_array() && fixture["output"]["findings"].is_array(),
+            "{name}"
+        );
+    }
+    let job: Value = serde_json::from_slice(&written["job-nightly-ingest.json"]).unwrap();
+    assert_eq!(job["args"]["reading"], "job");
+    assert!(
+        job["output"]["elements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|e| e["id"] == "task:land_raw")
+    );
+    assert_eq!(files(record_capability("reader.databricksBundle").path()), written);
+}
+
+#[test]
+fn recording_a_layout_places_every_node_of_each_reading_and_keeps_the_pinned_ones() {
+    let validator = validator("CapabilityFixture");
+    for (name, expected) in [
+        ("layout.layeredColumns", "job-nightly-ingest.json"),
+        ("layout.bands", "bundle-lakehouse.json"),
+    ] {
+        let written = files(record_capability(name).path());
+        assert!(written.contains_key(expected), "{name}: {:?}", written.keys());
+        for (file, bytes) in &written {
+            let fixture: Value = serde_json::from_slice(bytes).unwrap();
+            let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+            assert!(errors.is_empty(), "{file}: {errors:?}");
+            let positions = fixture["output"]["positions"].as_object().unwrap();
+            for node in fixture["input"]["nodes"].as_array().unwrap() {
+                let id = node["id"].as_str().unwrap();
+                assert!(positions.contains_key(id), "{name} {file}: {id} is placed");
+                if let Some(pinned) = node.get("pinned") {
+                    assert_eq!(&positions[id], pinned, "{name} {file}: {id} stays where it is pinned");
+                }
+            }
+        }
+    }
+}
+
 /// Records the Hierarchical Requirement Designer's cases into a new folder (etalii.adp spec 035, T167); the folder.
 fn record_requirements() -> tempfile::TempDir {
     let folder = tempfile::tempdir().unwrap();

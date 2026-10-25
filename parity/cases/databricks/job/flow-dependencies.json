@@ -1,0 +1,14 @@
+{
+  "tool": "databricks/job",
+  "fixture": "databricks/job/flow-dependencies/flow-collections.yml",
+  "registration": "databricks/job/flow-dependencies/flow-collections.job.adp",
+  "steps": [
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:c->task:b"
+      },
+      "expect": "refused"
+    }
+  ]
+}

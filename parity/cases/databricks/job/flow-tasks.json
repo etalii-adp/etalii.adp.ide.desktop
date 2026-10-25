@@ -1,0 +1,14 @@
+{
+  "tool": "databricks/job",
+  "fixture": "databricks/job/flow-tasks/flow-collections.yml",
+  "registration": "databricks/job/flow-tasks/flow-collections.job.adp",
+  "steps": [
+    {
+      "action": "databricks.add-task:notebook",
+      "args": {
+        "target": "new:600,400"
+      },
+      "expect": "refused"
+    }
+  ]
+}
