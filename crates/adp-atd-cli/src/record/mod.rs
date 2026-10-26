@@ -8,6 +8,7 @@
 
 pub mod capability;
 pub mod check;
+mod editor;
 mod hierarchy;
 
 use std::cell::RefCell;
@@ -108,6 +109,11 @@ pub(crate) fn write_json(path: &Path, value: &Json) -> Result<(), String> {
 /// Records every parity script of `origin` as a case folder under `cases`, named after the script; returns the
 /// folders written. `description` is the path of the tool description from a case's folder.
 pub fn record(origin: &str, cases: &Path, description: Option<&str>) -> Result<Vec<PathBuf>, String> {
+    if editor::is_editor(origin) {
+        let short = origin.rsplit('/').next().unwrap_or(origin);
+        let description = description.map_or_else(|| format!("../../../{short}.atd"), str::to_owned);
+        return editor::record(origin, cases, &description);
+    }
     let of_origin = |name: &String| name.rsplit_once('/').is_some_and(|(tool, _)| tool == origin);
     let names: Vec<String> = adp_parity::script_names().into_iter().filter(of_origin).collect();
     let minted: Vec<String> = adp_parity::case_names().into_iter().filter(of_origin).collect();

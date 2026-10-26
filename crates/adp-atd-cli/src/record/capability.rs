@@ -26,6 +26,8 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "reader.databricksBundle" => of_modules(name, DATABRICKS, Part::Reader, cases),
         "layout.layeredColumns" => of_modules(name, &["databricks/job", "databricks/pipeline"], Part::Layout, cases),
         "layout.bands" => of_modules(name, &["databricks/bundle"], Part::Layout, cases),
+        "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
+        "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         other => Err(format!("no code of the desktop host is named to record `{other}` from")),
     }
 }
@@ -260,4 +262,111 @@ fn layout_of(elements: &[adp_diagram::DiagramElement]) -> Json {
         positions.insert(element.id.clone(), at);
     }
     json!({"input": {"nodes": nodes, "edges": edges}, "output": {"positions": positions}})
+}
+
+/// A capability of Markdown, recorded from the Markdown editor's module (`modules/editors/markdown/src/lib.rs`) on every
+/// Markdown document of the editor's examples (`atd record editor/markdown`'s documents): one fixture per document,
+/// named after it.
+fn markdown(cases: &Path, name: &str, output: fn(&str) -> Json) -> Result<Vec<PathBuf>, String> {
+    let source = super::editor::examples().join("markdown/examples");
+    let mut files = Vec::new();
+    super::collect_files(&source, &source, &mut files);
+    files.sort();
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let mut written = Vec::new();
+    for document in files.iter().filter(|f| f.ends_with(".md") || f.ends_with(".markdown")) {
+        let path = source.join(document);
+        let file = adp_documents::TextFile::open(&path)?;
+        let text = file.content();
+        let input = if name.starts_with("reader.") {
+            json!({"body": text})
+        } else {
+            json!({"value": text, "format": "markdown"})
+        };
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability {name}` from modules/editors/markdown/src/lib.rs of etalii.adp.ide.desktop, on crates/adp-conformance/tests/round_trip/editors/markdown/examples/{document}; never edited by hand."
+            ),
+            "input": input,
+            "args": {},
+            "output": output(text),
+        });
+        let file = cases.join(format!("{}.json", document.replace('.', "-")));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `reader.markdown`: the ATX headings outside fenced code, each an element `heading` with its level, its title and its
+/// line, as the Markdown editor's outline reads them (`headings_of`).
+fn reader_markdown(text: &str) -> Json {
+    let elements: Vec<Json> = adp_editor_markdown::headings_of(text)
+        .into_iter()
+        .map(|h| {
+            json!({
+                "id": format!("heading-{}", h.line), "type": "heading",
+                "attributes": {"level": h.level, "title": h.title, "line": h.line},
+            })
+        })
+        .collect();
+    json!({"elements": elements, "relations": [], "findings": []})
+}
+
+/// `render.markdown`: the Markdown editor's preview (`preview`), each block's runs with the block they stand in
+/// (`heading-<level>`, `paragraph`, `item`, `code`, `rule`) and how each is set.
+fn render_markdown(text: &str) -> Json {
+    use adp_editor_markdown::{Block, Span};
+    let span_runs = |spans: &[Span], block: &str, extra: &Map<String, Json>| -> Vec<Json> {
+        spans
+            .iter()
+            .map(|span| {
+                let mut style = extra.clone();
+                for (key, on) in [
+                    ("strong", span.strong),
+                    ("emphasis", span.emphasis),
+                    ("code", span.code),
+                ] {
+                    if on {
+                        style.insert(key.into(), json!(true));
+                    }
+                }
+                if let Some(link) = &span.link {
+                    style.insert("link".into(), json!(link));
+                }
+                json!({"text": span.text, "style": style, "block": block})
+            })
+            .collect()
+    };
+    let mut runs = Vec::new();
+    for block in adp_editor_markdown::preview(text) {
+        match block {
+            Block::Heading { level, spans } => runs.extend(span_runs(&spans, &format!("heading-{level}"), &Map::new())),
+            Block::Paragraph { spans, quote_depth } => {
+                let mut extra = Map::new();
+                if quote_depth > 0 {
+                    extra.insert("quoteDepth".into(), json!(quote_depth));
+                }
+                runs.extend(span_runs(&spans, "paragraph", &extra));
+            }
+            Block::Item { depth, number, spans } => {
+                let mut extra = Map::new();
+                extra.insert("depth".into(), json!(depth));
+                if let Some(number) = number {
+                    extra.insert("number".into(), json!(number));
+                }
+                runs.extend(span_runs(&spans, "item", &extra));
+            }
+            Block::Code { language, text } => {
+                let mut style = Map::new();
+                if !language.is_empty() {
+                    style.insert("language".into(), json!(language));
+                }
+                runs.push(json!({"text": text, "style": style, "block": "code"}));
+            }
+            Block::Rule => runs.push(json!({"text": "", "style": {}, "block": "rule"})),
+        }
+    }
+    json!({"runs": runs})
 }

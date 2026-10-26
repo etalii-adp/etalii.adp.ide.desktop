@@ -49,8 +49,7 @@ const PRIMITIVES: &[&str] = &[
 /// Names that stand for the document itself where a construct names types it applies to.
 const DOCUMENT_TYPES: &[&str] = &["document", "diagram"];
 
-/// What a context tool set opens on besides element types (DISL §7.3): `diagram` the empty canvas, `connection` a
-/// pending connection.
+/// What a context tool set opens on besides element types (DISL §7.3): the empty canvas and a pending connection.
 const CONTEXT_TARGETS: &[&str] = &["diagram", "connection"];
 
 fn text(name: &Json) -> &str {
@@ -214,8 +213,11 @@ struct Checker<'a> {
 struct TypeMapEntry {
     /// `document`, `header`, `unreadable`, or the name of a type.
     as_: String,
-    /// The binding's attribute names, each with the model's name it stands for.
+    /// The binding's attribute names, each with the model's name it stands for: an attribute, `source`, `target`,
+    /// `id`, or `null` for one the model does not have.
     attributes: BTreeMap<String, String>,
+    /// The attributes the binding reads and writes that are not the model's (DISL §11.2's `hostAttributes`).
+    host_attributes: BTreeSet<String>,
 }
 
 /// The entry of a list of settings (`[{key, value, span}]`) under `key`.
@@ -245,6 +247,27 @@ fn persistence_settings(description: &Description) -> Vec<&Json> {
 
 fn type_map(description: &Description) -> BTreeMap<String, TypeMapEntry> {
     let mut out = BTreeMap::new();
+    // The binding types `view.bind` stores view data as (DISL §11.6): the binding's, not the model's.
+    for setting in persistence_settings(description) {
+        if setting["key"] != "view" {
+            continue;
+        }
+        let Some(bind) = entry(map_of(&setting["value"]), "bind") else {
+            continue;
+        };
+        for item in map_of(&bind["value"]).as_array().into_iter().flatten() {
+            if let Some(type_name) = entry(map_of(&item["value"]), "type").and_then(|e| word(&e["value"])) {
+                out.insert(
+                    type_name.to_owned(),
+                    TypeMapEntry {
+                        as_: "view".to_owned(),
+                        attributes: BTreeMap::new(),
+                        host_attributes: BTreeSet::new(),
+                    },
+                );
+            }
+        }
+    }
     for setting in persistence_settings(description) {
         if setting["key"] != "typeMap" {
             continue;
@@ -260,15 +283,30 @@ fn type_map(description: &Description) -> BTreeMap<String, TypeMapEntry> {
                         .as_array()
                         .into_iter()
                         .flatten()
-                        .filter_map(|a| Some((a["key"].as_str()?.to_owned(), word(&a["value"])?.to_owned())))
+                        .filter_map(|a| {
+                            let renamed = if a["value"]["literal"].is_null() {
+                                "null"
+                            } else {
+                                word(&a["value"])?
+                            };
+                            Some((a["key"].as_str()?.to_owned(), renamed.to_owned()))
+                        })
                         .collect()
                 })
                 .unwrap_or_default();
+            let host_attributes = entry(settings, "hostAttributes")
+                .and_then(|e| e["value"].get("list"))
+                .and_then(Json::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(|a| word(a).map(str::to_owned))
+                .collect();
             out.insert(
                 item["key"].as_str().unwrap_or("").to_owned(),
                 TypeMapEntry {
                     as_: as_.to_owned(),
                     attributes,
+                    host_attributes,
                 },
             );
         }
@@ -575,14 +613,20 @@ impl Checker<'_> {
         out
     }
 
+    /// The types a context tool set opens on: element types, and DISL's reserved `diagram`, the empty canvas, and
+    /// `connection`, a pending connection (DISL §7.3, ATD §8.6).
+    fn context_types(&mut self, node: &Json) {
+        for name in node["names"].as_array().into_iter().flatten() {
+            if !CONTEXT_TARGETS.contains(&text(name)) {
+                self.type_ref(name, false);
+            }
+        }
+    }
+
     fn generic_types(&mut self, node: &Json) {
         for item in node["members"].as_array().into_iter().flatten() {
             if item["kind"] == "context" {
-                for name in item["names"].as_array().into_iter().flatten() {
-                    if !CONTEXT_TARGETS.contains(&text(name)) {
-                        self.type_ref(name, false);
-                    }
-                }
+                self.context_types(item);
             }
             if item.get("members").is_some() {
                 self.generic_types(item);
@@ -749,26 +793,46 @@ impl Checker<'_> {
                 .unwrap_or_else(|| type_name.clone());
             // What the rule's type gives it to read and write (ATD §14.7): a model type its attributes; a key of the
             // type map the document's, its type's, or none, through the entry's renames.
-            let (attributes, renames, mapped_as) = if self.symbols.is_type(&type_name) {
-                (Some(self.symbols.attributes_of(&type_name)), BTreeMap::new(), None)
-            } else if let Some(mapped) = self.type_map.get(&type_name) {
+            // A key of the type map maps its type even where a model type has its name (DISL §11.2).
+            let (attributes, renames, hosted, mapped_as) = if let Some(mapped) = self.type_map.get(&type_name) {
                 let attributes = match mapped.as_.as_str() {
                     "document" => Some(self.symbols.document.clone()),
-                    "header" | "unreadable" => Some(BTreeMap::new()),
+                    // A header and view data are not in the model, so what their rules read is the binding's alone (a
+                    // version line, a pinned position).
+                    "header" | "view" => None,
+                    "unreadable" => Some(BTreeMap::new()),
                     other if self.symbols.is_type(other) => Some(self.symbols.attributes_of(other)),
                     _ => None,
                 };
-                (attributes, mapped.attributes.clone(), Some(mapped.as_.clone()))
+                (
+                    attributes,
+                    mapped.attributes.clone(),
+                    mapped.host_attributes.clone(),
+                    Some(mapped.as_.clone()),
+                )
+            } else if self.symbols.is_type(&type_name) {
+                (
+                    Some(self.symbols.attributes_of(&type_name)),
+                    BTreeMap::new(),
+                    BTreeSet::new(),
+                    None,
+                )
             } else {
                 self.type_ref(&member["type"]["name"], false);
-                (None, BTreeMap::new(), None)
+                (None, BTreeMap::new(), BTreeSet::new(), None)
             };
             for item in member["members"].as_array().into_iter().flatten() {
                 match item["kind"].as_str().unwrap_or("") {
                     "attribute" if attributes.is_some() => {
                         let attribute = text(&item["name"]);
                         let model_name = renames.get(attribute).map(String::as_str).unwrap_or(attribute);
-                        if !attributes.as_ref().is_some_and(|a| a.contains_key(model_name)) {
+                        // An end, the id and `null` name no attribute of the model; a host attribute is the binding's.
+                        let unmodelled = matches!(model_name, "source" | "target" | "id" | "null")
+                            && renames.contains_key(attribute);
+                        if !unmodelled
+                            && !hosted.contains(attribute)
+                            && !attributes.as_ref().is_some_and(|a| a.contains_key(model_name))
+                        {
                             let message = match mapped_as.as_deref() {
                                 Some(as_ @ ("header" | "unreadable")) => format!(
                                     "`{type_name}` is mapped as {as_}, so its rule `{rule}` binds no attribute; it binds `{attribute}`."
@@ -998,6 +1062,36 @@ impl Checker<'_> {
         self.findings.push(finding);
     }
 
+    /// A call of `hostAttribute` whose name is a string: a host attribute of an entry of `persistence`'s `typeMap`
+    /// (ATD §12.8).
+    fn host_attribute(&mut self, call: &Json) {
+        let Some(argument) = call["args"].get(1) else {
+            return;
+        };
+        let Some(written) = argument["literal"].as_str().filter(|_| argument["type"] == "string") else {
+            return;
+        };
+        let declared: BTreeSet<&str> = self
+            .type_map
+            .values()
+            .flat_map(|entry| entry.host_attributes.iter().map(String::as_str))
+            .collect();
+        if declared.contains(written) {
+            return;
+        }
+        let suggestions = closest(written, declared.into_iter().collect::<Vec<_>>());
+        let mut finding = finding_at(
+            "ATD2001",
+            argument,
+            format!(
+                "No host attribute `{written}` in `persistence`'s `typeMap`.{}",
+                did_you_mean(&suggestions)
+            ),
+        );
+        finding.suggestions = suggestions;
+        self.findings.push(finding);
+    }
+
     /// Every global call of every expression: a function of the library or of the description (ATD §14.8).
     fn calls(&mut self, description: &Description) {
         let mut calls = Vec::new();
@@ -1008,6 +1102,9 @@ impl Checker<'_> {
         known.extend(self.symbols.functions.keys().cloned());
         for call in calls {
             let name = call["call"].as_str().unwrap_or("");
+            if name == "hostAttribute" {
+                self.host_attribute(call);
+            }
             if known.iter().any(|k| k == name) {
                 continue;
             }

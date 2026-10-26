@@ -1,0 +1,7 @@
+{
+  "tool": "generic/dependencies",
+  "fixture": "generic/dependencies/not-yaml/not-yaml.dgr",
+  "steps": [
+    { "action": "dependencies.add-element", "args": { "target": "new:0,0" }, "expect": "refused" }
+  ]
+}

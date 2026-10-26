@@ -1,0 +1,13 @@
+{
+  "tool": "generic/dependencies",
+  "fixture": "generic/dependencies/refusals/graph.dgr",
+  "steps": [
+    { "action": "dependencies.connect", "args": { "target": "rel:api->api" }, "expect": "refused" },
+    { "property": { "row": "dependencies.row", "value": "2.5", "target": "api" }, "expect": "refused" },
+    { "property": { "row": "dependencies.x", "value": "far left", "target": "db" }, "expect": "refused" },
+    { "select": ["r-api-db"] },
+    { "move": { "refs": ["r-api-db"], "dx": 10, "dy": 0 }, "expect": "refused" },
+    { "select": ["api"] },
+    { "move": { "refs": ["api"], "parent": "db", "index": 0 }, "expect": "refused" }
+  ]
+}
