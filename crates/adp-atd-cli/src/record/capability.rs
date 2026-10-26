@@ -26,6 +26,8 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "reader.databricksBundle" => of_modules(name, DATABRICKS, Part::Reader, cases),
         "layout.layeredColumns" => of_modules(name, &["databricks/job", "databricks/pipeline"], Part::Layout, cases),
         "layout.bands" => of_modules(name, &["databricks/bundle"], Part::Layout, cases),
+        "reader.structurizr" => of_modules(name, C4, Part::Reader, cases),
+        "layout.rankedBoundaries" => super::c4::ranked_boundaries(cases),
         other => Err(format!("no code of the desktop host is named to record `{other}` from")),
     }
 }
@@ -115,6 +117,14 @@ fn walk(
 }
 
 const DATABRICKS: &[&str] = &["databricks/bundle", "databricks/job", "databricks/pipeline"];
+const C4: &[&str] = &[
+    "c4/context",
+    "c4/container",
+    "c4/component",
+    "c4/deployment",
+    "c4/dynamic",
+    "c4/system-landscape",
+];
 
 /// Which part of an opened document a capability's fixture is taken from.
 #[derive(Clone, Copy)]
@@ -127,6 +137,11 @@ enum Part {
 fn args_of(name: &str, origin: &str) -> Json {
     match (name, origin) {
         ("reader.databricksBundle", _) => json!({"reading": origin.rsplit('/').next().unwrap_or(origin)}),
+        ("reader.structurizr", _) => json!({"view": match origin {
+            "c4/context" => "systemContext",
+            "c4/system-landscape" => "systemLandscape",
+            other => other.rsplit('/').next().unwrap_or(other),
+        }}),
         ("layout.layeredColumns", "databricks/job") => json!({
             "columnWidth": 260, "rowHeight": 120, "bandGap": 80, "align": "top",
             "band": "self.id.startsWith('cluster:')", "placeholder": "self.unresolved",
@@ -220,8 +235,8 @@ fn reader_input(case: &adp_parity::Case) -> Result<Json, String> {
     Ok(json!({"body": read(&case.script.fixture)?, "files": files}))
 }
 
-/// A layout's input and output from what a module drew: the nodes with their sizes and attributes, pinned where their
-/// position was authored, the relations as edges, and every node's position.
+/// A layout's input and output from what a module drew: the nodes with their sizes, parents and attributes, pinned
+/// where their position was authored, the relations as edges, and every node's position.
 fn layout_of(elements: &[adp_diagram::DiagramElement]) -> Json {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
@@ -253,6 +268,9 @@ fn layout_of(elements: &[adp_diagram::DiagramElement]) -> Json {
             "id": element.id, "type": element.element_type, "width": number("width"), "height": number("height"),
             "attributes": attributes,
         });
+        if let Some(parent) = &element.parent {
+            node["parent"] = json!(parent);
+        }
         if element.placed {
             node["pinned"] = at.clone();
         }

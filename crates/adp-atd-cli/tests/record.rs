@@ -312,6 +312,70 @@ fn recording_a_layout_places_every_node_of_each_reading_and_keeps_the_pinned_one
     }
 }
 
+#[test]
+fn recording_the_structurizr_reader_names_the_kind_of_view_each_case_reads() {
+    let written = files(record_capability("reader.structurizr").path());
+    let validator = validator("CapabilityFixture");
+    for (name, view) in [
+        ("container-courier.json", "container"),
+        ("context-operations.json", "systemContext"),
+        ("system-landscape-operations.json", "systemLandscape"),
+    ] {
+        let fixture: Value = serde_json::from_slice(&written[name]).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{name}: {errors:?}");
+        assert_eq!(fixture["args"]["view"], view, "{name}");
+        assert!(
+            fixture["output"]["elements"].as_array().is_some_and(|e| !e.is_empty()),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn recording_ranked_boundaries_keeps_the_pins_a_view_does_not_ignore_and_encloses_each_boundary_s_nodes() {
+    let written = files(record_capability("layout.rankedBoundaries").path());
+    let validator = validator("CapabilityFixture");
+    assert!(
+        written.contains_key("deployment-operations.json"),
+        "{:?}",
+        written.keys()
+    );
+    let mut pins_kept = 0;
+    for (file, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{file}: {errors:?}");
+        let positions = fixture["output"]["positions"].as_object().unwrap();
+        let ignored = fixture["args"]["pinsIgnored"] == "true";
+        let padding = fixture["args"]["padding"].as_f64().unwrap();
+        let nodes = fixture["input"]["nodes"].as_array().unwrap();
+        for node in nodes {
+            let id = node["id"].as_str().unwrap();
+            assert!(positions.contains_key(id), "{file}: {id} is placed");
+            let encloses = nodes.iter().any(|n| n["parent"] == node["id"]);
+            if let Some(pinned) = node.get("pinned")
+                && !ignored
+                && node.get("parent").is_none()
+                && !encloses
+            {
+                assert_eq!(&positions[id], pinned, "{file}: {id} stays where it is pinned");
+                pins_kept += 1;
+            }
+            if let Some(parent) = node["parent"].as_str() {
+                let (inner, outer) = (&positions[id], &positions[parent]);
+                for axis in ["x", "y"] {
+                    assert!(
+                        inner[axis].as_f64().unwrap() >= outer[axis].as_f64().unwrap() + padding - 0.005,
+                        "{file}: {id} is inside {parent}"
+                    );
+                }
+            }
+        }
+    }
+    assert!(pins_kept > 0, "some view keeps its stored positions");
+}
+
 /// Records the Hierarchical Requirement Designer's cases into a new folder (etalii.adp spec 035, T167); the folder.
 fn record_requirements() -> tempfile::TempDir {
     let folder = tempfile::tempdir().unwrap();
