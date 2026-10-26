@@ -109,6 +109,9 @@ adp-editor-yaml = { path = "../../modules/editors/yaml" }
 adp-text = { path = "../adp-text" }
 # The `.atd` editor: its checker for the problems panel, and its language server on a worker thread (spec 035, T105).
 adp-atd-check = { path = "../adp-atd-check" }
+# The validation view runs a description's tool and its conformance cases (spec 035, T129).
+adp-atd-runtime = { path = "../adp-atd-runtime" }
+adp-atd-validate = { path = "../adp-atd-validate" }
 adp-atd-lsp = { path = "../adp-atd-lsp" }
 lsp-server.workspace = true
 # Highlighting with TextMate grammars, which VS Code's token colours are written for (spec 030, research R6).
