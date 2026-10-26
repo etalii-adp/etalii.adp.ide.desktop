@@ -514,7 +514,11 @@ impl Checker<'_> {
             "notation" => {
                 for item in member["members"].as_array().into_iter().flatten() {
                     match item["kind"].as_str().unwrap_or("") {
-                        "node" | "edge" | "port" => {
+                        "edge" => {
+                            let types = self.edge_types(item);
+                            self.references(item, &types);
+                        }
+                        "node" | "port" => {
                             let types = self.types_of(item, "names", false);
                             self.references(item, &types);
                         }
@@ -525,12 +529,15 @@ impl Checker<'_> {
             "toolbox" => self.generic_types(member),
             "form" => {
                 let types = self.types_of(member, "for", true);
+                let params = self.params_shown_by(text(&member["name"]));
                 for item in member["members"].as_array().into_iter().flatten() {
                     if item["kind"] == "field"
                         && let Some(name) = item.get("name")
                     {
                         let name_text = text(name).to_owned();
-                        self.attribute_of(&types, &name_text, name);
+                        if !params.contains(&name_text) {
+                            self.attribute_of(&types, &name_text, name);
+                        }
                     }
                 }
             }
@@ -581,6 +588,57 @@ impl Checker<'_> {
         for name in node[key].as_array().into_iter().flatten() {
             self.type_ref(name, allow_document);
             out.push(text(name).to_owned());
+        }
+        out
+    }
+
+    /// The parameters of the operations whose `paramsForm` is the form `form`: a field of such a form edits a
+    /// parameter of that name, not an attribute (DISL §9.2).
+    fn params_shown_by(&self, form: &str) -> BTreeSet<String> {
+        let mut out = BTreeSet::new();
+        for operation in self.symbols.operations.values() {
+            let shown = operation["settings"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .any(|setting| setting["key"] == "paramsForm" && setting["value"]["literal"] == form);
+            if shown {
+                for param in operation["params"].as_array().into_iter().flatten() {
+                    out.insert(text(&param["name"]).to_owned());
+                }
+            }
+        }
+        out
+    }
+
+    /// The types an edge notation draws: relation types, and `<Type>.<attribute>`, the edge DISL §6.10 draws for a
+    /// reference attribute, whose attribute must be one of the type's and name an element type. An attribute reference
+    /// in such an edge reads the type that holds the attribute.
+    fn edge_types(&mut self, node: &Json) -> Vec<String> {
+        let mut out = Vec::new();
+        for name in node["names"].as_array().into_iter().flatten() {
+            let name_text = text(name);
+            match name_text.split_once('.') {
+                Some((owner, attribute)) if self.symbols.is_type(owner) => {
+                    let target = self
+                        .symbols
+                        .attributes_of(owner)
+                        .get(attribute)
+                        .map(|decl| text(&decl["type"]["name"]).to_owned());
+                    if !target.as_deref().is_some_and(|t| self.symbols.is_type(t)) {
+                        self.findings.push(finding_at(
+                            "ATD2002",
+                            name,
+                            format!("`{owner}` has no reference attribute `{attribute}` for an edge to draw."),
+                        ));
+                    }
+                    out.push(owner.to_owned());
+                }
+                _ => {
+                    self.type_ref(name, false);
+                    out.push(name_text.to_owned());
+                }
+            }
         }
         out
     }
@@ -1034,6 +1092,36 @@ impl Checker<'_> {
         self.findings.push(finding);
     }
 
+    /// A call of `hostAttribute` whose name is a string: a host attribute of an entry of `persistence`'s `typeMap`
+    /// (ATD §12.8).
+    fn host_attribute(&mut self, call: &Json) {
+        let Some(argument) = call["args"].get(1) else {
+            return;
+        };
+        let Some(written) = argument["literal"].as_str().filter(|_| argument["type"] == "string") else {
+            return;
+        };
+        let declared: BTreeSet<&str> = self
+            .type_map
+            .values()
+            .flat_map(|entry| entry.host_attributes.iter().map(String::as_str))
+            .collect();
+        if declared.contains(written) {
+            return;
+        }
+        let suggestions = closest(written, declared.into_iter().collect::<Vec<_>>());
+        let mut finding = finding_at(
+            "ATD2001",
+            argument,
+            format!(
+                "No host attribute `{written}` in `persistence`'s `typeMap`.{}",
+                did_you_mean(&suggestions)
+            ),
+        );
+        finding.suggestions = suggestions;
+        self.findings.push(finding);
+    }
+
     /// Every global call of every expression: a function of the library or of the description (ATD §14.8).
     fn calls(&mut self, description: &Description) {
         let mut calls = Vec::new();
@@ -1044,6 +1132,9 @@ impl Checker<'_> {
         known.extend(self.symbols.functions.keys().cloned());
         for call in calls {
             let name = call["call"].as_str().unwrap_or("");
+            if name == "hostAttribute" {
+                self.host_attribute(call);
+            }
             if known.iter().any(|k| k == name) {
                 continue;
             }

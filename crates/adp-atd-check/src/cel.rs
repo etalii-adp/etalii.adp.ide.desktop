@@ -102,6 +102,9 @@ pub const LIBRARY: &[&str] = &[
     "least",
     "sqrt",
     "trunc",
+    // ATD §12.8: a host attribute the binding read, by name, and the id a relation's end was read with.
+    "hostAttribute",
+    "endId",
 ];
 
 /// Functions that read what a script may not (ATD §12.5): a call of one is `ATD7001`, not an unknown name.
@@ -319,6 +322,17 @@ pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut 
         let mut narrowed = scope.clone();
         type_guards(left, symbols, &mut narrowed);
         unknown_members(right, &narrowed, symbols, out);
+        return;
+    }
+    // `c ? a : b` reads `a` only where `c` holds, so an `x.isA('T')` among `c`'s conjuncts makes `x` a `T` in `a`.
+    if node.get("call").and_then(Json::as_str) == Some("_?_:_")
+        && let Some([condition, held, otherwise]) = node["args"].as_array().map(Vec::as_slice)
+    {
+        unknown_members(condition, scope, symbols, out);
+        let mut narrowed = scope.clone();
+        type_guards(condition, symbols, &mut narrowed);
+        unknown_members(held, &narrowed, symbols, out);
+        unknown_members(otherwise, scope, symbols, out);
         return;
     }
     match node {
