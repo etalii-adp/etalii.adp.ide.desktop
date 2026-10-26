@@ -1,6 +1,7 @@
 //! `atd record` (etalii.adp spec 035, T049): recording the mind map's cases from its parity scripts keeps the bytes of
 //! `parity/goldens/freeplane/mindmap/` unchanged, draws what the mind map's `insta` scene snapshot holds, writes cases
-//! valid against `$defs/ConformanceFixture`, and gives the same files when recorded twice.
+//! valid against `$defs/ConformanceFixture`, and gives the same files when recorded twice. The editors' cases (T066)
+//! keep their examples byte for byte and say where each finding stands.
 
 #![cfg(feature = "record")]
 
@@ -224,7 +225,7 @@ fn recording_a_capability_writes_valid_fixtures_from_the_code_that_does_it() {
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_atd"))
-        .args(["record", "--capability", "render.markdown", "--cases", "unused"])
+        .args(["record", "--capability", "reader.turtle", "--cases", "unused"])
         .output()
         .unwrap();
     assert_eq!(
@@ -463,4 +464,106 @@ fn recording_the_requirement_designer_keeps_its_golden_bytes_and_states_its_page
 
     // Recording again gives the same files.
     assert_eq!(files(cases.path()), files(record_requirements().path()));
+}
+
+/// Records the cases of editor `origin` into a new folder (etalii.adp spec 035, T066); the folder.
+fn record_editor(origin: &str) -> tempfile::TempDir {
+    let folder = tempfile::tempdir().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_atd"))
+        .args(["record", origin, "--cases"])
+        .arg(folder.path())
+        .env("ATD_RECORDED_WITH", "0000000")
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    folder
+}
+
+#[test]
+fn recording_an_editor_keeps_its_examples_and_places_its_findings() {
+    let examples = repository().join("crates/adp-conformance/tests/round_trip/editors");
+    let validator = validator("ConformanceFixture");
+    for (origin, folder, case) in [
+        ("editor/plain", "plain", "crlf-notes-txt"),
+        ("editor/markdown", "markdown", "guide-md"),
+        ("editor/json", "json", "service-broken-json"),
+        ("editor/xml", "xml", "library-broken-xml"),
+        ("editor/yaml", "yaml", "service-broken-yaml"),
+    ] {
+        let cases = record_editor(origin);
+        let written = files(cases.path());
+        let fixture = json(&cases.path().join(case).join("conformance.json"));
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{origin} {case}: {errors:?}");
+        assert_eq!(fixture["tool"], origin);
+        // Every file of the examples is an input, byte for byte, so that a schema a document names is there.
+        let source = files(&examples.join(folder).join("examples"));
+        for (name, bytes) in &source {
+            assert_eq!(
+                written.get(&format!("{case}/{name}")),
+                Some(bytes),
+                "{origin} {case}: {name}"
+            );
+        }
+        assert_eq!(
+            files(record_editor(origin).path()),
+            written,
+            "{origin}: recording again gives the same cases"
+        );
+    }
+
+    // The Markdown editor reads the headings outside fenced code; the `#` line inside the fence is not one.
+    let markdown = record_editor("editor/markdown");
+    let guide = json(&markdown.path().join("guide-md/conformance.json"));
+    let lines: Vec<u64> = guide["read"]["elements"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["attributes"]["line"].as_u64().unwrap())
+        .collect();
+    assert_eq!(lines, [1, 6, 10, 14, 21]);
+
+    // A finding stands at its line and column, from 1, columns in characters: the empty name of service-broken.json
+    // is on line 3 after two spaces.
+    let json_cases = record_editor("editor/json");
+    let broken = json(&json_cases.path().join("service-broken-json/conformance.json"));
+    let first = &broken["read"]["findings"][0];
+    assert_eq!(
+        (first["line"].as_u64(), first["column"].as_u64()),
+        (Some(3), Some(3)),
+        "{first}"
+    );
+    assert_eq!(first["severity"], "error");
+}
+
+#[test]
+fn recording_the_markdown_capabilities_writes_valid_fixtures() {
+    let validator = validator("CapabilityFixture");
+    for name in ["reader.markdown", "render.markdown"] {
+        let folder = tempfile::tempdir().unwrap();
+        let output = Command::new(env!("CARGO_BIN_EXE_atd"))
+            .args(["record", "--capability", name, "--cases"])
+            .arg(folder.path())
+            .output()
+            .unwrap();
+        assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+        let written = files(folder.path());
+        assert!(written.contains_key("guide-md.json"), "{name}: {:?}", written.keys());
+        for (file, bytes) in &written {
+            let fixture: Value = serde_json::from_slice(bytes).unwrap();
+            let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+            assert!(errors.is_empty(), "{name} {file}: {errors:?}");
+        }
+        let guide: Value = serde_json::from_slice(&written["guide-md.json"]).unwrap();
+        if name == "render.markdown" {
+            let runs = guide["output"]["runs"].as_array().unwrap();
+            assert!(
+                runs.iter()
+                    .any(|r| r["block"] == "code" && r["style"]["language"] == "bash")
+            );
+            assert!(runs.iter().any(|r| r["style"]["strong"] == true));
+        } else {
+            assert_eq!(guide["output"]["elements"].as_array().unwrap().len(), 5);
+        }
+    }
 }

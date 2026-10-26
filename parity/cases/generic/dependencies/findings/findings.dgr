@@ -1,0 +1,41 @@
+dependencies: 1
+elements:
+  - id: api
+    label: API
+    x: 0
+    row: 0
+  - id: db
+    label: Database
+    x: 240
+    row: 0
+  - id: api
+    label: Second API
+    x: 0
+    row: 1
+  - label: Nameless
+    x: 480
+    row: 0
+  - just a string
+  - id: cache
+    label: Cache
+    x: wide
+    row: 1.5
+relations:
+  - id: r-api-db
+    from: api
+    to: db
+  - from: db
+    to: api
+  - id: r-api-ghost
+    from: api
+    to: ghost
+  - id: r-ghost-ghost
+    from: ghost
+    to: ghost
+  - id: r-db-db
+    from: db
+    to: db
+  - id: r-empty
+    from: api
+    to: ""
+  - 42
