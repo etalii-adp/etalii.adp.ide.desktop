@@ -102,7 +102,7 @@ A **conformance fixture** is one case of one tool type: input files, the gesture
 - `read` is what reading the inputs yields: the elements with their type, parent and the attributes compared; the relations with their ends; the findings (each with its rule or code and its line); and the parts the reader could not read.
 - `drawing` is the scene after reading (section 2.4), inline or as `{"$ref": "<file>"}` beside the case.
 - `steps` are the gestures, in order. A step has exactly one of `action` (with `args`, after `select`), `property`, `move`, `create`, `connect`, `delete`, `outside`, `undo` and `redo`, and states what it produces: `splices` (FBL `$defs/Splice`, UTF-8 byte offsets into the body before the step), the body's bytes after it (`expect` inline, or `expectFile`), `findings`, `drawing`, or `refused` with the reason the gesture was refused with. `ids` lists the ids the reference host generated in the step, in order; a runtime **MUST** be given them, in that order, in place of ids of its own, so that bytes can be equal.
-- An `outside` step writes a file of the case as another program or an agent would, replacing the first occurrence of `from` in `file` by `to`, and tells the host the file changed, as its watcher does. A designer's gesture on its page is an `action` naming the operation, with the entry it is made on in `select` and the operation's parameters in `args`.
+- An `outside` step writes a file of the case as another program or an agent would, replacing the first occurrence of `from` in `file` by `to`, and tells the host the file changed, as its watcher does; the history starts afresh with it, so no step before it can be undone, and a refused step leaves the bytes as they were. A designer's gesture on its page is an `action` naming the operation, with the entry it is made on in `select` and the operation's parameters in `args`.
 - An `undo` **MUST** give back the bytes before the step it undoes exactly, and a `redo` the bytes after it.
 - `provenance` names, for each part (`bytes`, `reading`, `findings`, `drawing`), the host and repository that produced it, `commit`, the reference commit whose behaviour it records, `recordedWith`, for a recorded part the commit of the recorder, and `source`, a standalone host's golden or `atd record`. The reference host differs by part: the standalone host for bytes, as the desktop host's parity goldens record them, and the desktop host at its reference commit for readings, findings and drawings (spec 035, Q5). A tool type the desktop host did not have at its reference commit (the Hierarchical Requirement Designer, added by spec 036) takes its readings and findings from the desktop host at the commit that records them, which `commit` and `recordedWith` then both name. A designer's page has no recording painter, so a designer's case states no drawing.
 - A fixture changes only by recording it again, never by hand. A runtime passes a fixture when every part of every step equals what the fixture states, bytes byte for byte; a difference is reported with its step, its part, the expected and the actual value (for bytes, the first line that differs) and the construct of the description that produced the value (section 15.1, `ATD9001`).
@@ -233,7 +233,7 @@ ATD's grammar is written in **ATD grammar notation**, a subset of the grammar la
 | a rule `name: expansion \| expansion`, and a terminal `NAME: "x" \| /re/` | templates `_rule{x}` |
 | `?rule` (inlined when it has one child), `_rule` and `_TERMINAL` (filtered from the tree) | rule priorities `rule.2` |
 | `x?`, `x*`, `x+`, `[x]`, `( … )` | `%declare`, `%override`, `%extend` |
-| an alias `-> name` | `%import` of anything outside the language's modules (in a binding, outside the binding's own files) |
+| an alias `-> name` | `%import` of anything outside the language's modules (in a binding, outside the binding's own files beside it) |
 | a terminal priority `TERMINAL.2` | the flags of strings and regular expressions (`"x"i`, `/x/i`) |
 | `%ignore TERMINAL` | terminals outside the subset of section 3.5 |
 | `%import .module (names)` | keep-all-tokens rules `!rule`, ranges `"a".."z"`, repetitions `x ~ 3` |
@@ -607,13 +607,13 @@ The text's model is the description's model: its element types are what the edit
 
 ## 11. Bindings
 
-A binding (`grammar/binding.lark`) is an FBL 0.8 binding written as text (FBL §3 to §13): every property of FBL's `Binding` has its ATD form in Appendix C. Its meaning, reading and writing are FBL's, unchanged.
+A binding (`grammar/binding.lark`) is an FBL 0.9 binding written as text (FBL §3 to §13): every property of FBL's `Binding` has its ATD form in Appendix C. Its meaning, reading and writing are FBL's, unchanged.
 
 ### 11.1 The binding
 
 `binding <name> [family <family> | family capability <name>] { … }`:
 
-- `family <family>` is the family of a declared file body (FBL §4): `yaml`, `json`, `xml`, `lines`, `blocks` or `bullets`;
+- `family <family>` is the family of a declared file body (FBL §4): `yaml`, `json`, `xml`, `lines`, `blocks`, `bullets` or `grammar` (section 11.9);
 - `family capability <name>` reads and writes the body through a capability of the `reader` extension point, under FBL §11's persistence plugin contract (FBL's `reader` as a `PluginReader`); its arguments are the binding's setting `args`;
 - a binding without `family` has a folder body (FBL §10), described by `body { kind: folder … }`;
 - `label` is FBL's `title`.
@@ -659,7 +659,18 @@ FBL's guarantees hold for every binding in ATD (FBL §1.4, §6, §7): reading ne
 
 ### 11.9 The grammar family
 
-Reserved for FBL 0.9's `grammar` family, in which a binding carries an LALR(1) grammar in ATD grammar notation (section 4, `grammar/notation.lark`) and maps the nodes of its parse tree to elements and relations. ATD 0.1 does not admit it; it is added with FBL 0.9 (spec 035, story 7).
+`family grammar` is FBL 0.9's `grammar` family (FBL §4.9): the binding carries an LALR(1) grammar in ATD grammar notation (section 4) and maps the nodes of the tree it reads to elements and relations.
+
+- `grammar { … }` carries the grammar inline: everything between the braces is the grammar's text, read under `grammar/notation.lark` (the rule `grammar_text`), and is FBL's `body.grammar` as a string. `grammar from "<file>.lark"` names a file beside the description that holds it, FBL's `body.grammar` as `{file}`. A binding of the family has exactly one of the two, and a binding of another family has neither.
+- The grammar is in the subset of section 4.1, its terminals in the subset of section 3.5; its `%import`s name the binding's own files beside the description, never the modules of ATD's grammar. It is built as section 4.4 says, from the start rule that the setting `start` of `body` names (FBL's `body.start`, default `start`), with the lexing rule of section 3.6.
+- `body { … }` takes the family's settings: `start`, and `recover: { unit: <rule>, sync: [<terminals>] }`, which reads a body that does not parse in part (FBL §4.9).
+- A rule's `at "<selector>"` selects nodes of the tree by their names (`at "/triples_statement"`), and a slot `node "<selector>"` reads the text of the node or token its relative selector reaches, with the setting `match` when only part of the text is the value (`attribute name from node "PNAME_NS" { match: r"(?<value>[^:]*):" }`); FBL §4.9 and §5.2 define both.
+- The checker builds the grammar with the desktop host's table builder, on `etalii-lark` (research R9): a grammar that is not LALR(1), or in which two terminals a state accepts match the same text, is refused with `ATD8001`, placed at the head of the definition of the rule whose reduction is in conflict (of two such rules, the one defined first), and naming the kind of conflict, the terminal and the rules. A grammar the checker cannot read as notation is `ATD1001` at the place it stops, as for any syntax error; a file named by `grammar from` that is not there is `ATD2009`.
+- `atd-grammar.py --tables` writes the normalized tables (section 4.7) of every grammar a binding example carries, inline or from a file, to `grammar/tables/<example>.<binding>.tables.json`, and those of every grammar an FBL example names to `grammar/tables/<fbl example>.<binding>.tables.json`, so that the desktop host's builder is cross-checked against Lark's for binding grammars too.
+
+FBL §4.9 says what the family reads, how it writes, and how it reads a body in part; its guarantees are FBL's (section 11.8). In phase 1 no host but the desktop host is required to read the family (FR-081): the family's round-trip fixtures, `specifications/fbl/fixtures/w3c-turtle-grammar*/`, carry the guarantee to every host that implements it later.
+
+The example `binding-grammar.atd` carries Turtle's grammar inline.
 
 ---
 
@@ -752,6 +763,14 @@ Every call runs under a **step budget** (FR-015): one step per statement execute
 ### 12.7 Purity
 
 A function whose block, or a function it calls, contains an action is **impure**. An expression position that only reads (a label, a constraint's `when` and `rule`, a derived attribute, a variant's `when`, a binding rule's `when`, a setting's `( CEL )`) **MUST NOT** call an impure function, through any chain of calls (`ATD7002`); an operation, a hook and a fix may.
+
+### 12.8 Host attributes
+
+`hostAttribute(<element>, <name>)` is the value the binding read into the host attribute `<name>` of the element (`persistence`'s `typeMap`, `hostAttributes`, DISL §11.2), as the binding read it, and `null` when it read none. DISL keeps host attributes out of CEL; a description reads them through this one function, by name, so that a rule can judge what the file wrote where the model holds nothing: a relation's end that names no element is unset in the model (DISL §4.9), while the binding can read the id it was written with a second time, into a host attribute (`dependency-graph.atd`'s `writtenEnd`).
+
+- The function only reads, so it may be called from every expression position (section 12.7). A host attribute is document data, so the call is deterministic (section 12.5).
+- A `<name>` written as a string **MUST** be a host attribute of an entry of `persistence`'s `typeMap` (`ATD2001`).
+- A first argument that is not an element of the document, or a second that is not a string, stops the call as a CEL error.
 
 ---
 
@@ -1020,6 +1039,7 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 
 - **0.1** (2026-10-23, spec 035): the first version.
 - **0.1, amendment of 2026-10-25** (spec 035, batch 3, for the Hierarchical Requirement Designer): `widths <Type> { … }` in `surface hierarchy`, carrying DESL 0.2's `widths` (§9.3, C.2); `move` takes `slot`, and `after` or `before`, so that it carries DESL §8.2's `move` (§12.3, C.2); a binding's, rule's, block's, section's and file rule's name may hold hyphens and dots, as FBL's names do (§3.6, §11.3); a binding rule's type may be a key of `persistence`'s `typeMap` (§7.13, §14.7); and DESL 0.2's checks of a hierarchy, a counter's mark and a registration's settings are `ATD6002`, `ATD6003` and `ATD6004` (§14.7, §15.1). ATD 0.1 had no released grammar, so the amendment changes it in place; every example and tool description in this repository that checked before still checks, with the same meaning. With it, a conformance case of a designer: a step `outside`, a file written outside the host (§2.3, `$defs/ConformanceStep`), and the reference for the readings and findings of a tool type the desktop host did not have at its reference commit (§2.3).
+- **0.1, amendment of 2026-10-25, FBL 0.9** (spec 035, story 7): the `grammar` family of FBL 0.9 (§11.9, FBL §4.9): `family grammar` with `grammar { … }`, read under `grammar/notation.lark`, which the root module now imports, or `grammar from "<file>.lark"`; the keyword `grammar` (Appendix B); the settings `start` and `recover` of `body` and the slot `node` with its setting `match` (C.3); where `ATD8001`, for a grammar that is not LALR(1), stands (§11.9, §15.1); and the tables of every binding example's grammar under `grammar/tables/` (§11.9). Every description that checked before still checks, with the same meaning.
 
 
 ---
@@ -1293,7 +1313,8 @@ Every keyword of ATD 0.1, by the module that defines it, with the documentation 
 | `block` | In a binding of the `blocks` family: `block <name> line "<regex>" { … }`, a statement that opens a block and produces nothing (FBL §4.7). |
 | `body` | In a binding: `body { … }`, the body's kind, family and folder settings (FBL §3.2). |
 | `claims` | In a binding: `claims { … }` or `claims files "<glob>", …`, which files the binding takes (FBL §12). |
-| `family` | In a binding: `family <family>` (`yaml`, `json`, `xml`, `lines`, `blocks`, `bullets`) or `family capability <name>` (§11.1). |
+| `family` | In a binding: `family <family>` (`yaml`, `json`, `xml`, `lines`, `blocks`, `bullets`, `grammar`) or `family capability <name>` (§11.1). |
+| `grammar` | In a binding of the `grammar` family: `grammar { … }`, the LALR(1) grammar that reads the body, in ATD grammar notation, or `grammar from "<file>.lark"`, the same in a file beside the description (§11.9, FBL §4.9). |
 | `header` | In a binding: `header { … }`, the version or identity mark the body starts with (FBL §5.6). |
 | `id` | In a binding rule: `id from <slot>` or `id { … }`, where an element's id is stored (FBL §5.3). |
 | `insert` | In a binding rule: `insert { … }`, how a new entry is written (FBL §6.2). |
@@ -3072,14 +3093,14 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/CelValue/properties/resultType` | the key `resultType` in a value of CelValue (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/CelValue/properties/doc` | the key `doc` in a value of CelValue (a settings map, §6.4) | §6.4 |
 
-### C.3 FBL 0.8
+### C.3 FBL 0.9
 
-208 properties.
+218 properties.
 
 | JSON pointer | ATD | Section |
 |---|---|---|
 | `fbl.schema.json#/$defs/Document/properties/$schema` | none | §11.1 |
-| `fbl.schema.json#/$defs/Document/properties/fbl` | the header `atd <version>` (§5.1); a binding is FBL 0.8's in ATD 0.1 | §11.1 |
+| `fbl.schema.json#/$defs/Document/properties/fbl` | the header `atd <version>` (§5.1); a binding is FBL 0.9's in ATD 0.1 | §11.1 |
 | `fbl.schema.json#/$defs/Document/properties/doc` | `doc` and `///` | §11.1 |
 | `fbl.schema.json#/$defs/Document/properties/bindings` | `binding` | §11.1 |
 | `fbl.schema.json#/$defs/Binding/properties/title` | `label` | §11.1 |
@@ -3114,6 +3135,12 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/Body/properties/kind` | the setting `kind` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/family` | `family` after the binding's name | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/alsoRead` | the setting `alsoRead` of `body` | §11.2 |
+| `fbl.schema.json#/$defs/Body/properties/grammar` | `grammar { … }` or `grammar from "<file>.lark"` in a binding of `family grammar` | §11.9 |
+| `fbl.schema.json#/$defs/Body/properties/start` | the setting `start` of `body` | §11.9 |
+| `fbl.schema.json#/$defs/Body/properties/recover` | the setting `recover` of `body` | §11.9 |
+| `fbl.schema.json#/$defs/GrammarSource/anyOf/1/properties/file` | the file of `grammar from "<file>.lark"` | §11.9 |
+| `fbl.schema.json#/$defs/Recover/properties/unit` | the key `unit` in the value of `recover` (a settings map, §6.4) | §11.9 |
+| `fbl.schema.json#/$defs/Recover/properties/sync` | the key `sync` in the value of `recover` (a settings map, §6.4) | §11.9 |
 | `fbl.schema.json#/$defs/Body/properties/recognise` | the setting `recognise` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/files` | the setting `files` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/ignore` | the setting `ignore` of `body` | §11.2 |
@@ -3186,6 +3213,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/Slot/properties/attribute` | `from attribute …` | §11.3 |
 | `fbl.schema.json#/$defs/Slot/properties/text` | `from text …` | §11.3 |
 | `fbl.schema.json#/$defs/Slot/properties/continuation` | `from continuation …` | §11.3 |
+| `fbl.schema.json#/$defs/Slot/properties/node` | `from node …` | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/Slot/properties/child` | the setting `child` of the slot after `from` | §11.3 |
 | `fbl.schema.json#/$defs/Slot/properties/group` | `from group …` | §11.3 |
 | `fbl.schema.json#/$defs/Slot/properties/parent` | `from parent …` | §11.3 |
@@ -3193,10 +3221,12 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/Slot/properties/value` | `from value …` | §11.3 |
 | `fbl.schema.json#/$defs/Slot/properties/word` | the setting `word` of the slot after `from` | §11.3 |
 | `fbl.schema.json#/$defs/Slot/properties/flag` | the setting `flag` of the slot after `from` | §11.3 |
+| `fbl.schema.json#/$defs/Slot/properties/match` | the setting `match` of the slot after `from` | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/key` | `attribute name from key …` | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/attribute` | `attribute name from attribute …` | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/text` | `attribute name from text …` | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/continuation` | `attribute name from continuation …` | §11.3 |
+| `fbl.schema.json#/$defs/AttributeBinding/properties/node` | `attribute name from node …` | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/child` | the setting `child` of `attribute` of a rule | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/group` | `attribute name from group …` | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/parent` | `attribute name from parent …` | §11.3 |
@@ -3204,6 +3234,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/AttributeBinding/properties/value` | `attribute name from value …` | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/word` | the setting `word` of `attribute` of a rule | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/flag` | the setting `flag` of `attribute` of a rule | §11.3 |
+| `fbl.schema.json#/$defs/AttributeBinding/properties/match` | the setting `match` of `attribute` of a rule | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/empty` | the setting `empty` of `attribute` of a rule | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/default` | the setting `default` of `attribute` of a rule | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/read` | the setting `read` of `attribute` of a rule | §11.3 |

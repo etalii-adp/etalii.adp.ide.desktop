@@ -5,6 +5,7 @@
 
 mod cel;
 mod checks;
+mod grammars;
 mod description;
 pub mod embedded;
 mod script;
@@ -198,6 +199,7 @@ pub fn check(files: &dyn Files, path: &Path) -> Checked {
             checks::run(&description, &collected, &mut findings);
             settings::run(&description, &collected, &mut findings);
             script::run(&description, &collected, &mut findings);
+            grammars::run(files, &description, &mut findings);
         }
         symbols = Some(collected);
     }

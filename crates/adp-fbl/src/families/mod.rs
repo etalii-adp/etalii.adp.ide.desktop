@@ -8,6 +8,7 @@
 //! kind of [`FamilyKind`].
 
 pub(crate) mod bullets;
+pub(crate) mod grammar;
 pub(crate) mod json;
 pub(crate) mod lines;
 pub(crate) mod tree;
@@ -81,6 +82,8 @@ pub(crate) enum EntryKind {
     // Boxed: an xml element or a statement is several times a tree entry, and every entry of a body is kept.
     Xml(Box<xml::XmlElement>),
     Statement(Box<lines::Statement>),
+    /// *(FBL 0.9)* A node or token of a `grammar` body's tree.
+    Grammar(Box<grammar::GrammarEntry>),
 }
 
 /// What each family knows besides its entries.
@@ -90,6 +93,7 @@ pub(crate) enum FamilyKind {
     Json(tree::TreeData),
     Xml(xml::XmlData),
     Lines(lines::LinesData),
+    Grammar(grammar::GrammarData),
 }
 
 /// One family's reading of one body.
@@ -138,6 +142,7 @@ impl Family {
             FamilyName::Yaml => FamilyKind::Yaml(tree::TreeData::new(&binding, &options)),
             FamilyName::Json => FamilyKind::Json(tree::TreeData::new(&binding, &options)),
             FamilyName::Xml => FamilyKind::Xml(xml::XmlData::default()),
+            FamilyName::Grammar => FamilyKind::Grammar(grammar::GrammarData::default()),
         };
         Family {
             text,
@@ -158,6 +163,7 @@ impl Family {
             FamilyKind::Yaml(_) => "yaml",
             FamilyKind::Json(_) => "json",
             FamilyKind::Xml(_) => "xml",
+            FamilyKind::Grammar(_) => "grammar",
             FamilyKind::Lines(l) if l.bullets.is_some() => "bullets",
             FamilyKind::Lines(l) if l.blocks => "blocks",
             FamilyKind::Lines(_) => "lines",
@@ -189,6 +195,7 @@ impl Family {
             FamilyKind::Yaml(_) => self.yaml_parse(),
             FamilyKind::Json(_) => self.json_parse(),
             FamilyKind::Xml(_) => self.xml_parse(),
+            FamilyKind::Grammar(_) => self.grammar_parse(),
             FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_parse(),
             FamilyKind::Lines(_) => self.lines_parse(),
         }
@@ -205,6 +212,8 @@ impl Family {
                 )
             }),
             FamilyKind::Xml(_) => self.is_whitespace(gap),
+            // Punctuation the tree leaves out lies between the tokens; what does not parse is a leaf of its own.
+            FamilyKind::Grammar(_) => true,
             FamilyKind::Lines(_) => {
                 (gap.start..gap.end).all(|i| matches!(self.text.bytes()[i], b' ' | b'\t' | b'\r' | b'\n' | b'}'))
             }
@@ -243,6 +252,7 @@ impl Family {
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_candidates(rule),
             FamilyKind::Xml(_) => self.xml_candidates(rule),
+            FamilyKind::Grammar(_) => self.grammar_candidates(rule),
             FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_candidates(rule),
             FamilyKind::Lines(_) => self.lines_candidates(rule),
         }
@@ -284,6 +294,7 @@ impl Family {
             match &self.entries[p].kind {
                 EntryKind::Tree(t) if t.is_root => break,
                 EntryKind::Xml(x) if x.is_root => break,
+                EntryKind::Grammar(_) if self.entries[p].parent.is_none() => break,
                 _ => {}
             }
             result.push(p);
@@ -299,6 +310,7 @@ impl Family {
                 self.tree_cel(self.entries[candidate.entry].tree().value, tree::Reading::Typed)
             }
             FamilyKind::Xml(_) => self.xml_cel_value(candidate.entry),
+            FamilyKind::Grammar(_) => self.grammar_cel_value(candidate.entry),
             FamilyKind::Lines(_) => captures_map(candidate),
         }
     }
@@ -336,6 +348,7 @@ impl Family {
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_read(candidate, slot),
             FamilyKind::Xml(_) => self.xml_read(candidate, slot, html_paragraphs),
+            FamilyKind::Grammar(_) => self.grammar_read(candidate, slot),
             FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_read(candidate, slot),
             FamilyKind::Lines(_) => self.lines_read(candidate, slot),
         }
@@ -356,6 +369,7 @@ impl Family {
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_read_raw(entry, name),
             FamilyKind::Xml(_) => self.xml_read_raw(entry, name),
+            FamilyKind::Grammar(_) => SlotRead::absent(),
             FamilyKind::Lines(_) => self.lines_read_raw(entry, name),
         }
     }
@@ -381,6 +395,7 @@ impl Family {
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_header_holds(header),
             FamilyKind::Xml(_) => self.xml_header_holds(header),
+            FamilyKind::Grammar(_) => self.grammar_header_holds(header),
             FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_header_holds(header),
             FamilyKind::Lines(_) => self.lines_header_holds(header),
         }
@@ -403,6 +418,7 @@ impl Family {
             FamilyKind::Yaml(_) => self.yaml_format(read, binding, value),
             FamilyKind::Json(_) => self.json_format(read, binding, value),
             FamilyKind::Xml(_) => self.xml_format(read, binding, value),
+            FamilyKind::Grammar(_) => self.grammar_format(binding, value),
             FamilyKind::Lines(_) => self.lines_format(read, binding, value),
         }
     }
@@ -413,6 +429,7 @@ impl Family {
             FamilyKind::Yaml(_) => self.yaml_write(plan, element, changes),
             FamilyKind::Json(_) => self.json_write(plan, element, changes),
             FamilyKind::Xml(_) => self.xml_write(plan, element, changes),
+            FamilyKind::Grammar(_) => self.grammar_write(plan, element, changes),
             FamilyKind::Lines(_) => self.lines_write(plan, element, changes),
         }
     }
@@ -422,6 +439,7 @@ impl Family {
             FamilyKind::Yaml(_) => self.yaml_insert(plan, request),
             FamilyKind::Json(_) => self.json_insert(plan, request),
             FamilyKind::Xml(_) => self.xml_insert(plan, request),
+            FamilyKind::Grammar(_) => self.grammar_insert(plan, request),
             FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_insert(plan, request),
             FamilyKind::Lines(_) => self.lines_insert(plan, request),
         }
@@ -432,6 +450,7 @@ impl Family {
             FamilyKind::Yaml(_) => self.yaml_remove(plan, element, removed),
             FamilyKind::Json(_) => self.json_remove(plan, element),
             FamilyKind::Xml(_) => self.xml_remove(plan, element),
+            FamilyKind::Grammar(_) => self.grammar_remove(plan, element),
             FamilyKind::Lines(_) => {
                 let entry = plan.reading.element(element).entry();
                 plan.add_span(Operation::RemoveEntry, self.entries[entry].removal_span(), "");

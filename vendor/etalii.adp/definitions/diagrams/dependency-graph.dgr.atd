@@ -1,0 +1,53 @@
+atd 0.1
+part of generic/dependencies
+
+// The dependency graph's .dgr body, in a part of its own (ATD §5.2, §9).
+
+/// The dependency graph's .dgr body (definitions/diagrams/dependency-graph.dis, dependency-graph.md): ADP's own YAML,
+/// read through FBL. A dependency is an element rule whose from and to are references by storedId, so a dependency
+/// whose end names no node is kept and reported by the definition's rules. Every rule reads the id as written as the
+/// host attribute storedId, and a dependency each end a second time as written, writtenFrom and writtenTo, for the
+/// rules that judge the ids as written. Every scalar is read as written. x and row are read as their text and
+/// converted as the tool converts them, so a value that will not read is 0 (DependencyGraphReading). There is no
+/// header, so a missing or other dependencies: line raises nothing. An entry that is not a mapping is read as
+/// Unreadable, kept and not drawn.
+binding dgr family yaml {
+  label "Dependency graph"
+  claims { extensions: [".dgr"], origins: ["generic/dependencies"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  registration { createOnFirstPlacement: false }
+
+  element Node as node at "/elements/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute storedId from key "id" { read: text readOnly: true }
+    attribute label from key "label" { read: text default: "" empty: keep }
+    attribute x from key "x" { read: text style: plain default: "" }
+    attribute row from key "row" { read: text style: plain default: "" }
+    insert { place: after-last, container: "/elements", create: { at: { before: relations } }, keys: [id, label, x, row] }
+    remove { cascade: [dependency] }
+  }
+
+  element Dependency as dependency at "/relations/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute storedId from key "id" { read: text readOnly: true }
+    attribute from from key "from" { references node by storedId read: text }
+    attribute to from key "to" { references node by storedId read: text }
+    attribute writtenFrom from key "from" { read: text default: "" readOnly: true }
+    attribute writtenTo from key "to" { read: text default: "" readOnly: true }
+    attribute label from key "label" { read: text default: "" empty: remove }
+    insert { place: after-last, container: "/relations", create: { at: end-of-document }, keys: [id, from, to, label] }
+    remove { container: keep }
+  }
+
+  element Unreadable as node-not-a-mapping at "/elements/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as dependency-not-a-mapping at "/relations/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  template "dependencies: 1\r\nelements: []\r\n"
+}

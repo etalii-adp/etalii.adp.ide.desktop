@@ -1,0 +1,112 @@
+atd 0.1
+
+/// Prefixes and labelled resources in Turtle: the `grammar` family of FBL 0.9 (FBL §4.9, ATD §11.9), whose binding
+/// carries Turtle's grammar (`w3c-turtle.lark` beside FBL's example, inline here) and maps the nodes of its parse tree
+/// to elements. A statement that does not parse is skipped to its `.`, with a finding at its line, and the rest of the
+/// body is read.
+diagram example/turtle-resources version "0.1.0" {
+  label "Turtle resources"
+
+  model {
+    element Prefix {
+      attribute name: string required
+      attribute iri: string required
+      labelAttribute: name
+    }
+    element Resource {
+      attribute label: string
+      labelAttribute: label
+    }
+  }
+
+  notation {
+    node Prefix { shape rect  label @name }
+    node Resource { shape roundedRect  label @label }
+  }
+
+  binding turtle family grammar {
+    label "Turtle"
+    claims { extensions: [".ttl"], origins: ["example/turtle-resources"] }
+    body { kind: file, start: turtle_doc, recover: { unit: statement, sync: ["."] } }
+    text { newline: lf, indent: 4, finalNewline: true }
+
+    grammar {
+      turtle_doc: statement*
+
+      statement: directive
+               | triples "." -> triples_statement
+
+      ?directive: prefix_id | base | sparql_prefix | sparql_base
+      prefix_id: "@prefix" PNAME_NS IRIREF "."
+      base: "@base" IRIREF "."
+      sparql_prefix: SPARQL_PREFIX PNAME_NS IRIREF
+      sparql_base: SPARQL_BASE IRIREF
+
+      triples: subject predicate_object_list
+             | blank_node_property_list [predicate_object_list]
+      predicate_object_list: predicate_object (";" [predicate_object])*
+      predicate_object: verb object_list
+      object_list: object ("," object)*
+      verb: iri
+          | "a"
+      subject: iri | blank_node | collection
+      object: iri | blank_node | collection | blank_node_property_list | literal
+      ?literal: rdf_literal | numeric_literal | boolean_literal
+      blank_node_property_list: "[" predicate_object_list "]"
+      collection: "(" object* ")"
+      numeric_literal: INTEGER | DECIMAL | DOUBLE
+      rdf_literal: string [LANGTAG | "^^" iri]
+      boolean_literal: "true" | "false"
+      string: STRING_LITERAL_QUOTE | STRING_LITERAL_SINGLE_QUOTE | STRING_LITERAL_LONG_SINGLE_QUOTE | STRING_LITERAL_LONG_QUOTE
+      iri: IRIREF | PNAME_LN | PNAME_NS
+      blank_node: BLANK_NODE_LABEL | ANON
+
+      SPARQL_PREFIX: /[Pp][Rr][Ee][Ff][Ii][Xx]/
+      SPARQL_BASE: /[Bb][Aa][Ss][Ee]/
+      IRIREF: /<([^<>"{}|^`\\ \t\n\r]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*>/
+      PNAME_NS: PN_PREFIX? ":"
+      PNAME_LN: PNAME_NS PN_LOCAL
+      BLANK_NODE_LABEL: "_:" (PN_CHARS_U | /[0-9]/) ((PN_CHARS | ".")* PN_CHARS)?
+      LANGTAG: /@[a-zA-Z]+(-[a-zA-Z0-9]+)*/
+      INTEGER: /[+-]?[0-9]+/
+      DECIMAL: /[+-]?[0-9]*\.[0-9]+/
+      DOUBLE: /[+-]?([0-9]+\.[0-9]*[eE][+-]?[0-9]+|\.[0-9]+[eE][+-]?[0-9]+|[0-9]+[eE][+-]?[0-9]+)/
+      STRING_LITERAL_QUOTE: /"([^"\\\n\r]|\\[tbnrf"'\\]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*"/
+      STRING_LITERAL_SINGLE_QUOTE: /'([^'\\\n\r]|\\[tbnrf"'\\]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*'/
+      STRING_LITERAL_LONG_SINGLE_QUOTE: /'''(('|'')?([^'\\]|\\[tbnrf"'\\]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}))*'''/
+      STRING_LITERAL_LONG_QUOTE: /"""(("|"")?([^"\\]|\\[tbnrf"'\\]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}))*"""/
+      ANON: /\[[ \t\r\n]*\]/
+
+      PN_CHARS_BASE: /[A-Za-zÀ-ÖØ-öø-˿Ͱ-ͽͿ-῿⁰-↏Ⰰ-⿯、-퟿豈-﷏ﷰ-�]/
+      PN_CHARS_U: PN_CHARS_BASE | "_"
+      PN_CHARS: PN_CHARS_U | /[-0-9·̀-ͯ‿-⁀]/
+      PN_PREFIX: PN_CHARS_BASE ((PN_CHARS | ".")* PN_CHARS)?
+      PN_LOCAL: (PN_CHARS_U | ":" | /[0-9]/ | PLX) ((PN_CHARS | "." | ":" | PLX)* (PN_CHARS | ":" | PLX))?
+      PLX: /%[0-9A-Fa-f]{2}|\\[_~.!$&'()*+,;=\/?#@%-]/
+
+      WS: /[ \t\r\n]+/
+      COMMENT: /#[^\r\n]*/
+
+      %ignore WS
+      %ignore COMMENT
+    }
+
+    element Prefix as prefix at "/statement/prefix_id" {
+      id from node "PNAME_NS"
+      attribute name from node "PNAME_NS" { match: r"(?<value>[^:]*):" }
+      attribute iri from node "IRIREF" { match: r"<(?<value>[^>]*)>" }
+    }
+
+    element Resource as resource at "/triples_statement" {
+      when (entry.children[0].children[0].children[0].type == "iri")
+      id from node "triples/subject"
+      attribute label from node "triples/predicate_object_list/predicate_object[verb='rdfs:label']/object_list/object/rdf_literal/string" {
+        match: r'"(?<value>(?:[^"\\]|\\.)*)"'
+      }
+      insert { place: after-last, emit: "{id} rdfs:label \"{label}\" ." }
+      remove {}
+    }
+
+    template "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+  }
+}

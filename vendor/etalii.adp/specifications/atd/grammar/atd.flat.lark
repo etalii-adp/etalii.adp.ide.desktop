@@ -29,7 +29,7 @@ word: NAME
     | "contains" | "context" | "convert" | "coordinates" | "create" | "datatype" | "default" | "defaults" | "delete"
     | "designer" | "diagram" | "doc" | "document" | "edge" | "editLabel" | "editor" | "element"
     | "enabled" | "entries" | "enum" | "extends" | "fail" | "family" | "field" | "files" | "filters" | "fix" | "fn"
-    | "fold" | "form" | "from" | "group" | "header" | "hierarchy" | "highlight" | "hook" | "icon" | "id"
+    | "fold" | "form" | "from" | "grammar" | "group" | "header" | "hierarchy" | "highlight" | "hook" | "icon" | "id"
     | "insert" | "into" | "item" | "label" | "labels" | "layout" | "levels" | "limit" | "line" | "many" | "marker"
     | "message" | "mid" | "model" | "move" | "node" | "notation" | "notes" | "notify" | "of" | "on" | "open"
     | "openForm" | "operation" | "ordered" | "outline" | "param" | "parent" | "part" | "persistence" | "place"
@@ -421,6 +421,8 @@ binding__binding_family: name -> binding__declared_family
                | "header" settings_block -> binding__header
                | "registration" settings_block -> binding__registration
                | "template" value -> binding__template
+               | "grammar" "{" grammar_text "}" -> binding__grammar_inline
+               | "grammar" "from" STRING -> binding__grammar_file
                | "block" binding__rule_name ["line" STRING] [settings_block] -> binding__block_rule
                | "section" binding__rule_name STRING [settings_block] -> binding__section_rule
                | binding__element_rule
@@ -458,6 +460,26 @@ binding__attribute_binding_block: "{" binding__attribute_binding_member* "}"
                          | doc_member
 
 // ---- notation.lark
+grammar_text: notation__grammar_item*
+?notation__grammar_item: KEY notation__grammar_alternatives -> notation__grammar_definition
+             | INLINE_HEAD notation__grammar_alternatives -> notation__grammar_inline_definition
+             | PRIORITY_HEAD notation__grammar_alternatives -> notation__grammar_terminal_definition
+             | "%ignore" NAME -> notation__grammar_ignore
+             | "%import" "." name ("." name)* "(" name ("," name)* ")" -> notation__grammar_import
+notation__grammar_alternatives: notation__grammar_alternative ("|" notation__grammar_alternative)*
+notation__grammar_alternative: notation__grammar_item_expression* ["->" NAME]
+?notation__grammar_item_expression: notation__grammar_atom
+                        | notation__grammar_atom "?" -> notation__grammar_optional
+                        | notation__grammar_atom "*" -> notation__grammar_star
+                        | notation__grammar_atom "+" -> notation__grammar_plus
+?notation__grammar_atom: "(" notation__grammar_alternatives ")"
+             | "[" notation__grammar_alternatives "]" -> notation__grammar_maybe
+             | NAME -> notation__grammar_reference
+             | STRING -> notation__grammar_string
+             | REGEXP -> notation__grammar_regexp
+INLINE_HEAD: /\?[a-z_][a-z0-9_]*[ \t]*:/
+PRIORITY_HEAD: /_?[A-Z][A-Z0-9_]*\.[0-9]+[ \t]*:/
+REGEXP: /\/([^\/\\\n\r*]|\\[^\n\r])([^\/\\\n\r]|\\[^\n\r])*\//
 
 %ignore WHITESPACE
 %ignore COMMENT

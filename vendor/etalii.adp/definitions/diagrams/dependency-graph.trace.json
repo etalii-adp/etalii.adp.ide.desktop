@@ -1,0 +1,118 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "generic/dependencies",
+  "description": "dependency-graph.atd",
+  "companion": {
+    "file": "dependency-graph.md",
+    "sections": [
+      "9. Known gaps and discrepancies",
+      "11. What remains in the module, and why",
+      "12. Language gaps"
+    ]
+  },
+  "items": [
+    {
+      "id": "9-known-gaps-and-discrepancies/1",
+      "text": "**The version marker is never read.**",
+      "statedBy": "binding dgr template"
+    },
+    {
+      "id": "9-known-gaps-and-discrepancies/2",
+      "text": "**An unreadable `x` or `row` becomes 0 without a problem**",
+      "statedBy": "model element Node attribute x default"
+    },
+    {
+      "id": "9-known-gaps-and-discrepancies/3",
+      "text": "**The property grid says reconnecting is done on the canvas**",
+      "statedBy": "notation edge DependsOn reconnectable"
+    },
+    {
+      "id": "9-known-gaps-and-discrepancies/4",
+      "text": "**There is no cycle rule**",
+      "statedBy": "model relation DependsOn"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/dependency-graph/src/ends.rs",
+      "lines": "17-46",
+      "behaviour": "`writtenEnd(relation, end)` reads the id an end is written with from the binding's host attributes `writtenFrom` and `writtenTo`, also when the end names no node, the empty text when the key is absent or empty.",
+      "statedBy": "fn writtenEnd"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/dependency-graph/src/lib.rs",
+      "lines": "66-76",
+      "behaviour": "A connect whose two ends are one node is refused as a whole with \"A node cannot depend on itself.\", as the standalone connect command refused it.",
+      "statedBy": "constraint noSelfDependency"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/dependency-graph/src/findings.rs",
+      "lines": "41-48",
+      "behaviour": "A finding names an element by the id the binding read into `storedId`, empty for an entry without one.",
+      "statedBy": "persistence typeMap"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/dependency-graph/src/findings.rs",
+      "lines": "51-99",
+      "behaviour": "The findings are sorted into two groups, the ids (`missing-id`, `duplicate-id`) and then the dependencies' ends (`dangling-relation`, `self-dependency`), within a group by the declaration's line and then by the order they arose; ids are located at their line and every other finding at its element; `fbl.duplicate-key` is reported first, as a warning at its line.",
+      "divergesFrom": "constraints order"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/dependency-graph/src/rows.rs",
+      "lines": "9-20",
+      "behaviour": "A row is 60 canvas units high; a node's top is `row × 60`, and a y becomes the nearest row, halves away from zero.",
+      "statedBy": "coordinates axis rows"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/dependency-graph/src/placement.rs",
+      "lines": "19-73",
+      "behaviour": "A node sits at its `x` and its row's top; a drag writes the dropped x and the nearest row; a point on empty canvas gives `x` and the nearest row for a new node; a relation is not moved.",
+      "statedBy": "notation node Node placement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/dependency-graph/src/theme.rs",
+      "lines": "13-23",
+      "behaviour": "In the dark theme the notation's surface, border, text and muted text take the standalone host's dark values (`#1E293B`, `#64748B`, `#F1F5F9`, `#94A3B8`); in the light theme the notation's own values stand.",
+      "statedBy": "notation theme modes"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-scene/src/scene/builder.rs",
+      "lines": "94-119",
+      "behaviour": "The route `net.etalii.adp.generic.dependencyCurve` is a horizontal bezier between the facing side anchors while the dependency sits clear to the right of its dependent, and a forward loop from the dependent's right side into the dependency's left side otherwise.",
+      "statedBy": "plugin net.etalii.adp.generic.dependencyCurve"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-scene/src/connectors.rs",
+      "lines": "96-144",
+      "behaviour": "The facing anchors of two boxes, the horizontal bezier between them, and the forward bezier that always leaves rightward and arrives from the left, reaching at least 40 or 0.6 of the span behind.",
+      "statedBy": "plugin net.etalii.adp.generic.dependencyCurve"
+    }
+  ]
+}

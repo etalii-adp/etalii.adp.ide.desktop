@@ -1,0 +1,716 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "api-gateway",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 270.43,
+        "y": 240,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "API gateway",
+          "font": "12 400",
+          "position": {
+            "x": 350.43,
+            "y": 262
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "checkout-web",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 8.07,
+        "y": 240,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Checkout web",
+          "font": "12 400",
+          "position": {
+            "x": 88.07,
+            "y": 262
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "identity-service",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 797.58,
+        "y": 240,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Identity service",
+          "font": "12 400",
+          "position": {
+            "x": 877.58,
+            "y": 262
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "inventory-service",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 811.18,
+        "y": 0,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Inventory service",
+          "font": "12 400",
+          "position": {
+            "x": 891.18,
+            "y": 22
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "message-broker",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 807.87,
+        "y": -240,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "RabbitMQ broker",
+          "font": "12 400",
+          "position": {
+            "x": 887.87,
+            "y": -218
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "notification-service",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 419.92,
+        "y": -240,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Notification service",
+          "font": "12 400",
+          "position": {
+            "x": 499.92,
+            "y": -218
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "order-service",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 520,
+        "y": 120,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Order service",
+          "font": "12 400",
+          "position": {
+            "x": 600,
+            "y": 142
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "orders-db",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 1080,
+        "y": 120,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Orders database",
+          "font": "12 400",
+          "position": {
+            "x": 1160,
+            "y": 142
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "payment-service",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 811.18,
+        "y": -120,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Payment service",
+          "font": "12 400",
+          "position": {
+            "x": 891.18,
+            "y": -98
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "payments-db",
+      "type": "Node",
+      "shape": "path",
+      "bounds": {
+        "x": 1091.85,
+        "y": -60,
+        "w": 160,
+        "h": 36
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Payments database",
+          "font": "12 400",
+          "position": {
+            "x": 1171.85,
+            "y": -38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#8892A6",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "r-gateway-identity",
+      "type": "DependsOn",
+      "source": "api-gateway",
+      "target": "identity-service",
+      "route": [
+        {
+          "x": 430.43,
+          "y": 258
+        },
+        {
+          "x": 797.58,
+          "y": 258
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "verifies tokens with",
+          "font": "11 400",
+          "position": {
+            "x": 614.01,
+            "y": 252
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-gateway-orders",
+      "type": "DependsOn",
+      "source": "api-gateway",
+      "target": "order-service",
+      "route": [
+        {
+          "x": 430.43,
+          "y": 258
+        },
+        {
+          "x": 520,
+          "y": 138
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "routes to",
+          "font": "11 400",
+          "position": {
+            "x": 475.21,
+            "y": 192
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-inventory-db",
+      "type": "DependsOn",
+      "source": "inventory-service",
+      "target": "orders-db",
+      "route": [
+        {
+          "x": 971.18,
+          "y": 18
+        },
+        {
+          "x": 1080,
+          "y": 138
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-notify-broker",
+      "type": "DependsOn",
+      "source": "notification-service",
+      "target": "message-broker",
+      "route": [
+        {
+          "x": 579.92,
+          "y": -222
+        },
+        {
+          "x": 807.87,
+          "y": -222
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "consumes from",
+          "font": "11 400",
+          "position": {
+            "x": 693.89,
+            "y": -228
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-orders-broker",
+      "type": "DependsOn",
+      "source": "order-service",
+      "target": "message-broker",
+      "route": [
+        {
+          "x": 680,
+          "y": 138
+        },
+        {
+          "x": 807.87,
+          "y": -222
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "publishes to",
+          "font": "11 400",
+          "position": {
+            "x": 743.93,
+            "y": -48
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-orders-db",
+      "type": "DependsOn",
+      "source": "order-service",
+      "target": "orders-db",
+      "route": [
+        {
+          "x": 680,
+          "y": 138
+        },
+        {
+          "x": 1080,
+          "y": 138
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-orders-identity",
+      "type": "DependsOn",
+      "source": "order-service",
+      "target": "identity-service",
+      "route": [
+        {
+          "x": 680,
+          "y": 138
+        },
+        {
+          "x": 797.58,
+          "y": 258
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-orders-inventory",
+      "type": "DependsOn",
+      "source": "order-service",
+      "target": "inventory-service",
+      "route": [
+        {
+          "x": 680,
+          "y": 138
+        },
+        {
+          "x": 811.18,
+          "y": 18
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "reserves through",
+          "font": "11 400",
+          "position": {
+            "x": 745.59,
+            "y": 72
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-orders-payment",
+      "type": "DependsOn",
+      "source": "order-service",
+      "target": "payment-service",
+      "route": [
+        {
+          "x": 680,
+          "y": 138
+        },
+        {
+          "x": 811.18,
+          "y": -102
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "authorises through",
+          "font": "11 400",
+          "position": {
+            "x": 745.59,
+            "y": 12
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-payment-db",
+      "type": "DependsOn",
+      "source": "payment-service",
+      "target": "payments-db",
+      "route": [
+        {
+          "x": 971.18,
+          "y": -102
+        },
+        {
+          "x": 1091.85,
+          "y": -42
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "r-web-gateway",
+      "type": "DependsOn",
+      "source": "checkout-web",
+      "target": "api-gateway",
+      "route": [
+        {
+          "x": 168.07,
+          "y": 258
+        },
+        {
+          "x": 270.43,
+          "y": 258
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "calls",
+          "font": "11 400",
+          "position": {
+            "x": 219.25,
+            "y": 252
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#5A6376",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "r-web-gateway",
+    "r-gateway-identity",
+    "r-gateway-orders",
+    "r-orders-identity",
+    "r-orders-payment",
+    "r-orders-inventory",
+    "r-orders-db",
+    "r-orders-broker",
+    "r-payment-db",
+    "r-inventory-db",
+    "r-notify-broker",
+    "checkout-web",
+    "api-gateway",
+    "identity-service",
+    "order-service",
+    "notification-service",
+    "payment-service",
+    "inventory-service",
+    "payments-db",
+    "orders-db",
+    "message-broker"
+  ]
+}

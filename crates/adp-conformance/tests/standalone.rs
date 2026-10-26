@@ -58,6 +58,10 @@ const STANDALONE_FIXTURES: [&str; 21] = [
     "timeline-written-text",
 ];
 
+/// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
+/// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
+const GRAMMAR_FIXTURES: [&str; 2] = ["w3c-turtle-grammar", "w3c-turtle-grammar-partial"];
+
 /// The fixtures the library departs from, which [`the_yaml_family_departs_from_the_fixture_only_as_recorded`] and
 /// [`the_json_family_departs_from_the_fixture_only_as_recorded`] run with the departure written out, as the
 /// standalone host's `InsertEmptyFixturesTests.Departing` does: FBL 0.6 section 6.2 applies each attribute binding's
@@ -817,6 +821,7 @@ fn every_vendored_fixture_is_run_or_named_as_not_supported() {
     let known: HashSet<&str> = STANDALONE_FIXTURES
         .iter()
         .chain(KNOWLEDGE_FIXTURES.iter())
+        .chain(GRAMMAR_FIXTURES.iter())
         .chain(NOT_SUPPORTED.iter())
         .copied()
         .chain(designer.iter().map(String::as_str))
@@ -873,6 +878,19 @@ fn every_fixture_the_standalone_host_passes_passes() {
         failures.join("\n\n")
     );
     assert!(steps > 100, "only {steps} steps were run");
+}
+
+#[test]
+fn the_grammar_family_fixtures_pass() {
+    let mut failures = Vec::new();
+    for name in GRAMMAR_FIXTURES {
+        let folder = fixture_folder(name);
+        let fixture = read_json(&folder.join("fixture.json"));
+        if let Err(problem) = run(name, &folder, &fixture) {
+            failures.push(problem);
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n\n"));
 }
 
 /// The runner fails on a fixture whose reading names a typed value where a text is read (Requirement 5.5).

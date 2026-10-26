@@ -218,6 +218,21 @@ pub fn build_with_options(
     finish(root, &root_text, start, named, Some(Modules(modules)), options)
 }
 
+/// The text of a grammar written inside a description, its lines without the indentation they all share: the notation
+/// reads definitions from the start of a line, and a binding's `grammar { … }` holds them indented (ATD §11.9).
+pub fn dedent(text: &str) -> String {
+    let indent = text
+        .lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|l| l.len() - l.trim_start().len())
+        .min()
+        .unwrap_or(0);
+    text.lines()
+        .map(|l| if l.trim().is_empty() { "" } else { &l[indent..] })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 /// Builds a grammar of one module, as a binding carries one (ATD §11.9).
 pub fn build_single(text: &str, start: &str) -> Result<Built, BuildError> {
     let module = read("grammar", text)?;

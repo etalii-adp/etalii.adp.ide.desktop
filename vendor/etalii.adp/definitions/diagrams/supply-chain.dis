@@ -1,37 +1,85 @@
 {
-  "$schema": "https://etalii.net/adp/disl/schema/0.1/disl.schema.json#/$defs/Specification",
-  "disl": "0.1",
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.3",
   "language": {
     "id": "net.etalii.adp.etalii.supply-chain",
-    "version": "0.1.0",
+    "version": "0.2.0",
+    "origin": "etalii/supply-chain",
     "label": "Supply chain diagram",
     "doc": {
       "summary": "Where things come from and where they go: sources, processors, producers, integrators, hubs, outlets and consumers in their regions, the flows between them with their volumes, and the whole chain up and down from whatever is selected.",
-      "description": "A supply chain diagram follows goods - or energy, data or services - from where they start to where they are used. Every **node** is one of seven **stages** - source, processor, producer, integrator, hub, outlet, consumer - which name roles rather than industries, and may state a **quantity** (a capacity, a stock, a demand) in a **unit** of its own. A **flow** carries a **product** from a supplying node to a consuming one, with a **volume** in a unit of its own; its band is as broad as its volume relative to the heaviest flow counted in the same unit. **Groups** - a region, a company, a tier - are frames drawn around their members, joined by dragging a node inside one.\n\nSelecting a node, a flow or a group traces the chain through it: everything that supplies it, directly or not, is marked upstream, everything it supplies downstream, and the rest is dimmed. A selected node's quantity or flow's volume steps up and down in place, by a step each element states, never below zero. Nodes the document does not place are arranged left to right along the flows.",
+      "description": "A supply chain diagram follows goods - or energy, data or services - from where they start to where they are used. Every **node** is at one of seven **stages** - source, processor, producer, integrator, hub, outlet, consumer - which name roles rather than industries, and may state a **quantity** (a capacity, a stock, a demand) in a **unit** of its own. A **flow** carries a **product** from a supplying node to a consuming one, with a **volume** in a unit of its own; its band is as broad as its volume relative to the heaviest flow counted in the same unit. **Groups** - a region, a company, a tier - are frames drawn around the nodes that name them, joined by dragging a node inside one.\n\nSelecting a node, a flow or a group traces the chain through it: everything that supplies it, directly or not, is marked upstream, everything it supplies downstream, and the rest is dimmed. A selected node's quantity or flow's volume steps up and down in place, by a step each element states, never below zero. Nodes the document does not place are arranged left to right along the flows.\n\nEverything this specification cannot say (the layout, the reader's own sentences, the order of the findings, what a drag into a frame does, the band with its moving goods) is written down beside it in `supply-chain.md`. What the standalone tool calls each palette entry, menu entry and property row is in the `x-supply-chain` block.",
       "rationale": "A generic diagram shows that two plants are connected; a supply chain diagram shows how much moves between them and what else depends on it, which is the question a supply chain is read for.",
       "tags": ["supply chain", "logistics", "flows", "value chain", "dependencies"],
       "audience": ["user", "author"],
       "seeAlso": [
-        { "title": "Aspects DISL cannot express", "href": "supply-chain.md" },
-        { "title": "Standalone module", "href": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/supply-chain" },
+        { "title": "What DISL cannot express about this diagram type", "href": "https://github.com/etalii-adp/etalii.adp/blob/develop/definitions/diagrams/supply-chain.md" },
+        { "title": "The standalone implementation", "href": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/supply-chain" },
         { "title": "Inspiration: the yFiles supply chain showcase", "href": "https://www.yfiles.com/demos/showcase/supply-chain/" }
       ]
     },
     "defaultLocale": "en",
     "authors": [{ "name": "Peter Vrenken" }],
     "license": "Apache-2.0",
-    "icon": "mdi:truck-delivery-outline",
+    "homepage": "https://etalii.net/adp",
+    "icon": "mdi-truck-delivery-outline",
     "fileExtension": "supply",
-    "requires": { "conformance": "standard" }
+    "requires": { "conformance": "standard", "features": ["persist.yaml"] }
+  },
+
+  "plugins": {
+    "net.etalii.adp.etalii.supplyChainLayers": {
+      "version": "^1.0.0",
+      "provides": ["layout"],
+      "required": false,
+      "fallback": { "layout": "layered" },
+      "doc": "The banded layered layout of supply-chain.md, section 'Layout', behind the automatic layout and Arrange diagram. The standalone module implements it as `SupplyChainLayout`, computed once per reading of the model."
+    },
+    "net.etalii.adp.etalii.supplyChainWritten": {
+      "version": "^1.0.0",
+      "provides": ["celFunctions"],
+      "required": false,
+      "doc": "What a rule reads that DISL's CEL cannot: the text a key of an entry is written with, also when it names nothing, and whether an earlier entry holds an element's id, with groups read before nodes and nodes before flows. The standalone module implements both over its own reading (`SupplyChainWritten`).",
+      "celFunctions": [
+        {
+          "name": "written",
+          "params": [ { "name": "element", "type": "dyn" }, { "name": "key", "type": "string" } ],
+          "returns": "string",
+          "cost": 1,
+          "fallback": "key == 'id' ? element.id : (key == 'from' ? (has(element.source) ? element.source.id : '') : (key == 'to' ? (has(element.target) ? element.target.id : '') : (key == 'group' ? (has(element.group) ? element.group.id : '') : (key == 'type' ? element.stage : ''))))",
+          "doc": "The text the entry's `key` is written with in the file - `id`, `from`, `to`, `group` or `type` - as written, also when it names no element and the model's reference or end is unset (a flow to a node that is not there, a node in a group that is not there), and a legacy stage word as it stands; the empty text when the key is absent. The fallback reads the model, which knows only what resolves."
+        },
+        {
+          "name": "laterHolder",
+          "params": [ { "name": "element", "type": "dyn" } ],
+          "returns": "bool",
+          "cost": 10,
+          "fallback": "false",
+          "doc": "Whether an entry earlier in the tool's order holds the id this entry is written with: groups first, then nodes, then flows, each list in the order of the file, so that ids are one space across the three. A later holder is reported and not drawn, and the first holder is the one an edit finds. Without the plugin no holder is later, and the identity rule of DISL 11.5.4 applies."
+        }
+      ]
+    }
   },
 
   "functions": {
+    "stageLabel": {
+      "params": [{ "name": "s", "type": "string" }],
+      "returns": "string",
+      "cel": "s in ['source', 'processor', 'producer', 'integrator', 'hub', 'outlet', 'consumer'] ? enumLabel('StageKind', s) : s",
+      "doc": "The stage as a reader names it, and as the card's header shows it in capitals: the enumeration's label, or the word as written for a stage this diagram does not know."
+    },
+    "nameOf": {
+      "params": [{ "name": "e", "type": "Element" }],
+      "returns": "string",
+      "cel": "e.name != '' ? e.name : written(e, 'id')",
+      "doc": "What a card or a frame shows as its name, and what the Group row offers: the name, or the id as written when it states none."
+    },
     "uniqueName": {
       "params": [{ "name": "base", "type": "string" }],
       "returns": "string",
       "uses": ["diagram"],
       "cel": "!diagram.nodesOfType('Stage').exists(n, n.name == base) ? base : base + ' ' + string(lists.range(diagram.nodes.size() + 2).filter(i, i >= 2 && !diagram.nodesOfType('Stage').exists(n, n.name == base + ' ' + string(i)))[0])",
-      "doc": "The name itself when no node carries it yet, otherwise the name followed by the lowest number from 2 up that makes it unique among the nodes (\"New processor\", \"New processor 2\")."
+      "doc": "The name itself when no node carries it yet, otherwise the name followed by the lowest number from 2 up that makes it unique among the nodes' names (\"New processor\", \"New processor 2\")."
     },
     "uniqueGroupName": {
       "params": [{ "name": "base", "type": "string" }],
@@ -40,23 +88,44 @@
       "cel": "!diagram.nodesOfType('Group').exists(g, g.name == base) ? base : base + ' ' + string(lists.range(diagram.nodes.size() + 2).filter(i, i >= 2 && !diagram.nodesOfType('Group').exists(g, g.name == base + ' ' + string(i)))[0])",
       "doc": "As uniqueName, among the groups' names (\"New group\", \"New group 2\")."
     },
-    "stageLabel": {
-      "params": [{ "name": "type", "type": "string" }],
-      "returns": "string",
-      "cel": "{'Source': 'Source', 'Processor': 'Processor', 'Producer': 'Producer', 'Integrator': 'Integrator', 'Hub': 'Hub', 'Outlet': 'Outlet', 'Consumer': 'Consumer'}[type]",
-      "doc": "The stage as a reader names it, and as the card's header shows it in capitals."
+    "groupChoices": {
+      "params": [],
+      "returns": "list",
+      "uses": ["diagram"],
+      "cel": "cel.bind(names, diagram.nodesOfType('Group').filter(g, written(g, 'id') != '').map(g, nameOf(g)), ['(none)'] + lists.range(names.size()).filter(i, !lists.range(i).exists(j, names[j] == names[i])).map(i, names[i]))",
+      "doc": "What the Group row offers: (none), then the names of the groups that have an id, each once, in the order of the file."
     },
-    "stageToken": {
-      "params": [{ "name": "type", "type": "string" }],
-      "returns": "string",
-      "cel": "{'Source': 'color.supply.source', 'Processor': 'color.supply.processor', 'Producer': 'color.supply.producer', 'Integrator': 'color.supply.integrator', 'Hub': 'color.supply.hub', 'Outlet': 'color.supply.outlet', 'Consumer': 'color.supply.consumer'}[type]",
-      "doc": "The theme token of a stage's colour, which its card's header and share bar carry."
+    "groupNamed": {
+      "params": [{ "name": "name", "type": "string" }],
+      "returns": "dyn",
+      "uses": ["diagram"],
+      "cel": "diagram.nodesOfType('Group').filter(g, written(g, 'id') != '' && !laterHolder(g) && nameOf(g) == name)",
+      "doc": "The groups a name chosen in the Group row picks: a person picks \"Taiwan\", the document keeps the id, so a renamed group keeps its members."
+    },
+    "members": {
+      "params": [{ "name": "g", "type": "Element" }],
+      "returns": "list",
+      "uses": ["diagram"],
+      "cel": "diagram.nodesOfType('Stage').filter(n, written(g, 'id') != '' && written(n, 'group') == written(g, 'id'))",
+      "doc": "The nodes that name a group by its id."
     },
     "stepOf": {
       "params": [{ "name": "e", "type": "Element" }],
       "returns": "double",
       "cel": "has(e.step) && e.step > 0.0 ? e.step : 1.0",
-      "doc": "How much one increment adds: the element's own step, or 1 when it states none."
+      "doc": "How much one increment adds: the element's own step, or 1 when it states none, or one that is not above zero."
+    },
+    "rowNumber": {
+      "params": [{ "name": "v", "type": "double" }],
+      "returns": "string",
+      "cel": "formatNumber(v, '0.####')",
+      "doc": "A number as a property row shows it and the document writes it: at most four decimals, none when whole, no grouping, in the invariant culture."
+    },
+    "readsAsAmount": {
+      "params": [{ "name": "t", "type": "string" }],
+      "returns": "bool",
+      "cel": "t.trim().matches('^[+]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$')",
+      "doc": "Whether typed text reads as a finite number of zero or more in the invariant culture."
     },
     "formatAmount": {
       "params": [{ "name": "v", "type": "double" }],
@@ -68,141 +137,168 @@
       "params": [{ "name": "f", "type": "Element" }],
       "returns": "double",
       "uses": ["diagram"],
-      "cel": "cel.bind(heaviest, diagram.relationsOfType('Flow').filter(o, o.unit == f.unit).map(o, o.volume).max(), 3.0 + math.round(clamp(heaviest > 0.0 ? f.volume / heaviest : 0.0, 0.0, 1.0) * 15.0))",
+      "cel": "cel.bind(heaviest, math.greatest([0.0] + diagram.relationsOfType('Flow').filter(o, o.unit == f.unit && has(o.volume)).map(o, o.volume)), 3.0 + math.round(clamp(heaviest > 0.0 && has(f.volume) ? f.volume / heaviest : 0.0, 0.0, 1.0) * 15.0))",
       "doc": "A flow's band width in canvas units, from 3 for nothing to 18 for the heaviest flow counted in the same unit: tonnes of ore are compared with tonnes, cars with cars."
     },
     "quantityShare": {
       "params": [{ "name": "n", "type": "Element" }],
       "returns": "double",
       "uses": ["diagram"],
-      "cel": "!has(n.quantity) ? 0.0 : cel.bind(largest, diagram.nodesOfType('Stage').filter(o, has(o.quantity) && o.unit == n.unit).map(o, o.quantity).max(), largest > 0.0 ? math.least(1.0, n.quantity / largest) : 0.0)",
+      "cel": "!has(n.quantity) ? 0.0 : cel.bind(largest, math.greatest([0.0] + diagram.nodesOfType('Stage').filter(o, has(o.quantity) && o.unit == n.unit).map(o, o.quantity)), largest > 0.0 ? math.least(1.0, n.quantity / largest) : 0.0)",
       "doc": "A node's quantity as a share of the largest quantity among the nodes counting the same unit, for the bar along the foot of its card."
+    },
+    "selection": {
+      "params": [],
+      "returns": "list",
+      "uses": ["diagram"],
+      "cel": "diagram.nodes.filter(e, e.view.selected) + diagram.relationsOfType('Flow').filter(e, e.view.selected)",
+      "doc": "What the viewer has selected (view.selected, 12.2): at most one element for the trace, the first of these."
+    },
+    "upFrom": {
+      "params": [{ "name": "s", "type": "Element" }],
+      "returns": "list",
+      "uses": ["diagram"],
+      "cel": "s.isA('Flow') ? (has(s.source) ? [s.source] : []) : (s.isA('Group') ? members(s) : [s])",
+      "doc": "What the upstream walk starts from: a node itself, a flow's supplier, a group's members."
+    },
+    "downFrom": {
+      "params": [{ "name": "s", "type": "Element" }],
+      "returns": "list",
+      "uses": ["diagram"],
+      "cel": "s.isA('Flow') ? (has(s.target) ? [s.target] : []) : (s.isA('Group') ? members(s) : [s])",
+      "doc": "What the downstream walk starts from: a node itself, a flow's consumer, a group's members."
+    },
+    "nodeTrace": {
+      "params": [{ "name": "n", "type": "Element" }, { "name": "s", "type": "Element" }],
+      "returns": "string",
+      "uses": ["diagram"],
+      "cel": "n == s || (!s.isA('Flow') && n in upFrom(s)) ? 'selected' : (upFrom(s).exists(u, u in n.reachable('Flow')) || (s.isA('Flow') && n in upFrom(s)) ? 'upstream' : (downFrom(s).exists(d, n in d.reachable('Flow')) || (s.isA('Flow') && n in downFrom(s)) ? 'downstream' : 'dimmed'))",
+      "doc": "A node's mark while `s` is selected: selected when it is what the walks start from (a selected node, a selected group's members); upstream when it supplies a start, directly or not, and a selected flow's supplier; downstream when a start supplies it, and a selected flow's consumer; dimmed otherwise. A node reached both ways keeps upstream, the walk that runs first."
+    },
+    "traceOf": {
+      "params": [{ "name": "e", "type": "Element" }],
+      "returns": "string",
+      "uses": ["diagram"],
+      "cel": "cel.bind(sel, selection(), sel.size() == 0 ? '' : cel.bind(s, sel[0], e == s ? 'selected' : (e.isA('Stage') ? nodeTrace(e, s) : (e.isA('Flow') ? (has(e.target) && (e.target in upFrom(s) || upFrom(s).exists(u, u in e.target.reachable('Flow'))) ? 'upstream' : (has(e.source) && (e.source in downFrom(s) || downFrom(s).exists(d, e.source in d.reachable('Flow'))) ? 'downstream' : 'dimmed')) : (members(e).exists(m, nodeTrace(m, s) != 'dimmed') ? 'related' : 'dimmed')))))",
+      "doc": "The element's marking while something in this diagram is selected: 'selected', 'upstream' (it supplies the selection, directly or not), 'downstream' (the selection supplies it), 'related' (a group with a member on the chain) or 'dimmed' (off the chain); '' when nothing is selected. Per viewer, never stored. A flow is upstream when it runs into what the upstream walk reached and downstream when it runs out of what the downstream walk reached. Rules in supply-chain.md, section 'The trace'."
     }
   },
 
   "metamodel": {
-    "doc": "Seven node types, one per stage, under the abstract Stage; one container type, Group; and one relation type, Flow. A stage node is drawn inside at most one group; a flow runs from one stage node to another.",
+    "doc": "One node type, Stage, whose stage is an attribute; one node type for frames, Group, which a node names by its id rather than contains; and one relation type, Flow. Groups do not nest and are never containers: a frame is drawn around the nodes that name it.",
     "diagram": {
-      "doc": "A supply chain diagram has no diagram-level attributes. The document's version header and any keys it does not model are kept verbatim (see supply-chain.md)."
+      "doc": "A supply chain diagram has no diagram-level attributes. The document's version header and any keys it does not model are kept as they are, beside the model (supply-chain.md)."
+    },
+    "enums": {
+      "StageKind": {
+        "label": "Stage",
+        "doc": "The seven stages, in the order goods pass through them. Each carries its colour, which the card's header and share bar take. The file also reads six older words as the stage each became (raw-material, supplier, manufacturer, assembler, distributor, retailer), which the binding maps; a word that is none of these is kept as written, reported by the reader and not drawn.",
+        "values": {
+          "source": { "label": "Source", "color": { "token": "color.supply.source" }, "icon": "mdi-tray-arrow-up", "doc": "Where something enters the chain: a mine, a well, a farm, a data feed." },
+          "processor": { "label": "Processor", "color": { "token": "color.supply.processor" }, "icon": "mdi-cog-outline", "doc": "Turns what it receives into material others can use." },
+          "producer": { "label": "Producer", "color": { "token": "color.supply.producer" }, "icon": "mdi-factory", "doc": "Makes the parts or components something is built from." },
+          "integrator": { "label": "Integrator", "color": { "token": "color.supply.integrator" }, "icon": "mdi-puzzle-outline", "doc": "Combines parts into the finished whole." },
+          "hub": { "label": "Hub", "color": { "token": "color.supply.hub" }, "icon": "mdi-hub-outline", "doc": "Holds and moves what is finished on to where it is wanted." },
+          "outlet": { "label": "Outlet", "color": { "token": "color.supply.outlet" }, "icon": "mdi-storefront-outline", "doc": "Where the finished whole is offered to those who use it." },
+          "consumer": { "label": "Consumer", "color": { "token": "color.supply.consumer" }, "icon": "mdi-account-outline", "doc": "Where the chain ends: whoever uses what it delivers." }
+        }
+      }
     },
     "types": {
       "Stage": {
-        "abstract": true,
+        "label": "Node",
+        "icon": "mdi-tray-arrow-up",
+        "labelAttribute": "name",
         "doc": {
           "summary": "One stage of the chain: a source, a processor, a producer, an integrator, a hub, an outlet, a consumer.",
-          "description": "Which stage a node is is its type. Every stage carries the same attributes; only its header colour and title differ. The stage can be changed afterwards, which retypes the node and keeps every attribute and flow."
+          "description": "Every stage carries the same attributes; only its header colour and title differ. The stage can be changed afterwards, which changes the one `type` key and keeps every attribute and flow."
         },
-        "labelAttribute": "name",
         "attributes": {
+          "stage": {
+            "type": "StageKind",
+            "label": "Stage",
+            "group": "Identity",
+            "order": 0,
+            "doc": "Which of the seven stages the node is. Written in the document as `type`; a change writes the stage's current word, also over an older one."
+          },
           "name": {
             "type": "string",
             "label": "Name",
+            "default": "",
             "group": "Identity",
-            "order": 0,
-            "doc": "Drawn on the card under the stage's title, editable in place. When empty, the card shows the node's id."
+            "order": 1,
+            "doc": "Drawn on the card under the stage's title, editable in place. When empty, the card shows the node's id. Kept in the document also when empty."
+          },
+          "group": {
+            "type": "Group",
+            "label": "Group",
+            "group": "Identity",
+            "order": 2,
+            "doc": "The group the node is drawn inside, named by the group's id; at most one, and groups do not nest. A node whose group names no group is drawn outside every group and reported. Removing the group unsets it (references: unset), which removes the key and leaves the node where it is."
           },
           "description": {
             "type": "text",
             "label": "Description",
             "markup": "plain",
+            "default": "",
             "group": "Identity",
-            "order": 1,
-            "doc": "Prose about the node. Kept in the document and shown in the property grid, never drawn."
+            "order": 3,
+            "doc": "Prose about the node. Kept in the document and shown in the property grid, never drawn. An empty description removes the key."
           },
           "quantity": {
             "type": "number",
             "label": "Quantity",
             "group": "Amount",
-            "order": 2,
+            "order": 4,
             "doc": {
               "summary": "The node's own value - a capacity, a stock, a demand - or nothing.",
-              "description": "Shown large on the card with its unit, and as a bar for its share of the largest quantity in the same unit. A node without one shows a dash. The + and - step it, never below zero; an edit refuses a negative value."
+              "description": "Shown large on the card with its unit, and as a bar for its share of the largest quantity in the same unit. A node without one shows a dash. The + and - step it, never below zero; an edit refuses a negative value, and an empty one removes the key."
             }
           },
           "unit": {
             "type": "string",
             "label": "Unit",
+            "default": "",
             "group": "Amount",
-            "order": 3,
+            "order": 5,
             "doc": "What the quantity counts, free text such as kt LCE or million vehicles. Bars compare only nodes with the same unit."
           },
           "step": {
             "type": "number",
             "label": "Step",
             "group": "Amount",
-            "order": 4,
-            "doc": "How much one + or - changes the quantity. Unset means 1; zero and negative values are refused."
+            "order": 6,
+            "doc": "How much one + or - changes the quantity. Unset means 1; zero and negative values are refused by an edit."
+          },
+          "x": {
+            "type": "number",
+            "label": "X",
+            "group": "Position",
+            "order": 7,
+            "doc": "The left of the card, in whole canvas units. The card is placed by the document only when both x and y are written; otherwise the layout places it."
+          },
+          "y": {
+            "type": "number",
+            "label": "Y",
+            "group": "Position",
+            "order": 8,
+            "doc": "The top of the card; see x."
           }
         }
       },
-      "Source": {
-        "extends": "Stage",
-        "label": "Source",
-        "icon": "mdi:tray-arrow-up",
-        "doc": "Where something enters the chain: a mine, a well, a farm, a data feed.",
-        "tags": ["origin", "extraction", "input"],
-        "x-supplyChain": { "documentType": "source", "legacyDocumentTypes": ["raw-material"] }
-      },
-      "Processor": {
-        "extends": "Stage",
-        "label": "Processor",
-        "icon": "mdi:cog-outline",
-        "doc": "Turns what it receives into material others can use.",
-        "tags": ["refining", "processing", "conversion"],
-        "x-supplyChain": { "documentType": "processor", "legacyDocumentTypes": ["supplier"] }
-      },
-      "Producer": {
-        "extends": "Stage",
-        "label": "Producer",
-        "icon": "mdi:factory",
-        "doc": "Makes the parts or components something is built from.",
-        "tags": ["plant", "components", "production"],
-        "x-supplyChain": { "documentType": "producer", "legacyDocumentTypes": ["manufacturer"] }
-      },
-      "Integrator": {
-        "extends": "Stage",
-        "label": "Integrator",
-        "icon": "mdi:puzzle-outline",
-        "doc": "Combines parts into the finished whole.",
-        "tags": ["assembly", "integration"],
-        "x-supplyChain": { "documentType": "integrator", "legacyDocumentTypes": ["assembler"] }
-      },
-      "Hub": {
-        "extends": "Stage",
-        "label": "Hub",
-        "icon": "mdi:hub-outline",
-        "doc": "Holds and moves what is finished on to where it is wanted.",
-        "tags": ["distribution", "warehouse", "logistics"],
-        "x-supplyChain": { "documentType": "hub", "legacyDocumentTypes": ["distributor"] }
-      },
-      "Outlet": {
-        "extends": "Stage",
-        "label": "Outlet",
-        "icon": "mdi:storefront-outline",
-        "doc": "Where the finished whole is offered to those who use it.",
-        "tags": ["shop", "channel", "point of sale"],
-        "x-supplyChain": { "documentType": "outlet", "legacyDocumentTypes": ["retailer"] }
-      },
-      "Consumer": {
-        "extends": "Stage",
-        "label": "Consumer",
-        "icon": "mdi:account-outline",
-        "doc": "Where the chain ends: whoever uses what it delivers.",
-        "tags": ["customer", "user", "market"],
-        "x-supplyChain": { "documentType": "consumer" }
-      },
       "Group": {
         "label": "Group",
-        "icon": "mdi:group",
+        "icon": "mdi-group",
         "labelAttribute": "name",
         "doc": {
-          "summary": "A region, a company or a tier the nodes inside it belong to.",
-          "description": "Drawn as a frame around its members: it follows them, and moving it moves them all. A node joins a group by being dragged inside its frame. A group with no members is drawn where its own x and y place it, as large as the frame around one node; without them it draws nothing. Removing a group keeps its members, ungrouped."
+          "summary": "A region, a company or a tier the nodes that name it belong to.",
+          "description": "Drawn as a frame around its members: it follows them, and moving it moves them all. A node joins a group by being dragged inside its frame. A group with no members is drawn where its own x and y place it, as large as the frame around one node; without them it draws nothing. Removing a group keeps its members where they are, ungrouped."
         },
         "attributes": {
           "name": {
             "type": "string",
             "label": "Name",
+            "default": "",
             "group": "Identity",
             "order": 0,
             "doc": "The frame's title, editable in place. When empty, the frame shows the group's id."
@@ -211,6 +307,7 @@
             "type": "text",
             "label": "Description",
             "markup": "plain",
+            "default": "",
             "group": "Identity",
             "order": 1,
             "doc": "Prose about the group, shown in the property grid only."
@@ -220,7 +317,7 @@
             "label": "X",
             "group": "Position",
             "order": 2,
-            "doc": "The left of the frame while the group has no members, not shown in the property grid (the group form omits it), written when a group is dropped from the palette, when its last member leaves it and when an empty group is dragged. A group with members is drawn around them and ignores it."
+            "doc": "The left of the frame while the group has no members, not shown in the property grid; written when a group is dropped from the palette, when its last member leaves it and when an empty group is dragged. A group with members is drawn around them and ignores it."
           },
           "y": {
             "type": "number",
@@ -229,20 +326,13 @@
             "order": 3,
             "doc": "The top of the frame while the group has no members; see x."
           }
-        },
-        "children": {
-          "allowed": ["Stage"],
-          "min": 0,
-          "max": null,
-          "doc": "Membership. A node is in at most one group, and groups do not nest."
-        },
-        "x-supplyChain": { "documentType": "group" }
+        }
       }
     },
     "relations": {
       "Flow": {
         "label": "Flow",
-        "icon": "mdi:arrow-right-thin",
+        "icon": "mdi-arrow-right-thin",
         "doc": {
           "summary": "Goods moving from a supplying node to a consuming one.",
           "description": "Any stage may supply any other; the stages name roles, not an order the flows must keep, and goods may come back round. Two flows between the same pair in the same direction are never drawn by hand, while a flow each way is allowed."
@@ -256,6 +346,7 @@
           "product": {
             "type": "string",
             "label": "Product",
+            "default": "",
             "group": "Identity",
             "order": 0,
             "doc": "What flows - wafers, HBM stacks, cathodes - drawn above the band's middle and editable in place. An empty product removes the key."
@@ -264,6 +355,7 @@
             "type": "text",
             "label": "Description",
             "markup": "plain",
+            "default": "",
             "group": "Identity",
             "order": 1,
             "doc": "Prose about the flow, shown in the property grid only."
@@ -278,6 +370,7 @@
           "unit": {
             "type": "string",
             "label": "Unit",
+            "default": "",
             "group": "Amount",
             "order": 3,
             "doc": "What the volume counts. Band widths compare only flows with the same unit."
@@ -287,20 +380,25 @@
             "label": "Step",
             "group": "Amount",
             "order": 4,
-            "doc": "How much one + or - changes the volume. Unset means 1; zero and negative values are refused."
+            "doc": "How much one + or - changes the volume. Unset means 1; zero and negative values are refused by an edit."
           }
-        },
-        "x-supplyChain": { "documentType": "flow" }
+        }
       }
     }
   },
 
   "coordinates": {
-    "doc": "One free canvas in canvas units, y growing downwards. A node's top-left corner is stored when the document places it; otherwise the layout places it. A group's frame with members is never stored: it is the box around them. An empty group's top-left is stored as its x and y, and its frame is as large as the one around a single node, 232 by 156.",
+    "doc": "One free canvas in canvas units, y growing downwards. A node's top-left corner is the document's x and y when it states both; otherwise the layout places it. A group's frame with members is never stored: it is the box around them. An empty group's top-left is its x and y, and its frame is as large as the one around a single node, 232 by 156.",
     "systems": {
-      "canvas": { "kind": "cartesian", "x": { "kind": "linear" }, "y": { "kind": "linear" },
-                  "doc": "Positions are written rounded to whole units." }
-    }
+      "canvas": {
+        "kind": "cartesian",
+        "orientation": "y-down",
+        "infinite": true,
+        "grid": { "visible": false },
+        "doc": "Positions are written rounded to whole units."
+      }
+    },
+    "default": "canvas"
   },
 
   "notation": {
@@ -349,7 +447,7 @@
       "defaultMode": "light",
       "followSystem": true,
       "doc": {
-        "summary": "The seven stage hues are the module's own, declared in both modes; dark mode lifts each a step so headers and bands still read on the dark surface.",
+        "summary": "The seven stage hues are the module's own and the same in both modes, each carrying the white stage title at 5:1 or better; everything else is the host's shared canvas colours.",
         "rationale": "The theme names meanings; seven stage hues are this notation's business. The text, surface, border and muted tokens are the host's shared canvas values, carried here so the specification stands alone."
       }
     },
@@ -360,13 +458,14 @@
         "stroke": { "color": { "token": "color.border" }, "width": 1.5 },
         "shadow": { "dx": 0, "dy": 2, "blur": 4, "color": { "token": "color.supply.shadow" } },
         "font": { "size": 12, "color": { "token": "color.text" } },
-        "textAlign": "left"
+        "textAlign": "left",
+        "visible": { "cel": "written(self, 'id') != '' && !laterHolder(self) && self.stage in ['source', 'processor', 'producer', 'integrator', 'hub', 'outlet', 'consumer']", "doc": "A node is drawn when it has an id no earlier entry holds and a stage this diagram knows." }
       },
       "cardHover": { "shadow": { "dx": 0, "dy": 6, "blur": 12, "color": { "token": "color.supply.shadow" } } },
-      "stageHeader": { "fill": { "cel": "token(stageToken(self.type))" }, "stroke": { "width": 0 } },
-      "stageBar": { "fill": { "cel": "token(stageToken(self.type))" }, "stroke": { "width": 0 } },
+      "stageHeader": { "fill": { "cel": "token('color.supply.' + self.stage)" }, "stroke": { "width": 0 } },
+      "stageBar": { "fill": { "cel": "token('color.supply.' + self.stage)" }, "stroke": { "width": 0 } },
       "barTrack": { "fill": { "token": "color.border" }, "stroke": { "width": 0 } },
-      "stageTitle": { "font": { "size": 10, "weight": 700, "color": { "token": "color.supply.on-stage" } } },
+      "stageTitle": { "font": { "size": 10, "weight": 700, "letterSpacing": 0.8, "color": { "token": "color.supply.on-stage" } } },
       "nodeName": { "font": { "size": 13, "weight": 600, "color": { "token": "color.text" } } },
       "amount": { "font": { "size": 20, "weight": 700, "color": { "token": "color.text" } } },
       "upstream": { "stroke": { "color": { "token": "color.supply.trace" }, "width": 2.5 } },
@@ -375,14 +474,15 @@
       "groupFrame": {
         "fill": { "token": "color.supply.group-fill" },
         "stroke": { "color": { "token": "color.border" }, "width": 1.5, "dash": [6, 4], "dashScale": "absolute" },
-        "visible": { "cel": "self.children.size() > 0 || (has(self.x) && has(self.y))" }
+        "visible": { "cel": "written(self, 'id') != '' && !laterHolder(self) && (members(self).size() > 0 || (has(self.x) && has(self.y)))", "doc": "A group is drawn when it has an id no earlier entry holds, and members or both x and y." }
       },
       "groupTraced": { "stroke": { "dash": "solid" } },
       "groupTitle": { "font": { "size": 13, "weight": 700, "color": { "token": "color.text" } } },
       "groupMembers": { "font": { "size": 11, "color": { "token": "color.text.muted" } } },
       "band": {
         "stroke": { "color": { "token": "color.supply.flow" }, "width": { "cel": "bandWidth(self)" }, "opacity": 0.45, "cap": "round" },
-        "font": { "size": 12, "color": { "token": "color.text" } }
+        "font": { "size": 12, "color": { "token": "color.text" } },
+        "visible": { "cel": "written(self, 'id') != '' && !laterHolder(self) && has(self.source) && has(self.target) && self.source.isA('Stage') && self.target.isA('Stage') && self.source != self.target", "doc": "A flow is drawn when it has an id no earlier entry holds and its two ends are different nodes that are drawn." }
       },
       "bandUpstream": { "stroke": { "opacity": 0.9 } },
       "bandDownstream": { "stroke": { "opacity": 0.9 } },
@@ -426,16 +526,25 @@
         "style": "card",
         "partStyles": { "header": "stageHeader", "barTrack": "barTrack", "bar": "stageBar" },
         "size": { "fixed": [192, 96] },
+        "placement": {
+          "system": "canvas",
+          "x": { "attribute": "x" },
+          "y": { "attribute": "y" },
+          "anchor": "top-left",
+          "movable": { "x": true, "y": true },
+          "resizable": false,
+          "doc": "Stored only when both x and y are written; otherwise the layout places the card (supply-chain.md, section 'Layout'). A drag writes both, rounded, and may move the node into another group (section 'Interaction')."
+        },
         "labels": [
-          { "id": "stage", "text": { "cel": "upper(stageLabel(self.type))" }, "position": { "anchor": [0, 0], "offset": [14, 16] },
+          { "id": "stage", "text": { "cel": "upper(stageLabel(self.stage))" }, "position": { "anchor": [0, 0], "offset": [14, 16] },
             "style": "stageTitle", "editable": false, "wrap": "none" },
-          { "id": "name", "text": { "attribute": "name" }, "position": { "anchor": [0, 0], "offset": [14, 46] },
+          { "id": "name", "text": { "cel": "nameOf(self)" }, "position": { "anchor": [0, 0], "offset": [14, 46] },
             "style": "nodeName", "editable": "inline", "wrap": "none", "overflow": "ellipsis", "maxWidth": 164 },
           { "id": "amount", "text": { "cel": "has(self.quantity) ? formatAmount(self.quantity) + (self.unit != '' ? ' ' + self.unit : '') : '—'" },
             "position": { "anchor": [0, 0], "offset": [14, 74] }, "style": "amount", "editable": false, "wrap": "none", "overflow": "ellipsis" }
         ],
-        "anchors": { "mode": "sides" },
-        "tooltip": { "cel": "stageLabel(self.type) + ': ' + (self.name != '' ? self.name : self.id) + (has(self.quantity) ? ' — ' + formatAmount(self.quantity) + (self.unit != '' ? ' ' + self.unit : '') : '')" },
+        "anchors": { "mode": "sides", "sides": ["left", "right"] },
+        "tooltip": { "cel": "stageLabel(self.stage) + ': ' + nameOf(self) + (has(self.quantity) ? ' — ' + formatAmount(self.quantity) + (self.unit != '' ? ' ' + self.unit : '') : '')" },
         "states": { "hover": "cardHover" },
         "conditions": [
           { "when": "traceOf(self) == 'upstream'", "style": "upstream", "doc": "It supplies the selection, directly or not." },
@@ -443,29 +552,31 @@
           { "when": "traceOf(self) == 'dimmed'", "style": "dimmed", "doc": "Off the traced chain." }
         ],
         "doubleClick": "editLabel",
-        "doc": "One card for all seven stages; the header's colour and title come from the node's type. Flows attach at the middle of the left and right sides."
+        "doc": "One card for all seven stages; the header's colour and title come from the node's stage. Flows attach at the middle of the left and right sides."
       },
       "Group": {
         "shape": { "type": "roundedRect", "params": { "radius": 8 } },
         "style": "groupFrame",
-        "size": { "autoSize": "fitContent", "resizable": false },
+        "size": { "default": [232, 156], "resizable": false, "doc": "The box around the members' cards: 20 beyond them left, right and below, and 40 above them for the title; with no members, 232 by 156, the frame around one node (supply-chain.md)." },
+        "placement": {
+          "system": "canvas",
+          "x": { "attribute": "x" },
+          "y": { "attribute": "y" },
+          "anchor": "top-left",
+          "movable": { "x": true, "y": true },
+          "resizable": false,
+          "doc": "Read only while the group has no members. Dragging a group with members moves them all."
+        },
         "labels": [
-          { "id": "name", "text": { "attribute": "name" }, "position": { "anchor": [0, 0], "offset": [16, 26] },
+          { "id": "name", "text": { "cel": "nameOf(self)" }, "position": { "anchor": [0, 0], "offset": [16, 26] },
             "style": "groupTitle", "editable": "inline", "wrap": "none", "overflow": "ellipsis" },
-          { "id": "members", "text": { "cel": "string(self.children.size()) + (self.children.size() == 1 ? ' node' : ' nodes')" },
+          { "id": "members", "text": { "cel": "string(members(self).size()) + (members(self).size() == 1 ? ' node' : ' nodes')" },
             "position": { "anchor": [1, 0], "offset": [-16, 26], "align": "end" }, "style": "groupMembers", "editable": false }
         ],
-        "container": {
-          "layout": "free",
-          "padding": [40, 20, 20, 20],
-          "header": { "size": 40, "side": "top" },
-          "autoGrow": true,
-          "doc": "The frame is the box around its members: 20 beyond them left, right and below, and 40 above them for the title. With no members it stands at the group's own x and y, 232 by 156, the frame around one node (see supply-chain.md)."
-        },
         "connectable": false,
         "layer": "background",
         "conditions": [
-          { "when": "traceOf(self) in ['selected', 'related']", "style": "groupTraced", "doc": "A member is on the traced chain: the frame's dashes close." },
+          { "when": "traceOf(self) in ['selected', 'related']", "style": "groupTraced", "doc": "The group is selected, or a member is on the traced chain: the frame's dashes close." },
           { "when": "traceOf(self) == 'dimmed'", "style": "dimmed" }
         ],
         "doubleClick": "editLabel",
@@ -476,11 +587,12 @@
     "edges": {
       "Flow": {
         "style": "band",
-        "line": { "routing": "bezier", "startDirection": "normal", "endDirection": "normal", "bendpoints": { "editable": false } },
+        "line": { "routing": "bezier", "startDirection": "normal", "endDirection": "normal", "bezier": { "reach": "auto" }, "bendpoints": { "editable": false } },
         "anchoring": {
-          "source": { "mode": "sides" },
-          "target": { "mode": "sides" }
+          "source": { "mode": "sides", "sides": ["left", "right"] },
+          "target": { "mode": "sides", "sides": ["left", "right"] }
         },
+        "connect": { "pointer": { "button": "secondary", "start": "body" }, "tool": "flow", "doc": "Drawn from a card's left or right handle, or by dragging with the right button from one card's body to another's; the card dragged from supplies the one dropped on." },
         "sourceMarker": "none",
         "targetMarker": { "type": "arrowFilled", "params": {
           "scaleWithStroke": false,
@@ -489,10 +601,10 @@
         "midMarkers": [
           { "marker": { "type": "dot", "params": { "fill": { "token": "color.supply.goods" } } }, "repeat": { "spacing": 14 },
             "visible": { "cel": "traceOf(self) != 'dimmed'" },
-            "doc": "The goods: dots along the band in the direction they go. The implementation animates them (see supply-chain.md)." }
+            "doc": "The goods: dots along the band in the direction they go. The tool draws them as a second, moving line (supply-chain.md)." }
         ],
         "labels": [
-          { "id": "product", "text": { "attribute": "product" }, "at": "middle", "side": "above", "distance": 8, "editable": "inline" },
+          { "id": "product", "text": { "attribute": "product" }, "at": "middle", "side": "above", "distance": 15, "editable": "inline" },
           { "id": "volume", "text": { "cel": "formatAmount(self.volume) + (self.unit != '' ? ' ' + self.unit : '')" },
             "at": "middle", "side": "below", "distance": 4, "style": "volume", "editable": false,
             "background": { "fill": { "token": "color.surface" }, "stroke": { "color": { "token": "color.border" }, "width": 1 },
@@ -508,7 +620,7 @@
         "tooltip": { "cel": "self.product" },
         "reconnectable": false,
         "layer": "belowNodes",
-        "doc": "A horizontal S from the middle of the supplier's facing side to the middle of the consumer's, leaving and arriving square to the side, its width following its weight, with an arrowhead at the consumer."
+        "doc": "A horizontal S from the middle of the supplier's facing side to the middle of the consumer's, leaving and arriving square to the side, its width following its weight, with an arrowhead at the consumer. A flow the layout gave lanes runs through them (supply-chain.md)."
       }
     },
 
@@ -517,138 +629,321 @@
 
   "forms": {
     "stage": {
-      "for": ["Stage"],
+      "for": "Stage",
       "usage": ["inspector"],
       "items": [
-        { "kind": "section", "title": "Identity", "items": [
-          { "attribute": "name" },
-          { "kind": "computed", "label": "Stage", "value": { "cel": "stageLabel(self.type)" },
-            "doc": "A choice of the seven stages in the implementation; choosing one retypes the node (see supply-chain.md)." },
-          { "kind": "computed", "label": "Group", "value": { "cel": "self.parent != null ? (self.parent.name != '' ? self.parent.name : self.parent.id) : '(none)'" },
-            "doc": "A choice of the diagram's groups and (none) in the implementation; choosing one moves the node into that group (see supply-chain.md)." },
-          { "attribute": "description", "widget": "textarea", "rows": 3 }
+        { "kind": "section", "label": "Identity", "items": [
+          { "attribute": "name", "label": "Name" },
+          { "attribute": "stage", "label": "Stage", "widget": "select",
+            "options": ["source", "processor", "producer", "integrator", "hub", "outlet", "consumer"],
+            "parse": {
+              "accepts": "value.trim() in ['source', 'processor', 'producer', 'integrator', 'hub', 'outlet', 'consumer', 'raw-material', 'supplier', 'manufacturer', 'assembler', 'distributor', 'retailer']",
+              "write": [
+                { "set": { "stage": "{'raw-material': 'source', 'supplier': 'processor', 'manufacturer': 'producer', 'assembler': 'integrator', 'distributor': 'hub', 'retailer': 'outlet'}[value.trim()]" }, "when": "value.trim() in ['raw-material', 'supplier', 'manufacturer', 'assembler', 'distributor', 'retailer']" },
+                { "set": { "stage": "value.trim()" }, "when": "value.trim() in ['source', 'processor', 'producer', 'integrator', 'hub', 'outlet', 'consumer']" }
+              ],
+              "refusal": { "cel": "'`' + value.trim() + '` is not a stage: source, processor, producer, integrator, hub, outlet, consumer.'" },
+              "doc": "The seven words; an older word is accepted and written as the stage it reads as."
+            },
+            "doc": "Offered and shown as the word the document writes (source), not its label, as the tool has always offered it." },
+          { "attribute": "group", "label": "Group", "widget": "select",
+            "options": { "cel": "groupChoices()" },
+            "display": { "cel": "cel.bind(gs, diagram.nodesOfType('Group').filter(g, written(g, 'id') == written(self, 'group')), gs.size() > 0 ? nameOf(gs[0]) : '(none)')", "doc": "The name of the first group written with the id the node's group is written with, else (none). A node with no group shows the first group with no id, when there is one, as the tool always has (supply-chain.md, 'Interaction DISL cannot state')." },
+            "parse": {
+              "accepts": "value.trim() in ['(none)', ''] || groupNamed(value.trim()).size() > 0 || diagram.nodesOfType('Group').exists(g, written(g, 'id') == value.trim())",
+              "write": [
+                { "unset": ["group"], "when": "value.trim() in ['(none)', '']" },
+                { "set": { "group": "groupNamed(value.trim())[0]" }, "when": "!(value.trim() in ['(none)', '']) && groupNamed(value.trim()).size() > 0" },
+                { "set": { "group": "diagram.nodesOfType('Group').filter(g, written(g, 'id') == value.trim())[0]" }, "when": "!(value.trim() in ['(none)', '']) && groupNamed(value.trim()).size() == 0" }
+              ],
+              "refusal": { "cel": "'There is no group `' + value.trim() + '` in this diagram.'" },
+              "doc": "(none) removes the key; a group's name writes its id."
+            },
+            "doc": "(none) and the groups' names, their ids when unnamed. A node whose group names no group shows (none)." },
+          { "attribute": "description", "label": "Description", "widget": "textarea" }
         ] },
-        { "kind": "section", "title": "Amount", "items": [
-          { "attribute": "quantity", "widget": "number" },
-          { "attribute": "unit" },
-          { "attribute": "step", "widget": "number" }
+        { "kind": "section", "label": "Amount", "items": [
+          { "attribute": "quantity", "label": "Quantity", "widget": "text",
+            "display": { "cel": "has(self.quantity) ? rowNumber(self.quantity) : ''" },
+            "parse": {
+              "accepts": "value.trim() == '' || readsAsAmount(value)",
+              "write": [
+                { "unset": ["quantity"], "when": "value.trim() == ''" },
+                { "set": { "quantity": "double(value.trim())" }, "when": "value.trim() != ''" }
+              ],
+              "refusal": { "cel": "'\\'' + value.trim() + '\\' is not an amount this diagram can hold: a number of zero or more.'" }
+            } },
+          { "attribute": "unit", "label": "Unit" },
+          { "attribute": "step", "label": "Step", "widget": "text",
+            "display": { "cel": "rowNumber(has(self.step) ? self.step : 1.0)" },
+            "parse": {
+              "accepts": "value.trim() == '' || (readsAsAmount(value) && double(value.trim()) != 0.0)",
+              "write": [
+                { "unset": ["step"], "when": "value.trim() == ''" },
+                { "set": { "step": "double(value.trim())" }, "when": "value.trim() != ''" }
+              ],
+              "refusal": { "cel": "readsAsAmount(value) ? 'A step of zero would make + and − do nothing.' : '\\'' + value.trim() + '\\' is not an amount this diagram can hold: a number of zero or more.'" }
+            },
+            "doc": "Shows 1 when the node states none, so the row says what + and - will do." }
         ] }
       ]
     },
     "flow": {
-      "for": ["Flow"],
+      "for": "Flow",
       "usage": ["inspector"],
       "items": [
-        { "kind": "section", "title": "Identity", "items": [
-          { "attribute": "product" },
-          { "attribute": "description", "widget": "textarea", "rows": 3 }
+        { "kind": "section", "label": "Identity", "items": [
+          { "attribute": "product", "label": "Product" },
+          { "attribute": "description", "label": "Description", "widget": "textarea" }
         ] },
-        { "kind": "section", "title": "Amount", "items": [
-          { "attribute": "volume", "widget": "number" },
-          { "attribute": "unit" },
-          { "attribute": "step", "widget": "number" }
+        { "kind": "section", "label": "Amount", "items": [
+          { "attribute": "volume", "label": "Volume", "widget": "text",
+            "display": { "cel": "has(self.volume) ? rowNumber(self.volume) : ''" },
+            "parse": {
+              "accepts": "value.trim() == '' || readsAsAmount(value)",
+              "write": [
+                { "unset": ["volume"], "when": "value.trim() == ''" },
+                { "set": { "volume": "double(value.trim())" }, "when": "value.trim() != ''" }
+              ],
+              "refusal": { "cel": "'\\'' + value.trim() + '\\' is not an amount this diagram can hold: a number of zero or more.'" }
+            } },
+          { "attribute": "unit", "label": "Unit" },
+          { "attribute": "step", "label": "Step", "widget": "text",
+            "display": { "cel": "rowNumber(has(self.step) ? self.step : 1.0)" },
+            "parse": {
+              "accepts": "value.trim() == '' || (readsAsAmount(value) && double(value.trim()) != 0.0)",
+              "write": [
+                { "unset": ["step"], "when": "value.trim() == ''" },
+                { "set": { "step": "double(value.trim())" }, "when": "value.trim() != ''" }
+              ],
+              "refusal": { "cel": "readsAsAmount(value) ? 'A step of zero would make + and − do nothing.' : '\\'' + value.trim() + '\\' is not an amount this diagram can hold: a number of zero or more.'" }
+            } }
         ] }
       ]
     },
     "group": {
-      "for": ["Group"],
+      "for": "Group",
       "usage": ["inspector"],
       "items": [
-        { "kind": "section", "title": "Identity", "items": [
-          { "attribute": "name" },
-          { "attribute": "description", "widget": "textarea", "rows": 3 }
+        { "kind": "section", "label": "Identity", "items": [
+          { "attribute": "name", "label": "Name" },
+          { "attribute": "description", "label": "Description", "widget": "textarea" }
         ] }
-      ]
+      ],
+      "doc": "A group's x and y are not shown: they matter only while it has no members, and a drag writes them."
     }
   },
 
   "toolbox": {
+    "doc": "One tool per stage, in the order goods pass through them, and one for a group; each is dropped where it belongs. A flow has no palette tool: it is drawn from a node's side, or by dragging with the right button from one node to another.",
     "groups": [
-      { "id": "stages", "label": "Stages", "doc": "One tool per stage, in the order goods pass through them; each carries the stage's own icon. A flow has no palette tool: it is drawn from a node's side, or by dragging with the right button from one node to another.", "tools": [
-        { "id": "source", "creates": "Source", "label": "Source", "icon": "mdi:tray-arrow-up", "mode": "click", "after": "select",
-          "initial": { "quantity": 0 }, "doc": "Where something enters the chain: a mine, a well, a farm, a data feed." },
-        { "id": "processor", "creates": "Processor", "label": "Processor", "icon": "mdi:cog-outline", "mode": "click", "after": "select",
-          "initial": { "quantity": 0 }, "doc": "Turns what it receives into material others can use." },
-        { "id": "producer", "creates": "Producer", "label": "Producer", "icon": "mdi:factory", "mode": "click", "after": "select",
-          "initial": { "quantity": 0 }, "doc": "Makes the parts or components something is built from." },
-        { "id": "integrator", "creates": "Integrator", "label": "Integrator", "icon": "mdi:puzzle-outline", "mode": "click", "after": "select",
-          "initial": { "quantity": 0 }, "doc": "Combines parts into the finished whole." },
-        { "id": "hub", "creates": "Hub", "label": "Hub", "icon": "mdi:hub-outline", "mode": "click", "after": "select",
-          "initial": { "quantity": 0 }, "doc": "Holds and moves what is finished on to where it is wanted." },
-        { "id": "outlet", "creates": "Outlet", "label": "Outlet", "icon": "mdi:storefront-outline", "mode": "click", "after": "select",
-          "initial": { "quantity": 0 }, "doc": "Where the finished whole is offered to those who use it." },
-        { "id": "consumer", "creates": "Consumer", "label": "Consumer", "icon": "mdi:account-outline", "mode": "click", "after": "select",
-          "initial": { "quantity": 0 }, "doc": "Where the chain ends: whoever uses what it delivers." }
-      ] },
-      { "id": "frames", "label": "Frames", "doc": "A group dropped on its own, named \"New group\" and numbered from 2 when the name is taken among the groups; it is drawn empty at the drop until nodes are dragged into it.", "tools": [
-        { "id": "group", "creates": "Group", "label": "Group", "icon": "mdi:group", "mode": "click", "after": "select",
+      { "id": "stages", "label": "Stages", "tools": [
+        { "id": "source", "creates": "Stage", "label": "Source", "icon": "mdi-tray-arrow-up", "mode": "drop", "after": "none",
+          "drop": { "elsewhere": "create" },
+          "initial": { "stage": "source", "name": { "cel": "uniqueName('New source')" }, "quantity": 0, "x": { "cel": "position.x - 96.0" }, "y": { "cel": "position.y - 48.0" } },
+          "doc": "Where something enters the chain: a mine, a well, a farm, a data feed." },
+        { "id": "processor", "creates": "Stage", "label": "Processor", "icon": "mdi-cog-outline", "mode": "drop", "after": "none",
+          "drop": { "elsewhere": "create" },
+          "initial": { "stage": "processor", "name": { "cel": "uniqueName('New processor')" }, "quantity": 0, "x": { "cel": "position.x - 96.0" }, "y": { "cel": "position.y - 48.0" } },
+          "doc": "Turns what it receives into material others can use." },
+        { "id": "producer", "creates": "Stage", "label": "Producer", "icon": "mdi-factory", "mode": "drop", "after": "none",
+          "drop": { "elsewhere": "create" },
+          "initial": { "stage": "producer", "name": { "cel": "uniqueName('New producer')" }, "quantity": 0, "x": { "cel": "position.x - 96.0" }, "y": { "cel": "position.y - 48.0" } },
+          "doc": "Makes the parts or components something is built from." },
+        { "id": "integrator", "creates": "Stage", "label": "Integrator", "icon": "mdi-puzzle-outline", "mode": "drop", "after": "none",
+          "drop": { "elsewhere": "create" },
+          "initial": { "stage": "integrator", "name": { "cel": "uniqueName('New integrator')" }, "quantity": 0, "x": { "cel": "position.x - 96.0" }, "y": { "cel": "position.y - 48.0" } },
+          "doc": "Combines parts into the finished whole." },
+        { "id": "hub", "creates": "Stage", "label": "Hub", "icon": "mdi-hub-outline", "mode": "drop", "after": "none",
+          "drop": { "elsewhere": "create" },
+          "initial": { "stage": "hub", "name": { "cel": "uniqueName('New hub')" }, "quantity": 0, "x": { "cel": "position.x - 96.0" }, "y": { "cel": "position.y - 48.0" } },
+          "doc": "Holds and moves what is finished on to where it is wanted." },
+        { "id": "outlet", "creates": "Stage", "label": "Outlet", "icon": "mdi-storefront-outline", "mode": "drop", "after": "none",
+          "drop": { "elsewhere": "create" },
+          "initial": { "stage": "outlet", "name": { "cel": "uniqueName('New outlet')" }, "quantity": 0, "x": { "cel": "position.x - 96.0" }, "y": { "cel": "position.y - 48.0" } },
+          "doc": "Where the finished whole is offered to those who use it." },
+        { "id": "consumer", "creates": "Stage", "label": "Consumer", "icon": "mdi-account-outline", "mode": "drop", "after": "none",
+          "drop": { "elsewhere": "create" },
+          "initial": { "stage": "consumer", "name": { "cel": "uniqueName('New consumer')" }, "quantity": 0, "x": { "cel": "position.x - 96.0" }, "y": { "cel": "position.y - 48.0" } },
+          "doc": "Where the chain ends: whoever uses what it delivers." }
+      ], "doc": "Each drop centres the new card on the point, named after its stage (\"New source\", numbered from 2 when a node's name already says so), with a quantity of zero. The name is the tool's initial, because a create hook is not run." },
+      { "id": "frames", "label": "Frames", "tools": [
+        { "id": "group", "creates": "Group", "label": "Group", "icon": "mdi-group", "mode": "drop", "after": "none",
+          "drop": { "elsewhere": "create" },
+          "initial": { "name": { "cel": "uniqueGroupName('New group')" }, "x": { "cel": "position.x - 116.0" }, "y": { "cel": "position.y - 78.0" } },
           "doc": "A frame for a region, a company or a tier; drag nodes into it." }
-      ] }
+      ], "doc": "A group dropped on its own, named \"New group\" and numbered from 2 when the name is taken among the groups; its empty frame is centred on the drop until nodes are dragged into it." }
     ],
+    "tools": {
+      "flow": {
+        "id": "flow",
+        "creates": "Flow",
+        "label": "Add flow",
+        "icon": "mdi-arrow-right-thin",
+        "mode": "drag",
+        "doc": "The flow gesture, started from a card's side handle or by a right-button drag, rather than from the palette, which does not show it. A new flow has no product, volume or unit."
+      }
+    },
     "contextTools": [
       { "for": ["Stage"], "placement": "around", "tools": [
-        { "kind": "operation", "operation": "decreaseQuantity", "label": "Decrease the quantity", "icon": "mdi:minus", "position": { "anchor": [0, 0], "offset": [141, 68] } },
-        { "kind": "operation", "operation": "increaseQuantity", "label": "Increase the quantity", "icon": "mdi:plus", "position": { "anchor": [0, 0], "offset": [167, 68] } },
-        { "kind": "connect", "via": "Flow", "label": "Add flow", "icon": "mdi:arrow-right-thin", "position": "right",
+        { "kind": "operation", "operation": "decreaseQuantity", "label": "Decrease the quantity", "icon": "mdi-minus", "position": { "anchor": [0, 0], "offset": [141, 68] } },
+        { "kind": "operation", "operation": "increaseQuantity", "label": "Increase the quantity", "icon": "mdi-plus", "position": { "anchor": [0, 0], "offset": [167, 68] } },
+        { "kind": "connect", "via": "Flow", "label": "Add flow", "icon": "mdi-arrow-right-thin", "position": "right",
           "doc": "Drag from a side of the node to another node; the node dragged from supplies the one dropped on." }
       ] },
       { "for": ["Flow"], "placement": "around", "tools": [
-        { "kind": "operation", "operation": "decreaseVolume", "label": "Decrease the volume", "icon": "mdi:minus", "position": "bottom-left" },
-        { "kind": "operation", "operation": "increaseVolume", "label": "Increase the volume", "icon": "mdi:plus", "position": "bottom-right" }
-      ] }
+        { "kind": "operation", "operation": "decreaseVolume", "label": "Decrease the volume", "icon": "mdi-minus", "position": "bottom-left" },
+        { "kind": "operation", "operation": "increaseVolume", "label": "Increase the volume", "icon": "mdi-plus", "position": "bottom-right" }
+      ], "doc": "The tool draws these under the volume pill, 38 below the middle of the flow's two ends, which a context tool's position cannot state (supply-chain.md)." }
     ],
     "contextMenus": [
       { "for": ["Stage"], "placement": "menu", "standardEntries": false, "tools": [
-        { "kind": "operation", "operation": "increaseQuantity", "label": "Increase quantity", "icon": "mdi:plus-circle-outline", "shortcut": "+" },
-        { "kind": "operation", "operation": "decreaseQuantity", "label": "Decrease quantity", "icon": "mdi:minus-circle-outline", "shortcut": "-" },
-        { "kind": "editLabel", "label": "Rename…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
-        { "kind": "operation", "operation": "putInNewGroup", "label": "Put in a new group…", "icon": "mdi:group" },
-        { "kind": "delete", "label": "Remove", "icon": "mdi:delete-outline", "shortcut": "Delete" },
-        { "kind": "operation", "operation": "arrange", "label": "Arrange diagram", "icon": "mdi:sitemap-outline" }
+        { "kind": "operation", "operation": "increaseQuantity", "group": "amount", "label": "Increase quantity", "icon": "mdi-plus-circle-outline", "shortcut": "+" },
+        { "kind": "operation", "operation": "decreaseQuantity", "group": "amount", "label": "Decrease quantity", "icon": "mdi-minus-circle-outline", "shortcut": "-" },
+        { "kind": "editLabel", "group": "edit", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
+        { "kind": "operation", "operation": "putInNewGroup", "group": "edit", "label": "Put in a new group…", "icon": "mdi-group" },
+        { "kind": "delete", "group": "edit", "label": "Remove", "icon": "mdi-delete-outline", "shortcut": "Delete" },
+        { "kind": "operation", "operation": "arrange", "group": "diagram", "label": "Arrange diagram", "icon": "mdi-sitemap-outline" }
       ] },
       { "for": ["Flow"], "placement": "menu", "standardEntries": false, "tools": [
-        { "kind": "operation", "operation": "increaseVolume", "label": "Increase volume", "icon": "mdi:plus-circle-outline", "shortcut": "+" },
-        { "kind": "operation", "operation": "decreaseVolume", "label": "Decrease volume", "icon": "mdi:minus-circle-outline", "shortcut": "-" },
-        { "kind": "editLabel", "label": "Rename product…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
-        { "kind": "delete", "label": "Remove flow", "icon": "mdi:vector-polyline-remove", "shortcut": "Delete" }
+        { "kind": "operation", "operation": "increaseVolume", "group": "amount", "label": "Increase volume", "icon": "mdi-plus-circle-outline", "shortcut": "+" },
+        { "kind": "operation", "operation": "decreaseVolume", "group": "amount", "label": "Decrease volume", "icon": "mdi-minus-circle-outline", "shortcut": "-" },
+        { "kind": "editLabel", "group": "edit", "label": "Rename product…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
+        { "kind": "delete", "group": "edit", "label": "Remove flow", "icon": "mdi-vector-polyline-remove", "shortcut": "Delete" }
       ] },
       { "for": ["Group"], "placement": "menu", "standardEntries": false, "tools": [
-        { "kind": "editLabel", "label": "Rename…", "icon": "mdi:pencil-outline", "shortcut": "F2" },
-        { "kind": "delete", "label": "Remove group", "icon": "mdi:ungroup", "shortcut": "Delete" },
-        { "kind": "operation", "operation": "arrange", "label": "Arrange diagram", "icon": "mdi:sitemap-outline" }
-      ] }
+        { "kind": "editLabel", "group": "edit", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
+        { "kind": "delete", "group": "edit", "label": "Remove group", "icon": "mdi-ungroup", "shortcut": "Delete" },
+        { "kind": "operation", "operation": "arrange", "group": "diagram", "label": "Arrange diagram", "icon": "mdi-sitemap-outline" }
+      ] },
+      { "for": ["diagram"], "placement": "menu", "standardEntries": false, "tools": [
+        { "kind": "operation", "operation": "addSourceHere", "group": "add", "label": "Add source here", "icon": "mdi-tray-arrow-up" },
+        { "kind": "operation", "operation": "addProcessorHere", "group": "add", "label": "Add processor here", "icon": "mdi-cog-outline" },
+        { "kind": "operation", "operation": "addProducerHere", "group": "add", "label": "Add producer here", "icon": "mdi-factory" },
+        { "kind": "operation", "operation": "addIntegratorHere", "group": "add", "label": "Add integrator here", "icon": "mdi-puzzle-outline" },
+        { "kind": "operation", "operation": "addHubHere", "group": "add", "label": "Add hub here", "icon": "mdi-hub-outline" },
+        { "kind": "operation", "operation": "addOutletHere", "group": "add", "label": "Add outlet here", "icon": "mdi-storefront-outline" },
+        { "kind": "operation", "operation": "addConsumerHere", "group": "add", "label": "Add consumer here", "icon": "mdi-account-outline" },
+        { "kind": "operation", "operation": "addGroupHere", "group": "frames", "label": "Add group here", "icon": "mdi-group" },
+        { "kind": "operation", "operation": "arrange", "group": "diagram", "label": "Arrange diagram", "icon": "mdi-sitemap-outline" }
+      ], "doc": "Empty canvas at a point, and a toolbox drop there, which runs the same addition." },
+      { "for": ["connection"], "placement": "menu", "standardEntries": false, "runSingle": true, "tools": [
+        { "kind": "connect", "via": "Flow", "label": "Add flow", "icon": "mdi-arrow-right-thin" }
+      ], "doc": "A finished flow gesture from one node to another; the node dragged from supplies the one dropped on." }
     ]
   },
 
   "constraints": {
-    "doc": "Endpoints, self-flows and references are checked by the built-ins; the rules below add what the implementation reports or refuses beyond them. A document edited outside ADP that breaks them still opens and draws everything that can be drawn, and each breach is reported on its line.",
+    "doc": "What is lost is an error, what is merely untidy a warning: an error names something that is not drawn, a warning something that still draws everything the author meant. Every finding compares what is written, as the tool does, and is located at the first line of its entry. The findings are listed in the order of their lines across every code, which constraints.order cannot state (supply-chain.md); among the findings of one line, the reader's come first, then the rules' in the order they are declared.",
+    "defaults": { "severity": "warning", "timing": ["live"] },
     "blockSaveOn": "never",
     "builtIn": {
-      "std.endpoints": { "severity": "error" },
-      "std.references": { "severity": "error" },
-      "std.typeExists": { "severity": "warning" },
-      "std.containment": { "severity": "error" }
+      "std.unparseable": {
+        "severity": "warning",
+        "code": "supply-chain.unreadable",
+        "message": { "cel": "'The document could not be read as YAML: ' + detail.reason" },
+        "doc": "At the parser's line. Nothing else is reported for a body that does not parse, and it opens empty and refuses every edit."
+      },
+      "std.unreadableEntry": {
+        "severity": "warning",
+        "code": "supply-chain.unreadable",
+        "message": { "cel": "detail.reason" },
+        "doc": "The reader's own sentences: the three about the header, an unknown key (\"the line is kept\"), a stage this diagram does not know, a number that will not read (\"was ignored\") and an entry that is not a mapping (\"was passed over\"). All but the last are about an entry that is still read, which std.unreadableEntry does not mean (supply-chain.md, gap 9)."
+      },
+      "std.duplicateId": {
+        "enabled": false,
+        "doc": "Reported by the rule duplicateId instead, which takes groups, then nodes, then flows, whatever order the sections have in the file."
+      },
+      "std.references": {
+        "enabled": false,
+        "doc": "Reported by danglingSource, danglingTarget and unknownGroup instead, which read the id an end or a group is written with, and leave unreported what the tool does not report."
+      },
+      "std.endpoints": {
+        "enabled": false,
+        "doc": "A flow to itself is reported by selfFlow instead, which judges the ids as written, also when no node holds them."
+      },
+      "std.facets": {
+        "enabled": false,
+        "doc": "A stage this diagram does not know is reported by the reader, with its own sentence, and kept as written."
+      }
     },
     "rules": [
       {
-        "id": "selfFlow",
-        "label": "Flow to itself",
-        "scope": ["Flow"],
-        "rule": "self.source.id != self.target.id",
+        "id": "missingId",
+        "code": "supply-chain.missing-id",
         "severity": "error",
-        "message": { "cel": "'The flow `' + self.id + '` runs from `' + self.source.id + '` to itself and is not drawn.'" },
-        "doc": "Readable only from a hand-edited file; drawing one is refused.",
-        "x-adp-ruleId": "supply-chain.self-flow"
+        "scope": ["Group", "Stage", "Flow"],
+        "rule": "written(self, 'id') != ''",
+        "message": { "cel": "'A ' + (self.isA('Group') ? 'group' : (self.isA('Flow') ? 'flow' : 'node')) + ' has no id and is not drawn.'" },
+        "doc": "A group, node or flow with no id, or an empty one. It is kept, given an ephemeral id and not drawn."
+      },
+      {
+        "id": "duplicateId",
+        "code": "supply-chain.duplicate-id",
+        "severity": "error",
+        "scope": ["Group", "Stage", "Flow"],
+        "when": "written(self, 'id') != ''",
+        "rule": "!laterHolder(self)",
+        "message": { "cel": "'The id `' + written(self, 'id') + '` is used more than once; only its first entry is drawn.'" },
+        "doc": "Groups, nodes and flows share one id space, read groups first, then nodes, then flows. Every holder after the first is reported and is not drawn; the first is the one an edit finds."
+      },
+      {
+        "id": "selfFlow",
+        "code": "supply-chain.self-flow",
+        "severity": "error",
+        "scope": "Flow",
+        "when": "written(self, 'from') != ''",
+        "rule": "written(self, 'from') != written(self, 'to')",
+        "message": { "cel": "'The flow `' + written(self, 'id') + '` runs from `' + written(self, 'from') + '` to itself and is not drawn.'" },
+        "doc": "A flow whose two ends name the same id, whether or not a node holds it. It is reported as this and nothing else."
+      },
+      {
+        "id": "danglingSource",
+        "code": "supply-chain.dangling-flow",
+        "severity": "error",
+        "scope": "Flow",
+        "when": "written(self, 'from') == '' || written(self, 'from') != written(self, 'to')",
+        "rule": "diagram.nodesOfType('Stage').exists(n, written(n, 'id') == written(self, 'from'))",
+        "message": { "cel": "written(self, 'from') == '' ? 'The flow `' + written(self, 'id') + '` is missing an end and is not drawn.' : 'The flow `' + written(self, 'id') + '` names `' + written(self, 'from') + '`, which is not a node here; it is not drawn.'" },
+        "doc": "Once per end that names no node, or is missing, on the flow. An end is judged against the ids the nodes are written with, every node counted, so a missing end is not reported while some node has no id."
+      },
+      {
+        "id": "danglingTarget",
+        "code": "supply-chain.dangling-flow",
+        "severity": "error",
+        "scope": "Flow",
+        "when": "written(self, 'from') == '' || written(self, 'from') != written(self, 'to')",
+        "rule": "diagram.nodesOfType('Stage').exists(n, written(n, 'id') == written(self, 'to'))",
+        "message": { "cel": "written(self, 'to') == '' ? 'The flow `' + written(self, 'id') + '` is missing an end and is not drawn.' : 'The flow `' + written(self, 'id') + '` names `' + written(self, 'to') + '`, which is not a node here; it is not drawn.'" }
+      },
+      {
+        "id": "unknownGroup",
+        "code": "supply-chain.unknown-group",
+        "severity": "warning",
+        "scope": "Stage",
+        "when": "written(self, 'group') != ''",
+        "rule": "diagram.nodesOfType('Group').exists(g, written(g, 'id') == written(self, 'group'))",
+        "message": { "cel": "'The node `' + written(self, 'id') + '` is in `' + written(self, 'group') + '`, which is not a group here; it is drawn outside every group.'" },
+        "doc": "A node that names a group no group entry holds. It is drawn, outside every group, and its Group row shows (none)."
       },
       {
         "id": "emptyGroup",
-        "label": "Empty group",
-        "scope": ["Group"],
-        "rule": "self.children.size() > 0 || (has(self.x) && has(self.y))",
+        "code": "supply-chain.empty-group",
         "severity": "warning",
-        "message": { "cel": "'The group `' + self.id + '` has no nodes and no `x` and `y`, so it is not drawn.'" },
-        "doc": "A group is a frame around its members, or at its own x and y when it has none; with neither it has nothing to draw.",
-        "x-adp-ruleId": "supply-chain.empty-group"
+        "scope": "Group",
+        "when": "written(self, 'id') != ''",
+        "rule": "(has(self.x) && has(self.y)) || diagram.nodesOfType('Stage').exists(n, written(n, 'group') == written(self, 'id'))",
+        "message": { "cel": "'The group `' + written(self, 'id') + '` has no nodes and no `x` and `y`, so it is not drawn.'" },
+        "doc": "A group is a frame around its members, or at its own x and y when it has none; with neither it has nothing to draw."
+      },
+      {
+        "id": "connectBetweenNodes",
+        "label": "A flow runs between nodes",
+        "kind": "connect",
+        "when": "relationType == 'Flow'",
+        "rule": "source != null && target != null && source.isA('Stage') && target.isA('Stage')",
+        "enforcement": "prevent",
+        "message": "A flow runs from one node to another."
       },
       {
         "id": "noSelfFlowWhileDrawing",
@@ -664,142 +959,141 @@
         "label": "One flow per direction",
         "kind": "connect",
         "when": "relationType == 'Flow'",
-        "rule": "!source.outgoingOf('Flow').exists(f, f.target.id == target.id)",
+        "rule": "!diagram.relationsOfType('Flow').exists(f, written(f, 'from') == written(source, 'id') && written(f, 'to') == written(target, 'id'))",
         "enforcement": "prevent",
         "message": "These two are already connected by a flow in this direction.",
-        "doc": "Drawing refuses a second flow between the same pair in the same direction; a flow back the other way is allowed. A file holding two is drawn as it is and not reported."
-      },
-      {
-        "id": "noNegativeAmount",
-        "label": "No negative amount",
-        "kind": "change",
-        "scope": ["Stage", "Flow"],
-        "when": "attribute in ['quantity', 'volume', 'step']",
-        "rule": "newValue >= 0.0",
-        "enforcement": "prevent",
-        "message": { "cel": "'\\'' + string(newValue) + '\\' is not an amount this diagram can hold: a number of zero or more.'" }
-      },
-      {
-        "id": "noZeroStep",
-        "label": "No zero step",
-        "kind": "change",
-        "scope": ["Stage", "Flow"],
-        "when": "attribute == 'step'",
-        "rule": "newValue != 0.0",
-        "enforcement": "prevent",
-        "message": "A step of zero would make + and − do nothing."
+        "doc": "Drawing refuses a second flow between the same pair in the same direction, judged by the ids every flow is written with; a flow back the other way is allowed. A file holding two is drawn as it is and not reported."
       }
     ]
   },
 
   "behavior": {
-    "doc": "Every change - add, remove, move, connect, rename, step, set a property, group, arrange - is one undoable step that restores the document's whole text. Dragging a node whose centre lands inside another group's frame moves it into that group in the same step (see supply-chain.md, section 'Interaction').",
-    "hooks": [
-      {
-        "id": "nameNewStage",
-        "on": "create",
-        "for": ["Stage"],
-        "when": "!has(self.name)",
-        "actions": [
-          { "set": { "name": "uniqueName('New ' + lower(stageLabel(self.type)))" } }
-        ],
-        "doc": "A new node is named after its stage - \"New source\", \"New processor\" - numbered from 2 when the name is taken."
-      },
-      {
-        "id": "nameNewGroup",
-        "on": "create",
-        "for": ["Group"],
-        "when": "!has(self.name)",
-        "actions": [
-          { "set": { "name": "uniqueGroupName('New group')" } }
-        ],
-        "doc": "A group dropped from the palette is named \"New group\", numbered from 2 when the name is taken among the groups, and placed with its frame centred on the drop."
-      }
-    ],
+    "doc": "Every change - add, remove, move, connect, rename, step, set a property, group, arrange - is one undoable step that restores the document's whole text. Dragging a node whose centre lands inside another group's frame moves it into that group in the same step (supply-chain.md, section 'Interaction'). A new entry gets a new id; one that is already used is refused with \"That id is already used in this diagram.\"",
     "operations": {
       "increaseQuantity": {
         "label": "Increase quantity",
-        "icon": "mdi:plus-circle-outline",
+        "icon": "mdi-plus-circle-outline",
         "shortcut": "+",
         "for": ["Stage"],
         "actions": [
-          { "set": { "quantity": "math.round((self.quantity + stepOf(self)) * 10000.0) / 10000.0" } }
+          { "set": { "quantity": "math.greatest(0.0, math.round(((has(self.quantity) ? self.quantity : 0.0) + stepOf(self)) * 10000.0) / 10000.0)" } }
         ],
-        "doc": "Adds the node's step to its quantity; a node with no quantity starts from zero. Rounded to four decimals, so ten steps of 0.1 come back to a whole number."
+        "doc": "Adds the node's step to its quantity; a node with no quantity starts from zero. Rounded to four decimals, so ten steps of 0.1 come back to a whole number. The keys + with or without Shift, and =, run it."
       },
       "decreaseQuantity": {
         "label": "Decrease quantity",
-        "icon": "mdi:minus-circle-outline",
+        "icon": "mdi-minus-circle-outline",
         "shortcut": "-",
         "for": ["Stage"],
-        "enabled": "self.quantity > 0.0",
+        "unavailable": [
+          { "when": "!has(self.quantity) || self.quantity <= 0.0", "message": "The quantity is already zero." }
+        ],
         "actions": [
-          { "if": "self.quantity <= 0.0", "then": [ { "abort": { "message": "'The quantity is already zero.'" } } ] },
           { "set": { "quantity": "math.greatest(0.0, math.round((self.quantity - stepOf(self)) * 10000.0) / 10000.0)" } }
         ],
-        "doc": "Takes the node's step from its quantity, never below zero."
+        "doc": "Takes the node's step from its quantity, never below zero: a decrease that would pass zero lands on zero. The keys - and Shift+_ run it. The menu shows the reason beside the entry also while it is available."
       },
       "increaseVolume": {
         "label": "Increase volume",
-        "icon": "mdi:plus-circle-outline",
+        "icon": "mdi-plus-circle-outline",
         "shortcut": "+",
         "for": ["Flow"],
         "actions": [
-          { "set": { "volume": "math.round((self.volume + stepOf(self)) * 10000.0) / 10000.0" } }
+          { "set": { "volume": "math.greatest(0.0, math.round(((has(self.volume) ? self.volume : 0.0) + stepOf(self)) * 10000.0) / 10000.0)" } }
         ],
         "doc": "Adds the flow's step to its volume; a flow with no volume starts from zero."
       },
       "decreaseVolume": {
         "label": "Decrease volume",
-        "icon": "mdi:minus-circle-outline",
+        "icon": "mdi-minus-circle-outline",
         "shortcut": "-",
         "for": ["Flow"],
-        "enabled": "self.volume > 0.0",
+        "unavailable": [
+          { "when": "!has(self.volume) || self.volume <= 0.0", "message": "The volume is already zero." }
+        ],
         "actions": [
-          { "if": "self.volume <= 0.0", "then": [ { "abort": { "message": "'The volume is already zero.'" } } ] },
           { "set": { "volume": "math.greatest(0.0, math.round((self.volume - stepOf(self)) * 10000.0) / 10000.0)" } }
         ],
-        "doc": "Takes the flow's step from its volume, never below zero."
+        "doc": "Takes the flow's step from its volume, never below zero. The menu shows the reason beside the entry also while it is available."
       },
       "putInNewGroup": {
         "label": "Put in a new group…",
-        "icon": "mdi:group",
+        "icon": "mdi-group",
         "for": ["Stage"],
         "params": {
           "groupName": { "type": "string", "label": "Group name", "required": true }
         },
         "actions": [
           { "if": "p.groupName.trim() == ''", "then": [ { "abort": { "message": "'A group needs a name.'" } } ] },
-          { "create": { "type": "'Group'", "attributes": { "name": "p.groupName.trim()" } }, "as": "group" },
-          { "reparent": { "target": "self", "parent": "group" } }
+          { "create": { "type": "'Group'", "attributes": { "name": "p.groupName.trim()" } }, "as": "made" },
+          { "set": { "group": "made" } }
         ],
-        "doc": "A new group around this one node. A group can also be dropped from the palette, and drawn empty until nodes are dragged into it."
+        "doc": "Asks for the name in a prompt titled \"Put in a new group\", its field \"Group name\" empty and its button \"Create group\", refuses a blank one, creates the group and puts the node in it, in one step. A group can also be dropped from the palette, and is then drawn empty until nodes are dragged into it."
       },
       "arrange": {
         "label": "Arrange diagram",
-        "icon": "mdi:sitemap-outline",
+        "icon": "mdi-sitemap-outline",
         "for": "diagram",
-        "enabled": "diagram.nodesOfType('Stage').size() > 0",
-        "actions": [
-          { "layout": { "scope": "diagram.nodes", "algorithm": "chain" } }
+        "unavailable": [
+          { "when": "diagram.nodesOfType('Stage').size() == 0", "message": "There is nothing to arrange until this diagram has a node." }
         ],
-        "doc": "Lays the whole diagram out left to right and writes every node's position, whatever the document stated before. Refused with \"There is nothing to arrange until this diagram has a node.\" on an empty diagram."
+        "actions": [
+          { "layout": { "algorithm": "chain" } }
+        ],
+        "doc": "Lays the whole diagram out left to right and writes every node's position, whatever the document stated before, as one undoable step. Invoked; the automatic layout places only what the document does not. The menu shows the reason beside the entry also while it is available."
+      },
+      "addSourceHere": {
+        "label": "Add source here", "icon": "mdi-tray-arrow-up", "for": "diagram",
+        "actions": [ { "create": { "type": "'Stage'", "attributes": { "stage": "'source'", "name": "uniqueName('New source')", "quantity": "0.0", "x": "position.x - 96.0", "y": "position.y - 48.0" } } } ],
+        "doc": "A source centred on the point, as the toolbox's Source drops it."
+      },
+      "addProcessorHere": {
+        "label": "Add processor here", "icon": "mdi-cog-outline", "for": "diagram",
+        "actions": [ { "create": { "type": "'Stage'", "attributes": { "stage": "'processor'", "name": "uniqueName('New processor')", "quantity": "0.0", "x": "position.x - 96.0", "y": "position.y - 48.0" } } } ]
+      },
+      "addProducerHere": {
+        "label": "Add producer here", "icon": "mdi-factory", "for": "diagram",
+        "actions": [ { "create": { "type": "'Stage'", "attributes": { "stage": "'producer'", "name": "uniqueName('New producer')", "quantity": "0.0", "x": "position.x - 96.0", "y": "position.y - 48.0" } } } ]
+      },
+      "addIntegratorHere": {
+        "label": "Add integrator here", "icon": "mdi-puzzle-outline", "for": "diagram",
+        "actions": [ { "create": { "type": "'Stage'", "attributes": { "stage": "'integrator'", "name": "uniqueName('New integrator')", "quantity": "0.0", "x": "position.x - 96.0", "y": "position.y - 48.0" } } } ]
+      },
+      "addHubHere": {
+        "label": "Add hub here", "icon": "mdi-hub-outline", "for": "diagram",
+        "actions": [ { "create": { "type": "'Stage'", "attributes": { "stage": "'hub'", "name": "uniqueName('New hub')", "quantity": "0.0", "x": "position.x - 96.0", "y": "position.y - 48.0" } } } ]
+      },
+      "addOutletHere": {
+        "label": "Add outlet here", "icon": "mdi-storefront-outline", "for": "diagram",
+        "actions": [ { "create": { "type": "'Stage'", "attributes": { "stage": "'outlet'", "name": "uniqueName('New outlet')", "quantity": "0.0", "x": "position.x - 96.0", "y": "position.y - 48.0" } } } ]
+      },
+      "addConsumerHere": {
+        "label": "Add consumer here", "icon": "mdi-account-outline", "for": "diagram",
+        "actions": [ { "create": { "type": "'Stage'", "attributes": { "stage": "'consumer'", "name": "uniqueName('New consumer')", "quantity": "0.0", "x": "position.x - 96.0", "y": "position.y - 48.0" } } } ]
+      },
+      "addGroupHere": {
+        "label": "Add group here", "icon": "mdi-group", "for": "diagram",
+        "actions": [ { "create": { "type": "'Group'", "attributes": { "name": "uniqueGroupName('New group')", "x": "position.x - 116.0", "y": "position.y - 78.0" } } } ],
+        "doc": "A group named \"New group\", numbered from 2 when the name is taken among the groups, its empty frame centred on the point."
       }
     },
-    "retype": {
-      "Source": { "to": ["Processor", "Producer", "Integrator", "Hub", "Outlet", "Consumer"] },
-      "Processor": { "to": ["Source", "Producer", "Integrator", "Hub", "Outlet", "Consumer"] },
-      "Producer": { "to": ["Source", "Processor", "Integrator", "Hub", "Outlet", "Consumer"] },
-      "Integrator": { "to": ["Source", "Processor", "Producer", "Hub", "Outlet", "Consumer"] },
-      "Hub": { "to": ["Source", "Processor", "Producer", "Integrator", "Outlet", "Consumer"] },
-      "Outlet": { "to": ["Source", "Processor", "Producer", "Integrator", "Hub", "Consumer"] },
-      "Consumer": { "to": ["Source", "Processor", "Producer", "Integrator", "Hub", "Outlet"] }
-    },
     "deletion": {
-      "Stage": { "relations": "delete", "confirm": "Removing this node also removes the flows to or from it.",
-                 "doc": "Removing a node removes every flow to or from it in the same undoable step. It asks first only when there are such flows, naming how many (see supply-chain.md)." },
-      "Group": { "children": "reparent", "relations": "delete",
-                 "doc": "Removing a group keeps its members where they are, ungrouped, so nothing is lost and nothing is asked." }
+      "Stage": {
+        "relations": "delete",
+        "confirm": {
+          "count": "diagram.relationsOfType('Flow').filter(f, written(self, 'id') != '' && (written(f, 'from') == written(self, 'id') || written(f, 'to') == written(self, 'id'))).size()",
+          "threshold": 1,
+          "title": "Remove",
+          "message": { "cel": "'Removing this node also removes the ' + string(count) + (count == 1 ? ' flow' : ' flows') + ' to or from it.'" },
+          "confirmLabel": "Remove",
+          "danger": true,
+          "doc": "Every flow the file writes to or from the node's id, drawn or not, is removed with it in the same undoable step. With none it happens at once."
+        }
+      },
+      "Group": {
+        "references": "unset",
+        "doc": "Removing a group unsets the `group` of every node that names it, which removes the key, and leaves the nodes where they are. Nothing is lost, so nothing is asked."
+      }
     }
   },
 
@@ -810,7 +1104,7 @@
         "algorithm": "plugin:net.etalii.adp.etalii.supplyChainLayers",
         "direction": "right",
         "spacing": { "node": 28, "layer": 128 },
-        "doc": "Layers by the longest path from a node nothing supplies, with every cycle broken at the flow that closes it; bands per group; barycentre ordering; bands dropped onto a per-layer skyline. Details in supply-chain.md, section 'Layout'."
+        "doc": "Layers by the stages and the longest path from a node nothing supplies, with every cycle broken at the flow that closes it; bands per group; barycentre ordering; bands dropped onto a per-layer skyline. Details in supply-chain.md, section 'Layout'."
       }
     },
     "default": "chain",
@@ -821,37 +1115,68 @@
   },
 
   "persistence": {
-    "format": "plugin:net.etalii.adp.etalii.supply",
-    "encoding": "utf-8",
-    "newline": "crlf",
-    "files": { "mode": "single", "model": "{name}.supply" },
-    "ids": { "strategy": "nanoid", "stable": true,
-             "doc": "New ids are 25-character lowercase base-36 GUIDs (ShortGuid); hand-written ids such as kolwezi-cobalt are equally valid. Groups, nodes and flows share one id space." },
-    "ordering": { "elements": "creation" },
-    "omitDefaults": true,
-    "precision": { "canvas": 0, "numbers": 4 },
-    "view": { "store": ["bounds"] },
-    "definition": { "embed": "none" },
-    "doc": "A supply chain diagram is stored in a .supply file: YAML with a version header 'supply-chain: 1' and 'groups', 'nodes' and 'flows' lists, registered by an .adp file whose origin is etalii/supply-chain. A document ADP did not change is written back byte-identical, and an edit rewrites only the lines that change. The exact format is in supply-chain.md."
+    "doc": "A .supply file: YAML with a version header 'supply-chain: 1' and 'groups', 'nodes' and 'flows' lists, registered by an .adp file whose origin is etalii/supply-chain. It is read and written through the supply chain module's own FBL binding, whose types and attributes the typeMap maps onto this metamodel. The binding reads a flow as an element with reference attributes, so one whose end names nothing is kept and reported, reads a node's group as a reference rather than as nesting, reads the six older stage words through its map, and declares no header: the version is read as an attribute of the document and its three sentences are the reader's. The file layout is in supply-chain.md.",
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/supply-chain/backend/EtAlii.Adp.Diagram.SupplyChain/supply-chain.fbl#supply",
+    "ids": {
+      "strategy": "uuid-v4",
+      "encoding": "base36",
+      "stable": true,
+      "missing": "ephemeral",
+      "doc": "New groups, nodes and flows get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `kolwezi-cobalt` are kept as written. Groups, nodes and flows share one id space, groups first, then nodes, then flows; an entry without an id and a later holder of an id are kept, reported, given an ephemeral id and not drawn, and nothing ever writes an id for them."
+    },
+    "view": { "store": [] },
+    "collaboration": { "mode": "none" },
+    "typeMap": {
+      "Document": { "as": "diagram", "doc": "The root mapping. Its version header is read by the binding as written, for the reader's three sentences." },
+      "Group": { "as": "Group", "hostAttributes": ["storedId", "unknownKeys"], "doc": "An entry of `groups`. `storedId` is the id as written, kept beside the model, so that an id written more than once is reported and an entry is found by what is written." },
+      "Node": { "as": "Stage", "attributes": { "type": "stage" }, "hostAttributes": ["storedId", "unknownKeys"], "doc": "An entry of `nodes`, whatever its stage: `type` is the attribute `stage`, and `group` a reference to a group by its id." },
+      "Flow": { "as": "Flow", "attributes": { "from": "source", "to": "target" }, "hostAttributes": ["storedId", "unknownKeys"], "doc": "An entry of `flows`, read as an element with reference attributes, so one whose end names no node is kept, with that end unset, and reported by danglingSource and danglingTarget." },
+      "Unreadable": { "as": "unreadable", "doc": "An entry of `groups`, `nodes` or `flows` that is not a mapping." }
+    }
   },
 
-  "plugins": {
-    "net.etalii.adp.etalii.supply": {
-      "version": "^1.0.0",
-      "provides": ["persistenceFormat", "celFunctions"],
-      "required": true,
-      "doc": "Reads and writes the .supply document (`supply-chain: 1`) by line splices, so comments, blank lines, indentation, line endings, unknown keys and a missing final newline survive every edit; and traces the chain through the viewer's selection, which DISL 0.1 expressions cannot read.",
-      "celFunctions": [
-        { "name": "traceOf", "params": ["Element"], "returns": "string", "cost": 100,
-          "doc": "The element's marking while something in this diagram is selected: 'selected', 'upstream' (it supplies the selection, directly or not), 'downstream' (the selection supplies it), 'related' (a group with a member on the chain) or 'dimmed' (off the chain); '' when nothing is selected. Per viewer, never stored. Rules in supply-chain.md, section 'The trace'." }
-      ]
+  "x-supply-chain": {
+    "doc": "Today's wire ids, which the standalone client (client/supplyChainIds.ts) and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind. A property is keyed by its form item's row id: its id, else its attribute. One action id serves three element types: supply-chain.rename edits a node's or a group's name and a flow's product; and supply-chain.group is both an action id and a property id.",
+    "tools": {
+      "source": { "id": "supply-chain.toolbox.source", "drop": "supply-chain.add.source" },
+      "processor": { "id": "supply-chain.toolbox.processor", "drop": "supply-chain.add.processor" },
+      "producer": { "id": "supply-chain.toolbox.producer", "drop": "supply-chain.add.producer" },
+      "integrator": { "id": "supply-chain.toolbox.integrator", "drop": "supply-chain.add.integrator" },
+      "hub": { "id": "supply-chain.toolbox.hub", "drop": "supply-chain.add.hub" },
+      "outlet": { "id": "supply-chain.toolbox.outlet", "drop": "supply-chain.add.outlet" },
+      "consumer": { "id": "supply-chain.toolbox.consumer", "drop": "supply-chain.add.consumer" },
+      "group": { "id": "supply-chain.toolbox.group", "drop": "supply-chain.add-group" }
     },
-    "net.etalii.adp.etalii.supplyChainLayers": {
-      "version": "^1.0.0",
-      "provides": ["layout"],
-      "required": false,
-      "fallback": { "layout": "layered" },
-      "doc": "The banded layered layout; supply-chain.md, section 'Layout'."
+    "actions": {
+      "editLabel": "supply-chain.rename",
+      "delete": "supply-chain.remove",
+      "increaseQuantity": "supply-chain.increase",
+      "increaseVolume": "supply-chain.increase",
+      "decreaseQuantity": "supply-chain.decrease",
+      "decreaseVolume": "supply-chain.decrease",
+      "putInNewGroup": "supply-chain.group",
+      "arrange": "supply-chain.arrange",
+      "connect": "supply-chain.connect",
+      "addGroupHere": "supply-chain.add-group",
+      "addSourceHere": "supply-chain.add.source",
+      "addProcessorHere": "supply-chain.add.processor",
+      "addProducerHere": "supply-chain.add.producer",
+      "addIntegratorHere": "supply-chain.add.integrator",
+      "addHubHere": "supply-chain.add.hub",
+      "addOutletHere": "supply-chain.add.outlet",
+      "addConsumerHere": "supply-chain.add.consumer"
+    },
+    "properties": {
+      "name": "supply-chain.name",
+      "stage": "supply-chain.stage",
+      "group": "supply-chain.group",
+      "quantity": "supply-chain.quantity",
+      "product": "supply-chain.product",
+      "volume": "supply-chain.volume",
+      "unit": "supply-chain.unit",
+      "step": "supply-chain.step",
+      "description": "supply-chain.description"
     }
   },
 
@@ -859,6 +1184,9 @@
     "origin": "etalii/supply-chain",
     "kind": "Diagram",
     "state": "Prototype",
-    "companion": "supply-chain.md"
+    "companion": "supply-chain.md",
+    "implementations": {
+      "standalone": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/supply-chain"
+    }
   }
 }

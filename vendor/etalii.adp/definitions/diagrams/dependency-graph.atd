@@ -1,0 +1,283 @@
+atd 0.1
+
+/// What needs what - named nodes on rows, joined by directed depends-on edges, placed wherever the author puts them.
+///
+/// A node is a labelled box at an **authored position**: a horizontal coordinate the author owns and a row it snaps to.
+/// A dependency is a directed edge: its source **depends on** its target, and the arrowhead is drawn at the target, the
+/// thing being depended upon.
+///
+/// Neither axis means anything beyond where the author put a node. Rows are a placement grid, not lanes: several nodes
+/// may share a row, rows may be negative, and gaps between rows are the author's business.
+///
+/// This description carries every construct of `dependency-graph.dis`, and states what the `.dis` left to
+/// `dependency-graph.md` and to the hosts' code where ATD has a construct for it: the `.dgr` format as the binding `dgr`
+/// (dependency-graph.dgr.atd), the self-dependency an edit may not write as the constraint `noSelfDependency`, and the
+/// written ends the findings judge as the function `writtenEnd`. `dependency-graph.trace.json` says where each came
+/// from, and what stays with the host.
+diagram generic/dependencies version "1.1.0" {
+  label "Dependency graph"
+  id: "net.etalii.adp.generic.dependencies"
+  authors: [{ name: "Peter Vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://etalii.net/adp"
+  icon: mdi-graph-outline
+  fileExtension: dgr
+  requires: { conformance: standard, features: ["placement.bound", "edge.bezier", "label.parse", "persist.yaml"] }
+  doc {
+    tags: [dependencies, graph, "boxes and arrows", architecture, "build order"]
+    seeAlso: [
+      {
+        title: "What DISL cannot express about this diagram type"
+        href: "https://github.com/etalii-adp/etalii.adp/blob/develop/definitions/diagrams/dependency-graph.md"
+      },
+      {
+        title: "The standalone implementation"
+        href: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/dependency-graph"
+      }
+    ]
+  }
+
+  import "dependency-graph.notation.atd"
+  import "dependency-graph.dgr.atd"
+
+  /// One node type and one relation type. The diagram root carries no attributes of its own: a new graph is the version
+  /// marker and an empty element list, and nothing else.
+  model {
+    /// Something other things can depend on.
+    ///
+    /// A labelled box at an authored position. It has no date, no duration and no instant: the horizontal coordinate
+    /// means nothing but where the box sits.
+    element Node {
+      label Node
+      icon: mdi-rectangle-outline
+      labelAttribute: label
+      /// What the node is called. When it is empty the canvas shows the node's id instead; the property row shows it
+      /// empty.
+      attribute label: string default "" { label: Label, group: Identity, order: 1 }
+      /// The horizontal coordinate of the node's left edge, in canvas units.
+      ///
+      /// Authored, never derived. Whole, fractional, negative and zero values are all valid, and the number is written
+      /// in its shortest invariant form. A value that does not read as a number reads as 0.
+      attribute x: number default 0 { label: X, unit: "canvas units", group: Placement, order: 2 }
+      /// Which row the node sits on: a placement grid, not a lane.
+      ///
+      /// Negative rows are as valid as positive ones, several nodes may share a row, and gaps between rows are the
+      /// author's business. A value that does not read as a whole number reads as 0; the property row refuses a
+      /// fractional row rather than truncating it.
+      attribute row: int default 0 { label: Row, group: Placement, order: 3 }
+    }
+
+    /// The source depends on the target: the one that needs the other points at the one that is needed.
+    ///
+    /// The direction is part of the document, not a drawing convention. Two dependencies between the same pair are
+    /// legal (the label carries the difference), a dependency need not carry a label, and cycles are allowed: the type
+    /// has no cycle rule yet.
+    relation DependsOn {
+      label Dependency
+      icon: mdi-ray-start-arrow
+      source: { types: [Node], role: dependent, doc: "The node that needs the other." }
+      target: { types: [Node], role: dependency, doc: "The node that is needed." }
+      directed: true
+      allowSelfLoops: false
+      allowParallel: true
+      /// What the author calls the dependency ("calls", "publishes to"), or empty.
+      attribute label: string default "" { label: Label, group: Identity, order: 1 }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// The id a dependency's `source` or `target` end is written with in the file (`from` or `to`), also when it names no
+  /// node and the end is unset in the model (DISL §4.9); the empty text when the key is absent or empty.
+  ///
+  /// The binding reads each end a second time as written, into the host attributes `writtenFrom` and `writtenTo`,
+  /// which this function reads (ATD §12.8). It was the plugin `net.etalii.adp.generic.dependencyEnds` of
+  /// `dependency-graph.dis` (dependency-graph.md §12, gap 6).
+  fn writtenEnd(relation: DependsOn, end: string) -> string {
+    let written = end == "source" ? hostAttribute(relation, "writtenFrom") : hostAttribute(relation, "writtenTo")
+    return written == null ? "" : string(written)
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// Every problem is a warning naming its element, because the rest of the graph still draws. The one error is a file
+  /// that is not YAML, which replaces every other finding. The findings are reported in two groups: first the ids
+  /// (`dependencies.missing-id` and `dependencies.duplicate-id`, interleaved in declaration order, nodes before
+  /// dependencies), then per dependency in declaration order its dangling source, its dangling target and its
+  /// self-dependency; `order` lists the codes in that order, and the interleaving within a group is the host's
+  /// (dependency-graph.md §3).
+  constraints {
+    defaults: { severity: warning, timing: [live] }
+    blockSaveOn: never
+    order: ["dependencies.missing-id", "dependencies.duplicate-id", "dependencies.dangling-relation", "dependencies.self-dependency"]
+
+    builtin std.unparseable {
+      severity: error
+      code: "dependencies.unparseable"
+      message: ('This is not YAML that can be read: ' + detail.reason)
+      doc: "At the parser's line, or line 1 when it names none."
+    }
+    builtin std.duplicateId {
+      code: "dependencies.duplicate-id"
+      message: ('The id \'' + detail.id + '\' is declared more than once, which makes every reference to it ambiguous.')
+      doc: "Nodes and dependencies share one id space. Each second and later declaration is reported, at its first line; nodes are read before dependencies."
+    }
+    builtin std.references {
+      enabled: false
+      doc: "Reported by danglingSource and danglingTarget instead, which leave an end written empty or not written at all unreported, as the tool does, and which read the id an end is written with."
+    }
+    builtin std.unreadableEntry {
+      enabled: false
+      doc: "An entry of `elements` or `relations` that is not a mapping is kept as it is and not drawn, silently, as the tool has always skipped it (the binding's two `Unreadable` rules)."
+    }
+    builtin std.endpoints {
+      enabled: false
+      doc: "A self-dependency is reported by selfDependency instead, which judges the ids as written; std.endpoints judges only a relation whose two ends both resolve. No edit can create one: noSelfDependency refuses it."
+    }
+
+    /// An absent or empty id, at the declaration's first line; the element is drawn under an ephemeral id. `self.id` is
+    /// the id as written. A node is named by its label, which is empty when it has none.
+    constraint missingId for Node, DependsOn {
+      rule self.id != ''
+      message (self.isA('DependsOn') ? 'A dependency has no id, so nothing can select, connect or edit it.' : '\'' + self.label + '\' has no id, so nothing can select, connect or edit it.')
+      code: "dependencies.missing-id"
+    }
+
+    /// Once per end that names an id no node holds, on the dependency. An end that names nothing at all is not
+    /// reported.
+    constraint danglingSource for DependsOn {
+      when writtenEnd(self, 'source') != ''
+      rule has(self.source) && self.source.isA('Node')
+      message ('A dependency names \'' + writtenEnd(self, 'source') + '\', and no node with that id is in this graph.')
+      code: "dependencies.dangling-relation"
+    }
+
+    constraint danglingTarget for DependsOn {
+      when writtenEnd(self, 'target') != ''
+      rule has(self.target) && self.target.isA('Node')
+      message ('A dependency names \'' + writtenEnd(self, 'target') + '\', and no node with that id is in this graph.')
+      code: "dependencies.dangling-relation"
+    }
+
+    /// From `allowSelfLoops: false`: a dependency whose two ends name the same id, on the dependency. Only a hand-edited
+    /// file holds one, since `noSelfDependency` refuses every edit that would write it.
+    constraint selfDependency for DependsOn {
+      when writtenEnd(self, 'source') != ''
+      rule writtenEnd(self, 'source') != writtenEnd(self, 'target')
+      message ('\'' + writtenEnd(self, 'source') + '\' is declared to depend on itself, which says nothing about what needs what.')
+      code: "dependencies.self-dependency"
+    }
+
+    /// No gesture or operation writes a dependency from a node to itself; the edit is refused as a whole.
+    constraint noSelfDependency for DependsOn {
+      kind: connect
+      rule source.id != target.id
+      message "A node cannot depend on itself."
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Adds a node a fixed step to the right on the same row, which the selected node depends on. The step of 240 keeps the
+  /// new node clear of its source at the zoom levels the canvas opens at.
+  operation addRight "Add node to the right" for Node {
+    icon: mdi-arrow-expand-right
+    shortcut: Tab
+    create Node { label: 'New node', x: self.x + 240.0, row: self.row } as added
+    connect DependsOn from self to added
+  }
+
+  /// Adds a node at the same coordinate one row down, which the selected node depends on.
+  operation addBelow "Add node below" for Node {
+    icon: mdi-arrow-expand-down
+    shortcut: Enter
+    create Node { label: 'New node', x: self.x, row: self.row + 1 } as added
+    connect DependsOn from self to added
+  }
+
+  /// Adds a node labelled "New node" where the canvas was clicked or the palette entry dropped: its left edge at the
+  /// point's x, on the row nearest the point's y.
+  operation addNodeHere "Add node here" for document {
+    icon: mdi-plus
+    create Node { label: 'New node', x: double(position.x), row: int(math.round(double(position.y))) } at position
+  }
+
+  /// Removing a node removes every dependency that resolves to it; with any, the user is asked first. Every edit is one
+  /// command on the project's history, so each is one undo away. Nothing is copied or pasted.
+  behavior {
+    deletion: {
+      Node: {
+        relations: delete
+        confirm: {
+          count: (self.incoming.size() + self.outgoing.filter(r, r.target != self).size())
+          threshold: 1
+          title: Remove
+          message: ('Removing this node also removes the ' + string(count) + (count == 1 ? ' dependency' : ' dependencies') + ' attached to it.')
+          confirmLabel: Remove
+          danger: true
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// Stored as a `.dgr` file: ADP's own YAML schema, owned outright by this type. The binding `dgr`
+  /// (dependency-graph.dgr.atd) reads and writes it, and `typeMap` maps the binding's element types and attributes onto
+  /// this model. The binding reads a dependency as an element with reference attributes, so one whose end names nothing
+  /// is kept and reported, and every entry and end a second time as written, for the rules that judge the ids as
+  /// written.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: uuid-v4
+      encoding: base36
+      stable: true
+      doc: "New ids are ShortGuids: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `api-gateway` are kept as they are."
+    }
+    view: { store: [] }
+    collaboration: { mode: none }
+    typeMap: {
+      Node: { as: Node, hostAttributes: [storedId] }
+      Dependency: { as: DependsOn, attributes: { from: source, to: target }, hostAttributes: [storedId, writtenFrom, writtenTo] }
+      Unreadable: { as: unreadable }
+    }
+  }
+
+  plugin net.etalii.adp.generic.dependencyCurve {
+    version: "^1.0.0"
+    provides: [routing]
+    required: false
+    fallback: { routing: bezier }
+    doc: "The dependency curve: a horizontal bezier between the facing side anchors while the dependency sits clear to the right of its dependent, and a forward loop out of the dependent's right side into the dependency's left side when it sits behind or overlaps (dependency-graph.md §7). How a route is drawn is the host's rendering."
+  }
+
+  /// Today's wire ids, which the standalone client and backend share, mapped from this description's names. A tool is
+  /// keyed by its id. An action is keyed by its entry's operation, else its kind; a key "<Type>/<kind>" overrides that
+  /// for the entries offered on <Type>. A property is keyed by its form item's row id: its id, else its attribute.
+  x-dependencies: {
+    tools: { node: { id: "dependencies.toolbox.node", drop: "dependencies.add-element" } }
+    actions: {
+      editLabel: "dependencies.rename"
+      delete: "dependencies.remove"
+      "DependsOn/editLabel": "dependencies.relabel"
+      "DependsOn/delete": "dependencies.disconnect"
+      addRight: "dependencies.add-after"
+      addBelow: "dependencies.add-below"
+      addNodeHere: "dependencies.add-element"
+      connect: "dependencies.connect"
+    }
+    properties: {
+      label: "dependencies.label"
+      x: "dependencies.x"
+      row: "dependencies.row"
+      from: "dependencies.from"
+      to: "dependencies.to"
+    }
+  }
+  x-adp: {
+    kind: Diagram
+    state: Implemented
+    implementations: { standalone: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/dependency-graph" }
+  }
+}

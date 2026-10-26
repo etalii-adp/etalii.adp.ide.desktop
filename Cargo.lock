@@ -150,6 +150,7 @@ dependencies = [
 name = "adp-atd-check"
 version = "1.0.0"
 dependencies = [
+ "adp-atd-grammar",
  "adp-atd-syntax",
  "jsonschema",
  "regex",
@@ -775,7 +776,9 @@ dependencies = [
 name = "adp-fbl"
 version = "1.0.0"
 dependencies = [
+ "adp-atd-grammar",
  "adp-cel",
+ "etalii-lark",
  "regex",
  "serde",
  "serde_json",

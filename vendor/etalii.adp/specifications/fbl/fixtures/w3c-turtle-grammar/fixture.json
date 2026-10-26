@@ -1,0 +1,161 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.9's grammar family (section 4.9) on Turtle with LF endings: two prefix directives, a resource over three lines with a comment above it, a resource with a trailing comment, and a statement with a blank-node subject that no rule reads. A set, a refused set, an add and a removal, each followed by its undo, so every step starts from the input. The partial reading of a body that does not parse is in w3c-turtle-grammar-partial/.",
+  "binding": "../../w3c-turtle-grammar.fbl#turtle",
+  "input": "people.ttl",
+  "read": {
+    "elements": [
+      {
+        "id": "ex:",
+        "type": "Prefix",
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/"
+        }
+      },
+      {
+        "id": "rdfs:",
+        "type": "Prefix",
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#"
+        }
+      },
+      {
+        "id": "ex:alice",
+        "type": "Resource",
+        "attributes": {
+          "label": "Alice"
+        }
+      },
+      {
+        "id": "ex:bob",
+        "type": "Resource",
+        "attributes": {
+          "label": "Bob"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n# People\nex:alice a ex:Person ;\n    rdfs:label \"Alice\" ;\n    ex:knows ex:bob .\n\nex:bob rdfs:label \"Bob\" .  # kept\n\n[] ex:note \"not bound\" .\n"
+    },
+    {
+      "doc": "A set replaces the label's group `value` inside its quotes, the string token's span narrowed by `match`; the trailing comment on the line is kept (FBL 4.9, 6.3).",
+      "edit": {
+        "set": {
+          "element": "ex:bob",
+          "attributes": {
+            "label": "Robert"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 192,
+          "end": 195,
+          "text": "Robert"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n# People\nex:alice a ex:Person ;\n    rdfs:label \"Alice\" ;\n    ex:knows ex:bob .\n\nex:bob rdfs:label \"Robert\" .  # kept\n\n[] ex:note \"not bound\" .\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 192,
+          "end": 198,
+          "text": "Bob"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n# People\nex:alice a ex:Person ;\n    rdfs:label \"Alice\" ;\n    ex:knows ex:bob .\n\nex:bob rdfs:label \"Bob\" .  # kept\n\n[] ex:note \"not bound\" .\n"
+    },
+    {
+      "doc": "A value that would not read back as the label is refused: written as it is, the quote inside it would end the string token, so the statement would no longer parse (FBL 4.9). Nothing is written.",
+      "edit": {
+        "set": {
+          "element": "ex:bob",
+          "attributes": {
+            "label": "Say \"hi\""
+          }
+        }
+      },
+      "refused": "The new label would not read back from the Turtle text.",
+      "splices": [],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n# People\nex:alice a ex:Person ;\n    rdfs:label \"Alice\" ;\n    ex:knows ex:bob .\n\nex:bob rdfs:label \"Bob\" .  # kept\n\n[] ex:note \"not bound\" .\n"
+    },
+    {
+      "doc": "An add after the last resource: on a line of its own after ex:bob's line span, which holds its trailing comment, from the rule's emit with the body's LF. The blank-node statement after it is no resource, so it is not followed (FBL 6.3, grammar).",
+      "edit": {
+        "add": {
+          "type": "Resource",
+          "id": "ex:carol",
+          "attributes": {
+            "label": "Carol"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 207,
+          "end": 207,
+          "text": "ex:carol rdfs:label \"Carol\" .\n"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n# People\nex:alice a ex:Person ;\n    rdfs:label \"Alice\" ;\n    ex:knows ex:bob .\n\nex:bob rdfs:label \"Bob\" .  # kept\nex:carol rdfs:label \"Carol\" .\n\n[] ex:note \"not bound\" .\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 207,
+          "end": 237,
+          "text": ""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n# People\nex:alice a ex:Person ;\n    rdfs:label \"Alice\" ;\n    ex:knows ex:bob .\n\nex:bob rdfs:label \"Bob\" .  # kept\n\n[] ex:note \"not bound\" .\n"
+    },
+    {
+      "doc": "A removal takes the statement's line span: its three lines, the leading comment directly above it and its line ending. The blank line before it stays (FBL 4.1.1, 6.3).",
+      "edit": {
+        "remove": {
+          "element": "ex:alice"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 93,
+          "end": 172,
+          "text": ""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n\nex:bob rdfs:label \"Bob\" .  # kept\n\n[] ex:note \"not bound\" .\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 93,
+          "end": 93,
+          "text": "# People\nex:alice a ex:Person ;\n    rdfs:label \"Alice\" ;\n    ex:knows ex:bob .\n"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n# People\nex:alice a ex:Person ;\n    rdfs:label \"Alice\" ;\n    ex:knows ex:bob .\n\nex:bob rdfs:label \"Bob\" .  # kept\n\n[] ex:note \"not bound\" .\n"
+    }
+  ]
+}

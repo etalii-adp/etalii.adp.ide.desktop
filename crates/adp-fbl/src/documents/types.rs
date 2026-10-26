@@ -28,6 +28,8 @@ pub enum Family {
     Lines,
     Blocks,
     Bullets,
+    /// *(FBL 0.9)* A body read by the grammar its binding carries (FBL section 4.9).
+    Grammar,
 }
 
 /// One binding (FBL section 3): how one format maps to a language's model.
@@ -117,6 +119,32 @@ pub struct BodySettings {
     pub ignore: Vec<String>,
     /// How long, in milliseconds, a watched folder must be quiet before it is read again (FBL section 10.3).
     pub settle: i64,
+    /// *(FBL 0.9)* The grammar of a `grammar` body (FBL section 4.9).
+    pub grammar: Option<GrammarSettings>,
+}
+
+/// The grammar of a `grammar` body (FBL 0.9 section 4.9): its modules in ATD grammar notation, the start rule and
+/// the reading in part.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GrammarSettings {
+    /// The module the body is read by: `grammar` for one given as text, the file's name without `.lark` for one in
+    /// a file beside the document.
+    pub root: String,
+    /// The file the grammar is in, when the binding names one.
+    pub file: Option<String>,
+    /// The text of each module, by name: the root and the modules it imports. A grammar in a file has none until
+    /// the document is loaded from a path, which reads them beside it.
+    pub modules: std::collections::BTreeMap<String, String>,
+    pub start: String,
+    pub recover: Option<Recover>,
+}
+
+/// `recover` (FBL 0.9 section 4.9): the rule a body is read by unit by unit, and the terminals reading skips to.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Recover {
+    pub unit: String,
+    /// Terminal names, or the text of anonymous string terminals.
+    pub sync: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -276,6 +304,10 @@ pub struct Slot {
     pub continuation: bool,
     pub word: Option<String>,
     pub flag: bool,
+    /// *(FBL 0.9)* A `grammar` slot: the relative selector of the node whose text is the value (`.` the entry).
+    pub node: Option<String>,
+    /// *(FBL 0.9)* With `node`: the regular expression whose group `value` is the value.
+    pub node_match: Option<String>,
 }
 
 impl Slot {
@@ -301,6 +333,8 @@ impl Slot {
             "value".into()
         } else if self.continuation {
             "continuation".into()
+        } else if let Some(n) = &self.node {
+            format!("node {n}")
         } else {
             "slot".into()
         }

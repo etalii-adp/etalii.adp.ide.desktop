@@ -146,7 +146,7 @@ A definition defect is the specification saying something the tool does not do, 
 - **Decorator order.** The row `wardley.decorators` lists the decorators in the order the statement writes them in through `writtenDecorators`; a host without the plugin lists them in the order market, ecosystem, build, buy, outsource. The toggles write a new decorator after the last one.
 - **Sorting names.** The pickers sort their candidates by `upper(name)`; the tool sorts ordinally ignoring case. The two agree on ASCII names; CEL's `upper()` folds case by Unicode rules, so names that differ in a character outside ASCII may sort differently.
 - **Annotation positions.** The plugin function `positions` reads the occurrences as the module's parser does; a host without the plugin uses its CEL fallback, which splits the text on its brackets and commas and converts each number with `double()`, so one number that will not convert fails the whole evaluation where the parser passes over the statement.
-- **The evolution axis is no longer an element.** The tool sent the stages to its canvas as a synthetic element `wardley/map+evolution-axis`; the specification's `axis.ranges` replace it.
+- **The evolution axis is no longer an element.** The tool sent the stages to its canvas as a synthetic element `wardley/map+evolution-axis`; the specification's `axis.ranges` replace it. In its place the tool sends one element `wardley/map+diagram` for the map itself, carrying the attributes `metamodel.diagram` declares (title, style, size and the annotations' position), and the canvas names the map by that title.
 - **New elements land at 0.5, 0.5**, and a new pipeline component at maturity 0.5, because the drop point does not reach the add.
 
 ## What remains in the module, and why

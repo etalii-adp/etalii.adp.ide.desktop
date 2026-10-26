@@ -12,6 +12,9 @@ workspace = true
 
 [dependencies]
 adp-cel = { path = "../adp-cel" }
+# The grammar family builds its grammar with ATD's table builder, on etalii-lark (FBL 0.9 section 4.9).
+adp-atd-grammar = { path = "../adp-atd-grammar" }
+etalii-lark = "0.4.1"
 regex = "1"
 serde = { version = "1", features = ["derive"] }
 # A binding's attributes, keys and maps are read in the order the binding writes them (FBL section 3).

@@ -251,6 +251,8 @@ impl BodyReading {
             let names = known.entry(at.clone()).or_insert_with(|| self.known_names(at)).clone();
             let entry = &self.family.entries[element.entry()];
             match &entry.kind {
+                // What no rule of a grammar body maps is kept and binds nothing (FBL 0.9 section 4.9).
+                EntryKind::Grammar(_) => {}
                 EntryKind::Tree(tree) => {
                     let value = self.family.tree_value(tree.value);
                     if value.kind != crate::families::tree::ValueKind::Mapping || value.via_alias {
@@ -517,7 +519,7 @@ impl BodyReading {
         match &self.family.kind {
             FamilyKind::Lines(_) => CelContext::Lines,
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => CelContext::Scalars,
-            FamilyKind::Xml(_) => CelContext::Tree,
+            FamilyKind::Xml(_) | FamilyKind::Grammar(_) => CelContext::Tree,
         }
     }
 

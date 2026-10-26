@@ -20,7 +20,7 @@
       "type": "string"
     },
     "Selector": {
-      "description": "A path to entries in a tree family's lossless reading: segments separated by '/', each a key, '*' (any member or item), '**' (any depth) or '{capture}' (any key, bound to the capture's name in CEL as path.capture). An absolute selector starts with '/'; a relative one is resolved against the enclosing entry. In the xml family a segment is an element name, optionally with one attribute test [@NAME='value']. See section 4.2.",
+      "description": "A path to entries in a tree family's lossless reading: segments separated by '/', each a key, '*' (any member or item), '**' (any depth) or '{capture}' (any key, bound to the capture's name in CEL as path.capture). An absolute selector starts with '/'; a relative one is resolved against the enclosing entry. In the xml family a segment is an element name, optionally with one attribute test [@NAME='value']. (FBL 0.9) In the grammar family a segment names a rule, an alias or a terminal of the grammar, optionally with one test [path='value'] (section 4.9). See section 4.2.",
       "type": "string",
       "minLength": 1
     },
@@ -32,7 +32,7 @@
           "type": "string"
         },
         "fbl": {
-          "description": "The FBL version the document is written in: 0.1 to 0.8 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. See FBL 0.8, section 2.7.",
+          "description": "The FBL version the document is written in: 0.1 to 0.9 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. See FBL 0.9, section 2.7.",
           "enum": [
             "0.1",
             "0.2",
@@ -41,7 +41,8 @@
             "0.5",
             "0.6",
             "0.7",
-            "0.8"
+            "0.8",
+            "0.9"
           ]
         },
         "doc": {
@@ -429,7 +430,7 @@
       ]
     },
     "Body": {
-      "description": "Where the model is stored: one file of a format family, or a folder. A folder is recognised by the files in it, read file by file, and watched. See sections 4 and 10.",
+      "description": "Where the model is stored: one file of a format family, or a folder. A folder is recognised by the files in it, read file by file, and watched. (FBL 0.9) A body of the grammar family carries its grammar, start rule and recovery. See sections 4 and 10.",
       "type": "object",
       "properties": {
         "kind": {
@@ -446,6 +447,18 @@
           "items": {
             "$ref": "#/$defs/Family"
           }
+        },
+        "grammar": {
+          "description": "(FBL 0.9) grammar: the grammar that reads the body, in ATD grammar notation (ATD section 4), as its text or as a file beside the FBL document. See section 4.9.",
+          "$ref": "#/$defs/GrammarSource"
+        },
+        "start": {
+          "description": "(FBL 0.9) grammar: the grammar's start rule. Default 'start'.",
+          "type": "string",
+          "pattern": "^[a-z_][a-z0-9_]*$"
+        },
+        "recover": {
+          "$ref": "#/$defs/Recover"
         },
         "recognise": {
           "description": "Globs, relative to the folder, that must all, any or none be present.",
@@ -514,18 +527,111 @@
               "recognise"
             ]
           }
+        },
+        {
+          "description": "(FBL 0.9) A body of the grammar family carries its grammar, and only such a body carries one (sections 3.2, 4.9).",
+          "if": {
+            "required": [
+              "family"
+            ],
+            "properties": {
+              "family": {
+                "const": "grammar"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "grammar"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "grammar"
+                  ]
+                },
+                {
+                  "required": [
+                    "start"
+                  ]
+                },
+                {
+                  "required": [
+                    "recover"
+                  ]
+                }
+              ]
+            }
+          }
         }
       ]
     },
     "Family": {
-      "description": "A format family, each with a lossless reading FBL defines: yaml (YAML 1.2), json (RFC 8259), xml (XML 1.0), lines (one statement per line), blocks (statements nested in braces) and (FBL 0.7) bullets (list items nested by indentation under named headings). See section 4.",
+      "description": "A format family, each with a lossless reading FBL defines: yaml (YAML 1.2), json (RFC 8259), xml (XML 1.0), lines (one statement per line), blocks (statements nested in braces) (FBL 0.7) bullets (list items nested by indentation under named headings) and (FBL 0.9) grammar (the tree an LALR(1) grammar the binding carries reads). See section 4.",
       "enum": [
         "yaml",
         "json",
         "xml",
         "lines",
         "blocks",
-        "bullets"
+        "bullets",
+        "grammar"
+      ]
+    },
+    "GrammarSource": {
+      "description": "(FBL 0.9) A grammar in ATD grammar notation (ATD section 4): its text, or {file}, the name of a .lark file beside the FBL document. Its %import names only files beside the document. See section 4.9.",
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "properties": {
+            "file": {
+              "type": "string",
+              "pattern": "^[^/\\\\]+\\.lark$"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          },
+          "required": [
+            "file"
+          ]
+        }
+      ]
+    },
+    "Recover": {
+      "description": "(FBL 0.9) grammar: read a body that does not parse in part. The start rule's one expansion is unit*; the body is read unit by unit, and text that does not parse as a unit is skipped to the end of the next token of a sync terminal, kept, and reported as fbl.unparsed-text. See section 4.9.",
+      "type": "object",
+      "properties": {
+        "unit": {
+          "description": "The rule of which the start rule is a repetition.",
+          "type": "string",
+          "pattern": "^[a-z_][a-z0-9_]*$"
+        },
+        "sync": {
+          "description": "The synchronising terminals: each a terminal's name, or the text of an anonymous string terminal of the grammar.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": true
+      },
+      "required": [
+        "unit",
+        "sync"
       ]
     },
     "FileRule": {
@@ -709,7 +815,7 @@
       ]
     },
     "ElementRule": {
-      "description": "How entries of the body become elements of one node type, and how new, changed and removed elements are written back. A tree or xml rule selects entries with 'at'; a lines or blocks rule matches statements with 'line', and a bullets rule statements, or with 'within' the text of list items. See section 5.",
+      "description": "How entries of the body become elements of one node type, and how new, changed and removed elements are written back. A tree, xml or (FBL 0.9) grammar rule selects entries with 'at'; a lines or blocks rule matches statements with 'line', and a bullets rule statements, or with 'within' the text of list items. See section 5.",
       "type": "object",
       "properties": {
         "name": {
@@ -998,7 +1104,7 @@
       ]
     },
     "Slot": {
-      "description": "Exactly one place in the body a value is read from and written to: a key of a tree entry, an attribute or the text of an xml element (or of its child selected by 'child'), a named group of a lines, blocks or bullets rule, a list item's continuation (bullets), or the matching slot of the enclosing entry. A slot given by 'value' is computed by CEL and read-only. See section 5.2.",
+      "description": "Exactly one place in the body a value is read from and written to: a key of a tree entry, an attribute or the text of an xml element (or of its child selected by 'child'), a named group of a lines, blocks or bullets rule, a list item's continuation (bullets), (FBL 0.9) the text of a node of a grammar body's tree, or part of it, or the matching slot of the enclosing entry. A slot given by 'value' is computed by CEL and read-only. See section 5.2.",
       "type": "object",
       "properties": {
         "key": {
@@ -1013,6 +1119,11 @@
         "continuation": {
           "description": "(FBL 0.7) bullets: the item's continuation, its continuation lines before its first nested item, blank lines between them included, read with their indentation taken off (section 4.8).",
           "const": true
+        },
+        "node": {
+          "description": "(FBL 0.9) grammar: a selector relative to the entry, whose segments name rules, aliases and terminals ('.' is the entry itself); the value is the text of the first node or token it reaches, in document order (section 4.9).",
+          "type": "string",
+          "minLength": 1
         },
         "child": {
           "$ref": "#/$defs/Selector"
@@ -1036,6 +1147,10 @@
         "flag": {
           "description": "With word: the value is true when such a word is present, and writing false removes it.",
           "type": "boolean"
+        },
+        "match": {
+          "description": "(FBL 0.9) With node: a regular expression with a named group 'value' that the whole text of the node must match; the value is that group, and its span the value's span (section 5.2).",
+          "$ref": "#/$defs/Regex"
         }
       },
       "additionalProperties": false,
@@ -1061,6 +1176,11 @@
         {
           "required": [
             "continuation"
+          ]
+        },
+        {
+          "required": [
+            "node"
           ]
         },
         {
@@ -1111,6 +1231,11 @@
         },
         {
           "required": [
+            "node"
+          ]
+        },
+        {
+          "required": [
             "group"
           ]
         },
@@ -1144,6 +1269,11 @@
           "description": "(FBL 0.7) bullets: the item's continuation, its continuation lines before its first nested item, blank lines between them included, read with their indentation taken off (section 4.8).",
           "const": true
         },
+        "node": {
+          "description": "(FBL 0.9) grammar: a selector relative to the entry, whose segments name rules, aliases and terminals ('.' is the entry itself); the value is the text of the first node or token it reaches, in document order (section 4.9).",
+          "type": "string",
+          "minLength": 1
+        },
         "child": {
           "$ref": "#/$defs/Selector"
         },
@@ -1166,6 +1296,10 @@
         "flag": {
           "description": "With word: the value is true when such a word is present, and writing false removes it.",
           "type": "boolean"
+        },
+        "match": {
+          "description": "(FBL 0.9) With node: a regular expression with a named group 'value' that the whole text of the node must match; the value is that group, and its span the value's span (section 5.2).",
+          "$ref": "#/$defs/Regex"
         },
         "empty": {
           "enum": [

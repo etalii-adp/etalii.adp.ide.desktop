@@ -1,0 +1,112 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.9's grammar family reading a body in part (section 4.9, recover): the string on line 5 has no closing quote, so reading stops at its quote; the statement is skipped from its first byte to the '.' that ends it, kept and reported once as fbl.unparsed-text at line 5, and the statements before and after it are read (story 7 scenario 3 of spec 035).",
+  "binding": "../../w3c-turtle-grammar.fbl#turtle",
+  "input": "broken.ttl",
+  "read": {
+    "elements": [
+      {
+        "id": "ex:",
+        "type": "Prefix",
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/"
+        }
+      },
+      {
+        "id": "rdfs:",
+        "type": "Prefix",
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#"
+        }
+      },
+      {
+        "id": "ex:alice",
+        "type": "Resource",
+        "attributes": {
+          "label": "Alice"
+        }
+      },
+      {
+        "id": "ex:bob",
+        "type": "Resource",
+        "attributes": {
+          "label": "Bob"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.unparsed-text",
+        "line": 5
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "An add into a body read in part: after the last resource, ex:bob; the skipped statement is kept byte for byte and still reported (FBL 4.9).",
+      "edit": {
+        "add": {
+          "type": "Resource",
+          "id": "ex:carol",
+          "attributes": {
+            "label": "Carol"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 180,
+          "end": 180,
+          "text": "ex:carol rdfs:label \"Carol\" .\n"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nex:alice rdfs:label \"Alice\" .\nex:broken rdfs:label \"no end .\nex:bob rdfs:label \"Bob\" .\nex:carol rdfs:label \"Carol\" .\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 180,
+          "end": 210,
+          "text": ""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nex:alice rdfs:label \"Alice\" .\nex:broken rdfs:label \"no end .\nex:bob rdfs:label \"Bob\" .\n"
+    },
+    {
+      "doc": "A removal of the resource above the skipped statement takes only its own line; the skipped text, which binds nothing, is not touched.",
+      "edit": {
+        "remove": {
+          "element": "ex:alice"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 93,
+          "end": 123,
+          "text": ""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nex:broken rdfs:label \"no end .\nex:bob rdfs:label \"Bob\" .\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 93,
+          "end": 93,
+          "text": "ex:alice rdfs:label \"Alice\" .\n"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nex:alice rdfs:label \"Alice\" .\nex:broken rdfs:label \"no end .\nex:bob rdfs:label \"Bob\" .\n"
+    }
+  ]
+}

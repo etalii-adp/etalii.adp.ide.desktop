@@ -13,6 +13,7 @@ The tool descriptions in this folder **must be refused** when they are checked: 
 | `designer-relation.atd` | `ATD3001` at designer-relation.atd:10:5: A designer has no relation types; `relation Broader` is admitted in diagrams only. |
 | `editor-canvas.atd` | `ATD3002` at editor-canvas.atd:14:3: An editor has a text surface; `notation` belongs to the canvas of a diagram. |
 | `hierarchy-label-not-on-type.atd` | `ATD6002` at hierarchy-label-not-on-type.atd:23:5: The label attribute `tags` is not an attribute of `Requirement`, which its `on` names. |
+| `host-attribute-unknown.atd` | `ATD2001` at host-attribute-unknown.atd:15:32: No host attribute `storedID` in `persistence`'s `typeMap`. Did you mean `storedId`? |
 | `import-cycle-a.atd` | `ATD2003` at import-cycle-b.atd:4:1: The imports `import-cycle-a.atd` → `import-cycle-b.atd` → `import-cycle-a.atd` form a cycle. |
 | `import-cycle-b.atd` | `ATD2003` at import-cycle-b.atd:4:1: The imports `import-cycle-a.atd` → `import-cycle-b.atd` → `import-cycle-a.atd` form a cycle. |
 | `missing-return.atd` | `ATD7003` at missing-return.atd:10:6: Not every path of `grade` returns a `string` or fails: the path where `value >= 50` is false ends without one. |

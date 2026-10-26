@@ -748,7 +748,7 @@
               "offset": {"cel": "has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy] : [15.0, 4.0]"},
               "align": "start"
             },
-            "editable": false,
+            "editable": "inline",
             "draggable": false,
             "wrap": "none",
             "style": "name"
@@ -803,7 +803,7 @@
               "offset": {"cel": "has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy] : [15.0, 4.0]"},
               "align": "start"
             },
-            "editable": false,
+            "editable": "inline",
             "draggable": false,
             "wrap": "none",
             "style": "name"
@@ -858,7 +858,7 @@
               "offset": {"cel": "has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy] : [15.0, 4.0]"},
               "align": "start"
             },
-            "editable": false,
+            "editable": "inline",
             "draggable": false,
             "wrap": "none",
             "style": "name"
@@ -965,7 +965,8 @@
           "anchor": "left",
           "movable": false
         },
-        "labels": [{"id": "text", "text": {"attribute": "text"}, "editable": false}]
+        "labels": [{"id": "text", "text": {"attribute": "text"}, "editable": false}],
+        "selectable": false
       },
       "Annotation": {
         "shape": "none",
@@ -994,30 +995,32 @@
             "style": {"font": {"size": 12, "color": {"token": "color.text"}}}
           }
         ],
-        "tooltip": {"cel": "self.text"}
+        "tooltip": {"cel": "self.text"},
+        "selectable": false
       },
       "Accelerator": {
         "shape": {"type": "line", "params": {"orientation": "horizontal"}},
         "style": {"stroke": {"color": {"token": "color.text"}, "width": 3}},
-        "size": {"fixed": [16, 3]},
+        "size": {"fixed": [32, 3]},
         "placement": {
           "system": "map",
           "x": {"attribute": "maturity"},
           "y": {"attribute": "visibility"},
-          "anchor": "left",
+          "anchor": "center",
           "movable": false
         },
         "labels": [
           {
             "id": "name",
             "text": {"attribute": "name"},
-            "position": {"anchor": [0, 0.5], "offset": [22, 4], "align": "start"},
+            "position": {"anchor": [0.5, 0.5], "offset": [22, 4], "align": "start"},
             "editable": false,
             "wrap": "none",
             "style": "name"
           }
         ],
-        "variants": [{"when": "self.deaccelerator", "style": {"stroke": {"dash": [5, 4]}}}]
+        "variants": [{"when": "self.deaccelerator", "style": {"stroke": {"dash": [5, 4]}}}],
+        "selectable": false
       },
       "Attitude": {
         "shape": "rect",
@@ -1044,7 +1047,8 @@
             "style": {"font": {"size": 13, "color": {"token": "color.text.muted"}}}
           }
         ],
-        "layer": "background"
+        "layer": "background",
+        "selectable": false
       },
       "Url": {
         "shape": "none",
@@ -2403,10 +2407,10 @@
       "Accelerator": "wardley/map+accelerator",
       "Attitude": "wardley/map+attitude"
     },
-    "evolutionAxis": {
-      "id": "wardley-evolution-axis",
-      "type": "wardley/map+evolution-axis",
-      "doc": "The one element the standalone backend sends for the evolution axis, which goes once the client draws the maturity axis's ranges (finding A10)."
+    "diagram": {
+      "id": "wardley-diagram",
+      "type": "wardley/map+diagram",
+      "doc": "The one element the standalone backend sends for the map itself, carrying the attributes metamodel.diagram declares (title, style, size and the annotations' position); the canvas names the map by its title. It replaced the evolution axis element once the client drew the maturity axis's ranges (finding A10)."
     }
   },
   "x-adp": {

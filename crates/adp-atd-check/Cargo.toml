@@ -13,5 +13,7 @@ workspace = true
 [dependencies]
 regex = "1"
 adp-atd-syntax = { path = "../adp-atd-syntax" }
+# A grammar binding's grammar is built to find its conflicts (ATD8001, FBL 0.9 section 4.9).
+adp-atd-grammar = { path = "../adp-atd-grammar" }
 jsonschema = { version = "0.59", default-features = false }
 serde_json = { version = "1", features = ["preserve_order"] }
