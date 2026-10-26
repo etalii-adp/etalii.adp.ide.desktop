@@ -1,0 +1,16 @@
+{
+  "tool": "gartner/hypecycle-graph",
+  "fixture": "gartner/hypecycle-graph/refusals/graph.ghg",
+  "steps": [
+    { "property": { "row": "ghg.name", "value": "   ", "target": "steam" }, "expect": "refused" },
+    { "property": { "row": "ghg.stop", "value": "1790-01", "target": "steam" }, "expect": "refused" },
+    { "property": { "row": "ghg.start", "value": "1849-12", "target": "steam" }, "expect": "refused" },
+    { "property": { "row": "ghg.phases", "value": "Peak", "target": "rail" } },
+    { "action": "ghg.connect.influence", "args": { "target": "rel:steam->patent" }, "expect": "refused" },
+    { "action": "ghg.connect.influence", "args": { "target": "rel:steam->steam" }, "expect": "refused" },
+    { "action": "ghg.connect.influence", "args": { "target": "rel:steam->rail" }, "expect": "refused" },
+    { "action": "ghg.connect.influence", "args": { "target": "rel:patent->rail" } },
+    { "select": ["patent"] },
+    { "action": "ghg.even-phases", "args": {}, "expect": "refused" }
+  ]
+}
