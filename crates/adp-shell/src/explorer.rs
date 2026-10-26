@@ -27,6 +27,8 @@ pub enum Request {
     Delete(String),
     Validate(String),
     ValidateAll,
+    /// A tool description's validation view, on its root file (spec 035, T129).
+    ValidateDescription(String),
     /// The knowledge file's entry that adds a relation to another table (T064).
     Relate(String),
     /// Add… on a folder, or Add as diagram… on a file a tool type reads (T068).
@@ -285,6 +287,14 @@ impl Explorer {
                         ui.separator();
                         item(ui, "Validate", "", Request::Validate(path.clone()));
                         item(ui, "Validate All", "", Request::ValidateAll);
+                        if path.ends_with(".atd") {
+                            item(
+                                ui,
+                                "Validate Tool Description",
+                                "",
+                                Request::ValidateDescription(path.clone()),
+                            );
+                        }
                     });
                 }
             });

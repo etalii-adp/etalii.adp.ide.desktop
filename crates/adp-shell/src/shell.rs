@@ -31,6 +31,7 @@ use crate::highlight::Highlighter;
 use crate::ribbon::{Command, Ribbon, Situation};
 use crate::table::TableTab;
 use crate::theme::{self, Palette};
+use crate::validation::ValidationTab;
 
 /// A project open in the window: its tree, kept in step with the disk, and its findings.
 struct OpenProject {
@@ -53,6 +54,8 @@ pub enum Tab {
     Diagram(Box<DiagramTab>),
     Table(Box<TableTab>),
     Hierarchy(Box<HierarchyTab>),
+    /// A tool description run on one of its conformance cases (spec 035, T129).
+    Validation(Box<ValidationTab>),
 }
 
 impl Tab {
@@ -112,6 +115,20 @@ impl Tab {
         }
     }
 
+    pub fn validation(&self) -> Option<&ValidationTab> {
+        match self {
+            Tab::Validation(tab) => Some(tab),
+            _ => None,
+        }
+    }
+
+    pub fn validation_mut(&mut self) -> Option<&mut ValidationTab> {
+        match self {
+            Tab::Validation(tab) => Some(tab),
+            _ => None,
+        }
+    }
+
     /// The file the tab was opened on.
     pub fn path(&self) -> &Path {
         match self {
@@ -119,6 +136,7 @@ impl Tab {
             Tab::Diagram(tab) => &tab.path,
             Tab::Table(tab) => &tab.path,
             Tab::Hierarchy(tab) => &tab.path,
+            Tab::Validation(tab) => &tab.path,
         }
     }
 
@@ -128,6 +146,7 @@ impl Tab {
             Tab::Diagram(tab) => tab.name(),
             Tab::Table(tab) => tab.name(),
             Tab::Hierarchy(tab) => tab.name(),
+            Tab::Validation(tab) => tab.name(),
         }
     }
 
@@ -137,6 +156,7 @@ impl Tab {
             Tab::Diagram(tab) => tab.title(),
             Tab::Table(tab) => tab.title(),
             Tab::Hierarchy(tab) => tab.title(),
+            Tab::Validation(tab) => tab.title(),
         }
     }
 
@@ -518,6 +538,10 @@ impl Shell {
             for page in self.tabs.iter_mut().filter_map(Tab::hierarchy_mut) {
                 page.changed_on_disk(&path);
             }
+            // A validation view checks its description again when one of its files was saved (FR-044).
+            for view in self.tabs.iter_mut().filter_map(Tab::validation_mut) {
+                view.changed_on_disk(&path);
+            }
         }
     }
 
@@ -603,8 +627,36 @@ impl Shell {
                 Scope::File(path)
             }),
             Request::ValidateAll => self.validate(Scope::Project),
+            Request::ValidateDescription(path) => self.open_validation(&root.join(&path)),
             Request::Relate(path) => self.start_relate(&root, &root.join(&path)),
             Request::Add(path) => self.start_add(&root, &path),
+        }
+    }
+
+    /// Opens the validation view of the description `path` belongs to, or focuses the one it has (spec 035, T129).
+    pub fn open_validation(&mut self, path: &Path) {
+        let checked = adp_atd_check::check(&adp_atd_check::FsFiles, path);
+        let root = checked
+            .description
+            .files
+            .first()
+            .filter(|_| checked.description.rooted)
+            .map(|f| f.path.clone())
+            .unwrap_or_else(|| path.to_path_buf());
+        if let Some(index) = self
+            .tabs
+            .iter()
+            .position(|t| t.validation().is_some_and(|v| v.shows(&root)))
+        {
+            self.active = index;
+            return;
+        }
+        match ValidationTab::open(&root) {
+            Ok(tab) => {
+                self.tabs.push(Tab::Validation(Box::new(tab)));
+                self.active = self.tabs.len() - 1;
+            }
+            Err(reason) => self.notice = Some(reason),
         }
     }
 
@@ -1006,6 +1058,7 @@ impl Shell {
             Some(Tab::Diagram(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.canvas_id())),
             Some(Tab::Table(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.grid_id())),
             Some(Tab::Hierarchy(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.id())),
+            Some(Tab::Validation(tab)) => ui.memory(|m| m.focused().is_some_and(|f| f != tab.id())),
             None => false,
         };
         if !editor_focused {
@@ -1277,6 +1330,9 @@ impl Shell {
                     (!open.editor.buffer.is_modified()).then(|| "There are no changes to save.".to_owned());
             }
             Some(Tab::Table(_)) => situation.save = Some("A table's edits are written as they are made.".to_owned()),
+            Some(Tab::Validation(_)) => {
+                situation.save = Some("A validation view edits a working copy, which is never written.".to_owned());
+            }
             Some(Tab::Hierarchy(tab)) => {
                 situation.save = Some("A document's edits are written as they are made.".to_owned());
                 // The selected entry's actions, each with its key, as the standalone host's ribbon shows them.
@@ -1602,6 +1658,26 @@ impl Shell {
                 .frame(Frame::NONE.fill(palette.editor_background))
                 .show(ui, |ui| crate::table::show(ui, tab, theme, palette));
             self.after_table();
+            return;
+        }
+        if let Some(Tab::Validation(tab)) = self.tabs.get_mut(self.active) {
+            let mut go_to = None;
+            egui::CentralPanel::default()
+                .frame(Frame::NONE.fill(palette.editor_background))
+                .show(ui, |ui| go_to = crate::validation::show(ui, tab, theme, palette));
+            if let Some(notice) = tab.notice.take() {
+                self.notice = Some(notice);
+            }
+            if let Some(place) = go_to {
+                let root = self
+                    .root()
+                    .unwrap_or_else(|| place.file.parent().map(Path::to_path_buf).unwrap_or_default());
+                self.open_text(&place.file, &root);
+                if let Some(open) = self.tabs.get_mut(self.active).and_then(Tab::text_mut) {
+                    let offset = open.editor.buffer.offset(place.line.saturating_sub(1), 0);
+                    open.editor.buffer.set_cursor(offset);
+                }
+            }
             return;
         }
         if let Some(Tab::Hierarchy(tab)) = self.tabs.get_mut(self.active) {

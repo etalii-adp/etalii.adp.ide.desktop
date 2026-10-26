@@ -22,6 +22,7 @@ mod ribbon;
 pub use canvas::recording;
 pub mod shell;
 mod table;
+mod validation;
 // The table's tests sit beside it, declared here so that the benchmark, which includes the table module, leaves them out.
 #[cfg(test)]
 mod screenshot;

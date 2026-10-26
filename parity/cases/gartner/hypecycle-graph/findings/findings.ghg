@@ -1,0 +1,107 @@
+gartner-hypecycle-graph: 1
+unit: month
+# Every finding a document can produce.
+trends:
+  - id: steam
+    name: Steam
+    start: 1800-01
+    stop: 1850-01
+    row: 1
+    phases: 4
+  - id: backwards
+    name: Backwards
+    start: 1900-01
+    stop: 1890-01
+    row: 2
+    phases: 2
+  - id: five-phases
+    name: Five phases
+    start: 1800-01
+    stop: 1900-01
+    row: 3
+    phases: 5
+  - id: out-of-order
+    name: Out of order
+    start: 1800-01
+    stop: 1900-01
+    row: 4
+    phases: 4
+    peak-end: 1860-01
+    trough-end: 1820-01
+  - id: steam
+    name: Steam again
+    start: 1810-01
+    stop: 1830-01
+    row: 5
+    phases: 1
+  - just a word
+triggers:
+  - id: undated
+    name: Undated
+    row: 6
+  - id: patent
+    name: Patent
+    date: 1795-06
+    row: 1
+notes:
+  - id: unplaced
+    text: A note without a place
+    row: 7
+  - id: flat
+    text: A note without a height
+    at: 1820-01
+    row: 8
+    width: 120
+    height: 0
+influences:
+  - id: bad-ends
+    from: out-of-order
+    from-phase: summit
+    from-edge: middle
+    from-at: 1.5
+    to: five-phases
+    to-phase: peak
+    to-edge: side
+    to-at: 0.5
+  - id: into-trigger
+    from: out-of-order
+    from-phase: peak
+    from-edge: bottom
+    from-at: 0.5
+    to: patent
+    to-phase: peak
+    to-edge: top
+    to-at: 0.5
+  - id: self
+    from: five-phases
+    from-phase: peak
+    from-edge: bottom
+    from-at: 0.5
+    to: five-phases
+    to-phase: peak
+    to-edge: top
+    to-at: 0.5
+  - id: once
+    from: patent
+    to: out-of-order
+    to-phase: peak
+    to-edge: top
+    to-at: 0.2
+  - id: twice
+    from: patent
+    to: out-of-order
+    to-phase: peak
+    to-edge: top
+    to-at: 0.4
+  - id: thrice
+    from: patent
+    to: out-of-order
+    to-phase: peak
+    to-edge: top
+    to-at: 0.6
+  - id: dangling
+    from: nowhere
+    to: out-of-order
+    to-phase: peak
+    to-edge: top
+    to-at: 0.5
