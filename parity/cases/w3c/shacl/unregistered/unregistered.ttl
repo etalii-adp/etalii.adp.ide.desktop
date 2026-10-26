@@ -1,0 +1,6 @@
+# B9: a bare file, opened with no registration beside it.
+@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:loose rdfs:label "Loose" ; ex:near ex:other .
+ex:other rdfs:label "Other" .

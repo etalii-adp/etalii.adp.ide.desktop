@@ -1,0 +1,147 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/owl-malformed.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix : <http://example.org/bad#> .\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n:A a owl:Class ;\n    rdfs:subClassOf [ a owl:Restriction ; owl:someValuesFrom :B ] .\n\n:B a owl:Class .\n",
+    "files": {
+      "owl-malformed.adp": "w3c/rdf\nbody: owl-malformed.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "",
+          "iri": "http://example.org/bad#",
+          "line": 1
+        }
+      },
+      {
+        "id": "prefix:owl",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "owl",
+          "iri": "http://www.w3.org/2002/07/owl#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/bad#A|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/bad#A",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":A",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/2002/07/owl#someValuesFrom|http://example.org/bad#B",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#someValuesFrom",
+          "o": "http://example.org/bad#B",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/bad#A",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":A",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "0",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/bad#B|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/bad#B",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":B",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

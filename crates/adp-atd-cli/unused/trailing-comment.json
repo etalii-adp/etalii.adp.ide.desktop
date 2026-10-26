@@ -1,0 +1,83 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/trailing-comment.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# B4: a statement ending in . with a trailing comment on its line.\r\n@prefix ex: <http://example.org/> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\nex:a ex:p ex:b . # the trailing comment\r\nex:b rdfs:label \"B\" .\r\n",
+    "files": {
+      "trailing-comment.adp": "w3c/rdf\nbody: trailing-comment.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/p|http://example.org/b",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:a",
+          "p": "http://example.org/p",
+          "o": "http://example.org/b",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/b|http://www.w3.org/2000/01/rdf-schema#label|B",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/b",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:b",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "B",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

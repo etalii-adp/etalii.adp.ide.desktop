@@ -1,0 +1,111 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/literal-and-prefix-forms.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# B6: the literal forms and the prefix forms an edit rewrites, and comment lines above a statement.\n@prefix ex: <http://example.org/> .\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n# The comment above the statement.\nex:text rdfs:label '''A long\nliteral''' ;\n    rdfs:comment \"typed\"^^xsd:string ;\r\n    ex:note \"plain\"@en .\n",
+    "files": {
+      "literal-and-prefix-forms.adp": "w3c/rdf\nbody: literal-and-prefix-forms.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "line": 4
+        }
+      },
+      {
+        "id": "triple:http://example.org/text|http://www.w3.org/2000/01/rdf-schema#label|A long\nliteral",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/text",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:text",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "A long\nliteral",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/text|http://www.w3.org/2000/01/rdf-schema#comment|typed",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/text",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:text",
+          "p": "http://www.w3.org/2000/01/rdf-schema#comment",
+          "o": "typed",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#string",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/text|http://example.org/note|plain",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/text",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:text",
+          "p": "http://example.org/note",
+          "o": "plain",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 10
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

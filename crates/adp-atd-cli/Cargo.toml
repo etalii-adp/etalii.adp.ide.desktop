@@ -19,7 +19,7 @@ workspace = true
 # without it (spec 035, T050).
 [features]
 default = ["record"]
-record = ["dep:adp-desl", "dep:adp-documents", "dep:adp-editor-json", "dep:adp-editor-markdown", "dep:adp-editor-xml", "dep:adp-editor-yaml", "dep:adp-diagram", "dep:adp-diagram-c4", "dep:adp-diagram-mindmap", "dep:adp-parity", "dep:adp-shell", "dep:adp-theme"]
+record = ["dep:adp-desl", "dep:adp-documents", "dep:adp-editor-json", "dep:adp-editor-markdown", "dep:adp-editor-xml", "dep:adp-editor-yaml", "dep:adp-diagram", "dep:adp-diagram-c4", "dep:adp-diagram-rdf", "dep:adp-diagram-mindmap", "dep:adp-parity", "dep:adp-shell", "dep:adp-theme"]
 
 [dependencies]
 adp-desl = { path = "../adp-desl", optional = true }
@@ -30,6 +30,7 @@ adp-editor-json = { path = "../../modules/editors/json", optional = true }
 adp-editor-markdown = { path = "../../modules/editors/markdown", optional = true }
 adp-editor-xml = { path = "../../modules/editors/xml", optional = true }
 adp-editor-yaml = { path = "../../modules/editors/yaml", optional = true }
+adp-diagram-rdf = { path = "../../modules/diagrams/rdf", optional = true }
 adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap", optional = true }
 adp-parity = { path = "../adp-parity", optional = true }
 adp-shell = { path = "../adp-shell", optional = true }

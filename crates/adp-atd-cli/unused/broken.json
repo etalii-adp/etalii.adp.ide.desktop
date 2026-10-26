@@ -1,0 +1,34 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/broken.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix ex: <http://example.org/> .\r\nex:alice ex:knows\r\n",
+    "files": {
+      "broken.adp": "w3c/rdf\nbody: broken.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      }
+    ],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "rdf.unparseable",
+        "severity": "error",
+        "line": 2,
+        "message": "This is not RDF that can be read: Expected an object, found ''."
+      }
+    ]
+  }
+}

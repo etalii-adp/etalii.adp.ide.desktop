@@ -1,0 +1,12 @@
+# B15: an ontology whose file raises the rdf.* findings beside the OWL ones.
+@prefix ex: <http://example.org/onto#> .
+@prefix ex: <http://example.org/again#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:Thing a owl:Class ; rdfs:label "Thing"@en- .
+ex:Old a owl:Class ; owl:deprecated true .
+ex:New a owl:Class ; rdfs:subClassOf ex:Old .
+ex:size a owl:DatatypeProperty ; rdfs:range xsd:notAType .
+ex:Thing ex:undeclared <relative> .

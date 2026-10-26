@@ -1,0 +1,173 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/shared-statement.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# B1: one statement shared by several pairs through ; and , lists, and a resource many statements name.\r\n@prefix ex: <http://example.org/> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\nex:alice ex:knows ex:bob , ex:carol ;\r\n    rdfs:label \"Alice\" ;\r\n    ex:worksWith ex:bob .\r\nex:bob ex:knows ex:alice ; rdfs:label \"Bob\" .\r\nex:carol ex:knows ex:bob .\r\n",
+    "files": {
+      "shared-statement.adp": "w3c/rdf\nbody: shared-statement.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://example.org/knows|http://example.org/bob",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://example.org/knows",
+          "o": "http://example.org/bob",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://example.org/knows|http://example.org/carol",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://example.org/knows",
+          "o": "http://example.org/carol",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://www.w3.org/2000/01/rdf-schema#label|Alice",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Alice",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://example.org/worksWith|http://example.org/bob",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://example.org/worksWith",
+          "o": "http://example.org/bob",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/bob|http://example.org/knows|http://example.org/alice",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/bob",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:bob",
+          "p": "http://example.org/knows",
+          "o": "http://example.org/alice",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/bob|http://www.w3.org/2000/01/rdf-schema#label|Bob",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/bob",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:bob",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Bob",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/carol|http://example.org/knows|http://example.org/bob",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/carol",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:carol",
+          "p": "http://example.org/knows",
+          "o": "http://example.org/bob",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

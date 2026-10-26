@@ -1,0 +1,101 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/rename-positions.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# B2 and B10: a renamed resource whose stored position the registration keeps.\r\n@prefix ex: <http://example.org/> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\nex:alpha rdfs:label \"Alpha\" ; ex:links ex:beta .\r\nex:beta rdfs:label \"Beta\" .\r\n",
+    "files": {
+      "rename-positions.adp": "w3c/rdf\nbody: rename-positions.ttl\nlayout:\n  res:http://example.org/alpha: 120 80\n  res:http://example.org/beta: 360 80\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/alpha|http://www.w3.org/2000/01/rdf-schema#label|Alpha",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alpha",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alpha",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Alpha",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/alpha|http://example.org/links|http://example.org/beta",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alpha",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alpha",
+          "p": "http://example.org/links",
+          "o": "http://example.org/beta",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/beta|http://www.w3.org/2000/01/rdf-schema#label|Beta",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/beta",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:beta",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Beta",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

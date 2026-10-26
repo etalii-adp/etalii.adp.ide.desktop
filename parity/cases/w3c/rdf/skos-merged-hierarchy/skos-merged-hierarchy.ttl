@@ -1,0 +1,11 @@
+# A4: hierarchy stated as broader, as narrower and as both, which the reading merges into one edge each; labels in two languages.
+@prefix ex: <http://example.org/drinks#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+ex:drinks a skos:ConceptScheme ; skos:prefLabel "Drinks"@en , "Dranken"@nl ; skos:hasTopConcept ex:hot .
+ex:hot a skos:Concept ; skos:topConceptOf ex:drinks ; skos:prefLabel "Hot drinks"@en , "Warme dranken"@nl .
+ex:tea a skos:Concept ; skos:inScheme ex:drinks ; skos:prefLabel "Tea"@en , "Thee"@nl ; skos:broader ex:hot .
+ex:hot skos:narrower ex:coffee .
+ex:coffee a skos:Concept ; skos:inScheme ex:drinks ; skos:prefLabel "Coffee"@en , "Koffie"@nl .
+ex:cocoa a skos:Concept ; skos:inScheme ex:drinks ; skos:prefLabel "Cocoa"@en ; skos:broader ex:hot .
+ex:hot skos:narrower ex:cocoa .
