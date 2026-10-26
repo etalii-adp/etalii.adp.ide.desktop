@@ -1,0 +1,106 @@
+{
+  "tool": "c4/component",
+  "fixture": "c4/component/operations/courier.dsl",
+  "registration": "c4/component/operations/courier.api-components.adp",
+  "steps": [
+    {
+      "action": "c4.rename",
+      "args": {
+        "target": "api",
+        "value": "Tracking API"
+      }
+    },
+    {
+      "action": "c4.edit-description",
+      "args": {
+        "target": "api",
+        "value": "Books deliveries and answers where a parcel is."
+      }
+    },
+    {
+      "action": "c4.set-technology",
+      "args": {
+        "target": "api",
+        "value": "Java 21"
+      }
+    },
+    {
+      "action": "c4.set-technology",
+      "args": {
+        "target": "sender",
+        "value": "Browser"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "c4.rename",
+      "args": {
+        "target": "sender",
+        "value": ""
+      }
+    },
+    {
+      "action": "c4.relabel",
+      "args": {
+        "target": "spa->api@88",
+        "value": "Calls the API of"
+      }
+    },
+    {
+      "action": "c4.set-protocol",
+      "args": {
+        "target": "spa->api@88",
+        "value": "gRPC"
+      }
+    },
+    {
+      "action": "c4.add-person",
+      "args": {
+        "target": "new:900,-200",
+        "value": "Dispatcher"
+      }
+    },
+    {
+      "action": "c4.add-softwaresystem",
+      "args": {
+        "target": "new:900,400",
+        "value": "Billing"
+      }
+    },
+    {
+      "action": "c4.add-container",
+      "args": {
+        "target": "tracking",
+        "value": "Worker"
+      }
+    },
+    {
+      "action": "c4.add-component",
+      "args": {
+        "target": "api",
+        "value": "Scanner"
+      }
+    },
+    {
+      "action": "c4.add-container",
+      "args": {
+        "target": "tracking",
+        "value": "Web Application"
+      }
+    },
+    {
+      "action": "c4.add-deploymentnode",
+      "args": {
+        "target": "new:1200,400",
+        "value": "Edge"
+      },
+      "expect": "refused"
+    },
+    {
+      "undo": 1
+    },
+    {
+      "redo": 1
+    }
+  ]
+}

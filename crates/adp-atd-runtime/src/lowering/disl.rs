@@ -213,7 +213,7 @@ impl Lowering {
                     if let Some(base) = item.get("base") {
                         lowered.insert("base".into(), json!(type_name(base)));
                     }
-                    at(metamodel, &["datatypes"]).insert(text(&item["name"]), Json::Object(lowered));
+                    at(metamodel, &["dataTypes"]).insert(text(&item["name"]), Json::Object(lowered));
                 }
                 "document" => {
                     let mut lowered = element(item);

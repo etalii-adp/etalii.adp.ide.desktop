@@ -95,3 +95,60 @@ fn a_style_a_notation_does_not_declare_is_found_at_its_name() {
         vec!["ATD2011 13:14 No style `crad`. Did you mean `card`?"]
     );
 }
+
+#[test]
+fn a_context_set_for_the_empty_canvas_or_a_pending_connection_names_no_type() {
+    // DISL §7.3: `diagram` opens a set on the empty canvas and `connection` on a pending connection.
+    let text = format!(
+        "atd 0.1\ndiagram example/tasks version \"0.1.0\" {{{MODEL}
+  operation addTask \"Add task\" for diagram {{
+    create Task {{ title: \"New\" }}
+  }}
+  toolbox {{
+    context for diagram {{
+      tool \"Add task\" {{ kind: operation, operation: addTask }}
+    }}
+    context for connection {{
+      tool \"Link\" {{ kind: operation, operation: addTask }}
+    }}
+    context for Tsak {{
+      tool \"Add task\" {{ kind: operation, operation: addTask }}
+    }}
+  }}
+}}
+"
+    );
+    assert_eq!(
+        findings(&text),
+        vec!["ATD2002 20:17 No element type `Tsak`. Did you mean `Task`?"]
+    );
+}
+
+#[test]
+fn a_field_of_an_operations_parameter_form_names_a_parameter() {
+    // DISL §7.5: a form an operation names as its `paramsForm` is its dialog, whose fields are the parameters.
+    let text = format!(
+        "atd 0.1\ndiagram example/tasks version \"0.1.0\" {{{MODEL}
+  operation rename \"Rename\" for Task {{
+    param newTitle: string
+    paramsForm: renameTask
+    set self.title = p.newTitle
+  }}
+  form renameTask \"Rename task\" for Task {{
+    field newTitle \"Title\" {{ widget: text }}
+    field titel {{ widget: text }}
+  }}
+  form task for Task {{
+    field newTitle {{ widget: text }}
+  }}
+}}
+"
+    );
+    assert_eq!(
+        findings(&text),
+        vec![
+            "ATD2001 17:11 No attribute `titel` in element type `Task`. Did you mean `title`?",
+            "ATD2001 20:11 No attribute `newTitle` in element type `Task`.",
+        ]
+    );
+}

@@ -683,3 +683,129 @@ fn recording_the_markdown_capabilities_writes_valid_fixtures() {
         }
     }
 }
+
+#[test]
+fn recording_a_reader_writes_what_each_document_of_its_cases_reads_to() {
+    let fixtures = record_capability("reader.databricksBundle");
+    let validator = validator("CapabilityFixture");
+    let written = files(fixtures.path());
+    for expected in [
+        "job-nightly-ingest.json",
+        "bundle-lakehouse.json",
+        "pipeline-settings.json",
+    ] {
+        assert!(written.contains_key(expected), "{expected} in {:?}", written.keys());
+    }
+    for (name, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{name}: {errors:?}");
+        assert!(
+            !fixture["input"]["body"].as_str().unwrap().is_empty() || name.starts_with("bundle-empty"),
+            "{name}"
+        );
+        assert!(
+            fixture["output"]["elements"].is_array() && fixture["output"]["findings"].is_array(),
+            "{name}"
+        );
+    }
+    let job: Value = serde_json::from_slice(&written["job-nightly-ingest.json"]).unwrap();
+    assert_eq!(job["args"]["reading"], "job");
+    assert!(
+        job["output"]["elements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|e| e["id"] == "task:land_raw")
+    );
+    assert_eq!(files(record_capability("reader.databricksBundle").path()), written);
+}
+
+#[test]
+fn recording_a_layout_places_every_node_of_each_reading_and_keeps_the_pinned_ones() {
+    let validator = validator("CapabilityFixture");
+    for (name, expected) in [
+        ("layout.layeredColumns", "job-nightly-ingest.json"),
+        ("layout.bands", "bundle-lakehouse.json"),
+    ] {
+        let written = files(record_capability(name).path());
+        assert!(written.contains_key(expected), "{name}: {:?}", written.keys());
+        for (file, bytes) in &written {
+            let fixture: Value = serde_json::from_slice(bytes).unwrap();
+            let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+            assert!(errors.is_empty(), "{file}: {errors:?}");
+            let positions = fixture["output"]["positions"].as_object().unwrap();
+            for node in fixture["input"]["nodes"].as_array().unwrap() {
+                let id = node["id"].as_str().unwrap();
+                assert!(positions.contains_key(id), "{name} {file}: {id} is placed");
+                if let Some(pinned) = node.get("pinned") {
+                    assert_eq!(&positions[id], pinned, "{name} {file}: {id} stays where it is pinned");
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn recording_the_structurizr_reader_names_the_kind_of_view_each_case_reads() {
+    let written = files(record_capability("reader.structurizr").path());
+    let validator = validator("CapabilityFixture");
+    for (name, view) in [
+        ("container-courier.json", "container"),
+        ("context-operations.json", "systemContext"),
+        ("system-landscape-operations.json", "systemLandscape"),
+    ] {
+        let fixture: Value = serde_json::from_slice(&written[name]).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{name}: {errors:?}");
+        assert_eq!(fixture["args"]["view"], view, "{name}");
+        assert!(
+            fixture["output"]["elements"].as_array().is_some_and(|e| !e.is_empty()),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn recording_ranked_boundaries_keeps_the_pins_a_view_does_not_ignore_and_encloses_each_boundary_s_nodes() {
+    let written = files(record_capability("layout.rankedBoundaries").path());
+    let validator = validator("CapabilityFixture");
+    assert!(
+        written.contains_key("deployment-operations.json"),
+        "{:?}",
+        written.keys()
+    );
+    let mut pins_kept = 0;
+    for (file, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{file}: {errors:?}");
+        let positions = fixture["output"]["positions"].as_object().unwrap();
+        let ignored = fixture["args"]["pinsIgnored"] == "true";
+        let padding = fixture["args"]["padding"].as_f64().unwrap();
+        let nodes = fixture["input"]["nodes"].as_array().unwrap();
+        for node in nodes {
+            let id = node["id"].as_str().unwrap();
+            assert!(positions.contains_key(id), "{file}: {id} is placed");
+            let encloses = nodes.iter().any(|n| n["parent"] == node["id"]);
+            if let Some(pinned) = node.get("pinned")
+                && !ignored
+                && node.get("parent").is_none()
+                && !encloses
+            {
+                assert_eq!(&positions[id], pinned, "{file}: {id} stays where it is pinned");
+                pins_kept += 1;
+            }
+            if let Some(parent) = node["parent"].as_str() {
+                let (inner, outer) = (&positions[id], &positions[parent]);
+                for axis in ["x", "y"] {
+                    assert!(
+                        inner[axis].as_f64().unwrap() >= outer[axis].as_f64().unwrap() + padding - 0.005,
+                        "{file}: {id} is inside {parent}"
+                    );
+                }
+            }
+        }
+    }
+    assert!(pins_kept > 0, "some view keeps its stored positions");
+}
