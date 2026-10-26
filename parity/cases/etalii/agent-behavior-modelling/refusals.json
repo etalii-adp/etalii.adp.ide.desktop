@@ -1,0 +1,79 @@
+{
+  "tool": "etalii/agent-behavior-modelling",
+  "fixture": "etalii/agent-behavior-modelling/refusals/refusals.md",
+  "registration": "etalii/agent-behavior-modelling/refusals/refusals.adp",
+  "steps": [
+    {
+      "action": "abm.add.check",
+      "args": {
+        "target": "1.1"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "abm.add.action",
+      "args": {
+        "target": "1.2"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1->1.3"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1.3->1"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1.1->1.3.1"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1.2->1.3.1"
+      },
+      "expect": "refused"
+    },
+    {
+      "property": {
+        "row": "Kind",
+        "value": "Do",
+        "target": "1.3"
+      },
+      "expect": "refused"
+    },
+    {
+      "property": {
+        "row": "Attempts",
+        "value": "0",
+        "target": "1.2"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "abm.arrange",
+      "args": {
+        "target": "1"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "abm.move-later",
+      "args": {
+        "target": "1.3"
+      },
+      "expect": "refused"
+    }
+  ]
+}

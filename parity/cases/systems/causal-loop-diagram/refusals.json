@@ -1,0 +1,15 @@
+{
+  "tool": "systems/causal-loop-diagram",
+  "fixture": "systems/causal-loop-diagram/refusals/graph.cld",
+  "steps": [
+    { "select": ["variable:population"] },
+    { "action": "causal-loop.add-link", "args": { "value": "nobody" }, "expect": "refused" },
+    { "action": "causal-loop.add-link", "args": { "value": "births" }, "expect": "refused" },
+    { "action": "causal-loop.add-link", "args": { "value": "deaths" } },
+    { "select": ["variable:deaths"] },
+    { "action": "causal-loop.add-loop", "args": { "value": "B 2" }, "expect": "refused" },
+    { "action": "causal-loop.add-loop", "args": { "value": "R1" }, "expect": "refused" },
+    { "action": "causal-loop.add-loop", "args": { "value": "B2" } },
+    { "property": { "row": "causal-loop.variable-id", "value": "births", "target": "variable:deaths" }, "expect": "refused" }
+  ]
+}
