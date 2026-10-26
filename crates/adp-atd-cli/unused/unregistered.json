@@ -1,0 +1,101 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/unregistered.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# B9: a bare file, opened with no registration beside it.\r\n@prefix ex: <http://example.org/> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\nex:loose rdfs:label \"Loose\" ; ex:near ex:other .\r\nex:other rdfs:label \"Other\" .\r\n",
+    "files": {
+      "unregistered.adp": "w3c/rdf\nbody: unregistered.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/loose|http://www.w3.org/2000/01/rdf-schema#label|Loose",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/loose",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:loose",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Loose",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/loose|http://example.org/near|http://example.org/other",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/loose",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:loose",
+          "p": "http://example.org/near",
+          "o": "http://example.org/other",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/other|http://www.w3.org/2000/01/rdf-schema#label|Other",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/other",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:other",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Other",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

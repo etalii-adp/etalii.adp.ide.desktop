@@ -1,0 +1,831 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/shacl/shape-grid.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix : <http://example.org/shapes#> .\n@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n:PersonShape a sh:NodeShape ;\n    sh:targetClass :Person ;\n    sh:property [ sh:path :name ; sh:datatype xsd:string ; sh:minCount 1 ] ,\n        [ sh:path :age ; sh:datatype xsd:integer ] ,\n        [ sh:path :knows ; sh:node :PersonShape ] .\n\n:AddressShape a sh:NodeShape ;\n    sh:targetClass :Address .\n\n:CityShape a sh:NodeShape ;\n    sh:targetClass :City , :Town ;\n    sh:property [ sh:path :population ; sh:datatype xsd:integer ] .\n\n:EmptyShape a sh:NodeShape .\n\n:TagShape a sh:NodeShape ;\n    sh:targetSubjectsOf :tag ;\n    sh:property [ sh:path :tag ; sh:datatype xsd:string ] ,\n        [ sh:path :label ] .\n\n:NameShape a sh:PropertyShape ;\n    sh:path :name ;\n    sh:maxCount 1 .\n\n:OrderShape a sh:NodeShape ;\n    sh:targetClass :Order ;\n    sh:property [ sh:path :item ; sh:minCount 1 ] , [ sh:path :total ] , [ sh:path :customer ; sh:node :PersonShape ] , [ sh:path :date ] .\n",
+    "files": {
+      "shape-grid.adp": "w3c/shacl\nbody: shape-grid.ttl\nlayout:\n  res:http://example.org/shapes#CityShape: 1000 600\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "",
+          "iri": "http://example.org/shapes#",
+          "line": 1
+        }
+      },
+      {
+        "id": "prefix:sh",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "sh",
+          "iri": "http://www.w3.org/ns/shacl#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#PersonShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#PersonShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":PersonShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#targetClass|http://example.org/shapes#Person",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#PersonShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":PersonShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://example.org/shapes#Person",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/ns/shacl#path|http://example.org/shapes#name",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#name",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/ns/shacl#datatype|http://www.w3.org/2001/XMLSchema#string",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#datatype",
+          "o": "http://www.w3.org/2001/XMLSchema#string",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/ns/shacl#minCount|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#minCount",
+          "o": "1",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#PersonShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":PersonShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "0",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/ns/shacl#path|http://example.org/shapes#age",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#age",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/ns/shacl#datatype|http://www.w3.org/2001/XMLSchema#integer",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#datatype",
+          "o": "http://www.w3.org/2001/XMLSchema#integer",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#PersonShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":PersonShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "1",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/ns/shacl#path|http://example.org/shapes#knows",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#knows",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/ns/shacl#node|http://example.org/shapes#PersonShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#node",
+          "o": "http://example.org/shapes#PersonShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|2",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#PersonShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":PersonShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "2",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#AddressShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#AddressShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":AddressShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#AddressShape|http://www.w3.org/ns/shacl#targetClass|http://example.org/shapes#Address",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#AddressShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":AddressShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://example.org/shapes#Address",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 12
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#CityShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#CityShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":CityShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#CityShape|http://www.w3.org/ns/shacl#targetClass|http://example.org/shapes#City",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#CityShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":CityShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://example.org/shapes#City",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 15
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#CityShape|http://www.w3.org/ns/shacl#targetClass|http://example.org/shapes#Town",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#CityShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":CityShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://example.org/shapes#Town",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 15
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/ns/shacl#path|http://example.org/shapes#population",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#population",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 16
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/ns/shacl#datatype|http://www.w3.org/2001/XMLSchema#integer",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#datatype",
+          "o": "http://www.w3.org/2001/XMLSchema#integer",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 16
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#CityShape|http://www.w3.org/ns/shacl#property|3",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#CityShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":CityShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "3",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 16
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#EmptyShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#EmptyShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":EmptyShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 18
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#TagShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#TagShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":TagShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 20
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#TagShape|http://www.w3.org/ns/shacl#targetSubjectsOf|http://example.org/shapes#tag",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#TagShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":TagShape",
+          "p": "http://www.w3.org/ns/shacl#targetSubjectsOf",
+          "o": "http://example.org/shapes#tag",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 21
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/ns/shacl#path|http://example.org/shapes#tag",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#tag",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/ns/shacl#datatype|http://www.w3.org/2001/XMLSchema#string",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#datatype",
+          "o": "http://www.w3.org/2001/XMLSchema#string",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#TagShape|http://www.w3.org/ns/shacl#property|4",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#TagShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":TagShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "4",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:5|http://www.w3.org/ns/shacl#path|http://example.org/shapes#label",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "5",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#label",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#TagShape|http://www.w3.org/ns/shacl#property|5",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#TagShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":TagShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "5",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#NameShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#PropertyShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#NameShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":NameShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#PropertyShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 25
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#NameShape|http://www.w3.org/ns/shacl#path|http://example.org/shapes#name",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#NameShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":NameShape",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#name",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#NameShape|http://www.w3.org/ns/shacl#maxCount|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#NameShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":NameShape",
+          "p": "http://www.w3.org/ns/shacl#maxCount",
+          "o": "1",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#OrderShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#OrderShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":OrderShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 29
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#OrderShape|http://www.w3.org/ns/shacl#targetClass|http://example.org/shapes#Order",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#OrderShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":OrderShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://example.org/shapes#Order",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:6|http://www.w3.org/ns/shacl#path|http://example.org/shapes#item",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "6",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#item",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:6|http://www.w3.org/ns/shacl#minCount|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "6",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#minCount",
+          "o": "1",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#OrderShape|http://www.w3.org/ns/shacl#property|6",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#OrderShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":OrderShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "6",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:7|http://www.w3.org/ns/shacl#path|http://example.org/shapes#total",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "7",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#total",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#OrderShape|http://www.w3.org/ns/shacl#property|7",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#OrderShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":OrderShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "7",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:8|http://www.w3.org/ns/shacl#path|http://example.org/shapes#customer",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "8",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#customer",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:8|http://www.w3.org/ns/shacl#node|http://example.org/shapes#PersonShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "8",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#node",
+          "o": "http://example.org/shapes#PersonShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#OrderShape|http://www.w3.org/ns/shacl#property|8",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#OrderShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":OrderShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "8",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:9|http://www.w3.org/ns/shacl#path|http://example.org/shapes#date",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "9",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://example.org/shapes#date",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#OrderShape|http://www.w3.org/ns/shacl#property|9",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#OrderShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":OrderShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "9",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

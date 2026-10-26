@@ -1,0 +1,101 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/byte-order-mark.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "﻿# B5: a body that starts with a byte-order mark and holds a Cyrillic literal before an edit point.\r\n@prefix ex: <http://example.org/> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\nex:moscow rdfs:label \"Москва\"@ru ;\r\n    ex:twin ex:prague .\r\nex:prague rdfs:label \"Praha\"@cs .\r\n",
+    "files": {
+      "byte-order-mark.adp": "w3c/rdf\nbody: byte-order-mark.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/moscow|http://www.w3.org/2000/01/rdf-schema#label|Москва",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/moscow",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:moscow",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Москва",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "ru",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/moscow|http://example.org/twin|http://example.org/prague",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/moscow",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:moscow",
+          "p": "http://example.org/twin",
+          "o": "http://example.org/prague",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/prague|http://www.w3.org/2000/01/rdf-schema#label|Praha",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/prague",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:prague",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Praha",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "cs",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 7
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

@@ -79,6 +79,11 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "routing.forwardBezier" => forward_bezier::record(cases),
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
+        "reader.turtle" => super::w3c::turtle(cases),
+        "render.descriptionLogic" => super::w3c::description_logic(cases),
+        "layout.bandedGrid" | "layout.grid" | "layout.depthColumns" | "layout.layeredRegions" => {
+            super::w3c::layout(name, cases)
+        }
         other => Err(format!("no code of the desktop host is named to record `{other}` from")),
     }
 }

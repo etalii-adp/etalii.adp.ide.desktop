@@ -1,0 +1,55 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/no-trailing-newline.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix ex: <http://example.org/> .\r\nex:a ex:b ex:c .",
+    "files": {
+      "no-trailing-newline.adp": "w3c/rdf\nbody: no-trailing-newline.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 1
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/b|http://example.org/c",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:a",
+          "p": "http://example.org/b",
+          "o": "http://example.org/c",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 2
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

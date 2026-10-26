@@ -225,7 +225,7 @@ fn recording_a_capability_writes_valid_fixtures_from_the_code_that_does_it() {
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_atd"))
-        .args(["record", "--capability", "reader.turtle", "--cases", "unused"])
+        .args(["record", "--capability", "layout.unknown", "--cases", "unused"])
         .output()
         .unwrap();
     assert_eq!(
@@ -808,4 +808,93 @@ fn recording_ranked_boundaries_keeps_the_pins_a_view_does_not_ignore_and_enclose
         }
     }
     assert!(pins_kept > 0, "some view keeps its stored positions");
+}
+
+#[test]
+fn recording_the_turtle_reader_opens_each_document_with_its_headers_and_keeps_every_triple() {
+    let written = files(record_capability("reader.turtle").path());
+    let validator = validator("CapabilityFixture");
+    for expected in [
+        "class-expressions.json",
+        "broken.json",
+        "skos-language-header-forms.json",
+    ] {
+        assert!(written.contains_key(expected), "{expected}: {:?}", written.keys());
+    }
+    for (file, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{file}: {errors:?}");
+        let elements = fixture["output"]["elements"].as_array().unwrap();
+        assert_eq!(elements[0]["id"], "document", "{file}: the document comes first");
+        for element in &elements[1..] {
+            let id = element["id"].as_str().unwrap();
+            assert!(
+                ["base", "prefix:", "triple:"].iter().any(|p| id.starts_with(p)),
+                "{file}: {id} is a stored statement"
+            );
+        }
+    }
+    let class_expressions: Value = serde_json::from_slice(&written["class-expressions.json"]).unwrap();
+    let triples = class_expressions["output"]["elements"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|e| e["id"].as_str().unwrap().starts_with("triple:"))
+        .count();
+    assert!(triples > 50, "every statement of the ontology is kept: {triples}");
+    let broken: Value = serde_json::from_slice(&written["broken.json"]).unwrap();
+    assert!(
+        !broken["output"]["findings"].as_array().unwrap().is_empty(),
+        "a broken document reports what is wrong"
+    );
+}
+
+#[test]
+fn recording_depth_columns_keeps_the_pins_of_resources_and_moves_those_of_expressions() {
+    let written = files(record_capability("layout.depthColumns").path());
+    let fixture: Value = serde_json::from_slice(&written["class-expressions.json"]).unwrap();
+    let positions = fixture["output"]["positions"].as_object().unwrap();
+    let (mut kept, mut moved) = (0, 0);
+    for node in fixture["input"]["nodes"].as_array().unwrap() {
+        let id = node["id"].as_str().unwrap();
+        assert!(positions.contains_key(id), "{id} is placed");
+        let Some(pinned) = node.get("pinned") else { continue };
+        if id.starts_with("expr:") {
+            assert_ne!(&positions[id], pinned, "{id} is placed where its column puts it");
+            moved += 1;
+        } else {
+            assert_eq!(&positions[id], pinned, "{id} stays where it is pinned");
+            kept += 1;
+        }
+    }
+    assert!(kept > 0 && moved > 0, "kept {kept}, moved {moved}");
+}
+
+#[test]
+fn recording_description_logic_elides_deep_expressions_on_the_canvas_and_marks_a_cycle() {
+    let written = files(record_capability("render.descriptionLogic").path());
+    let validator = validator("CapabilityFixture");
+    let styled = |file: &str, style: &str| {
+        let fixture: Value = serde_json::from_slice(&written[file]).unwrap();
+        fixture["output"]["runs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|run| run["style"][style] == true)
+    };
+    for (file, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{file}: {errors:?}");
+        if file.ends_with("-full.json") {
+            assert!(!styled(file, "elided"), "{file}: the full rendering elides nothing");
+        }
+    }
+    assert!(
+        written
+            .keys()
+            .any(|f| f.ends_with("-canvas.json") && styled(f, "elided"))
+    );
+    assert!(written.keys().any(|f| styled(f, "cyclic")), "a blank cycle is marked");
 }

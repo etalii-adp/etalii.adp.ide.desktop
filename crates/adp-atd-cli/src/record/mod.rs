@@ -11,6 +11,7 @@ pub mod capability;
 pub mod check;
 mod editor;
 mod hierarchy;
+mod w3c;
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;

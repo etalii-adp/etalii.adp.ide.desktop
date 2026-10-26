@@ -1,0 +1,59 @@
+@prefix : <http://example.org/pizza#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ext: <http://example.org/external#> .
+
+<http://example.org/pizza> a owl:Ontology ;
+    owl:imports <http://example.org/base> ;
+    rdfs:label "Pizza ontology" ;
+    owl:versionInfo "1.0" .
+
+:Pizza a owl:Class ;
+    rdfs:label "Pizza" .
+
+:Topping a owl:Class .
+
+:VegetarianTopping a owl:Class ;
+    rdfs:subClassOf :Topping ;
+    owl:disjointWith :MeatTopping .
+
+:MeatTopping a owl:Class ;
+    rdfs:subClassOf :Topping ;
+    owl:deprecated true .
+
+:Vegetarian a owl:Class ;
+    rdfs:subClassOf :Pizza ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasTopping ; owl:allValuesFrom :VegetarianTopping ] ;
+    owl:equivalentClass :VeggiePizza .
+
+:VeggiePizza a owl:Class .
+
+:Special a owl:Class ;
+    owl:equivalentClass [ a owl:Class ; owl:unionOf ( :Vegetarian [ a owl:Restriction ; owl:onProperty :hasTopping ; owl:someValuesFrom [ a owl:Class ; owl:intersectionOf ( :MeatTopping ext:Smoked ) ] ] ) ] .
+
+:hasTopping a owl:ObjectProperty , owl:InverseFunctionalProperty ;
+    rdfs:domain :Pizza ;
+    rdfs:range :Topping ;
+    owl:inverseOf :toppingOf .
+
+:toppingOf a owl:ObjectProperty .
+
+:hasCalories a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:domain :Pizza ;
+    rdfs:range xsd:integer .
+
+:hasNote a owl:DatatypeProperty .
+
+:Margherita a owl:NamedIndividual , :Pizza ;
+    rdfs:label "Margherita" ;
+    :hasCalories 850 ;
+    :hasTopping :Mozzarella .
+
+:Mozzarella a :VegetarianTopping .
+
+:Pizza a owl:NamedIndividual .
+
+[ a owl:AllDisjointClasses ; owl:members ( :Pizza :Topping ) ] .
+
+:HomemadeBase rdfs:subClassOf ext:Base .

@@ -1,0 +1,555 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/scripts/w3c/shacl/navigation-shapes.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix :         <http://fairdatapoint.org/> .\n@prefix sh:       <http://www.w3.org/ns/shacl#> .\n@prefix r3d:      <http://www.re3data.org/schema/3-0#> .\n@prefix dcat:     <http://www.w3.org/ns/dcat#> .\n@prefix dct:      <http://purl.org/dc/terms/> .\n@prefix fdp:      <https://w3id.org/fdp/fdp-o#> .\n\n:repoNavShape a sh:NodeShape ;\n    sh:targetClass r3d:Repository ;\n    sh:property [\n                    sh:path r3d:dataCatalog ;\n                    sh:node :catNavShape ;\n                ] .\n\n:fdpNavShape a sh:NodeShape ;\n    sh:targetClass fdp:FAIRDataPoint ;\n    sh:property [\n                    sh:path fdp:metadataCatalog ;\n                    sh:node :catNavShape ;\n                ] .\n\n:catNavShape a sh:NodeShape ;\n    sh:targetClass dcat:Catalog ;\n    sh:property [\n                    sh:path dcat:dataset ;\n                    sh:node :datasetNavShape ;\n                ] ;\n    sh:property [\n                    sh:path dct:isPartOf ;\n                    sh:node :repoNavShape ;\n                ] .\n\n:datasetNavShape a sh:NodeShape ;\n    sh:targetClass dcat:Dataset ;\n    sh:property [\n                    sh:path dcat:distribution ;\n                    sh:node :distNavShape ;\n                ] ;\n    sh:property [\n                    sh:path dct:isPartOf ;\n                    sh:node :catNavShape ;\n                ] .\n",
+    "files": {
+      "navigation-shapes.adp": "w3c/shacl\nbody: navigation-shapes.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "",
+          "iri": "http://fairdatapoint.org/",
+          "line": 1
+        }
+      },
+      {
+        "id": "prefix:sh",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "sh",
+          "iri": "http://www.w3.org/ns/shacl#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:r3d",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "r3d",
+          "iri": "http://www.re3data.org/schema/3-0#",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:dcat",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "dcat",
+          "iri": "http://www.w3.org/ns/dcat#",
+          "line": 4
+        }
+      },
+      {
+        "id": "prefix:dct",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "dct",
+          "iri": "http://purl.org/dc/terms/",
+          "line": 5
+        }
+      },
+      {
+        "id": "prefix:fdp",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "fdp",
+          "iri": "https://w3id.org/fdp/fdp-o#",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/repoNavShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/repoNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":repoNavShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/repoNavShape|http://www.w3.org/ns/shacl#targetClass|http://www.re3data.org/schema/3-0#Repository",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/repoNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":repoNavShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://www.re3data.org/schema/3-0#Repository",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/ns/shacl#path|http://www.re3data.org/schema/3-0#dataCatalog",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://www.re3data.org/schema/3-0#dataCatalog",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/ns/shacl#node|http://fairdatapoint.org/catNavShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#node",
+          "o": "http://fairdatapoint.org/catNavShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 12
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/repoNavShape|http://www.w3.org/ns/shacl#property|0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/repoNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":repoNavShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "0",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/fdpNavShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/fdpNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":fdpNavShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 15
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/fdpNavShape|http://www.w3.org/ns/shacl#targetClass|https://w3id.org/fdp/fdp-o#FAIRDataPoint",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/fdpNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":fdpNavShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "https://w3id.org/fdp/fdp-o#FAIRDataPoint",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 16
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/ns/shacl#path|https://w3id.org/fdp/fdp-o#metadataCatalog",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "https://w3id.org/fdp/fdp-o#metadataCatalog",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 18
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/ns/shacl#node|http://fairdatapoint.org/catNavShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#node",
+          "o": "http://fairdatapoint.org/catNavShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/fdpNavShape|http://www.w3.org/ns/shacl#property|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/fdpNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":fdpNavShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "1",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 17
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/catNavShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/catNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":catNavShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/catNavShape|http://www.w3.org/ns/shacl#targetClass|http://www.w3.org/ns/dcat#Catalog",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/catNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":catNavShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://www.w3.org/ns/dcat#Catalog",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/ns/shacl#path|http://www.w3.org/ns/dcat#dataset",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://www.w3.org/ns/dcat#dataset",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 25
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/ns/shacl#node|http://fairdatapoint.org/datasetNavShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#node",
+          "o": "http://fairdatapoint.org/datasetNavShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/catNavShape|http://www.w3.org/ns/shacl#property|2",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/catNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":catNavShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "2",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 24
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/ns/shacl#path|http://purl.org/dc/terms/isPartOf",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://purl.org/dc/terms/isPartOf",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 29
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/ns/shacl#node|http://fairdatapoint.org/repoNavShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#node",
+          "o": "http://fairdatapoint.org/repoNavShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/catNavShape|http://www.w3.org/ns/shacl#property|3",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/catNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":catNavShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "3",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 28
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/datasetNavShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/datasetNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":datasetNavShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/datasetNavShape|http://www.w3.org/ns/shacl#targetClass|http://www.w3.org/ns/dcat#Dataset",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/datasetNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":datasetNavShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://www.w3.org/ns/dcat#Dataset",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 34
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/ns/shacl#path|http://www.w3.org/ns/dcat#distribution",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://www.w3.org/ns/dcat#distribution",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/ns/shacl#node|http://fairdatapoint.org/distNavShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#node",
+          "o": "http://fairdatapoint.org/distNavShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 37
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/datasetNavShape|http://www.w3.org/ns/shacl#property|4",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/datasetNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":datasetNavShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "4",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 35
+        }
+      },
+      {
+        "id": "triple:5|http://www.w3.org/ns/shacl#path|http://purl.org/dc/terms/isPartOf",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "5",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#path",
+          "o": "http://purl.org/dc/terms/isPartOf",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 40
+        }
+      },
+      {
+        "id": "triple:5|http://www.w3.org/ns/shacl#node|http://fairdatapoint.org/catNavShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "5",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/ns/shacl#node",
+          "o": "http://fairdatapoint.org/catNavShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 41
+        }
+      },
+      {
+        "id": "triple:http://fairdatapoint.org/datasetNavShape|http://www.w3.org/ns/shacl#property|5",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://fairdatapoint.org/datasetNavShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":datasetNavShape",
+          "p": "http://www.w3.org/ns/shacl#property",
+          "o": "5",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 39
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/skos/skos-language-nospace.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# A9: one body, three registrations writing its language header above body:, without a space, and in upper case.\r\n@prefix ex: <http://example.org/drinks#> .\r\n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\r\n\r\nex:drinks a skos:ConceptScheme ; skos:prefLabel \"Drinks\"@en , \"Dranken\"@nl ; skos:hasTopConcept ex:tea .\r\nex:tea a skos:Concept ; skos:topConceptOf ex:drinks ; skos:prefLabel \"Tea\"@en , \"Thee\"@nl .\r\n",
+    "files": {
+      "skos-language-nospace.adp": "w3c/skos\nbody: skos-language-header-forms.ttl\nlanguage:nl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0,
+          "language": "nl"
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/drinks#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:skos",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "skos",
+          "iri": "http://www.w3.org/2004/02/skos/core#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/drinks#drinks|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2004/02/skos/core#ConceptScheme",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/drinks#drinks",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:drinks",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/drinks#drinks|http://www.w3.org/2004/02/skos/core#prefLabel|Drinks",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/drinks#drinks",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:drinks",
+          "p": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "o": "Drinks",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/drinks#drinks|http://www.w3.org/2004/02/skos/core#prefLabel|Dranken",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/drinks#drinks",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:drinks",
+          "p": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "o": "Dranken",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "nl",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/drinks#drinks|http://www.w3.org/2004/02/skos/core#hasTopConcept|http://example.org/drinks#tea",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/drinks#drinks",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:drinks",
+          "p": "http://www.w3.org/2004/02/skos/core#hasTopConcept",
+          "o": "http://example.org/drinks#tea",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/drinks#tea|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2004/02/skos/core#Concept",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/drinks#tea",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:tea",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2004/02/skos/core#Concept",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#topConceptOf|http://example.org/drinks#drinks",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/drinks#tea",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:tea",
+          "p": "http://www.w3.org/2004/02/skos/core#topConceptOf",
+          "o": "http://example.org/drinks#drinks",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#prefLabel|Tea",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/drinks#tea",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:tea",
+          "p": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "o": "Tea",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#prefLabel|Thee",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/drinks#tea",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:tea",
+          "p": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "o": "Thee",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "nl",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 6
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}
