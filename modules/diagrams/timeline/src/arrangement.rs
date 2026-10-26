@@ -42,7 +42,7 @@ const MOMENT_RADIUS: f64 = 9.0;
 const LABEL_GAP: f64 = 6.0;
 
 /// The least clear space between two elements on one row.
-const GAP: f64 = 12.0;
+pub const GAP: f64 = 12.0;
 
 const DAY: f64 = 86_400.0;
 
@@ -59,15 +59,37 @@ fn written(diagram: &DislDiagram) -> Vec<(DislElement, TimelineElement)> {
         .collect()
 }
 
+/// What the row packing is fed: every element that can be drawn with what it covers across, and the pairs of linked
+/// elements kept apart (a moment and a later element it is linked to).
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Packing {
+    pub items: Vec<RowItem>,
+    pub apart: Vec<(String, String)>,
+}
+
 /// The row of every element that can be drawn, by the id it is written with.
 pub fn rows_of(elements: &[TimelineElement], links: &[(String, String)]) -> HashMap<String, i64> {
+    let packing = packing_of(elements, links);
+    if packing.items.is_empty() {
+        return HashMap::new();
+    }
+    let links: Vec<(&str, &str)> = links.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
+    let apart: Vec<(&str, &str)> = packing.apart.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
+    row_packing::pack(&packing.items, &links, GAP, &apart)
+        .into_iter()
+        .map(|(id, row)| (id, row as i64))
+        .collect()
+}
+
+/// The items and the pairs kept apart that [`rows_of`] packs, with [`GAP`] between neighbours on a row.
+pub fn packing_of(elements: &[TimelineElement], links: &[(String, String)]) -> Packing {
     let mut taken = HashSet::new();
     let drawn: Vec<&TimelineElement> = elements
         .iter()
         .filter(|e| !e.id.is_empty() && e.begin_instant().is_some() && taken.insert(e.id.clone()))
         .collect();
     if drawn.is_empty() {
-        return HashMap::new();
+        return Packing::default();
     }
     let begin = |e: &TimelineElement| scale::to_seconds(e.begin_instant().unwrap_or_default());
     let end = |e: &TimelineElement| match e.end_instant() {
@@ -85,11 +107,10 @@ pub fn rows_of(elements: &[TimelineElement], links: &[(String, String)]) -> Hash
             .get(id)
             .is_some_and(|e| begin(e) > by_id.get(moment).map(|m| begin(m)).unwrap_or(f64::INFINITY))
     };
-    let links: Vec<(&str, &str)> = links.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
-    let apart: Vec<(&str, &str)> = links
+    let apart: Vec<(String, String)> = links
         .iter()
-        .copied()
         .filter(|(from, to)| (is_moment(from) && is_later_than(to, from)) || (is_moment(to) && is_later_than(from, to)))
+        .cloned()
         .collect();
     let items: Vec<RowItem> = drawn
         .iter()
@@ -110,10 +131,7 @@ pub fn rows_of(elements: &[TimelineElement], links: &[(String, String)]) -> Hash
             }
         })
         .collect();
-    row_packing::pack(&items, &links, GAP, &apart)
-        .into_iter()
-        .map(|(id, row)| (id, row as i64))
-        .collect()
+    Packing { items, apart }
 }
 
 /// The elements of `diagram` in the order they are written, and its relations' ends as written.

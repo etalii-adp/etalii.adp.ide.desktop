@@ -34,7 +34,7 @@ const LABEL_FONT_SIZE: f64 = 12.0;
 const LABEL_GAP: f64 = 8.0;
 
 /// The least clear space between two elements on one row.
-const GAP: f64 = 16.0;
+pub const GAP: f64 = 16.0;
 
 /// The nodes of `type_name` in the order they are written.
 fn nodes_of(diagram: &DislDiagram, type_name: &str) -> Vec<DislElement> {
@@ -43,8 +43,26 @@ fn nodes_of(diagram: &DislDiagram, type_name: &str) -> Vec<DislElement> {
     nodes.into_iter().map(|(_, node)| node).collect()
 }
 
+/// What the row packing is fed: every element that can be drawn with what it covers across and how many rows it is
+/// tall, and the influences as the links, by relation id, source and target.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Packing {
+    pub items: Vec<RowItem>,
+    pub links: Vec<(String, String, String)>,
+}
+
 /// The row of every element that can be drawn, by the id it is written with (`GhgArrangement.RowsOf`).
 pub fn rows_of(diagram: &DislDiagram) -> HashMap<String, i64> {
+    let packing = packing_of(diagram);
+    let links: Vec<(&str, &str)> = packing.links.iter().map(|(_, a, b)| (a.as_str(), b.as_str())).collect();
+    row_packing::pack(&packing.items, &links, GAP, &[])
+        .into_iter()
+        .map(|(id, row)| (id, row as i64))
+        .collect()
+}
+
+/// The items and links that [`rows_of`] packs, with [`GAP`] between neighbours on a row.
+pub fn packing_of(diagram: &DislDiagram) -> Packing {
     let unit = reading::unit_of(diagram);
     let mut taken = HashSet::new();
     let mut items = Vec::new();
@@ -96,21 +114,18 @@ pub fn rows_of(diagram: &DislDiagram) -> HashMap<String, i64> {
             (height / scale::ROW_STEP).ceil() as usize,
         ));
     }
-    let links: Vec<(String, String)> = diagram
+    let links = diagram
         .relations_of_type("Influence")
         .iter()
         .map(|influence| {
             (
+                influence.id(),
                 influence.source_id().unwrap_or_default(),
                 influence.target_id().unwrap_or_default(),
             )
         })
         .collect();
-    let links: Vec<(&str, &str)> = links.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
-    row_packing::pack(&items, &links, GAP, &[])
-        .into_iter()
-        .map(|(id, row)| (id, row as i64))
-        .collect()
+    Packing { items, links }
 }
 
 /// The id, the row and the line of `element`, as read.
