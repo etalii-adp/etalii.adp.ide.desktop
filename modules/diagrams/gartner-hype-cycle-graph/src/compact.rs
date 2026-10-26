@@ -47,7 +47,7 @@ pub fn width_of(trend: &Trend) -> f64 {
 
 /// What the packing reads of `diagram`: every trend, trigger and note true time draws, at its true-time centre and
 /// size, and the influences.
-fn input(diagram: &DislDiagram) -> LayoutInput {
+pub fn input(diagram: &DislDiagram) -> LayoutInput {
     let unit = reading::unit_of(diagram);
     let mut elements = Vec::new();
     for node in diagram.nodes() {
@@ -102,7 +102,7 @@ fn input(diagram: &DislDiagram) -> LayoutInput {
 }
 
 /// The row-packed layout as the specification's `rowPacked` declares it for Compact.
-fn definition() -> LayoutDefinition {
+pub fn definition() -> LayoutDefinition {
     LayoutDefinition {
         row_packed: Some(RowPackedDeclaration {
             width: RowPackedWidth::Bound,

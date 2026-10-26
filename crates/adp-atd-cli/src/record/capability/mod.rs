@@ -7,6 +7,13 @@
 //! input the nodes and relations of that reading, each node pinned where the registration placed it, and its output
 //! where the module drew every node.
 
+mod documents;
+mod forward_bezier;
+mod row_packed;
+mod row_packing;
+mod self_organising;
+mod tidy_tree;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -19,6 +26,43 @@ use serde_json::{Map, Value as Json, json};
 
 use super::write_json;
 
+/// Where a fixture was recorded from: the capability, the code that does it, and the document it ran on.
+struct Recorded<'a> {
+    capability: &'a str,
+    code: &'a str,
+    source: &'a str,
+    /// A sentence the fixture's `doc` ends with, or nothing.
+    note: &'a str,
+}
+
+/// Writes one fixture as `<case>.json` in `cases`: what it was recorded from, its input, its arguments and its output.
+fn write_fixture(
+    cases: &Path,
+    case: &str,
+    from: &Recorded,
+    input: Json,
+    args: Json,
+    output: Json,
+) -> Result<PathBuf, String> {
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let fixture = json!({
+        "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+        "doc": format!(
+            "Recorded by `atd record --capability {}` from {} of etalii.adp.ide.desktop, on {}; never edited by hand.{}",
+            from.capability,
+            from.code,
+            from.source,
+            if from.note.is_empty() { String::new() } else { format!(" {}", from.note) }
+        ),
+        "input": input,
+        "args": args,
+        "output": output,
+    });
+    let file = cases.join(format!("{case}.json"));
+    write_json(&file, &fixture)?;
+    Ok(file)
+}
+
 /// Records the fixtures of capability `name` into `cases`; the files written.
 pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
     match name {
@@ -28,6 +72,11 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "layout.bands" => of_modules(name, &["databricks/bundle"], Part::Layout, cases),
         "reader.structurizr" => of_modules(name, C4, Part::Reader, cases),
         "layout.rankedBoundaries" => super::c4::ranked_boundaries(cases),
+        "layout.rowPacking" => row_packing::record(cases),
+        "layout.rowPacked" => row_packed::record(cases),
+        "layout.tidyTree" => tidy_tree::record(cases),
+        "arrange.selfOrganising" => self_organising::record(cases),
+        "routing.forwardBezier" => forward_bezier::record(cases),
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         other => Err(format!("no code of the desktop host is named to record `{other}` from")),

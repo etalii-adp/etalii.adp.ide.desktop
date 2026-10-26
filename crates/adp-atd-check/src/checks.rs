@@ -66,11 +66,6 @@ pub fn run(description: &Description, symbols: &Symbols, findings: &mut Vec<Find
         catalogue: crate::embedded::catalogue().into_iter().map(|(n, _)| n).collect(),
         kind: kind.to_owned(),
         type_map: type_map(description),
-        operations: description
-            .members()
-            .filter(|member| member["kind"] == "operation")
-            .cloned()
-            .collect(),
     };
     for member in description.members() {
         checker.member(member);
@@ -205,8 +200,6 @@ struct Checker<'a> {
     kind: String,
     /// `persistence`'s `typeMap`: each binding type it names, with what it maps it as and its attribute renames.
     type_map: BTreeMap<String, TypeMapEntry>,
-    /// The description's operations, whose `paramsForm` makes a form's fields parameters.
-    operations: Vec<Json>,
 }
 
 /// One entry of `persistence`'s `typeMap` (DISL §11.2, DESL §5.2).
@@ -521,7 +514,11 @@ impl Checker<'_> {
             "notation" => {
                 for item in member["members"].as_array().into_iter().flatten() {
                     match item["kind"].as_str().unwrap_or("") {
-                        "node" | "edge" | "port" => {
+                        "edge" => {
+                            let types = self.edge_types(item);
+                            self.references(item, &types);
+                        }
+                        "node" | "port" => {
                             let types = self.types_of(item, "names", false);
                             self.references(item, &types);
                         }
@@ -532,7 +529,7 @@ impl Checker<'_> {
             "toolbox" => self.generic_types(member),
             "form" => {
                 let types = self.types_of(member, "for", true);
-                let params = self.params_of_form(text(&member["name"]));
+                let params = self.params_shown_by(text(&member["name"]));
                 for item in member["members"].as_array().into_iter().flatten() {
                     if item["kind"] == "field"
                         && let Some(name) = item.get("name")
@@ -595,18 +592,51 @@ impl Checker<'_> {
         out
     }
 
-    /// The parameters of every operation that names the form `form` as its `paramsForm`, whose fields they are
-    /// (DISL §7.5).
-    fn params_of_form(&self, form: &str) -> BTreeSet<String> {
+    /// The parameters of the operations whose `paramsForm` is the form `form`: a field of such a form edits a
+    /// parameter of that name, not an attribute (DISL §9.2).
+    fn params_shown_by(&self, form: &str) -> BTreeSet<String> {
         let mut out = BTreeSet::new();
-        for operation in &self.operations {
-            let names_form =
-                operation["settings"].as_array().into_iter().flatten().any(|setting| {
-                    setting["key"] == "paramsForm" && setting["value"]["literal"].as_str() == Some(form)
-                });
-            if names_form {
+        for operation in self.symbols.operations.values() {
+            let shown = operation["settings"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .any(|setting| setting["key"] == "paramsForm" && setting["value"]["literal"] == form);
+            if shown {
                 for param in operation["params"].as_array().into_iter().flatten() {
                     out.insert(text(&param["name"]).to_owned());
+                }
+            }
+        }
+        out
+    }
+
+    /// The types an edge notation draws: relation types, and `<Type>.<attribute>`, the edge DISL §6.10 draws for a
+    /// reference attribute, whose attribute must be one of the type's and name an element type. An attribute reference
+    /// in such an edge reads the type that holds the attribute.
+    fn edge_types(&mut self, node: &Json) -> Vec<String> {
+        let mut out = Vec::new();
+        for name in node["names"].as_array().into_iter().flatten() {
+            let name_text = text(name);
+            match name_text.split_once('.') {
+                Some((owner, attribute)) if self.symbols.is_type(owner) => {
+                    let target = self
+                        .symbols
+                        .attributes_of(owner)
+                        .get(attribute)
+                        .map(|decl| text(&decl["type"]["name"]).to_owned());
+                    if !target.as_deref().is_some_and(|t| self.symbols.is_type(t)) {
+                        self.findings.push(finding_at(
+                            "ATD2002",
+                            name,
+                            format!("`{owner}` has no reference attribute `{attribute}` for an edge to draw."),
+                        ));
+                    }
+                    out.push(owner.to_owned());
+                }
+                _ => {
+                    self.type_ref(name, false);
+                    out.push(name_text.to_owned());
                 }
             }
         }
