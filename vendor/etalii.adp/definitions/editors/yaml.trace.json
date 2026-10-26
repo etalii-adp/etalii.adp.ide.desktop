@@ -1,0 +1,161 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "editor/yaml",
+  "description": "yaml.atd",
+  "companion": {
+    "file": "../../specifications/atd/ATD-specification.md",
+    "sections": [
+      "10.1 What the editors do"
+    ]
+  },
+  "items": [],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/documents.rs",
+      "lines": "21-85",
+      "behaviour": "A file ending in `.yaml` or `.yml` opens in the YAML editor.",
+      "statedBy": "textSurface files"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-documents/src/text.rs",
+      "lines": "1-64",
+      "behaviour": "A file is opened as UTF-8 with or without a byte-order mark, or ASCII, and refused with a reason above 5 MB (before a byte is read), when it looks binary, or when it is not UTF-8.",
+      "statedBy": "textSurface open"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-documents/src/text.rs",
+      "lines": "79-124",
+      "behaviour": "Every line keeps its own line ending, a new line takes the dominant one, a last line keeps whether it had an ending, and the byte-order mark is written back only when the file had one.",
+      "statedBy": "textSurface open lineEndings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-text/src/lib.rs",
+      "lines": "1-355",
+      "behaviour": "A buffer with one cursor and a selection; Tab writes four spaces; pasted text has its CRLF made LF.",
+      "statedBy": "textSurface buffer"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-text/src/lib.rs",
+      "lines": "1-355",
+      "behaviour": "Undo and redo grouped word by word.",
+      "hostConcern": "undo-stack",
+      "reason": "How typed text is grouped into steps of undo is the host's undo stack (ATD §17)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "253-320",
+      "behaviour": "Typed text, the movements by character, word, line and document, copy, cut and paste, mapped from keys and the pointer.",
+      "hostConcern": "gestures",
+      "reason": "Which keys and pointer movements edit the text is the host's (ATD §17)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "65-251",
+      "behaviour": "A line-number gutter, the current line marked, no soft wrap.",
+      "statedBy": "textSurface buffer gutter"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "33-47",
+      "behaviour": "Findings drawn as squiggles under their range, coloured by severity.",
+      "hostConcern": "rendering",
+      "reason": "How a finding is drawn is the host's rendering (ATD §17); its severity and place are the description's."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/problems.rs",
+      "lines": "14-58",
+      "behaviour": "Findings listed in the problems panel at their line and column, both from 1, columns counted in characters.",
+      "statedBy": "textSurface findings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/highlight.rs",
+      "lines": "16-54",
+      "behaviour": "Colouring by the token classes of the yaml syntax (syntect's Sublime syntaxes), none above 20,000 lines.",
+      "statedBy": "textSurface tokens yaml"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/yaml/src/lib.rs",
+      "lines": "52-107",
+      "behaviour": "A file is split into documents at `---` and `...` at the start of a line, each read on its own.",
+      "statedBy": "textSurface check yaml documents"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/yaml/src/lib.rs",
+      "lines": "270-300",
+      "behaviour": "A tab used for indentation is an error.",
+      "statedBy": "textSurface check yaml tabIndentation"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/yaml/src/lib.rs",
+      "lines": "323-477",
+      "behaviour": "Per document: a parser error, a repeated key and an alias naming no anchor set before it are errors; aliases expanding past 100 nodes are an error and the document is not checked against its schema.",
+      "statedBy": "textSurface check yaml maxAliasCount"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/yaml/src/lib.rs",
+      "lines": "480-508",
+      "behaviour": "Plain values are typed as YAML 1.2's core schema reads them, merge keys are applied, an application tag constructs nothing.",
+      "statedBy": "textSurface check yaml values"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/yaml/src/lib.rs",
+      "lines": "110-118",
+      "behaviour": "`# yaml-language-server: $schema=<reference>` before a document's first content names that document's schema only.",
+      "statedBy": "textSurface check schema perDocument"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/yaml/src/lib.rs",
+      "lines": "211-267",
+      "behaviour": "Each document is checked against its schema by the JSON editor's rules; a break is an error on its key, else on the map's key its message names, else on the value; a schema that cannot be used is information on the schema line; the status joins the documents' statuses with \" · \", else \"No schema\", and above 1,000,000 characters says \"Too large to check\".",
+      "statedBy": "textSurface check schema status"
+    }
+  ]
+}

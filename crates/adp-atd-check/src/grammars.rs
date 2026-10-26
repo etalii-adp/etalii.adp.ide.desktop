@@ -44,7 +44,11 @@ fn check_binding(files: &dyn Files, unit: &FileUnit, binding: &Json, findings: &
                 };
                 let span = adp_atd_syntax::Span::of(text_node).unwrap_or_default();
                 // From the start of the grammar's first line, so that every line has the indentation they share.
-                let from = unit.text.get(..span.start).and_then(|t| t.rfind('\n')).map_or(0, |n| n + 1);
+                let from = unit
+                    .text
+                    .get(..span.start)
+                    .and_then(|t| t.rfind('\n'))
+                    .map_or(0, |n| n + 1);
                 let Some(written) = unit.text.get(from..span.end) else {
                     continue;
                 };
@@ -72,7 +76,10 @@ fn check_binding(files: &dyn Files, unit: &FileUnit, binding: &Json, findings: &
                         BuildError::Compose(_) => finding_at(
                             "ATD1001",
                             member,
-                            format!("The grammar file `{name}` is not ATD grammar notation: {}", error.to_string().trim()),
+                            format!(
+                                "The grammar file `{name}` is not ATD grammar notation: {}",
+                                error.to_string().trim()
+                            ),
                         ),
                         _ => finding_at("ATD8001", member, conflict_message(&error)),
                     });

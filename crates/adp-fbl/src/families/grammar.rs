@@ -37,7 +37,9 @@ pub(crate) struct GrammarData {
 
 impl std::fmt::Debug for GrammarData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("GrammarData").field("root", &self.root).finish_non_exhaustive()
+        f.debug_struct("GrammarData")
+            .field("root", &self.root)
+            .finish_non_exhaustive()
     }
 }
 
@@ -233,7 +235,10 @@ impl Family {
     /// A node as CEL sees it (FBL 0.9 section 4.1.4): `type`, `text` and `children`, an empty optional part null.
     pub(super) fn grammar_cel_value(&self, entry: EntryId) -> Value {
         let mut map = Map::default();
-        map.insert("type", Value::from(self.entries[entry].name.clone().unwrap_or_default()));
+        map.insert(
+            "type",
+            Value::from(self.entries[entry].name.clone().unwrap_or_default()),
+        );
         map.insert("text", Value::from(self.node_text(entry)));
         let children = match &self.entries[entry].kind {
             EntryKind::Grammar(g) => g
@@ -276,7 +281,12 @@ impl Family {
 
     pub(super) fn grammar_header_holds(&self, header: &HeaderSettings) -> bool {
         let Some(line) = &header.line else { return true };
-        let first = self.text.lines().first().map(|l| self.text.text(l.start, l.content_end)).unwrap_or("");
+        let first = self
+            .text
+            .lines()
+            .first()
+            .map(|l| self.text.text(l.start, l.content_end))
+            .unwrap_or("");
         self.regex(line, false).is_match(first)
     }
 
@@ -286,7 +296,12 @@ impl Family {
         new_text::plain(value, binding)
     }
 
-    pub(super) fn grammar_write(&self, plan: &mut Plan<'_>, element: &ReadElement, changes: &[SlotChange<'_>]) -> Planning {
+    pub(super) fn grammar_write(
+        &self,
+        plan: &mut Plan<'_>,
+        element: &ReadElement,
+        changes: &[SlotChange<'_>],
+    ) -> Planning {
         for change in changes {
             let read = &change.read;
             let Some(span) = read.span.filter(|_| read.present) else {
@@ -325,13 +340,20 @@ impl Family {
         );
         if let Some(expression) = &slot.node_match {
             let regex = self.regex(&format!(r"\A(?:{expression})\z"), false);
-            if regex.regex.captures(&new_text).and_then(|c| c.name("value")).map(|g| g.as_str()) != Some(written) {
+            if regex
+                .regex
+                .captures(&new_text)
+                .and_then(|c| c.name("value"))
+                .map(|g| g.as_str())
+                != Some(written)
+            {
                 return false;
             }
         }
         let is_token = matches!(&self.entries[target].kind, EntryKind::Grammar(g) if g.token);
         let grammar = self.grammar_data().grammar.as_ref();
-        !is_token || grammar.is_none_or(|g| g.is_token_of(self.entries[target].name.as_deref().unwrap_or(""), &new_text))
+        !is_token
+            || grammar.is_none_or(|g| g.is_token_of(self.entries[target].name.as_deref().unwrap_or(""), &new_text))
     }
 
     pub(super) fn grammar_insert(&self, plan: &mut Plan<'_>, request: &InsertRequest) -> Planning {
@@ -339,7 +361,10 @@ impl Family {
         let rule = self.rule(request.rule);
         let insert = rule.insert.as_ref().expect("an insertable rule");
         let Some(emit) = &insert.emit else {
-            return refuse(format!("The binding gives no form to write a new {} in.", rule.type_name));
+            return refuse(format!(
+                "The binding gives no form to write a new {} in.",
+                rule.type_name
+            ));
         };
         let text = new_text::render(emit, &|name| match name {
             "id" => request.id.clone(),
@@ -355,7 +380,12 @@ impl Family {
         let container = insert
             .container
             .as_deref()
-            .and_then(|c| selector::matches(&self.entries, root, c, None).into_iter().next().map(|(e, _)| e))
+            .and_then(|c| {
+                selector::matches(&self.entries, root, c, None)
+                    .into_iter()
+                    .next()
+                    .map(|(e, _)| e)
+            })
             .unwrap_or(root);
         // The entries the rule read, its `when` holding: what `after-last` follows.
         let of_rule: Vec<EntryId> = reading
@@ -383,10 +413,7 @@ impl Family {
             },
         };
         if !self.adds_one(request.rule, count, offset, &new) {
-            return refuse(format!(
-                "The new {} would not read back from the text.",
-                rule.type_name
-            ));
+            return refuse(format!("The new {} would not read back from the text.", rule.type_name));
         }
         plan.add(Operation::InsertEntry, offset, offset, new);
         Ok(())
@@ -442,7 +469,10 @@ impl Family {
             .map(|l| l.start)
             .unwrap_or(self.entries[entry].own.start);
         let newline = self.newline_at(start);
-        (start, format!("{indent}{}{newline}", self.indented(text, &indent, &newline)))
+        (
+            start,
+            format!("{indent}{}{newline}", self.indented(text, &indent, &newline)),
+        )
     }
 
     /// A new entry after the last byte of the body.
@@ -468,7 +498,14 @@ impl Family {
         let Ok(reading) = grammar.read(&changed) else {
             return false;
         };
-        if reading.unparsed.len() > self.findings.borrow().iter().filter(|f| f.code == codes::UNPARSED_TEXT).count() {
+        if reading.unparsed.len()
+            > self
+                .findings
+                .borrow()
+                .iter()
+                .filter(|f| f.code == codes::UNPARSED_TEXT)
+                .count()
+        {
             return false;
         }
         let mut after = Family::create(

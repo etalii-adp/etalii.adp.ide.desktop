@@ -1,0 +1,82 @@
+atd 0.1
+
+/// The JSON editor: a JSON file as text, checked for the mistakes of JSON itself and against the JSON Schema its
+/// root's `$schema` names, and completed from that schema.
+///
+/// A document whose `$schema` is a JSON Schema dialect's own address is a schema, checked against that dialect. The
+/// status line says the schema's title, else its reference, or "No schema", or why no schema was used, or "Too large
+/// to check" above 1,000,000 characters, followed by the count of errors and warnings. The checks and the completion
+/// are sources the editor names (ATD §10.2): the JSON reader and the JSON Schema validator are the platform's.
+///
+/// No host loads this description: hosts open these files with their own editor, and run no editor from `.atd` (ATD
+/// §1.2). It is written from what the desktop host's editor does at its reference commit `fe5feec` (ATD §10.1), its
+/// trace lists where, and its conformance cases under `conformance/` record it.
+editor editor/json version "1.0.0" {
+  label "JSON editor"
+
+  surface text {
+    files "*.json"
+    /// Colours by the token classes of the JSON syntax. Above 20,000 lines the text is shown without colour.
+    tokens json { largestColouredLines: 20000 }
+    /// The mistakes of JSON itself, from a reader that never stops at one: a syntax error, a comment and a trailing
+    /// comma are errors, a repeated property name a warning, each in one of fourteen sentences.
+    check with "json" {
+      messages: ["End of file expected.", "Comments are not permitted in JSON.", "Value expected.", "Expected '}' to close this object.", "Duplicate object key.", "Colon expected.", "Trailing comma.", "Expected comma.", "Property expected.", "Expected ']' to close this array.", "Unexpected end of string.", "Invalid unicode sequence in string.", "Invalid escape character in string.", "Invalid number format."]
+      duplicateKey: warning
+      largestCheckedCharacters: 1000000
+    }
+    /// The breaks of the JSON Schema the root object's `$schema` string names, each an error on the key of the
+    /// property it is about, on the property an object's message names, else on the object's opening brace or on the
+    /// value. The root `$schema` property is not part of the data unless the schema declares it.
+    check with "schema" {
+      reference: "$schema"
+      /// The schema is read from the project only: relative to the document's folder, never above the project's
+      /// root, never from the network or by an absolute path; a `$ref` inside it by the same rules. A reference that
+      /// cannot be followed, a schema that cannot be read, is not JSON or cannot be compiled, and a JSON Schema
+      /// dialect ADP does not carry are each one information finding, on the reference, saying why.
+      read: project
+      refused: information
+      breaks: error
+      dialects: ["https://json-schema.org/draft-04/schema", "https://json-schema.org/draft-06/schema", "https://json-schema.org/draft-07/schema", "https://json-schema.org/draft/2019-09/schema", "https://json-schema.org/draft/2020-12/schema"]
+      status: { schema: title, else: reference, none: "No schema", refused: "Schema not used", tooLarge: "Too large to check" }
+    }
+    /// From that schema: where a property name may begin, the schema's properties not yet present, the required ones
+    /// first, each inserted as `"name": `; where a value may begin, the values the schema limits it to (its `enum`,
+    /// its `const`, or `true` and `false` for a boolean). A property's detail is its description, else its title.
+    complete from "schema" {
+      names: notPresent
+      requiredFirst: true
+      values: ["enum", "const", "boolean"]
+      detail: ["description", "title"]
+    }
+    /// How the file is opened and saved, as every editor of the desktop host opens one: UTF-8 with or without a
+    /// byte-order mark, or ASCII; refused, with the reason, above 5 MB (before a byte is read), when it looks binary or
+    /// when it is not UTF-8. Every line keeps its own line ending, a new line takes the dominant one, a last line keeps
+    /// whether it had an ending, and the byte-order mark is written back exactly when the file had one, so an
+    /// unchanged file saves back byte for byte.
+    open: {
+      encodings: ["UTF-8", "ASCII"]
+      byteOrderMark: keep
+      largestBytes: 5242880
+      binary: refuse
+      otherEncodings: refuse
+      lineEndings: keep
+      newLineEnding: dominant
+    }
+    /// The buffer: one cursor and one selection; Tab writes four spaces; pasted text has its CRLF made LF; no soft
+    /// wrap; a gutter with the line numbers and the current line marked. Typing, the movements by character, word, line
+    /// and document, copy, cut and paste are the host's gestures, and grouping undo word by word is the host's undo
+    /// stack (ATD §17).
+    buffer: {
+      cursors: 1
+      tab: "    "
+      paste: { newline: lf }
+      softWrap: false
+      gutter: lineNumbers
+      currentLine: marked
+    }
+    /// Where a finding is said: drawn under its range by severity, and listed in the problems panel at its line and
+    /// column, both from 1, columns counted in characters.
+    findings: { line: 1, column: 1, columns: characters }
+  }
+}

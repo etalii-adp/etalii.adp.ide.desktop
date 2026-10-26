@@ -127,11 +127,7 @@ impl Grammar {
                 };
                 // The start rule's node is the root itself: its children are the root's.
                 if let LarkNode::Tree(tree) = root {
-                    let children = tree
-                        .children
-                        .into_iter()
-                        .map(|c| reading.add(c, 0))
-                        .collect();
+                    let children = tree.children.into_iter().map(|c| reading.add(c, 0)).collect();
                     reading.nodes[0].children = children;
                 }
             }
@@ -305,7 +301,10 @@ fn parse_unit(built: &Built, text: &str, position: usize, partial: bool) -> Resu
             Ok(None) => {
                 return match parser.feed_eof(None) {
                     Ok(Some(node)) => Ok(UnitEnd::Accepted(node, position + last_end)),
-                    _ => Ok(UnitEnd::Stopped(position + slice.len(), "The text ends too early.".into())),
+                    _ => Ok(UnitEnd::Stopped(
+                        position + slice.len(),
+                        "The text ends too early.".into(),
+                    )),
                 };
             }
             Err(error) => match &error {
@@ -314,12 +313,14 @@ fn parse_unit(built: &Built, text: &str, position: usize, partial: bool) -> Resu
                 _ => last_end,
             },
         };
-        if partial
-            && let Ok(Some(node)) = parser.copy().feed_eof(None)
-        {
+        if partial && let Ok(Some(node)) = parser.copy().feed_eof(None) {
             return Ok(UnitEnd::Accepted(node, position + last_end));
         }
-        let found: String = slice[stopped_at..].chars().take_while(|c| !c.is_whitespace()).take(20).collect();
+        let found: String = slice[stopped_at..]
+            .chars()
+            .take_while(|c| !c.is_whitespace())
+            .take(20)
+            .collect();
         return Ok(UnitEnd::Stopped(
             position + stopped_at,
             if found.is_empty() {
@@ -330,4 +331,3 @@ fn parse_unit(built: &Built, text: &str, position: usize, partial: bool) -> Resu
         ));
     }
 }
-

@@ -51,13 +51,10 @@ fn the_tables_of_every_binding_grammar_equal_larks() {
     // FBL's example names its grammar by file, beside it.
     let fbl = dir.join("../fbl");
     let load = |module: &str| std::fs::read_to_string(fbl.join(format!("{module}.lark"))).ok();
-    let built = adp_atd_grammar::build_with_options("w3c-turtle", "turtle_doc", &load, adp_atd_grammar::Options::default())
-        .expect("FBL's Turtle grammar builds");
-    let ours = adp_atd_grammar::tables::to_json(
-        &built.grammar,
-        &built.tables,
-        "specifications/fbl/w3c-turtle.lark",
-    );
+    let built =
+        adp_atd_grammar::build_with_options("w3c-turtle", "turtle_doc", &load, adp_atd_grammar::Options::default())
+            .expect("FBL's Turtle grammar builds");
+    let ours = adp_atd_grammar::tables::to_json(&built.grammar, &built.tables, "specifications/fbl/w3c-turtle.lark");
     assert_equal_to_larks(&ours, "w3c-turtle-grammar.turtle.tables.json");
 
     // ATD's example carries its grammar inline, in the binding's `grammar { … }`, whose closing brace stands alone at

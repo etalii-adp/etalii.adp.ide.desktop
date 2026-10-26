@@ -51,7 +51,10 @@ fn an_inline_grammar_with_a_conflict_is_atd8001_at_the_rule_in_conflict() {
     // `item`, defined before `other`.
     assert_eq!((*line, *column), (16, 7));
     assert!(message.contains("Reduce/Reduce"), "{message}");
-    assert!(message.contains("`item : NAME \";\"`") && message.contains("`other : NAME \";\"`"), "{message}");
+    assert!(
+        message.contains("`item : NAME \";\"`") && message.contains("`other : NAME \";\"`"),
+        "{message}"
+    );
 }
 
 #[test]
@@ -62,8 +65,16 @@ fn a_grammar_file_with_a_conflict_is_atd8001_and_a_missing_one_atd2009() {
     let conflict = findings(&[("items.atd", &description), ("items.lark", lark)]);
     let missing = findings(&[("items.atd", &description)]);
 
-    assert_eq!(conflict.iter().map(|f| f.0.as_str()).collect::<Vec<_>>(), ["ATD8001"], "{conflict:?}");
-    assert_eq!(missing.iter().map(|f| f.0.as_str()).collect::<Vec<_>>(), ["ATD2009"], "{missing:?}");
+    assert_eq!(
+        conflict.iter().map(|f| f.0.as_str()).collect::<Vec<_>>(),
+        ["ATD8001"],
+        "{conflict:?}"
+    );
+    assert_eq!(
+        missing.iter().map(|f| f.0.as_str()).collect::<Vec<_>>(),
+        ["ATD2009"],
+        "{missing:?}"
+    );
 }
 
 #[test]

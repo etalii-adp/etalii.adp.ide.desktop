@@ -1,0 +1,23 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.markdown` from modules/editors/markdown/src/lib.rs of etalii.adp.ide.desktop, on crates/adp-conformance/tests/round_trip/editors/markdown/examples/readme.md; never edited by hand.",
+  "input": {
+    "body": "# markdown - examples\r\n\r\n- `guide.md` - a heading-rich document: the outline lists its headings, the\r\n  preview renders it, and the code fence inside it proves a `#` in a fence is\r\n  not a heading.\r\n\r\nEvery readme in this repository is this editor's material too, starting with the\r\none you are reading now. The module's tests open every file in this folder, so\r\nthe examples cannot drift from what the code supports.\r\n"
+  },
+  "args": {},
+  "output": {
+    "elements": [
+      {
+        "id": "heading-1",
+        "type": "heading",
+        "attributes": {
+          "level": 1,
+          "title": "markdown - examples",
+          "line": 1
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

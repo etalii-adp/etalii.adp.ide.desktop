@@ -1,0 +1,250 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record generic/timeline` from parity/cases/generic/timeline/findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "generic/timeline",
+  "description": "../../../timeline.atd",
+  "inputs": {
+    "body": "findings.tml"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "iso",
+        "type": "Period",
+        "parent": null,
+        "attributes": {
+          "label": "ISO dates",
+          "begin": "2026-01-05",
+          "end": "2026-01-19",
+          "row": "0"
+        }
+      },
+      {
+        "id": "written",
+        "type": "Period",
+        "parent": null,
+        "attributes": {
+          "label": "Written out",
+          "begin": "Tuesday 7 July 2026",
+          "end": "July 21, 2026",
+          "row": "1"
+        }
+      },
+      {
+        "id": "slashes",
+        "type": "Period",
+        "parent": null,
+        "attributes": {
+          "label": "Slashes and offsets",
+          "begin": "2026/07/01",
+          "end": "2026-08-01T10:00:00+02:00",
+          "row": "2"
+        }
+      },
+      {
+        "id": "us",
+        "type": "Period",
+        "parent": null,
+        "attributes": {
+          "label": "Month first",
+          "begin": "07/04/2026",
+          "end": "2026-07",
+          "row": "3"
+        }
+      },
+      {
+        "id": "wrong-weekday",
+        "type": "Moment",
+        "parent": null,
+        "attributes": {
+          "label": "Wrong weekday",
+          "begin": "Monday 7 July 2026",
+          "row": "4"
+        }
+      },
+      {
+        "id": "not-in-calendar",
+        "type": "Period",
+        "parent": null,
+        "attributes": {
+          "begin": "2026-02-30",
+          "end": "2026-11-31",
+          "row": "5"
+        }
+      },
+      {
+        "id": "backwards",
+        "type": "Period",
+        "parent": null,
+        "attributes": {
+          "label": "Backwards",
+          "begin": "2026-03-10T09:30:15.25Z",
+          "end": "2026-03-01",
+          "row": "6"
+        }
+      },
+      {
+        "id": "empty-end",
+        "type": "Period",
+        "parent": null,
+        "attributes": {
+          "label": "Empty end",
+          "begin": "5 Jul 2026",
+          "row": "7"
+        }
+      },
+      {
+        "id": "moment@42",
+        "type": "Moment",
+        "parent": null,
+        "attributes": {
+          "label": "Second ISO",
+          "begin": "2026-12-31 23:59",
+          "row": "8"
+        }
+      },
+      {
+        "id": "moment@46",
+        "type": "Moment",
+        "parent": null,
+        "attributes": {
+          "label": "Nameless",
+          "begin": "someday",
+          "row": "9"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "c1",
+        "type": "Connection",
+        "source": "iso",
+        "target": "written",
+        "attributes": {}
+      },
+      {
+        "id": "c2",
+        "type": "Connection",
+        "source": "written",
+        "target": "ghost",
+        "attributes": {}
+      },
+      {
+        "id": "connection@56",
+        "type": "Connection",
+        "source": "us",
+        "target": "slashes",
+        "attributes": {}
+      },
+      {
+        "id": "c4",
+        "type": "Connection",
+        "source": "",
+        "target": "iso",
+        "attributes": {}
+      }
+    ],
+    "findings": [
+      {
+        "rule": "timeline.unreadable-time",
+        "severity": "warning",
+        "element": "wrong-weekday",
+        "message": "'Wrong weekday' begins at 'Monday 7 July 2026', which is not a time this timeline can read."
+      },
+      {
+        "rule": "timeline.unreadable-time",
+        "severity": "warning",
+        "element": "not-in-calendar",
+        "message": "'not-in-calendar' begins at '2026-02-30', which is not a time this timeline can read."
+      },
+      {
+        "rule": "timeline.unreadable-time",
+        "severity": "warning",
+        "element": "moment@46",
+        "message": "'Nameless' begins at 'someday', which is not a time this timeline can read."
+      },
+      {
+        "rule": "timeline.unreadable-time",
+        "severity": "warning",
+        "element": "not-in-calendar",
+        "message": "'not-in-calendar' ends at '2026-11-31', which is not a time this timeline can read."
+      },
+      {
+        "rule": "timeline.unreadable-time",
+        "severity": "warning",
+        "element": "empty-end",
+        "message": "'Empty end' ends at '', which is not a time this timeline can read."
+      },
+      {
+        "rule": "timeline.end-before-begin",
+        "severity": "warning",
+        "element": "us",
+        "message": "'Month first' ends before it begins. No edit in ADP can create this, so the file was changed by hand."
+      },
+      {
+        "rule": "timeline.end-before-begin",
+        "severity": "warning",
+        "element": "backwards",
+        "message": "'Backwards' ends before it begins. No edit in ADP can create this, so the file was changed by hand."
+      },
+      {
+        "rule": "timeline.mixed-precision",
+        "severity": "warning",
+        "element": "written",
+        "message": "'Written out' mixes a date-only value with a date-time one; begin and end should use the same form."
+      },
+      {
+        "rule": "timeline.mixed-precision",
+        "severity": "warning",
+        "element": "slashes",
+        "message": "'Slashes and offsets' mixes a date-only value with a date-time one; begin and end should use the same form."
+      },
+      {
+        "rule": "timeline.mixed-precision",
+        "severity": "warning",
+        "element": "backwards",
+        "message": "'Backwards' mixes a date-only value with a date-time one; begin and end should use the same form."
+      },
+      {
+        "rule": "timeline.dangling-connection",
+        "severity": "warning",
+        "element": "c2",
+        "message": "A relation names 'ghost', and no element with that id is on this timeline."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "23dedbd",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "23dedbd",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "23dedbd",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "23dedbd",
+      "source": "atd record (drawing)"
+    }
+  }
+}

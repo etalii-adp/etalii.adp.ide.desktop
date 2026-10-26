@@ -101,7 +101,10 @@ fn read_grammar_files(grammar: &mut GrammarSettings, folder: &Path, pointer: &st
                 grammar.modules.insert(module, text);
             }
             Err(e) => {
-                problems.push(error(pointer, format!("The grammar file '{}' cannot be read: {e}", file.display())));
+                problems.push(error(
+                    pointer,
+                    format!("The grammar file '{}' cannot be read: {e}", file.display()),
+                ));
                 return;
             }
         }

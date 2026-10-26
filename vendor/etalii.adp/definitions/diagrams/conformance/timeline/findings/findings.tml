@@ -1,0 +1,60 @@
+timeline: 1
+elements:
+  - id: iso
+    label: ISO dates
+    begin: 2026-01-05
+    end: 2026-01-19
+    row: 0
+  - id: written
+    label: Written out
+    begin: Tuesday 7 July 2026
+    end: July 21, 2026
+    row: 1
+  - id: slashes
+    label: Slashes and offsets
+    begin: 2026/07/01
+    end: 2026-08-01T10:00:00+02:00
+    row: 2
+  - id: us
+    label: Month first
+    begin: 07/04/2026
+    end: 2026-07
+    row: 3
+  - id: wrong-weekday
+    label: Wrong weekday
+    begin: Monday 7 July 2026
+    row: 4
+  - id: not-in-calendar
+    label: ""
+    begin: 2026-02-30
+    end: 2026-11-31
+    row: 5
+  - id: backwards
+    label: Backwards
+    begin: 2026-03-10T09:30:15.25Z
+    end: 2026-03-01
+    row: 6
+  - id: empty-end
+    label: Empty end
+    begin: 5 Jul 2026
+    end: ""
+    row: 7
+  - id: iso
+    label: Second ISO
+    begin: 2026-12-31 23:59
+    row: 8
+  - label: Nameless
+    begin: someday
+    row: 9
+connections:
+  - id: c1
+    from: iso
+    to: written
+  - id: c2
+    from: written
+    to: ghost
+  - from: us
+    to: slashes
+  - id: c4
+    from: ""
+    to: iso

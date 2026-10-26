@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.markdown",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads the ATX headings of a CommonMark text, the lines of one to six `#` and whitespace, outside code fenced by three backticks: each an element `heading` with its `level` (the number of `#`), its `title` (the rest of the line without the closing `#` and the whitespace around them) and its `line`, from 1, in the order of the text. Setext headings and fences of tildes are not read. The text is the editor's: an editor writes it, never the reading, so no edit is planned. Its fixtures are recorded from the Markdown editor's outline with the Markdown editor's cases (spec 035, T069).",
+  "input": { "$ref": "../../atd.schema.json#/$defs/ReaderInput" },
+  "args": {},
+  "output": { "$ref": "../../atd.schema.json#/$defs/ReaderResult" },
+  "laws": ["deterministic", "readingNeverFails", "pure"],
+  "fallback": null,
+  "status": "provisional"
+}

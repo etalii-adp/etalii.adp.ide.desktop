@@ -1,0 +1,263 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "generic/timeline",
+  "description": "timeline.atd",
+  "companion": {
+    "file": "timeline.md",
+    "sections": [
+      "What DISL 0.3 cannot express",
+      "Language gaps",
+      "Pending with the owner"
+    ]
+  },
+  "items": [
+    {
+      "id": "what-disl-0-3-cannot-express/1",
+      "text": "**The file format and its writing discipline**",
+      "statedBy": "binding timeline"
+    },
+    {
+      "id": "what-disl-0-3-cannot-express/2",
+      "text": "**Reading times.**",
+      "statedBy": "fn readTime"
+    },
+    {
+      "id": "what-disl-0-3-cannot-express/3",
+      "text": "**Precision-dependent snapping.**",
+      "hostConcern": "gestures",
+      "reason": "Where a drag comes to rest is the host's gesture: the description declares the day snapping of every element the tool creates (`coordinates system timeline snapping`) and its doc names the exception, an element whose times carry a time of day keeping whole seconds, which the host's placement applies from the element's own precision."
+    },
+    {
+      "id": "what-disl-0-3-cannot-express/4",
+      "text": "**The connection route.**",
+      "statedBy": "notation edge Connection line"
+    },
+    {
+      "id": "what-disl-0-3-cannot-express/5",
+      "text": "**The drag hint's text and the ruler's tick choice.**",
+      "hostConcern": "rendering",
+      "reason": "The drag hint's text and the ruler's labels are drawn by the host: the description asks for the value a drag would rest on (`feedback.showValue`) and for a ruler under the time axis, and which ticks deserve a label at a zoom is how the host draws that ruler."
+    },
+    {
+      "id": "what-disl-0-3-cannot-express/6",
+      "text": "**The row arrangement.**",
+      "statedBy": "plugin net.etalii.adp.generic.timelineRowArrange"
+    },
+    {
+      "id": "what-disl-0-3-cannot-express/7",
+      "text": "**A menu addition without a position**",
+      "statedBy": "operation addElementHere"
+    },
+    {
+      "id": "what-disl-0-3-cannot-express/8",
+      "text": "**The grouping of findings.**",
+      "statedBy": "constraints"
+    },
+    {
+      "id": "what-disl-0-3-cannot-express/9",
+      "text": "**The wire ids**",
+      "statedBy": "setting x timeline actions"
+    },
+    {
+      "id": "language-gaps/1",
+      "text": "1. FBL: a slot that reads a YAML scalar as written (closed)",
+      "statedBy": "binding timeline element Period attribute begin"
+    },
+    {
+      "id": "language-gaps/2",
+      "text": "2. FBL: opening an empty flow collection",
+      "statedBy": "binding timeline template"
+    },
+    {
+      "id": "language-gaps/3",
+      "text": "3. FBL: the gap after the dash",
+      "statedBy": "binding timeline text"
+    },
+    {
+      "id": "language-gaps/4",
+      "text": "4 and 5. FBL: a relation with an unset end, and an id held twice",
+      "statedBy": "binding timeline element Connection"
+    },
+    {
+      "id": "language-gaps/5",
+      "text": "6. FBL: a retype between two rules that match one entry",
+      "statedBy": "operation giveEnd"
+    },
+    {
+      "id": "language-gaps/6",
+      "text": "7. FBL: the wording and the acceptance of an unreadable body",
+      "statedBy": "builtin std.unparseable"
+    },
+    {
+      "id": "language-gaps/7",
+      "text": "8. FBL: removing the last entries of a body without a final newline",
+      "statedBy": "binding timeline text finalNewline"
+    },
+    {
+      "id": "pending-with-the-owner/1",
+      "text": "**A missing or another header**",
+      "statedBy": "binding timeline"
+    },
+    {
+      "id": "pending-with-the-owner/2",
+      "text": "**A sequence entry that is not a mapping**",
+      "statedBy": "binding timeline element Period when"
+    },
+    {
+      "id": "pending-with-the-owner/3",
+      "text": "**A key written twice in one mapping**",
+      "statedBy": "builtin std.duplicateId"
+    },
+    {
+      "id": "pending-with-the-owner/4",
+      "text": "**The wording of `timeline.unparseable`**",
+      "statedBy": "builtin std.unparseable message"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/times.rs",
+      "lines": "17-46",
+      "behaviour": "The plugin `net.etalii.adp.generic.timelineTimes` supplies `readableTime`, `compareTimes`, `dateAfter`, `today` and `writtenEnd` over the module's reading of a time, so a rule, a form check and an operation judge a time as a gesture does.",
+      "statedBy": "fn readTime"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/times.rs",
+      "lines": "49-55",
+      "behaviour": "`today()` is the date of the clock in UTC, written as a date.",
+      "statedBy": "fn today"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/times.rs",
+      "lines": "59-66",
+      "behaviour": "`writtenEnd(relation, end)` is the id the relation's end is written with, also when it names no element, the empty text when it is written empty or not at all.",
+      "statedBy": "fn writtenEnd"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/instants.rs",
+      "lines": "44-341",
+      "behaviour": "A time is read at face value, offset zero: ISO 8601 dates and date-times with `T` or a space, fractional seconds and an offset or `Z`; the same with `/` or `.` between the parts; `MM/dd/yyyy`; a year and a month; dates written out in English with an optional weekday that must be the date's. A date not in the calendar, the empty text and a time of day without a date do not read.",
+      "statedBy": "fn instantOf"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/instants.rs",
+      "lines": "49-81",
+      "behaviour": "Days from the civil date and back, and the days of a month, in the proleptic Gregorian calendar.",
+      "statedBy": "fn daysFromCivil"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/scale.rs",
+      "lines": "11-54",
+      "behaviour": "Across is seconds since 1970, down is 60 units per row; a time written after a gesture keeps the element's precision, a date snapped to the start of its day and a date-time to whole seconds; the nearest row rounds halves away from zero.",
+      "statedBy": "coordinates axis time"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/placement.rs",
+      "lines": "24-81",
+      "behaviour": "An element is drawn at its begin, at the epoch when its begin does not read, and its row; a gesture's point writes a begin in the element's own precision and the nearest row, a period keeping its duration, and a value that already reads as asked is not written.",
+      "statedBy": "notation node Period placement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/placement.rs",
+      "lines": "85-130",
+      "behaviour": "A period is as wide as it lasts; a drag of its left edge writes its begin and of its right edge its end, in its precision, and stops at the other edge.",
+      "statedBy": "notation node Period placement resizable"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/placement.rs",
+      "lines": "139-180",
+      "behaviour": "No edit, from a gesture, a form or an operation, writes an element that ends before it begins: it is refused with \"An element cannot end before it begins.\".",
+      "statedBy": "constraint noInversionByGesture"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/arrangement.rs",
+      "lines": "26-162",
+      "behaviour": "Arrange diagram packs elements onto as few rows as their extents at the canvas's first fit allow, related elements on rows close together and a moment kept off the row of a later element it is linked to; only `row` is written, in one step.",
+      "statedBy": "plugin net.etalii.adp.generic.timelineRowArrange"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/ruler.rs",
+      "lines": "44-153",
+      "behaviour": "The time ruler labels round boundaries of the finest step that keeps labels 80 pixels apart, fixed durations up to a week and then months, quarters and years, in UTC.",
+      "statedBy": "coordinates axis time ruler"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/theme.rs",
+      "lines": "13-22",
+      "behaviour": "In the dark theme the canvas takes the standard tokens' dark surface and border, and a moment's fill is limegreen.",
+      "statedBy": "notation theme modes"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/reading.rs",
+      "lines": "61-87",
+      "behaviour": "An element is named by the id the binding read into `storedId`; a row that does not read as a whole number is row 0.",
+      "statedBy": "persistence typeMap"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/lib.rs",
+      "lines": "109-111",
+      "behaviour": "An element's computed label is renamed through its `label` attribute.",
+      "statedBy": "notation node Period label"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/lib.rs",
+      "lines": "114-119",
+      "behaviour": "Giving a moment an end and removing a period's end are written as the change of `end` alone, the retype left out, because the binding tells a period from a moment by its `end` key.",
+      "statedBy": "behavior retype"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/timeline/src/lib.rs",
+      "lines": "89-97",
+      "behaviour": "A point on the canvas is read by an addition as the date under it, at the start of its day, and the nearest row.",
+      "statedBy": "operation addElementHere"
+    }
+  ]
+}

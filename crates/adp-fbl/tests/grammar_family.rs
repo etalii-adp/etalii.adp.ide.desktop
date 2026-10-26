@@ -17,7 +17,10 @@ fn repository() -> PathBuf {
 fn turtle() -> Rc<FblBinding> {
     let path = repository().join("vendor/etalii.adp/specifications/fbl/w3c-turtle-grammar.fbl");
     let (problems, document) = documents::load_file(&path);
-    assert!(!problems.iter().any(|p| p.severity == ProblemSeverity::Error), "{problems:?}");
+    assert!(
+        !problems.iter().any(|p| p.severity == ProblemSeverity::Error),
+        "{problems:?}"
+    );
     Rc::new(document.unwrap().binding("turtle").unwrap().clone())
 }
 
@@ -40,7 +43,13 @@ fn rdf_turtle() -> Vec<PathBuf> {
         root.join("modules/diagrams/rdf/tests/examples/nobel/laureates.ttl"),
         root.join("modules/diagrams/rdf/tests/examples/nobel/nobel-1903.ttl"),
     ];
-    for name in ["constructs", "crlf-line-endings", "lf-line-endings", "no-trailing-newline", "tied-line-endings"] {
+    for name in [
+        "constructs",
+        "crlf-line-endings",
+        "lf-line-endings",
+        "no-trailing-newline",
+        "tied-line-endings",
+    ] {
         files.push(root.join(format!("modules/diagrams/rdf/tests/fixtures/{name}.ttl")));
     }
     files
@@ -69,7 +78,11 @@ fn the_rdf_types_turtle_is_read_whole_with_every_prefix() {
             "{}",
             file.display()
         );
-        assert!(model.elements.iter().any(|e| e.type_name == "Resource"), "{}", file.display());
+        assert!(
+            model.elements.iter().any(|e| e.type_name == "Resource"),
+            "{}",
+            file.display()
+        );
     }
 }
 
@@ -103,7 +116,13 @@ fn a_set_changes_only_its_elements_value_and_its_undo_puts_the_bytes_back() {
     assert_eq!(&changed[splice.start + "Renamed".len()..], &bytes[splice.end..]);
     let after = body.model();
     assert_eq!(
-        after.elements.iter().find(|e| e.id == element.id).unwrap().attributes.get("label"),
+        after
+            .elements
+            .iter()
+            .find(|e| e.id == element.id)
+            .unwrap()
+            .attributes
+            .get("label"),
         Some(&Value::from("Renamed"))
     );
     assert!(matches!(body.undo(), UndoResult::Done(_)));
@@ -118,7 +137,12 @@ fn a_body_that_does_not_parse_is_read_in_part_with_a_finding_at_its_line() {
     let model = body.model();
 
     assert!(!model.unreadable);
-    let ids: Vec<&str> = model.elements.iter().filter(|e| e.type_name == "Resource").map(|e| e.id.as_str()).collect();
+    let ids: Vec<&str> = model
+        .elements
+        .iter()
+        .filter(|e| e.type_name == "Resource")
+        .map(|e| e.id.as_str())
+        .collect();
     assert_eq!(ids, ["ex:a", "ex:c"]);
     let unparsed: Vec<usize> = model
         .findings
@@ -183,7 +207,13 @@ fn a_grammar_given_as_text_reads_and_writes_its_body() {
       }
     }"#;
     let (problems, loaded) = documents::load(document.as_bytes());
-    let binding = Rc::new(loaded.unwrap_or_else(|| panic!("{problems:?}")).binding("items").unwrap().clone());
+    let binding = Rc::new(
+        loaded
+            .unwrap_or_else(|| panic!("{problems:?}"))
+            .binding("items")
+            .unwrap()
+            .clone(),
+    );
     let mut body = OpenBody::open(
         b"a = 1;\nb = 2;\n".to_vec(),
         binding,

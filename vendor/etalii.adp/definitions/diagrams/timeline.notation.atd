@@ -1,0 +1,334 @@
+atd 0.1
+part of generic/timeline
+
+// The timeline's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+coordinates {
+  system timeline {
+    kind: cartesian
+    label: Timeline
+    doc: "Time across, rows down."
+    x: time
+    y: rows
+    orientation: y-down
+    infinite: true
+    grid: { visible: false }
+    guides: { smart: false, distribution: false, user: false }
+    snapping: {
+      enabled: true
+      userToggle: false
+      mode: always
+      reference: anchor
+      x: {
+        calendar: { unit: day, align: nearest }
+        doc: "A date-only element's begin lands on the start of a day. An element whose times carry a time of day is not snapped in x and keeps whole seconds (see timeline.md)."
+      }
+      y: {
+        grid: { spacing: 1 }
+        direction: nearest
+        doc: "An element comes to rest on the nearest row, never between two. Halves round away from zero."
+      }
+      size: {
+        x: { calendar: { unit: day, align: nearest }, doc: "Dragging an edge of a date-only period lands on a day." }
+      }
+      targets: [rule]
+      bypassModifier: none
+      feedback: { showGhost: false, showValue: true }
+      doc: {
+        summary: "Horizontal moves time, vertical moves row."
+        rationale: "A timeline reads in dates and rows; an element stranded between two rows or on a time nobody wrote says something the author did not."
+      }
+    }
+  }
+  axis time {
+    kind: time
+    label: Time
+    doc: "Time at face value, increasing left to right: no time zone, no calendar, no working days. A value written is the value drawn."
+    valueType: datetime
+    timezone: UTC
+    origin: "1970-01-01T00:00:00Z"
+    scale: { unit: day, size: 20 }
+    expand: auto
+    ruler: { visible: true, position: bottom, size: 24 }
+  }
+  axis rows {
+    kind: linear
+    label: Row
+    doc: "Authored rows: an integer index, one row every 60 canvas units, negative and positive alike."
+    unit: row
+    scale: 60
+    precision: 0
+    expand: auto
+  }
+  default timeline
+}
+
+notation {
+  /// The standard tokens' light values stand; the dark mode gives the standard tokens' dark surface and border, and a
+  /// moment the standalone host's limegreen primary colour.
+  theme {
+    modes: { dark: { color.surface: "#1F1E1C", color.border: "#B4B2A9", color.accent: "#32CD32" } }
+    defaultMode: light
+    followSystem: true
+  }
+  style element { fill: $color.surface, stroke: { color: $color.border, width: 1 }, cornerRadius: 4, font: { size: 12 } }
+  style moment { fill: $color.accent, stroke: { width: 0 } }
+  style connection { stroke: { color: $color.border, width: 1.5 } }
+  canvas { minimap: false }
+
+  node Period {
+    shape roundedRect
+    label (shownLabel(self)) as label { position: center, editable: inline, overflow: ellipsis, wrap: none, maxLines: 1 }
+    style: element
+    size: { default: [null, 36], min: [2, 36], resizable: horizontal }
+    placement: {
+      system: timeline
+      x: @begin
+      x2: @end
+      y: @row
+      anchor: top-left
+      movable: { x: true, y: true }
+      resizable: { x: true, y: false }
+      stack: { mode: overlap }
+      doc: "Drag to move it in time or to another row; the duration is kept. Drag the left edge to change when it begins, the right edge to change when it ends; an edge stops at the other rather than crossing it."
+    }
+    anchors: { mode: fixed, points: [{ id: begin, x: 0, y: 0.5 }, { id: end, x: 1, y: 0.5 }] }
+    doubleClick: editLabel
+  }
+
+  node Moment {
+    shape diamond
+    label (shownLabel(self)) as label { position: outside-right, editable: inline, wrap: none }
+    style: moment
+    size: { fixed: [18, 18] }
+    placement: {
+      system: timeline
+      x: @begin
+      y: { attribute: row, offset: 0.3 }
+      anchor: left
+      movable: { x: true, y: true }
+      resizable: false
+      stack: { mode: overlap }
+      doc: "Drag to move it in time or to another row. A moment has no right edge to drag; give it an end from its menu."
+    }
+    anchors: { mode: fixed, points: [{ id: begin, x: 0, y: 0.5 }, { id: end, x: 1, y: 0.5 }] }
+    doubleClick: editLabel
+  }
+
+  /// A horizontal cubic bezier from the source's end to the target's begin. When the target begins before the source
+  /// ends, the curve loops forward and back between those two points.
+  edge Connection {
+    line { routing: bezier, startDirection: right, endDirection: left }
+    marker source none
+    marker target arrowFilled
+    label @label as label { at: middle, side: above, distance: 6, editable: inline }
+    style: connection
+    anchoring: {
+      source: { mode: fixed, points: [{ id: end, x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: begin, x: 0, y: 0.5 }] }
+    }
+    connect: { from: { end: source, begin: target }, tool: relate }
+    reconnectable: false
+    layer: belowNodes
+  }
+}
+
+toolbox {
+  tools: {
+    relate: {
+      id: relate
+      creates: Connection
+      label: Relate
+      icon: mdi-ray-start-arrow
+      mode: drag
+      createTarget: {
+        type: Period
+        initial: { label: "New element", begin: (position.x), end: (dateAfter(position.x, 14)), row: (position.y) }
+      }
+      createSource: {
+        type: Period
+        initial: { label: "New element", begin: (position.x), end: (dateAfter(position.x, 14)), row: (position.y) }
+      }
+      doc: "The relation gesture, started from an element's anchor rather than from the palette, which does not show it. Released on empty canvas it creates a period two weeks long, its begin at the start of the day under the pointer, on the nearest row, and relates it in one step: as the target from the end anchor, as the source from the begin anchor."
+    }
+  }
+  generic: { select: true, pan: true }
+  contextTools: [
+    {
+      for: [Element]
+      placement: around
+      tools: [
+        {
+          kind: connect
+          via: Connection
+          position: right
+          label: Relate
+          icon: mdi-ray-start-arrow
+          doc: "Drag from the end anchor to another element's begin, or release on empty canvas to create a new element there, related. Dragging from the begin anchor makes the relation point into this element instead."
+        }
+      ]
+    }
+  ]
+  group timeline "Timeline" {
+    /// Something with a begin and an end. Drop on the canvas at the time and row it starts.
+    tool element "Element" {
+      creates: Period
+      icon: mdi-arrow-expand-horizontal
+      mode: drop
+      initial: { label: "New element", begin: (position.x), end: (dateAfter(position.x, 14)), row: (position.y) }
+      after: none
+    }
+    /// A single point in time. Drop on the canvas at the time and row it marks.
+    tool moment "Moment" {
+      creates: Moment
+      icon: mdi-rhombus-medium
+      mode: drop
+      initial: { label: "New moment", begin: (position.x), row: (position.y) }
+      after: none
+    }
+  }
+  /// Changing this element, then adding the next one - after it in time, below it in rows - then arranging the whole
+  /// diagram, each its own group.
+  context for Element {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2 }
+    tool "Give it an end…" { kind: operation, operation: giveEnd, group: edit, icon: mdi-ray-start-end, visible: (self.isA('Moment')) }
+    tool "Remove its end" { kind: operation, operation: removeEnd, group: edit, icon: mdi-ray-start, visible: (self.isA('Period')) }
+    tool "Remove" { kind: delete, group: edit, icon: mdi-delete-outline, shortcut: Delete }
+    tool "Add element after" { kind: operation, operation: addAfter, group: add, icon: mdi-arrow-expand-right, shortcut: Tab }
+    tool "Add element below" { kind: operation, operation: addBelow, group: add, icon: mdi-arrow-expand-down, shortcut: Enter }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: arrange, icon: mdi-sitemap-outline }
+  }
+  context for Connection {
+    placement: menu
+    standardEntries: false
+    tool "Relabel…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2 }
+    tool "Remove relation" { kind: delete, group: edit, icon: mdi-vector-polyline-remove, shortcut: Delete }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: arrange, icon: mdi-sitemap-outline }
+  }
+  /// Empty canvas, at the time and row that was clicked or dropped on. A toolbox drop runs the same additions.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add element here" { kind: operation, operation: addElementHere, group: add, icon: mdi-plus }
+    tool "Add moment here" { kind: operation, operation: addMomentHere, group: add, icon: mdi-rhombus-medium }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: arrange, icon: mdi-sitemap-outline }
+  }
+  /// A finished relation gesture: from an element's end anchor to another element, or released on empty canvas, where
+  /// a new element is created and related in one step.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    runSingle: true
+    tool "Relate" { kind: connect, via: Connection, icon: mdi-ray-start-arrow }
+  }
+}
+
+form period for Period {
+  usage: [inspector]
+  commit: onBlur
+  section {
+    label: Identity
+    field label
+  }
+  section {
+    label: Timing
+    field begin {
+      widget: text
+      validate: [
+        {
+          rule: (readableTime(value))
+          message: ('\'' + value + '\' is not a time this timeline can read.')
+          timing: commit
+        },
+        {
+          rule: (value.contains('T') == self.end.contains('T'))
+          message: "This element uses the other time form; begin and end must both be dates, or both carry a time."
+          timing: commit
+        }
+      ]
+    }
+    field end {
+      widget: text
+      validate: [
+        {
+          rule: (readableTime(value))
+          message: ('\'' + value + '\' is not a time this timeline can read.')
+          timing: commit
+        },
+        {
+          rule: (value.contains('T') == self.begin.contains('T'))
+          message: "This element uses the other time form; begin and end must both be dates, or both carry a time."
+          timing: commit
+        },
+        {
+          rule: (!readableTime(self.begin) || compareTimes(value, self.begin) >= 0)
+          message: "An element cannot end before it begins."
+          timing: commit
+        }
+      ]
+    }
+  }
+  section {
+    label: Placement
+    field row { widget: number }
+  }
+}
+
+/// A moment shows no empty End row: giving it an end is the menu's job (giveEnd).
+form moment for Moment {
+  usage: [inspector]
+  commit: onBlur
+  section {
+    label: Identity
+    field label
+  }
+  section {
+    label: Timing
+    field begin {
+      widget: text
+      validate: [
+        {
+          rule: (readableTime(value))
+          message: ('\'' + value + '\' is not a time this timeline can read.')
+          timing: commit
+        }
+      ]
+    }
+  }
+  section {
+    label: Placement
+    field row { widget: number }
+  }
+}
+
+/// From and To show the ids the relation is written with, also one that names no element on the timeline.
+form connection for Connection {
+  usage: [inspector]
+  commit: onBlur
+  section {
+    label: Identity
+    field label
+    item from "From" {
+      kind: computed
+      value: (writtenEnd(self, 'source'))
+      readOnlyReasons: ["Reconnecting is done on the canvas, by dragging the relation's end to another element."]
+    }
+    item to "To" {
+      kind: computed
+      value: (writtenEnd(self, 'target'))
+      readOnlyReasons: ["Reconnecting is done on the canvas, by dragging the relation's end to another element."]
+    }
+  }
+}
+
+layout {
+  algorithm rowArrange {
+    algorithm: "plugin:net.etalii.adp.generic.timelineRowArrange"
+    doc: "Arrange diagram (`timeline.arrange`): rows only, because across is the data. Not the standard `rows` algorithm (10.2): besides packing elements onto as few rows as their extents at the canvas's first fit allow, with related elements drawn to nearby rows, it keeps a moment and an element later than it that it is linked to on different rows, so their link does not run through the moment's label. See the plugin's doc."
+  }
+  trigger: manual
+  respect: all
+}
+

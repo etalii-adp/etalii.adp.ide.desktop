@@ -1,0 +1,197 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "editor/json",
+  "description": "json.atd",
+  "companion": {
+    "file": "../../specifications/atd/ATD-specification.md",
+    "sections": [
+      "10.1 What the editors do"
+    ]
+  },
+  "items": [],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/documents.rs",
+      "lines": "21-85",
+      "behaviour": "A file ending in `.json` opens in the JSON editor.",
+      "statedBy": "textSurface files"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-documents/src/text.rs",
+      "lines": "1-64",
+      "behaviour": "A file is opened as UTF-8 with or without a byte-order mark, or ASCII, and refused with a reason above 5 MB (before a byte is read), when it looks binary, or when it is not UTF-8.",
+      "statedBy": "textSurface open"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-documents/src/text.rs",
+      "lines": "79-124",
+      "behaviour": "Every line keeps its own line ending, a new line takes the dominant one, a last line keeps whether it had an ending, and the byte-order mark is written back only when the file had one.",
+      "statedBy": "textSurface open lineEndings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-text/src/lib.rs",
+      "lines": "1-355",
+      "behaviour": "A buffer with one cursor and a selection; Tab writes four spaces; pasted text has its CRLF made LF.",
+      "statedBy": "textSurface buffer"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-text/src/lib.rs",
+      "lines": "1-355",
+      "behaviour": "Undo and redo grouped word by word.",
+      "hostConcern": "undo-stack",
+      "reason": "How typed text is grouped into steps of undo is the host's undo stack (ATD §17)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "253-320",
+      "behaviour": "Typed text, the movements by character, word, line and document, copy, cut and paste, mapped from keys and the pointer.",
+      "hostConcern": "gestures",
+      "reason": "Which keys and pointer movements edit the text is the host's (ATD §17)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "65-251",
+      "behaviour": "A line-number gutter, the current line marked, no soft wrap.",
+      "statedBy": "textSurface buffer gutter"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "33-47",
+      "behaviour": "Findings drawn as squiggles under their range, coloured by severity.",
+      "hostConcern": "rendering",
+      "reason": "How a finding is drawn is the host's rendering (ATD §17); its severity and place are the description's."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/problems.rs",
+      "lines": "14-58",
+      "behaviour": "Findings listed in the problems panel at their line and column, both from 1, columns counted in characters.",
+      "statedBy": "textSurface findings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/highlight.rs",
+      "lines": "16-54",
+      "behaviour": "Colouring by the token classes of the json syntax (syntect's Sublime syntaxes), none above 20,000 lines.",
+      "statedBy": "textSurface tokens json"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/parse.rs",
+      "lines": "93-396",
+      "behaviour": "A tolerant reader that never stops at a mistake reports a syntax error, a comment and a trailing comma as errors and a repeated property name as a warning, in fourteen sentences.",
+      "statedBy": "textSurface check json"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "27-28",
+      "behaviour": "Above 1,000,000 characters nothing is checked and the status line says \"Too large to check\".",
+      "statedBy": "textSurface check largestCheckedCharacters"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "128-177",
+      "behaviour": "The schema is the one the root object's `$schema` string names; without one the status line says \"No schema\".",
+      "statedBy": "textSurface check schema"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "79-125",
+      "behaviour": "A schema reference is resolved against the document's folder, never above the project's root, never as a web address or an absolute path.",
+      "statedBy": "textSurface check schema read"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "196-273",
+      "behaviour": "A dialect's own address makes the document a schema, checked against the dialect; another JSON Schema dialect, an unreadable schema, one that is not JSON or cannot be compiled is one information finding on the `$schema` key; the root `$schema` is not part of the data unless the schema declares it.",
+      "statedBy": "textSurface check schema dialects"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "263-272",
+      "behaviour": "The status line says the schema's title, else its reference.",
+      "statedBy": "textSurface check schema status"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "446-467",
+      "behaviour": "A break of the schema is an error on the key of the property it is about, on the property an object's message names, else on the object's opening brace or on the value.",
+      "statedBy": "textSurface check schema breaks"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "469-484",
+      "behaviour": "A `$ref` to another schema is read from the project by the same rules.",
+      "statedBy": "textSurface check schema read"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "275-335",
+      "behaviour": "Completion offers the schema's properties not yet present, required ones first, inserted as `\"name\": `, and where a value may begin its `enum` and `const` values, or `true` and `false` for a boolean.",
+      "statedBy": "textSurface complete schema"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/json/src/lib.rs",
+      "lines": "417-424",
+      "behaviour": "A completion's detail is the schema's description, else its title.",
+      "statedBy": "textSurface complete detail"
+    }
+  ]
+}

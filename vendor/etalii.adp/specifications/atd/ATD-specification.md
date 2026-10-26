@@ -772,6 +772,11 @@ A function whose block, or a function it calls, contains an action is **impure**
 - A `<name>` written as a string **MUST** be a host attribute of an entry of `persistence`'s `typeMap` (`ATD2001`).
 - A first argument that is not an element of the document, or a second that is not a string, stops the call as a CEL error.
 
+`endId(<relation>, <end>)` is the id a relation's end was read with, `<end>` being `"source"` or `"target"`: the id as the binding read it when the end was read from the file (DISL §11.2), else the id of the element the end reaches, and `null` when it has neither. It reads what the file wrote for an end that the model keeps unset because it names no element (DISL §4.9), where the binding's relation rule reads its ends as references, without a host attribute for it (`timeline.atd`'s `writtenEnd`).
+
+- The function only reads, so it may be called from every expression position (section 12.7), and it is deterministic (section 12.5).
+- A first argument that is not a relation of the document, or a second that is not `"source"` or `"target"`, stops the call as a CEL error.
+
 ---
 
 ## 13. Capabilities
@@ -812,6 +817,7 @@ The catalogue is the capabilities with a contract in `capabilities/` beside this
 | Capability | Point | Status |
 |---|---|---|
 | `layout.twoSidedTree` | layout | provisional |
+| `reader.markdown` | reader | provisional |
 | `reader.turtle` | reader | provisional |
 | `render.markdown` | render | provisional |
 
@@ -867,6 +873,8 @@ Every expression is type-checked in the CEL environment of its position (DISL §
 | a setting's `( CEL )` | the context of the property, as DISL, DESL or FBL names it | the property's type |
 
 An expression whose type does not fit the position is a finding (`ATD4001`); an unknown variable (`ATD4004`) and a CEL reserved word used as an identifier (`ATD4003`) are findings too.
+
+A variable that holds an element is read as the type a test `<variable>.isA('<Type>')` names where that test holds: on the right of `&&` when the test is its left operand or the first test of a conjunction there, and in the first branch of `?:` when it is the condition or the first test of one. An attribute of that type is then no `ATD2001` (`timeline.atd`'s `self.isA('Period') && readableTime(self.end)`).
 
 ### 14.6 Settings
 
@@ -1019,7 +1027,7 @@ Beside this document, each a complete description that checks without findings:
 
 And the worked examples of section 2: `fixtures/mindmap/basic/`, `mindmap.trace.json` with `mindmap.md`, and `capabilities/*/contract.json`.
 
-The tool descriptions under `definitions/` are examples too, and `atd-grammar.py --probe` reads them with those beside this document: `definitions/designers/hierarchical-requirement.atd`, with its part `hierarchical-requirement.markdown.atd`, is a designer with a hierarchy surface, the widths of its columns, `move` with a place, binding types the type map maps as the document and as unreadable, and rule names with hyphens.
+The tool descriptions under `definitions/` are examples too, and `atd-grammar.py --probe` reads them with those beside this document: `definitions/designers/hierarchical-requirement.atd`, with its part `hierarchical-requirement.markdown.atd`, is a designer with a hierarchy surface, the widths of its columns, `move` with a place, binding types the type map maps as the document and as unreadable, and rule names with hyphens. The five editors under `definitions/editors/` (`plain-text.atd`, `markdown.atd`, `json.atd`, `xml.atd`, `yaml.atd`) are editors with a text surface: files, token classes, checks and completion from sources the editor names, an outline of a model read by a capability, and a preview.
 
 ### 19.2 The walk
 

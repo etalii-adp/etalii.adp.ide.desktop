@@ -5,9 +5,9 @@
 
 mod cel;
 mod checks;
-mod grammars;
 mod description;
 pub mod embedded;
+mod grammars;
 mod script;
 mod settings;
 mod suggest;

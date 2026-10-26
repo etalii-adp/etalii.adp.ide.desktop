@@ -1,0 +1,197 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "editor/xml",
+  "description": "xml.atd",
+  "companion": {
+    "file": "../../specifications/atd/ATD-specification.md",
+    "sections": [
+      "10.1 What the editors do"
+    ]
+  },
+  "items": [],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/documents.rs",
+      "lines": "21-85",
+      "behaviour": "A file ending in `.xml` or `.xsd` opens in the XML editor.",
+      "statedBy": "textSurface files"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-documents/src/text.rs",
+      "lines": "1-64",
+      "behaviour": "A file is opened as UTF-8 with or without a byte-order mark, or ASCII, and refused with a reason above 5 MB (before a byte is read), when it looks binary, or when it is not UTF-8.",
+      "statedBy": "textSurface open"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-documents/src/text.rs",
+      "lines": "79-124",
+      "behaviour": "Every line keeps its own line ending, a new line takes the dominant one, a last line keeps whether it had an ending, and the byte-order mark is written back only when the file had one.",
+      "statedBy": "textSurface open lineEndings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-text/src/lib.rs",
+      "lines": "1-355",
+      "behaviour": "A buffer with one cursor and a selection; Tab writes four spaces; pasted text has its CRLF made LF.",
+      "statedBy": "textSurface buffer"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-text/src/lib.rs",
+      "lines": "1-355",
+      "behaviour": "Undo and redo grouped word by word.",
+      "hostConcern": "undo-stack",
+      "reason": "How typed text is grouped into steps of undo is the host's undo stack (ATD §17)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "253-320",
+      "behaviour": "Typed text, the movements by character, word, line and document, copy, cut and paste, mapped from keys and the pointer.",
+      "hostConcern": "gestures",
+      "reason": "Which keys and pointer movements edit the text is the host's (ATD §17)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "65-251",
+      "behaviour": "A line-number gutter, the current line marked, no soft wrap.",
+      "statedBy": "textSurface buffer gutter"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "33-47",
+      "behaviour": "Findings drawn as squiggles under their range, coloured by severity.",
+      "hostConcern": "rendering",
+      "reason": "How a finding is drawn is the host's rendering (ATD §17); its severity and place are the description's."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/problems.rs",
+      "lines": "14-58",
+      "behaviour": "Findings listed in the problems panel at their line and column, both from 1, columns counted in characters.",
+      "statedBy": "textSurface findings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/highlight.rs",
+      "lines": "16-54",
+      "behaviour": "Colouring by the token classes of the xml syntax (syntect's Sublime syntaxes), none above 20,000 lines.",
+      "statedBy": "textSurface tokens xml"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "79-148",
+      "behaviour": "The text is read to its end or its first error, one error where the reader stopped, after which the status says \"Not well-formed: the rest was not checked.\"",
+      "statedBy": "textSurface check xml"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "368-462",
+      "behaviour": "A DTD or an external entity the reader would have to follow and may not (outside the project, on the web, missing) stops the reading, said as information.",
+      "statedBy": "textSurface check xml externalEntities"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "556-576",
+      "behaviour": "An encoding declared other than the one the file is stored in is a warning, unless every character is ASCII.",
+      "statedBy": "textSurface check encoding"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "506-553",
+      "behaviour": "The schemas are named by `xsi:noNamespaceSchemaLocation`, the pairs of `xsi:schemaLocation` and the `DOCTYPE`'s system identifier, in the prolog and the root's start tag only, each resolved by the JSON editor's project-only rules.",
+      "statedBy": "textSurface check xsd names"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "151-246",
+      "behaviour": "The document is checked against every XSD it names together, by libxml2.",
+      "statedBy": "textSurface check xsd together"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "249-306",
+      "behaviour": "Without an XSD, a document with a `DOCTYPE` is checked against its DTD.",
+      "statedBy": "textSurface check dtd"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "309-333",
+      "behaviour": "A root `xs:schema` makes the document a schema, compiled.",
+      "statedBy": "textSurface check xsd schemaAsDocument"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "352-364",
+      "behaviour": "A schema that declares XSD 1.1 is said as not supported.",
+      "statedBy": "textSurface check xsd unsupported"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/lib.rs",
+      "lines": "465-503",
+      "behaviour": "An `xml-model` instruction is named and not supported.",
+      "statedBy": "textSurface check xsd unsupported"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/xml/src/sentences.rs",
+      "lines": "212-505",
+      "behaviour": "Each of libxml2's findings is said in the sentence and at the place the standalone host's validator gives it: on the element's name, on the value that does not fit, or on the child that is not allowed.",
+      "statedBy": "textSurface check xsd"
+    }
+  ]
+}

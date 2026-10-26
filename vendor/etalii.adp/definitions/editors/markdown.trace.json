@@ -1,0 +1,152 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "editor/markdown",
+  "description": "markdown.atd",
+  "companion": {
+    "file": "../../specifications/atd/ATD-specification.md",
+    "sections": [
+      "10.1 What the editors do"
+    ]
+  },
+  "items": [],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/documents.rs",
+      "lines": "21-85",
+      "behaviour": "A file ending in `.md` or `.markdown` opens in the Markdown editor.",
+      "statedBy": "textSurface files"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-documents/src/text.rs",
+      "lines": "1-64",
+      "behaviour": "A file is opened as UTF-8 with or without a byte-order mark, or ASCII, and refused with a reason above 5 MB (before a byte is read), when it looks binary, or when it is not UTF-8.",
+      "statedBy": "textSurface open"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-documents/src/text.rs",
+      "lines": "79-124",
+      "behaviour": "Every line keeps its own line ending, a new line takes the dominant one, a last line keeps whether it had an ending, and the byte-order mark is written back only when the file had one.",
+      "statedBy": "textSurface open lineEndings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-text/src/lib.rs",
+      "lines": "1-355",
+      "behaviour": "A buffer with one cursor and a selection; Tab writes four spaces; pasted text has its CRLF made LF.",
+      "statedBy": "textSurface buffer"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-text/src/lib.rs",
+      "lines": "1-355",
+      "behaviour": "Undo and redo grouped word by word.",
+      "hostConcern": "undo-stack",
+      "reason": "How typed text is grouped into steps of undo is the host's undo stack (ATD §17)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "253-320",
+      "behaviour": "Typed text, the movements by character, word, line and document, copy, cut and paste, mapped from keys and the pointer.",
+      "hostConcern": "gestures",
+      "reason": "Which keys and pointer movements edit the text is the host's (ATD §17)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "65-251",
+      "behaviour": "A line-number gutter, the current line marked, no soft wrap.",
+      "statedBy": "textSurface buffer gutter"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/editor.rs",
+      "lines": "33-47",
+      "behaviour": "Findings drawn as squiggles under their range, coloured by severity.",
+      "hostConcern": "rendering",
+      "reason": "How a finding is drawn is the host's rendering (ATD §17); its severity and place are the description's."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/problems.rs",
+      "lines": "14-58",
+      "behaviour": "Findings listed in the problems panel at their line and column, both from 1, columns counted in characters.",
+      "statedBy": "textSurface findings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/highlight.rs",
+      "lines": "16-54",
+      "behaviour": "Colouring by the token classes of the markdown syntax (syntect's Sublime syntaxes), none above 20,000 lines.",
+      "statedBy": "textSurface tokens markdown"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/markdown/src/lib.rs",
+      "lines": "16-48",
+      "behaviour": "The outline lists the ATX headings outside code fenced by backticks, each with its level, its title without the closing `#`, and its line from 1.",
+      "statedBy": "capability reader.markdown"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/markdown/src/lib.rs",
+      "lines": "16-48",
+      "behaviour": "The heading's level, title and line are what the outline shows and scrolls to.",
+      "statedBy": "model element Heading"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "crates/adp-shell/src/documents.rs",
+      "lines": "144-162",
+      "behaviour": "The outline and the preview are made again whenever the text changes; the Markdown editor shows no finding.",
+      "statedBy": "textSurface outline"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/markdown/src/lib.rs",
+      "lines": "85-225",
+      "behaviour": "The preview renders CommonMark with tables, strikethrough and task lists as blocks: headings by level, paragraphs with their quote depth, list items by depth and number, code blocks with their language, rules.",
+      "statedBy": "textSurface preview"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/editors/markdown/src/lib.rs",
+      "lines": "85-225",
+      "behaviour": "The preview's rendering is the capability's: text runs by block, with strong, emphasis, code and links.",
+      "statedBy": "capability render.markdown"
+    }
+  ]
+}
