@@ -1034,6 +1034,36 @@ impl Checker<'_> {
         self.findings.push(finding);
     }
 
+    /// A call of `hostAttribute` whose name is a string: a host attribute of an entry of `persistence`'s `typeMap`
+    /// (ATD §12.8).
+    fn host_attribute(&mut self, call: &Json) {
+        let Some(argument) = call["args"].get(1) else {
+            return;
+        };
+        let Some(written) = argument["literal"].as_str().filter(|_| argument["type"] == "string") else {
+            return;
+        };
+        let declared: BTreeSet<&str> = self
+            .type_map
+            .values()
+            .flat_map(|entry| entry.host_attributes.iter().map(String::as_str))
+            .collect();
+        if declared.contains(written) {
+            return;
+        }
+        let suggestions = closest(written, declared.into_iter().collect::<Vec<_>>());
+        let mut finding = finding_at(
+            "ATD2001",
+            argument,
+            format!(
+                "No host attribute `{written}` in `persistence`'s `typeMap`.{}",
+                did_you_mean(&suggestions)
+            ),
+        );
+        finding.suggestions = suggestions;
+        self.findings.push(finding);
+    }
+
     /// Every global call of every expression: a function of the library or of the description (ATD §14.8).
     fn calls(&mut self, description: &Description) {
         let mut calls = Vec::new();
@@ -1044,6 +1074,9 @@ impl Checker<'_> {
         known.extend(self.symbols.functions.keys().cloned());
         for call in calls {
             let name = call["call"].as_str().unwrap_or("");
+            if name == "hostAttribute" {
+                self.host_attribute(call);
+            }
             if known.iter().any(|k| k == name) {
                 continue;
             }
