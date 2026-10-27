@@ -329,7 +329,8 @@ impl<'a> Printer<'a> {
             if line.trim().is_empty() {
                 self.lines.push(String::new());
             } else {
-                self.lines.push(format!("{}{}", "  ".repeat(self.indent), &line[shared..]));
+                self.lines
+                    .push(format!("{}{}", "  ".repeat(self.indent), &line[shared..]));
             }
         }
     }
