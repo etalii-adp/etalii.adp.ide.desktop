@@ -32,9 +32,8 @@ mod hierarchical_requirement;
 /// The fixtures the standalone host vendored at 8b6ccfc under `Conformance/fixtures`, which its
 /// `ConformanceFixturesTests` runs, and those the standalone host runs from `a7fdf03` that this port has the features
 /// of: `sankey-written-text` and `supply-chain-written-text`, which etalii.adp added with the Sankey and supply chain
-/// bindings, and the bullets family's (FBL 0.7 section
-/// 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`, which etalii.adp holds and the standalone host does
-/// not vendor.
+/// bindings, and the bullets family's (FBL 0.7 section 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`,
+/// which etalii.adp holds and the standalone host does not vendor.
 const STANDALONE_FIXTURES: [&str; 22] = [
     "behavior-tree-read/first-add",
     "bullets-edits",
