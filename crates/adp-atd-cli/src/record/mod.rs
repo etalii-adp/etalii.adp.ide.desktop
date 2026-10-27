@@ -265,8 +265,11 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
             if let Some(element) = movement["refs"].as_array().and_then(|r| r.first()) {
                 to.insert("element".into(), element.clone());
             }
-            for key in ["parent", "x", "y"] {
-                if let Some(value) = movement.get(key) {
+            // A move into a parent goes before the child at `index` there, or last when it is -1 (ATD §2.3).
+            for key in ["parent", "index", "x", "y"] {
+                if let Some(value) = movement.get(key)
+                    && (key != "index" || movement.get("parent").is_some())
+                {
                     to.insert(key.into(), value.clone());
                 }
             }
