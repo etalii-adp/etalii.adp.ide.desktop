@@ -1,0 +1,268 @@
+atd 0.1
+part of w3c/rdf
+
+// The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+/// Resource cards in the Ontodia convention: a titled box listing its literal rows, one straight arrowed edge per
+/// statement. Cards are arranged in bands by their first type, which is the module's layout code (`w3c-rdf.md`).
+notation {
+  theme {
+    tokens: {
+      color.surface: "#ffffff"
+      color.text: "#0f172a"
+      color.text.muted: "#64748b"
+      color.border: "#e2e8f0"
+      color.primary: "limegreen"
+      font.body: "system-ui, sans-serif"
+    }
+    modes: {
+      dark: { color.surface: "#1e293b", color.text: "#f1f5f9", color.text.muted: "#94a3b8", color.border: "#334155" }
+    }
+    followSystem: true
+  }
+  style card {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1.5 }
+    font: { family: $font.body, size: 12, color: $color.text }
+  }
+  style badge { font: { size: 11, color: $color.primary } }
+  style row { font: { size: 11, color: $color.text.muted } }
+  style statement { stroke: { color: $color.text.muted, width: 1.5 }, font: { size: 11, color: $color.text.muted } }
+
+  node Resource {
+    shape rect
+    label @display as title {
+      position: { anchor: [0.5, 0], offset: [0, 20] },
+      overflow: ellipsis,
+      maxLines: 1,
+      editable: false
+    }
+    label @badgeLine as badges {
+      position: { anchor: [0, 0], offset: [8, 40], align: start }
+      style: "badge"
+      overflow: ellipsis
+      maxLines: 1
+      visible: (size(self.types) > 0)
+    }
+    compartment rows {
+      items: @rows
+      itemText: (item.predicate + ': ' + item.value + (item.annotation != '' ? ' ' + item.annotation : ''))
+      itemStyle: "row"
+      layout: vertical
+      separator: none
+      overflow: grow
+    }
+    style: "card"
+    size: { default: [220, 40], resizable: false, autoSize: fitHeight }
+    anchors: { mode: fixed, points: [{ id: "w", x: 0, y: 0.5 }, { id: "e", x: 1, y: 0.5 }] }
+    tooltip: (self.iri)
+    copyable: false
+    doubleClick: "none"
+    refusals: { reparent: ["A resource has no parent to move it under; dragging changes where it sits on the canvas."] }
+  }
+
+  /// Dashed and at 75 % opacity: visibly provisional, the blank-node identity boundary's look.
+  node BlankNode {
+    shape rect
+    label @name as title {
+      position: { anchor: [0.5, 0], offset: [0, 20] },
+      overflow: ellipsis,
+      maxLines: 1,
+      editable: false
+    }
+    label @badgeLine as badges {
+      position: { anchor: [0, 0], offset: [8, 40], align: start }
+      style: "badge"
+      overflow: ellipsis
+      maxLines: 1
+      visible: (size(self.types) > 0)
+    }
+    compartment rows {
+      items: @rows
+      itemText: (item.predicate + ': ' + item.value + (item.annotation != '' ? ' ' + item.annotation : ''))
+      itemStyle: "row"
+      layout: vertical
+      separator: none
+      overflow: grow
+    }
+    style: ["card", { stroke: { dash: [5, 3], dashScale: absolute }, opacity: 0.75 }]
+    size: { default: [220, 40], resizable: false, autoSize: fitHeight }
+    anchors: { mode: outline }
+    tooltip: "Blank node"
+    copyable: false
+    doubleClick: "none"
+  }
+
+  edge Statement {
+    line { stroke: { color: $color.text.muted, width: 1.5 }, routing: straight }
+    marker source none
+    marker target arrowFilled
+    label @predicate as predicate { at: middle, side: above, distance: 6, editable: false }
+    style: "statement"
+    reconnectable: false
+    hitWidthScreenPx: 14
+    selectable: (self.direct)
+    refusals: { move: ["That element is not something this diagram can move."] }
+    connect: {
+      from: { w: source, e: source }
+      doc: "A statement starts at a card's left or right side; the card dragged from becomes its subject."
+    }
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true }
+  group rdf "RDF" {
+    /// An IRI-named resource. Drop it where it should sit; you will be asked for its name.
+    tool resource "Resource" { kind: operation, operation: "addResource", icon: "mdi-card-plus-outline", mode: drop }
+    /// A namespace declaration, so terms can be written short.
+    tool prefix "Prefix" { kind: operation, operation: "declarePrefix", icon: "mdi-at", mode: drop }
+  }
+  context for Resource {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: operation, operation: "renameResource", icon: "mdi-pencil-outline", shortcut: "F2" }
+    tool { kind: operation, operation: "removeResource", icon: "mdi-delete-outline", shortcut: "Delete" }
+  }
+  context for Statement when self.direct {
+    placement: menu
+    standardEntries: false
+    tool "Remove statement" {
+      kind: operation,
+      operation: "removeStatement",
+      icon: "mdi-vector-polyline-remove",
+      shortcut: "Delete"
+    }
+  }
+  /// A placement: the empty canvas at a point.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add resource here…" { kind: operation, operation: "addResource", icon: "mdi-card-plus-outline" }
+    tool "Declare prefix…" { kind: operation, operation: "declarePrefix", icon: "mdi-at" }
+  }
+  /// A finished connect gesture between two cards.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    tool "Relate…" {
+      kind: operation,
+      operation: "relate",
+      icon: "mdi-ray-start-arrow",
+      args: { from: (source), to: (target) }
+    }
+  }
+}
+
+form resourceInspector for Resource {
+  usage: [inspector]
+  section "Identity" {
+    field iri {
+      widget: readonly,
+      readOnlyReasons: ["Rename through the context menu, so every reference follows the name."]
+    }
+    field typesText {
+      id: "types"
+      widget: readonly
+      readOnlyReasons: ["Types are stated by triples; add or remove them as statements."]
+    }
+  }
+  section "Documentation" {
+    field label { widget: text, readOnlyReasons: [{ reason: "truncated" }] }
+    field comment { widget: text, readOnlyReasons: [{ reason: "truncated" }] }
+  }
+}
+
+form blankInspector for BlankNode {
+  usage: [inspector]
+  section "Identity" {
+    field name {
+      id: "iri"
+      widget: readonly
+      readOnlyReasons: ["A blank node's identity does not survive a reparse, so nothing about it can be edited from the diagram."]
+    }
+  }
+}
+
+form statementInspector for Statement {
+  usage: [inspector]
+  section "Identity" {
+    field predicateIri {
+      widget: readonly
+      display: (rdfDisplayName(self.predicateIri))
+      readOnlyReasons: ["A statement's predicate is the statement; remove and restate to change it."]
+    }
+  }
+}
+
+form addResourceDialog "Add resource" for diagram {
+  usage: [popover]
+  icon: "mdi-card-plus-outline"
+  submitLabel: "Add"
+  field iri "IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form declarePrefixDialog "Declare prefix" for diagram {
+  usage: [popover]
+  icon: "mdi-at"
+  submitLabel: "Declare"
+  field declaration "Declaration, e.g. ex: http://example.org/" {
+    validate: [{
+      rule: (value.matches('^\\s*[^:\\s]+\\s*:\\s*<?[A-Za-z][A-Za-z0-9+.-]*:[^\\s<>]*>?\\s*$'))
+      message: "Write the declaration as 'prefix: iri', e.g. ex: http://example.org/."
+    }
+    ]
+  }
+}
+
+form relateDialog "Relate" for diagram {
+  usage: [popover]
+  icon: "mdi-ray-start-arrow"
+  submitLabel: "Relate"
+  field predicate "Predicate (IRI or prefixed name)" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form renameDialog "Rename resource" for Resource {
+  usage: [popover]
+  icon: "mdi-pencil-outline"
+  submitLabel: "Rename"
+  field newName "New IRI or prefixed name" {
+    initial: (rdfCompress(self.iri))
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }, {
+      rule: (!diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == rdfResolveTerm(value)) || (t.oKind == 'iri' && t.o == rdfResolveTerm(value))))
+      message: (rdfResolveTerm(value) + ' already names something in this document; renaming onto it would silently merge two resources.')
+    }
+    ]
+  }
+}
+
+/// Pure and deterministic, no physics: the same file always opens the same way. Authored positions from the
+/// registration override computed ones element by element.
+layout {
+  default typeBands
+  /// One band per first type badge, typed bands in ordinal order of the badge text and the untyped band last; inside a
+  /// band cards fill a four-column grid in document order.
+  algorithm typeBands capability layout.bandedGrid {
+    columns: 4
+    columnWidth: 280
+    rowHeight: 160
+    bandGap: 80
+    band: (self.band)
+  }
+  /// The declarative approximation of typeBands, for a runtime without the capability: one lane per `band` value.
+  algorithm fallback {
+    algorithm: "lanes"
+    direction: down
+    spacing: { node: 60, layer: 160, component: 80 }
+    options: { laneBy: "band" }
+  }
+  trigger: onLoadIfMissing
+  respect: all
+  incremental: true
+}
+
+viewpoint graph "Graph" { exclude: ["Triple", "Prefix", "Base"], default: true }

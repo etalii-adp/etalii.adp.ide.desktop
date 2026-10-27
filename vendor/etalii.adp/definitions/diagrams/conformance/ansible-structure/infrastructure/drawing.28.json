@@ -1,0 +1,791 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "inventory:inventories/production",
+      "type": "ansible/structure+inventory",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 290,
+        "w": 101,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "production",
+          "font": "13 400",
+          "position": {
+            "x": 50.5,
+            "y": 310.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "inventory:inventories/staging",
+      "type": "ansible/structure+inventory",
+      "shape": "path",
+      "bounds": {
+        "x": 533.3,
+        "y": 280,
+        "w": 77.9,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "staging",
+          "font": "13 400",
+          "position": {
+            "x": 572.25,
+            "y": 300.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "playbook:dbservers.yml",
+      "type": "ansible/structure+playbook",
+      "shape": "path",
+      "bounds": {
+        "x": 363.2,
+        "y": 0,
+        "w": 131.8,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "dbservers.yml",
+          "font": "13 400",
+          "position": {
+            "x": 429.1,
+            "y": 20.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#0000000f",
+        "stroke": "#2f6fb2",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "playbook:site.yml",
+      "type": "ansible/structure+playbook",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 300,
+        "w": 85.6,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "site.yml",
+          "font": "13 400",
+          "position": {
+            "x": 42.8,
+            "y": 320.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#0000000f",
+        "stroke": "#2f6fb2",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "playbook:webservers.yml",
+      "type": "ansible/structure+playbook",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 131.8,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "webservers.yml",
+          "font": "13 400",
+          "position": {
+            "x": 65.9,
+            "y": 20.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#0000000f",
+        "stroke": "#2f6fb2",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "role:common",
+      "type": "ansible/structure+role",
+      "shape": "path",
+      "bounds": {
+        "x": 5,
+        "y": 8.33,
+        "w": 85.6,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "common",
+          "font": "13 400",
+          "position": {
+            "x": 47.8,
+            "y": 28.83
+          }
+        }
+      ],
+      "style": {
+        "fill": "#0000000f",
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "role:nginx",
+      "type": "ansible/structure+role",
+      "shape": "path",
+      "bounds": {
+        "x": 640,
+        "y": 160,
+        "w": 85.6,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "nginx",
+          "font": "13 400",
+          "position": {
+            "x": 682.8,
+            "y": 180.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#0000000f",
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "role:postgres",
+      "type": "ansible/structure+role",
+      "shape": "path",
+      "bounds": {
+        "x": 409.4,
+        "y": 168,
+        "w": 85.6,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "postgres",
+          "font": "13 400",
+          "position": {
+            "x": 452.2,
+            "y": 188.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#0000000f",
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "taskfile:roles/nginx/tasks/tls.yml",
+      "type": "ansible/structure+taskfile",
+      "shape": "path",
+      "bounds": {
+        "x": 800.5,
+        "y": -40.25,
+        "w": 77.9,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "tls.yml",
+          "font": "13 400",
+          "position": {
+            "x": 839.45,
+            "y": -19.75
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "id": "vars:inventories/production/group_vars",
+      "type": "ansible/structure+vars",
+      "shape": "path",
+      "bounds": {
+        "x": 197,
+        "y": 290,
+        "w": 101,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "group_vars",
+          "font": "13 400",
+          "position": {
+            "x": 247.5,
+            "y": 310.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "vars:inventories/production/host_vars",
+      "type": "ansible/structure+vars",
+      "shape": "path",
+      "bounds": {
+        "x": 394,
+        "y": 240,
+        "w": 93.3,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "host_vars",
+          "font": "13 400",
+          "position": {
+            "x": 440.65,
+            "y": 260.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "vars:inventories/staging/group_vars",
+      "type": "ansible/structure+vars",
+      "shape": "path",
+      "bounds": {
+        "x": 769.55,
+        "y": 232.11,
+        "w": 101,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "group_vars",
+          "font": "13 400",
+          "position": {
+            "x": 820.05,
+            "y": 252.61
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:playbook:dbservers.yml|Targets|db|inventory:inventories/production",
+      "type": "ansible/structure+edge",
+      "source": "playbook:dbservers.yml",
+      "target": "inventory:inventories/production",
+      "route": [
+        {
+          "x": 495,
+          "y": 16
+        },
+        {
+          "x": 0,
+          "y": 306
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1,
+        "opacity": 0.55
+      }
+    },
+    {
+      "id": "edge:playbook:dbservers.yml|Targets|db|inventory:inventories/staging",
+      "type": "ansible/structure+edge",
+      "source": "playbook:dbservers.yml",
+      "target": "inventory:inventories/staging",
+      "route": [
+        {
+          "x": 495,
+          "y": 16
+        },
+        {
+          "x": 533.3,
+          "y": 296
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1,
+        "opacity": 0.55
+      }
+    },
+    {
+      "id": "edge:playbook:dbservers.yml|UsesRole|common",
+      "type": "ansible/structure+edge",
+      "source": "playbook:dbservers.yml",
+      "target": "role:common",
+      "route": [
+        {
+          "x": 495,
+          "y": 16
+        },
+        {
+          "x": 5,
+          "y": 24.33
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "roles:",
+          "font": "10 400",
+          "position": {
+            "x": 250,
+            "y": 14.17
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:playbook:dbservers.yml|UsesRole|postgres",
+      "type": "ansible/structure+edge",
+      "source": "playbook:dbservers.yml",
+      "target": "role:postgres",
+      "route": [
+        {
+          "x": 495,
+          "y": 16
+        },
+        {
+          "x": 409.4,
+          "y": 184
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "roles: when postgres_enabled | default(true)",
+          "font": "10 400",
+          "position": {
+            "x": 452.2,
+            "y": 94
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:playbook:site.yml|ImportsPlaybook|dbservers.yml",
+      "type": "ansible/structure+edge",
+      "source": "playbook:site.yml",
+      "target": "playbook:dbservers.yml",
+      "route": [
+        {
+          "x": 85.6,
+          "y": 316
+        },
+        {
+          "x": 363.2,
+          "y": 16
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "import_playbook",
+          "font": "10 400",
+          "position": {
+            "x": 224.4,
+            "y": 160
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:playbook:site.yml|ImportsPlaybook|webservers.yml",
+      "type": "ansible/structure+edge",
+      "source": "playbook:site.yml",
+      "target": "playbook:webservers.yml",
+      "route": [
+        {
+          "x": 85.6,
+          "y": 316
+        },
+        {
+          "x": 0,
+          "y": 16
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "import_playbook",
+          "font": "10 400",
+          "position": {
+            "x": 42.8,
+            "y": 160
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:playbook:webservers.yml|Targets|web|inventory:inventories/production",
+      "type": "ansible/structure+edge",
+      "source": "playbook:webservers.yml",
+      "target": "inventory:inventories/production",
+      "route": [
+        {
+          "x": 131.8,
+          "y": 16
+        },
+        {
+          "x": 0,
+          "y": 306
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1,
+        "opacity": 0.55
+      }
+    },
+    {
+      "id": "edge:playbook:webservers.yml|Targets|web|inventory:inventories/staging",
+      "type": "ansible/structure+edge",
+      "source": "playbook:webservers.yml",
+      "target": "inventory:inventories/staging",
+      "route": [
+        {
+          "x": 131.8,
+          "y": 16
+        },
+        {
+          "x": 533.3,
+          "y": 296
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1,
+        "opacity": 0.55
+      }
+    },
+    {
+      "id": "edge:playbook:webservers.yml|UsesRole|common",
+      "type": "ansible/structure+edge",
+      "source": "playbook:webservers.yml",
+      "target": "role:common",
+      "route": [
+        {
+          "x": 131.8,
+          "y": 16
+        },
+        {
+          "x": 5,
+          "y": 24.33
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "roles:",
+          "font": "10 400",
+          "position": {
+            "x": 68.4,
+            "y": 14.17
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:playbook:webservers.yml|UsesRole|nginx",
+      "type": "ansible/structure+edge",
+      "source": "playbook:webservers.yml",
+      "target": "role:nginx",
+      "route": [
+        {
+          "x": 131.8,
+          "y": 16
+        },
+        {
+          "x": 640,
+          "y": 176
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "roles:",
+          "font": "10 400",
+          "position": {
+            "x": 385.9,
+            "y": 90
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:role:nginx|DependsOn|common",
+      "type": "ansible/structure+edge",
+      "source": "role:nginx",
+      "target": "role:common",
+      "route": [
+        {
+          "x": 725.6,
+          "y": 176
+        },
+        {
+          "x": 5,
+          "y": 24.33
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "dependencies",
+          "font": "10 400",
+          "position": {
+            "x": 365.3,
+            "y": 94.17
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#2f6fb2",
+        "strokeWidth": 2,
+        "dash": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:role:nginx|IncludesTasks|tls.yml",
+      "type": "ansible/structure+edge",
+      "source": "role:nginx",
+      "target": "taskfile:roles/nginx/tasks/tls.yml",
+      "route": [
+        {
+          "x": 725.6,
+          "y": 176
+        },
+        {
+          "x": 800.5,
+          "y": -24.25
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "include_tasks when nginx_tls_enabled | default(false)",
+          "font": "10 400",
+          "position": {
+            "x": 763.05,
+            "y": 69.88
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#6b6a65",
+        "strokeWidth": 1.5,
+        "dash": [
+          5,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:role:postgres|DependsOn|common",
+      "type": "ansible/structure+edge",
+      "source": "role:postgres",
+      "target": "role:common",
+      "route": [
+        {
+          "x": 495,
+          "y": 184
+        },
+        {
+          "x": 5,
+          "y": 24.33
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "dependencies",
+          "font": "10 400",
+          "position": {
+            "x": 250,
+            "y": 98.17
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#2f6fb2",
+        "strokeWidth": 2,
+        "dash": [
+          1,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:playbook:dbservers.yml|UsesRole|common",
+    "edge:playbook:dbservers.yml|UsesRole|postgres",
+    "edge:playbook:dbservers.yml|Targets|db|inventory:inventories/production",
+    "edge:playbook:dbservers.yml|Targets|db|inventory:inventories/staging",
+    "edge:playbook:site.yml|ImportsPlaybook|webservers.yml",
+    "edge:playbook:site.yml|ImportsPlaybook|dbservers.yml",
+    "edge:playbook:webservers.yml|UsesRole|common",
+    "edge:playbook:webservers.yml|UsesRole|nginx",
+    "edge:playbook:webservers.yml|Targets|web|inventory:inventories/production",
+    "edge:playbook:webservers.yml|Targets|web|inventory:inventories/staging",
+    "edge:role:nginx|DependsOn|common",
+    "edge:role:nginx|IncludesTasks|tls.yml",
+    "edge:role:postgres|DependsOn|common",
+    "playbook:dbservers.yml",
+    "playbook:site.yml",
+    "playbook:webservers.yml",
+    "role:common",
+    "role:nginx",
+    "role:postgres",
+    "inventory:inventories/production",
+    "vars:inventories/production/group_vars",
+    "vars:inventories/production/host_vars",
+    "inventory:inventories/staging",
+    "vars:inventories/staging/group_vars",
+    "taskfile:roles/nginx/tasks/tls.yml"
+  ]
+}

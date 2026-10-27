@@ -1,0 +1,320 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "databricks/pipeline",
+  "description": "databricks-pipeline.atd",
+  "companion": {
+    "file": "databricks-pipeline.md",
+    "sections": [
+      "The gaps",
+      "Stand-ins",
+      "What stays code"
+    ]
+  },
+  "items": [
+    {
+      "id": "the-gaps/1",
+      "text": "1. FBL 9.2 and 5.1: several readings with different metamodels over one binding (B1)",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/2",
+      "text": "**Construct.** FBL 9.2 makes every reading of a body use one binding, and opens a tool type that names another read-only. One binding for the three",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/3",
+      "text": "**Shown by.** `examples/lakehouse/databricks.yml`, opened as the bundle by `databricks.adp` and as the pipeline by `databricks.pipeline.adp`, both",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/4",
+      "text": "**Would resolve it.** A rule's `readings`, listing the origins it is read for; or a `typeMap` entry `as: \"none\"`; or 9.2 relaxed for bindings of one",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/5",
+      "text": "**Meanwhile.** The body is read by the module's three parsers, and `DatabricksDisl` builds each reading's model from what they read (the first stage, Q2).",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/6",
+      "text": "2. FBL 8.2 and 9.1: a resource capture per reading (B2)",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/7",
+      "text": "**Construct.** `registration.resource.capture` is one capture name for the whole binding. This file needs `job` for the job reading, `pipeline` for",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/8",
+      "text": "**Shown by.** `two-jobs-two-pipelines.yml`, whose two job and two pipeline registrations each show and edit their own resource; the two",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/9",
+      "text": "**Would resolve it.** `registration.resource` as a map from origin to capture, and a sentence in 9.1 saying that one open body has one model of which",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/10",
+      "text": "**Meanwhile.** `DatabricksHeaders` reads the header, and `DatabricksSelection` selects the resource the target's registration names",
+      "statedBy": "binding bundle"
+    },
+    {
+      "id": "the-gaps/11",
+      "text": "3. FBL 4.1.5 and 5.2: a YAML scalar as written (B4)",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/12",
+      "text": "**Construct.** FBL 0.2 typed a plain scalar by the YAML core schema, and a value that did not convert made its entry unreadable: a task key `01`, a",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/13",
+      "text": "**Shown by.** `typed-scalars.yml`, `variables-in-typed-places.yml`.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/14",
+      "text": "**Answered.** FBL 0.5, by etalii.adp's feature `015-fbl-scalar-as-written`, gives every scalar its written text (4.1.5) and a slot `read: \"text\"`,",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/15",
+      "text": "**Meanwhile.** The parsers keep every scalar as the text it was written with.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/16",
+      "text": "4. FBL 4.3 and 6.2: writing into an empty or one-line flow collection (B12)",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/17",
+      "text": "**Construct.** A YAML flow collection is one value whose only writable span is the whole collection (4.3), and no splice opens one into block form or",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/18",
+      "text": "**Shown by.** `flow-collections.yml`, `flow-dependencies.yml`, `settings-one-line.json`.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/19",
+      "text": "**Would resolve it.** A sentence in 4.3 or 6.2 that an insert into an empty flow sequence writes a block sequence holding the entry, and that an",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/20",
+      "text": "**Meanwhile.** The module refuses such an edit before any splice, with the sentence ruled on 2026-10-19: \"This list is written on one line, which",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/21",
+      "text": "5. FBL 5.2 and 6.2: a refusal's sentence (B19)",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/22",
+      "text": "**Construct.** An attribute's `empty: \"refuse\"` and `absent: { \"json\": \"refuse\" }`, an insert's `when` and a missing container refuse with a sentence",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/23",
+      "text": "**Shown by.** `bundle.yml` (the transcript's task added to a file without `tasks:`), `legacy-target.json` (the transcript's schema rewrite).",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/24",
+      "text": "**Would resolve it.** A LocalizedText beside `empty: \"refuse\"`, `absent`, an insert's `when` and its `create`, as `readOnly` already takes one.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/25",
+      "text": "**Meanwhile.** The module's writers refuse in their own words; under the binding the sentence will come from the definition's check before the plan,",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/26",
+      "text": "6. FBL 6.2 and 6.3: which rule plans an add, two containers in one insert, a nested mapping for a YAML item (B17)",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/27",
+      "text": "**Construct.** A dropped task's skeleton depends on its type (three types are reachable from the palette, seven are known to the writer); a resource",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/28",
+      "text": "**Shown by.** `every-task-type.yml`, `no-resources.yml`, and the libraries of `examples/lakehouse/databricks.yml`.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/29",
+      "text": "**Answered in part.** An add is planned by the first rule of its type whose insert's `when` holds (6.2), so a rule per task type carries that type's",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/30",
+      "text": "**Would resolve the rest.** An `emit` for a YAML sequence item, or a sentence that a `{key}` slot's `create` with `child` (FBL 0.4) applies to an add",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/31",
+      "text": "**Meanwhile.** `PipelineWriter` writes the library's lines.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/32",
+      "text": "7. FBL 5.2 and 13: a slot read when another is absent, and a lowercased key placeholder (B18, B20)",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/33",
+      "text": "**Construct.** A pipeline's schema is read from `schema`, else from the legacy `target`, and written to `schema`; `override` is the reverse, a second",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/34",
+      "text": "**Shown by.** `legacy-target.yml`, `legacy-target.json`; the transcript's `newDocuments` section.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/35",
+      "text": "**Would resolve it.** A slot option naming a second slot read only when the first is absent (under a name of its own, since `fallback` is FBL 0.5's",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/36",
+      "text": "**Meanwhile.** `PipelineParser` and `PipelineWriter` read and write the schema; `ServiceCollectionAddDatabricksExtension.EmptyDocument` writes the",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/37",
+      "text": "8. DISL 4.11 and 6.10: a placeholder node, and an element without an entry (A9, A10)",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/38",
+      "text": "**Construct.** A9: a `depends_on` naming no task draws one movable node per missing key, with a stored position, where DISL keeps a relation without",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/39",
+      "text": "**Shown by.** `missing-upstream.yml` (A9); `no-bundle-key.yml`, `empty.yml`, `broken.yml` (A10).",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/40",
+      "text": "**Would resolve it.** A relation end that names nothing drawn as a placeholder node of a declared type, built from the written key, with view data",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/41",
+      "text": "**Meanwhile.** `DatabricksElementMapper` draws the missing task's stub; `DatabricksDisl.Fixed` emits the elements the file has no entry for.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/42",
+      "text": "9. DISL 8.6 and 11.5: the order of findings, and the first free name (A7, A8, A11)",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/43",
+      "text": "**Construct.** A7 and A8: the tool reports the findings of the whole file, every job's, then the bundle's, then every pipeline's, whichever reading",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/44",
+      "text": "**Shown by.** `finding-order.yml`, on which none of the 120 orders `constraints.order` can be given yields the tool's order",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/45",
+      "text": "**Would resolve it.** An order key per finding, such as its element's place in reading order before the rule's, and the findings of the readings of",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/46",
+      "text": "**Meanwhile.** `DatabricksFindings` joins and orders; `DatabricksFreeKey` is the function `freeTaskKey` of the job definition's plugin",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/47",
+      "text": "Found while implementing, and not a gap",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/48",
+      "text": "**A relation from the second holder of a key.** A model built from records whose natural ids repeat matches a relation's ends by key, so the",
+      "statedBy": "capability reader.databricksBundle"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/databricks/src/parser.rs",
+      "lines": "50-76",
+      "behaviour": "The body is read under the three readings at once; a text that is not YAML reads as the empty model with the reader's sentence on the line it names as the reason nothing is written.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/databricks/src/rules.rs",
+      "lines": "49-75",
+      "behaviour": "The findings are the whole file's, every job's, then the bundle's, then every pipeline's, and within a job task by task, whichever reading asked.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/databricks/src/writer.rs",
+      "lines": "225-254",
+      "behaviour": "A task or a library added to a list written on one line (`tasks: []`, `depends_on: [...]`) is written as block items under it, which is not YAML, where the standalone host refuses the edit before any splice (B12; etalii-adp/etalii.adp.ide.desktop#114).",
+      "divergesFrom": "binding bundle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/databricks/src/layout.rs",
+      "lines": "116-136",
+      "behaviour": "The libraries stacked in the first column, the pipeline and its target 320 and 640 to the right level with their middle, compute and the notifications in a band 80 beneath.",
+      "statedBy": "algorithm flow"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/databricks/src/layout.rs",
+      "lines": "138-149",
+      "behaviour": "A position stored in the registration's `layout:` block overrides the computed one, element by element.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/databricks/src/mapper.rs",
+      "lines": "282-359",
+      "behaviour": "The pipeline, its target and compute are drawn under their fixed ids whether or not the file declares them; the notifications only when it has some.",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/databricks/src/writer.rs",
+      "lines": "418-468",
+      "behaviour": "A library added to a list written on one line is written as a block item, where the standalone host refuses it (B12).",
+      "divergesFrom": "binding bundle"
+    }
+  ]
+}

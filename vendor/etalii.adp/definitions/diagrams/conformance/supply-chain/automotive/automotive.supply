@@ -1,0 +1,374 @@
+supply-chain: 1
+# An electric and combustion car maker's supply chain, from mine to driveway.
+
+groups:
+  - id: south-america
+    name: South America
+    description: The lithium triangle and the Andean copper belt.
+  - id: central-africa
+    name: Central Africa
+    description: The Copperbelt, source of most of the world's cobalt.
+  - id: australia
+    name: Australia
+    description: Hard-rock lithium and iron ore, shipped mostly to China.
+  - id: southeast-asia
+    name: Southeast Asia
+    description: Natural rubber and nickel.
+  - id: china
+    name: China
+    description: Refining, cathode and cell production for most of the world's batteries.
+  - id: east-asia
+    name: Japan, Korea and Taiwan
+    description: Automotive semiconductors and battery cells.
+  - id: europe
+    name: Europe
+    description: The carmaker's own plants, its tier-1 suppliers and the dealer network.
+
+nodes:
+  - id: atacama-lithium
+    type: source
+    name: Atacama lithium brine
+    group: south-america
+    quantity: 50
+    unit: kt LCE
+    step: 5
+    description: Lithium carbonate equivalent, evaporated from brine.
+  - id: andes-copper
+    type: source
+    name: Andean copper mines
+    group: south-america
+    quantity: 5500
+    unit: kt Cu
+    step: 100
+  - id: kolwezi-cobalt
+    type: source
+    name: Kolwezi cobalt mines
+    group: central-africa
+    quantity: 170
+    unit: kt Co
+    step: 5
+  - id: pilbara-spodumene
+    type: source
+    name: Pilbara spodumene
+    group: australia
+    quantity: 90
+    unit: kt LCE
+    step: 5
+  - id: pilbara-iron
+    type: source
+    name: Pilbara iron ore
+    group: australia
+    quantity: 900
+    unit: Mt
+    step: 10
+  - id: sulawesi-nickel
+    type: source
+    name: Sulawesi nickel
+    group: southeast-asia
+    quantity: 1800
+    unit: kt Ni
+    step: 50
+  - id: thai-rubber
+    type: source
+    name: Natural rubber plantations
+    group: southeast-asia
+    quantity: 4800
+    unit: kt
+    step: 100
+  - id: lithium-refinery
+    type: processor
+    name: Lithium hydroxide refinery
+    group: china
+    quantity: 120
+    unit: kt LCE
+    step: 5
+  - id: cathode-plant
+    type: producer
+    name: NMC cathode plant
+    group: china
+    quantity: 900
+    unit: kt
+    step: 25
+  - id: cell-gigafactory
+    type: producer
+    name: Battery cell gigafactory
+    group: china
+    quantity: 400
+    unit: GWh
+    step: 10
+  - id: steel-mill
+    type: producer
+    name: Flat steel mill
+    group: europe
+    quantity: 30
+    unit: Mt
+    step: 1
+  - id: chip-foundry
+    type: producer
+    name: Automotive microcontroller fab
+    group: east-asia
+    quantity: 12
+    unit: bn chips
+    step: 1
+  - id: pouch-cells
+    type: producer
+    name: Pouch cell plant
+    group: east-asia
+    quantity: 150
+    unit: GWh
+    step: 10
+  - id: tyre-plant
+    type: producer
+    name: Tyre plant
+    group: europe
+    quantity: 60
+    unit: M tyres
+    step: 5
+  - id: ecu-supplier
+    type: processor
+    name: Tier-1 electronics
+    group: europe
+    quantity: 40
+    unit: M ECUs
+    step: 1
+    description: Engine, body and battery-management control units.
+  - id: seat-supplier
+    type: processor
+    name: Tier-1 seating
+    group: europe
+    quantity: 15
+    unit: M seats
+    step: 1
+  - id: pack-assembly
+    type: integrator
+    name: Battery pack assembly
+    group: europe
+    quantity: 2.5
+    unit: M packs
+    step: 0.1
+  - id: body-shop
+    type: integrator
+    name: Press and body shop
+    group: europe
+    quantity: 3
+    unit: M bodies
+    step: 0.1
+  - id: vehicle-plant
+    type: integrator
+    name: Vehicle assembly plant
+    group: europe
+    quantity: 2.8
+    unit: M vehicles
+    step: 0.1
+  - id: port-logistics
+    type: hub
+    name: Port and rail logistics
+    group: europe
+    quantity: 2.6
+    unit: M vehicles
+    step: 0.1
+  - id: dealer-network
+    type: outlet
+    name: Dealer network
+    group: europe
+    quantity: 1.9
+    unit: M vehicles
+    step: 0.1
+  - id: fleet-leasing
+    type: outlet
+    name: Fleet leasing
+    group: europe
+    quantity: 0.7
+    unit: M vehicles
+    step: 0.1
+  - id: private-buyers
+    type: consumer
+    name: Private buyers
+    group: europe
+    quantity: 1.9
+    unit: M vehicles
+    step: 0.1
+  - id: company-fleets
+    type: consumer
+    name: Company fleets
+    group: europe
+    quantity: 0.7
+    unit: M vehicles
+    step: 0.1
+
+flows:
+  - id: atacama-lithium-to-lithium-refinery
+    from: atacama-lithium
+    to: lithium-refinery
+    product: Lithium carbonate
+    volume: 40
+    unit: kt LCE
+    step: 5
+  - id: pilbara-spodumene-to-lithium-refinery
+    from: pilbara-spodumene
+    to: lithium-refinery
+    product: Spodumene concentrate
+    volume: 80
+    unit: kt LCE
+    step: 5
+  - id: kolwezi-cobalt-to-cathode-plant
+    from: kolwezi-cobalt
+    to: cathode-plant
+    product: Cobalt hydroxide
+    volume: 120
+    unit: kt Co
+    step: 5
+  - id: sulawesi-nickel-to-cathode-plant
+    from: sulawesi-nickel
+    to: cathode-plant
+    product: Nickel matte
+    volume: 600
+    unit: kt Ni
+    step: 25
+  - id: lithium-refinery-to-cathode-plant
+    from: lithium-refinery
+    to: cathode-plant
+    product: Lithium hydroxide
+    volume: 100
+    unit: kt LCE
+    step: 5
+  - id: cathode-plant-to-cell-gigafactory
+    from: cathode-plant
+    to: cell-gigafactory
+    product: NMC cathode
+    volume: 600
+    unit: kt
+    step: 25
+  - id: cathode-plant-to-pouch-cells
+    from: cathode-plant
+    to: pouch-cells
+    product: NMC cathode
+    volume: 220
+    unit: kt
+    step: 25
+  - id: andes-copper-to-cell-gigafactory
+    from: andes-copper
+    to: cell-gigafactory
+    product: Copper foil
+    volume: 300
+    unit: kt Cu
+    step: 10
+  - id: andes-copper-to-ecu-supplier
+    from: andes-copper
+    to: ecu-supplier
+    product: Copper wire
+    volume: 200
+    unit: kt Cu
+    step: 10
+  - id: cell-gigafactory-to-pack-assembly
+    from: cell-gigafactory
+    to: pack-assembly
+    product: Prismatic cells
+    volume: 120
+    unit: GWh
+    step: 5
+  - id: pouch-cells-to-pack-assembly
+    from: pouch-cells
+    to: pack-assembly
+    product: Pouch cells
+    volume: 60
+    unit: GWh
+    step: 5
+  - id: pilbara-iron-to-steel-mill
+    from: pilbara-iron
+    to: steel-mill
+    product: Iron ore
+    volume: 45
+    unit: Mt
+    step: 1
+  - id: steel-mill-to-body-shop
+    from: steel-mill
+    to: body-shop
+    product: Coil steel
+    volume: 2.4
+    unit: Mt
+    step: 0.1
+  - id: thai-rubber-to-tyre-plant
+    from: thai-rubber
+    to: tyre-plant
+    product: Natural rubber
+    volume: 900
+    unit: kt
+    step: 25
+  - id: chip-foundry-to-ecu-supplier
+    from: chip-foundry
+    to: ecu-supplier
+    product: Microcontrollers
+    volume: 1.6
+    unit: bn chips
+    step: 0.1
+  - id: ecu-supplier-to-vehicle-plant
+    from: ecu-supplier
+    to: vehicle-plant
+    product: Control units
+    volume: 30
+    unit: M ECUs
+    step: 1
+  - id: seat-supplier-to-vehicle-plant
+    from: seat-supplier
+    to: vehicle-plant
+    product: Seat sets
+    volume: 2.8
+    unit: M sets
+    step: 0.1
+  - id: tyre-plant-to-vehicle-plant
+    from: tyre-plant
+    to: vehicle-plant
+    product: Tyres
+    volume: 14
+    unit: M tyres
+    step: 1
+  - id: pack-assembly-to-vehicle-plant
+    from: pack-assembly
+    to: vehicle-plant
+    product: Battery packs
+    volume: 1.2
+    unit: M packs
+    step: 0.1
+  - id: body-shop-to-vehicle-plant
+    from: body-shop
+    to: vehicle-plant
+    product: Body in white
+    volume: 2.8
+    unit: M bodies
+    step: 0.1
+  - id: vehicle-plant-to-port-logistics
+    from: vehicle-plant
+    to: port-logistics
+    product: Finished vehicles
+    volume: 2.6
+    unit: M vehicles
+    step: 0.1
+  - id: port-logistics-to-dealer-network
+    from: port-logistics
+    to: dealer-network
+    product: Finished vehicles
+    volume: 1.9
+    unit: M vehicles
+    step: 0.1
+  - id: port-logistics-to-fleet-leasing
+    from: port-logistics
+    to: fleet-leasing
+    product: Finished vehicles
+    volume: 0.7
+    unit: M vehicles
+    step: 0.1
+  - id: dealer-network-to-private-buyers
+    from: dealer-network
+    to: private-buyers
+    product: New cars
+    volume: 1.9
+    unit: M vehicles
+    step: 0.1
+  - id: fleet-leasing-to-company-fleets
+    from: fleet-leasing
+    to: company-fleets
+    product: Lease cars
+    volume: 0.7
+    unit: M vehicles
+    step: 0.1

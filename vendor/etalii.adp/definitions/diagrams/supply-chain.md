@@ -54,15 +54,15 @@ flows:
     unit: kt Co
 ```
 
-The specification names the module's FBL binding, `backend/EtAlii.Adp.Diagram.SupplyChain/supply-chain.fbl`, in `persistence.binding`, with a `typeMap` that maps the binding's `Document`, `Group`, `Node`, `Flow` and `Unreadable` onto the diagram, `Group`, `Stage`, `Flow` and the unreadable entry. **The binding is not written yet**: the standalone module still reads with its own parser and writes through its own line splices, and its binding waits for the construct of gap 1 to be taken up there. Until it exists, what the binding will have to say is this:
+The specification names the module's FBL binding, `backend/EtAlii.Adp.Diagram.SupplyChain/supply-chain.fbl`, in `persistence.binding`, with a `typeMap` that maps the binding's `Document`, `Group`, `Node`, `Flow` and `Unreadable` onto the diagram, `Group`, `Stage`, `Flow` and the unreadable entry. The binding is written, against FBL 0.5 and the construct of gap 1: the standalone module reads every `.supply` through it and writes every edit as the splices the library plans, with no parser and no writer of its own, and the same file is the FBL example [`specifications/fbl/supply-chain.fbl`](../../specifications/fbl/supply-chain.fbl), with the fixture `specifications/fbl/fixtures/supply-chain-written-text/` beside it. What the binding says is this:
 
 - **A node's `type` is its stage**, one of the seven words, and six older words still read as the stage each became: `raw-material` as source, `supplier` as processor, `manufacturer` as producer, `assembler` as integrator, `distributor` as hub, `retailer` as outlet (`legacy-stages.supply`). A line nobody edits keeps its old word, and any change of stage writes the new word. A word that is none of the thirteen is kept as written, reported ("`quarry` is not a stage this module knows.") and not drawn.
 - **A node names its group by the group's id** (`group: central-africa`), and groups do not nest. The definition states it as a reference attribute, not as containment (gap 2).
-- **Positions are the top-left corner** (`x`, `y`) in whole canvas units, read as placing an entry only when both are written. Sizes are never stored: every node is 192 by 96, and a group's frame is computed from its members. Positions are written rounded to whole units, with a half rounded to the even neighbour (`half-positions.supply`: 10.5 is written 10, 252.5 is written 252).
+- **Positions are the top-left corner** (`x`, `y`) in whole canvas units, read as placing an entry only when both are written. Sizes are never stored: every node is 192 by 96, and a group's frame is computed from its members. Positions are written rounded to whole units, with a half rounded away from zero, as FBL's `decimals` rounds (`half-positions.supply`: placing a node at 10.5, 21.5 writes `x: 11` and `y: 22`). The module's own writer rounded a half to the even neighbour; the conversion took FBL's rounding, by Q1's default.
 - **Every value is read as it is written** (`scalars-as-written.supply`: a name written `yes`, `~`, `12` or `null` is that text), and a number is whatever the invariant culture reads from the text (`numbers-as-text.supply`: `"50"` in quotes is 50, `1e3` and `+7` are numbers, `0x10`, `.inf` and `1_000` are not and are reported as "`quantity: 0x10` is not a number and was ignored.").
 - **The empty document** is `supply-chain: 1`, `groups: []`, `nodes: []` and `flows: []`, each on its own line, with CRLF and a final newline. The lists are written flow-empty because a bare `nodes:` reads as null; the first entry added opens the flow form into a block (gap 5).
 - **Round trip.** An unchanged document comes back byte-identical, and every edit changes only the lines it must, so comments, blank lines, indentation, quoting, unknown keys, line endings and a missing final newline survive (`crlf-line-endings.supply`, `lf-line-endings.supply`, `no-trailing-newline.supply`). Because the bytes are the test subject, the standalone repository's `.gitattributes` marks `*.supply -text`.
-- **An unreadable body is not a missing one.** A body that is not YAML, and one with a key written twice in one mapping, opens empty and refuses every edit ("not-yaml.supply could not be read, so nothing can be edited until it can: The document could not be read as YAML: …", `not-yaml.supply`, `duplicate-key.supply`). A body whose root is not a mapping opens empty with no finding (`root-not-a-mapping.supply`).
+- **An unreadable body is not a missing one.** A body that is not YAML, and one with a key written twice in one mapping, opens empty and refuses every edit (the finding is "The document could not be read as YAML: " and the parser's own message, and every edit is refused with the host's own "not-yaml.supply could not be read, so it cannot be edited."; `not-yaml.supply`, `duplicate-key.supply`). A body whose root is not a mapping opens empty with no finding, and an edit that would create an entry is refused, because the binding finds no mapping to create it in ("The file has no place to create nodes in.", `root-not-a-mapping.supply`); the module's own writer appended the section and wrote into it.
 
 ## Layout
 
@@ -92,25 +92,27 @@ The specification names the layout `plugin:net.etalii.adp.etalii.supplyChainLaye
 
 ## Language gaps
 
-Each gap is a candidate change to DISL or FBL, found by the standalone conversion. None is worked around in the specification by stating something the tool does not do. The nine of the requirements' section C come first, and the two the design added after them.
+Each gap is a candidate change to DISL or FBL, found by the standalone conversion. None is worked around in the specification by stating something the tool does not do. The nine of the requirements' section C come first, then the two the design added, then the two the standalone host found when it derived the trace from this definition and compiled its canvas from it.
 
 | # | Gap | Construct | Evidence | Would resolve it |
 | --- | --- | --- | --- | --- |
-| 1 | **Closed by FBL 0.5.** A slot that reads a YAML scalar as written (B1, B2) | FBL 4.1.5 written text, 5.2 `read`, `quoted` and `fallback` | `scalars-as-written.supply`, `numbers-as-text.supply` | Done: an id, a reference and a text attribute read their written text, and a number slot asks for it. The module's binding is written against it when the module takes it up |
+| 1 | **Closed by FBL 0.5.** A slot that reads a YAML scalar as written (B1, B2) | FBL 4.1.5 written text, 5.2 `read`, `quoted` and `fallback` | `scalars-as-written.supply`, `numbers-as-text.supply` | Done: an id, a reference and a text attribute read their written text, and a number slot asks for it. The module's binding is written against it and is the FBL example `specifications/fbl/supply-chain.fbl` |
 | 2 | Containment stated by a reference key (A6, B12) | DISL 4.6 `children`, 11.2 `typeMap` attributes; FBL 5.5 (a child is the entry nested in its parent) | `group-removed.supply`; the examples, where every node names its group | A `typeMap` attribute mapped to `"parent"`, with a parent that names nothing kept at the top level and reported as a dangling end is |
 | 3 | An entry that is kept, reported and not drawn (A8) | DISL 11.5.4 `missing`, the second and later holders of an id | `ids-missing-and-repeated.supply`, `rules-broken.supply` | A `missing` and a duplicate policy that keep the entry, report it and leave it undrawn, without writing an id |
 | 4 | Findings in one list by line (A9) | DISL 8.6 ordering, `constraints.order` (8.1) | `findings-order.supply`; the standalone module sorts the derived list by line | An ordering option `by: "location"` that sorts by line across codes |
-| 5 | Opening an empty flow collection (B6), and a set on an entry written as a flow mapping (B13) | FBL 4.3 (a flow collection is one value whose only writable span is the whole), 6.1, 6.2 | `empty-lists.supply` (`groups: [ ]` is opened; `nodes: []  # nothing here yet` is not, and the document breaks), `flow-mapping-entry.supply` | A sentence in 4.3 or 6.2 that inserting an entry into an empty flow sequence writes a block sequence holding it, key slots that bind the members of a flow mapping, and a conformance fixture each |
+| 5 | Opening an empty flow collection (B6), and a set on an entry written as a flow mapping (B13) | FBL 4.3 (a flow collection is one value whose only writable span is the whole), 6.1, 6.2 | `empty-lists.supply` (the library opens `groups: [ ]` and `nodes: []  # nothing here yet` alike, writing the key, its trailing comment and the new entry under it, where the module's own writer broke the second), `flow-mapping-entry.supply` | A sentence in 4.3 or 6.2 that inserting an entry into an empty flow sequence writes a block sequence holding it, key slots that bind the members of a flow mapping, and a conformance fixture each. What a host does meanwhile is settled: the library refuses a set on such an entry ("The supply file has no mapping to write `x` in."), because no key slot binds its members, and the module hands that refusal on rather than writing a block key under the entry, which is what its own writer did |
 | 6 | What `map` reads for a wire value it does not list (A5) | FBL 5.2 `map` | `legacy-stages.supply` (`type: quarry`) | A sentence that a value `map` does not list is kept as written. The other half of the requirements' gap 6, one binding type read as several model types, is not met, because the stages are one attribute (Q2) |
 | 7 | Not a gap under Q1's default: a removal that leaves leading comments, and a new key placed after the entry's first line (B8, B9) | FBL 6.1, 6.2 `insert.keys` | `comment-above-entry.supply`, `first-placement.supply` | Nothing, while Q1 keeps FBL's bytes; a whole-line rewrite and both placements, should the ruling change |
 | 8 | The notation and gestures of A10 and A13 | DISL 6.10 edges (one line), 6.7 labels, 5.4 context tool positions, 10 `respect`, 9 hooks (no frame of another element) | The examples' bands; the transcript's drag steps and `sessionRefusals` | A second, animated line along an edge; a label placed by another label's width; a context tool placed under an edge's label; a `respect` that needs both coordinates; a move that reparents by where the centre lands |
 | 9 | The parser's own message in the sentence of `std.unparseable`, and the reader's sentences for an entry that is still read (A11) | DISL 8.7 `std.unparseable` and `std.unreadableEntry` (kept and not drawn), 11.2 host attributes (invisible to constraints) | `not-yaml.supply`, `unreadable-sentences.supply`, `no-header.supply`, `header-not-a-number.supply`, `header-other-version.supply` | A `detail.reason` whose text is the same in every host, and a built-in for a reader finding on a read entry, worded by the definition from what the reader saw |
 | 10 | What a reference or a relation end was written with, once it names nothing | DISL 12.2: CEL reads an unset reference or end as absent | `dangling-flows.supply` ("The flow `to-nowhere` names `nowhere`, which is not a node here; it is not drawn."), `rules-broken.supply` (the unknown group `south`) | A member of an element that answers the text a reference or an end was written with, also when it names nothing; the plugin function `written` stands in for it |
 | 11 | A finding on the line of a key rather than of its element | DISL 8.6 locations (an element and an attribute) | `unreadable-sentences.supply` (`quantity: lots` on line 14, its node starting on line 10) | A finding located at the key's line, or an attribute location that a host maps to the key's line |
+| 12 | A walk over the flows that are drawn | DISL 12.4 `reachable`, 11.5.4 (an entry kept and not drawn, gap 3) | `findings-order.supply` (the flow from `a` to `c` has no id and is not drawn, yet the definition's trace lights `c` while `a` is selected); the standalone test `Parity/SupplyChainDerivedTrace.Tests.cs` | A `reachable` that leaves out what is not drawn (ephemeral, 11.5.4), or one over a list of relations the definition filters |
+| 13 | More than one key for one entry | DISL 7.3 ContextTool `shortcut`, one string | The standalone `tests.md` pass of the compiled canvas (`+`, `=` and Shift with `+` each increase); `supplyChainCompiledDefinition.test.tsx` (the keys the canvas offers equal the hand-written definition's) | A `shortcut` that takes a list |
 
 ### 1. FBL: a scalar read as written (closed)
 
-Closed by FBL 0.5 (etalii.adp spec 015, `fbl-written-text`) before this conversion reached it: section 4.1.5 gives every YAML scalar a written text, and section 5.2 lets a slot read it with `read: "text"` and keep its entry readable with `fallback`. The binding the standalone requirements drafted marks these slots with `"as": "text"`, which FBL 0.5 spells `read`; it is rewritten against FBL 0.5 when it is written.
+Closed by FBL 0.5 (etalii.adp spec 015, `fbl-written-text`) before this conversion reached it: section 4.1.5 gives every YAML scalar a written text, and section 5.2 lets a slot read it with `read: "text"` and keep its entry readable with `fallback`. The binding the standalone requirements drafted marks these slots with `"as": "text"`, which FBL 0.5 spells `read`; the binding written from it spells it `read` throughout, and is the FBL example `specifications/fbl/supply-chain.fbl`.
 
 ### 2. DISL and FBL: membership by a key
 
@@ -128,6 +130,68 @@ The tool lists every finding by the line of its entry, whatever its code, ties i
 
 `supply-chain.unreadable` carries the reader's sentences: "The document does not begin with `supply-chain: 1`.", "The version `one` is not a number.", "This document states version 2; this module reads version 1.", "`colour` is not a key this module reads on a group; the line is kept.", "`quarry` is not a stage this module knows.", "`quantity: lots` is not a number and was ignored.", "A node entry is not a mapping and was passed over." and, for a body that is not YAML, "The document could not be read as YAML: " followed by the parser's own message (`While parsing a flow sequence, did not find expected ',' or ']'.`), which no second host will word the same. Only the entry that is not a mapping is kept and not drawn, which is what `std.unreadableEntry` means; the definition sets `std.unreadableEntry` and `std.unparseable` to give `supply-chain.unreadable` as a warning, and the sentences are the reader's, handed in as reader findings.
 
+### 12. DISL: a walk over what is drawn
+
+The tool's trace walks the flows it draws: a flow without an id, a second holder of an id, or one with an end that is not drawn takes no part, so what is reached only through such a flow stays dimmed. `reachable('Flow')` walks every flow the model holds, including the ones gap 3 keeps undrawn, so the definition lights it. In `findings-order.supply`, with `a` selected the definition marks `c` downstream, through the flow from `a` to `c` written without an id, where the tool dims it, and with `c` selected it marks `a` upstream. The standalone host therefore keeps its own trace (`SupplyChainTrace`) and holds the definition's marks to it over the whole corpus, every drawn element selected in turn, with this the only difference. On every other document of the corpus the two are the same.
+
+### 13. DISL: one key for one entry
+
+The tool steps a value up with `+`, with Shift and `+` (whose key differs by keyboard layout) and with `=`, and down with `-` and with Shift and `_`. A ContextTool's `shortcut` is one string, so the definition states `+` and `-` on the menu entries. The standalone host adds the other keys to the actions it compiles from them.
+
+### Not a gap: the amount's text
+
+The definition writes an amount with `formatNumber` (DISL 12.4) under three patterns. On the canvas it uses `#,##0.##`, with `#,##0.###` below one; in a property row it uses `0.####`. The standalone host found the function already in its runtime when it took up this definition, and its tests pin those patterns against the digits the tool writes in the invariant culture, among them the amounts its rows hold (`FormatNumber.Tests.cs`). They found no difference, so nothing is recorded.
+
+## What the standalone host keeps in code
+
+### Drawn by its client
+
+The standalone canvas is compiled from this definition. The library cannot draw what *Notation DISL cannot state* lists, so the module's client draws it in place of what the definition states, each part named to the compiler as drawn by the module:
+
+- **The flow's path through its lanes**, from the lane centres on the payload: a route of the module's own (gap 8).
+- **Along a band**, all from the module's own adornment of the line (gap 8):
+  - the goods moving;
+  - the arrowhead square to the consumer's side;
+  - the volume pill under the product's name, placed by the name's width.
+
+  The definition's dots along the band, its second label and its target marker are left out.
+- **The unit just after the quantity's number**, placed by the number's width, where the definition joins the two in one label (gap 8).
+- **The steppers** beside a selected node's quantity and under a selected flow's volume, which a context tool's position cannot place there (gap 8).
+- **The second keys** of each step (gap 13).
+
+What it states in code besides is the host's own concern rather than a gap:
+- the payload path each CEL expression of the notation is computed into, since the client runs no CEL;
+- the classes that tie the drawing to its stylesheet;
+- the card's header band and share bar, drawn as ornaments of the library's rounded rectangle and held by a test to this definition's `supplyCard` parts.
+
+### Its classes
+
+Each class the standalone module keeps, as it stands once its edits are decided by this definition, with what keeps it.
+
+| Class | Kept because |
+| --- | --- |
+| `SupplyChainLayout`, `ArrangeSupplyChainCommand`, `PlaceSupplyChainNodesCommand` and their handlers | The layout plugin this definition names, and Arrange writing what it computed (*Layout*) |
+| `SupplyChainElementMapper` | The host's wire: the payloads and the viewport filter |
+| `SupplyChainModel`, `SupplyChainGroup`, `SupplyChainNode`, `SupplyChainFlow` (`_Model/`) | What the reading reads into, and what the layout, the mapper and the trace address |
+| `SupplyChainKeys`, `SupplyChainNodeTypes` | The keys and the stage words as the document spells them, which the property and toolbox ids of `x-supply-chain` map onto (finding A4) |
+| `SupplyChainGeometry` | The sizes the document never states: a node is 192 by 96, and a group's frame is computed from its members |
+| `SupplyChainRuleIds`, `SupplyChainBreach` | The seven codes and the shape a finding is handed to the host in, by its line (gaps 4 and 11) |
+| The payload types of `api/supply-chain.proto` (`SupplyChainNodePayload`, `SupplyChainGroupPayload`, `SupplyChainFlowPayload`, `SupplyChainLanePoint`) | Generated from the module's own `.proto`, the host's wire for what the canvas draws, the flow's lanes included (gap 8) |
+| `SupplyChainSession`, `SupplyChainDocumentStore`, `ISupplyChainDocumentStore`, `SupplyChainContextSourceResolver` | The host's shared document lifecycle |
+| `SupplyChainSelections` | The host's record of what each viewer selected, bound as `view` |
+| `SupplyChainTrace` | Gap 12 |
+| `SupplyChainDefinition` | The host's loading of the bundled definition and its derivations |
+| `SupplyChainContextActionProvider`, `SupplyChainContextPropertyProvider`, `SupplyChainValidator` | The host's services, each handing over what the definition derives: menus, rows and findings |
+| `SupplyChainWritten` | Gaps 3 and 10 (`written` and `laterHolder`) |
+| `SupplyChainFindings` | Gap 4 |
+| `SupplyChainReaderFindings` | Gaps 9 and 11 |
+| `MoveSupplyChainEntryCommand` and its handler | Gap 8 (finding A13) |
+| The commands that add, connect, group, remove, set and step, their handlers and `SupplyChainEditHandler` | The host's history: each runs the operation this definition decides |
+| `SupplyChainBody` | The host's open document: the body the binding reads and the store holds, with the entry each element is written as |
+| `SupplyChainReading` | The model the host's mapper and layout read, built from what the binding read, and the reader's own sentences (gaps 9 and 11) |
+| `SupplyChainEdits` | The host's edit path: what this definition's transaction changed, as the FBL model changes the binding writes |
+| `Diagram`, `ServiceCollection.AddSupplyChain` | The host's registration of the tool type |
+
 ## Definition defects repaired
 
 The draft of this definition was written against DISL 0.1, before the standalone conversion; these are the defects the conversion's findings named, and how each was repaired.
@@ -139,6 +203,12 @@ The draft of this definition was written against DISL 0.1, before the standalone
 - **A5.** The seven stages are one node type, `Stage`, with a `stage` attribute whose enumeration `StageKind` carries each stage's colour, by Q2's default; a change of stage is a changed value, as the tool writes it, where the draft retyped. Each of the seven tools creates the one type with `initial` setting the stage, a quantity of zero and the name, because a `create` hook is not run; the draft named a new node in such a hook. The Stage row offers the seven words, as the tool does, rather than the enumeration's labels.
 - **A6.** Membership is the reference attribute `group`, by Q5's default (gap 2), where the draft stated containment.
 - **A11, B3, B4.** The codes are the tool's: every finding compares what is written, through the plugin functions `written` and `laterHolder`, as the hype cycle graph and the timeline do. A dangling flow is reported by rules over its written ends rather than by `std.references`, which would report a flow from a missing node to itself twice more (ruled 2026-10-11); `std.duplicateId`, `std.references`, `std.endpoints` and `std.facets` are switched off, so that no finding appears that the tool does not give (Q4).
+
+Three more were found when the standalone host compiled its canvas from this definition and derived its trace from it. In each the definition said something the tool does not do, and the tool's behaviour was taken:
+
+- **The card's header band** was a path with corners of 8. The tool draws a rounded rectangle of radius 10, with a strip of the same colour over its lower 10 that squares it where it meets the body, so the band is now those two parts.
+- **The labels set from a corner of the card and the frame** were centred on their point. The tool starts their text there, so they say `"align": "start"`.
+- **The trace of a selected flow on a cycle.** The tool marks the flow's consumer downstream and its supplier upstream before it walks. The definition asked first what the walks reached, and on a cycle, where the consumer also supplies the supplier, it marked the consumer upstream (`mixed-indentation.supply`). `nodeTrace` now asks about the flow's ends first.
 
 ## The examples
 

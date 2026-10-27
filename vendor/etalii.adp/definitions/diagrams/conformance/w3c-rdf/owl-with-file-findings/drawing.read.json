@@ -1,0 +1,341 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/again#New",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "owl:Class",
+          "font": "11 400",
+          "position": {
+            "x": 568,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:New",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/again#Old",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 0,
+        "w": 220,
+        "h": 72
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "owl:Class",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:Old",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "owl:deprecated: true xsd:boolean",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/again#Thing",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 72
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "owl:Class",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:Thing",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Thing @en-",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/again#size",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 240,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "owl:DatatypeProperty",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 280
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:size",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 260
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/2001/XMLSchema#notAType",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 480,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "xsd:notAType",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 500
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:relative",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 480,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "relative",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 500
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/again#New|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/again#Old",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/again#New",
+      "target": "res:http://example.org/again#Old",
+      "route": [
+        {
+          "x": 560,
+          "y": 31.14
+        },
+        {
+          "x": 500,
+          "y": 32.86
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "rdfs:subClassOf",
+          "font": "11 400",
+          "position": {
+            "x": 530,
+            "y": 26
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/again#Thing|http://example.org/again#undeclared|res:relative",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/again#Thing",
+      "target": "res:relative",
+      "route": [
+        {
+          "x": 131.72,
+          "y": 72
+        },
+        {
+          "x": 377.93,
+          "y": 480
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:undeclared",
+          "font": "11 400",
+          "position": {
+            "x": 254.83,
+            "y": 270
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/again#size|http://www.w3.org/2000/01/rdf-schema#range|res:http://www.w3.org/2001/XMLSchema#notAType",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/again#size",
+      "target": "res:http://www.w3.org/2001/XMLSchema#notAType",
+      "route": [
+        {
+          "x": 110,
+          "y": 296
+        },
+        {
+          "x": 110,
+          "y": 480
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "rdfs:range",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 382
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/again#New|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/again#Old",
+    "edge:res:http://example.org/again#size|http://www.w3.org/2000/01/rdf-schema#range|res:http://www.w3.org/2001/XMLSchema#notAType",
+    "edge:res:http://example.org/again#Thing|http://example.org/again#undeclared|res:relative",
+    "res:http://example.org/again#Thing",
+    "res:http://example.org/again#Old",
+    "res:http://example.org/again#New",
+    "res:http://example.org/again#size",
+    "res:http://www.w3.org/2001/XMLSchema#notAType",
+    "res:relative"
+  ]
+}

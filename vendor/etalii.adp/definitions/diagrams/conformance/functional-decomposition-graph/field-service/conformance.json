@@ -1,0 +1,759 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/functional-decomposition-graph` from parity/scripts/etalii/functional-decomposition-graph/field-service.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "etalii/functional-decomposition-graph",
+  "description": "../../../functional-decomposition-graph.atd",
+  "inputs": {
+    "body": "field-service.fdg",
+    "registration": "field-service.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "planning",
+        "type": "etalii/functional-decomposition-graph+ui-element",
+        "parent": null,
+        "attributes": {
+          "name": "Planning",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "task-list",
+        "type": "etalii/functional-decomposition-graph+ui-element",
+        "parent": null,
+        "attributes": {
+          "name": "Task list",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "task-row",
+        "type": "etalii/functional-decomposition-graph+ui-element",
+        "parent": null,
+        "attributes": {
+          "name": "Task row",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "task-detail",
+        "type": "etalii/functional-decomposition-graph+ui-element",
+        "parent": null,
+        "attributes": {
+          "name": "Task detail",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "step-list",
+        "type": "etalii/functional-decomposition-graph+ui-element",
+        "parent": null,
+        "attributes": {
+          "name": "Step list",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "step-row",
+        "type": "etalii/functional-decomposition-graph+ui-element",
+        "parent": null,
+        "attributes": {
+          "name": "Step row",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "open-task",
+        "type": "etalii/functional-decomposition-graph+action",
+        "parent": null,
+        "attributes": {
+          "name": "Open task",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "back-to-list",
+        "type": "etalii/functional-decomposition-graph+action",
+        "parent": null,
+        "attributes": {
+          "name": "Back to list",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "tick-step",
+        "type": "etalii/functional-decomposition-graph+action",
+        "parent": null,
+        "attributes": {
+          "name": "Tick step",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "complete-task",
+        "type": "etalii/functional-decomposition-graph+action",
+        "parent": null,
+        "attributes": {
+          "name": "Complete task",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "planning-day",
+        "type": "etalii/functional-decomposition-graph+data-element",
+        "parent": null,
+        "attributes": {
+          "name": "Planning day",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "task",
+        "type": "etalii/functional-decomposition-graph+data-element",
+        "parent": null,
+        "attributes": {
+          "name": "Task",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "step",
+        "type": "etalii/functional-decomposition-graph+data-element",
+        "parent": null,
+        "attributes": {
+          "name": "Step",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "location",
+        "type": "etalii/functional-decomposition-graph+data-element",
+        "parent": null,
+        "attributes": {
+          "name": "Location",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "sync-queue",
+        "type": "etalii/functional-decomposition-graph+function",
+        "parent": null,
+        "attributes": {
+          "name": "Sync queue",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "upload-photos",
+        "type": "etalii/functional-decomposition-graph+function",
+        "parent": null,
+        "attributes": {
+          "name": "Upload photos",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "offline-cache",
+        "type": "etalii/functional-decomposition-graph+function",
+        "parent": null,
+        "attributes": {
+          "name": "Offline cache",
+          "width": "140",
+          "height": "48"
+        }
+      },
+      {
+        "id": "note-offline",
+        "type": "etalii/functional-decomposition-graph+comment",
+        "parent": null,
+        "attributes": {
+          "text": "Everything on these screens must work offline.\nCompleted work waits in the sync queue until the device reconnects.",
+          "width": "260",
+          "height": "96"
+        }
+      },
+      {
+        "id": "note-round-trip",
+        "type": "etalii/functional-decomposition-graph+comment",
+        "parent": null,
+        "attributes": {
+          "text": "Open task and Back to list make a loop through Shows.\nThat is navigation rather than ownership, so the cycle rule allows it.",
+          "width": "260",
+          "height": "96"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "c-planning-task-list",
+        "type": "etalii/functional-decomposition-graph+ui-child",
+        "source": "planning",
+        "target": "task-list",
+        "attributes": {}
+      },
+      {
+        "id": "c-task-list-task-row",
+        "type": "etalii/functional-decomposition-graph+ui-child",
+        "source": "task-list",
+        "target": "task-row",
+        "attributes": {
+          "name": "one per task"
+        }
+      },
+      {
+        "id": "c-planning-task-detail",
+        "type": "etalii/functional-decomposition-graph+ui-child",
+        "source": "planning",
+        "target": "task-detail",
+        "attributes": {}
+      },
+      {
+        "id": "c-task-detail-step-list",
+        "type": "etalii/functional-decomposition-graph+ui-child",
+        "source": "task-detail",
+        "target": "step-list",
+        "attributes": {}
+      },
+      {
+        "id": "c-step-list-step-row",
+        "type": "etalii/functional-decomposition-graph+ui-child",
+        "source": "step-list",
+        "target": "step-row",
+        "attributes": {
+          "name": "one per step"
+        }
+      },
+      {
+        "id": "c-task-row-open-task",
+        "type": "etalii/functional-decomposition-graph+owns-action",
+        "source": "task-row",
+        "target": "open-task",
+        "attributes": {}
+      },
+      {
+        "id": "c-task-detail-back",
+        "type": "etalii/functional-decomposition-graph+owns-action",
+        "source": "task-detail",
+        "target": "back-to-list",
+        "attributes": {}
+      },
+      {
+        "id": "c-step-row-tick",
+        "type": "etalii/functional-decomposition-graph+owns-action",
+        "source": "step-row",
+        "target": "tick-step",
+        "attributes": {}
+      },
+      {
+        "id": "c-task-detail-complete",
+        "type": "etalii/functional-decomposition-graph+owns-action",
+        "source": "task-detail",
+        "target": "complete-task",
+        "attributes": {}
+      },
+      {
+        "id": "c-open-shows-detail",
+        "type": "etalii/functional-decomposition-graph+shows",
+        "source": "open-task",
+        "target": "task-detail",
+        "attributes": {
+          "name": "opens"
+        }
+      },
+      {
+        "id": "c-back-shows-list",
+        "type": "etalii/functional-decomposition-graph+shows",
+        "source": "back-to-list",
+        "target": "task-list",
+        "attributes": {
+          "name": "returns to"
+        }
+      },
+      {
+        "id": "c-planning-day",
+        "type": "etalii/functional-decomposition-graph+owns-data",
+        "source": "planning",
+        "target": "planning-day",
+        "attributes": {}
+      },
+      {
+        "id": "c-day-task",
+        "type": "etalii/functional-decomposition-graph+owns-data",
+        "source": "planning-day",
+        "target": "task",
+        "attributes": {
+          "name": "planned"
+        }
+      },
+      {
+        "id": "c-task-step",
+        "type": "etalii/functional-decomposition-graph+owns-data",
+        "source": "task",
+        "target": "step",
+        "attributes": {}
+      },
+      {
+        "id": "c-task-location",
+        "type": "etalii/functional-decomposition-graph+owns-data",
+        "source": "task",
+        "target": "location",
+        "attributes": {}
+      },
+      {
+        "id": "c-complete-sync",
+        "type": "etalii/functional-decomposition-graph+owns-function",
+        "source": "complete-task",
+        "target": "sync-queue",
+        "attributes": {
+          "name": "queues"
+        }
+      },
+      {
+        "id": "c-sync-upload",
+        "type": "etalii/functional-decomposition-graph+owns-function",
+        "source": "sync-queue",
+        "target": "upload-photos",
+        "attributes": {
+          "name": "calls"
+        }
+      },
+      {
+        "id": "c-day-cache",
+        "type": "etalii/functional-decomposition-graph+owns-function",
+        "source": "planning-day",
+        "target": "offline-cache",
+        "attributes": {}
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "fdg.rename",
+      "args": {
+        "value": "Day planning"
+      },
+      "select": [
+        "planning"
+      ],
+      "expectFile": "after-1.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "fdg.description",
+        "value": "The first screen after signing in."
+      },
+      "expectFile": "after-2.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Width",
+        "value": "180.5"
+      },
+      "expectFile": "after-3.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "fdg.height",
+        "value": "100"
+      },
+      "refused": {
+        "reason": "'planning' has no property row 'fdg.height'"
+      },
+      "expectFile": "after-3.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Width",
+        "value": "wide"
+      },
+      "refused": {
+        "reason": "'wide' is not a size this graph can draw."
+      },
+      "expectFile": "after-3.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "move": {
+        "element": "task-detail"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"task-detail\"],\"to\":{\"x\":860,\"y\":140}}",
+      "expectFile": "after-4.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "move": {
+        "element": "step-row"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"step-row\"],\"dx\":20,\"dy\":10}",
+      "expectFile": "after-5.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "fdg.add.function",
+      "args": {
+        "target": "new:1200,640"
+      },
+      "ids": [
+        "8eg94tfqireqo7cyvhnaoela1"
+      ],
+      "expectFile": "after-6.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "property": {
+        "element": "8eg94tfqireqo7cyvhnaoela1",
+        "attribute": "Name",
+        "value": "Compress photos"
+      },
+      "expectFile": "after-7.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "fdg.connect.owns-function",
+      "args": {
+        "target": "rel:sync-queue->8eg94tfqireqo7cyvhnaoela1"
+      },
+      "ids": [
+        "6vt0l08bq0e2ea43mnk1vaf4m"
+      ],
+      "expectFile": "after-8.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "fdg.connect.owns-function",
+      "args": {
+        "target": "rel:upload-photos->8eg94tfqireqo7cyvhnaoela1"
+      },
+      "refused": {
+        "reason": "the standalone host generated no further id at step 11, but the desktop host creates a owns-function"
+      },
+      "expectFile": "after-8.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "action": "fdg.connect.shows",
+      "args": {
+        "target": "rel:tick-step->step-list"
+      },
+      "ids": [
+        "4yd4ikhg7xnaz1wl8kpj0dnfu"
+      ],
+      "expectFile": "after-9.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "fdg.connect.shows",
+      "args": {
+        "target": "rel:open-task->task-list"
+      },
+      "refused": {
+        "reason": "the standalone host generated no further id at step 13, but the desktop host creates a shows"
+      },
+      "expectFile": "after-9.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "fdg.connect.ui-child",
+      "args": {
+        "target": "rel:task-row->planning"
+      },
+      "refused": {
+        "reason": "the standalone host generated no further id at step 14, but the desktop host creates a ui-child"
+      },
+      "expectFile": "after-9.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "action": "fdg.connect.owns-action",
+      "args": {
+        "target": "rel:open-task->tick-step"
+      },
+      "refused": {
+        "reason": "the standalone host generated no further id at step 15, but the desktop host creates a owns-action"
+      },
+      "expectFile": "after-9.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "fdg.rename-connection",
+      "args": {
+        "value": "invokes"
+      },
+      "select": [
+        "c-sync-upload"
+      ],
+      "expectFile": "after-10.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "property": {
+        "element": "c-open-shows-detail",
+        "attribute": "fdg.description",
+        "value": ""
+      },
+      "expectFile": "after-11.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "property": {
+        "element": "c-open-shows-detail",
+        "attribute": "fdg.connection-name",
+        "value": "opens the detail"
+      },
+      "expectFile": "after-12.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "fdg.add.comment",
+      "args": {
+        "target": "new:200,760"
+      },
+      "ids": [
+        "6vnlhd8l5rxs2tl29489e5mj1"
+      ],
+      "expectFile": "after-13.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "property": {
+        "element": "6vnlhd8l5rxs2tl29489e5mj1",
+        "attribute": "fdg.text",
+        "value": "Photos upload last.\nThey are the largest."
+      },
+      "expectFile": "after-14.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "property": {
+        "element": "6vnlhd8l5rxs2tl29489e5mj1",
+        "attribute": "Height",
+        "value": "130"
+      },
+      "expectFile": "after-15.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "action": "fdg.remove",
+      "args": {
+        "confirm": true
+      },
+      "select": [
+        "task-row"
+      ],
+      "expectFile": "after-16.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-15.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-16.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-15.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "action": "fdg.disconnect",
+      "args": {
+        "target": "c-day-cache"
+      },
+      "expectFile": "after-17.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "action": "fdg.remove",
+      "args": {
+        "target": "note-round-trip"
+      },
+      "expectFile": "after-18.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-17.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "action": "fdg.rename",
+      "args": {
+        "target": "note-offline",
+        "value": "Everything must work offline.\nSync waits for a connection."
+      },
+      "expectFile": "after-19.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    },
+    {
+      "action": "fdg.add.data-element",
+      "args": {
+        "target": "new:1500,700"
+      },
+      "ids": [
+        "bq7tb6ivg0irbwo4nekv485v8"
+      ],
+      "expectFile": "after-20.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.30.json"
+      }
+    },
+    {
+      "property": {
+        "element": "bq7tb6ivg0irbwo4nekv485v8",
+        "attribute": "fdg.name",
+        "value": "Photo: before and after"
+      },
+      "expectFile": "after-21.fdg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.31.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/etalii/functional-decomposition-graph/field-service/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

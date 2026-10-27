@@ -1,0 +1,42 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.descriptionLogic` from the RDF module's rendering of a class expression of the ontology that parity/cases/w3c/owl/class-expressions.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "value": {
+      "root": "_:b21",
+      "triples": [
+        {
+          "s": "_:b21",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b21",
+          "p": "http://www.w3.org/2002/07/owl#unionOf",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri"
+        }
+      ],
+      "names": {
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil": "rdf:nil",
+        "http://www.w3.org/2002/07/owl#Class": "owl:Class"
+      }
+    },
+    "format": "rdf"
+  },
+  "args": {
+    "maxDepth": 0
+  },
+  "output": {
+    "runs": [
+      {
+        "text": "(?)",
+        "style": {
+          "elided": false,
+          "cyclic": false
+        }
+      }
+    ]
+  }
+}

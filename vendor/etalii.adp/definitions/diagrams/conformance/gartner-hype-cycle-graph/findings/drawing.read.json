@@ -1,0 +1,467 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "backwards",
+      "type": "Trend",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 112,
+        "w": 48,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Backwards",
+          "font": "12 400",
+          "position": {
+            "x": -8,
+            "y": 132
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#5F5E5A",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "five-phases",
+      "type": "Trend",
+      "shape": "path",
+      "bounds": {
+        "x": -4800,
+        "y": 168,
+        "w": 48,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Five phases",
+          "font": "12 400",
+          "position": {
+            "x": -4808,
+            "y": 188
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#5F5E5A",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "flat",
+      "type": "Note",
+      "shape": "path",
+      "bounds": {
+        "x": -3840,
+        "y": 448,
+        "w": 160,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "A note without a\nheight",
+          "font": "12 400",
+          "position": {
+            "x": -3760,
+            "y": 475.75
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fef9c3",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "ghg.note",
+          "stroke": "ghg.border"
+        }
+      }
+    },
+    {
+      "id": "out-of-order",
+      "type": "Trend",
+      "shape": "path",
+      "bounds": {
+        "x": -4800,
+        "y": 224,
+        "w": 48,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Out of order",
+          "font": "12 400",
+          "position": {
+            "x": -4808,
+            "y": 244
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#5F5E5A",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "patent",
+      "type": "Trigger",
+      "shape": "ellipse",
+      "bounds": {
+        "x": -5020,
+        "y": 72,
+        "w": 16,
+        "h": 16
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Patent · Jun 1795",
+          "font": "12 400",
+          "position": {
+            "x": -5028,
+            "y": 84
+          }
+        }
+      ],
+      "style": {
+        "fill": "#7c3aed",
+        "stroke": "#7c3aed",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "ghg.trigger",
+          "stroke": "ghg.trigger"
+        }
+      }
+    },
+    {
+      "id": "steam",
+      "type": "Trend",
+      "shape": "path",
+      "bounds": {
+        "x": -4800,
+        "y": 56,
+        "w": 48,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Steam",
+          "font": "12 400",
+          "position": {
+            "x": -4808,
+            "y": 76
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#5F5E5A",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "trend@31",
+      "type": "Trend",
+      "shape": "path",
+      "bounds": {
+        "x": -4320,
+        "y": 280,
+        "w": 48,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Steam again",
+          "font": "12 400",
+          "position": {
+            "x": -4328,
+            "y": 300
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#5F5E5A",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "undated",
+      "type": "Trigger",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 352,
+        "w": 16,
+        "h": 16
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Undated · Jan 0",
+          "font": "12 400",
+          "position": {
+            "x": -8,
+            "y": 364
+          }
+        }
+      ],
+      "style": {
+        "fill": "#7c3aed",
+        "stroke": "#7c3aed",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "ghg.trigger",
+          "stroke": "ghg.trigger"
+        }
+      }
+    },
+    {
+      "id": "unplaced",
+      "type": "Note",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 392,
+        "w": 160,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "A note without a place",
+          "font": "12 400",
+          "position": {
+            "x": 80,
+            "y": 428.25
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fef9c3",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "ghg.note",
+          "stroke": "ghg.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "bad-ends",
+      "type": "Influence",
+      "source": "out-of-order",
+      "target": "five-phases",
+      "route": [
+        {
+          "x": -4776,
+          "y": 224
+        },
+        {
+          "x": -4776,
+          "y": 200
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "ghg.influence"
+        }
+      }
+    },
+    {
+      "id": "into-trigger",
+      "type": "Influence",
+      "source": "out-of-order",
+      "target": "patent",
+      "route": [
+        {
+          "x": -4799.6,
+          "y": 224
+        },
+        {
+          "x": -5005.38,
+          "y": 84.49
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "ghg.influence"
+        }
+      }
+    },
+    {
+      "id": "once",
+      "type": "Influence",
+      "source": "patent",
+      "target": "out-of-order",
+      "route": [
+        {
+          "x": -5005.38,
+          "y": 84.49
+        },
+        {
+          "x": -4799.6,
+          "y": 224
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "ghg.influence"
+        }
+      }
+    },
+    {
+      "id": "self",
+      "type": "Influence",
+      "source": "five-phases",
+      "target": "five-phases",
+      "route": [
+        {
+          "x": -4776,
+          "y": 184
+        },
+        {
+          "x": -4776,
+          "y": 184
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "ghg.influence"
+        }
+      }
+    },
+    {
+      "id": "thrice",
+      "type": "Influence",
+      "source": "patent",
+      "target": "out-of-order",
+      "route": [
+        {
+          "x": -5005.38,
+          "y": 84.49
+        },
+        {
+          "x": -4799.6,
+          "y": 224
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "ghg.influence"
+        }
+      }
+    },
+    {
+      "id": "twice",
+      "type": "Influence",
+      "source": "patent",
+      "target": "out-of-order",
+      "route": [
+        {
+          "x": -5005.38,
+          "y": 84.49
+        },
+        {
+          "x": -4799.6,
+          "y": 224
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "ghg.influence"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "bad-ends",
+    "into-trigger",
+    "self",
+    "once",
+    "twice",
+    "thrice",
+    "steam",
+    "backwards",
+    "five-phases",
+    "out-of-order",
+    "trend@31",
+    "undated",
+    "patent",
+    "unplaced",
+    "flat"
+  ]
+}

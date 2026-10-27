@@ -1,0 +1,368 @@
+atd 0.1
+part of w3c/skos
+
+// The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+/// Concepts are plain boxes, not VOWL circles; schemes and collections are unfilled header boxes. Colours come from the
+/// host's theme: the tokens copy standalone's theme variables (`src/client/src/index.css`), light and dark.
+notation {
+  theme {
+    tokens: {
+      color.surface: "#ffffff"
+      color.text: "#0f172a"
+      color.text.muted: "#64748b"
+      color.border: "#e2e8f0"
+      color.node.outline: "#8892a6"
+      color.primary: "limegreen"
+      color.warning: "#b45309"
+      font.body: "system-ui, sans-serif"
+      font.mono: "ui-monospace, monospace"
+    }
+    modes: {
+      dark: {
+        color.surface: "#1e293b"
+        color.text: "#f1f5f9"
+        color.text.muted: "#94a3b8"
+        color.border: "#334155"
+        color.warning: "#fbbf24"
+      }
+    }
+    followSystem: true
+  }
+  style node {
+    fill: $color.surface,
+    stroke: { color: $color.border, width: 1.5 },
+    font: { size: 12, color: $color.text }
+  }
+  style region extends node { fill: "none" }
+  style small { font: { size: 10 } }
+  style muted extends small { font: { color: $color.text.muted } }
+
+  node Concept {
+    shape rect
+    label (self.label) as name { position: { anchor: [0.5, 0.68] }, overflow: ellipsis, maxLines: 1, editable: false }
+    label (size(self.notation) > 0 ? self.notation[0] : '') as notation {
+      position: { anchor: [0, 0], offset: [8, 14], align: start }
+      style: { extends: "small", font: { color: $color.primary } }
+      visible: (size(self.notation) > 0)
+    }
+    label (self.labelTag) as chip {
+      position: { anchor: [1, 0], offset: [-8, 14], align: end }
+      style: "muted"
+      visible: (self.languageChip)
+      tooltip: "The chosen label is in another language than the display language."
+    }
+    port file { shape: "none", side: top, position: 0.5 }
+    port relate { shape: "none", side: right, position: 0.5 }
+    style: "node"
+    size: { fixed: [200, 44] }
+    conditions: [{
+      when: (self.labelKind == 'alternate')
+      style: { font: { style: italic } }
+      doc: "An alternate label stands in: italic."
+    }
+    , {
+      when: (self.labelKind == 'iriFallback')
+      style: { font: { family: $font.mono, size: 11 }, opacity: 0.7 }
+      doc: "The IRI stands in: dimmed monospace."
+    }
+    , {
+      when: (self.blank)
+      style: { stroke: { dash: [5, 3], dashScale: absolute }, opacity: 0.75 }
+      doc: "A blank node is visibly provisional."
+    }
+    ]
+    doubleClick: "openForm"
+    tooltip: (self.blank ? 'Blank node' : self.iri)
+  }
+
+  node ConceptScheme {
+    shape rect
+    label (self.label + ' (' + string(self.memberCount) + ')') as name {
+      position: { anchor: [0.5, 0.625] },
+      overflow: ellipsis,
+      maxLines: 1,
+      editable: false
+    }
+    style: "region"
+    size: { fixed: [260, 40] }
+    doubleClick: "openForm"
+  }
+
+  node Collection {
+    shape rect
+    label (self.label) as name { position: { anchor: [0.5, 0.625] }, overflow: ellipsis, maxLines: 1, editable: false }
+    label "ordered" as kind {
+      position: { anchor: [0, 0], offset: [8, 34], align: start },
+      style: "muted",
+      visible: (self.ordered)
+    }
+    style: "region"
+    size: { fixed: [260, 40] }
+    doubleClick: "openForm"
+  }
+
+  /// Solid and arrowless: the broader concept sits above.
+  edge Broader {
+    line { stroke: { color: $color.border, width: 1 }, routing: straight }
+    marker source none
+    marker target none
+    reconnectable: false
+  }
+
+  edge Related {
+    line { stroke: { color: $color.border, width: 1, dash: [6, 4], dashScale: absolute }, routing: straight }
+    marker source none
+    marker target none
+    reconnectable: false
+  }
+
+  edge Mapping {
+    line { stroke: { color: $color.border, width: 1, dash: [2, 3], dashScale: absolute }, routing: straight }
+    marker source none
+    marker target arrow
+    label (self.predicate) as predicate { at: middle, side: above, distance: 6, editable: false }
+    reconnectable: false
+    deletable: false
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true }
+  group vocabulary "SKOS" {
+    /// A concept, filed into the file's first scheme. Drop it where it should sit; you will be asked for its preferred
+    /// label.
+    tool concept "Concept" { kind: operation, operation: "addConcept", icon: "mdi-tag-plus-outline", mode: drop }
+  }
+  context for ConceptScheme, Concept, Collection when !self.blank {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: operation, operation: "renameResource", icon: "mdi-pencil-outline", shortcut: "F2" }
+    tool { kind: operation, operation: "removeResource", icon: "mdi-delete-outline", shortcut: "Delete" }
+  }
+  context for Broader, Related when self.direct {
+    placement: menu
+    standardEntries: false
+    tool { kind: operation, operation: "disconnect", icon: "mdi-link-off", shortcut: "Delete" }
+  }
+  context for Mapping when self.direct {
+    placement: menu
+    standardEntries: false
+    tool "Remove statement" {
+      kind: operation,
+      operation: "removeStatement",
+      icon: "mdi-vector-polyline-remove",
+      shortcut: "Delete"
+    }
+  }
+  /// A placement: the empty canvas at a point.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add concept here…" {
+      kind: operation
+      operation: "addConcept"
+      icon: "mdi-tag-plus-outline"
+      group: "vocabulary"
+      visible: (diagram.nodesOfType('Triple').exists(t, typeTriple(t) && t.o == 'http://www.w3.org/2004/02/skos/core#ConceptScheme'))
+    }
+    tool "Add resource here…" {
+      kind: operation,
+      operation: "addResource",
+      icon: "mdi-card-plus-outline",
+      group: "family"
+    }
+    tool "Declare prefix…" { kind: operation, operation: "declarePrefix", icon: "mdi-at", group: "family" }
+  }
+  /// A finished connect gesture between two elements.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    tool "File under (broader)" {
+      kind: operation
+      operation: "fileUnder"
+      icon: "mdi-file-tree"
+      group: "vocabulary"
+      visible: (source.id.startsWith('res:') && target.id.startsWith('res:') && source.id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') && target.id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept'))
+      args: { from: (source), to: (target) }
+    }
+    tool "Relate (skos:related)" {
+      kind: operation
+      operation: "relateConcepts"
+      icon: "mdi-swap-horizontal"
+      group: "vocabulary"
+      visible: (source.id.startsWith('res:') && target.id.startsWith('res:') && source.id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') && target.id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept'))
+      args: { from: (source), to: (target) }
+    }
+    tool "Relate…" {
+      kind: operation
+      operation: "relate"
+      icon: "mdi-ray-start-arrow"
+      args: { from: (source), to: (target) }
+      group: "family"
+    }
+  }
+}
+
+/// A blank-node term shows no rows: the grid answers for named terms only. Each label row is keyed by its kind and
+/// language and each mapping row by its predicate and target (`x-skos`).
+form labelledInspector for ConceptScheme, Concept, Collection {
+  usage: [inspector]
+  section "Identity" {
+    visible: (!self.blank)
+    field iri {
+      widget: readonly,
+      readOnlyReasons: ["Rename through the context menu, so every reference follows the name."]
+    }
+    field notation {
+      widget: readonly
+      visible: (size(self.notation) > 0)
+      readOnlyReasons: ["Notations are codes other systems key off; edit them as triples."]
+    }
+  }
+  section "Labels" {
+    visible: (!self.blank)
+    /// Editing a preferred label rewrites only its lexical form; the language tag is kept. A language without a label
+    /// gets a new `skos:prefLabel` triple.
+    field prefLabel {
+      widget: table
+      readOnlyReasons: [{
+        when: (self.xlLabelled)
+        message: "This concept's labels are stated through SKOS-XL, which this reading does not resolve (Requirement 3.6). Edit them as triples in the graph reading."
+      }
+      , { reason: "truncated" }]
+    }
+    field altLabel {
+      widget: table
+      readOnlyReasons: [{
+        when: (self.xlLabelled)
+        message: "This concept's labels are stated through SKOS-XL, which this reading does not resolve (Requirement 3.6). Edit them as triples in the graph reading."
+      }
+      , "Alternate and hidden labels are edited as triples."]
+      visible: (size(self.altLabel) > 0)
+    }
+    field hiddenLabel {
+      widget: table
+      readOnlyReasons: [{
+        when: (self.xlLabelled)
+        message: "This concept's labels are stated through SKOS-XL, which this reading does not resolve (Requirement 3.6). Edit them as triples in the graph reading."
+      }
+      , "Alternate and hidden labels are edited as triples."]
+      visible: (size(self.hiddenLabel) > 0)
+    }
+  }
+  section "Documentation" {
+    visible: (!self.blank)
+    field definition "Definition" { widget: textarea, readOnlyReasons: [{ reason: "truncated" }] }
+    field scopeNote "ScopeNote" { widget: textarea, readOnlyReasons: [{ reason: "truncated" }] }
+    field example "Example" { widget: textarea, readOnlyReasons: [{ reason: "truncated" }] }
+    field note "Note" { widget: textarea, readOnlyReasons: [{ reason: "truncated" }] }
+    field historyNote "HistoryNote" { widget: textarea, readOnlyReasons: [{ reason: "truncated" }] }
+    field editorialNote "EditorialNote" { widget: textarea, readOnlyReasons: [{ reason: "truncated" }] }
+    field changeNote "ChangeNote" { widget: textarea, readOnlyReasons: [{ reason: "truncated" }] }
+  }
+  section "Membership" {
+    visible: (!self.blank && self.isA('Concept'))
+    field schemesText {
+      id: "schemes"
+      widget: readonly
+      readOnlyReasons: ["Membership is stated by triples; file and unfile concepts on the canvas."]
+    }
+  }
+  section "Mappings" {
+    visible: (!self.blank && self.isA('Concept'))
+    field mappings {
+      widget: readonly
+      visible: (size(self.mappings) > 0)
+      readOnlyReasons: ["The mapped concept lives outside this file, so the mapping shows here rather than drawing."]
+    }
+  }
+}
+
+form addConceptDialog "Add concept" for diagram {
+  usage: [popover]
+  icon: "mdi-tag-plus-outline"
+  submitLabel: "Add"
+  field label "Preferred label" {
+    validate: [{ rule: (value.trim() != ''), message: "A concept needs a preferred label." }, {
+      rule: (rdfMintIri(value) != ''),
+      message: (rdfMintRefusal(value))
+    }
+    , {
+      rule: (!diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == rdfMintIri(value)) || (t.oKind == 'iri' && t.o == rdfMintIri(value))))
+      message: (rdfMintIri(value) + ' already names something in this document. Choose a different label, or rename the existing resource first.')
+    }
+    ]
+  }
+}
+
+form addResourceDialog "Add resource" for diagram {
+  usage: [popover]
+  icon: "mdi-card-plus-outline"
+  submitLabel: "Add"
+  field iri "IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form declarePrefixDialog "Declare prefix" for diagram {
+  usage: [popover]
+  icon: "mdi-at"
+  submitLabel: "Declare"
+  field declaration "Declaration, e.g. ex: http://example.org/" {
+    validate: [{
+      rule: (value.matches('^\\s*[^:\\s]+\\s*:\\s*<?[A-Za-z][A-Za-z0-9+.-]*:[^\\s<>]*>?\\s*$'))
+      message: "Write the declaration as 'prefix: iri', e.g. ex: http://example.org/."
+    }
+    ]
+  }
+}
+
+form relateDialog "Relate" for diagram {
+  usage: [popover]
+  icon: "mdi-ray-start-arrow"
+  submitLabel: "Relate"
+  field predicate "Predicate (IRI or prefixed name)" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form renameDialog "Rename resource" for ConceptScheme, Concept, Collection {
+  usage: [popover]
+  icon: "mdi-pencil-outline"
+  submitLabel: "Rename"
+  field newName "New IRI or prefixed name" {
+    initial: (rdfCompress(self.iri))
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }, {
+      rule: (!diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == rdfResolveTerm(value)) || (t.oKind == 'iri' && t.o == rdfResolveTerm(value))))
+      message: (rdfResolveTerm(value) + ' already names something in this document; renaming onto it would silently merge two resources.')
+    }
+    ]
+  }
+}
+
+/// Pure and deterministic, no physics: the same file always opens the same way. Authored positions from the
+/// registration override computed ones element by element.
+layout {
+  default schemeBands
+  /// One band per scheme in IRI order, then an unfiled band, then a row of collections; inside a band every concept
+  /// sits one row below its deepest broader concept, rows filled left to right in id order.
+  algorithm schemeBands capability layout.layeredRegions {
+    columnWidth: 240
+    rowHeight: 110
+    regionGap: 90
+    regionHeader: 60
+    layerGap: 50
+    minimumColumns: 8
+    role: (self.isA('ConceptScheme') ? 'region' : (self.isA('Concept') ? 'member' : 'trailing'))
+    key: (self.iri)
+    regions: (self.isA('Concept') ? self.inScheme.map(s, s.iri) : [])
+  }
+  /// The declarative approximation of schemeBands, for a runtime without the capability: a layered layout over the hierarchy edges.
+  algorithm fallback { algorithm: "layered", direction: down, spacing: { node: 40, layer: 66 } }
+  trigger: onLoadIfMissing
+  respect: all
+  incremental: true
+}
+
+viewpoint scheme "Scheme" { exclude: ["Triple", "Prefix", "Base"], default: true }

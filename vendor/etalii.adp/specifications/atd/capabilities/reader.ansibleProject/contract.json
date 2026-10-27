@@ -1,0 +1,19 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.ansibleProject",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads an Ansible project folder, read-only: its inventories, playbooks, plays, roles and their tasks, handlers, variables, defaults, templates and files, recognised by Ansible's own layout and directives, with every relation's target resolved and every file that does not parse kept and reported. It delivers the nodes and relations in the order it reads them, never writes, and plans no change. Its fixtures are recorded with the Ansible structure's cases (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderInput"
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderResult"
+  },
+  "laws": [
+    "deterministic",
+    "readingNeverFails"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

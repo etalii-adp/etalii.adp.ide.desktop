@@ -1,0 +1,19 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/cases/databricks/pipeline/unreadable.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [],
+    "edges": []
+  },
+  "args": {
+    "columnWidth": 320,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "middle",
+    "band": "self.id == 'compute' || self.id == 'notifications'",
+    "column": "self.id.startsWith('library:') ? 0 : self.id == 'pipeline' ? 1 : 2"
+  },
+  "output": {
+    "positions": {}
+  }
+}

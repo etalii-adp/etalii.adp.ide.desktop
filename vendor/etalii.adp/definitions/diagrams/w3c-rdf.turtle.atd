@@ -1,0 +1,129 @@
+atd 0.1
+part of w3c/rdf
+
+// The body of a W3C reading and the naming functions every reading shares, in a part of its own (ATD §5.2, §9, §12).
+
+/// A Turtle or N-Triples file, read and written by the capability `reader.turtle` as the stored `Base`, `Prefix` and
+/// `Triple` elements every reading of the file shares, and the five `rdf.*` findings: the persistence plugin's contract
+/// (FBL §11) as a binding's family, since FBL's families cannot write a group of triples as one construct (gaps 1 to 5 of `w3c-rdf.md`:
+/// gap 1), a value written once for several triples (gap 3), a separator or a terminator (gap 4), nor tell an `.nt`
+/// body from a `.ttl` one (gap 5). How an edit is written - a pair appended as a `;` continuation, a removal taking its
+/// stranded separator, a literal requoted in place, a renamed term rewritten in every token naming it, a new prefix
+/// after the last declaration, the dominant line ending kept, a byte order mark kept - is the reader's, as its contract
+/// says. The registration's `language:` header and its `layout:` block of positions keyed by element id are read
+/// with the body.
+binding turtle family capability reader.turtle {
+  label "RDF graph in Turtle or N-Triples"
+  claims { extensions: [".ttl", ".nt"], origins: ["w3c/rdf"] }
+  body { kind: file }
+  args: { prefixes: keep }
+}
+
+/// The part of an IRI after its last '#' or '/', or the whole IRI when nothing follows either.
+fn rdfLocalName(iri: string) -> string {
+  let cut = math.greatest(iri.lastIndexOf('#'), iri.lastIndexOf('/'))
+  return cut >= 0 && cut < size(iri) - 1 ? iri.substring(cut + 1) : iri
+}
+
+/// Whether `local` may follow a prefix as written: letters, digits, '_', '-' and '.', neither starting nor ending with
+/// '.'.
+fn rdfCleanLocal(local: string) -> bool {
+  return local != '' && !local.startsWith('.') && !local.endsWith('.') && local.matches('^[\\pL\\pN_.-]+$')
+}
+
+/// An IRI as the writer spells it: the prefixed name under the longest declared namespace that leaves a clean local
+/// name, a later declaration winning a tie, else the bracketed `<iri>`.
+fn rdfCompress(iri: string) -> string {
+  var namespace = ''
+  var prefix = ''
+  var found = false
+  for declaration in diagram.nodesOfType('Prefix') limit 100000 {
+    if iri.startsWith(declaration.iri) && size(iri) != size(declaration.iri) && (!found || size(declaration.iri) >= size(namespace)) {
+      namespace = declaration.iri
+      prefix = declaration.name
+      found = true
+    }
+  }
+  if !found {
+    return '<' + iri + '>'
+  }
+  let local = iri.substring(size(namespace))
+  return rdfCleanLocal(local) ? prefix + ':' + local : '<' + iri + '>'
+}
+
+/// An IRI as drawn: its prefixed name when it compresses, else its local name.
+fn rdfDisplayName(iri: string) -> string {
+  let compressed = rdfCompress(iri)
+  return compressed.startsWith('<') ? rdfLocalName(iri) : compressed
+}
+
+/// What a typed term names, read the way an author writes terms: a full IRI, a bracketed IRI, or a prefixed name under
+/// the file's own declarations, the last declaration of a prefix winning; an undeclared prefix is refused by name
+/// rather than a declaration invented. The map holds `iri`, '' when the term names nothing, and `refusal`, the
+/// sentence saying why.
+fn rdfTermResolution(term: string) -> map<string, string> {
+  let typed = term.trim()
+  if typed == '' {
+    return { 'iri': '', 'refusal': 'A term needs a name: a full IRI, or a prefixed name like ex:thing.' }
+  }
+  if typed.contains(' ') {
+    return { 'iri': '', 'refusal': 'An IRI cannot contain spaces.' }
+  }
+  if size(typed) >= 2 && typed.startsWith('<') && typed.endsWith('>') {
+    let inner = typed.substring(1, size(typed) - 1).trim()
+    if inner == '' {
+      return { 'iri': '', 'refusal': 'The brackets are empty.' }
+    }
+    return { 'iri': inner, 'refusal': '' }
+  }
+  if typed.contains('://') {
+    return { 'iri': typed, 'refusal': '' }
+  }
+  let colon = typed.indexOf(':')
+  if colon < 0 {
+    return {
+      'iri': '',
+      'refusal': '\'' + typed + '\' is neither a full IRI nor a prefixed name. Write ex:' + typed + ', or a full IRI.'
+    }
+  }
+  let prefix = typed.substring(0, colon)
+  let declared = diagram.nodesOfType('Prefix').filter(d, d.name == prefix)
+  if size(declared) == 0 {
+    return {
+      'iri': '',
+      'refusal': 'The prefix \'' + prefix + ':\' is not declared in this file. Declare it first, write the full IRI, or bracket a scheme IRI as <' + typed + '>.'
+    }
+  }
+  return { 'iri': declared[size(declared) - 1].iri + typed.substring(colon + 1), 'refusal': '' }
+}
+
+/// The full IRI a typed term names; '' when it names nothing.
+fn rdfResolveTerm(term: string) -> string {
+  return rdfTermResolution(term).iri
+}
+
+/// The sentence explaining why `rdfResolveTerm` returned ''.
+fn rdfTermRefusal(term: string) -> string {
+  return rdfTermResolution(term).refusal
+}
+
+/// A prefix declaration typed as `prefix: iri`, brackets tolerated: the map holds `name` and `iri`, both '' when the
+/// text is not one (no prefix before the colon, a space in either, or an IRI that is not absolute).
+fn rdfPrefixDeclaration(text: string) -> map<string, string> {
+  let typed = text.trim()
+  let colon = typed.indexOf(':')
+  if colon <= 0 {
+    return { 'name': '', 'iri': '' }
+  }
+  let name = typed.substring(0, colon).trim()
+  var iri = typed.substring(colon + 1).trim()
+  while iri.startsWith('<') limit 100000 {
+    iri = iri.substring(1)
+  }
+  while iri.endsWith('>') limit 100000 {
+    iri = iri.substring(0, size(iri) - 1)
+  }
+  iri = iri.trim()
+  let usable = name != '' && iri != '' && !name.contains(' ') && !iri.contains(' ') && iri.matches('^[A-Za-z][A-Za-z0-9+.-]*:')
+  return usable ? { 'name': name, 'iri': iri } : { 'name': '', 'iri': '' }
+}

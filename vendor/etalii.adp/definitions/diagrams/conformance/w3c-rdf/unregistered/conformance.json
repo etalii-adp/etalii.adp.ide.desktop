@@ -1,0 +1,87 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/unregistered.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "unregistered.ttl",
+    "registration": "unregistered.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/loose",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/loose",
+          "display": "ex:loose",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Loose",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/other",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/other",
+          "display": "ex:other",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Other",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/loose|http://example.org/near|res:http://example.org/other",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/loose",
+        "target": "res:http://example.org/other",
+        "attributes": {
+          "fromElementId": "res:http://example.org/loose",
+          "toElementId": "res:http://example.org/other",
+          "predicate": "ex:near",
+          "predicateIri": "http://example.org/near"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

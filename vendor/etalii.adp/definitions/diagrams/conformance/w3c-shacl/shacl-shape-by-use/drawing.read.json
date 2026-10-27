@@ -1,0 +1,166 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/shapes#CityShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 0,
+        "w": 260,
+        "h": 78
+      },
+      "labels": [
+        {
+          "id": "cardinality",
+          "text": "[0..*]",
+          "font": "10 400",
+          "position": {
+            "x": 572,
+            "y": 46
+          }
+        },
+        {
+          "id": "rows",
+          "text": "ex:postcode",
+          "font": "11 400",
+          "position": {
+            "x": 328,
+            "y": 46
+          }
+        },
+        {
+          "id": "summary",
+          "text": "pattern ^[0-9]{4}",
+          "font": "10 400",
+          "position": {
+            "x": 430,
+            "y": 46
+          }
+        },
+        {
+          "id": "title",
+          "text": "ex:CityShape",
+          "font": "13 600",
+          "position": {
+            "x": 450,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#PersonShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 260,
+        "h": 166
+      },
+      "labels": [
+        {
+          "id": "cardinality",
+          "text": "[1..*]\n[0..*]\n[0..5]",
+          "font": "10 400",
+          "position": {
+            "x": 252,
+            "y": 90
+          }
+        },
+        {
+          "id": "rows",
+          "text": "ex:name\nex:address/ex:city\n^ex:knows",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 90
+          }
+        },
+        {
+          "id": "summary",
+          "text": "xsd:string",
+          "font": "10 400",
+          "position": {
+            "x": 110,
+            "y": 90
+          }
+        },
+        {
+          "id": "targets",
+          "text": "targets class ex:Person\ntargets node ex:alice",
+          "font": "11 400 italic",
+          "position": {
+            "x": 8,
+            "y": 46
+          }
+        },
+        {
+          "id": "title",
+          "text": "ex:PersonShape",
+          "font": "13 600",
+          "position": {
+            "x": 130,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "shacl-edge:res:http://example.org/shapes#PersonShape|node|res:http://example.org/shapes#CityShape",
+      "type": "w3c/shacl+edge",
+      "source": "res:http://example.org/shapes#PersonShape",
+      "target": "res:http://example.org/shapes#CityShape",
+      "route": [
+        {
+          "x": 260,
+          "y": 65.13
+        },
+        {
+          "x": 320,
+          "y": 56.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:address/ex:city",
+          "font": "11 400",
+          "position": {
+            "x": 290,
+            "y": 55
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "shacl-edge:res:http://example.org/shapes#PersonShape|node|res:http://example.org/shapes#CityShape",
+    "res:http://example.org/shapes#PersonShape",
+    "res:http://example.org/shapes#CityShape"
+  ]
+}

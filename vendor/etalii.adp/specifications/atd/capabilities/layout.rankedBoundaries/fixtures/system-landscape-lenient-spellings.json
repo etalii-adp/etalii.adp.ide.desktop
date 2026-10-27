@@ -1,0 +1,59 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/cases/c4/system-landscape/lenient-spellings.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "User",
+        "type": "person",
+        "width": 240.0,
+        "height": 98.4
+      },
+      {
+        "id": "sys",
+        "type": "software system",
+        "width": 185.7,
+        "height": 78.8
+      }
+    ],
+    "edges": [
+      {
+        "id": "user->sys#1",
+        "source": "user",
+        "target": "sys"
+      },
+      {
+        "id": "User->SYS#2",
+        "source": "User",
+        "target": "SYS"
+      },
+      {
+        "id": "user->web#3",
+        "source": "user",
+        "target": "web"
+      }
+    ]
+  },
+  "args": {
+    "mode": "enclose",
+    "direction": "'tb'",
+    "rankSeparation": "120",
+    "nodeSeparation": "60",
+    "pinsIgnored": "false",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "User": {
+        "x": -120.0,
+        "y": 0.0
+      },
+      "sys": {
+        "x": -92.85,
+        "y": 218.4
+      }
+    }
+  }
+}

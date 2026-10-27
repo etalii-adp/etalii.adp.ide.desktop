@@ -1,0 +1,75 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "bundle",
+      "type": "databricks/bundle+bundle",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "bundle",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "resource:pipelines/bare",
+      "type": "databricks/bundle+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 180,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "pipelines",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 228
+          }
+        },
+        {
+          "id": "name",
+          "text": "bare",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 204
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [],
+  "chrome": [],
+  "order": [
+    "bundle",
+    "resource:pipelines/bare"
+  ]
+}

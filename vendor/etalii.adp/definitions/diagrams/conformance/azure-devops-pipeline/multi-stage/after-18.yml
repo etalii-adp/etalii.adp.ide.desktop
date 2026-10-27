@@ -1,0 +1,88 @@
+# A build/test/deploy pipeline with fan-out and fan-in, which is the shape the
+# dependency graph exists to make readable.
+trigger:
+  branches:
+    include:
+      - main
+      - releases/*
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: Release
+
+stages:
+  - stage: Build
+    displayName: Build and package
+    jobs:
+      - job: Compile
+        displayName: Compile
+        steps:
+          - checkout: self
+            fetchDepth: 1
+          - publish: $(Build.ArtifactStagingDirectory)
+            artifact: drop
+          - script: dotnet build --configuration $(buildConfiguration)
+            displayName: Build
+
+  - stage: Test
+    displayName: Run the tests
+    dependsOn: Build
+    jobs:
+      # These two have no dependsOn, so they run in parallel - the job default,
+      # which is the opposite of the stage default.
+      - job: Integration
+        timeoutInMinutes: 30
+        continueOnError: true
+        steps:
+          - script: dotnet test --filter Category=Integration
+            displayName: Integration tests
+      - job: NewJob
+        steps:
+          - script: echo Add your build steps here
+
+  - stage: DeployStaging
+    dependsOn: Test
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: Staging
+        environment: staging
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: ./deploy.sh staging
+                  displayName: Deploy
+      - deployment: NewJob2
+        environment: newjob2
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - script: echo Add your build steps here
+
+  - stage: DeployProduction
+    displayName: Ship it
+    dependsOn: Build
+    trigger: manual
+    jobs:
+      - deployment: Production
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: ./deploy.sh production
+                  displayName: Deploy
+
+  - stage: Notify
+    displayName: Notify the team
+    # Fan-in: waits for both deployments.
+    condition: always()
+    jobs:
+      - job: Announce
+        steps:
+          - script: ./notify.sh
+            displayName: "Send: notification"
+          - script: echo Add your build steps here

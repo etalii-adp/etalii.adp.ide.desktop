@@ -1,0 +1,153 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/scripts/databricks/job/nightly-ingest.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "# The nightly ingest job: land raw data, gate it on quality, publish what passes, alert on\n# what does not, and refresh the dashboard once the publish is in.\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      job_clusters:\n        - job_cluster_key: ingest_cluster\n          new_cluster:\n            spark_version: 15.4.x-scala2.12\n            node_type_id: Standard_DS3_v2\n            num_workers: 2\n      schedule:\n        quartz_cron_expression: \"0 0 1 * * ?\"\n        timezone_id: UTC\n      tasks:\n        - task_key: land_raw\n          job_cluster_key: ingest_cluster\n          notebook_task:\n            notebook_path: notebooks/land_raw\n            base_parameters:\n              catalog: ${var.catalog}\n        - task_key: quality_gate\n          depends_on:\n            - task_key: land_raw\n          condition_task:\n            op: GREATER_THAN\n            left: \"{{tasks.land_raw.values.rows_landed}}\"\n            right: \"0\"\n        - task_key: publish\n          depends_on:\n            - task_key: quality_gate\n              outcome: \"true\"\n          notebook_task:\n            notebook_path: notebooks/publish\n        - task_key: alert_on_empty\n          run_if: AT_LEAST_ONE_FAILED\n          depends_on:\n            - task_key: quality_gate\n              outcome: \"false\"\n          spark_python_task:\n            python_file: scripts/alert_on_empty.py\n        - task_key: refresh_dashboard\n          depends_on:\n            - task_key: publish\n          sql_task:\n            warehouse_id: ${var.warehouse_id}\n            query:\n              query_id: 9d3f2b1a\n",
+    "files": {
+      "nightly-ingest.adp": "databricks/job\nbody: nightly-ingest.yml\nlayout:\n  cluster:ingest_cluster: -20.533 261.907\n  task:land_raw: -24.539 93.149\n"
+    }
+  },
+  "args": {
+    "reading": "job"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "task:land_raw",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "land_raw",
+          "taskType": "notebook",
+          "source": "notebooks/land_raw",
+          "clusterKey": "ingest_cluster",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "land_raw",
+          "badges": "ingest_cluster",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:quality_gate",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "quality_gate",
+          "taskType": "condition",
+          "source": "GREATER_THAN",
+          "unresolved": "false",
+          "kind": "condition",
+          "label": "quality_gate",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:publish",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "publish",
+          "taskType": "notebook",
+          "source": "notebooks/publish",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "publish",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:alert_on_empty",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "alert_on_empty",
+          "taskType": "python",
+          "source": "scripts/alert_on_empty.py",
+          "runIf": "AT_LEAST_ONE_FAILED",
+          "unresolved": "false",
+          "kind": "python",
+          "label": "alert_on_empty",
+          "badges": "AT_LEAST_ONE_FAILED\nserverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:refresh_dashboard",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "refresh_dashboard",
+          "taskType": "sql",
+          "source": "9d3f2b1a",
+          "unresolved": "false",
+          "kind": "sql",
+          "label": "refresh_dashboard",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "cluster:ingest_cluster",
+        "type": "databricks/job+cluster",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "ingest_cluster",
+          "badges": "15.4.x-scala2.12\nStandard_DS3_v2\n2 workers",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:land_raw->quality_gate",
+        "type": "databricks/job+edge",
+        "source": "task:land_raw",
+        "target": "task:quality_gate",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:quality_gate->publish",
+        "type": "databricks/job+edge",
+        "source": "task:quality_gate",
+        "target": "task:publish",
+        "attributes": {
+          "outcome": "true",
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:quality_gate->alert_on_empty",
+        "type": "databricks/job+edge",
+        "source": "task:quality_gate",
+        "target": "task:alert_on_empty",
+        "attributes": {
+          "outcome": "false",
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:publish->refresh_dashboard",
+        "type": "databricks/job+edge",
+        "source": "task:publish",
+        "target": "task:refresh_dashboard",
+        "attributes": {
+          "kind": "depends"
+        }
+      }
+    ],
+    "findings": []
+  }
+}

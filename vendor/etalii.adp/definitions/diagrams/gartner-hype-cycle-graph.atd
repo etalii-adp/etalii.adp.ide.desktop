@@ -1,0 +1,635 @@
+atd 0.1
+
+/// Trends placed on a shared time axis, each showing how far it has travelled through the phases of the Gartner hype
+/// cycle, with the influences trends have had on one another.
+///
+/// Each **trend** is a banner along a horizontal time axis, from its `start` to its `stop`, cut into up to four phases:
+/// Peak of Inflated Expectations, Trough of Disillusionment, Slope of Enlightenment and Plateau of Productivity. Phases
+/// are spread evenly until a boundary is dragged. A **trigger** is a dated moment, a **note** is free text pinned to a
+/// date and row, and an **influence** is a directed curve from a phase of one trend (or from a trigger) to a phase of
+/// another trend. The `.ghg` document is read and written through the FBL binding the standalone module ships, in the
+/// part `gartner-hype-cycle-graph.ghg.atd`. The wire ids are declared under `x-ghg`; what the hosts once held in code
+/// is stated here, and the rest is in `gartner-hype-cycle-graph.md` beside this file.
+diagram gartner/hypecycle-graph version "1.1.0" {
+  label "Gartner hype cycle graph"
+  id: "net.etalii.adp.gartner.hypecycle-graph"
+  fileExtension: ghg
+  license: "Apache-2.0"
+  authors: [{ name: "Peter Vrenken" }]
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/gartner-hype-cycle-graph"
+  icon: mdi-chart-bell-curve-cumulative
+  requires: {
+    conformance: standard
+    features: [
+      "axis.yearMonth",
+      "ruler.adaptive",
+      "snap.byGesture",
+      "anchor.part",
+      "canvas.filters",
+      "viewpoint.variants",
+      "placement.bound",
+      "shape.custom",
+      "shape.composite",
+      "edge.bezier",
+      "label.parse",
+      "persistence.fbl"
+    ]
+  }
+  doc {
+    rationale: "The Hype Cycle's meaning lies in the position on its curve; a dedicated tool keeps each item on the curve and relates them, which free drawing loses."
+    seeAlso: [
+      { title: "Gartner hype cycle", href: "https://en.wikipedia.org/wiki/Gartner_hype_cycle" },
+      { title: "What DISL cannot express for this tool", href: "gartner-hype-cycle-graph.md" }
+    ]
+  }
+  x-ghg: {
+    doc: "Today's wire ids, which the standalone client (client/ghgIds.ts) and backend share, mapped from this specification's names, as x-abm does for the behavior model. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<operation>\" or \"<Type>/<kind>\" overrides that for the entries offered on <Type>. A property is keyed by its form item's row id: its id, else its attribute, else a computed item's label."
+    tools: {
+      trend: { id: "ghg.toolbox.trend", drop: "ghg.add.trend" }
+      trigger: { id: "ghg.toolbox.trigger", drop: "ghg.add.trigger" }
+      note: { id: "ghg.toolbox.note", drop: "ghg.add.note" }
+    }
+    actions: {
+      editLabel: "ghg.rename"
+      delete: "ghg.remove"
+      "Influence/delete": "ghg.disconnect"
+      evenPhases: "ghg.even-phases"
+      arrange: "ghg.arrange"
+      addTrendHere: "ghg.add.trend"
+      addTriggerHere: "ghg.add.trigger"
+      addNoteHere: "ghg.add.note"
+      connect: "ghg.connect.influence"
+    }
+    properties: {
+      name: "ghg.name"
+      description: "ghg.description"
+      tags: "ghg.tags"
+      start: "ghg.start"
+      stop: "ghg.stop"
+      date: "ghg.date"
+      text: "ghg.text"
+      Size: "ghg.size"
+      phases: "ghg.phases"
+      peakEnd: "ghg.peak-end"
+      troughEnd: "ghg.trough-end"
+      slopeEnd: "ghg.slope-end"
+      peakInfluences: "ghg.peak-influences"
+      peakInfluencedBy: "ghg.peak-influenced-by"
+      troughInfluences: "ghg.trough-influences"
+      troughInfluencedBy: "ghg.trough-influenced-by"
+      slopeInfluences: "ghg.slope-influences"
+      slopeInfluencedBy: "ghg.slope-influenced-by"
+      plateauInfluences: "ghg.plateau-influences"
+      plateauInfluencedBy: "ghg.plateau-influenced-by"
+      From: "ghg.from"
+      To: "ghg.to"
+      "From attachment": "ghg.from-attachment"
+      "To attachment": "ghg.to-attachment"
+    }
+  }
+
+  /// Months in one step of the diagram's time unit.
+  fn unitMonths(u: string) -> int {
+    return u == 'year' ? 12 : u == 'decade' ? 120 : u == 'century' ? 1200 : 1
+  }
+
+  /// A month as the document and the property grid write it: the signed year padded to four digits, a dash and the
+  /// month, such as `1947-12` or `-3200-01` (`GhgScale.FormatMonth`).
+  fn monthText(m: yearMonth) -> string {
+    return formatYearMonth(m, 'uuuu-MM')
+  }
+
+  /// A date as a trigger shows it: `Dec 1947` (or `December 1947` when long) in a diagram of months, the year alone,
+  /// unpadded, in one of years or coarser (`GhgScale.FormatWhen`, `FormatWhenLong`).
+  fn formatWhen(m: yearMonth, u: string, long: bool) -> string {
+    return unitMonths(u) > 1 ? string(m.year()) : (long ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])[m.month() - 1] + ' ' + string(m.year())
+  }
+
+  fn phaseName(i: int) -> string {
+    return ['peak', 'trough', 'slope', 'plateau'][i]
+  }
+
+  /// A phase's title, Peak to Plateau, or the stored text when it names no phase.
+  fn phaseTitle(phase: string) -> string {
+    return phase in ['peak', 'trough', 'slope', 'plateau'] ? enumLabel('Phase', phase) : phase
+  }
+
+  /// The phases a trend draws: its `phases`, kept within 1 to 4.
+  fn visiblePhases(t: Element) -> int {
+    return t.phases < 1 ? 1 : t.phases > 4 ? 4 : t.phases
+  }
+
+  /// Boundary `i` spread evenly between the anchor `pv` at position `pi` and the anchor `nv` at position `ni`, rounded
+  /// to a month half away from zero.
+  fn spread(pv: int, pi: int, nv: int, ni: int, i: int) -> int {
+    return int(math.round(double(pv) + double(nv - pv) * double(i - pi) / double(ni - pi)))
+  }
+
+  /// The drawn inner boundaries of a trend, as month indices: one fewer than its visible phases.
+  ///
+  /// The last visible phase ends at `stop`. An inner boundary is its stored (dragged) month, clamped between the
+  /// previous anchor and `stop`; otherwise it is spread evenly between its nearest stored neighbours or the trend's
+  /// ends. A stored boundary at or beyond the last visible phase is kept in the document but neither drawn nor used as
+  /// a neighbour. Mirrors `GhgPhases.BoundariesOf`.
+  fn phaseBoundaries(t: Element) -> list<int> {
+    return cel.bind(s, t.start, cel.bind(e, t.stop, cel.bind(n, visiblePhases(t) - 1, cel.bind(d0, n > 0 && has(t.peakEnd), cel.bind(d1, n > 1 && has(t.troughEnd), cel.bind(d2, n > 2 && has(t.slopeEnd), cel.bind(a0, d0 ? clamp(t.peakEnd, s, e) : s, cel.bind(a1, d1 ? clamp(t.troughEnd, a0, e) : a0, cel.bind(a2, d2 ? clamp(t.slopeEnd, a1, e) : a1, cel.bind(b0, d0 ? a0 : (d1 ? spread(s, -1, a1, 1, 0) : d2 ? spread(s, -1, a2, 2, 0) : spread(s, -1, e, n, 0)), cel.bind(b1, d1 ? a1 : (d0 ? (d2 ? spread(a0, 0, a2, 2, 1) : spread(a0, 0, e, n, 1)) : (d2 ? spread(s, -1, a2, 2, 1) : spread(s, -1, e, n, 1))), cel.bind(b2, d2 ? a2 : (d1 ? spread(a1, 1, e, 3, 2) : d0 ? spread(a0, 0, e, 3, 2) : spread(s, -1, e, 3, 2)), n == 0 ? [] : n == 1 ? [b0] : n == 2 ? [b0, b1] : [b0, b1, b2]))))))))))))
+  }
+
+  /// The drawn boundaries as fractions of the banner (`GhgPhases.FractionsOf`). Fractions that are not strictly
+  /// increasing inside (0, 1) draw as an even spread instead (`segments.ts`, the standalone client's segment layout).
+  fn phaseFractions(t: Element) -> list<double> {
+    return cel.bind(n, visiblePhases(t), cel.bind(f, phaseBoundaries(t).map(b, double(b - t.start) / double(max(1, t.stop - t.start))), f.size() == n - 1 && lists.range(f.size()).all(i, f[i] > 0.0 && f[i] < 1.0 && (i == 0 || f[i] > f[i - 1])) ? f : lists.range(n - 1).map(i, double(i + 1) / double(n))))
+  }
+
+  /// Where inner boundary `i` (1 to 3) lies, as a fraction of the trend's width; 1 when that boundary is not drawn.
+  fn boundaryFraction(t: Element, i: int) -> double {
+    return cel.bind(f, phaseFractions(t), i <= f.size() ? f[i - 1] : 1.0)
+  }
+
+  /// Where a dragged boundary lands, as a fraction: on the step grid counted from 1900-01, halves away from zero, then
+  /// kept one step from its neighbouring drawn boundaries or the trend's ends, or halfway between them when there is no
+  /// such room (`boundaryLanding` in the standalone client's `segments.ts`).
+  fn boundaryLanding(t: Element, i: int, v: double) -> double {
+    return cel.bind(u, double(unitMonths(diagram.unit)), cel.bind(span, double(t.stop - t.start), cel.bind(f, phaseFractions(t), cel.bind(prev, i == 1 ? 0.0 : f[i - 2], cel.bind(next, i == f.size() ? 1.0 : f[i], cel.bind(o, double(t.start - yearMonth(1900, 1)) / u, cel.bind(g, (math.round(o + v * span / u) - o) * u / span, cel.bind(lo, prev + u / span, cel.bind(hi, next - u / span, lo <= hi ? min(max(g, lo), hi) : (prev + next) / 2.0)))))))))
+  }
+
+  /// The month a landed boundary is written as: the step nearest its position, halves rounded up, as the client's
+  /// `monthAt` sends it.
+  fn boundaryMonth(t: Element, v: double) -> int {
+    return cel.bind(u, unitMonths(diagram.unit), cel.bind(o, yearMonth(1900, 1), o + int(math.floor((double(t.start - o) + v * double(t.stop - t.start)) / double(u) + 0.5)) * u))
+  }
+
+  /// The first month of the step that contains a drop point (`GhgScale.MonthContaining`).
+  fn dropMonth(x: double) -> int {
+    return cel.bind(u, unitMonths(diagram.unit), cel.bind(o, yearMonth(1900, 1), o + int(math.floor((x - double(o)) / double(u))) * u))
+  }
+
+  /// An attachment fraction with one or two decimals, such as `0.5`, `0.25` or `1.0` (`GhgEnd.FormatAt`).
+  fn atText(a: double) -> string {
+    return cel.bind(r, math.round(a * 100.0) / 100.0, string(r) + (r == math.trunc(r) ? '.0' : ''))
+  }
+
+  /// A note dimension with at most two decimals and none when whole, such as `160` (`SetGhgNoteSizeCommand.Format`).
+  fn sizeText(a: double) -> string {
+    return string(math.round(a * 100.0) / 100.0)
+  }
+
+  /// An end as the property grid shows it: `phase/edge/at`, each part empty when absent (`GhgEnd.ToString`). Called
+  /// with optionals, such as `self.?fromPhase`.
+  fn endSpec(phase: dyn, edge: dyn, at: dyn) -> string {
+    return phase.orValue('') + '/' + edge.orValue('') + '/' + (at.hasValue() ? atText(at.value()) : '')
+  }
+
+  /// Whether an end names a phase, a top or bottom edge, and an `at` from 0 to 1 (`GhgEnd.IsReadable`). A phase or edge
+  /// the enum does not know is kept as written (4.5), so it is checked by name.
+  fn endReadable(phase: dyn, edge: dyn, at: dyn) -> bool {
+    return phase.hasValue() && phase.value() in ['peak', 'trough', 'slope', 'plateau'] && edge.hasValue() && edge.value() in ['top', 'bottom'] && at.hasValue() && at.value() >= 0.0 && at.value() <= 1.0
+  }
+
+  /// An influence end as the property grid lists it: `Steam engine · Plateau`, or a trigger's name alone; an empty name
+  /// shows the id (`GhgContextPropertyProvider.Describe`).
+  fn endText(e: dyn, phase: string) -> string {
+    return cel.bind(name, e.name != '' ? e.name : e.id, e.isA('Trigger') ? name : name + ' · ' + phaseTitle(phase))
+  }
+
+  /// `text` without the line breaks it ends with.
+  fn trimmedLines(text: string) -> string {
+    var out = text
+    while out.endsWith('\n') limit 1000000 {
+      out = out.substring(0, out.size() - 1)
+    }
+    return out
+  }
+
+  fn listOrNone(items: list<string>) -> string {
+    return items.size() == 0 ? 'None' : items.join('\n')
+  }
+
+  /// `base` when it is free, otherwise `base 2`, `base 3` and so on: the first number not taken
+  /// (`GhgEdits.UniqueName`).
+  fn uniqueName(base: string, taken: list<string>) -> string {
+    return !(base in taken) ? base : base + ' ' + string(lists.range(taken.size() + 2).filter(k, k >= 2 && !((base + ' ' + string(k)) in taken))[0])
+  }
+
+  /// The first stored boundary that is not strictly after the previous stored one (or `start`) and strictly before
+  /// `stop`, written `key: YYYY-MM`; empty when every stored boundary is in order.
+  fn badBoundary(t: Element) -> string {
+    return cel.bind(s, t.start, cel.bind(e, t.stop, cel.bind(p, has(t.peakEnd) ? t.peakEnd : s, has(t.peakEnd) && (t.peakEnd <= s || t.peakEnd >= e) ? 'peak-end: ' + monthText(t.peakEnd) : cel.bind(q, has(t.troughEnd) ? t.troughEnd : p, has(t.troughEnd) && (t.troughEnd <= p || t.troughEnd >= e) ? 'trough-end: ' + monthText(t.troughEnd) : (has(t.slopeEnd) && (t.slopeEnd <= q || t.slopeEnd >= e) ? 'slope-end: ' + monthText(t.slopeEnd) : '')))))
+  }
+
+  /// The refusal for a span too short for the phases it shows, or empty when it is long enough (`GhgEdits.TooShort`).
+  fn tooShort(months: int, phases: int) -> string {
+    return months >= max(1, phases) ? '' : (phases <= 1 ? 'A trend must be at least one month long.' : 'A trend showing ' + string(phases) + ' phases must be at least ' + string(phases) + ' months long, one per phase.')
+  }
+
+  model {
+    document {
+      /// The time unit of the diagram: one step of the axis, the snapping unit and the precision a trigger's date is
+      /// shown in. Written as the optional top-level `unit:` key; an unknown value draws in months.
+      attribute unit: TimeUnit default month
+    }
+
+    /// A trend through the hype cycle, from `start` to `stop`, showing its first `phases` phases.
+    element Trend {
+      label Trend
+      icon: mdi-arrow-right-bold-box-outline
+      labelAttribute: name
+      bounds: {
+        neighbour: {
+          attributes: [peakEnd, troughEnd, slopeEnd]
+          between: [start, stop]
+          gap: 1
+          inner: (visiblePhases(self) - 1)
+          absent: spread
+          on: [change, handle]
+          pinned: edited
+          doc: "After a boundary is set (pinned) or the span changes, every stored boundary is clamped so each visible phase, including those spread evenly around it, stays at least one month long; a stored boundary beyond the last visible phase is only kept inside the span (`GhgPhases.KeptAMonthApart`). See the companion, Keeping every phase at least a month long."
+        }
+      }
+      attribute name: string { group: Identity, order: 1 }
+      /// Shown in the property grid only, never drawn.
+      attribute description: text { group: Identity, order: 2 }
+      /// Filtered on, case-insensitively.
+      attribute tags: string many { group: Identity, order: 3 }
+      attribute start: yearMonth { group: Time, order: 1 }
+      attribute stop: yearMonth { group: Time, order: 2 }
+      /// The row the trend is drawn in; row tops are 56 canvas units apart.
+      attribute row: int default 0
+      /// How many phases are shown, from Peak onwards: 1 to 4. A changed count keeps the stored boundaries.
+      attribute phases: int default 4 { group: Phases, order: 1 }
+      /// Where Peak ends, once dragged. Absent means spread evenly.
+      attribute peakEnd: yearMonth { group: Phases, order: 2 }
+      /// Where Trough ends, once dragged.
+      attribute troughEnd: yearMonth { group: Phases, order: 3 }
+      /// Where Slope ends, once dragged.
+      attribute slopeEnd: yearMonth { group: Phases, order: 4 }
+    }
+
+    /// An innovation trigger: a dated moment that can start influences.
+    element Trigger {
+      label Trigger
+      icon: mdi-circle-slice-8
+      labelAttribute: name
+      attribute name: string { group: Identity, order: 1 }
+      attribute description: text { group: Identity, order: 2 }
+      attribute tags: string many { group: Identity, order: 3 }
+      attribute date: yearMonth { group: Time, order: 1 }
+      attribute row: int default 0
+    }
+
+    /// Free text pinned to a date and a row. It has no tags, takes part in no influence, and stays visible under every
+    /// filter.
+    element Note {
+      label Note
+      icon: mdi-note-text-outline
+      labelAttribute: text
+      attribute text: text default "" { group: Identity, order: 1 }
+      /// The month of the note's left edge.
+      attribute at: yearMonth
+      /// The row of the note's top edge.
+      attribute row: int default 0
+      attribute width: number default 160 { precision: 2, unit: "canvas units" }
+      attribute height: number default 64 { precision: 2, unit: "canvas units" }
+    }
+
+    /// One trend (or a trigger) influencing another trend: at most one per direction, never to itself. Each end names
+    /// the phase, the edge and the fraction along that phase's edge where it attaches; an end at a trigger names
+    /// nothing.
+    relation Influence from Trend, Trigger to Trend {
+      label Influence
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      /// Absent for, and ignored on, an influence from a trigger.
+      attribute fromPhase: Phase
+      attribute fromEdge: Edge
+      /// The fraction along the phase's edge.
+      attribute fromAt: number { min: 0, max: 1, precision: 2 }
+      attribute toPhase: Phase
+      attribute toEdge: Edge
+      attribute toAt: number { min: 0, max: 1, precision: 2 }
+      /// Shown in the property grid only, never drawn.
+      attribute description: text { group: Identity }
+    }
+
+    /// Unit names as DISL's time units spell them, so the axis scale and the snap rule can bind to the diagram's `unit`
+    /// (`GhgTimeUnit`).
+    enum TimeUnit {
+      month { label: Month }
+      year { label: Year }
+      decade { label: Decade }
+      century { label: Century }
+      ordered: true
+    }
+
+    enum Phase {
+      peak { label: Peak, color: $ghg.peak, doc: "Peak of Inflated Expectations" }
+      trough { label: Trough, color: $ghg.trough, doc: "Trough of Disillusionment" }
+      slope { label: Slope, color: $ghg.slope, doc: "Slope of Enlightenment" }
+      plateau { label: Plateau, color: $ghg.plateau, doc: "Plateau of Productivity" }
+      ordered: true
+    }
+
+    enum Edge {
+      top { label: Top }
+      bottom { label: Bottom }
+    }
+  }
+
+  import "gartner-hype-cycle-graph.notation.atd"
+  import "gartner-hype-cycle-graph.ghg.atd"
+
+  constraints {
+    defaults: { severity: warning, timing: [live] }
+    blockSaveOn: never
+    order: [
+      "ghg.duplicate-influence",
+      "ghg.self-influence",
+      "ghg.stop-before-start",
+      "ghg.phase-count",
+      "ghg.boundary-order",
+      "ghg.bad-attachment",
+      "ghg.dangling-reference",
+      "ghg.duplicate-id",
+      "ghg.unreadable-entry",
+      "ghg.influence-into-trigger",
+      "ghg.trigger-date",
+      "ghg.note-position"
+    ]
+
+    builtin std.facets { severity: warning }
+
+    builtin std.endpoints {
+      severity: warning
+      message: (cel.bind(v, detail.?violation.orValue(self.target.isA('Trigger') ? 'target' : (self.source == self.target ? 'selfLoop' : 'parallel')), v == 'target' ? '`' + self.id + '` ends at the trigger `' + self.target.id + '`; an influence cannot end at a trigger.' : (v == 'selfLoop' ? '`' + self.id + '` has `' + self.source.id + '` influence itself; a trend cannot.' : '`' + self.source.id + '` influences `' + self.target.id + '` ' + string(self.source.outgoingOf('Influence').filter(r, r.target == self.target).size()) + ' times; a trend influences another once in each direction.')))
+      refusal: (target.isA('Trigger') ? 'An influence cannot end at a trigger.' : (!target.isA('Trend') || !(source.isA('Trend') || source.isA('Trigger')) ? 'An influence is drawn from one trend to another.' : (source == target ? 'A trend cannot influence itself.' : 'This trend already influences that one; a trend influences another once in each direction.')))
+      code: (cel.bind(v, detail.?violation.orValue(self.target.isA('Trigger') ? 'target' : (self.source == self.target ? 'selfLoop' : 'parallel')), v == 'target' ? 'ghg.influence-into-trigger' : (v == 'selfLoop' ? 'ghg.self-influence' : 'ghg.duplicate-influence')))
+      oncePerGroup: second
+      doc: "Covers ghg.influence-into-trigger, ghg.self-influence and ghg.duplicate-influence; the code per case is the computed `code`, by `detail.violation` (`target`, `selfLoop` or `parallel`), so an influence that is both a loop and a repeat is reported as each. A repeat is reported once per pair, on the second influence, however many follow (`oncePerGroup`). A hidden influence counts like any other, because the rule reads the model, not what is drawn."
+    }
+
+    builtin std.references {
+      severity: warning
+      code: "ghg.dangling-reference"
+      message: (detail.?end.orValue('target') == 'source' ? '`' + self.id + '` comes from `' + detail.missingId + '`, which is not a trend or a trigger in this document.' : '`' + self.id + '` names `' + detail.missingId + '`, which is not a trend in this document.')
+    }
+
+    builtin std.duplicateId {
+      code: "ghg.duplicate-id"
+      message: ('`' + detail.id + '` is declared ' + string(detail.?count.orValue(2)) + ' times; an id names one entry.')
+      oncePerGroup: last
+      doc: "Ids are unique across all four lists together. The later holder of an id is drawn, with an ephemeral id. An id held several times is reported once, on its last holder, with the count (`oncePerGroup`)."
+    }
+
+    builtin std.unreadableEntry { code: "ghg.unreadable-entry", message: (detail.reason) }
+
+    builtin std.unparseable {
+      severity: warning
+      code: "ghg.unreadable-entry"
+      message: ('The document could not be read as YAML: ' + detail.reason)
+    }
+
+    constraint stopAfterStart for Trend {
+      when has(self.start) && has(self.stop)
+      rule self.stop > self.start
+      message ('`' + self.id + '` stops at ' + monthText(self.stop) + ', not after it starts at ' + monthText(self.start) + '; a trend is at least a month long.')
+      code: "ghg.stop-before-start"
+      attribute: stop
+    }
+
+    constraint phaseCount for Trend {
+      rule self.phases >= 1 && self.phases <= 4
+      message ('`' + self.id + '` shows ' + string(self.phases) + ' phases; a trend shows 1 to 4.')
+      code: "ghg.phase-count"
+      attribute: phases
+    }
+
+    /// Stored boundaries lie strictly inside the span and strictly in phase order; one finding per trend, for the first
+    /// that does not. For drawing they are clamped, never rejected.
+    constraint boundaryOrder for Trend {
+      when has(self.start) && has(self.stop) && self.stop > self.start
+      rule badBoundary(self) == ''
+      message ('`' + self.id + '`\'s `' + badBoundary(self) + '` is out of order or outside ' + monthText(self.start) + ' to ' + monthText(self.stop) + '.')
+      code: "ghg.boundary-order"
+    }
+
+    /// An influence leaving a trend names where it leaves; one leaving a trigger names nothing.
+    constraint fromAttachment for Influence {
+      when !self.source.isA('Trigger')
+      rule endReadable(self.?fromPhase, self.?fromEdge, self.?fromAt)
+      message ('`' + self.id + '`\'s from end (' + endSpec(self.?fromPhase, self.?fromEdge, self.?fromAt) + ') does not name a phase, a top or bottom edge, and an `at` from 0 to 1.')
+      code: "ghg.bad-attachment"
+    }
+
+    /// An end at a trigger is ghg.influence-into-trigger's to report.
+    constraint toAttachment for Influence {
+      when !self.target.isA('Trigger')
+      rule endReadable(self.?toPhase, self.?toEdge, self.?toAt)
+      message ('`' + self.id + '`\'s to end (' + endSpec(self.?toPhase, self.?toEdge, self.?toAt) + ') does not name a phase, a top or bottom edge, and an `at` from 0 to 1.')
+      code: "ghg.bad-attachment"
+    }
+
+    constraint triggerDate for Trigger {
+      rule has(self.date)
+      message ('`' + self.id + '` has no `date` written as YYYY-MM; a trigger cannot be drawn without one.')
+      code: "ghg.trigger-date"
+      attribute: date
+    }
+
+    constraint notePosition for Note {
+      rule has(self.at) && has(self.width) && has(self.height) && self.width > 0.0 && self.height > 0.0
+      message ('`' + self.id + '` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them.')
+      code: "ghg.note-position"
+    }
+
+    /// A note's text may be emptied; a trend's or trigger's name may not.
+    constraint nameNotEmpty for Trend, Trigger {
+      rule attribute != 'name' || string(newValue).trim() != ''
+      message (self.isA('Trend') ? 'A trend needs a name.' : 'A trigger needs a name.')
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint spanReadable for Trend {
+      rule !(attribute in ['start', 'stop']) || (has(self.start) && has(self.stop) && self.stop > self.start)
+      message "This trend's dates cannot be read, so it cannot be changed until they are fixed in the file."
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint stopAfterStartEdit for Trend {
+      rule !(attribute in ['start', 'stop']) || (attribute == 'stop' ? newValue : self.stop) > (attribute == 'start' ? newValue : self.start)
+      message "A trend must stop after it starts, at least one month later."
+      kind: change
+      enforcement: prevent
+    }
+
+    /// A trend showing N phases is at least N months long. A span edit counts the visible phases; a phase-count edit
+    /// counts the phases asked for, before the range check below.
+    constraint spanFitsPhases for Trend {
+      when has(self.start) && has(self.stop) && self.stop > self.start
+      rule !(attribute in ['start', 'stop', 'phases']) || tooShort((attribute == 'stop' ? newValue : self.stop) - (attribute == 'start' ? newValue : self.start), attribute == 'phases' ? newValue : visiblePhases(self)) == ''
+      message (tooShort((attribute == 'stop' ? newValue : self.stop) - (attribute == 'start' ? newValue : self.start), attribute == 'phases' ? newValue : visiblePhases(self)))
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint phasesInRange for Trend {
+      rule attribute != 'phases' || (newValue >= 1 && newValue <= 4)
+      message "A trend shows 1 to 4 phases."
+      kind: change
+      enforcement: prevent
+    }
+
+    /// A resize can move a note's left edge, which is written as its month; a note whose month cannot be read has no
+    /// edge to move from.
+    constraint noteSizeNeedsPosition for Note {
+      rule !(attribute in ['width', 'height']) || has(self.at)
+      message "This note's position cannot be read, so it cannot be resized until it is fixed in the file."
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint noteSizePositive for Note {
+      rule !(attribute in ['width', 'height']) || double(newValue) > 0.0
+      message "A note needs a width and a height."
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint spanFitsPhasesOnCanvas for Trend {
+      rule gesture != 'resize' || (newBounds.x2 > newBounds.x && tooShort(newBounds.x2 - newBounds.x, visiblePhases(self)) == '')
+      message (newBounds.x2 <= newBounds.x ? 'A trend must stop after it starts, at least one month later.' : tooShort(newBounds.x2 - newBounds.x, visiblePhases(self)))
+      kind: placement
+      enforcement: prevent
+    }
+  }
+
+  message std.readOnly "The graph could not be read, so it cannot be edited."
+
+  /// Forgets every dragged boundary, so the phases are spread evenly again.
+  operation evenPhases "Even phases" for Trend {
+    unavailable [
+      {
+        when: (!has(self.peakEnd) && !has(self.troughEnd) && !has(self.slopeEnd))
+        message: "This trend's phases are already even."
+      }
+    ]
+    icon: mdi-arrow-split-vertical
+    unset peakEnd
+    unset troughEnd
+    unset slopeEnd
+  }
+
+  /// Puts every trend, trigger and note on the row that leaves the graph least cluttered, as one undoable step; only
+  /// rows change, never a date. Invoked, never automatic. The algorithm is the layout `rowArrange`.
+  operation arrange "Arrange diagram" for document {
+    unavailable [{ when: (diagram.nodes.size() == 0), message: "There is nothing to arrange until this graph has a trend." }]
+    icon: mdi-sitemap-outline
+    layout rowArrange
+  }
+
+  /// Adds at the point that was clicked, as a toolbox drop there would.
+  operation addTrendHere "Add trend here" for document {
+    icon: mdi-plus
+    create Trend { name: uniqueName('New trend', diagram.nodesOfType('Trend').map(t, t.name)), start: dropMonth(double(position.x)), stop: dropMonth(double(position.x)) + 12 * unitMonths(diagram.unit), row: int(math.round(double(position.y) - 2.0 / 7.0)), phases: 4 } at position
+  }
+
+  operation addTriggerHere "Add trigger here" for document {
+    icon: mdi-circle-slice-8
+    create Trigger { name: uniqueName('Trigger', diagram.nodesOfType('Trigger').map(t, t.name)), date: dropMonth(double(position.x)), row: int(math.round(double(position.y) - 2.0 / 7.0)) } at position
+  }
+
+  operation addNoteHere "Add note here" for document {
+    icon: mdi-note-text-outline
+    create Note { text: '', at: dropMonth(double(position.x)), row: int(math.floor(double(position.y))), width: 160.0, height: 64.0 } at position
+  }
+
+  /// Stored boundaries follow the span: a move shifts them exactly, a resize scales each offset from the start by the
+  /// new span over the old (`GhgPhases.Rescaled`). The clamp that follows is the Trend type's `bounds.neighbour`.
+  hook rescaleBoundaries on change for Trend {
+    when old != null && has(old.start) && has(old.stop)
+    attribute: [start, stop]
+    phase: after
+    let oldStart = old.start
+    let oldSpan = max(1, old.stop - old.start)
+    let newStart = self.start
+    let newSpan = self.stop - self.start
+    set peakEnd = newStart + int(math.round(double(old.peakEnd - oldStart) * double(newSpan) / double(oldSpan)))
+    set troughEnd = newStart + int(math.round(double(old.troughEnd - oldStart) * double(newSpan) / double(oldSpan)))
+    set slopeEnd = newStart + int(math.round(double(old.slopeEnd - oldStart) * double(newSpan) / double(oldSpan)))
+  }
+
+  /// A name is written trimmed (`GhgWriter.SetName`); one left empty is refused by `nameNotEmpty`.
+  hook trimName on change for Trend, Trigger {
+    attribute: [name]
+    phase: after
+    set name = self.name.trim()
+  }
+
+  /// Tags are written each once, in the order first written (`SetGhgTagsCommand.Parsed`).
+  hook tagsOnce on change for Trend, Trigger {
+    attribute: [tags]
+    phase: after
+    set tags = self.tags.distinct()
+  }
+
+  /// A note's text is written with LF line breaks and without trailing ones (`GhgWriter.Normalised`): the binding
+  /// writes the body's own line ending.
+  hook noteText on change for Note {
+    attribute: [text]
+    phase: after
+    set text = trimmedLines(self.text.replace('\r\n', '\n').replace('\r', '\n'))
+  }
+
+  behavior {
+    deletion: {
+      Trend: {
+        relations: delete
+        confirm: {
+          count: (self.incoming.size() + self.outgoing.filter(r, r.target != self).size())
+          threshold: 1
+          title: Remove
+          message: ('Removing this trend also removes the ' + string(count) + (count == 1 ? ' influence' : ' influences') + ' to or from it.')
+          confirmLabel: Remove
+          danger: true
+        }
+      }
+      Trigger: {
+        relations: delete
+        confirm: {
+          count: (self.incoming.size() + self.outgoing.filter(r, r.target != self).size())
+          threshold: 1
+          title: Remove
+          message: ('Removing this trigger also removes the ' + string(count) + (count == 1 ? ' influence' : ' influences') + ' to or from it.')
+          confirmLabel: Remove
+          danger: true
+        }
+      }
+    }
+  }
+
+  /// The FBL binding's element types and attributes, mapped onto this metamodel. The binding reads an influence as an
+  /// element with reference attributes, so one whose end names nothing is kept and reported, and the unit and header as
+  /// elements of their own.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: uuid-v4
+      encoding: base36
+      stable: true
+      doc: "New entries get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `steam-engine` are kept as written. Ids are unique across all four lists together."
+    }
+    view: { store: [], viewer: [viewpoint, filters, viewport] }
+    typeMap: {
+      Graph: { as: header, doc: "The `gartner-hypecycle-graph: 1` header; the binding's `header` reads it." }
+      Unit: { as: diagram, attributes: { value: unit } }
+      Trend: { as: Trend, hostAttributes: [storedId, unknownKeys] }
+      Trigger: { as: Trigger, hostAttributes: [storedId, unknownKeys] }
+      Note: { as: Note, hostAttributes: [storedId, unknownKeys] }
+      Influence: { as: Influence, attributes: { from: source, to: target }, hostAttributes: [storedId, unknownKeys] }
+      Unreadable: { as: unreadable }
+    }
+  }
+
+}

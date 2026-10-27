@@ -1,0 +1,161 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/cases/databricks/job/cycle.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "resources:\n  jobs:\n    circular:\n      name: Circular with a tail\n      tasks:\n        - task_key: left\n          depends_on:\n            - task_key: right\n          notebook_task:\n            notebook_path: notebooks/left\n        - task_key: right\n          depends_on:\n            - task_key: left\n          notebook_task:\n            notebook_path: notebooks/right\n        - task_key: after_circle\n          depends_on:\n            - task_key: right\n          notebook_task:\n            notebook_path: notebooks/after\n        - task_key: further_after\n          depends_on:\n            - task_key: after_circle\n          notebook_task:\n            notebook_path: notebooks/further\n        - task_key: independent\n          notebook_task:\n            notebook_path: notebooks/independent\n",
+    "files": {
+      "cycle-downstream.job.adp": "databricks/job\nbody: cycle-downstream.yml\n"
+    }
+  },
+  "args": {
+    "reading": "job"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "task:left",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "left",
+          "taskType": "notebook",
+          "source": "notebooks/left",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "left",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:right",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "right",
+          "taskType": "notebook",
+          "source": "notebooks/right",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "right",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:after_circle",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "after_circle",
+          "taskType": "notebook",
+          "source": "notebooks/after",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "after_circle",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:further_after",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "further_after",
+          "taskType": "notebook",
+          "source": "notebooks/further",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "further_after",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:independent",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "independent",
+          "taskType": "notebook",
+          "source": "notebooks/independent",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "independent",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:right->left",
+        "type": "databricks/job+edge",
+        "source": "task:right",
+        "target": "task:left",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:left->right",
+        "type": "databricks/job+edge",
+        "source": "task:left",
+        "target": "task:right",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:right->after_circle",
+        "type": "databricks/job+edge",
+        "source": "task:right",
+        "target": "task:after_circle",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:after_circle->further_after",
+        "type": "databricks/job+edge",
+        "source": "task:after_circle",
+        "target": "task:further_after",
+        "attributes": {
+          "kind": "depends"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 6,
+        "message": "'left' is part of a dependency circle, so it can never run. Break the circle."
+      },
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 11,
+        "message": "'right' is part of a dependency circle, so it can never run. Break the circle."
+      },
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 16,
+        "message": "'after_circle' is part of a dependency circle, so it can never run. Break the circle."
+      },
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 21,
+        "message": "'further_after' is part of a dependency circle, so it can never run. Break the circle."
+      }
+    ]
+  }
+}

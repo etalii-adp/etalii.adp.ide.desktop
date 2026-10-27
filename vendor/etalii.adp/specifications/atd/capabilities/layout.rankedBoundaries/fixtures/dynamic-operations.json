@@ -1,0 +1,114 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/cases/c4/dynamic/operations.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "mobile",
+        "type": "container",
+        "width": 240.0,
+        "height": 98.4
+      },
+      {
+        "id": "api",
+        "type": "container",
+        "width": 240.0,
+        "height": 98.4
+      },
+      {
+        "id": "database",
+        "type": "container",
+        "width": 240.0,
+        "height": 98.4
+      },
+      {
+        "id": "broker",
+        "type": "container",
+        "width": 240.0,
+        "height": 118.0
+      },
+      {
+        "id": "email",
+        "type": "software system",
+        "width": 216.5,
+        "height": 78.8
+      },
+      {
+        "id": "sender",
+        "type": "person",
+        "width": 240.0,
+        "height": 98.4
+      }
+    ],
+    "edges": [
+      {
+        "id": "mobile->api#1",
+        "source": "mobile",
+        "target": "api"
+      },
+      {
+        "id": "api->database#2",
+        "source": "api",
+        "target": "database"
+      },
+      {
+        "id": "api->broker#3",
+        "source": "api",
+        "target": "broker"
+      },
+      {
+        "id": "broker->api#4",
+        "source": "broker",
+        "target": "api"
+      },
+      {
+        "id": "api->email#5",
+        "source": "api",
+        "target": "email"
+      },
+      {
+        "id": "email->sender#6",
+        "source": "email",
+        "target": "sender"
+      }
+    ]
+  },
+  "args": {
+    "mode": "enclose",
+    "direction": "'lr'",
+    "rankSeparation": "120",
+    "nodeSeparation": "60",
+    "pinsIgnored": "true",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "mobile": {
+        "x": 0.0,
+        "y": -49.2
+      },
+      "database": {
+        "x": 360.0,
+        "y": -207.6
+      },
+      "broker": {
+        "x": 360.0,
+        "y": -49.2
+      },
+      "email": {
+        "x": 371.75,
+        "y": 128.8
+      },
+      "api": {
+        "x": 720.0,
+        "y": -128.4
+      },
+      "sender": {
+        "x": 720.0,
+        "y": 30.0
+      }
+    }
+  }
+}

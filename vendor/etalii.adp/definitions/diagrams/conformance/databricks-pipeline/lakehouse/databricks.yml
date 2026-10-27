@@ -1,0 +1,53 @@
+# The lakehouse bundle: one nightly ingest job (declared in resources/), one declarative
+# pipeline refining bronze into gold, deployed to a development and a production target.
+bundle:
+  name: lakehouse
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: The Unity Catalog everything below writes into.
+    default: lakehouse_dev
+  warehouse_id:
+    description: The SQL warehouse the dashboard refresh runs on.
+    default: "4b9b953939869799"
+
+resources:
+  pipelines:
+    bronze_to_gold:
+      name: Bronze to gold
+      catalog: ${var.catalog}
+      schema: gold
+      serverless: true
+      channel: CURRENT
+      libraries:
+        - notebook:
+            path: transformations/bronze
+        - notebook:
+            path: transformations/silver
+        - glob:
+            include: transformations/gold/**
+      notifications:
+        - email_recipients:
+            - data-eng@vrenken.eu
+          alerts:
+            - on-update-failure
+            - on-update-fatal-failure
+
+targets:
+  dev:
+    mode: development
+    default: true
+  prod:
+    mode: production
+    resources:
+      pipelines:
+        bronze_to_gold:
+          catalog: lakehouse_prod
+          serverless: false
+      jobs:
+        nightly_ingest:
+          schedule:
+            quartz_cron_expression: "0 0 2 * * ?"

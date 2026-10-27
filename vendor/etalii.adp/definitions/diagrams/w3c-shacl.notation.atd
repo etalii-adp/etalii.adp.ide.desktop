@@ -1,0 +1,329 @@
+atd 0.1
+part of w3c/shacl
+
+// The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+/// SHACL Play's UML-card convention in this repository's card idiom: a card per shape, targets as sentences under the
+/// title, one row per constraint. Colours come from the host's theme: the tokens copy standalone's theme variables
+/// (`src/client/src/index.css`), light and dark.
+notation {
+  theme {
+    tokens: {
+      color.surface: "#ffffff"
+      color.text: "#0f172a"
+      color.text.muted: "#64748b"
+      color.border: "#e2e8f0"
+      color.node.outline: "#8892a6"
+      color.primary: "limegreen"
+      color.warning: "#b45309"
+      font.body: "system-ui, sans-serif"
+      font.mono: "ui-monospace, monospace"
+    }
+    modes: {
+      dark: {
+        color.surface: "#1e293b"
+        color.text: "#f1f5f9"
+        color.text.muted: "#94a3b8"
+        color.border: "#334155"
+        color.warning: "#fbbf24"
+      }
+    }
+    followSystem: true
+  }
+  style card {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1.5 }
+    cornerRadius: 6
+    font: { size: 12, color: $color.text }
+  }
+  style small { font: { size: 10 } }
+  style muted extends small { font: { color: $color.text.muted } }
+  style target { font: { size: 11, style: italic, color: $color.text }, opacity: 0.85 }
+  style row { font: { size: 11, color: $color.text } }
+
+  node Shape {
+    shape roundedRect { radius: 6 }
+    label (self.title) as title {
+      position: { anchor: [0.5, 0], offset: [0, 20] }
+      overflow: ellipsis
+      maxLines: 1
+      editable: false
+      style: { font: { weight: 600 } }
+    }
+    label (self.badges) as badges {
+      position: { anchor: [1, 0], offset: [-8, 20], align: end }
+      style: { font: { size: 11, color: $color.text.muted } }
+      visible: (self.badges != '')
+    }
+    compartment targets {
+      items: @targets
+      itemText: (item.kind == 'implicitClass' ? 'targets its own instances' : 'targets ' + {
+        'class': 'class ',
+        'node': 'node ',
+        'subjectsOf': 'subjects of ',
+        'objectsOf': 'objects of '
+      }
+      [item.kind] + item.term)
+      itemStyle: "target"
+      separator: none
+      overflow: grow
+    }
+    compartment rows {
+      items: @rows
+      itemText: (((item.sparql ? 'SPARQL constraint' : item.path) + '   ' + item.summary + '   ' + item.cardinality).trim())
+      itemStyle: "row"
+      itemConditions: [{ when: (item.sparql), style: { font: { style: italic } } }]
+      separator: none
+      overflow: grow
+    }
+    style: "card"
+    size: { width: 260, height: (56 + (size(self.targets) + size(self.rows)) * 22), resizable: false }
+    anchors: { mode: outline }
+    conditions: [{
+      when: (self.blank)
+      style: { stroke: { dash: [4, 3], dashScale: absolute } }
+      doc: "An anonymous shape draws like any other and simply cannot be moved; the dash says so without hiding it."
+    }
+    , {
+      when: (self.deactivated)
+      style: { opacity: 0.55 }
+      doc: "A deactivated shape is dimmed rather than removed: a reader auditing shapes needs to see what is switched off."
+    }
+    ]
+    connectable: false
+    doubleClick: "none"
+    tooltip: (self.blank ? 'Anonymous shape' : self.iri)
+  }
+
+  /// Every kind draws the same line; the label names the kind or the row's path.
+  edge Reference {
+    line { stroke: { color: $color.text.muted, width: 1.5 }, routing: straight }
+    marker source none
+    marker target arrow
+    label (self.label) as label {
+      at: middle,
+      side: above,
+      distance: 6,
+      editable: false,
+      style: { font: { size: 11, color: $color.text.muted } }
+    }
+    reconnectable: false
+    deletable: false
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true }
+  group shapes "SHACL" {
+    /// A shape that constrains focus nodes. Drop it where it should sit; you will be asked for its name.
+    tool nodeShape "Node shape" {
+      kind: operation,
+      operation: "addNodeShape",
+      icon: "mdi-check-decagram-outline",
+      mode: drop
+    }
+    /// A constraint on the values reached over one path. Drop it on a shape; you will be asked for the path.
+    tool propertyRow "Property row" {
+      kind: operation,
+      operation: "addPropertyRow",
+      icon: "mdi-table-row-plus-after",
+      mode: drop
+    }
+  }
+  /// A named shape is a resource, and today the family's two entries answer for it before the shape's own; the shape
+  /// entries of the 0.1 draft are not offered, so they are not stated (`w3c-shacl.md`). A blank shape has no menu.
+  context for Shape when !self.blank {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: operation, operation: "renameResource", icon: "mdi-pencil-outline", shortcut: "F2" }
+    tool { kind: operation, operation: "removeResource", icon: "mdi-delete-outline", shortcut: "Delete" }
+  }
+  /// A placement: the empty canvas at a point.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add node shape here…" {
+      kind: operation,
+      operation: "addNodeShape",
+      icon: "mdi-check-decagram-outline",
+      group: "shapes"
+    }
+    tool "Add resource here…" {
+      kind: operation,
+      operation: "addResource",
+      icon: "mdi-card-plus-outline",
+      group: "family"
+    }
+    tool "Declare prefix…" { kind: operation, operation: "declarePrefix", icon: "mdi-at", group: "family" }
+  }
+  /// A finished connect gesture between two elements.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    tool "Relate…" {
+      kind: operation,
+      operation: "relate",
+      icon: "mdi-ray-start-arrow",
+      args: { from: (source), to: (target) }
+    }
+  }
+}
+
+form shapeInspector for Shape {
+  usage: [inspector]
+  section "Identity" {
+    field iriText {
+      id: "iri"
+      widget: readonly
+      readOnlyReasons: [{
+        when: (self.blank)
+        message: "This constraint is written as a blank node, which has no identity that survives a reparse, so an edit keyed to it could not be undone reliably. Open the file as text to change it, or give the shape an IRI of its own."
+      }
+      , "Rename through the context menu, so every reference follows the name."]
+    }
+    field display {
+      widget: readonly,
+      readOnlyReasons: ["Rename through the context menu, so every reference follows the name."]
+    }
+  }
+  section "Shape" {
+    field name {
+      widget: text
+      readOnlyReasons: [{
+        when: (self.blank)
+        message: "This constraint is written as a blank node, which has no identity that survives a reparse, so an edit keyed to it could not be undone reliably. Open the file as text to change it, or give the shape an IRI of its own."
+      }
+      , { reason: "truncated" }]
+    }
+    field description {
+      widget: text
+      readOnlyReasons: [{
+        when: (self.blank)
+        message: "This constraint is written as a blank node, which has no identity that survives a reparse, so an edit keyed to it could not be undone reliably. Open the file as text to change it, or give the shape an IRI of its own."
+      }
+      , { reason: "truncated" }]
+    }
+    field messageText {
+      id: "message"
+      widget: readonly
+      visible: (size(self.message) > 0)
+      readOnlyReasons: ["This is edited as triples in the graph reading."]
+    }
+    field deactivatedText {
+      id: "deactivated",
+      widget: readonly,
+      readOnlyReasons: ["Switch the shape off and on through the context menu."]
+    }
+    field closed {
+      widget: readonly,
+      visible: (self.closed),
+      readOnlyReasons: ["This is edited as triples in the graph reading."]
+    }
+    field severity {
+      widget: readonly
+      visible: (self.severity != '')
+      readOnlyReasons: ["This is edited as triples in the graph reading."]
+    }
+  }
+  section "Targets" {
+    visible: (size(self.targets) > 0)
+    /// One row per chip, labelled by its kind, its term followed by ' (not described in this file)' where the file
+    /// never describes it; the implicit target reads its own sentence (`w3c-shacl.md`).
+    field targets {
+      widget: readonly,
+      readOnlyReasons: ["Targets are declared and withdrawn through the context menu."]
+    }
+  }
+  section "Constraints" {
+    visible: (size(self.rows) > 0 || size(self.sparqlQueries) > 0)
+    /// One row per constraint row, labelled by its path (or SPARQL, or constraint) and its name, valued by its summary
+    /// and cardinality; a blank row reads the blank-node sentence (`w3c-shacl.md`).
+    field rows {
+      widget: readonly,
+      readOnlyReasons: ["Property rows are added through the context menu, and edited as triples."]
+    }
+    field sparqlQueries {
+      id: "sparql"
+      widget: readonly
+      visible: (size(self.sparqlQueries) > 0)
+      readOnlyReasons: ["Shown as written, never parsed beyond extraction and never executed - this reading draws constraints, it does not run them."]
+    }
+  }
+}
+
+form addNodeShapeDialog "Add node shape" for diagram {
+  usage: [popover]
+  icon: "mdi-check-decagram-outline"
+  submitLabel: "Add"
+  field iri "Shape IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form addPropertyRowDialog "Add property row" for Shape {
+  usage: [popover]
+  icon: "mdi-table-row-plus-after"
+  submitLabel: "Add"
+  field path "Path IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form addResourceDialog "Add resource" for diagram {
+  usage: [popover]
+  icon: "mdi-card-plus-outline"
+  submitLabel: "Add"
+  field iri "IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form declarePrefixDialog "Declare prefix" for diagram {
+  usage: [popover]
+  icon: "mdi-at"
+  submitLabel: "Declare"
+  field declaration "Declaration, e.g. ex: http://example.org/" {
+    validate: [{
+      rule: (value.matches('^\\s*[^:\\s]+\\s*:\\s*<?[A-Za-z][A-Za-z0-9+.-]*:[^\\s<>]*>?\\s*$'))
+      message: "Write the declaration as 'prefix: iri', e.g. ex: http://example.org/."
+    }
+    ]
+  }
+}
+
+form relateDialog "Relate" for diagram {
+  usage: [popover]
+  icon: "mdi-ray-start-arrow"
+  submitLabel: "Relate"
+  field predicate "Predicate (IRI or prefixed name)" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form renameDialog "Rename resource" for Shape {
+  usage: [popover]
+  icon: "mdi-pencil-outline"
+  submitLabel: "Rename"
+  field newName "New IRI or prefixed name" {
+    initial: (rdfCompress(self.iri))
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }, {
+      rule: (!diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == rdfResolveTerm(value)) || (t.oKind == 'iri' && t.o == rdfResolveTerm(value))))
+      message: (rdfResolveTerm(value) + ' already names something in this document; renaming onto it would silently merge two resources.')
+    }
+    ]
+  }
+}
+
+/// Pure and deterministic, no physics: the same file always opens the same way. Authored positions from the
+/// registration override computed ones card by card; anonymous cards always take their computed place.
+layout {
+  default shapeGrid
+  /// Cards in discovery order fill three columns left to right; each grid row is as tall as its tallest card.
+  algorithm shapeGrid capability layout.grid { columns: 3 columnGap: 0 rowGap: 48 }
+  /// The declarative approximation of shapeGrid, for a runtime without the capability: a three-column grid in persistence order.
+  algorithm fallback { algorithm: "grid", spacing: { node: 60, layer: 48 }, options: { columns: 3 } }
+  trigger: onLoadIfMissing
+  respect: all
+}
+
+viewpoint shapes "Shapes" { exclude: ["Triple", "Prefix", "Base"], default: true }

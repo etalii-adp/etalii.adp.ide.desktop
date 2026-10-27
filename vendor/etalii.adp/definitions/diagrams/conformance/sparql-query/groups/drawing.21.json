@@ -1,0 +1,1097 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "header:query",
+      "type": "w3c/sparql+header",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 24,
+        "w": 0,
+        "h": 0
+      },
+      "labels": [
+        {
+          "id": "form",
+          "text": "SELECT",
+          "font": "12 600",
+          "position": {
+            "x": 0,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "lit:true^boolean",
+      "type": "w3c/sparql+term",
+      "shape": "rect",
+      "bounds": {
+        "x": 1320,
+        "y": 450,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "annotation",
+          "text": "boolean",
+          "font": "10 400",
+          "position": {
+            "x": 1328,
+            "y": 504
+          }
+        },
+        {
+          "id": "display",
+          "text": "true",
+          "font": "13 400",
+          "position": {
+            "x": 1405,
+            "y": 488.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "note:where/bind.0",
+      "type": "w3c/sparql+annotation",
+      "shape": "path",
+      "bounds": {
+        "x": 270,
+        "y": 88,
+        "w": 0,
+        "h": 0
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "BIND(?x * 2 AS ?doubled)",
+          "font": "11 400",
+          "position": {
+            "x": 270,
+            "y": 88
+          }
+        }
+      ]
+    },
+    {
+      "id": "note:where/filter.0",
+      "type": "w3c/sparql+annotation",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": -6,
+        "w": 0,
+        "h": 0
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "FILTER NOT EXISTS { ?s ex:hidden true }",
+          "font": "11 400",
+          "position": {
+            "x": 0,
+            "y": -6
+          }
+        }
+      ]
+    },
+    {
+      "id": "note:where/optional.0/filter.0",
+      "type": "w3c/sparql+annotation",
+      "shape": "path",
+      "bounds": {
+        "x": 512,
+        "y": 224,
+        "w": 0,
+        "h": 0
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "FILTER(?x > 3)",
+          "font": "11 400",
+          "position": {
+            "x": 512,
+            "y": 224
+          }
+        }
+      ]
+    },
+    {
+      "id": "note:where/values.0",
+      "type": "w3c/sparql+annotation",
+      "shape": "path",
+      "bounds": {
+        "x": 900,
+        "y": 58,
+        "w": 0,
+        "h": 0
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "VALUES ?x { 1 2 3 }",
+          "font": "11 400",
+          "position": {
+            "x": 900,
+            "y": 58
+          }
+        }
+      ]
+    },
+    {
+      "id": "region:where/graph.0",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": 40,
+        "y": 668,
+        "w": 242,
+        "h": 166
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "GRAPH ?g",
+          "font": "11 400",
+          "position": {
+            "x": 40,
+            "y": 664
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "region:where/minus.0",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": 1320,
+        "y": 384,
+        "w": 242,
+        "h": 166
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "MINUS",
+          "font": "11 400",
+          "position": {
+            "x": 1320,
+            "y": 380
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          4
+        ]
+      }
+    },
+    {
+      "id": "region:where/optional.0",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": 500,
+        "y": 202,
+        "w": 242,
+        "h": 134
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "OPTIONAL",
+          "font": "11 400",
+          "position": {
+            "x": 500,
+            "y": 198
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          4
+        ]
+      }
+    },
+    {
+      "id": "region:where/optional.1",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": 10,
+        "y": 1000,
+        "w": 242,
+        "h": 166
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "OPTIONAL",
+          "font": "11 400",
+          "position": {
+            "x": 10,
+            "y": 996
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          4
+        ]
+      }
+    },
+    {
+      "id": "region:where/service.0",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": -200.13,
+        "y": 0.5,
+        "w": 242,
+        "h": 166
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "SERVICE SILENT <http://example.org/sparql>",
+          "font": "11 400",
+          "position": {
+            "x": -200.13,
+            "y": -3.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "region:where/union.0",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": 362,
+        "y": 424,
+        "w": 918,
+        "h": 236
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "UNION",
+          "font": "11 400",
+          "position": {
+            "x": 362,
+            "y": 420
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1
+      },
+      "children": [
+        "region:where/union.0/branch.0",
+        "region:where/union.0/branch.1",
+        "region:where/union.0/branch.2"
+      ]
+    },
+    {
+      "id": "region:where/union.0/branch.0",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": 398,
+        "y": 490,
+        "w": 242,
+        "h": 134
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "",
+          "font": "11 400",
+          "position": {
+            "x": 398,
+            "y": 486
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "region:where/union.0/branch.1",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": 689.5,
+        "y": 502.25,
+        "w": 242,
+        "h": 134
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "",
+          "font": "11 400",
+          "position": {
+            "x": 689.5,
+            "y": 498.25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "region:where/union.0/branch.2",
+      "type": "w3c/sparql+region",
+      "shape": "rect",
+      "bounds": {
+        "x": 1002,
+        "y": 490,
+        "w": 242,
+        "h": 134
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "",
+          "font": "11 400",
+          "position": {
+            "x": 1002,
+            "y": 486
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "sub:where.0",
+      "type": "w3c/sparql+term",
+      "shape": "path",
+      "bounds": {
+        "x": 270,
+        "y": 202,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "annotation",
+          "text": "subquery",
+          "font": "10 400",
+          "position": {
+            "x": 278,
+            "y": 256
+          }
+        },
+        {
+          "id": "display",
+          "text": "SELECT ?s (MAX(?v) A…",
+          "font": "13 400",
+          "position": {
+            "x": 355,
+            "y": 240.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "var:best",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 40,
+        "y": 90,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "?best",
+          "font": "13 400",
+          "position": {
+            "x": 125,
+            "y": 128.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:doubled",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 270,
+        "y": 90,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "annotation",
+          "text": "BIND(?x * 2 AS ?doubled)",
+          "font": "10 400",
+          "position": {
+            "x": 278,
+            "y": 144
+          }
+        },
+        {
+          "id": "display",
+          "text": "?doubled",
+          "font": "13 400",
+          "position": {
+            "x": 355,
+            "y": 128.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:g2",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 76,
+        "y": 734,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "?g2",
+          "font": "13 400",
+          "position": {
+            "x": 161,
+            "y": 772.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:r",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": -164.13,
+        "y": 66.5,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "?r",
+          "font": "13 400",
+          "position": {
+            "x": -79.13,
+            "y": 105
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:s",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 500,
+        "y": 40,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "?s",
+          "font": "13 400",
+          "position": {
+            "x": 585,
+            "y": 78.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:x",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 900,
+        "y": 60,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "?x",
+          "font": "13 400",
+          "position": {
+            "x": 985,
+            "y": 98.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:y",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 61,
+        "y": 1081,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "?y",
+          "font": "13 400",
+          "position": {
+            "x": 146,
+            "y": 1119.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:sub:where.0|best|var:best|0",
+      "type": "w3c/sparql+edge",
+      "source": "sub:where.0",
+      "target": "var:best",
+      "route": [
+        {
+          "x": 289.29,
+          "y": 202
+        },
+        {
+          "x": 190.71,
+          "y": 154
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "?best",
+          "font": "11 400",
+          "position": {
+            "x": 240,
+            "y": 172
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:sub:where.0|s|var:s|0",
+      "type": "w3c/sparql+edge",
+      "source": "sub:where.0",
+      "target": "var:s",
+      "route": [
+        {
+          "x": 400.43,
+          "y": 202
+        },
+        {
+          "x": 539.57,
+          "y": 104
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "?s",
+          "font": "11 400",
+          "position": {
+            "x": 470,
+            "y": 147
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:banned|lit:true^boolean|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "lit:true^boolean",
+      "route": [
+        {
+          "x": 649,
+          "y": 104
+        },
+        {
+          "x": 1341,
+          "y": 450
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:banned",
+          "font": "11 400",
+          "position": {
+            "x": 995,
+            "y": 271
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:in|var:g2|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "var:g2",
+      "route": [
+        {
+          "x": 565.45,
+          "y": 104
+        },
+        {
+          "x": 180.55,
+          "y": 734
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:in",
+          "font": "11 400",
+          "position": {
+            "x": 373,
+            "y": 413
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:p|var:x|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "var:x",
+      "route": [
+        {
+          "x": 670,
+          "y": 76.25
+        },
+        {
+          "x": 900,
+          "y": 87.75
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:p",
+          "font": "11 400",
+          "position": {
+            "x": 785,
+            "y": 76
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:q|var:x|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "var:x",
+      "route": [
+        {
+          "x": 670,
+          "y": 76.25
+        },
+        {
+          "x": 900,
+          "y": 87.75
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:q",
+          "font": "11 400",
+          "position": {
+            "x": 785,
+            "y": 76
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:remote|var:r|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "var:r",
+      "route": [
+        {
+          "x": 500,
+          "y": 75.39
+        },
+        {
+          "x": 5.88,
+          "y": 95.11
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:remote",
+          "font": "11 400",
+          "position": {
+            "x": 252.94,
+            "y": 79.25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:r|var:y|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "var:y",
+      "route": [
+        {
+          "x": 571.51,
+          "y": 104
+        },
+        {
+          "x": 159.49,
+          "y": 1081
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:r",
+          "font": "11 400",
+          "position": {
+            "x": 365.5,
+            "y": 586.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:t1|var:x|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "var:x",
+      "route": [
+        {
+          "x": 670,
+          "y": 76.25
+        },
+        {
+          "x": 900,
+          "y": 87.75
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:t1",
+          "font": "11 400",
+          "position": {
+            "x": 785,
+            "y": 76
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:t2|var:x|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "var:x",
+      "route": [
+        {
+          "x": 670,
+          "y": 76.25
+        },
+        {
+          "x": 900,
+          "y": 87.75
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:t2",
+          "font": "11 400",
+          "position": {
+            "x": 785,
+            "y": 76
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:s|ex:t3|var:x|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:s",
+      "target": "var:x",
+      "route": [
+        {
+          "x": 670,
+          "y": 76.25
+        },
+        {
+          "x": 900,
+          "y": 87.75
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:t3",
+          "font": "11 400",
+          "position": {
+            "x": 785,
+            "y": 76
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "header:query",
+    "region:where/optional.0",
+    "region:where/optional.1",
+    "region:where/union.0",
+    "region:where/union.0/branch.0",
+    "region:where/union.0/branch.1",
+    "region:where/union.0/branch.2",
+    "region:where/minus.0",
+    "region:where/graph.0",
+    "region:where/service.0",
+    "edge:var:s|ex:p|var:x|0",
+    "edge:var:s|ex:q|var:x|0",
+    "edge:var:s|ex:r|var:y|0",
+    "edge:var:s|ex:t1|var:x|0",
+    "edge:var:s|ex:t2|var:x|0",
+    "edge:var:s|ex:t3|var:x|0",
+    "edge:var:s|ex:banned|lit:true^boolean|0",
+    "edge:var:s|ex:in|var:g2|0",
+    "edge:var:s|ex:remote|var:r|0",
+    "edge:sub:where.0|s|var:s|0",
+    "edge:sub:where.0|best|var:best|0",
+    "var:best",
+    "var:doubled",
+    "var:s",
+    "var:x",
+    "var:g2",
+    "var:y",
+    "var:r",
+    "lit:true^boolean",
+    "sub:where.0",
+    "note:where/filter.0",
+    "note:where/bind.0",
+    "note:where/values.0",
+    "note:where/optional.0/filter.0"
+  ]
+}

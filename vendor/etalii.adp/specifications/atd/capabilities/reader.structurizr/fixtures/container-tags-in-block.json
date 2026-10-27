@@ -1,0 +1,129 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.structurizr` from what the desktop host's module shows when parity/cases/c4/container/tags-in-block.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "workspace \"Tags in a block\" {\n    model {\n        u = person \"User\" \"A user.\" \"Internal\"\n        ext = softwareSystem \"Partner\" \"Someone else's system.\" {\n            tags \"External\"\n        }\n        s = softwareSystem \"System\" \"A system.\" \"Core\" {\n            db = container \"Store\" \"Keeps things.\" \"PostgreSQL\" {\n                tags \"Database\" \"Existing System\"\n            }\n            tags \"Extra, More\"\n        }\n        u -> s \"Uses\" \"HTTPS\"\n        s -> ext \"Calls\" \"HTTPS\"\n        u -> db \"Reads\" \"SQL\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n}\n",
+    "files": {
+      "tags-in-block.adp": "c4/container\nbody: tags-in-block.dsl\n"
+    }
+  },
+  "args": {
+    "view": "container"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "User",
+          "description": "A user.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "ext",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Partner",
+          "description": "Someone else's system.",
+          "typeLine": "[Software System]",
+          "external": "true",
+          "width": "193.4",
+          "height": "78.8",
+          "background": "#999999",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "s",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "System",
+          "description": "A system.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "System Context diagram for System",
+          "viewKind": "SystemContext",
+          "viewKey": "context",
+          "legend.0.label": "Person",
+          "legend.0.background": "#08427b",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "Person",
+          "legend.1.label": "Software System (external)",
+          "legend.1.background": "#999999",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "RoundedBox",
+          "legend.2.label": "Software System",
+          "legend.2.background": "#1168bd",
+          "legend.2.color": "#ffffff",
+          "legend.2.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "u->s@13",
+        "type": "c4/model+relationship",
+        "source": "u",
+        "target": "s",
+        "attributes": {
+          "description": "Uses",
+          "technology": "HTTPS",
+          "sourceX": "0",
+          "sourceY": "39.4",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "238.20000000000002",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      },
+      {
+        "id": "s->ext@14",
+        "type": "c4/model+relationship",
+        "source": "s",
+        "target": "ext",
+        "attributes": {
+          "description": "Calls",
+          "technology": "HTTPS",
+          "sourceX": "0",
+          "sourceY": "238.20000000000002",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "437",
+          "destinationWidth": "193.4",
+          "destinationHeight": "78.8"
+        }
+      }
+    ],
+    "findings": []
+  }
+}

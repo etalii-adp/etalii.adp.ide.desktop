@@ -1,0 +1,30 @@
+# Deliberately wrong, so the validator has something real to catch: a dangling
+# dependsOn, a two-stage cycle, and a stage nothing can reach.
+stages:
+  - stage: Build
+    dependsOn: []
+    jobs:
+      - job: A
+        steps:
+          - script: echo a
+
+  - stage: Ghost
+    dependsOn: DoesNotExist
+    jobs:
+      - job: B
+        steps:
+          - script: echo b
+
+  - stage: Left
+    dependsOn: Right
+    jobs:
+      - job: C
+        steps:
+          - script: echo c
+
+  - stage: Right
+    dependsOn: Left
+    jobs:
+      - job: D
+        steps:
+          - script: echo d

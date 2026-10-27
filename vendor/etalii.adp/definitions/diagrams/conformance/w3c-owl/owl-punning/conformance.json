@@ -1,0 +1,289 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/owl` from parity/cases/w3c/owl/owl-punning.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/owl",
+  "description": "../../../w3c-owl.atd",
+  "inputs": {
+    "body": "owl-punning.ttl",
+    "registration": "owl-punning.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/zoo#Bird",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/zoo#Bird",
+          "display": "ex:Bird",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Species",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/zoo#Species",
+          "display": "ex:Species",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Eagle",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/zoo#Eagle",
+          "display": "ex:Eagle",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "ind:http://example.org/zoo#Eagle",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "individual",
+          "iri": "http://example.org/zoo#Eagle",
+          "display": "ex:Eagle",
+          "badges.0": "ex:Species",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Hawk",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/zoo#Hawk",
+          "display": "ex:Hawk",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Raptor",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/zoo#Raptor",
+          "display": "ex:Raptor",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "(ex:Eagle ∪ ex:Hawk)",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/zoo#Raptor",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#boolean",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "iri": "http://www.w3.org/2001/XMLSchema#boolean",
+          "display": "xsd:boolean",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/zoo#eats|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/zoo#eats|range",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "dt:http://example.org/zoo#wingspan",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "display": "Literal",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/zoo#ringed|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:thing:http://example.org/zoo#eats|domain|http://example.org/zoo#eats|thing:http://example.org/zoo#eats|range",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://example.org/zoo#eats|domain",
+        "target": "thing:http://example.org/zoo#eats|range",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "thing:http://example.org/zoo#eats|domain",
+          "toElementId": "thing:http://example.org/zoo#eats|range",
+          "label": "ex:eats",
+          "propertyIri": "http://example.org/zoo#eats"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Bird|http://example.org/zoo#wingspan|dt:http://example.org/zoo#wingspan",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/zoo#Bird",
+        "target": "dt:http://example.org/zoo#wingspan",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "res:http://example.org/zoo#Bird",
+          "toElementId": "dt:http://example.org/zoo#wingspan",
+          "label": "ex:wingspan",
+          "propertyIri": "http://example.org/zoo#wingspan"
+        }
+      },
+      {
+        "id": "edge:thing:http://example.org/zoo#ringed|domain|http://example.org/zoo#ringed|res:http://www.w3.org/2001/XMLSchema#boolean",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://example.org/zoo#ringed|domain",
+        "target": "res:http://www.w3.org/2001/XMLSchema#boolean",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "thing:http://example.org/zoo#ringed|domain",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#boolean",
+          "label": "ex:ringed",
+          "propertyIri": "http://example.org/zoo#ringed"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Eagle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/zoo#Eagle",
+        "target": "res:http://example.org/zoo#Bird",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/zoo#Eagle",
+          "toElementId": "res:http://example.org/zoo#Bird",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Hawk|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/zoo#Hawk",
+        "target": "res:http://example.org/zoo#Bird",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/zoo#Hawk",
+          "toElementId": "res:http://example.org/zoo#Bird",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/zoo#Eagle",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/zoo#Eagle",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "res:http://example.org/zoo#Eagle"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/zoo#Hawk",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/zoo#Hawk",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "res:http://example.org/zoo#Hawk"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/zoo#Raptor",
+        "target": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "attributes": {
+          "kind": "equivalent",
+          "fromElementId": "res:http://example.org/zoo#Raptor",
+          "toElementId": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "propertyIri": "http://www.w3.org/2002/07/owl#equivalentClass"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

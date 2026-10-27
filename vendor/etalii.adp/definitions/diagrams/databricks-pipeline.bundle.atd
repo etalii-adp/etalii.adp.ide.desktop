@@ -1,0 +1,24 @@
+atd 0.1
+part of databricks/pipeline
+
+// The Databricks pipeline's body, in a part of its own (ATD §5.2, §9).
+
+/// One pipeline of a Databricks Asset Bundle configuration, or a pipeline's own settings file in JSON or YAML, read and
+/// written by the capability `reader.databricksBundle` as its `pipeline` reading (databricks-pipeline.md): the
+/// persistence plugin's contract (FBL §11) as a binding's family, since one FBL binding cannot give three readings of
+/// one body different metamodels nor select a resource per reading. Every scalar is kept as written, every byte no
+/// element maps is kept, and every edit is a minimal line splice; an edit into a list written on one line is refused
+/// before any splice. The schema is read from `schema`, else from the legacy `target`, and written to `schema`; a
+/// library is written as its own nested lines. The `pipeline`, `target` and `compute` nodes exist under their fixed ids
+/// whether or not the file declares them, and a body that is not YAML or JSON reads as the empty reading with the
+/// reader's sentence as its finding.
+///
+/// The `.adp` registration names the pipeline: `resource: <key>` selects `resources.pipelines.<key>`, else the first
+/// pipeline is read. Positions are kept in the registration's `layout:` block, never in the file. The findings are the
+/// whole file's, every job's, then the bundle's, then every pipeline's, whichever reading asked.
+binding bundle family capability reader.databricksBundle {
+  label "Databricks pipeline"
+  claims { extensions: [".yml", ".yaml", ".json"], origins: ["databricks/pipeline"] }
+  body { kind: file }
+  args: { reading: pipeline }
+}

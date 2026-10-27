@@ -1,0 +1,770 @@
+atd 0.1
+part of etalii/supply-chain
+
+// The supply chain diagram's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+/// One free canvas in canvas units, y growing downwards. A node's top-left corner is the document's x and y when it
+/// states both; otherwise the layout places it. A group's frame with members is never stored: it is the box around
+/// them. An empty group's top-left is its x and y, and its frame is as large as the one around a single node, 232 by
+/// 156.
+coordinates {
+  system canvas {
+    kind: cartesian
+    orientation: y-down
+    infinite: true
+    grid: { visible: false }
+    doc: "Positions are written rounded to whole units."
+  }
+  default canvas
+}
+
+// ---------------------------------------------------------------- Notation
+
+/// Every node is the same card, 192 by 96, recognisable by its stage's coloured header and title; flows are bands as
+/// broad as their volume, with the goods moving along them; groups are dashed frames beneath both. While something is
+/// selected, its chain is drawn at full strength, with stronger card outlines, and everything else is dimmed; the trace
+/// adds no hue of its own, so the seven stage colours stay the only ones.
+notation {
+  theme {
+    tokens: {
+      color.text: "#0f172a"
+      color.text.muted: "#64748b"
+      color.surface: "#ffffff"
+      color.border: "#e2e8f0"
+      color.supply.source: "#7c4a1e"
+      color.supply.processor: "#b91c1c"
+      color.supply.producer: "#1d4ed8"
+      color.supply.integrator: "#0f766e"
+      color.supply.hub: "#475569"
+      color.supply.outlet: "#15803d"
+      color.supply.consumer: "#be185d"
+      color.supply.on-stage: "#ffffff"
+      color.supply.trace: "#64748b"
+      color.supply.flow: "#64748b"
+      color.supply.goods: "#ffffff"
+      color.supply.group-fill: "#0000000f"
+      color.supply.shadow: "#0f172a24"
+    }
+    modes: {
+      dark: {
+        color.text: "#f1f5f9"
+        color.text.muted: "#94a3b8"
+        color.surface: "#1e293b"
+        color.border: "#334155"
+        color.supply.source: "#7c4a1e"
+        color.supply.processor: "#b91c1c"
+        color.supply.producer: "#1d4ed8"
+        color.supply.integrator: "#0f766e"
+        color.supply.hub: "#475569"
+        color.supply.outlet: "#15803d"
+        color.supply.consumer: "#be185d"
+        color.supply.on-stage: "#ffffff"
+        color.supply.trace: "#94a3b8"
+        color.supply.flow: "#94a3b8"
+        color.supply.goods: "#1e293b"
+        color.supply.group-fill: "#ffffff0f"
+        color.supply.shadow: "#00000066"
+      }
+    }
+    defaultMode: light
+    followSystem: true
+    doc: {
+      summary: "The seven stage hues are the module's own and the same in both modes, each carrying the white stage title at 5:1 or better; everything else is the host's shared canvas colours."
+      rationale: "The theme names meanings; seven stage hues are this notation's business. The text, surface, border and muted tokens are the host's shared canvas values, carried here so the specification stands alone."
+    }
+  }
+
+  style card {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1.5 }
+    shadow: { dx: 0, dy: 2, blur: 4, color: $color.supply.shadow }
+    font: { size: 12, color: $color.text }
+    textAlign: left
+    visible: {
+      cel: "written(self, 'id') != '' && !laterHolder(self) && self.stage in ['source', 'processor', 'producer', 'integrator', 'hub', 'outlet', 'consumer']"
+      doc: "A node is drawn when it has an id no earlier entry holds and a stage this diagram knows."
+    }
+  }
+
+  style cardHover {
+    shadow: { dx: 0, dy: 6, blur: 12, color: $color.supply.shadow }
+  }
+
+  style stageHeader {
+    fill: (token('color.supply.' + self.stage))
+    stroke: { width: 0 }
+  }
+
+  style stageBar {
+    fill: (token('color.supply.' + self.stage))
+    stroke: { width: 0 }
+  }
+
+  style barTrack {
+    fill: $color.border
+    stroke: { width: 0 }
+  }
+
+  style stageTitle {
+    font: { size: 10, weight: 700, letterSpacing: 0.8, color: $color.supply.on-stage }
+  }
+
+  style nodeName {
+    font: { size: 13, weight: 600, color: $color.text }
+  }
+
+  style amount {
+    font: { size: 20, weight: 700, color: $color.text }
+  }
+
+  style upstream {
+    stroke: { color: $color.supply.trace, width: 2.5 }
+  }
+
+  style downstream {
+    stroke: { color: $color.supply.trace, width: 2.5 }
+  }
+
+  style dimmed {
+    opacity: 0.22
+  }
+
+  style groupFrame {
+    fill: $color.supply.group-fill
+    stroke: { color: $color.border, width: 1.5, dash: [6, 4], dashScale: absolute }
+    visible: {
+      cel: "written(self, 'id') != '' && !laterHolder(self) && (members(self).size() > 0 || (has(self.x) && has(self.y)))"
+      doc: "A group is drawn when it has an id no earlier entry holds, and members or both x and y."
+    }
+  }
+
+  style groupTraced {
+    stroke: { dash: solid }
+  }
+
+  style groupTitle {
+    font: { size: 13, weight: 700, color: $color.text }
+  }
+
+  style groupMembers {
+    font: { size: 11, color: $color.text.muted }
+  }
+
+  style band {
+    stroke: { color: $color.supply.flow, width: (bandWidth(self)), opacity: 0.45, cap: round }
+    font: { size: 12, color: $color.text }
+    visible: {
+      cel: "written(self, 'id') != '' && !laterHolder(self) && has(self.source) && has(self.target) && self.source.isA('Stage') && self.target.isA('Stage') && self.source != self.target"
+      doc: "A flow is drawn when it has an id no earlier entry holds and its two ends are different nodes that are drawn."
+    }
+  }
+
+  style bandUpstream {
+    stroke: { opacity: 0.9 }
+  }
+
+  style bandDownstream {
+    stroke: { opacity: 0.9 }
+  }
+
+  style volume {
+    font: { size: 10, weight: 600, color: $color.text }
+  }
+
+  /// A card with rounded corners: a header band in the stage's colour across the top, its corners rounded by 10 and
+  /// squared where it meets the body by a strip of the same colour over its lower 10, and a 4-unit share bar on a track
+  /// along the foot, inset 14 on each side and 12 from the bottom.
+  shape supplyCard {
+    label: "Supply chain card"
+    params: {
+      share: {
+        type: number
+        unit: fraction
+        default: 0
+        min: 0
+        max: 1
+        persist: none
+        doc: "The node's share of the largest quantity in its unit; bound by the node notation."
+      }
+    }
+    parts: [
+      {
+        id: "body"
+        shape: { type: roundedRect, params: { radius: 8 } }
+        box: { x: 0, y: 0, w: (w), h: (h) }
+        outline: true
+      },
+      {
+        id: "header"
+        shape: { type: roundedRect, params: { radius: 10 } }
+        box: { x: 0, y: 0, w: (w), h: 24 }
+      },
+      { id: "headerSeam", shape: rect, box: { x: 0, y: 14, w: (w), h: 10 } },
+      {
+        id: "barTrack"
+        shape: { type: roundedRect, params: { radius: 2 } }
+        box: { x: 14, y: (h - 12.0), w: (w - 28.0), h: 4 }
+      },
+      {
+        id: "bar"
+        shape: { type: roundedRect, params: { radius: 2 } }
+        box: { x: 14, y: (h - 12.0), w: (max(4.0, (w - 28.0) * p.share)), h: 4 }
+        when: (has(self.quantity))
+      }
+    ]
+  }
+
+  /// One card for all seven stages; the header's colour and title come from the node's stage. Flows attach at the
+  /// middle of the left and right sides.
+  node Stage {
+    refusals: { reparent: ["A node joins a group by being dragged inside its frame, or through its Group property."] }
+    shape { type: supplyCard, params: { share: (quantityShare(self)) } }
+    style: card
+    partStyles: { header: stageHeader, headerSeam: stageHeader, barTrack: barTrack, bar: stageBar }
+    size: { fixed: [192, 96] }
+    placement: {
+      system: canvas
+      x: @x
+      y: @y
+      anchor: top-left
+      movable: { x: true, y: true }
+      resizable: false
+      doc: "Stored only when both x and y are written; otherwise the layout places the card (supply-chain.md, section 'Layout'). A drag writes both, rounded, and may move the node into another group (section 'Interaction')."
+    }
+    anchors: { mode: sides, sides: [left, right] }
+    tooltip: (stageLabel(self.stage) + ': ' + nameOf(self) + (has(self.quantity) ? ' — ' + formatAmount(self.quantity) + (self.unit != '' ? ' ' + self.unit : '') : ''))
+    conditions: [
+      {
+        when: (traceOf(self) == 'upstream')
+        style: upstream
+        doc: "It supplies the selection, directly or not."
+      },
+      {
+        when: (traceOf(self) == 'downstream')
+        style: downstream
+        doc: "The selection supplies it, directly or not."
+      },
+      { when: (traceOf(self) == 'dimmed'), style: dimmed, doc: "Off the traced chain." }
+    ]
+    doubleClick: editLabel
+    label (upper(stageLabel(self.stage))) as stage {
+      position: { anchor: [0, 0], offset: [14, 16], align: start }
+      style: stageTitle
+      editable: false
+      wrap: none
+    }
+    label (nameOf(self)) as name {
+      position: { anchor: [0, 0], offset: [14, 46], align: start }
+      style: nodeName
+      editable: inline
+      wrap: none
+      overflow: ellipsis
+      maxWidth: 164
+    }
+    label (has(self.quantity) ? formatAmount(self.quantity) + (self.unit != '' ? ' ' + self.unit : '') : '—') as amount {
+      position: { anchor: [0, 0], offset: [14, 74], align: start }
+      style: amount
+      editable: false
+      wrap: none
+      overflow: ellipsis
+    }
+    states: { hover: cardHover }
+  }
+
+  /// Drawn beneath the flows, so a band crosses a frame rather than hiding behind it.
+  node Group {
+    shape { type: roundedRect, params: { radius: 8 } }
+    style: groupFrame
+    size: {
+      default: [232, 156]
+      resizable: false
+      doc: "The box around the members' cards: 20 beyond them left, right and below, and 40 above them for the title; with no members, 232 by 156, the frame around one node (supply-chain.md)."
+    }
+    placement: {
+      system: canvas
+      x: @x
+      y: @y
+      anchor: top-left
+      movable: { x: true, y: true }
+      resizable: false
+      doc: "Read only while the group has no members. Dragging a group with members moves them all."
+    }
+    connectable: false
+    layer: background
+    conditions: [
+      {
+        when: (traceOf(self) in ['selected', 'related'])
+        style: groupTraced
+        doc: "The group is selected, or a member is on the traced chain: the frame's dashes close."
+      },
+      { when: (traceOf(self) == 'dimmed'), style: dimmed }
+    ]
+    doubleClick: editLabel
+    label (nameOf(self)) as name {
+      position: { anchor: [0, 0], offset: [16, 26], align: start }
+      style: groupTitle
+      editable: inline
+      wrap: none
+      overflow: ellipsis
+    }
+    label (string(members(self).size()) + (members(self).size() == 1 ? ' node' : ' nodes')) as members {
+      position: { anchor: [1, 0], offset: [-16, 26], align: end }
+      style: groupMembers
+      editable: false
+    }
+  }
+
+  /// A horizontal S from the middle of the supplier's facing side to the middle of the consumer's, leaving and arriving
+  /// square to the side, its width following its weight, with an arrowhead at the consumer. A flow the layout gave
+  /// lanes runs through them (supply-chain.md).
+  edge Flow {
+    refusals: { move: ["That is not something this diagram can move."] }
+    line {
+      routing: bezier
+      startDirection: normal
+      endDirection: normal
+      bezier: { reach: auto }
+      bendpoints: { editable: false }
+    }
+    marker source none
+    targetMarker: {
+      type: arrowFilled
+      params: {
+        scaleWithStroke: false
+        length: (7.0 + bandWidth(self) / 3.0)
+        width: (1.4 * (7.0 + bandWidth(self) / 3.0))
+      }
+    }
+    style: band
+    anchoring: { source: { mode: sides, sides: [left, right] }, target: { mode: sides, sides: [left, right] } }
+    connect: {
+      pointer: { button: secondary, start: body }
+      tool: flow
+      doc: "Drawn from a card's left or right handle, or by dragging with the right button from one card's body to another's; the card dragged from supplies the one dropped on."
+    }
+    midMarkers: [
+      {
+        marker: { type: dot, params: { fill: $color.supply.goods } }
+        repeat: { spacing: 14 }
+        visible: (traceOf(self) != 'dimmed')
+        doc: "The goods: dots along the band in the direction they go. The tool draws them as a second, moving line (supply-chain.md)."
+      }
+    ]
+    conditions: [
+      { when: (traceOf(self) == 'upstream'), style: bandUpstream },
+      { when: (traceOf(self) == 'downstream'), style: bandDownstream },
+      { when: (traceOf(self) == 'dimmed'), style: dimmed }
+    ]
+    tooltip: (self.product)
+    reconnectable: false
+    layer: belowNodes
+    label @product as product { at: middle, side: above, distance: 15, editable: inline }
+    label (formatAmount(self.volume) + (self.unit != '' ? ' ' + self.unit : '')) as volume {
+      at: middle
+      side: below
+      distance: 4
+      style: volume
+      editable: false
+      background: {
+        fill: $color.surface
+        stroke: { color: $color.border, width: 1 }
+        padding: [3, 8]
+        cornerRadius: 9
+      }
+      visible: (has(self.volume))
+    }
+    state hover { stroke: { opacity: 0.8 } }
+  }
+
+  canvas {
+    minimap: false
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+/// One tool per stage, in the order goods pass through them, and one for a group; each is dropped where it belongs. A
+/// flow has no palette tool: it is drawn from a node's side, or by dragging with the right button from one node to
+/// another.
+toolbox {
+  /// The flow gesture, started from a card's side handle or by a right-button drag, rather than from the palette, which
+  /// does not show it. A new flow has no product, volume or unit.
+  tool flow "Add flow" { creates: Flow, icon: "mdi-arrow-right-thin", mode: drag }
+  /// Each drop centres the new card on the point, named after its stage ("New source", numbered from 2 when a node's
+  /// name already says so), with a quantity of zero. The name is the tool's initial, because a create hook is not run.
+  group stages "Stages" {
+    /// Where something enters the chain: a mine, a well, a farm, a data feed.
+    tool source "Source" {
+      creates: Stage
+      icon: "mdi-tray-arrow-up"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+      initial: {
+        stage: source
+        name: (uniqueName('New source'))
+        quantity: 0
+        x: (position.x - 96.0)
+        y: (position.y - 48.0)
+      }
+    }
+    /// Turns what it receives into material others can use.
+    tool processor "Processor" {
+      creates: Stage
+      icon: "mdi-cog-outline"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+      initial: {
+        stage: processor
+        name: (uniqueName('New processor'))
+        quantity: 0
+        x: (position.x - 96.0)
+        y: (position.y - 48.0)
+      }
+    }
+    /// Makes the parts or components something is built from.
+    tool producer "Producer" {
+      creates: Stage
+      icon: "mdi-factory"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+      initial: {
+        stage: producer
+        name: (uniqueName('New producer'))
+        quantity: 0
+        x: (position.x - 96.0)
+        y: (position.y - 48.0)
+      }
+    }
+    /// Combines parts into the finished whole.
+    tool integrator "Integrator" {
+      creates: Stage
+      icon: "mdi-puzzle-outline"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+      initial: {
+        stage: integrator
+        name: (uniqueName('New integrator'))
+        quantity: 0
+        x: (position.x - 96.0)
+        y: (position.y - 48.0)
+      }
+    }
+    /// Holds and moves what is finished on to where it is wanted.
+    tool hub "Hub" {
+      creates: Stage
+      icon: "mdi-hub-outline"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+      initial: {
+        stage: hub
+        name: (uniqueName('New hub'))
+        quantity: 0
+        x: (position.x - 96.0)
+        y: (position.y - 48.0)
+      }
+    }
+    /// Where the finished whole is offered to those who use it.
+    tool outlet "Outlet" {
+      creates: Stage
+      icon: "mdi-storefront-outline"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+      initial: {
+        stage: outlet
+        name: (uniqueName('New outlet'))
+        quantity: 0
+        x: (position.x - 96.0)
+        y: (position.y - 48.0)
+      }
+    }
+    /// Where the chain ends: whoever uses what it delivers.
+    tool consumer "Consumer" {
+      creates: Stage
+      icon: "mdi-account-outline"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+      initial: {
+        stage: consumer
+        name: (uniqueName('New consumer'))
+        quantity: 0
+        x: (position.x - 96.0)
+        y: (position.y - 48.0)
+      }
+    }
+  }
+  /// A group dropped on its own, named "New group" and numbered from 2 when the name is taken among the groups; its
+  /// empty frame is centred on the drop until nodes are dragged into it.
+  group frames "Frames" {
+    /// A frame for a region, a company or a tier; drag nodes into it.
+    tool group "Group" {
+      creates: Group
+      icon: "mdi-group"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+      initial: { name: (uniqueGroupName('New group')), x: (position.x - 116.0), y: (position.y - 78.0) }
+    }
+  }
+  context for Stage {
+    placement: menu
+    standardEntries: false
+    tool "Increase quantity" {
+      kind: operation
+      operation: increaseQuantity
+      group: "amount"
+      icon: "mdi-plus-circle-outline"
+      shortcut: "+"
+    }
+    tool "Decrease quantity" {
+      kind: operation
+      operation: decreaseQuantity
+      group: "amount"
+      icon: "mdi-minus-circle-outline"
+      shortcut: "-"
+    }
+    tool "Rename…" { kind: editLabel, group: "edit", icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Put in a new group…" { kind: operation, operation: putInNewGroup, group: "edit", icon: "mdi-group" }
+    tool "Remove" { kind: delete, group: "edit", icon: "mdi-delete-outline", shortcut: Delete }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: "diagram", icon: "mdi-sitemap-outline" }
+  }
+  context for Flow {
+    placement: menu
+    standardEntries: false
+    tool "Increase volume" {
+      kind: operation
+      operation: increaseVolume
+      group: "amount"
+      icon: "mdi-plus-circle-outline"
+      shortcut: "+"
+    }
+    tool "Decrease volume" {
+      kind: operation
+      operation: decreaseVolume
+      group: "amount"
+      icon: "mdi-minus-circle-outline"
+      shortcut: "-"
+    }
+    tool "Rename product…" { kind: editLabel, group: "edit", icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Remove flow" { kind: delete, group: "edit", icon: "mdi-vector-polyline-remove", shortcut: Delete }
+  }
+  context for Group {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: editLabel, group: "edit", icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Remove group" { kind: delete, group: "edit", icon: "mdi-ungroup", shortcut: Delete }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: "diagram", icon: "mdi-sitemap-outline" }
+  }
+  /// Empty canvas at a point, and a toolbox drop there, which runs the same addition.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add source here" { kind: operation, operation: addSourceHere, group: "add", icon: "mdi-tray-arrow-up" }
+    tool "Add processor here" { kind: operation, operation: addProcessorHere, group: "add", icon: "mdi-cog-outline" }
+    tool "Add producer here" { kind: operation, operation: addProducerHere, group: "add", icon: "mdi-factory" }
+    tool "Add integrator here" { kind: operation, operation: addIntegratorHere, group: "add", icon: "mdi-puzzle-outline" }
+    tool "Add hub here" { kind: operation, operation: addHubHere, group: "add", icon: "mdi-hub-outline" }
+    tool "Add outlet here" { kind: operation, operation: addOutletHere, group: "add", icon: "mdi-storefront-outline" }
+    tool "Add consumer here" { kind: operation, operation: addConsumerHere, group: "add", icon: "mdi-account-outline" }
+    tool "Add group here" { kind: operation, operation: addGroupHere, group: "frames", icon: "mdi-group" }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: "diagram", icon: "mdi-sitemap-outline" }
+  }
+  /// A finished flow gesture from one node to another; the node dragged from supplies the one dropped on.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    runSingle: true
+    tool "Add flow" { kind: connect, via: Flow, icon: "mdi-arrow-right-thin" }
+  }
+  context for Stage {
+    // DISL: contextTools
+    placement: around
+    tool "Decrease the quantity" {
+      kind: operation
+      operation: decreaseQuantity
+      icon: "mdi-minus"
+      position: { anchor: [0, 0], offset: [141, 68] }
+    }
+    tool "Increase the quantity" {
+      kind: operation
+      operation: increaseQuantity
+      icon: "mdi-plus"
+      position: { anchor: [0, 0], offset: [167, 68] }
+    }
+    /// Drag from a side of the node to another node; the node dragged from supplies the one dropped on.
+    tool "Add flow" { kind: connect, via: Flow, icon: "mdi-arrow-right-thin", position: right }
+  }
+  /// The tool draws these under the volume pill, 38 below the middle of the flow's two ends, which a context tool's
+  /// position cannot state (supply-chain.md).
+  context for Flow {
+    // DISL: contextTools
+    placement: around
+    tool "Decrease the volume" { kind: operation, operation: decreaseVolume, icon: "mdi-minus", position: bottom-left }
+    tool "Increase the volume" { kind: operation, operation: increaseVolume, icon: "mdi-plus", position: bottom-right }
+  }
+}
+
+// ---------------------------------------------------------------- Forms
+
+form stage for Stage {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name"
+    /// Offered and shown as the word the document writes (source), not its label, as the tool has always offered it.
+    field stage "Stage" {
+      widget: select
+      options: [source, processor, producer, integrator, hub, outlet, consumer]
+      parse: {
+        accepts: (value.trim() in ['source', 'processor', 'producer', 'integrator', 'hub', 'outlet', 'consumer', 'raw-material', 'supplier', 'manufacturer', 'assembler', 'distributor', 'retailer'])
+        write: [
+          {
+            set: {
+              stage: ({'raw-material': 'source', 'supplier': 'processor', 'manufacturer': 'producer', 'assembler': 'integrator', 'distributor': 'hub', 'retailer': 'outlet'}[value.trim()])
+            }
+            when: (value.trim() in ['raw-material', 'supplier', 'manufacturer', 'assembler', 'distributor', 'retailer'])
+          },
+          {
+            set: { stage: (value.trim()) }
+            when: (value.trim() in ['source', 'processor', 'producer', 'integrator', 'hub', 'outlet', 'consumer'])
+          }
+        ]
+        refusal: ('`' + value.trim() + '` is not a stage: source, processor, producer, integrator, hub, outlet, consumer.')
+        doc: "The seven words; an older word is accepted and written as the stage it reads as."
+      }
+    }
+    /// (none) and the groups' names, their ids when unnamed. A node whose group names no group shows (none).
+    field group "Group" {
+      widget: select
+      options: (groupChoices())
+      display: {
+        cel: "cel.bind(gs, diagram.nodesOfType('Group').filter(g, written(g, 'id') == written(self, 'group')), gs.size() > 0 ? nameOf(gs[0]) : '(none)')"
+        doc: "The name of the first group written with the id the node's group is written with, else (none). A node with no group shows the first group with no id, when there is one, as the tool always has (supply-chain.md, 'Interaction DISL cannot state')."
+      }
+      parse: {
+        accepts: (value.trim() in ['(none)', ''] || groupNamed(value.trim()).size() > 0 || diagram.nodesOfType('Group').exists(g, written(g, 'id') == value.trim()))
+        write: [
+          { unset: [group], when: (value.trim() in ['(none)', '']) },
+          {
+            set: { group: (groupNamed(value.trim())[0]) }
+            when: (!(value.trim() in ['(none)', '']) && groupNamed(value.trim()).size() > 0)
+          },
+          {
+            set: { group: (diagram.nodesOfType('Group').filter(g, written(g, 'id') == value.trim())[0]) }
+            when: (!(value.trim() in ['(none)', '']) && groupNamed(value.trim()).size() == 0)
+          }
+        ]
+        refusal: ('There is no group `' + value.trim() + '` in this diagram.')
+        doc: "(none) removes the key; a group's name writes its id."
+      }
+    }
+    field description "Description" { widget: textarea }
+  }
+  section {
+    label: "Amount"
+    field quantity "Quantity" {
+      widget: text
+      display: (has(self.quantity) ? rowNumber(self.quantity) : '')
+      parse: {
+        accepts: (value.trim() == '' || readsAsAmount(value))
+        write: [
+          { unset: [quantity], when: (value.trim() == '') },
+          { set: { quantity: (double(value.trim())) }, when: (value.trim() != '') }
+        ]
+        refusal: ('\'' + value.trim() + '\' is not an amount this diagram can hold: a number of zero or more.')
+      }
+    }
+    field unit "Unit"
+    /// Shows 1 when the node states none, so the row says what + and - will do.
+    field step "Step" {
+      widget: text
+      display: (rowNumber(has(self.step) ? self.step : 1.0))
+      parse: {
+        accepts: (value.trim() == '' || (readsAsAmount(value) && double(value.trim()) != 0.0))
+        write: [
+          { unset: [step], when: (value.trim() == '') },
+          { set: { step: (double(value.trim())) }, when: (value.trim() != '') }
+        ]
+        refusal: (readsAsAmount(value) ? 'A step of zero would make + and − do nothing.' : '\'' + value.trim() + '\' is not an amount this diagram can hold: a number of zero or more.')
+      }
+    }
+  }
+}
+
+form flow for Flow {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field product "Product"
+    field description "Description" { widget: textarea }
+  }
+  section {
+    label: "Amount"
+    field volume "Volume" {
+      widget: text
+      display: (has(self.volume) ? rowNumber(self.volume) : '')
+      parse: {
+        accepts: (value.trim() == '' || readsAsAmount(value))
+        write: [
+          { unset: [volume], when: (value.trim() == '') },
+          { set: { volume: (double(value.trim())) }, when: (value.trim() != '') }
+        ]
+        refusal: ('\'' + value.trim() + '\' is not an amount this diagram can hold: a number of zero or more.')
+      }
+    }
+    field unit "Unit"
+    field step "Step" {
+      widget: text
+      display: (rowNumber(has(self.step) ? self.step : 1.0))
+      parse: {
+        accepts: (value.trim() == '' || (readsAsAmount(value) && double(value.trim()) != 0.0))
+        write: [
+          { unset: [step], when: (value.trim() == '') },
+          { set: { step: (double(value.trim())) }, when: (value.trim() != '') }
+        ]
+        refusal: (readsAsAmount(value) ? 'A step of zero would make + and − do nothing.' : '\'' + value.trim() + '\' is not an amount this diagram can hold: a number of zero or more.')
+      }
+    }
+  }
+}
+
+/// A group's x and y are not shown: they matter only while it has no members, and a drag writes them.
+form group for Group {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name"
+    field description "Description" { widget: textarea }
+  }
+}
+
+/// Nodes the document does not place are arranged left to right along the flows, over the whole document, with each
+/// group kept together in a band of its own. A stored position wins over the computed one node by node, so dragging one
+/// node moves nobody else. Arrange diagram writes the computed position of every node.
+layout {
+  default chain
+  /// Layers by the stages and the longest path from a node nothing supplies, with every cycle broken at the flow that
+  /// closes it; bands per group; barycentre ordering; bands dropped onto a per-layer skyline. Details in
+  /// supply-chain.md, section 'Layout'.
+  algorithm chain capability layout.bandedLayers {
+    minLayer: (self.isA('Stage') ? stageRank(self) : null)
+    band: (self.isA('Stage') && has(self.group) ? self.group.id : null)
+    layerGap: 128
+    rowGap: 28
+    bandTitle: 40
+    bandBottom: 20
+    bandGap: 32
+    passes: 8
+    lanes: true
+  }
+  trigger: always
+  respect: all
+  incremental: true
+  animate: false
+}

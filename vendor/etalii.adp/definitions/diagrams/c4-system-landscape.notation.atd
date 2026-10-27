@@ -1,0 +1,728 @@
+atd 0.1
+part of c4/system-landscape
+
+// The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+/// The Structurizr default theme: a card per element, a dashed arrow per line. How big a card is, the boundary drawn
+/// around a container view's system or a hosting deployment node (`boundary:<id>`) and the moving of outsiders out of
+/// it are the host's (finding A16).
+notation {
+  theme {
+    tokens: {
+      color.person: "#08427b"
+      color.softwareSystem: "#1168bd"
+      color.container: "#438dd5"
+      color.component: "#85bbf0"
+      color.deploymentNode: "#ffffff"
+      color.external: "#999999"
+      color.onDark: "#ffffff"
+      color.onLight: "#000000"
+      color.line: "#8A8880"
+      color.muted: "#6B6A65"
+      color.canvas: "#FFFFFF"
+      font.body: "system-ui, sans-serif"
+    }
+    modes: { dark: { color.line: "#B4B2A9", color.muted: "#A9A79E", color.canvas: "#1F1E1C" } }
+    defaultMode: "light"
+    followSystem: true
+  }
+  style card {
+    stroke: { color: "none", width: 0 }
+    font: { family: $font.body, size: 14, lineHeight: 1.4 }
+    padding: [10, 12]
+    textAlign: center
+    cursor: "grab"
+  }
+  style person extends card { fill: $color.person, font: { color: $color.onDark } }
+  style softwareSystem extends card { fill: $color.softwareSystem, font: { color: $color.onDark } }
+  style container extends card { fill: $color.container, font: { color: $color.onDark } }
+  style component extends card { fill: $color.component, font: { color: $color.onLight } }
+  style deploymentNode extends card { fill: $color.deploymentNode, font: { color: $color.onLight } }
+  style external { fill: $color.external, font: { color: $color.onDark } }
+  style cardName { font: { size: 13, weight: 600 } }
+  style cardType { font: { size: 10 }, opacity: 0.9 }
+  style cardDescription { font: { size: 10, lineHeight: 1.4 }, opacity: 0.9 }
+  style relationshipLabel { font: { size: 10, color: $color.muted } }
+  style diagramTitle { font: { family: $font.body, size: 18, weight: 600 } }
+
+  /// A data store: a box with an elliptical cap of height 12 at the top and bottom, the top cap drawn before the bottom
+  /// one.
+  shape c4Cylinder {
+    label: "Cylinder"
+    parts: [{ id: "side", shape: "rect", box: { x: 0, y: 6, w: (w), h: (h - 12.0) }, outline: true }, {
+      id: "top",
+      shape: "ellipse",
+      box: { x: 0, y: 0, w: (w), h: 12 }
+    }
+    , { id: "bottom", shape: "ellipse", box: { x: 0, y: (h - 12.0), w: (w), h: 12 } }]
+  }
+
+  node Person {
+    shape person
+    label (displayedName(self)) as name {
+      editText: @name
+      editable: inline
+      position: { anchor: [0.5, 0], offset: [0, 22], align: center }
+      style: "cardName"
+      wrap: none
+      overflow: visible
+    }
+    label (typeLine(self)) as type {
+      position: { anchor: [0.5, 0], offset: [0, 38], align: center }
+      style: "cardType"
+      wrap: none
+      overflow: ellipsis
+    }
+    label (displayedDescription(self)) as description {
+      editable: false
+      position: { anchor: [0.5, 0], offset: [0, 58], align: center }
+      style: "cardDescription"
+      wrap: word
+      maxWidth: parent
+    }
+    style: "person"
+    size: { min: [160, 39.6], max: [240, null], autoSize: fitContent, resizable: false }
+    conditions: [{
+      when: (self.external)
+      style: "external"
+      doc: "An element outside the scope being described is muted grey, so scope is readable at a glance."
+    }
+    ]
+    deletable: false
+    copyable: false
+    connectable: false
+    placement: { x: free, y: free, anchor: center, resizable: false }
+    accessibility: { role: "button", name: (shownName(self)) }
+  }
+
+  node SoftwareSystem {
+    shape roundedRect { radius: 8 }
+    label (displayedName(self)) as name {
+      editText: @name
+      editable: inline
+      position: { anchor: [0.5, 0], offset: [0, 22], align: center }
+      style: "cardName"
+      wrap: none
+      overflow: visible
+    }
+    label (typeLine(self)) as type {
+      position: { anchor: [0.5, 0], offset: [0, 38], align: center }
+      style: "cardType"
+      wrap: none
+      overflow: ellipsis
+    }
+    label (displayedDescription(self)) as description {
+      editable: false
+      position: { anchor: [0.5, 0], offset: [0, 58], align: center }
+      style: "cardDescription"
+      wrap: word
+      maxWidth: parent
+    }
+    /// An element tagged Database is drawn as a cylinder.
+    variant v0 when self.database {
+      shape c4Cylinder
+    }
+    style: "softwareSystem"
+    size: { min: [160, 39.6], max: [240, null], autoSize: fitContent, resizable: false }
+    conditions: [{
+      when: (self.external)
+      style: "external"
+      doc: "An element outside the scope being described is muted grey, so scope is readable at a glance."
+    }
+    ]
+    deletable: false
+    copyable: false
+    connectable: false
+    placement: { x: free, y: free, anchor: center, resizable: false }
+    accessibility: { role: "button", name: (shownName(self)) }
+  }
+
+  node Container {
+    shape roundedRect { radius: 8 }
+    label (displayedName(self)) as name {
+      editText: @name
+      editable: inline
+      position: { anchor: [0.5, 0], offset: [0, 22], align: center }
+      style: "cardName"
+      wrap: none
+      overflow: visible
+    }
+    label (typeLine(self)) as type {
+      position: { anchor: [0.5, 0], offset: [0, 38], align: center }
+      style: "cardType"
+      wrap: none
+      overflow: ellipsis
+    }
+    label (displayedDescription(self)) as description {
+      editable: false
+      position: { anchor: [0.5, 0], offset: [0, 58], align: center }
+      style: "cardDescription"
+      wrap: word
+      maxWidth: parent
+    }
+    /// An element tagged Database is drawn as a cylinder.
+    variant v0 when self.database {
+      shape c4Cylinder
+    }
+    style: "container"
+    size: { min: [160, 39.6], max: [240, null], autoSize: fitContent, resizable: false }
+    conditions: [{
+      when: (self.external)
+      style: "external"
+      doc: "An element outside the scope being described is muted grey, so scope is readable at a glance."
+    }
+    ]
+    deletable: false
+    copyable: false
+    connectable: false
+    placement: { x: free, y: free, anchor: center, resizable: false }
+    accessibility: { role: "button", name: (shownName(self)) }
+  }
+
+  node Component {
+    shape roundedRect { radius: 8 }
+    label (displayedName(self)) as name {
+      editText: @name
+      editable: inline
+      position: { anchor: [0.5, 0], offset: [0, 22], align: center }
+      style: "cardName"
+      wrap: none
+      overflow: visible
+    }
+    label (typeLine(self)) as type {
+      position: { anchor: [0.5, 0], offset: [0, 38], align: center }
+      style: "cardType"
+      wrap: none
+      overflow: ellipsis
+    }
+    label (displayedDescription(self)) as description {
+      editable: false
+      position: { anchor: [0.5, 0], offset: [0, 58], align: center }
+      style: "cardDescription"
+      wrap: word
+      maxWidth: parent
+    }
+    /// An element tagged Database is drawn as a cylinder.
+    variant v0 when self.database {
+      shape c4Cylinder
+    }
+    style: "component"
+    size: { min: [160, 39.6], max: [240, null], autoSize: fitContent, resizable: false }
+    conditions: [{
+      when: (self.external)
+      style: "external"
+      doc: "An element outside the scope being described is muted grey, so scope is readable at a glance."
+    }
+    ]
+    deletable: false
+    copyable: false
+    connectable: false
+    placement: { x: free, y: free, anchor: center, resizable: false }
+    accessibility: { role: "button", name: (shownName(self)) }
+  }
+
+  node DeploymentNode {
+    shape rect
+    label (displayedName(self)) as name {
+      editText: @name
+      editable: inline
+      position: { anchor: [0.5, 0], offset: [0, 22], align: center }
+      style: "cardName"
+      wrap: none
+      overflow: visible
+    }
+    label (typeLine(self)) as type {
+      position: { anchor: [0.5, 0], offset: [0, 38], align: center }
+      style: "cardType"
+      wrap: none
+      overflow: ellipsis
+    }
+    label (displayedDescription(self)) as description {
+      editable: false
+      position: { anchor: [0.5, 0], offset: [0, 58], align: center }
+      style: "cardDescription"
+      wrap: word
+      maxWidth: parent
+    }
+    /// An element tagged Database is drawn as a cylinder.
+    variant v0 when self.database {
+      shape c4Cylinder
+    }
+    style: "deploymentNode"
+    size: { min: [160, 39.6], max: [240, null], autoSize: fitContent, resizable: false }
+    conditions: [{
+      when: (self.external)
+      style: "external"
+      doc: "An element outside the scope being described is muted grey, so scope is readable at a glance."
+    }
+    ]
+    deletable: false
+    copyable: false
+    connectable: false
+    placement: { x: free, y: free, anchor: center, resizable: false }
+    accessibility: { role: "button", name: (shownName(self)) }
+  }
+
+  node InfrastructureNode {
+    shape rect
+    label (displayedName(self)) as name {
+      editText: @name
+      editable: inline
+      position: { anchor: [0.5, 0], offset: [0, 22], align: center }
+      style: "cardName"
+      wrap: none
+      overflow: visible
+    }
+    label (typeLine(self)) as type {
+      position: { anchor: [0.5, 0], offset: [0, 38], align: center }
+      style: "cardType"
+      wrap: none
+      overflow: ellipsis
+    }
+    label (displayedDescription(self)) as description {
+      editable: false
+      position: { anchor: [0.5, 0], offset: [0, 58], align: center }
+      style: "cardDescription"
+      wrap: word
+      maxWidth: parent
+    }
+    /// An element tagged Database is drawn as a cylinder.
+    variant v0 when self.database {
+      shape c4Cylinder
+    }
+    style: "deploymentNode"
+    size: { min: [160, 39.6], max: [240, null], autoSize: fitContent, resizable: false }
+    conditions: [{
+      when: (self.external)
+      style: "external"
+      doc: "An element outside the scope being described is muted grey, so scope is readable at a glance."
+    }
+    ]
+    deletable: false
+    copyable: false
+    connectable: false
+    placement: { x: free, y: free, anchor: center, resizable: false }
+    accessibility: { role: "button", name: (shownName(self)) }
+  }
+
+  node ContainerInstance {
+    shape roundedRect { radius: 8 }
+    label (displayedName(self)) as name {
+      editText: @name
+      editable: inline
+      position: { anchor: [0.5, 0], offset: [0, 22], align: center }
+      style: "cardName"
+      wrap: none
+      overflow: visible
+    }
+    label (typeLine(self)) as type {
+      position: { anchor: [0.5, 0], offset: [0, 38], align: center }
+      style: "cardType"
+      wrap: none
+      overflow: ellipsis
+    }
+    label (displayedDescription(self)) as description {
+      editable: false
+      position: { anchor: [0.5, 0], offset: [0, 58], align: center }
+      style: "cardDescription"
+      wrap: word
+      maxWidth: parent
+    }
+    /// An element tagged Database is drawn as a cylinder.
+    variant v0 when self.database {
+      shape c4Cylinder
+    }
+    style: "container"
+    size: { min: [160, 39.6], max: [240, null], autoSize: fitContent, resizable: false }
+    conditions: [{
+      when: (self.external)
+      style: "external"
+      doc: "An element outside the scope being described is muted grey, so scope is readable at a glance."
+    }
+    ]
+    deletable: false
+    copyable: false
+    connectable: false
+    placement: { x: free, y: free, anchor: center, resizable: false }
+    accessibility: { role: "button", name: (shownName(self)) }
+  }
+
+  node SoftwareSystemInstance {
+    shape roundedRect { radius: 8 }
+    label (displayedName(self)) as name {
+      editText: @name
+      editable: inline
+      position: { anchor: [0.5, 0], offset: [0, 22], align: center }
+      style: "cardName"
+      wrap: none
+      overflow: visible
+    }
+    label (typeLine(self)) as type {
+      position: { anchor: [0.5, 0], offset: [0, 38], align: center }
+      style: "cardType"
+      wrap: none
+      overflow: ellipsis
+    }
+    label (displayedDescription(self)) as description {
+      editable: false
+      position: { anchor: [0.5, 0], offset: [0, 58], align: center }
+      style: "cardDescription"
+      wrap: word
+      maxWidth: parent
+    }
+    /// An element tagged Database is drawn as a cylinder.
+    variant v0 when self.database {
+      shape c4Cylinder
+    }
+    style: "softwareSystem"
+    size: { min: [160, 39.6], max: [240, null], autoSize: fitContent, resizable: false }
+    conditions: [{
+      when: (self.external)
+      style: "external"
+      doc: "An element outside the scope being described is muted grey, so scope is readable at a glance."
+    }
+    ]
+    deletable: false
+    copyable: false
+    connectable: false
+    placement: { x: free, y: free, anchor: center, resizable: false }
+    accessibility: { role: "button", name: (shownName(self)) }
+  }
+
+  edge Relationship {
+    line { stroke: { color: $color.line, width: 1.5, dash: [6, 4], dashScale: absolute }, routing: straight }
+    marker source none
+    marker target arrowFilled
+    label (lineLabel(self.description, self.technology)) as label {
+      at: middle
+      side: above
+      distance: 6
+      orientation: horizontal
+      editText: @description
+      editable: inline
+      style: "relationshipLabel"
+      wrap: none
+    }
+    anchoring: { source: { mode: outline }, target: { mode: outline } }
+    deletable: false
+    reconnectable: false
+  }
+
+  edge LiftedRelationship {
+    line { stroke: { color: $color.line, width: 1.5, dash: [6, 4], dashScale: absolute }, routing: straight }
+    marker source none
+    marker target arrowFilled
+    label (lineLabel(self.description, self.technology)) as label {
+      at: middle
+      side: above
+      distance: 6
+      orientation: horizontal
+      editable: false
+      style: "relationshipLabel"
+      wrap: none
+    }
+    anchoring: { source: { mode: outline }, target: { mode: outline } }
+    deletable: false
+    reconnectable: false
+  }
+
+  edge InstanceLine {
+    line { stroke: { color: $color.line, width: 1.5, dash: [6, 4], dashScale: absolute }, routing: straight }
+    marker source none
+    marker target arrowFilled
+    label (lineLabel(self.description, self.technology)) as label {
+      at: middle
+      side: above
+      distance: 6
+      orientation: horizontal
+      editable: false
+      style: "relationshipLabel"
+      wrap: none
+    }
+    anchoring: { source: { mode: outline }, target: { mode: outline } }
+    deletable: false
+    reconnectable: false
+  }
+
+  edge InteractionLine {
+    line { stroke: { color: $color.line, width: 1.5, dash: [6, 4], dashScale: absolute }, routing: straight }
+    marker source none
+    marker target arrowFilled
+    label (self.description == '' ? '' : (self.order != '' ? self.order + '. ' + self.description : self.description)) as label {
+      at: middle
+      side: above
+      distance: 6
+      orientation: horizontal
+      editable: false
+      style: "relationshipLabel"
+      wrap: none
+    }
+    anchoring: { source: { mode: outline }, target: { mode: outline } }
+    deletable: false
+    reconnectable: false
+  }
+
+  canvas {
+    background: $color.canvas
+    title: { id: "heading", text: @heading, style: "diagramTitle", editable: false }
+    legend: {
+      visible: true
+      position: outside-bottom
+      title: "Key"
+      from: drawn
+      computed: {
+        key: (self.legendLabel)
+        label: (self.legendLabel)
+        swatch: {
+          shape: { type: "roundedRect", params: { radius: 4 } }
+          fill: (self.external ? token('color.external') : token({
+            'Person': 'color.person',
+            'SoftwareSystem': 'color.softwareSystem',
+            'Container': 'color.container',
+            'Component': 'color.component',
+            'DeploymentNode': 'color.deploymentNode',
+            'InfrastructureNode': 'color.deploymentNode',
+            'ContainerInstance': 'color.container',
+            'SoftwareSystemInstance': 'color.softwareSystem'
+          }
+          [self.type]))
+        }
+        doc: "One entry per distinct kind among the elements drawn, ` (external)` appended where it applies, each with a swatch in the card's background colour (`C4ElementMapper.LegendFor`). The tool lists the entries in the order of the view's members, the order of its `include` statements first (companion, gap 15)."
+      }
+    }
+    doc "C4 asks every diagram for a title that says its type and scope, and a key of the shapes and colours it uses: the title is drawn above the drawing surface and the key below it."
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true, lasso: false, text: false, note: false, image: false, freehand: false }
+  group elements "C4 system landscape diagram" {
+    /// Someone who uses the software.
+    tool person "Person" {
+      kind: operation
+      operation: "addPerson"
+      icon: "mdi-account-outline"
+      mode: drop
+      drop: {
+        targets: [{ on: [canvas, Element], kind: operation, operation: "addPerson" }]
+        doc: "Dropped anywhere, it is added at the top of the model: a drop on another element means nothing rather than something forbidden."
+      }
+    }
+    /// A software system.
+    tool softwareSystem "Software System" {
+      kind: operation
+      operation: "addSoftwareSystem"
+      icon: "mdi-application-outline"
+      mode: drop
+      drop: {
+        targets: [{ on: [canvas, Element], kind: operation, operation: "addSoftwareSystem" }]
+        doc: "Dropped anywhere, it is added at the top of the model: a drop on another element means nothing rather than something forbidden."
+      }
+    }
+  }
+  /// An element's menu has no add group: what can be added inside an element is added from the toolbox.
+  context for Element {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: operation, operation: "rename", group: "g1", icon: "mdi-pencil-outline", shortcut: "F2" }
+    tool { kind: operation, operation: "editDescription", group: "g1", icon: "mdi-text-box-outline" }
+    tool { kind: operation, operation: "setTechnology", group: "g1", icon: "mdi-tools", visible: (hasTechnology(self)) }
+  }
+  /// A stored relationship drawn as itself. A lifted line, a line between instances and an interaction have no menu
+  /// (finding A10).
+  context for Relationship {
+    placement: menu
+    standardEntries: false
+    tool "Relabel…" { kind: operation, operation: "relabel", group: "g1", icon: "mdi-pencil-outline", shortcut: "F2" }
+    tool "Set technology…" {
+      kind: operation,
+      operation: "setProtocol",
+      group: "g1",
+      icon: "mdi-transit-connection-variant"
+    }
+  }
+  /// The empty canvas offers the two kinds that need no parent. The labels end in an ellipsis, as every label that asks
+  /// for a value does; they ended in a literal `&` until finding A14 of the standalone tool's c4-disl-fbl specification
+  /// was fixed.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add person…" { kind: operation, operation: "addPerson", group: "g1", icon: "mdi-plus" }
+    tool "Add software system…" { kind: operation, operation: "addSoftwareSystem", group: "g1", icon: "mdi-plus" }
+  }
+}
+
+form element for Element {
+  usage: [inspector]
+  field name "Name" { widget: text }
+  field description "Description" { widget: textarea }
+  field technology "Technology" { widget: text, visible: (hasTechnology(self)) }
+  field tags "Tags" {
+    widget: text
+    display: (self.tags.join(', '))
+    readOnlyReasons: ["Tags are edited in the document until an action exists for them."]
+  }
+  section "Model" {
+    item kind "Kind" {
+      kind: computed
+      widget: text
+      value: (kindName(self.type))
+      readOnlyReasons: ["Changing this changes the shape of the model rather than a value, so it is done from the diagram rather than here."]
+    }
+    item identifier "Identifier" {
+      kind: computed
+      widget: text
+      value: (self.id)
+      readOnlyReasons: ["Changing this changes the shape of the model rather than a value, so it is done from the diagram rather than here."]
+    }
+  }
+}
+
+/// A stored relationship drawn as itself. A lifted line, a line between instances and an interaction have no rows
+/// (finding A10).
+form relationship for Relationship {
+  usage: [inspector]
+  field description "Description" { id: "relationshipDescription", widget: text }
+  field technology "Technology" { id: "relationshipTechnology", widget: text }
+  section "Model" {
+    item from "From" {
+      kind: computed
+      widget: text
+      value: (self.source != null ? shownName(self.source) : writtenEnd(self, 'source'))
+      readOnlyReasons: ["The ends of a relationship are what it is. Draw a different relationship to connect something else."]
+    }
+    item to "To" {
+      kind: computed
+      widget: text
+      value: (self.target != null ? shownName(self.target) : writtenEnd(self, 'target'))
+      readOnlyReasons: ["The ends of a relationship are what it is. Draw a different relationship to connect something else."]
+    }
+  }
+}
+
+form renameElement "Rename element" {
+  icon: "mdi-pencil-outline"
+  usage: [popover]
+  submitLabel: "Rename"
+  field name "Name" {
+    widget: text
+    initial: (self.name)
+    validate: [{ rule: (value.trim() != ''), message: "Every C4 element needs a name." }]
+  }
+}
+
+form describeElement "Describe element" {
+  icon: "mdi-text-box-outline"
+  usage: [popover]
+  submitLabel: "Save"
+  field description "Description" { widget: textarea, initial: (self.description) }
+}
+
+form setTechnology "Set technology" {
+  icon: "mdi-tools"
+  usage: [popover]
+  submitLabel: "Save"
+  field technology "Technology" { widget: text, initial: (self.technology) }
+}
+
+form relabelRelationship "Relabel relationship" {
+  icon: "mdi-pencil-outline"
+  usage: [popover]
+  submitLabel: "Save"
+  field description "Description" { widget: text, initial: (self.description) }
+}
+
+form setProtocol "Set technology" {
+  icon: "mdi-transit-connection-variant"
+  usage: [popover]
+  submitLabel: "Save"
+  field technology "Technology" { widget: text, initial: (self.technology) }
+}
+
+form addPerson "Add person" {
+  icon: "mdi-plus"
+  usage: [popover]
+  submitLabel: "Add"
+  field name "Name" {
+    widget: text
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every C4 element needs a name." }]
+  }
+}
+
+form addSoftwareSystem "Add software system" {
+  icon: "mdi-plus"
+  usage: [popover]
+  submitLabel: "Add"
+  field name "Name" {
+    widget: text
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every C4 element needs a name." }]
+  }
+}
+
+form addContainer "Add container" {
+  icon: "mdi-plus"
+  usage: [popover]
+  submitLabel: "Add"
+  field name "Name" {
+    widget: text
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every C4 element needs a name." }]
+  }
+}
+
+form addComponent "Add component" {
+  icon: "mdi-plus"
+  usage: [popover]
+  submitLabel: "Add"
+  field name "Name" {
+    widget: text
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every C4 element needs a name." }]
+  }
+}
+
+/// Every view is laid out by ADP. A position dragged on the canvas is kept for that view and replaces the computed one,
+/// except in a view that declares `autoLayout`, which sets the direction and the separations and makes every stored
+/// position ignored (companion, gap 9). Each card's size is measured by the host (finding A16).
+layout {
+  default c4Ranks
+  /// Longest-path ranks along the model's relationships (a dynamic view's interactions), one row per rank centred on
+  /// the axis; a container or component view draws a boundary around its scope's children and moves anything else out
+  /// of it (`C4Layout.cs`, `modules/diagrams/c4/src/layout.rs`).
+  algorithm c4Ranks capability layout.rankedBoundaries {
+    mode: enclose
+    direction: (diagram.autoLayout != null ? string(diagram.autoLayout) : 'tb')
+    rankSeparation: (diagram.rankSeparation)
+    nodeSeparation: (diagram.nodeSeparation)
+    pinsIgnored: (diagram.autoLayout != null)
+    padding: 32,
+    labelHeight: 19.6,
+    clearance: 60
+  }
+  /// The declarative approximation of c4Ranks, for a runtime without the capability: top to bottom, ranks 120 and
+  /// nodes 60 apart.
+  algorithm layered {
+    algorithm: "layered",
+    direction: down,
+    spacing: { layer: 120, node: 60 },
+    edgeRouting: straight,
+    scope: all
+  }
+  trigger: always
+  respect: pinned
+  animate: false
+}
+
+/// What the view shows (`isMember`): the elements its statements select, of any kind it names, a stored relationship
+/// while it is drawn as itself (`drawsStored`), and the lines derived for this kind of view. The kinds it permits are
+/// person, software system.
+viewpoint systemLandscape "System Landscape view" {
+  include: ["Person", "SoftwareSystem", "Container", "Component", "DeploymentNode", "InfrastructureNode", "ContainerInstance", "SoftwareSystemInstance", "Relationship", "LiftedRelationship", "InstanceLine", "InteractionLine"]
+  exclude: ["IncludedFile", "Interaction"]
+  members: (self.isA('Relationship') ? drawsStored(self, 'systemLandscape') : (self.kind == 'relation' ? true : isMember(self, 'systemLandscape')))
+  toolbox: ["elements"]
+  layout: "c4Ranks"
+  default: true
+}

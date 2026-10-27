@@ -1,0 +1,330 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "cluster:ingest_cluster",
+      "type": "databricks/job+cluster",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 320,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "15.4.x-scala2.12 · Standard_DS3_v2 · 2 workers",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 368
+          }
+        },
+        {
+          "id": "name",
+          "text": "ingest_cluster",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task:alert",
+      "type": "databricks/job+task",
+      "shape": "path",
+      "bounds": {
+        "x": 260,
+        "y": 120,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "AT_LEAST_ONE_FAILED · serverless",
+          "font": "10 400",
+          "position": {
+            "x": 268,
+            "y": 168
+          }
+        },
+        {
+          "id": "name",
+          "text": "alert",
+          "font": "13 400",
+          "position": {
+            "x": 268,
+            "y": 144
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task:ingest",
+      "type": "databricks/job+task",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "ingest_cluster",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 48
+          }
+        },
+        {
+          "id": "name",
+          "text": "ingest",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task:publish",
+      "type": "databricks/job+task",
+      "shape": "path",
+      "bounds": {
+        "x": 260,
+        "y": 0,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "serverless",
+          "font": "10 400",
+          "position": {
+            "x": 268,
+            "y": 48
+          }
+        },
+        {
+          "id": "name",
+          "text": "publish",
+          "font": "13 400",
+          "position": {
+            "x": 268,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task:quality_gate",
+      "type": "databricks/job+task",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 120,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "serverless",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 168
+          }
+        },
+        {
+          "id": "name",
+          "text": "quality_gate",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 144
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task:refresh_dashboard",
+      "type": "databricks/job+task",
+      "shape": "path",
+      "bounds": {
+        "x": 520,
+        "y": 0,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "serverless",
+          "font": "10 400",
+          "position": {
+            "x": 528,
+            "y": 48
+          }
+        },
+        {
+          "id": "name",
+          "text": "refresh_dashboard",
+          "font": "13 400",
+          "position": {
+            "x": 528,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:publish->refresh_dashboard",
+      "type": "databricks/job+edge",
+      "source": "task:publish",
+      "target": "task:refresh_dashboard",
+      "route": [
+        {
+          "x": 460,
+          "y": 28
+        },
+        {
+          "x": 520,
+          "y": 28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:quality_gate->alert",
+      "type": "databricks/job+edge",
+      "source": "task:quality_gate",
+      "target": "task:alert",
+      "route": [
+        {
+          "x": 200,
+          "y": 148
+        },
+        {
+          "x": 260,
+          "y": 148
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "outcome",
+          "text": "false",
+          "font": "10 400",
+          "position": {
+            "x": 230,
+            "y": 142
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#dc2626",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:quality_gate->publish",
+      "type": "databricks/job+edge",
+      "source": "task:quality_gate",
+      "target": "task:publish",
+      "route": [
+        {
+          "x": 200,
+          "y": 148
+        },
+        {
+          "x": 260,
+          "y": 28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "outcome",
+          "text": "true",
+          "font": "10 400",
+          "position": {
+            "x": 230,
+            "y": 82
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#15803d",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "task:ingest",
+    "task:quality_gate",
+    "task:publish",
+    "task:alert",
+    "task:refresh_dashboard",
+    "cluster:ingest_cluster",
+    "edge:quality_gate->publish",
+    "edge:quality_gate->alert",
+    "edge:publish->refresh_dashboard"
+  ]
+}

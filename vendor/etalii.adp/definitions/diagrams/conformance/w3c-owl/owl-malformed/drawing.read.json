@@ -1,0 +1,158 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 10,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "∃ ?.:B",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 48.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#b45309",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "res:http://example.org/bad#A",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":A",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 39.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/bad#B",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 175,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":B",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 214.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0||res:http://example.org/bad#B",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "target": "res:http://example.org/bad#B",
+      "route": [
+        {
+          "x": 298.7,
+          "y": 75.56
+        },
+        {
+          "x": 141.3,
+          "y": 179.44
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/bad#A",
+      "target": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 38.78
+        },
+        {
+          "x": 250.56,
+          "y": 41.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0||res:http://example.org/bad#B",
+    "edge:res:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+    "res:http://example.org/bad#A",
+    "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+    "res:http://example.org/bad#B"
+  ]
+}

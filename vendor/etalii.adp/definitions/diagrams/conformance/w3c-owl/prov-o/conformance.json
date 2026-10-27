@@ -1,0 +1,2358 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/owl` from parity/scripts/w3c/owl/prov-o.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/owl",
+  "description": "../../../w3c-owl.atd",
+  "inputs": {
+    "body": "prov-o.ttl",
+    "registration": "prov-o.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://www.w3.org/2002/07/owl#Thing",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "iri": "http://www.w3.org/2002/07/owl#Thing",
+          "display": "owl:Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "ontology",
+          "iri": "http://www.w3.org/ns/prov#",
+          "display": "http://www.w3.org/ns/prov#",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Activity",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Activity",
+          "display": "Activity",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Activity",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "starting-point",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "entities-activities",
+          "rows.3.predicate": ":constraints",
+          "rows.3.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.3.annotation": "xsd:anyURI",
+          "rows.4.predicate": ":definition",
+          "rows.4.value": "An activity is something that occurs over a period of time and acts upon or with entities; it may include consuming, processing, transforming, modifying, relocating, using, or generating entities.",
+          "rows.5.predicate": ":dm",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Activity",
+          "rows.5.annotation": "xsd:anyURI",
+          "rows.6.predicate": ":n",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Activity",
+          "rows.6.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Entity",
+          "display": "Entity",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Entity",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "starting-point",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "entities-activities",
+          "rows.3.predicate": ":constraints",
+          "rows.3.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.3.annotation": "xsd:anyURI",
+          "rows.4.predicate": ":definition",
+          "rows.4.value": "An entity is a physical, digital, conceptual, or other kind of thing with some fixed aspects; entities may be real or imaginary. ",
+          "rows.4.annotation": "@en",
+          "rows.5.predicate": ":dm",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-entity",
+          "rows.5.annotation": "xsd:anyURI",
+          "rows.6.predicate": ":n",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Entity",
+          "rows.6.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#ActivityInfluence",
+          "display": "ActivityInfluence",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "ActivityInfluence provides additional descriptions of an Activity's binary influence upon any other kind of resource. Instances of ActivityInfluence use the prov:activity property to cite the influencing Activity.",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:comment",
+          "rows.1.value": "It is not recommended that the type ActivityInfluence be asserted without also asserting one of its more specific subclasses.",
+          "rows.1.annotation": "@en",
+          "rows.2.predicate": "rdfs:label",
+          "rows.2.value": "ActivityInfluence",
+          "rows.3.predicate": ":category",
+          "rows.3.value": "qualified",
+          "rows.4.predicate": ":editorsDefinition",
+          "rows.4.value": "ActivitiyInfluence is the capacity of an activity to have an effect on the character, development, or behavior of another by means of generation, invalidation, communication, or other.",
+          "rows.4.annotation": "@en",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "≤ 0 hadActivity",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Influence",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Influence",
+          "display": "Influence",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Influence provides additional descriptions about the binary prov:wasInfluencedBy relation from some influenced Activity, Entity, or Agent to the influencing Activity, Entity, or Agent. For example, :stomach_ache prov:wasInfluencedBy :spoon; prov:qualifiedInfluence [ a prov:Influence; prov:entity :spoon; :foo :bar ] . Because prov:Influence is a broad relation, the more specific relations (Communication, Delegation, End, etc.) should be used when applicable.",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:comment",
+          "rows.1.value": "Because prov:Influence is a broad relation, its most specific subclasses (e.g. prov:Communication, prov:Delegation, prov:End, prov:Revision, etc.) should be used when applicable.",
+          "rows.1.annotation": "@en",
+          "rows.2.predicate": "rdfs:label",
+          "rows.2.value": "Influence",
+          "rows.3.predicate": ":category",
+          "rows.3.value": "qualified",
+          "rows.4.predicate": ":component",
+          "rows.4.value": "derivations",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "Influence is the capacity of an entity, activity, or agent to have an effect on the character, development, or behavior of another by means of usage, start, end, generation, invalidation, communication, derivation, attribution, association, or delegation.",
+          "rows.5.annotation": "@en",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-influence",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-influence",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#EntityInfluence",
+          "display": "EntityInfluence",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "EntityInfluence provides additional descriptions of an Entity's binary influence upon any other kind of resource. Instances of EntityInfluence use the prov:entity property to cite the influencing Entity.",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:comment",
+          "rows.1.value": "It is not recommended that the type EntityInfluence be asserted without also asserting one of its more specific subclasses.",
+          "rows.1.annotation": "@en",
+          "rows.2.predicate": "rdfs:label",
+          "rows.2.value": "EntityInfluence",
+          "rows.3.predicate": ":category",
+          "rows.3.value": "qualified",
+          "rows.4.predicate": ":editorsDefinition",
+          "rows.4.value": "EntityInfluence is the capacity of an entity to have an effect on the character, development, or behavior of another by means of usage, start, end, derivation, or other. ",
+          "rows.4.annotation": "@en",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Agent",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Agent",
+          "display": "Agent",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Agent",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "starting-point",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "agents-responsibility",
+          "rows.3.predicate": ":definition",
+          "rows.3.value": "An agent is something that bears some form of responsibility for an activity taking place, for the existence of an entity, or for another agent's activity. ",
+          "rows.3.annotation": "@en",
+          "rows.4.predicate": ":dm",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-agent",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":n",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Agent",
+          "rows.5.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#InstantaneousEvent",
+          "display": "InstantaneousEvent",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instantaneous event, or event for short, happens in the world and marks a change in the world, in its activities and in its entities. The term 'event' is commonly used in process algebra with a similar meaning. Events represent communications or interactions; they are assumed to be atomic and instantaneous.",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "InstantaneousEvent",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "entities-activities",
+          "rows.4.predicate": ":constraints",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#dfn-event",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "The PROV data model is implicitly based on a notion of instantaneous events (or just events), that mark transitions in the world. Events include generation, usage, or invalidation of entities, as well as starting or ending of activities. This notion of event is not first-class in the data model, but it is useful for explaining its other concepts and its semantics.",
+          "rows.5.annotation": "@en",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#AgentInfluence",
+          "display": "AgentInfluence",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "AgentInfluence provides additional descriptions of an Agent's binary influence upon any other kind of resource. Instances of AgentInfluence use the prov:agent property to cite the influencing Agent.",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:comment",
+          "rows.1.value": "It is not recommended that the type AgentInfluence be asserted without also asserting one of its more specific subclasses.",
+          "rows.1.annotation": "@en",
+          "rows.2.predicate": "rdfs:label",
+          "rows.2.value": "AgentInfluence",
+          "rows.3.predicate": ":category",
+          "rows.3.value": "qualified",
+          "rows.4.predicate": ":editorsDefinition",
+          "rows.4.value": "AgentInfluence is the capacity of an agent to have an effect on the character, development, or behavior of another by means of attribution, association, delegation, or other.",
+          "rows.4.annotation": "@en",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Association",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Association",
+          "display": "Association",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Association provides additional descriptions about the binary prov:wasAssociatedWith relation from an prov:Activity to some prov:Agent that had some responsiblity for it. For example, :baking prov:wasAssociatedWith :baker; prov:qualifiedAssociation [ a prov:Association; prov:agent :baker; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Association",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "agents-responsibility",
+          "rows.4.predicate": ":definition",
+          "rows.4.value": "An activity association is an assignment of responsibility to an agent for an activity, indicating that the agent had a role in the activity. It further allows for a plan to be specified, which is the plan intended by the agent to achieve some goals in the context of this activity.",
+          "rows.4.annotation": "@en",
+          "rows.5.predicate": ":dm",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Association",
+          "rows.5.annotation": "xsd:anyURI",
+          "rows.6.predicate": ":n",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Association",
+          "rows.6.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Attribution",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Attribution",
+          "display": "Attribution",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Attribution provides additional descriptions about the binary prov:wasAttributedTo relation from an prov:Entity to some prov:Agent that had some responsible for it. For example, :cake prov:wasAttributedTo :baker; prov:qualifiedAttribution [ a prov:Attribution; prov:entity :baker; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Attribution",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "agents-responsibility",
+          "rows.4.predicate": ":constraints",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "Attribution is the ascribing of an entity to an agent.\n\nWhen an entity e is attributed to agent ag, entity e was generated by some unspecified activity that in turn was associated to agent ag. Thus, this relation is useful when the activity is not known, or irrelevant.",
+          "rows.5.annotation": "@en",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-attribution",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-attribution",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Bundle",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Bundle",
+          "display": "Bundle",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "Note that there are kinds of bundles (e.g. handwritten letters, audio recordings, etc.) that are not expressed in PROV-O, but can be still be described by PROV-O.",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Bundle",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "expanded",
+          "rows.3.predicate": ":definition",
+          "rows.3.value": "A bundle is a named set of provenance descriptions, and is itself an Entity, so allowing provenance of provenance to be expressed.",
+          "rows.3.annotation": "@en",
+          "rows.4.predicate": ":dm",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-bundle-entity",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":n",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-bundle-declaration",
+          "rows.5.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Collection",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Collection",
+          "display": "Collection",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Collection",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "expanded",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "collections",
+          "rows.3.predicate": ":definition",
+          "rows.3.value": "A collection is an entity that provides a structure to some constituents, which are themselves entities. These constituents are said to be member of the collections.",
+          "rows.3.annotation": "@en",
+          "rows.4.predicate": ":dm",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-collection",
+          "rows.4.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Communication",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Communication",
+          "display": "Communication",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Communication provides additional descriptions about the binary prov:wasInformedBy relation from an informed prov:Activity to the prov:Activity that informed it. For example, :you_jumping_off_bridge prov:wasInformedBy :everyone_else_jumping_off_bridge; prov:qualifiedCommunication [ a prov:Communication; prov:activity :everyone_else_jumping_off_bridge; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Communication",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "entities-activities",
+          "rows.4.predicate": ":constraints",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "Communication is the exchange of an entity by two activities, one activity using the entity generated by the other.",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Communication",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-wasInformedBy",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Delegation",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Delegation",
+          "display": "Delegation",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Delegation provides additional descriptions about the binary prov:actedOnBehalfOf relation from a performing prov:Agent to some prov:Agent for whom it was performed. For example, :mixing prov:wasAssociatedWith :toddler . :toddler prov:actedOnBehalfOf :mother; prov:qualifiedDelegation [ a prov:Delegation; prov:entity :mother; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Delegation",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "agents-responsibility",
+          "rows.4.predicate": ":definition",
+          "rows.4.value": "Delegation is the assignment of authority and responsibility to an agent (by itself or by another agent) to carry out a specific activity as a delegate or representative, while the agent it acts on behalf of retains some responsibility for the outcome of the delegated work.\n\nFor example, a student acted on behalf of his supervisor, who acted on behalf of the department chair, who acted on behalf of the university; all those agents are responsible in some way for the activity that took place but we do not say explicitly who bears responsibility and to what degree.",
+          "rows.4.annotation": "@en",
+          "rows.5.predicate": ":dm",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-delegation",
+          "rows.5.annotation": "xsd:anyURI",
+          "rows.6.predicate": ":n",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-delegation",
+          "rows.6.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Derivation",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Derivation",
+          "display": "Derivation",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Derivation provides additional descriptions about the binary prov:wasDerivedFrom relation from some derived prov:Entity to another prov:Entity from which it was derived. For example, :chewed_bubble_gum prov:wasDerivedFrom :unwrapped_bubble_gum; prov:qualifiedDerivation [ a prov:Derivation; prov:entity :unwrapped_bubble_gum; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:comment",
+          "rows.1.value": "The more specific forms of prov:Derivation (i.e., prov:Revision, prov:Quotation, prov:PrimarySource) should be asserted if they apply.",
+          "rows.1.annotation": "@en",
+          "rows.2.predicate": "rdfs:label",
+          "rows.2.value": "Derivation",
+          "rows.3.predicate": ":category",
+          "rows.3.value": "qualified",
+          "rows.4.predicate": ":component",
+          "rows.4.value": "derivations",
+          "rows.5.predicate": ":constraints",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.5.annotation": "xsd:anyURI",
+          "rows.6.predicate": ":definition",
+          "rows.6.value": "A derivation is a transformation of an entity into another, an update of an entity resulting in a new one, or the construction of a new entity based on a pre-existing entity.",
+          "rows.6.annotation": "@en",
+          "rows.7.predicate": ":dm",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Derivation",
+          "rows.7.annotation": "xsd:anyURI",
+          "rows.8.predicate": ":n",
+          "rows.8.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#Derivation-Relation",
+          "rows.8.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#EmptyCollection",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#EmptyCollection",
+          "display": "EmptyCollection",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "EmptyCollection",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "expanded",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "collections",
+          "rows.3.predicate": ":definition",
+          "rows.3.value": "An empty collection is a collection without members.",
+          "rows.3.annotation": "@en",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "ind:http://www.w3.org/ns/prov#EmptyCollection",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "individual",
+          "iri": "http://www.w3.org/ns/prov#EmptyCollection",
+          "display": "EmptyCollection",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#End",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#End",
+          "display": "End",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:End provides additional descriptions about the binary prov:wasEndedBy relation from some ended prov:Activity to an prov:Entity that ended it. For example, :ball_game prov:wasEndedBy :buzzer; prov:qualifiedEnd [ a prov:End; prov:entity :buzzer; :foo :bar; prov:atTime '2012-03-09T08:05:08-05:00'^^xsd:dateTime ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "End",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "entities-activities",
+          "rows.4.predicate": ":constraints",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "End is when an activity is deemed to have been ended by an entity, known as trigger. The activity no longer exists after its end. Any usage, generation, or invalidation involving an activity precedes the activity's end. An end may refer to a trigger entity that terminated the activity, or to an activity, known as ender that generated the trigger.",
+          "rows.5.annotation": "@en",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-End",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-End",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Generation",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Generation",
+          "display": "Generation",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Generation provides additional descriptions about the binary prov:wasGeneratedBy relation from a generated prov:Entity to the prov:Activity that generated it. For example, :cake prov:wasGeneratedBy :baking; prov:qualifiedGeneration [ a prov:Generation; prov:activity :baking; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Generation",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "entities-activities",
+          "rows.4.predicate": ":constraints",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "Generation is the completion of production of a new entity by an activity. This entity did not exist before generation and becomes available for usage after this generation.",
+          "rows.5.annotation": "@en",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Generation",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Generation",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Invalidation",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Invalidation",
+          "display": "Invalidation",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Invalidation provides additional descriptions about the binary prov:wasInvalidatedBy relation from an invalidated prov:Entity to the prov:Activity that invalidated it. For example, :uncracked_egg prov:wasInvalidatedBy :baking; prov:qualifiedInvalidation [ a prov:Invalidation; prov:activity :baking; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Invalidation",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "entities-activities",
+          "rows.4.predicate": ":constraints",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "Invalidation is the start of the destruction, cessation, or expiry of an existing entity by an activity. The entity is no longer available for use (or further invalidation) after invalidation. Any generation or usage of an entity precedes its invalidation.",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Invalidation",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Invalidation",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Location",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Location",
+          "display": "Location",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Location",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "expanded",
+          "rows.2.predicate": ":definition",
+          "rows.2.value": "A location can be an identifiable geographic place (ISO 19112), but it can also be a non-geographic place such as a directory, row, or column. As such, there are numerous ways in which location can be expressed, such as by a coordinate, address, landmark, and so forth.",
+          "rows.2.annotation": "@en",
+          "rows.3.predicate": ":dm",
+          "rows.3.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-attribute-location",
+          "rows.3.annotation": "xsd:anyURI",
+          "rows.4.predicate": ":n",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-attribute",
+          "rows.4.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Organization",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Organization",
+          "display": "Organization",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Organization",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "expanded",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "agents-responsibility",
+          "rows.3.predicate": ":definition",
+          "rows.3.value": "An organization is a social or legal institution such as a company, society, etc.",
+          "rows.4.predicate": ":dm",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-agent",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":n",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-types",
+          "rows.5.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Person",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Person",
+          "display": "Person",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Person",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "expanded",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "agents-responsibility",
+          "rows.3.predicate": ":definition",
+          "rows.3.value": "Person agents are people.",
+          "rows.3.annotation": "@en",
+          "rows.4.predicate": ":dm",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-agent",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":n",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-types",
+          "rows.5.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Plan",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Plan",
+          "display": "Plan",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "There exist no prescriptive requirement on the nature of plans, their representation, the actions or steps they consist of, or their intended goals. Since plans may evolve over time, it may become necessary to track their provenance, so plans themselves are entities. Representing the plan explicitly in the provenance can be useful for various tasks: for example, to validate the execution as represented in the provenance record, to manage expectation failures, or to provide explanations.",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Plan",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "expanded",
+          "rows.3.predicate": ":category",
+          "rows.3.value": "qualified",
+          "rows.4.predicate": ":component",
+          "rows.4.value": "agents-responsibility",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "A plan is an entity that represents a set of actions or steps intended by one or more agents to achieve some goals.",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Association",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Association",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#PrimarySource",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#PrimarySource",
+          "display": "PrimarySource",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:PrimarySource provides additional descriptions about the binary prov:hadPrimarySource relation from some secondary prov:Entity to an earlier, primary prov:Entity. For example, :blog prov:hadPrimarySource :newsArticle; prov:qualifiedPrimarySource [ a prov:PrimarySource; prov:entity :newsArticle; :foo :bar ] .",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "PrimarySource",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "derivations",
+          "rows.4.predicate": ":definition",
+          "rows.4.value": "A primary source for a topic refers to something produced by some agent with direct experience and knowledge about the topic, at the time of the topic's study, without benefit from hindsight.\n\nBecause of the directness of primary sources, they 'speak for themselves' in ways that cannot be captured through the filter of secondary sources. As such, it is important for secondary sources to reference those primary sources from which they were derived, so that their reliability can be investigated.\n\nA primary source relation is a particular case of derivation of secondary materials from their primary sources. It is recognized that the determination of primary sources can be up to interpretation, and should be done according to conventions accepted within the application's domain.",
+          "rows.4.annotation": "@en",
+          "rows.5.predicate": ":dm",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-primary-source",
+          "rows.5.annotation": "xsd:anyURI",
+          "rows.6.predicate": ":n",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-original-source",
+          "rows.6.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Quotation",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Quotation",
+          "display": "Quotation",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Quotation provides additional descriptions about the binary prov:wasQuotedFrom relation from some taken prov:Entity from an earlier, larger prov:Entity. For example, :here_is_looking_at_you_kid prov:wasQuotedFrom :casablanca_script; prov:qualifiedQuotation [ a prov:Quotation; prov:entity :casablanca_script; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Quotation",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "derivations",
+          "rows.4.predicate": ":definition",
+          "rows.4.value": "A quotation is the repeat of (some or all of) an entity, such as text or image, by someone who may or may not be its original author. Quotation is a particular case of derivation.",
+          "rows.4.annotation": "@en",
+          "rows.5.predicate": ":dm",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-quotation",
+          "rows.5.annotation": "xsd:anyURI",
+          "rows.6.predicate": ":n",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-quotation",
+          "rows.6.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Revision",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Revision",
+          "display": "Revision",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Revision provides additional descriptions about the binary prov:wasRevisionOf relation from some newer prov:Entity to an earlier prov:Entity. For example, :draft_2 prov:wasRevisionOf :draft_1; prov:qualifiedRevision [ a prov:Revision; prov:entity :draft_1; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Revision",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "derivations",
+          "rows.4.predicate": ":definition",
+          "rows.4.value": "A revision is a derivation for which the resulting entity is a revised version of some original. The implication here is that the resulting entity contains substantial content from the original. Revision is a particular case of derivation.",
+          "rows.4.annotation": "@en",
+          "rows.5.predicate": ":dm",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-revision",
+          "rows.5.annotation": "xsd:anyURI",
+          "rows.6.predicate": ":n",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Revision",
+          "rows.6.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Role",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Role",
+          "display": "Role",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Role",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "qualified",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "agents-responsibility",
+          "rows.3.predicate": ":definition",
+          "rows.3.value": "A role is the function of an entity or agent with respect to an activity, in the context of a usage, generation, invalidation, association, start, and end.",
+          "rows.3.annotation": "@en",
+          "rows.4.predicate": ":dm",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-attribute-role",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":n",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-attribute",
+          "rows.5.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#SoftwareAgent",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#SoftwareAgent",
+          "display": "SoftwareAgent",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "SoftwareAgent",
+          "rows.1.predicate": ":category",
+          "rows.1.value": "expanded",
+          "rows.2.predicate": ":component",
+          "rows.2.value": "agents-responsibility",
+          "rows.3.predicate": ":definition",
+          "rows.3.value": "A software agent is running software.",
+          "rows.3.annotation": "@en",
+          "rows.4.predicate": ":dm",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-agent",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":n",
+          "rows.5.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-types",
+          "rows.5.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Start",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Start",
+          "display": "Start",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Start provides additional descriptions about the binary prov:wasStartedBy relation from some started prov:Activity to an prov:Entity that started it. For example, :foot_race prov:wasStartedBy :bang; prov:qualifiedStart [ a prov:Start; prov:entity :bang; :foo :bar; prov:atTime '2012-03-09T08:05:08-05:00'^^xsd:dateTime ] .",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Start",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "entities-activities",
+          "rows.4.predicate": ":constraints",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "Start is when an activity is deemed to have been started by an entity, known as trigger. The activity did not exist before its start. Any usage, generation, or invalidation involving an activity follows the activity's start. A start may refer to a trigger entity that set off the activity, or to an activity, known as starter, that generated the trigger.",
+          "rows.5.annotation": "@en",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Start",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Start",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Usage",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://www.w3.org/ns/prov#Usage",
+          "display": "Usage",
+          "rows.0.predicate": "rdfs:comment",
+          "rows.0.value": "An instance of prov:Usage provides additional descriptions about the binary prov:used relation from some prov:Activity to an prov:Entity that it used. For example, :keynote prov:used :podium; prov:qualifiedUsage [ a prov:Usage; prov:entity :podium; :foo :bar ].",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "rdfs:label",
+          "rows.1.value": "Usage",
+          "rows.2.predicate": ":category",
+          "rows.2.value": "qualified",
+          "rows.3.predicate": ":component",
+          "rows.3.value": "entities-activities",
+          "rows.4.predicate": ":constraints",
+          "rows.4.value": "http://www.w3.org/TR/2013/REC-prov-constraints-20130430/#prov-dm-constraints-fig",
+          "rows.4.annotation": "xsd:anyURI",
+          "rows.5.predicate": ":definition",
+          "rows.5.value": "Usage is the beginning of utilizing an entity by an activity. Before usage, the activity had not begun to utilize this entity and could not have been affected by the entity.",
+          "rows.5.annotation": "@en",
+          "rows.6.predicate": ":dm",
+          "rows.6.value": "http://www.w3.org/TR/2013/REC-prov-dm-20130430/#term-Usage",
+          "rows.6.annotation": "xsd:anyURI",
+          "rows.7.predicate": ":n",
+          "rows.7.value": "http://www.w3.org/TR/2013/REC-prov-n-20130430/#expression-Usage",
+          "rows.7.annotation": "xsd:anyURI",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "iri": "http://www.w3.org/2001/XMLSchema#dateTime",
+          "display": "xsd:dateTime",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#atLocation|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#influenced|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#influenced|range",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "dt:http://www.w3.org/ns/prov#value",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "display": "Literal",
+          "deprecated": "false",
+          "external": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/ns/prov#actedOnBehalfOf|res:http://www.w3.org/ns/prov#Agent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Agent",
+        "target": "res:http://www.w3.org/ns/prov#Agent",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "toElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "label": "actedOnBehalfOf",
+          "propertyIri": "http://www.w3.org/ns/prov#actedOnBehalfOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/ns/prov#activity|res:http://www.w3.org/ns/prov#Activity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Activity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "toElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "label": "activity",
+          "propertyIri": "http://www.w3.org/ns/prov#activity"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#AgentInfluence|http://www.w3.org/ns/prov#agent|res:http://www.w3.org/ns/prov#Agent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Agent",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#AgentInfluence",
+          "toElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "label": "agent",
+          "propertyIri": "http://www.w3.org/ns/prov#agent"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#alternateOf|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "alternateOf",
+          "propertyIri": "http://www.w3.org/ns/prov#alternateOf"
+        }
+      },
+      {
+        "id": "edge:thing:http://www.w3.org/ns/prov#atLocation|domain|http://www.w3.org/ns/prov#atLocation|res:http://www.w3.org/ns/prov#Location",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://www.w3.org/ns/prov#atLocation|domain",
+        "target": "res:http://www.w3.org/ns/prov#Location",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "thing:http://www.w3.org/ns/prov#atLocation|domain",
+          "toElementId": "res:http://www.w3.org/ns/prov#Location",
+          "label": "atLocation",
+          "propertyIri": "http://www.w3.org/ns/prov#atLocation"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#EntityInfluence|http://www.w3.org/ns/prov#entity|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#EntityInfluence",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "entity",
+          "propertyIri": "http://www.w3.org/ns/prov#entity"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#generated|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "generated (inverse of wasGeneratedBy)",
+          "propertyIri": "http://www.w3.org/ns/prov#generated"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadActivity|res:http://www.w3.org/ns/prov#Activity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Influence",
+        "target": "res:http://www.w3.org/ns/prov#Activity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Influence",
+          "toElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "label": "hadActivity",
+          "propertyIri": "http://www.w3.org/ns/prov#hadActivity"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/ns/prov#hadGeneration|res:http://www.w3.org/ns/prov#Generation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Derivation",
+        "target": "res:http://www.w3.org/ns/prov#Generation",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Derivation",
+          "toElementId": "res:http://www.w3.org/ns/prov#Generation",
+          "label": "hadGeneration",
+          "propertyIri": "http://www.w3.org/ns/prov#hadGeneration"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Collection|http://www.w3.org/ns/prov#hadMember|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Collection",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Collection",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "hadMember",
+          "propertyIri": "http://www.w3.org/ns/prov#hadMember"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Association|http://www.w3.org/ns/prov#hadPlan|res:http://www.w3.org/ns/prov#Plan",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Association",
+        "target": "res:http://www.w3.org/ns/prov#Plan",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Association",
+          "toElementId": "res:http://www.w3.org/ns/prov#Plan",
+          "label": "hadPlan",
+          "propertyIri": "http://www.w3.org/ns/prov#hadPlan"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#hadPrimarySource|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "hadPrimarySource",
+          "propertyIri": "http://www.w3.org/ns/prov#hadPrimarySource"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadRole|res:http://www.w3.org/ns/prov#Role",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Influence",
+        "target": "res:http://www.w3.org/ns/prov#Role",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Influence",
+          "toElementId": "res:http://www.w3.org/ns/prov#Role",
+          "label": "hadRole",
+          "propertyIri": "http://www.w3.org/ns/prov#hadRole"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/ns/prov#hadUsage|res:http://www.w3.org/ns/prov#Usage",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Derivation",
+        "target": "res:http://www.w3.org/ns/prov#Usage",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Derivation",
+          "toElementId": "res:http://www.w3.org/ns/prov#Usage",
+          "label": "hadUsage",
+          "propertyIri": "http://www.w3.org/ns/prov#hadUsage"
+        }
+      },
+      {
+        "id": "edge:thing:http://www.w3.org/ns/prov#influenced|domain|http://www.w3.org/ns/prov#influenced|thing:http://www.w3.org/ns/prov#influenced|range",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://www.w3.org/ns/prov#influenced|domain",
+        "target": "thing:http://www.w3.org/ns/prov#influenced|range",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "thing:http://www.w3.org/ns/prov#influenced|domain",
+          "toElementId": "thing:http://www.w3.org/ns/prov#influenced|range",
+          "label": "influenced (inverse of wasInfluencedBy)",
+          "propertyIri": "http://www.w3.org/ns/prov#influenced"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#influencer|res:http://www.w3.org/2002/07/owl#Thing",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Influence",
+        "target": "res:http://www.w3.org/2002/07/owl#Thing",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Influence",
+          "toElementId": "res:http://www.w3.org/2002/07/owl#Thing",
+          "label": "influencer",
+          "propertyIri": "http://www.w3.org/ns/prov#influencer"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#invalidated|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "invalidated (inverse of wasInvalidatedBy)",
+          "propertyIri": "http://www.w3.org/ns/prov#invalidated"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedAssociation|res:http://www.w3.org/ns/prov#Association",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Association",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Association",
+          "label": "qualifiedAssociation",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedAssociation"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedAttribution|res:http://www.w3.org/ns/prov#Attribution",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Attribution",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Attribution",
+          "label": "qualifiedAttribution",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedAttribution"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedCommunication|res:http://www.w3.org/ns/prov#Communication",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Communication",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Communication",
+          "label": "qualifiedCommunication",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedCommunication"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/ns/prov#qualifiedDelegation|res:http://www.w3.org/ns/prov#Delegation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Agent",
+        "target": "res:http://www.w3.org/ns/prov#Delegation",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "toElementId": "res:http://www.w3.org/ns/prov#Delegation",
+          "label": "qualifiedDelegation",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedDelegation"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedDerivation|res:http://www.w3.org/ns/prov#Derivation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Derivation",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Derivation",
+          "label": "qualifiedDerivation",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedDerivation"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedEnd|res:http://www.w3.org/ns/prov#End",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#End",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#End",
+          "label": "qualifiedEnd",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedEnd"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedGeneration|res:http://www.w3.org/ns/prov#Generation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Generation",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Generation",
+          "label": "qualifiedGeneration",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedGeneration"
+        }
+      },
+      {
+        "id": "edge:thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain|http://www.w3.org/ns/prov#qualifiedInfluence|res:http://www.w3.org/ns/prov#Influence",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain",
+        "target": "res:http://www.w3.org/ns/prov#Influence",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain",
+          "toElementId": "res:http://www.w3.org/ns/prov#Influence",
+          "label": "qualifiedInfluence",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedInfluence"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedInvalidation|res:http://www.w3.org/ns/prov#Invalidation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Invalidation",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Invalidation",
+          "label": "qualifiedInvalidation",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedInvalidation"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedPrimarySource|res:http://www.w3.org/ns/prov#PrimarySource",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#PrimarySource",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#PrimarySource",
+          "label": "qualifiedPrimarySource",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedPrimarySource"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedQuotation|res:http://www.w3.org/ns/prov#Quotation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Quotation",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Quotation",
+          "label": "qualifiedQuotation",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedQuotation"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedRevision|res:http://www.w3.org/ns/prov#Revision",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Revision",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Revision",
+          "label": "qualifiedRevision",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedRevision"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedStart|res:http://www.w3.org/ns/prov#Start",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Start",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Start",
+          "label": "qualifiedStart",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedStart"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedUsage|res:http://www.w3.org/ns/prov#Usage",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Usage",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Usage",
+          "label": "qualifiedUsage",
+          "propertyIri": "http://www.w3.org/ns/prov#qualifiedUsage"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#specializationOf|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "specializationOf",
+          "propertyIri": "http://www.w3.org/ns/prov#specializationOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#used|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "used",
+          "propertyIri": "http://www.w3.org/ns/prov#used"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasAssociatedWith|res:http://www.w3.org/ns/prov#Agent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Agent",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "label": "wasAssociatedWith",
+          "propertyIri": "http://www.w3.org/ns/prov#wasAssociatedWith"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasAttributedTo|res:http://www.w3.org/ns/prov#Agent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Agent",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "label": "wasAttributedTo",
+          "propertyIri": "http://www.w3.org/ns/prov#wasAttributedTo"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasDerivedFrom|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "wasDerivedFrom",
+          "propertyIri": "http://www.w3.org/ns/prov#wasDerivedFrom"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasEndedBy|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "wasEndedBy",
+          "propertyIri": "http://www.w3.org/ns/prov#wasEndedBy"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasGeneratedBy|res:http://www.w3.org/ns/prov#Activity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Activity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "label": "wasGeneratedBy",
+          "propertyIri": "http://www.w3.org/ns/prov#wasGeneratedBy"
+        }
+      },
+      {
+        "id": "edge:thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain|http://www.w3.org/ns/prov#wasInfluencedBy|thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain",
+        "target": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain",
+          "toElementId": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+          "label": "wasInfluencedBy",
+          "propertyIri": "http://www.w3.org/ns/prov#wasInfluencedBy"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasInformedBy|res:http://www.w3.org/ns/prov#Activity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Activity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "label": "wasInformedBy",
+          "propertyIri": "http://www.w3.org/ns/prov#wasInformedBy"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasInvalidatedBy|res:http://www.w3.org/ns/prov#Activity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Activity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "label": "wasInvalidatedBy",
+          "propertyIri": "http://www.w3.org/ns/prov#wasInvalidatedBy"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasQuotedFrom|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "wasQuotedFrom",
+          "propertyIri": "http://www.w3.org/ns/prov#wasQuotedFrom"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasRevisionOf|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "wasRevisionOf",
+          "propertyIri": "http://www.w3.org/ns/prov#wasRevisionOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasStartedBy|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "label": "wasStartedBy",
+          "propertyIri": "http://www.w3.org/ns/prov#wasStartedBy"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#InstantaneousEvent|http://www.w3.org/ns/prov#atTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+          "label": "atTime",
+          "propertyIri": "http://www.w3.org/ns/prov#atTime"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#endedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+          "label": "endedAtTime",
+          "propertyIri": "http://www.w3.org/ns/prov#endedAtTime"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#generatedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+          "label": "generatedAtTime",
+          "propertyIri": "http://www.w3.org/ns/prov#generatedAtTime"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#invalidatedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+          "label": "invalidatedAtTime",
+          "propertyIri": "http://www.w3.org/ns/prov#invalidatedAtTime"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#startedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+          "label": "startedAtTime",
+          "propertyIri": "http://www.w3.org/ns/prov#startedAtTime"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#value|dt:http://www.w3.org/ns/prov#value",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "dt:http://www.w3.org/ns/prov#value",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "dt:http://www.w3.org/ns/prov#value",
+          "label": "value",
+          "propertyIri": "http://www.w3.org/ns/prov#value"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "disjoint",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Activity",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "propertyIri": "http://www.w3.org/2002/07/owl#disjointWith"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Influence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "toElementId": "res:http://www.w3.org/ns/prov#Influence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "attributes": {
+          "kind": "disjoint",
+          "fromElementId": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "toElementId": "res:http://www.w3.org/ns/prov#EntityInfluence",
+          "propertyIri": "http://www.w3.org/2002/07/owl#disjointWith"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Agent",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "attributes": {
+          "kind": "disjoint",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "toElementId": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+          "propertyIri": "http://www.w3.org/2002/07/owl#disjointWith"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#AgentInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Influence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#AgentInfluence",
+          "toElementId": "res:http://www.w3.org/ns/prov#Influence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Association|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Association",
+        "target": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Association",
+          "toElementId": "res:http://www.w3.org/ns/prov#AgentInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Attribution|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Attribution",
+        "target": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Attribution",
+          "toElementId": "res:http://www.w3.org/ns/prov#AgentInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Bundle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Bundle",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Bundle",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Collection|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Collection",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Collection",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Communication|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Communication",
+        "target": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Communication",
+          "toElementId": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Delegation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Delegation",
+        "target": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Delegation",
+          "toElementId": "res:http://www.w3.org/ns/prov#AgentInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Derivation",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Derivation",
+          "toElementId": "res:http://www.w3.org/ns/prov#EntityInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#EmptyCollection|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Collection",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#EmptyCollection",
+        "target": "res:http://www.w3.org/ns/prov#Collection",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#EmptyCollection",
+          "toElementId": "res:http://www.w3.org/ns/prov#Collection",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#End|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#End",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#End",
+          "toElementId": "res:http://www.w3.org/ns/prov#EntityInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#End|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#End",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#End",
+          "toElementId": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "attributes": {
+          "kind": "disjoint",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "toElementId": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+          "propertyIri": "http://www.w3.org/2002/07/owl#disjointWith"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#EntityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Influence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#EntityInfluence",
+          "toElementId": "res:http://www.w3.org/ns/prov#Influence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Generation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Generation",
+        "target": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Generation",
+          "toElementId": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Generation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Generation",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Generation",
+          "toElementId": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Invalidation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Invalidation",
+        "target": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Invalidation",
+          "toElementId": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Invalidation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Invalidation",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Invalidation",
+          "toElementId": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Organization|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Organization",
+        "target": "res:http://www.w3.org/ns/prov#Agent",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Organization",
+          "toElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Person|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Person",
+        "target": "res:http://www.w3.org/ns/prov#Agent",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Person",
+          "toElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Plan",
+        "target": "res:http://www.w3.org/ns/prov#Entity",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Plan",
+          "toElementId": "res:http://www.w3.org/ns/prov#Entity",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#PrimarySource|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#PrimarySource",
+        "target": "res:http://www.w3.org/ns/prov#Derivation",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#PrimarySource",
+          "toElementId": "res:http://www.w3.org/ns/prov#Derivation",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Quotation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Quotation",
+        "target": "res:http://www.w3.org/ns/prov#Derivation",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Quotation",
+          "toElementId": "res:http://www.w3.org/ns/prov#Derivation",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Revision|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Revision",
+        "target": "res:http://www.w3.org/ns/prov#Derivation",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Revision",
+          "toElementId": "res:http://www.w3.org/ns/prov#Derivation",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#SoftwareAgent|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#SoftwareAgent",
+        "target": "res:http://www.w3.org/ns/prov#Agent",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#SoftwareAgent",
+          "toElementId": "res:http://www.w3.org/ns/prov#Agent",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Start|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Start",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Start",
+          "toElementId": "res:http://www.w3.org/ns/prov#EntityInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Start|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Start",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Start",
+          "toElementId": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Usage|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Usage",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Usage",
+          "toElementId": "res:http://www.w3.org/ns/prov#EntityInfluence",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Usage|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#Usage",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#Usage",
+          "toElementId": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+edge",
+        "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "target": "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "toElementId": "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "property": {
+        "attribute": "Label",
+        "value": "Plan (prescriptive)"
+      },
+      "select": [
+        "res:http://www.w3.org/ns/prov#Plan"
+      ],
+      "expectFile": "after-1.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "owl.subclass",
+      "args": {
+        "target": "rel:res:http://www.w3.org/ns/prov#Plan->res:http://www.w3.org/ns/prov#Bundle"
+      },
+      "ids": [
+        "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Bundle"
+      ],
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "owl.subclass",
+      "args": {
+        "target": "rel:res:http://www.w3.org/ns/prov#Person->res:http://www.w3.org/ns/prov#Agent"
+      },
+      "refused": {
+        "reason": "That subclass relation is already asserted; drawing it again would state nothing new."
+      },
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "owl.add-class",
+      "args": {
+        "target": "new:200,1800",
+        "value": ":Recipe"
+      },
+      "ids": [
+        "res:http://www.w3.org/ns/prov#Recipe"
+      ],
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "owl.add-object-property",
+      "args": {
+        "target": "new:400,1800",
+        "value": ":followedRecipe"
+      },
+      "ids": [
+        "thing:http://www.w3.org/ns/prov#followedRecipe|domain",
+        "thing:http://www.w3.org/ns/prov#followedRecipe|range",
+        "edge:thing:http://www.w3.org/ns/prov#followedRecipe|domain|http://www.w3.org/ns/prov#followedRecipe|thing:http://www.w3.org/ns/prov#followedRecipe|range"
+      ],
+      "expectFile": "after-4.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "owl.add-datatype-property",
+      "args": {
+        "target": "new:600,1800",
+        "value": ":servings"
+      },
+      "ids": [
+        "thing:http://www.w3.org/ns/prov#servings|domain",
+        "dt:http://www.w3.org/ns/prov#servings",
+        "edge:thing:http://www.w3.org/ns/prov#servings|domain|http://www.w3.org/ns/prov#servings|dt:http://www.w3.org/ns/prov#servings"
+      ],
+      "expectFile": "after-5.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "owl.add-individual",
+      "args": {
+        "target": "new:800,1800",
+        "value": ":grandmasPie"
+      },
+      "ids": [
+        "res:http://www.w3.org/ns/prov#grandmasPie"
+      ],
+      "expectFile": "after-6.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "owl.subclass",
+      "args": {
+        "target": "rel:res:http://www.w3.org/ns/prov#Recipe->res:http://www.w3.org/ns/prov#Plan"
+      },
+      "ids": [
+        "edge:res:http://www.w3.org/ns/prov#Recipe|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Plan"
+      ],
+      "expectFile": "after-7.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "rdf.connect",
+      "args": {
+        "target": "rel:res:http://www.w3.org/ns/prov#Recipe->res:http://www.w3.org/ns/prov#Role",
+        "value": "rdfs:seeAlso"
+      },
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "target": "res:http://www.w3.org/ns/prov#Role",
+        "value": ":Part"
+      },
+      "ids": [
+        "res:http://www.w3.org/ns/prov#Part",
+        "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadRole|res:http://www.w3.org/ns/prov#Part"
+      ],
+      "expectFile": "after-9.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "property": {
+        "element": "res:http://www.w3.org/ns/prov#Recipe",
+        "attribute": "rdf.comment",
+        "value": "A plan written down to be followed."
+      },
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:http://www.w3.org/ns/prov#servings"
+      },
+      "expectFile": "after-11.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:http://www.w3.org/ns/prov#Recipe",
+        "confirm": true
+      },
+      "expectFile": "after-12.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-11.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-12.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "move": {
+        "element": "res:http://www.w3.org/ns/prov#Activity"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"res:http://www.w3.org/ns/prov#Activity\"],\"to\":{\"x\":-300,\"y\":250}}",
+      "expectFile": "after-12.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "move": {
+        "element": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"res:http://www.w3.org/ns/prov#Entity\"],\"dx\":12.5,\"dy\":40}",
+      "expectFile": "after-12.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "move": {
+        "element": "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1\"],\"to\":{\"x\":0,\"y\":0}}",
+      "refused": {
+        "reason": "That is an anonymous class expression, whose identity does not survive an edit to the file, so a stored position could not be trusted. It takes its place beside the class that uses it; edit the expression as text."
+      },
+      "expectFile": "after-12.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-12.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/w3c/owl/prov-o/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

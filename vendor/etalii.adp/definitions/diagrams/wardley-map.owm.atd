@@ -1,0 +1,20 @@
+atd 0.1
+part of wardley/map
+
+// The Online Wardley Maps text format (definitions/diagrams/wardley-map.dis, wardley-map.md): an `.owm` or `.wm` file
+// body, registered by an .adp file whose origin is wardley/map. No FBL family reads it as the tool does (gaps 1 to 6:
+// a pipeline whose brace is on the line below, decorators in any order, an annotation's positions, the identity file
+// beside the body), so it is read and written by the capability reader.onlineWardleyMaps, named for the format, which
+// delivers the model's own types. A new map is `title {base}` and a line ending.
+
+binding owm family capability reader.onlineWardleyMaps {
+  label "Online Wardley Maps"
+  claims {
+    extensions: [".owm", ".wm"]
+    origins: ["wardley/map"]
+  }
+  template {
+    text: """title {base}
+"""
+  }
+}

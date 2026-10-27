@@ -1,0 +1,96 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/cases/databricks/pipeline/job-commands.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "library:transformations/b",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/b",
+          "badges": "notebook"
+        }
+      },
+      {
+        "id": "pipeline",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "pipeline",
+          "kind": "pipeline",
+          "label": "Pipe B",
+          "badges": ""
+        }
+      },
+      {
+        "id": "target",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "target",
+          "kind": "target",
+          "label": "silver",
+          "badges": ""
+        }
+      },
+      {
+        "id": "compute",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "cluster",
+          "badges": ""
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "flow:transformations/b->pipeline",
+        "source": "library:transformations/b",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:pipeline->target",
+        "source": "pipeline",
+        "target": "target"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 320,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "middle",
+    "band": "self.id == 'compute' || self.id == 'notifications'",
+    "column": "self.id.startsWith('library:') ? 0 : self.id == 'pipeline' ? 1 : 2"
+  },
+  "output": {
+    "positions": {
+      "library:transformations/b": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "pipeline": {
+        "x": 320.0,
+        "y": 0.0
+      },
+      "target": {
+        "x": 640.0,
+        "y": 0.0
+      },
+      "compute": {
+        "x": 0.0,
+        "y": 200.0
+      }
+    }
+  }
+}

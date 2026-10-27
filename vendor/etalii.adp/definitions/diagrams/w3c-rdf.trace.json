@@ -1,0 +1,335 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "w3c/rdf",
+  "description": "w3c-rdf.atd",
+  "companion": {
+    "file": "w3c-rdf.md",
+    "sections": [
+      "1. What the definition now carries",
+      "2. What stays outside, and why",
+      "4. `rdf-graph.dis`"
+    ]
+  },
+  "items": [
+    {
+      "id": "1-what-the-definition-now-carries/1",
+      "text": "**Every element is derived from the triples** (4.11): the turtle plugin reads one stored `Triple` per triple, one `Prefix` per directive",
+      "statedBy": "element Resource"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/2",
+      "text": "**Ids** are derived rules (11.5.2): `res:` and the IRI, `blank:` and the ordinal, `edge:` with the tool's repeat counter. A blank card and",
+      "statedBy": "persistence"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/3",
+      "text": "**The budget** of 1000 cards cuts, shows its notice and withholds every edit with today's sentence (3.2.1).",
+      "statedBy": "setting limits"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/4",
+      "text": "**The counted menu label** \"Remove (with 3 statements)\" and the confirmation above two statements (4.11.4, 9.5), the dialogs' titles,",
+      "statedBy": "operation removeResource"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/5",
+      "text": "**The five `rdf.*` findings** come from the plugin's read and are shared by every reading of the body (FBL 9.1); a body that does not parse",
+      "statedBy": "binding turtle"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/6",
+      "text": "**Persistence** is `fbl` through the module's binding, `w3c-turtle.fbl#turtle`, and the plugin `net.etalii.adp.w3c.turtle` declares that it",
+      "statedBy": "binding turtle"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/7",
+      "text": "**The wire ids** the standalone client and backend share are the `x-rdf` block (ruled 2026-10-06: wire ids stay an `x-` block).",
+      "statedBy": "setting rdf tools actions properties"
+    },
+    {
+      "id": "2-what-stays-outside-and-why/1",
+      "text": "A relation gesture with a blank end is refused before the Relate dialog opens today; the definition refuses on commit, with the same",
+      "statedBy": "operation relate"
+    },
+    {
+      "id": "2-what-stays-outside-and-why/2",
+      "text": "\"Drop the relation on a resource; a statement needs both of its ends.\" answers a relation gesture ending on a placement; a DISL connect",
+      "hostConcern": "gestures",
+      "reason": "Where a relation gesture ends is the host's: a connect gesture always ends on an element, so the case does not arise, and the operation `relate` takes both ends."
+    },
+    {
+      "id": "2-what-stays-outside-and-why/3",
+      "text": "Under truncation today's menus are empty; the definition withholds them through the edit gate, with the truncation sentence.",
+      "statedBy": "reason truncated"
+    },
+    {
+      "id": "4-rdf-graph-dis/1",
+      "text": "it declares no `format` and no `binding`, and its plugin provides only `action` and `celFunctions` (finding A2);",
+      "statedBy": "binding turtle"
+    },
+    {
+      "id": "4-rdf-graph-dis/2",
+      "text": "it derives the type bands as `Band` elements, which here are the layout plugin's;",
+      "statedBy": "algorithm typeBands"
+    },
+    {
+      "id": "4-rdf-graph-dis/3",
+      "text": "its budget draws IRI cards before blank nodes and adds a second budget of 5000 RDF nodes; the tool draws cards in the order the file first",
+      "statedBy": "setting limits"
+    },
+    {
+      "id": "4-rdf-graph-dis/4",
+      "text": "it states the duplicate-prefix, relative-IRI and language-tag findings as constraints, the last with another sentence; here all five are",
+      "statedBy": "binding turtle"
+    },
+    {
+      "id": "4-rdf-graph-dis/5",
+      "text": "its removal question reads \"Remove {name} and the {n} statements it appears in?\"; the tool asks \"Removing this resource also removes the",
+      "statedBy": "operation removeResource"
+    },
+    {
+      "id": "4-rdf-graph-dis/6",
+      "text": "it refuses a statement from a resource to itself and offers an \"Add type\" operation; the tool does neither;",
+      "statedBy": "operation relate"
+    },
+    {
+      "id": "4-rdf-graph-dis/7",
+      "text": "it lets a relation join blank nodes and moves a new resource to the clicked point; the tool refuses a blank end and leaves the position to",
+      "statedBy": "operation relate"
+    },
+    {
+      "id": "4-rdf-graph-dis/8",
+      "text": "it has no stored `Prefix` type, which `rdf.duplicate-prefix` and Declare prefix need.",
+      "statedBy": "element Prefix"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/parser.rs",
+      "lines": "335-348",
+      "behaviour": "A Turtle or N-Triples body is parsed into its triples, prefix declarations and base, a body that does not parse stopping at a line with the parser's sentence.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/store.rs",
+      "lines": "56-72",
+      "behaviour": "A byte order mark is stripped before the body is read and remembered so a write puts it back.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/validator.rs",
+      "lines": "102-163",
+      "behaviour": "The five family findings: a re-declared prefix, a relative IRI without a base, a malformed language tag and an XSD datatype XSD does not define, shared by every reading of the body.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/validator.rs",
+      "lines": "78-90",
+      "behaviour": "A body that does not parse gives only `rdf.unparseable`, which replaces every other finding.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "27-79",
+      "behaviour": "An added triple is appended to its subject's statement as a `;` continuation matching its indentation, or written as a new statement at the end.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "83-88",
+      "behaviour": "A removed triple takes its whole lines where it owns them, its fragment and stranded separator where it shares a line, and its statement where it is the last.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "154-182",
+      "behaviour": "A renamed term is rewritten in every token naming it, in subject, predicate, object and datatype position, prefixed or full.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "186-218",
+      "behaviour": "A literal object is rewritten in place, its neighbouring bytes untouched.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "221-238",
+      "behaviour": "A new prefix is declared beside the existing declarations, after the last one.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "242-261",
+      "behaviour": "An IRI is written prefixed under the longest declared namespace that leaves a clean local name, else bracketed.",
+      "statedBy": "fn rdfCompress"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "262-268",
+      "behaviour": "An IRI is drawn as its prefixed name when it compresses, else as its local name.",
+      "statedBy": "fn rdfDisplayName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "271-276",
+      "behaviour": "The local name of an IRI is what follows its last '#' or '/', or the whole IRI.",
+      "statedBy": "fn rdfLocalName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/term_input.rs",
+      "lines": "8-40",
+      "behaviour": "A typed term is a full IRI, a bracketed IRI or a prefixed name under the file's declarations, an undeclared prefix refused by name.",
+      "statedBy": "fn rdfTermResolution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "354-364",
+      "behaviour": "A typed prefix declaration is `prefix: iri`, brackets tolerated, the IRI absolute.",
+      "statedBy": "fn rdfPrefixDeclaration"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "267-287",
+      "behaviour": "Renaming onto a name the document already uses is refused, and a declaration that is not `prefix: iri` is refused with the example.",
+      "statedBy": "operation renameResource"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "299-351",
+      "behaviour": "The answers to the family's prompts become edits: a declared prefix, a renamed term, a removed resource, a relation, a new resource typed `rdfs:Resource`.",
+      "statedBy": "operation declarePrefix"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/registration_layout.rs",
+      "lines": "72-90",
+      "behaviour": "Stored positions are read from the registration's `layout:` block, keyed by element id.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/reading.rs",
+      "lines": "69-77",
+      "behaviour": "A stored position wins over the computed one for an element the reading draws; a stored position of an element it does not draw is ignored.",
+      "statedBy": "algorithm typeBands"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "297-321",
+      "behaviour": "The cards stand in bands by their first type's drawn name, ordered by its bytes with the untyped band last, each a four-column grid of 280 by 160 cells in projection order, 80 between bands.",
+      "statedBy": "algorithm typeBands"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/selection.rs",
+      "lines": "61-63",
+      "behaviour": "While the RDF graph reading is cut by its budget every edit is withheld.",
+      "statedBy": "reason truncated"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/view.rs",
+      "lines": "173-179",
+      "behaviour": "The drawn elements are streamed to the canvas a viewport at a time, as the module's payloads.",
+      "hostConcern": "rendering",
+      "reason": "Delivering the drawn elements to the canvas, a viewport at a time, is how the host renders what the description derives; the description states the elements and their attributes."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/commands.rs",
+      "lines": "202-269",
+      "behaviour": "An edit is applied to the body and recorded on the host's history for undo and redo.",
+      "hostConcern": "undo-stack",
+      "reason": "The history that undoes and redoes an edit is the host's; the description states the edit as model changes the binding writes."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "178-258",
+      "behaviour": "Every IRI or blank node in subject or object position is a card in the order the file first names it, its literals rows and its IRI-valued types badges, every other triple between two cards an edge, a collection folded into numbered member edges, at most 1000 cards.",
+      "statedBy": "element Resource"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "67-85",
+      "behaviour": "A collection's cons cells are followed through `rdf:first` and `rdf:rest` and stay out of the drawing.",
+      "statedBy": "fn collectionMembers"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "279-287",
+      "behaviour": "A literal row carries its language tag with `@`, else its datatype compressed unless it is `xsd:string`.",
+      "statedBy": "element Resource"
+    }
+  ]
+}

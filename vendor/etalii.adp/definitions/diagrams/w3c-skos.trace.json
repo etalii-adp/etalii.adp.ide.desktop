@@ -1,0 +1,294 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "w3c/skos",
+  "description": "w3c-skos.atd",
+  "companion": {
+    "file": "w3c-skos.md",
+    "sections": [
+      "1. What the definition now carries"
+    ]
+  },
+  "items": [
+    {
+      "id": "1-what-the-definition-now-carries/1",
+      "text": "**Schemes, concepts and collections** are derived node types over the type triples and the triples that use them, blank-node terms included",
+      "statedBy": "element Concept"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/2",
+      "text": "**One hierarchy edge per pair**, merged from `skos:broader` and `skos:narrower` in either direction, every stating triple among its",
+      "statedBy": "relation Broader"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/3",
+      "text": "**The order the tool meets the vocabulary in**, and so the order its budget cuts: schemes in id order, each with its top concepts and",
+      "statedBy": "fn skosOrder"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/4",
+      "text": "**The label chooser**: the display language, then English, then the untagged label, then the smallest remaining tag, preferred labels",
+      "statedBy": "fn chooseLabel"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/5",
+      "text": "**Seven of the eight `skos.*` findings** are constraints, the cycle finding over `diagram.knots` (D5). The five `rdf.*` findings are the",
+      "statedBy": "constraint hierarchyCycle"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/parser.rs",
+      "lines": "335-348",
+      "behaviour": "A Turtle or N-Triples body is parsed into its triples, prefix declarations and base, a body that does not parse stopping at a line with the parser's sentence.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/store.rs",
+      "lines": "56-72",
+      "behaviour": "A byte order mark is stripped before the body is read and remembered so a write puts it back.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/validator.rs",
+      "lines": "102-163",
+      "behaviour": "The five family findings: a re-declared prefix, a relative IRI without a base, a malformed language tag and an XSD datatype XSD does not define, shared by every reading of the body.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/validator.rs",
+      "lines": "78-90",
+      "behaviour": "A body that does not parse gives only `rdf.unparseable`, which replaces every other finding.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "27-79",
+      "behaviour": "An added triple is appended to its subject's statement as a `;` continuation matching its indentation, or written as a new statement at the end.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "83-88",
+      "behaviour": "A removed triple takes its whole lines where it owns them, its fragment and stranded separator where it shares a line, and its statement where it is the last.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "154-182",
+      "behaviour": "A renamed term is rewritten in every token naming it, in subject, predicate, object and datatype position, prefixed or full.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "186-218",
+      "behaviour": "A literal object is rewritten in place, its neighbouring bytes untouched.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "221-238",
+      "behaviour": "A new prefix is declared beside the existing declarations, after the last one.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "242-261",
+      "behaviour": "An IRI is written prefixed under the longest declared namespace that leaves a clean local name, else bracketed.",
+      "statedBy": "fn rdfCompress"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "262-268",
+      "behaviour": "An IRI is drawn as its prefixed name when it compresses, else as its local name.",
+      "statedBy": "fn rdfDisplayName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "271-276",
+      "behaviour": "The local name of an IRI is what follows its last '#' or '/', or the whole IRI.",
+      "statedBy": "fn rdfLocalName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/term_input.rs",
+      "lines": "8-40",
+      "behaviour": "A typed term is a full IRI, a bracketed IRI or a prefixed name under the file's declarations, an undeclared prefix refused by name.",
+      "statedBy": "fn rdfTermResolution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "354-364",
+      "behaviour": "A typed prefix declaration is `prefix: iri`, brackets tolerated, the IRI absolute.",
+      "statedBy": "fn rdfPrefixDeclaration"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "267-287",
+      "behaviour": "Renaming onto a name the document already uses is refused, and a declaration that is not `prefix: iri` is refused with the example.",
+      "statedBy": "operation renameResource"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "299-351",
+      "behaviour": "The answers to the family's prompts become edits: a declared prefix, a renamed term, a removed resource, a relation, a new resource typed `rdfs:Resource`.",
+      "statedBy": "operation declarePrefix"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/registration_layout.rs",
+      "lines": "72-90",
+      "behaviour": "Stored positions are read from the registration's `layout:` block, keyed by element id.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/reading.rs",
+      "lines": "69-77",
+      "behaviour": "A stored position wins over the computed one for an element the reading draws; a stored position of an element it does not draw is ignored.",
+      "statedBy": "algorithm schemeBands"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/skos/layout.rs",
+      "lines": "49-108",
+      "behaviour": "Each scheme is a region in IRI order whose concepts are layered by longest path over the hierarchy, a knot broken at its lowest edge, a layer wrapping onto centred rows; unfiled concepts follow, then the collections in a grid.",
+      "statedBy": "algorithm schemeBands"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/selection.rs",
+      "lines": "61-63",
+      "behaviour": "While the RDF graph reading is cut by its budget every edit is withheld.",
+      "statedBy": "reason truncated"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/view.rs",
+      "lines": "173-179",
+      "behaviour": "The drawn elements are streamed to the canvas a viewport at a time, as the module's payloads.",
+      "hostConcern": "rendering",
+      "reason": "Delivering the drawn elements to the canvas, a viewport at a time, is how the host renders what the description derives; the description states the elements and their attributes."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/commands.rs",
+      "lines": "202-269",
+      "behaviour": "An edit is applied to the body and recorded on the host's history for undo and redo.",
+      "hostConcern": "undo-stack",
+      "reason": "The history that undoes and redoes an edit is the host's; the description states the edit as model changes the binding writes."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/skos/projection.rs",
+      "lines": "151-423",
+      "behaviour": "Schemes, concepts and collections over their type triples and the triples that use them, one hierarchy edge per pair merged from `skos:broader` and `skos:narrower`, related and mapping edges.",
+      "statedBy": "element Concept"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/skos/labels.rs",
+      "lines": "73-78",
+      "behaviour": "A label is chosen in the display language, then English, then untagged, then the smallest remaining tag, preferred before alternate, the IRI's local name last.",
+      "statedBy": "fn chooseLabel"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/skos/registration_language.rs",
+      "lines": "47-80",
+      "behaviour": "The display language is the registration's `language:` header, lowercased, honoured after `body:` or `view:` and before `layout:`; one above them is ignored and reported.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/skos/validator.rs",
+      "lines": "49-175",
+      "behaviour": "The eight `skos.*` findings, the misplaced language header among them.",
+      "statedBy": "constraint misplacedHeader"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/skos/actions.rs",
+      "lines": "167-201",
+      "behaviour": "A new concept's IRI is minted from its label under the namespace the file's first prefixed subject is written under, else the first declared prefix.",
+      "statedBy": "fn rdfMinting"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/skos/actions.rs",
+      "lines": "141-163",
+      "behaviour": "Add concept writes its type, its preferred label and its filing; filing, relating and disconnecting concepts write and remove their triples.",
+      "statedBy": "operation addConcept"
+    }
+  ]
+}

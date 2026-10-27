@@ -1,0 +1,130 @@
+atd 0.1
+part of gartner/hypecycle-graph
+
+// The Gartner hype cycle graph's .ghg body, in a part of its own (ATD §5.2, §9).
+
+/// The Gartner hype cycle graph's .ghg body (definitions/diagrams/gartner-hype-cycle-graph.dis,
+/// gartner-hype-cycle-graph.md): ADP's own YAML, read and written through FBL instead of a hand-written parser and
+/// line splicer. Influences are bound as elements with reference attributes rather than as relations, because the
+/// module keeps an influence whose end names nothing and reports it (ghg.dangling-reference), where an FBL relation
+/// with a dangling end is not created at all (FBL §5.4). Each list rule's when refuses an item that is not a mapping,
+/// which the list's not-a-mapping rule then takes, so the module can say which list it is in, and its computed
+/// unknownKeys lists the keys the module does not read, which it reports while FBL keeps them. Months are written
+/// plain, so a year before 1 stays -3200-01 rather than being quoted.
+binding ghg family yaml {
+  label "Gartner hype cycle graph"
+  claims { extensions: [".ghg"], origins: ["gartner/hypecycle-graph"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  header { key: gartner-hypecycle-graph, value: 1 }
+
+  element Graph as graph at "/" {
+    attribute version from key "gartner-hypecycle-graph"
+    readOnly: "The graph's version is changed in the file itself."
+  }
+
+  element Unit as unit at "/unit" {
+    attribute value from value "entry"
+    readOnly: "The graph's unit is changed in the file itself."
+  }
+
+  element Trend as trend at "/trends/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value "entry.filter(k, !(k in ['id', 'name', 'start', 'stop', 'row', 'phases', 'peak-end', 'trough-end', 'slope-end', 'tags', 'description']))"
+    attribute name from key "name" { empty: refuse }
+    attribute start from key "start" { style: plain }
+    attribute stop from key "stop" { style: plain }
+    attribute row from key "row"
+    attribute phases from key "phases"
+    attribute peakEnd from key "peak-end" { style: plain empty: remove }
+    attribute troughEnd from key "trough-end" { style: plain empty: remove }
+    attribute slopeEnd from key "slope-end" { style: plain empty: remove }
+    attribute tags from key "tags" { style: flow empty: remove }
+    attribute description from key "description" { empty: remove }
+    insert {
+      place: after-last
+      container: "/trends"
+      keys: [id, name, start, stop, row, phases, peak-end, trough-end, slope-end, tags, description]
+    }
+    remove { cascade: [influence] }
+  }
+
+  element Trigger as trigger at "/triggers/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value "entry.filter(k, !(k in ['id', 'name', 'date', 'row', 'tags', 'description']))"
+    attribute name from key "name" { empty: refuse }
+    attribute date from key "date" { style: plain }
+    attribute row from key "row"
+    attribute tags from key "tags" { style: flow empty: remove }
+    attribute description from key "description" { empty: remove }
+    insert {
+      place: after-last
+      container: "/triggers"
+      create: { at: { before: influences } }
+      keys: [id, name, date, row, tags, description]
+    }
+    remove { cascade: [influence] }
+  }
+
+  element Note as note at "/notes/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value "entry.filter(k, !(k in ['id', 'text', 'at', 'row', 'width', 'height']))"
+    attribute text from key "text" { style: literal empty: keep }
+    attribute at from key "at" { style: plain }
+    attribute row from key "row"
+    attribute width from key "width" { number: { decimals: 2 } }
+    attribute height from key "height" { number: { decimals: 2 } }
+    insert {
+      place: after-last
+      container: "/notes"
+      create: { at: { before: influences } }
+      keys: [id, text, at, row, width, height]
+    }
+    remove {}
+  }
+
+  element Influence as influence at "/influences/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value "entry.filter(k, !(k in ['id', 'from', 'from-phase', 'from-edge', 'from-at', 'to', 'to-phase', 'to-edge', 'to-at', 'description']))"
+    attribute from from key "from" { references trend, trigger by storedId }
+    attribute fromPhase from key "from-phase" { empty: remove }
+    attribute fromEdge from key "from-edge" { empty: remove }
+    attribute fromAt from key "from-at" { number: { decimals: 2 } empty: remove }
+    attribute to from key "to" { references trend, trigger by storedId }
+    attribute toPhase from key "to-phase"
+    attribute toEdge from key "to-edge"
+    attribute toAt from key "to-at" { number: { decimals: 2 } }
+    attribute description from key "description" { empty: remove }
+    insert {
+      place: after-last
+      container: "/influences"
+      keys: [id, from, from-phase, from-edge, from-at, to, to-phase, to-edge, to-at, description]
+    }
+    remove {}
+  }
+
+  element Unreadable as trend-not-a-mapping at "/trends/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as trigger-not-a-mapping at "/triggers/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as note-not-a-mapping at "/notes/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as influence-not-a-mapping at "/influences/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  template "gartner-hypecycle-graph: 1\r\ntrends: []\r\ninfluences: []\r\n"
+}

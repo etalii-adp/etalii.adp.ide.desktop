@@ -1,0 +1,64 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.layeredRegions",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Regions stacked top to bottom, each a layered hierarchy whose layers wrap onto centred rows, and a trailing grid. `role` gives each node's role, `region`, `member` or `trailing`; `key` gives a region or a trailing node its key, and `regions` gives a member the keys of every region it belongs to; each edge runs from a broader node to a narrower one. While the edges knot, the edge of a knot whose (source id, target id) pair sorts lowest is left out of the layering (it is still drawn); the knots are found by Tarjan's algorithm over the edges left, a self-loop first, from the sources in id order. The regions, ordered by key, each stand at (0, top) with the region's members starting `regionHeader` below; the first region's top is 0. A region's members are those of its regions not placed in an earlier region; the members of no region come after the last region as a region with no header node. In a region the members are layered by the longest path over the edges kept between them, and the layers taken in order: a layer's members are sorted by the mean place, among the members already sorted, of their broader nodes (those with none last), then by id, and each sorted member takes the next place. The region is `max(minimumColumns, ⌈√(2 × members)⌉)` columns wide; a layer is chunked into rows of that many, each row centred on the widest row (the widest layer, at most that many columns) by (widest − row) / 2 columns, at x = column × `columnWidth`; rows go `rowHeight` apart, and a layer ends `layerGap` above the next. The next region's top is `regionGap` below the region's last row (below the header line when it has no members). The trailing nodes, ordered by key, fill a grid of `max(minimumColumns, ⌈√(2 × count)⌉)` columns of `columnWidth` and rows of `rowHeight` at the next top. A pinned node keeps its pin and moves no other node. Positions are top-left corners in the canvas's domain units.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "columnWidth": {
+      "type": "number",
+      "default": 240,
+      "doc": "The distance from one column's left edge to the next's."
+    },
+    "rowHeight": {
+      "type": "number",
+      "default": 110,
+      "doc": "The distance from one row's top edge to the next's."
+    },
+    "regionGap": {
+      "type": "number",
+      "default": 90,
+      "doc": "The space between one region's last row and the next region."
+    },
+    "regionHeader": {
+      "type": "number",
+      "default": 60,
+      "doc": "The space between a region's node and its first row."
+    },
+    "layerGap": {
+      "type": "number",
+      "default": 50,
+      "doc": "The space between one layer's last row and the next layer's first."
+    },
+    "minimumColumns": {
+      "type": "integer",
+      "default": 8,
+      "doc": "The fewest columns a region or the trailing grid is wide."
+    },
+    "role": {
+      "type": "query",
+      "doc": "A node's role: `region`, `member` or `trailing`."
+    },
+    "key": {
+      "type": "query",
+      "doc": "A region's or a trailing node's key, a string the regions and the trailing grid are ordered by."
+    },
+    "regions": {
+      "type": "query",
+      "doc": "A member's regions, a list of keys."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "pinnedStay",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

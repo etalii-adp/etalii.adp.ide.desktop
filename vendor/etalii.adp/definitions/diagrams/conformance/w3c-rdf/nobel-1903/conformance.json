@@ -1,0 +1,788 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/scripts/w3c/rdf/nobel-1903.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "nobel-1903.ttl",
+    "registration": "nobel-1903.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:https://data.nobelprize.org/resource/category/chemistry",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/category/chemistry",
+          "display": "category:chemistry",
+          "typeBadges.0": "nobel:Category",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Chemistry",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/category/literature",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/category/literature",
+          "display": "category:literature",
+          "typeBadges.0": "nobel:Category",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Literature",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/category/peace",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/category/peace",
+          "display": "category:peace",
+          "typeBadges.0": "nobel:Category",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Peace",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/category/physics",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/category/physics",
+          "display": "category:physics",
+          "typeBadges.0": "nobel:Category",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Physics",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/category/physiology-or-medicine",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/category/physiology-or-medicine",
+          "display": "category:physiology-or-medicine",
+          "typeBadges.0": "nobel:Category",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Physiology or Medicine",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+          "display": "prize:chemistry-1903",
+          "typeBadges.0": "nobel:NobelPrize",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Nobel Prize in Chemistry 1903",
+          "rows.1.predicate": "nobel:year",
+          "rows.1.value": "1903",
+          "rows.1.annotation": "xsd:gYear",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/nobelprize/literature-1903",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/nobelprize/literature-1903",
+          "display": "prize:literature-1903",
+          "typeBadges.0": "nobel:NobelPrize",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Nobel Prize in Literature 1903",
+          "rows.1.predicate": "nobel:year",
+          "rows.1.value": "1903",
+          "rows.1.annotation": "xsd:gYear",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/nobelprize/peace-1903",
+          "display": "prize:peace-1903",
+          "typeBadges.0": "nobel:NobelPrize",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Nobel Prize in Peace 1903",
+          "rows.1.predicate": "nobel:year",
+          "rows.1.value": "1903",
+          "rows.1.annotation": "xsd:gYear",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "display": "prize:physics-1903",
+          "typeBadges.0": "nobel:NobelPrize",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Nobel Prize in Physics 1903",
+          "rows.1.predicate": "nobel:year",
+          "rows.1.value": "1903",
+          "rows.1.annotation": "xsd:gYear",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+          "display": "prize:physiology-or-medicine-1903",
+          "typeBadges.0": "nobel:NobelPrize",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Nobel Prize in Physiology or Medicine 1903",
+          "rows.1.predicate": "nobel:year",
+          "rows.1.value": "1903",
+          "rows.1.annotation": "xsd:gYear",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/laureate/4",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/laureate/4",
+          "display": "laureate:4",
+          "typeBadges.0": "nobel:Laureate",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Henri Becquerel",
+          "rows.1.predicate": "nobel:birthDate",
+          "rows.1.value": "1852-12-15",
+          "rows.1.annotation": "xsd:date",
+          "rows.2.predicate": "nobel:motivation",
+          "rows.2.value": "in recognition of the extraordinary services he has rendered by his discovery of spontaneous radioactivity",
+          "rows.2.annotation": "@en",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/laureate/5",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/laureate/5",
+          "display": "laureate:5",
+          "typeBadges.0": "nobel:Laureate",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Pierre Curie",
+          "rows.1.predicate": "nobel:birthDate",
+          "rows.1.value": "1859-05-15",
+          "rows.1.annotation": "xsd:date",
+          "rows.2.predicate": "nobel:motivation",
+          "rows.2.value": "in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel",
+          "rows.2.annotation": "@en",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/laureate/6",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/laureate/6",
+          "display": "laureate:6",
+          "typeBadges.0": "nobel:Laureate",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Marie Curie",
+          "rows.1.predicate": "nobel:birthDate",
+          "rows.1.value": "1867-11-07",
+          "rows.1.annotation": "xsd:date",
+          "rows.2.predicate": "nobel:motivation",
+          "rows.2.value": "in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel",
+          "rows.2.annotation": "@en",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/laureate/162",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/laureate/162",
+          "display": "laureate:162",
+          "typeBadges.0": "nobel:Laureate",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Svante Arrhenius",
+          "rows.1.predicate": "nobel:birthDate",
+          "rows.1.value": "1859-02-19",
+          "rows.1.annotation": "xsd:date",
+          "rows.2.predicate": "nobel:motivation",
+          "rows.2.value": "in recognition of the extraordinary services he has rendered to the advancement of chemistry by his electrolytic theory of dissociation",
+          "rows.2.annotation": "@en",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/laureate/295",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/laureate/295",
+          "display": "laureate:295",
+          "typeBadges.0": "nobel:Laureate",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Niels Ryberg Finsen",
+          "rows.1.predicate": "nobel:birthDate",
+          "rows.1.value": "1860-12-15",
+          "rows.1.annotation": "xsd:date",
+          "rows.2.predicate": "nobel:motivation",
+          "rows.2.value": "in recognition of his contribution to the treatment of diseases, especially lupus vulgaris, with concentrated light radiation, whereby he has opened a new avenue for medical science",
+          "rows.2.annotation": "@en",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/laureate/466",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/laureate/466",
+          "display": "laureate:466",
+          "typeBadges.0": "nobel:Laureate",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Randal Cremer",
+          "rows.1.predicate": "nobel:birthDate",
+          "rows.1.value": "1828-03-18",
+          "rows.1.annotation": "xsd:date",
+          "rows.2.predicate": "nobel:motivation",
+          "rows.2.value": "for his longstanding and devoted effort in favour of the ideas of peace and arbitration",
+          "rows.2.annotation": "@en",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:https://data.nobelprize.org/resource/laureate/572",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "https://data.nobelprize.org/resource/laureate/572",
+          "display": "laureate:572",
+          "typeBadges.0": "nobel:Laureate",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Bjørnstjerne Bjørnson",
+          "rows.1.predicate": "nobel:birthDate",
+          "rows.1.value": "1832-12-08",
+          "rows.1.annotation": "xsd:date",
+          "rows.2.predicate": "nobel:motivation",
+          "rows.2.value": "as a tribute to his noble, magnificent and versatile poetry, which has always been distinguished by both the freshness of its inspiration and the rare purity of its spirit",
+          "rows.2.annotation": "@en",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/nobelprize/chemistry-1903|https://data.nobelprize.org/terms/category|res:https://data.nobelprize.org/resource/category/chemistry",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+        "target": "res:https://data.nobelprize.org/resource/category/chemistry",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+          "toElementId": "res:https://data.nobelprize.org/resource/category/chemistry",
+          "predicate": "nobel:category",
+          "predicateIri": "https://data.nobelprize.org/terms/category"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/nobelprize/literature-1903|https://data.nobelprize.org/terms/category|res:https://data.nobelprize.org/resource/category/literature",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/nobelprize/literature-1903",
+        "target": "res:https://data.nobelprize.org/resource/category/literature",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/nobelprize/literature-1903",
+          "toElementId": "res:https://data.nobelprize.org/resource/category/literature",
+          "predicate": "nobel:category",
+          "predicateIri": "https://data.nobelprize.org/terms/category"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/nobelprize/peace-1903|https://data.nobelprize.org/terms/category|res:https://data.nobelprize.org/resource/category/peace",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
+        "target": "res:https://data.nobelprize.org/resource/category/peace",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
+          "toElementId": "res:https://data.nobelprize.org/resource/category/peace",
+          "predicate": "nobel:category",
+          "predicateIri": "https://data.nobelprize.org/terms/category"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/nobelprize/physics-1903|https://data.nobelprize.org/terms/category|res:https://data.nobelprize.org/resource/category/physics",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "target": "res:https://data.nobelprize.org/resource/category/physics",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "toElementId": "res:https://data.nobelprize.org/resource/category/physics",
+          "predicate": "nobel:category",
+          "predicateIri": "https://data.nobelprize.org/terms/category"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903|https://data.nobelprize.org/terms/category|res:https://data.nobelprize.org/resource/category/physiology-or-medicine",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+        "target": "res:https://data.nobelprize.org/resource/category/physiology-or-medicine",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+          "toElementId": "res:https://data.nobelprize.org/resource/category/physiology-or-medicine",
+          "predicate": "nobel:category",
+          "predicateIri": "https://data.nobelprize.org/terms/category"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/laureate/4|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/laureate/4",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/laureate/4",
+          "toElementId": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "predicate": "nobel:nobelPrize",
+          "predicateIri": "https://data.nobelprize.org/terms/nobelPrize"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/laureate/5|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/laureate/5",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/laureate/5",
+          "toElementId": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "predicate": "nobel:nobelPrize",
+          "predicateIri": "https://data.nobelprize.org/terms/nobelPrize"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/laureate/6|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/laureate/6",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/laureate/6",
+          "toElementId": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "predicate": "nobel:nobelPrize",
+          "predicateIri": "https://data.nobelprize.org/terms/nobelPrize"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/laureate/162|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/laureate/162",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/laureate/162",
+          "toElementId": "res:https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+          "predicate": "nobel:nobelPrize",
+          "predicateIri": "https://data.nobelprize.org/terms/nobelPrize"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/laureate/295|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/laureate/295",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/laureate/295",
+          "toElementId": "res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+          "predicate": "nobel:nobelPrize",
+          "predicateIri": "https://data.nobelprize.org/terms/nobelPrize"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/laureate/466|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/laureate/466",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/laureate/466",
+          "toElementId": "res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
+          "predicate": "nobel:nobelPrize",
+          "predicateIri": "https://data.nobelprize.org/terms/nobelPrize"
+        }
+      },
+      {
+        "id": "edge:res:https://data.nobelprize.org/resource/laureate/572|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/literature-1903",
+        "type": "w3c/rdf+edge",
+        "source": "res:https://data.nobelprize.org/resource/laureate/572",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/literature-1903",
+        "attributes": {
+          "fromElementId": "res:https://data.nobelprize.org/resource/laureate/572",
+          "toElementId": "res:https://data.nobelprize.org/resource/nobelprize/literature-1903",
+          "predicate": "nobel:nobelPrize",
+          "predicateIri": "https://data.nobelprize.org/terms/nobelPrize"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "property": {
+        "attribute": "Label",
+        "value": "Maria Skłodowska-Curie"
+      },
+      "select": [
+        "res:https://data.nobelprize.org/resource/laureate/6"
+      ],
+      "expectFile": "after-1.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "element": "res:https://data.nobelprize.org/resource/laureate/6",
+        "attribute": "rdf.comment",
+        "value": "Shared the prize with \"Pierre\" and Henri."
+      },
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "element": "res:https://data.nobelprize.org/resource/laureate/6",
+        "attribute": "IRI",
+        "value": "https://data.nobelprize.org/resource/laureate/7"
+      },
+      "refused": {
+        "reason": "'rdf.iri' cannot be edited on this selection."
+      },
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "target": "res:https://data.nobelprize.org/resource/laureate/295",
+        "value": "laureate:295b"
+      },
+      "ids": [
+        "res:https://data.nobelprize.org/resource/laureate/295b",
+        "edge:res:https://data.nobelprize.org/resource/laureate/295b|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903"
+      ],
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "target": "res:https://data.nobelprize.org/resource/laureate/4",
+        "value": "nope:4"
+      },
+      "refused": {
+        "reason": "'rdf.rename-resource' does not apply to this selection."
+      },
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "rdf.add-prefix",
+      "args": {
+        "target": "new:0,0",
+        "value": "foaf: <http://xmlns.com/foaf/0.1/>"
+      },
+      "expectFile": "after-4.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "rdf.add-prefix",
+      "args": {
+        "target": "new:0,0",
+        "value": "not a declaration"
+      },
+      "refused": {
+        "reason": "'rdf.add-prefix' does not apply to this selection."
+      },
+      "expectFile": "after-4.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "rdf.add-resource",
+      "args": {
+        "target": "new:400,300",
+        "value": "laureate:999"
+      },
+      "ids": [
+        "res:https://data.nobelprize.org/resource/laureate/999"
+      ],
+      "expectFile": "after-5.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "rdf.connect",
+      "args": {
+        "target": "rel:res:https://data.nobelprize.org/resource/laureate/999->res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "value": "nobel:nobelPrize"
+      },
+      "ids": [
+        "edge:res:https://data.nobelprize.org/resource/laureate/999|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903"
+      ],
+      "expectFile": "after-6.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "rdf.connect",
+      "args": {
+        "target": "rel:res:https://data.nobelprize.org/resource/laureate/999->res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
+        "value": "foaf:knows"
+      },
+      "ids": [
+        "edge:res:https://data.nobelprize.org/resource/laureate/999|http://xmlns.com/foaf/0.1/knows|res:https://data.nobelprize.org/resource/nobelprize/peace-1903"
+      ],
+      "expectFile": "after-7.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "rdf.remove-edge",
+      "args": {
+        "target": "edge:res:https://data.nobelprize.org/resource/laureate/4|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903"
+      },
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-7.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:https://data.nobelprize.org/resource/laureate/466",
+        "confirm": true
+      },
+      "expectFile": "after-9.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:https://data.nobelprize.org/resource/laureate/572"
+      },
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:https://data.nobelprize.org/resource/laureate/162",
+        "confirm": true
+      },
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "move": {
+        "element": "res:https://data.nobelprize.org/resource/laureate/5"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"res:https://data.nobelprize.org/resource/laureate/5\"],\"to\":{\"x\":1200,\"y\":40}}",
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "move": {
+        "element": "res:https://data.nobelprize.org/resource/laureate/6"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"res:https://data.nobelprize.org/resource/laureate/6\"],\"dx\":30,\"dy\":-20.5}",
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "move": {
+        "element": "res:https://data.nobelprize.org/resource/laureate/5"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"res:https://data.nobelprize.org/resource/laureate/5\"],\"to\":{\"x\":1200.12345,\"y\":-0.0004}}",
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "move": {
+        "element": "edge:res:https://data.nobelprize.org/resource/laureate/5|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"edge:res:https://data.nobelprize.org/resource/laureate/5|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903\"],\"to\":{\"x\":10,\"y\":10}}",
+      "refused": {
+        "reason": "That element is not something this diagram can move."
+      },
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "move": {
+        "element": "res:https://data.nobelprize.org/resource/laureate/5",
+        "parent": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"res:https://data.nobelprize.org/resource/laureate/5\"],\"parent\":\"res:https://data.nobelprize.org/resource/nobelprize/physics-1903\"}",
+      "refused": {
+        "reason": "A resource has no parent to move it under; dragging changes where it sits on the canvas."
+      },
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "property": {
+        "element": "res:https://data.nobelprize.org/resource/category/peace",
+        "attribute": "rdf.label",
+        "value": "Peace"
+      },
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/w3c/rdf/nobel-1903/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

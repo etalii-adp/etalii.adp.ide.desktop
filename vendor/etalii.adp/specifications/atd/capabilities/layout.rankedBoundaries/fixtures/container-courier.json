@@ -1,0 +1,322 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/scripts/c4/container/courier.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "sender",
+        "type": "person",
+        "width": 240.0,
+        "height": 98.4
+      },
+      {
+        "id": "courier",
+        "type": "person",
+        "width": 240.0,
+        "height": 118.0
+      },
+      {
+        "id": "agent",
+        "type": "person",
+        "width": 240.0,
+        "height": 98.4
+      },
+      {
+        "id": "web",
+        "type": "container",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:tracking",
+        "pinned": {
+          "x": 451.84,
+          "y": 181.47
+        }
+      },
+      {
+        "id": "spa",
+        "type": "container",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:tracking"
+      },
+      {
+        "id": "mobile",
+        "type": "container",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:tracking"
+      },
+      {
+        "id": "api",
+        "type": "container",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:tracking"
+      },
+      {
+        "id": "broker",
+        "type": "container",
+        "width": 240.0,
+        "height": 118.0,
+        "parent": "boundary:tracking"
+      },
+      {
+        "id": "database",
+        "type": "container",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:tracking"
+      },
+      {
+        "id": "routing",
+        "type": "software system",
+        "width": 240.0,
+        "height": 98.4
+      },
+      {
+        "id": "email",
+        "type": "software system",
+        "width": 216.5,
+        "height": 78.8
+      },
+      {
+        "id": "maps",
+        "type": "software system",
+        "width": 240.0,
+        "height": 98.4
+      },
+      {
+        "id": "boundary:tracking",
+        "type": "software system",
+        "width": 0.0,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "bookingController->routingFacade#1",
+        "source": "bookingController",
+        "target": "routingFacade"
+      },
+      {
+        "id": "scanIngest->notifier#2",
+        "source": "scanIngest",
+        "target": "notifier"
+      },
+      {
+        "id": "sender->tracking#3",
+        "source": "sender",
+        "target": "tracking"
+      },
+      {
+        "id": "courier->tracking#4",
+        "source": "courier",
+        "target": "tracking"
+      },
+      {
+        "id": "agent->tracking#5",
+        "source": "agent",
+        "target": "tracking"
+      },
+      {
+        "id": "tracking->routing#6",
+        "source": "tracking",
+        "target": "routing"
+      },
+      {
+        "id": "tracking->email#7",
+        "source": "tracking",
+        "target": "email"
+      },
+      {
+        "id": "tracking->maps#8",
+        "source": "tracking",
+        "target": "maps"
+      },
+      {
+        "id": "email->sender#9",
+        "source": "email",
+        "target": "sender"
+      },
+      {
+        "id": "sender->spa#10",
+        "source": "sender",
+        "target": "spa"
+      },
+      {
+        "id": "courier->mobile#11",
+        "source": "courier",
+        "target": "mobile"
+      },
+      {
+        "id": "agent->spa#12",
+        "source": "agent",
+        "target": "spa"
+      },
+      {
+        "id": "web->spa#13",
+        "source": "web",
+        "target": "spa"
+      },
+      {
+        "id": "spa->api#14",
+        "source": "spa",
+        "target": "api"
+      },
+      {
+        "id": "mobile->api#15",
+        "source": "mobile",
+        "target": "api"
+      },
+      {
+        "id": "api->database#16",
+        "source": "api",
+        "target": "database"
+      },
+      {
+        "id": "api->broker#17",
+        "source": "api",
+        "target": "broker"
+      },
+      {
+        "id": "broker->api#18",
+        "source": "broker",
+        "target": "api"
+      },
+      {
+        "id": "api->routing#19",
+        "source": "api",
+        "target": "routing"
+      },
+      {
+        "id": "api->email#20",
+        "source": "api",
+        "target": "email"
+      },
+      {
+        "id": "api->maps#21",
+        "source": "api",
+        "target": "maps"
+      },
+      {
+        "id": "spa->bookingController#22",
+        "source": "spa",
+        "target": "bookingController"
+      },
+      {
+        "id": "spa->trackingController#23",
+        "source": "spa",
+        "target": "trackingController"
+      },
+      {
+        "id": "mobile->scanIngest#24",
+        "source": "mobile",
+        "target": "scanIngest"
+      },
+      {
+        "id": "bookingController->database#25",
+        "source": "bookingController",
+        "target": "database"
+      },
+      {
+        "id": "trackingController->database#26",
+        "source": "trackingController",
+        "target": "database"
+      },
+      {
+        "id": "scanIngest->broker#27",
+        "source": "scanIngest",
+        "target": "broker"
+      },
+      {
+        "id": "notifier->email#28",
+        "source": "notifier",
+        "target": "email"
+      },
+      {
+        "id": "routingFacade->routing#29",
+        "source": "routingFacade",
+        "target": "routing"
+      },
+      {
+        "id": "dbPrimary->dbStandby#30",
+        "source": "dbPrimary",
+        "target": "dbStandby"
+      },
+      {
+        "id": "loadBalancer->web#31",
+        "source": "loadBalancer",
+        "target": "web"
+      }
+    ]
+  },
+  "args": {
+    "mode": "enclose",
+    "direction": "'lr'",
+    "rankSeparation": "120",
+    "nodeSeparation": "60",
+    "pinsIgnored": "true",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "courier": {
+        "x": -332.0,
+        "y": -217.4
+      },
+      "agent": {
+        "x": -332.0,
+        "y": 119.0
+      },
+      "web": {
+        "x": 0.0,
+        "y": 119.0
+      },
+      "mobile": {
+        "x": 360.0,
+        "y": -49.2
+      },
+      "spa": {
+        "x": 720.0,
+        "y": -49.2
+      },
+      "broker": {
+        "x": 1080.0,
+        "y": -366.0
+      },
+      "database": {
+        "x": 1080.0,
+        "y": -188.0
+      },
+      "routing": {
+        "x": 1380.0,
+        "y": 329.0
+      },
+      "email": {
+        "x": 1680.0,
+        "y": 329.0
+      },
+      "maps": {
+        "x": 1080.0,
+        "y": 329.0
+      },
+      "sender": {
+        "x": 1772.0,
+        "y": -39.4
+      },
+      "api": {
+        "x": 1440.0,
+        "y": 30.0
+      },
+      "boundary:tracking": {
+        "x": -32.0,
+        "y": -398.0
+      }
+    }
+  }
+}

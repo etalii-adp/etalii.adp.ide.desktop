@@ -1,0 +1,373 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/shacl-shape-by-use.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "shacl-shape-by-use.ttl",
+    "registration": "shacl-shape-by-use.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/shapes#PersonShape",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#PersonShape",
+          "display": "ex:PersonShape",
+          "typeBadges.0": "sh:NodeShape",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Person",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#Person",
+          "display": "ex:Person",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#alice",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#alice",
+          "display": "ex:alice",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "blank:0",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:b0",
+          "rows.0.predicate": "sh:minCount",
+          "rows.0.value": "1",
+          "rows.0.annotation": "xsd:integer",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#name",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#name",
+          "display": "ex:name",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#string",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://www.w3.org/2001/XMLSchema#string",
+          "display": "xsd:string",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "blank:1",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:b1",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#address",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#address",
+          "display": "ex:address",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#city",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#city",
+          "display": "ex:city",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#CityShape",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#CityShape",
+          "display": "ex:CityShape",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "blank:5",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:b5",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#knows",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#knows",
+          "display": "ex:knows",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "blank:4",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:b4",
+          "rows.0.predicate": "sh:maxCount",
+          "rows.0.value": "5",
+          "rows.0.annotation": "xsd:integer",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "blank:6",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:b6",
+          "rows.0.predicate": "sh:pattern",
+          "rows.0.value": "^[0-9]{4}",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#postcode",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#postcode",
+          "display": "ex:postcode",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#targetClass|res:http://example.org/shapes#Person",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/shapes#PersonShape",
+        "target": "res:http://example.org/shapes#Person",
+        "attributes": {
+          "fromElementId": "res:http://example.org/shapes#PersonShape",
+          "toElementId": "res:http://example.org/shapes#Person",
+          "predicate": "sh:targetClass",
+          "predicateIri": "http://www.w3.org/ns/shacl#targetClass"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#targetNode|res:http://example.org/shapes#alice",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/shapes#PersonShape",
+        "target": "res:http://example.org/shapes#alice",
+        "attributes": {
+          "fromElementId": "res:http://example.org/shapes#PersonShape",
+          "toElementId": "res:http://example.org/shapes#alice",
+          "predicate": "sh:targetNode",
+          "predicateIri": "http://www.w3.org/ns/shacl#targetNode"
+        }
+      },
+      {
+        "id": "edge:blank:0|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#name",
+        "type": "w3c/rdf+edge",
+        "source": "blank:0",
+        "target": "res:http://example.org/shapes#name",
+        "attributes": {
+          "fromElementId": "blank:0",
+          "toElementId": "res:http://example.org/shapes#name",
+          "predicate": "sh:path",
+          "predicateIri": "http://www.w3.org/ns/shacl#path"
+        }
+      },
+      {
+        "id": "edge:blank:0|http://www.w3.org/ns/shacl#datatype|res:http://www.w3.org/2001/XMLSchema#string",
+        "type": "w3c/rdf+edge",
+        "source": "blank:0",
+        "target": "res:http://www.w3.org/2001/XMLSchema#string",
+        "attributes": {
+          "fromElementId": "blank:0",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#string",
+          "predicate": "sh:datatype",
+          "predicateIri": "http://www.w3.org/ns/shacl#datatype"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:0",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/shapes#PersonShape",
+        "target": "blank:0",
+        "attributes": {
+          "fromElementId": "res:http://example.org/shapes#PersonShape",
+          "toElementId": "blank:0",
+          "predicate": "sh:property",
+          "predicateIri": "http://www.w3.org/ns/shacl#property"
+        }
+      },
+      {
+        "id": "edge:blank:1|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#address",
+        "type": "w3c/rdf+edge",
+        "source": "blank:1",
+        "target": "res:http://example.org/shapes#address",
+        "attributes": {
+          "fromElementId": "blank:1",
+          "toElementId": "res:http://example.org/shapes#address",
+          "predicate": "sh:path [1]",
+          "predicateIri": "http://www.w3.org/ns/shacl#path"
+        }
+      },
+      {
+        "id": "edge:blank:1|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#city",
+        "type": "w3c/rdf+edge",
+        "source": "blank:1",
+        "target": "res:http://example.org/shapes#city",
+        "attributes": {
+          "fromElementId": "blank:1",
+          "toElementId": "res:http://example.org/shapes#city",
+          "predicate": "sh:path [2]",
+          "predicateIri": "http://www.w3.org/ns/shacl#path"
+        }
+      },
+      {
+        "id": "edge:blank:1|http://www.w3.org/ns/shacl#node|res:http://example.org/shapes#CityShape",
+        "type": "w3c/rdf+edge",
+        "source": "blank:1",
+        "target": "res:http://example.org/shapes#CityShape",
+        "attributes": {
+          "fromElementId": "blank:1",
+          "toElementId": "res:http://example.org/shapes#CityShape",
+          "predicate": "sh:node",
+          "predicateIri": "http://www.w3.org/ns/shacl#node"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:1",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/shapes#PersonShape",
+        "target": "blank:1",
+        "attributes": {
+          "fromElementId": "res:http://example.org/shapes#PersonShape",
+          "toElementId": "blank:1",
+          "predicate": "sh:property",
+          "predicateIri": "http://www.w3.org/ns/shacl#property"
+        }
+      },
+      {
+        "id": "edge:blank:5|http://www.w3.org/ns/shacl#inversePath|res:http://example.org/shapes#knows",
+        "type": "w3c/rdf+edge",
+        "source": "blank:5",
+        "target": "res:http://example.org/shapes#knows",
+        "attributes": {
+          "fromElementId": "blank:5",
+          "toElementId": "res:http://example.org/shapes#knows",
+          "predicate": "sh:inversePath",
+          "predicateIri": "http://www.w3.org/ns/shacl#inversePath"
+        }
+      },
+      {
+        "id": "edge:blank:4|http://www.w3.org/ns/shacl#path|blank:5",
+        "type": "w3c/rdf+edge",
+        "source": "blank:4",
+        "target": "blank:5",
+        "attributes": {
+          "fromElementId": "blank:4",
+          "toElementId": "blank:5",
+          "predicate": "sh:path",
+          "predicateIri": "http://www.w3.org/ns/shacl#path"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:4",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/shapes#PersonShape",
+        "target": "blank:4",
+        "attributes": {
+          "fromElementId": "res:http://example.org/shapes#PersonShape",
+          "toElementId": "blank:4",
+          "predicate": "sh:property",
+          "predicateIri": "http://www.w3.org/ns/shacl#property"
+        }
+      },
+      {
+        "id": "edge:blank:6|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#postcode",
+        "type": "w3c/rdf+edge",
+        "source": "blank:6",
+        "target": "res:http://example.org/shapes#postcode",
+        "attributes": {
+          "fromElementId": "blank:6",
+          "toElementId": "res:http://example.org/shapes#postcode",
+          "predicate": "sh:path",
+          "predicateIri": "http://www.w3.org/ns/shacl#path"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#CityShape|http://www.w3.org/ns/shacl#property|blank:6",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/shapes#CityShape",
+        "target": "blank:6",
+        "attributes": {
+          "fromElementId": "res:http://example.org/shapes#CityShape",
+          "toElementId": "blank:6",
+          "predicate": "sh:property",
+          "predicateIri": "http://www.w3.org/ns/shacl#property"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

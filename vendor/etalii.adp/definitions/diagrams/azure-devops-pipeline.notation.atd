@@ -1,0 +1,998 @@
+atd 0.1
+part of azure-devops/pipeline
+
+// The azure devops pipeline's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+// ---------------------------------------------------------------- Notation
+
+notation {
+  theme {
+    tokens: {
+      color.bg: "#f8fafc"
+      color.surface: "#ffffff"
+      color.border: "#e2e8f0"
+      color.border-strong: "#64748b"
+      color.text: "#0f172a"
+      color.text-muted: "#64748b"
+      color.primary: limegreen
+      color.accent-subtle: "#f0fdf4"
+      color.danger: "#dc2626"
+      color.warning: "#b45309"
+    }
+    followSystem: true
+    doc: "The standalone client's CSS variables, with their fallbacks as the base values; the host theme supplies the rest."
+  }
+
+  style stageBox {
+    fill: $color.bg
+    stroke: { color: $color.border, width: 1 }
+    cornerRadius: 6
+  }
+
+  style box {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1 }
+    cornerRadius: 4
+    font: { size: 12, color: $color.text }
+  }
+
+  style deploymentBox extends box {
+    fill: $color.accent-subtle
+    stroke: { color: $color.primary, width: 2 }
+  }
+
+  style stageName {
+    font: { size: 14, weight: 600, color: $color.text }
+  }
+
+  style muted {
+    font: { size: 12, color: $color.text-muted }
+  }
+
+  style indicator {
+    font: { size: 11, color: $color.text-muted }
+  }
+
+  style fromTemplate {
+    stroke: { dash: [2, 3] }
+    opacity: 0.85
+  }
+
+  style indeterminate {
+    stroke: { dash: [4, 3] }
+  }
+
+  node Stage {
+    shape { type: roundedRect, params: { radius: 6 } }
+    style: stageBox
+    size: { default: [220, 88], min: [220, 88], autoSize: grow, resizable: false }
+    placement: {
+      x: { layout: true }
+      y: { layout: true }
+      movable: false
+      resizable: false
+      doc: "A pipeline has no coordinates: every position comes from the layout."
+    }
+    refusals: {
+      move: [
+        "A pipeline arranges itself from its dependencies. Change what a stage waits for to change where it sits."
+      ]
+    }
+    container: {
+      layout: "layout:jobs"
+      padding: 24
+      header: { size: 40, side: top }
+      collapsible: true
+      autoGrow: true
+      doc: "Open, a stage grows to its jobs: their width plus 24 each side, their height plus the 40 header and 24 each side, never smaller than closed."
+    }
+    badgeLayout: { start: top-right, offset: [-12, 20], direction: left, spacing: 16 }
+    conditions: [
+      {
+        when: (self.indeterminate)
+        style: indeterminate
+        doc: "Gated, or waiting for something that does not exist."
+      },
+      { when: (self.fromTemplate), style: fromTemplate }
+    ]
+    tooltip: (self.label)
+    layer: background
+    deletable: false
+    copyable: false
+    connectable: false
+    accessibility: { role: group, name: (self.label) }
+    label (self.label != '' ? self.label : 'stage') as name {
+      editText: @displayName
+      position: { anchor: [0, 0], offset: [12, 24], align: start }
+      style: stageName
+      editable: inline
+      overflow: ellipsis
+    }
+    label (string(self.jobCount) + (self.jobCount == 1 ? ' job' : ' jobs')) as jobs {
+      position: { anchor: [0, 0], offset: [12, 44], align: start }
+      style: muted
+      editable: false
+      visible: (self.view.collapsed)
+    }
+    state invalid { stroke: { color: $color.danger } }
+    state warning { stroke: { color: $color.warning } }
+    badge disabled {
+      pack: true
+      text: "⊘"
+      style: indicator
+      visible: (self.isDisabled)
+      tooltip: "Disabled: this will not run."
+    }
+    badge manual {
+      pack: true
+      text: "▶"
+      style: indicator
+      visible: (self.manualTrigger)
+      tooltip: "Manual trigger: this waits to be started by a person."
+    }
+    badge condition {
+      pack: true
+      text: "?"
+      style: indicator
+      visible: (has(self.condition) && self.condition != '')
+      tooltip: ('Runs only when: ' + self.condition)
+    }
+    badge continueOnError {
+      pack: true
+      text: "!"
+      style: indicator
+      visible: (self.continuesOnError)
+      tooltip: "Continues on error: a failure here does not fail the run."
+    }
+    badge fromTemplate {
+      pack: true
+      text: "⇱"
+      style: indicator
+      visible: (self.fromTemplate)
+      tooltip: ('From ' + self.template + ': edit it there.')
+    }
+    variant v0 when self.view.collapsed {
+      size: { fixed: [220, 88] }
+    }
+  }
+
+  node Job {
+    shape { type: roundedRect, params: { radius: 4 } }
+    style: box
+    size: { default: [180, 56], min: [180, 56], autoSize: grow, resizable: false }
+    placement: { x: { layout: true }, y: { layout: true }, movable: false, resizable: false }
+    refusals: {
+      move: [
+        "A pipeline arranges itself from its dependencies. Change what a stage waits for to change where it sits."
+      ]
+    }
+    container: {
+      layout: stack
+      direction: vertical
+      gap: 32
+      padding: 24
+      header: { size: 40, side: top }
+      collapsible: true
+      autoGrow: true
+      doc: "Open, a job is 228 wide and 40 + 2·24 + n·56 + (n−1)·32 tall, its steps in one column."
+    }
+    badgeLayout: { start: top-right, offset: [-8, 16], direction: left, spacing: 16 }
+    conditions: [
+      {
+        when: (self.indeterminate)
+        style: indeterminate
+        doc: "Gated, waiting for something that does not exist, or run a number of times only known when the pipeline runs."
+      },
+      { when: (self.fromTemplate), style: fromTemplate }
+    ]
+    tooltip: (self.label)
+    deletable: false
+    copyable: false
+    connectable: false
+    /// In the header, 32 below the top: on a closed job's 56 that is 4 below its middle, and on an open one it stays
+    /// above the steps.
+    label (self.label != '' ? self.label : 'job') as name {
+      editText: @displayName
+      position: { anchor: [0, 0], offset: [10, 32], align: start }
+      editable: inline
+      overflow: ellipsis
+    }
+    state invalid { stroke: { color: $color.danger } }
+    state warning { stroke: { color: $color.warning } }
+    badge disabled {
+      pack: true
+      text: "⊘"
+      style: indicator
+      visible: (self.isDisabled)
+      tooltip: "Disabled: this will not run."
+    }
+    badge condition {
+      pack: true
+      text: "?"
+      style: indicator
+      visible: (has(self.condition) && self.condition != '')
+      tooltip: ('Runs only when: ' + self.condition)
+    }
+    badge continueOnError {
+      pack: true
+      text: "!"
+      style: indicator
+      visible: (self.continuesOnError)
+      tooltip: "Continues on error: a failure here does not fail the run."
+    }
+    badge multiplicity {
+      pack: true
+      text: ('×' + string(self.multiplicity))
+      style: indicator
+      visible: (has(self.multiplicity) && self.multiplicity > 1)
+      tooltip: ('Runs ' + string(self.multiplicity) + ' times, once per matrix entry.')
+    }
+    badge multiplicityUnknown {
+      pack: true
+      text: "×?"
+      style: indicator
+      visible: (!(has(self.multiplicity) && self.multiplicity > 1) && has(self.multiplicityExpression))
+      tooltip: "How many of these run is decided when the pipeline runs."
+    }
+    badge fromTemplate {
+      pack: true
+      text: "⇱"
+      style: indicator
+      visible: (self.fromTemplate)
+      tooltip: ('From ' + self.template + ': edit it there.')
+    }
+    variant v0 when self.view.collapsed {
+      size: { fixed: [180, 56] }
+    }
+  }
+
+  node DeploymentJob {
+    shape { type: roundedRect, params: { radius: 4 } }
+    style: deploymentBox
+    size: { default: [180, 56], min: [180, 56], autoSize: grow, resizable: false }
+    placement: { x: { layout: true }, y: { layout: true }, movable: false, resizable: false }
+    refusals: {
+      move: [
+        "A pipeline arranges itself from its dependencies. Change what a stage waits for to change where it sits."
+      ]
+    }
+    container: {
+      layout: stack
+      direction: vertical
+      gap: 32
+      padding: 24
+      header: { size: 40, side: top }
+      collapsible: true
+      autoGrow: true
+    }
+    badgeLayout: { start: top-right, offset: [-8, 16], direction: left, spacing: 16 }
+    conditions: [
+      { when: (self.indeterminate), style: indeterminate },
+      { when: (self.fromTemplate), style: fromTemplate }
+    ]
+    tooltip: (self.label + ' → ' + (has(self.environment) ? self.environment : ''))
+    deletable: false
+    copyable: false
+    connectable: false
+    /// In the header, 32 below the top: on a closed job's 56 that is 4 below its middle, and on an open one it stays
+    /// above the steps.
+    label (self.label != '' ? self.label : 'job') as name {
+      editText: @displayName
+      position: { anchor: [0, 0], offset: [10, 32], align: start }
+      editable: inline
+      overflow: ellipsis
+    }
+    state invalid { stroke: { color: $color.danger } }
+    state warning { stroke: { color: $color.warning } }
+    badge disabled {
+      pack: true
+      text: "⊘"
+      style: indicator
+      visible: (self.isDisabled)
+      tooltip: "Disabled: this will not run."
+    }
+    badge condition {
+      pack: true
+      text: "?"
+      style: indicator
+      visible: (has(self.condition) && self.condition != '')
+      tooltip: ('Runs only when: ' + self.condition)
+    }
+    badge continueOnError {
+      pack: true
+      text: "!"
+      style: indicator
+      visible: (self.continuesOnError)
+      tooltip: "Continues on error: a failure here does not fail the run."
+    }
+    badge multiplicity {
+      pack: true
+      text: ('×' + string(self.multiplicity))
+      style: indicator
+      visible: (has(self.multiplicity) && self.multiplicity > 1)
+      tooltip: ('Runs ' + string(self.multiplicity) + ' times, once per matrix entry.')
+    }
+    badge multiplicityUnknown {
+      pack: true
+      text: "×?"
+      style: indicator
+      visible: (!(has(self.multiplicity) && self.multiplicity > 1) && has(self.multiplicityExpression))
+      tooltip: "How many of these run is decided when the pipeline runs."
+    }
+    badge fromTemplate {
+      pack: true
+      text: "⇱"
+      style: indicator
+      visible: (self.fromTemplate)
+      tooltip: ('From ' + self.template + ': edit it there.')
+    }
+    variant v0 when self.view.collapsed {
+      size: { fixed: [180, 56] }
+    }
+  }
+
+  node Step {
+    shape { type: roundedRect, params: { radius: 4 } }
+    style: box
+    size: { fixed: [180, 56] }
+    placement: { x: { layout: true }, y: { layout: true }, movable: false, resizable: false }
+    refusals: {
+      move: [
+        "A pipeline arranges itself from its dependencies. Change what a stage waits for to change where it sits."
+      ]
+    }
+    badgeLayout: { start: top-right, offset: [-8, 16], direction: left, spacing: 16 }
+    conditions: [
+      { when: (has(self.gate) && self.gate != ''), style: indeterminate },
+      { when: (self.fromTemplate), style: fromTemplate }
+    ]
+    tooltip: (self.label)
+    deletable: false
+    copyable: false
+    connectable: false
+    label (self.displayName != '' ? self.displayName : (has(self.identifier) && self.identifier != '' ? self.identifier.split('\n')[0] : 'step')) as name {
+      editText: @displayName
+      position: { anchor: [0, 0.5], offset: [10, 4], align: start }
+      editable: inline
+      overflow: ellipsis
+    }
+    badge disabled {
+      pack: true
+      text: "⊘"
+      style: indicator
+      visible: (self.isDisabled)
+      tooltip: "Disabled: this will not run."
+    }
+    badge condition {
+      pack: true
+      text: "?"
+      style: indicator
+      visible: (has(self.condition) && self.condition != '')
+      tooltip: ('Runs only when: ' + self.condition)
+    }
+    badge continueOnError {
+      pack: true
+      text: "!"
+      style: indicator
+      visible: (self.continuesOnError)
+      tooltip: "Continues on error: a failure here does not fail the run."
+    }
+    badge fromTemplate {
+      pack: true
+      text: "⇱"
+      style: indicator
+      visible: (self.fromTemplate)
+      tooltip: ('From ' + self.template + ': edit it there.')
+    }
+  }
+
+  node TemplateReference {
+    shape { type: roundedRect, params: { radius: 4 } }
+    style: {
+      fill: none
+      stroke: { color: $color.border-strong, width: 1, dash: [6, 4] }
+      font: { size: 12 }
+    }
+    size: { fixed: [220, 88] }
+    placement: {
+      x: { layout: true }
+      y: { layout: true }
+      movable: false
+      resizable: false
+      doc: "Below the arrangement, at the x of the element whose list names it."
+    }
+    tooltip: (self.explanation)
+    deletable: false
+    copyable: false
+    connectable: false
+    label (self.reference) as reference {
+      position: { anchor: [0, 0.5], offset: [10, 4], align: start }
+      editable: false
+      overflow: ellipsis
+    }
+  }
+
+  edge Dependency {
+    line {
+      stroke: { color: $color.border-strong, width: 1.5 }
+      routing: bezier
+      curvature: 30
+      startDirection: right
+      endDirection: left
+      bendpoints: { editable: false }
+      doc: "A horizontal cubic from the right middle of what is waited for to the left middle of what waits, each control point 30 units out."
+    }
+    marker target arrowFilled
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "out", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "in", x: 0, y: 0.5 }] }
+    }
+    conditions: [
+      {
+        when: (self.isImplicit)
+        style: { stroke: { dash: [3, 3] }, opacity: 0.7 }
+        doc: "The default order: the stage waits for the one before it because it declares no dependsOn."
+      }
+    ]
+    layer: aboveNodes
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+toolbox {
+  generic: { select: true, pan: true, lasso: false, text: false, note: false, image: false, freehand: false }
+  group add "Add" {
+    /// Drop on a stage to add another after it. It arrives with a job and a step, so it runs.
+    tool stage "Stage" {
+      kind: operation
+      operation: addStage
+      icon: "mdi-layers-plus"
+      mode: drop
+      drop: {
+        targets: [{ on: [Stage], kind: operation, operation: addStage }]
+        elsewhere: refuse
+        refusal: "That element is no longer in this pipeline."
+      }
+    }
+    /// Drop on a stage to add a job to it.
+    tool job "Job" {
+      kind: operation
+      operation: addJob
+      icon: "mdi-plus-box-outline"
+      mode: drop
+      drop: {
+        targets: [{ on: [Stage], kind: operation, operation: addJob }]
+        elsewhere: refuse
+        refusal: "That element is no longer in this pipeline."
+      }
+    }
+    /// Drop on a stage to add a deployment job, with the environment and strategy one needs.
+    tool deploymentJob "Deployment job" {
+      kind: operation
+      operation: addDeploymentJob
+      icon: "mdi-rocket-launch-outline"
+      mode: drop
+      drop: {
+        targets: [{ on: [Stage], kind: operation, operation: addDeploymentJob }]
+        elsewhere: refuse
+        refusal: "That element is no longer in this pipeline."
+      }
+    }
+    /// Drop on a job to add a script step to it.
+    tool step "Script step" {
+      kind: operation
+      operation: addStep
+      icon: "mdi-console-line"
+      mode: drop
+      drop: {
+        targets: [{ on: [JobBase], kind: operation, operation: addStep }]
+        elsewhere: refuse
+        refusal: "That element is no longer in this pipeline."
+      }
+    }
+  }
+  /// Nothing is offered on an element from a template or an implicit one, nor while the file cannot be read.
+  context for Stage when self.editable {
+    placement: menu
+    standardEntries: false
+    tool "Show jobs" {
+      kind: operation
+      operation: toggleJobs
+      group: "edit"
+      icon: "mdi-unfold-more-horizontal"
+      shortcut: Space
+      visible: (self.jobCount > 0 && self.view.collapsed)
+    }
+    tool "Hide jobs" {
+      kind: operation
+      operation: toggleJobs
+      group: "edit"
+      icon: "mdi-unfold-less-horizontal"
+      shortcut: Space
+      visible: (self.jobCount > 0 && !self.view.collapsed)
+    }
+    tool "Rename…" { kind: editLabel, group: "edit", icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Disable" {
+      kind: operation
+      operation: toggleEnabled
+      group: "edit"
+      icon: "mdi-pause-circle-outline"
+      visible: (!self.isDisabled)
+    }
+    tool "Enable" {
+      kind: operation
+      operation: toggleEnabled
+      group: "edit"
+      icon: "mdi-play-circle-outline"
+      visible: (self.isDisabled)
+    }
+    tool "Use the default order" {
+      kind: operation
+      operation: clearDependencies
+      group: "edit"
+      icon: "mdi-arrow-decision-outline"
+      visible: (has(self.dependsOn))
+    }
+    tool "Remove" {
+      kind: delete
+      group: "edit"
+      icon: "mdi-delete-outline"
+      shortcut: Delete
+      visible: (diagram.nodesOfType('Stage').filter(s, !s.isImplicit).size() > 1)
+    }
+    tool "Add stage" { kind: operation, operation: addStage, group: "add", icon: "mdi-layers-plus" }
+    tool "Add job" { kind: operation, operation: addJob, group: "add", icon: "mdi-plus-box-outline" }
+    tool "Add deployment job" {
+      kind: operation
+      operation: addDeploymentJob
+      group: "add"
+      icon: "mdi-rocket-launch-outline"
+    }
+  }
+  context for JobBase when self.editable {
+    placement: menu
+    standardEntries: false
+    tool "Show steps" {
+      kind: operation
+      operation: toggleSteps
+      group: "edit"
+      icon: "mdi-unfold-more-horizontal"
+      shortcut: Space
+      visible: (self.children.size() > 0 && self.view.collapsed)
+    }
+    tool "Hide steps" {
+      kind: operation
+      operation: toggleSteps
+      group: "edit"
+      icon: "mdi-unfold-less-horizontal"
+      shortcut: Space
+      visible: (self.children.size() > 0 && !self.view.collapsed)
+    }
+    tool "Rename…" { kind: editLabel, group: "edit", icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Disable" {
+      kind: operation
+      operation: toggleEnabled
+      group: "edit"
+      icon: "mdi-pause-circle-outline"
+      visible: (!self.isDisabled)
+    }
+    tool "Enable" {
+      kind: operation
+      operation: toggleEnabled
+      group: "edit"
+      icon: "mdi-play-circle-outline"
+      visible: (self.isDisabled)
+    }
+    tool "Use the default order" {
+      kind: operation
+      operation: clearDependencies
+      group: "edit"
+      icon: "mdi-arrow-decision-outline"
+      visible: (has(self.dependsOn))
+    }
+    tool "Remove" {
+      kind: delete
+      group: "edit"
+      icon: "mdi-delete-outline"
+      shortcut: Delete
+      visible: (self.parent.childrenOfType('JobBase').size() > 1)
+    }
+    tool "Add step" { kind: operation, operation: addStep, group: "add", icon: "mdi-plus-box-outline" }
+  }
+  context for Step when self.editable {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: editLabel, group: "edit", icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Disable" {
+      kind: operation
+      operation: toggleEnabled
+      group: "edit"
+      icon: "mdi-pause-circle-outline"
+      visible: (!self.isDisabled)
+    }
+    tool "Enable" {
+      kind: operation
+      operation: toggleEnabled
+      group: "edit"
+      icon: "mdi-play-circle-outline"
+      visible: (self.isDisabled)
+    }
+    tool "Remove" {
+      kind: delete
+      group: "edit"
+      icon: "mdi-delete-outline"
+      shortcut: Delete
+      visible: (self.parent.children.size() > 1)
+    }
+    tool "Move up" {
+      kind: moveUp
+      group: "order"
+      icon: "mdi-arrow-up"
+      shortcut: "Alt+ArrowUp"
+      visible: (self.parent.children.indexOf(self) > 0 && !self.parent.children.exists(s, s.fromTemplate))
+    }
+    tool "Move down" {
+      kind: moveDown
+      group: "order"
+      icon: "mdi-arrow-down"
+      shortcut: "Alt+ArrowDown"
+      visible: (self.parent.children.indexOf(self) < self.parent.children.size() - 1 && !self.parent.children.exists(s, s.fromTemplate))
+    }
+  }
+}
+
+// ---------------------------------------------------------------- Forms
+
+form stage for Stage {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name" {
+      widget: text
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field displayName "Display name" { widget: text, readOnlyReasons: [{ when: (!self.editable), message: (self.readOnlyReason) }] }
+    item jobCount "Jobs" {
+      kind: computed
+      widget: text
+      value: (string(self.jobCount))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+  }
+  section {
+    label: "Ordering"
+    /// One of the named stages written before this one, nothing, or the default order (the stage before it). It shows
+    /// what the stage waits for: the name as written, which may name nothing or differ in case from the stage it finds,
+    /// or by default the stage before it.
+    field dependsOn {
+      id: "dependsOn"
+      widget: select
+      label: (has(self.dependsOn) ? 'Depends on' : 'Depends on (by default)')
+      visible: (!has(self.dependsOn) || self.dependsOn.size() <= 1)
+      display: (has(self.dependsOn) ? (self.dependsOn.size() == 1 ? self.dependsOn[0] : '(nothing)') : (waitsFor(self).size() == 1 ? waitsFor(self)[0].name : '(nothing)'))
+      options: (cel.bind(st, diagram.nodesOfType('Stage'), st.filter(s, st.indexOf(s) < st.indexOf(self) && has(s.name) && s.name != '').map(s, s.name)) + ['(nothing)', '(the default order)'])
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        {
+          when: (!diagram.nodesOfType('Stage').exists(s, diagram.nodesOfType('Stage').indexOf(s) < diagram.nodesOfType('Stage').indexOf(self) && has(s.name) && s.name != ''))
+          message: "There is nothing before this for it to wait for."
+        }
+      ]
+    }
+    field dependsOn {
+      id: "dependsOn"
+      widget: text
+      label: (has(self.dependsOn) ? 'Depends on' : 'Depends on (by default)')
+      visible: (has(self.dependsOn) && self.dependsOn.size() > 1)
+      display: (self.dependsOn.join(', '))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This waits for several things, which is edited in the pipeline file."
+      ]
+    }
+    field condition "Condition" {
+      widget: text
+      visible: (has(self.condition))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    item trigger "Trigger" {
+      kind: computed
+      widget: text
+      value: ('manual')
+      visible: (self.manualTrigger)
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field isSkippable "Skippable" {
+      widget: text
+      visible: (has(self.isSkippable) && self.isSkippable != '')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+  }
+  section {
+    label: "Execution"
+    item pool "Pool" {
+      kind: computed
+      widget: text
+      visible: (self.poolOrigin != 'none')
+      value: (has(self.effectivePool.vmImage) ? self.effectivePool.vmImage : self.effectivePool.name)
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        {
+          when: (self.poolOrigin == 'pipeline')
+          message: "Set for the whole pipeline, at the top of the file."
+        },
+        { when: (self.poolOrigin == 'stage'), message: "Set on the stage, not here." },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field enabled "Enabled" {
+      widget: switch
+      visible: (has(self.enabled))
+      display: (self.isDisabled ? 'false' : 'true')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        {
+          when: (isExpression(self.enabled))
+          message: "This is decided by an expression when the pipeline runs."
+        }
+      ]
+    }
+  }
+}
+
+form job for JobBase {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name" {
+      widget: text
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field displayName "Display name" { widget: text, readOnlyReasons: [{ when: (!self.editable), message: (self.readOnlyReason) }] }
+    item kind "Kind" {
+      kind: computed
+      widget: text
+      value: (self.isA('DeploymentJob') ? 'Deployment job' : 'Job')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+  }
+  section {
+    label: "Ordering"
+    field dependsOn {
+      id: "dependsOn"
+      widget: select
+      label: (has(self.dependsOn) ? 'Depends on' : 'Depends on (by default)')
+      visible: (!has(self.dependsOn) || self.dependsOn.size() <= 1)
+      display: (has(self.dependsOn) && self.dependsOn.size() == 1 ? self.dependsOn[0] : '(nothing)')
+      options: (self.parent.childrenOfType('JobBase').filter(j, j != self && has(j.name) && j.name != '').map(j, j.name) + ['(nothing)', '(the default order)'])
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        {
+          when: (!self.parent.childrenOfType('JobBase').exists(j, j != self && has(j.name) && j.name != ''))
+          message: "There is nothing before this for it to wait for."
+        }
+      ]
+    }
+    field dependsOn "Depends on" {
+      id: "dependsOn"
+      widget: text
+      visible: (has(self.dependsOn) && self.dependsOn.size() > 1)
+      display: (self.dependsOn.join(', '))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This waits for several things, which is edited in the pipeline file."
+      ]
+    }
+    field condition "Condition" {
+      widget: text
+      visible: (has(self.condition))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+  }
+  section {
+    label: "Execution"
+    item pool "Pool" {
+      kind: computed
+      widget: text
+      visible: (self.poolOrigin != 'none')
+      value: (has(self.effectivePool.vmImage) ? self.effectivePool.vmImage : self.effectivePool.name)
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        {
+          when: (self.poolOrigin == 'pipeline')
+          message: "Set for the whole pipeline, at the top of the file."
+        },
+        { when: (self.poolOrigin == 'stage'), message: "Set on the stage, not here." },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field environment "Environment" {
+      widget: text
+      visible: (self.isA('DeploymentJob') && has(self.environment) && self.environment != '')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field strategy "Strategy" {
+      widget: text
+      visible: (self.strategy != 'none')
+      display: (enumLabel('Strategy', self.strategy))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    item multiplicity "Runs" {
+      kind: computed
+      widget: text
+      visible: (self.strategy != 'none' && (has(self.multiplicityExpression) || (has(self.multiplicity) && self.multiplicity > 1)))
+      value: (has(self.multiplicityExpression) ? self.multiplicityExpression + ' times - decided when the pipeline runs' : string(self.multiplicity) + ' times')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field timeoutInMinutes "Timeout (minutes)" {
+      widget: text
+      visible: (has(self.timeoutInMinutes))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field continueOnError "Continue on error" {
+      widget: text
+      visible: (has(self.continueOnError))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field enabled "Enabled" {
+      widget: switch
+      visible: (has(self.enabled))
+      display: (self.isDisabled ? 'false' : 'true')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        {
+          when: (isExpression(self.enabled))
+          message: "This is decided by an expression when the pipeline runs."
+        }
+      ]
+    }
+  }
+}
+
+form step for Step {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field stepKind "Kind" {
+      widget: text
+      display: (enumLabel('StepKind', self.stepKind))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field displayName "Display name" { widget: text, readOnlyReasons: [{ when: (!self.editable), message: (self.readOnlyReason) }] }
+    field identifier {
+      label: (enumLabel('StepKind', self.stepKind))
+      widget: textarea
+      visible: (has(self.identifier) && self.identifier != '')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field hook "Lifecycle hook" {
+      widget: text
+      visible: (has(self.hook) && self.hook != '')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+  }
+  section {
+    label: "Ordering"
+    field condition "Condition" {
+      widget: text
+      visible: (has(self.condition))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+  }
+  section {
+    label: "Execution"
+    field timeoutInMinutes "Timeout (minutes)" {
+      widget: text
+      visible: (has(self.timeoutInMinutes))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field continueOnError "Continue on error" {
+      widget: text
+      visible: (has(self.continueOnError))
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        "This is edited in the pipeline file. A wrong value here would break the build."
+      ]
+    }
+    field enabled "Enabled" {
+      widget: switch
+      visible: (has(self.enabled))
+      display: (self.isDisabled ? 'false' : 'true')
+      readOnlyReasons: [
+        { when: (!self.editable), message: (self.readOnlyReason) },
+        {
+          when: (isExpression(self.enabled))
+          message: "This is decided by an expression when the pipeline runs."
+        }
+      ]
+    }
+  }
+}
+
+layout {
+  default dependencies
+  /// A stage's column is the length of the longest chain of dependencies before it. Columns are as wide as their widest
+  /// stage and 80 apart; each column is filled top-down in written order, 32 apart. An unfollowed template is placed
+  /// below the arrangement, at the x of what names it. DISL names `layered` and does not define it, so the `adp.*`
+  /// options say what the standalone module does in code (companion, gap 10).
+  algorithm dependencies {
+    algorithm: layered
+    direction: right
+    spacing: { node: 32, layer: 80 }
+    edgeRouting: bezier
+    options: {
+      adp.layering: longest-path
+      adp.ignore: "dependencies that name nothing, and the edge that closes a cycle"
+      adp.columnWidth: "widest element in the column"
+      adp.orderInLayer: "model order, top-down"
+      adp.padding: 24
+    }
+  }
+  /// Jobs inside an open stage, arranged the same way by their own dependencies, offset by the 24 padding and the 40
+  /// header.
+  algorithm jobs {
+    algorithm: layered
+    direction: right
+    spacing: { node: 32, layer: 80 }
+    options: { adp.layering: longest-path, adp.orderInLayer: "model order, top-down" }
+  }
+  containers: { Stage: jobs }
+  trigger: always
+  respect: none
+  animate: false
+}

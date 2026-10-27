@@ -1,0 +1,720 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record ansible/structure` from parity/scripts/ansible/structure/infrastructure.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "ansible/structure",
+  "description": "../../../ansible-structure.atd",
+  "inputs": {
+    "body": ".adp",
+    "registration": ".adp",
+    "Makefile": "Makefile",
+    "ansible.cfg": "ansible.cfg",
+    "collections/requirements.yml": "collections/requirements.yml",
+    "dbservers.yml": "dbservers.yml",
+    "docs/runbook.md": "docs/runbook.md",
+    "docs/topology.yml": "docs/topology.yml",
+    "inventories/production/group_vars/all.yml": "inventories/production/group_vars/all.yml",
+    "inventories/production/group_vars/web.yml": "inventories/production/group_vars/web.yml",
+    "inventories/production/host_vars/web-01.prod.example.com.yml": "inventories/production/host_vars/web-01.prod.example.com.yml",
+    "inventories/production/hosts.yml": "inventories/production/hosts.yml",
+    "inventories/staging/group_vars/all.yml": "inventories/staging/group_vars/all.yml",
+    "inventories/staging/hosts.yml": "inventories/staging/hosts.yml",
+    "roles/common/defaults/main.yml": "roles/common/defaults/main.yml",
+    "roles/common/tasks/main.yml": "roles/common/tasks/main.yml",
+    "roles/nginx/handlers/main.yml": "roles/nginx/handlers/main.yml",
+    "roles/nginx/meta/main.yml": "roles/nginx/meta/main.yml",
+    "roles/nginx/tasks/main.yml": "roles/nginx/tasks/main.yml",
+    "roles/nginx/tasks/tls.yml": "roles/nginx/tasks/tls.yml",
+    "roles/nginx/templates/nginx.conf.j2": "roles/nginx/templates/nginx.conf.j2",
+    "roles/postgres/meta/main.yml": "roles/postgres/meta/main.yml",
+    "roles/postgres/tasks/main.yml": "roles/postgres/tasks/main.yml",
+    "scripts/rotate-certs.sh": "scripts/rotate-certs.sh",
+    "site.yml": "site.yml",
+    "webservers.yml": "webservers.yml"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "playbook:dbservers.yml",
+        "type": "ansible/structure+playbook",
+        "parent": null,
+        "attributes": {
+          "name": "dbservers.yml",
+          "path": "dbservers.yml",
+          "kind": "Playbook",
+          "width": "131.8",
+          "height": "32",
+          "playIndex": "-1",
+          "hosts": "db",
+          "annotations": "ansible.cfg, collections/requirements.yml"
+        }
+      },
+      {
+        "id": "playbook:site.yml",
+        "type": "ansible/structure+playbook",
+        "parent": null,
+        "attributes": {
+          "name": "site.yml",
+          "path": "site.yml",
+          "kind": "Playbook",
+          "width": "85.60000000000001",
+          "height": "32",
+          "playIndex": "-1",
+          "annotations": "ansible.cfg, collections/requirements.yml"
+        }
+      },
+      {
+        "id": "playbook:webservers.yml",
+        "type": "ansible/structure+playbook",
+        "parent": null,
+        "attributes": {
+          "name": "webservers.yml",
+          "path": "webservers.yml",
+          "kind": "Playbook",
+          "width": "131.8",
+          "height": "32",
+          "playIndex": "-1",
+          "hosts": "web",
+          "annotations": "ansible.cfg, collections/requirements.yml"
+        }
+      },
+      {
+        "id": "role:common",
+        "type": "ansible/structure+role",
+        "parent": null,
+        "attributes": {
+          "name": "common",
+          "path": "roles/common",
+          "kind": "Role",
+          "width": "85.60000000000001",
+          "height": "32",
+          "playIndex": "-1",
+          "contents.taskFiles": "1",
+          "contents.handlers": "0",
+          "contents.templates": "0",
+          "contents.files": "0",
+          "contents.defaults": "1",
+          "contents.vars": "0",
+          "hollow": "false"
+        }
+      },
+      {
+        "id": "role:nginx",
+        "type": "ansible/structure+role",
+        "parent": null,
+        "attributes": {
+          "name": "nginx",
+          "path": "roles/nginx",
+          "kind": "Role",
+          "width": "85.60000000000001",
+          "height": "32",
+          "playIndex": "-1",
+          "contents.taskFiles": "2",
+          "contents.handlers": "1",
+          "contents.templates": "1",
+          "contents.files": "0",
+          "contents.defaults": "0",
+          "contents.vars": "0",
+          "hollow": "false"
+        }
+      },
+      {
+        "id": "role:postgres",
+        "type": "ansible/structure+role",
+        "parent": null,
+        "attributes": {
+          "name": "postgres",
+          "path": "roles/postgres",
+          "kind": "Role",
+          "width": "85.60000000000001",
+          "height": "32",
+          "playIndex": "-1",
+          "contents.taskFiles": "1",
+          "contents.handlers": "0",
+          "contents.templates": "0",
+          "contents.files": "0",
+          "contents.defaults": "0",
+          "contents.vars": "0",
+          "hollow": "false"
+        }
+      },
+      {
+        "id": "inventory:inventories/production",
+        "type": "ansible/structure+inventory",
+        "parent": null,
+        "attributes": {
+          "name": "production",
+          "path": "inventories/production",
+          "kind": "Inventory",
+          "width": "101",
+          "height": "32",
+          "playIndex": "-1",
+          "groups": "web (2), db (1)"
+        }
+      },
+      {
+        "id": "vars:inventories/production/group_vars",
+        "type": "ansible/structure+vars",
+        "parent": null,
+        "attributes": {
+          "name": "group_vars",
+          "path": "inventories/production/group_vars",
+          "kind": "VariableFolder",
+          "width": "101",
+          "height": "32",
+          "playIndex": "-1",
+          "fileCount": "2"
+        }
+      },
+      {
+        "id": "vars:inventories/production/host_vars",
+        "type": "ansible/structure+vars",
+        "parent": null,
+        "attributes": {
+          "name": "host_vars",
+          "path": "inventories/production/host_vars",
+          "kind": "VariableFolder",
+          "width": "93.30000000000001",
+          "height": "32",
+          "playIndex": "-1",
+          "fileCount": "1"
+        }
+      },
+      {
+        "id": "inventory:inventories/staging",
+        "type": "ansible/structure+inventory",
+        "parent": null,
+        "attributes": {
+          "name": "staging",
+          "path": "inventories/staging",
+          "kind": "Inventory",
+          "width": "77.9",
+          "height": "32",
+          "playIndex": "-1",
+          "groups": "web (1), db (1)"
+        }
+      },
+      {
+        "id": "vars:inventories/staging/group_vars",
+        "type": "ansible/structure+vars",
+        "parent": null,
+        "attributes": {
+          "name": "group_vars",
+          "path": "inventories/staging/group_vars",
+          "kind": "VariableFolder",
+          "width": "101",
+          "height": "32",
+          "playIndex": "-1",
+          "fileCount": "1"
+        }
+      },
+      {
+        "id": "taskfile:roles/nginx/tasks/tls.yml",
+        "type": "ansible/structure+taskfile",
+        "parent": null,
+        "attributes": {
+          "name": "tls.yml",
+          "path": "roles/nginx/tasks/tls.yml",
+          "kind": "TaskFile",
+          "width": "77.9",
+          "height": "32",
+          "playIndex": "-1"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:playbook:dbservers.yml|UsesRole|common",
+        "type": "ansible/structure+edge",
+        "source": "playbook:dbservers.yml",
+        "target": "role:common",
+        "attributes": {
+          "relation": "UsesRole",
+          "directive": "roles:",
+          "targetAsWritten": "common",
+          "declaredIn": "dbservers.yml",
+          "declaredAtLine": "6",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:dbservers.yml|UsesRole|postgres",
+        "type": "ansible/structure+edge",
+        "source": "playbook:dbservers.yml",
+        "target": "role:postgres",
+        "attributes": {
+          "relation": "UsesRole",
+          "directive": "roles:",
+          "targetAsWritten": "postgres",
+          "condition": "postgres_enabled | default(true)",
+          "declaredIn": "dbservers.yml",
+          "declaredAtLine": "7",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:dbservers.yml|Targets|db|inventory:inventories/production",
+        "type": "ansible/structure+edge",
+        "source": "playbook:dbservers.yml",
+        "target": "inventory:inventories/production",
+        "attributes": {
+          "relation": "Targets",
+          "directive": "roles:",
+          "targetAsWritten": "db",
+          "declaredAtLine": "2",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:dbservers.yml|Targets|db|inventory:inventories/staging",
+        "type": "ansible/structure+edge",
+        "source": "playbook:dbservers.yml",
+        "target": "inventory:inventories/staging",
+        "attributes": {
+          "relation": "Targets",
+          "directive": "roles:",
+          "targetAsWritten": "db",
+          "declaredAtLine": "2",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:site.yml|ImportsPlaybook|webservers.yml",
+        "type": "ansible/structure+edge",
+        "source": "playbook:site.yml",
+        "target": "playbook:webservers.yml",
+        "attributes": {
+          "relation": "ImportsPlaybook",
+          "directive": "import_playbook",
+          "targetAsWritten": "webservers.yml",
+          "declaredIn": "site.yml",
+          "declaredAtLine": "3",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:site.yml|ImportsPlaybook|dbservers.yml",
+        "type": "ansible/structure+edge",
+        "source": "playbook:site.yml",
+        "target": "playbook:dbservers.yml",
+        "attributes": {
+          "relation": "ImportsPlaybook",
+          "directive": "import_playbook",
+          "targetAsWritten": "dbservers.yml",
+          "declaredIn": "site.yml",
+          "declaredAtLine": "5",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:webservers.yml|UsesRole|common",
+        "type": "ansible/structure+edge",
+        "source": "playbook:webservers.yml",
+        "target": "role:common",
+        "attributes": {
+          "relation": "UsesRole",
+          "directive": "roles:",
+          "targetAsWritten": "common",
+          "declaredIn": "webservers.yml",
+          "declaredAtLine": "6",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:webservers.yml|UsesRole|nginx",
+        "type": "ansible/structure+edge",
+        "source": "playbook:webservers.yml",
+        "target": "role:nginx",
+        "attributes": {
+          "relation": "UsesRole",
+          "directive": "roles:",
+          "targetAsWritten": "nginx",
+          "declaredIn": "webservers.yml",
+          "declaredAtLine": "7",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:webservers.yml|Targets|web|inventory:inventories/production",
+        "type": "ansible/structure+edge",
+        "source": "playbook:webservers.yml",
+        "target": "inventory:inventories/production",
+        "attributes": {
+          "relation": "Targets",
+          "directive": "roles:",
+          "targetAsWritten": "web",
+          "declaredAtLine": "2",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:webservers.yml|Targets|web|inventory:inventories/staging",
+        "type": "ansible/structure+edge",
+        "source": "playbook:webservers.yml",
+        "target": "inventory:inventories/staging",
+        "attributes": {
+          "relation": "Targets",
+          "directive": "roles:",
+          "targetAsWritten": "web",
+          "declaredAtLine": "2",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:role:nginx|DependsOn|common",
+        "type": "ansible/structure+edge",
+        "source": "role:nginx",
+        "target": "role:common",
+        "attributes": {
+          "relation": "DependsOn",
+          "directive": "dependencies",
+          "targetAsWritten": "common",
+          "declaredIn": "roles/nginx/meta/main.yml",
+          "declaredAtLine": "3",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:role:nginx|IncludesTasks|tls.yml",
+        "type": "ansible/structure+edge",
+        "source": "role:nginx",
+        "target": "taskfile:roles/nginx/tasks/tls.yml",
+        "attributes": {
+          "relation": "IncludesTasks",
+          "directive": "include_tasks",
+          "targetAsWritten": "tls.yml",
+          "condition": "nginx_tls_enabled | default(false)",
+          "declaredIn": "roles/nginx/tasks/main.yml",
+          "declaredAtLine": "16",
+          "dynamic": "true",
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:role:postgres|DependsOn|common",
+        "type": "ansible/structure+edge",
+        "source": "role:postgres",
+        "target": "role:common",
+        "attributes": {
+          "relation": "DependsOn",
+          "directive": "dependencies",
+          "targetAsWritten": "common",
+          "declaredIn": "roles/postgres/meta/main.yml",
+          "declaredAtLine": "3",
+          "dynamic": "false",
+          "resolution": "resolved"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "move": {
+        "element": "role:nginx"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"role:nginx\"],\"to\":{\"x\":640,\"y\":160}}",
+      "expectFile": "after-1.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "move": {
+        "element": "playbook:site.yml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"playbook:site.yml\"],\"dx\":0,\"dy\":300}",
+      "expectFile": "after-2.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "move": {
+        "element": "inventory:inventories/staging"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"inventory:inventories/staging\"],\"dx\":-50,\"dy\":40}",
+      "expectFile": "after-3.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "move": {
+        "element": "vars:inventories/staging/group_vars"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"vars:inventories/staging/group_vars\"],\"dx\":12.3456,\"dy\":-7.8912}",
+      "expectFile": "after-4.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-3.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-4.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "move": {
+        "element": "taskfile:roles/nginx/tasks/tls.yml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"taskfile:roles/nginx/tasks/tls.yml\"],\"to\":{\"x\":800.5,\"y\":-40.25}}",
+      "select": [
+        "taskfile:roles/nginx/tasks/tls.yml"
+      ],
+      "expectFile": "after-5.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "move": {
+        "element": "role:nginx"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"role:nginx\"],\"dx\":30,\"dy\":30}",
+      "expectFile": "after-6.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-4.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-5.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "move": {
+        "element": "edge:role:nginx|DependsOn|common"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"edge:role:nginx|DependsOn|common\"],\"to\":{\"x\":100,\"y\":100}}",
+      "refused": {
+        "reason": "That element is not something this diagram can move."
+      },
+      "expectFile": "after-5.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "move": {
+        "element": "role:common",
+        "parent": "role:nginx"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"role:common\"],\"parent\":\"role:nginx\"}",
+      "refused": {
+        "reason": "An Ansible structure diagram is drawn from the folder's own files, so nothing on it can be moved from here. Move a role by moving its folder."
+      },
+      "expectFile": "after-5.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "move": {
+        "element": "playbook:webservers.yml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"playbook:webservers.yml\"],\"to\":{\"x\":0,\"y\":0}}",
+      "expectFile": "after-7.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "move": {
+        "element": "playbook:dbservers.yml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"playbook:dbservers.yml\"],\"dx\":181.6,\"dy\":0}",
+      "expectFile": "after-8.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "move": {
+        "element": "role:postgres"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"role:postgres\"],\"to\":{\"x\":409.4,\"y\":168}}",
+      "expectFile": "after-9.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "move": {
+        "element": "inventory:inventories/production"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"inventory:inventories/production\"],\"dx\":0,\"dy\":50}",
+      "expectFile": "after-10.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "move": {
+        "element": "vars:inventories/production/group_vars"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"vars:inventories/production/group_vars\"],\"dx\":0,\"dy\":50}",
+      "expectFile": "after-11.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "move": {
+        "element": "vars:inventories/production/host_vars"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"vars:inventories/production/host_vars\"],\"dx\":0,\"dy\":50}",
+      "expectFile": "after-12.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-9.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "redo": true
+    },
+    {
+      "redo": true,
+      "expectFile": "after-11.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "move": {
+        "element": "role:common"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"role:common\"],\"to\":{\"x\":0.0001,\"y\":3.33333}}",
+      "expectFile": "after-13.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "move": {
+        "element": "playbook:site.yml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"playbook:site.yml\"],\"to\":{\"x\":-120.5,\"y\":-60.0625}}",
+      "expectFile": "after-14.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-13.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "move": {
+        "element": "role:common"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"role:common\"],\"dx\":5,\"dy\":5}",
+      "expectFile": "after-15.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/ansible/structure/infrastructure/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

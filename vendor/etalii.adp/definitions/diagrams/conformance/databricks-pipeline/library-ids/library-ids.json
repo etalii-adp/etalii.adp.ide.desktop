@@ -1,0 +1,13 @@
+{
+  "name": "library_ids",
+  "catalog": "main",
+  "schema": "gold",
+  "libraries": [
+    { "notebook": { "path": "shared/x" } },
+    { "file": { "path": "shared/x" } },
+    { "glob": { "include": "transformations/gold/**" } },
+    { "file": { "path": "${workspace.file_path}/{braces}.py" } },
+    { "jar": "dbfs:/a.jar" },
+    { "maven": { "coordinates": "org.example:lib:1.0" } }
+  ]
+}

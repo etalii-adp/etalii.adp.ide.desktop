@@ -1,0 +1,181 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "p",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 30,
+        "y": 0,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "A user.",
+          "font": "10 400",
+          "position": {
+            "x": 110,
+            "y": 58
+          }
+        },
+        {
+          "id": "name",
+          "text": "User",
+          "font": "13 600",
+          "position": {
+            "x": 110,
+            "y": 22
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 110,
+            "y": 38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "s",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -190,
+        "y": 0,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "A system.",
+          "font": "10 400",
+          "position": {
+            "x": -110,
+            "y": 58
+          }
+        },
+        {
+          "id": "name",
+          "text": "System",
+          "font": "13 600",
+          "position": {
+            "x": -110,
+            "y": 22
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": -110,
+            "y": 38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "legend",
+      "text": "System Landscape diagram for Misplaced elements",
+      "bounds": {
+        "x": -190,
+        "y": -30,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": -190,
+        "y": 108.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "band",
+      "bounds": {
+        "x": -154,
+        "y": 98.8,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Software System",
+      "bounds": {
+        "x": -137,
+        "y": 108.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": -34.25,
+        "y": 98.8,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Person",
+      "bounds": {
+        "x": -17.25,
+        "y": 108.8,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "s",
+    "p",
+    "chrome:1",
+    "chrome:2",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6"
+  ]
+}

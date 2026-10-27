@@ -1,0 +1,278 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/job` from parity/cases/databricks/job/refusals.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/job",
+  "description": "../../../databricks-job.atd",
+  "inputs": {
+    "body": "job.yml",
+    "registration": "job.job.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "task:ingest",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "ingest",
+          "taskType": "notebook",
+          "source": "notebooks/ingest",
+          "clusterKey": "ingest_cluster",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "ingest",
+          "badges": "ingest_cluster",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:quality_gate",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "quality_gate",
+          "taskType": "condition",
+          "source": "GREATER_THAN",
+          "unresolved": "false",
+          "kind": "condition",
+          "label": "quality_gate",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:publish",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "publish",
+          "taskType": "notebook",
+          "source": "notebooks/publish",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "publish",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:alert",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "alert",
+          "taskType": "python",
+          "source": "scripts/alert.py",
+          "runIf": "AT_LEAST_ONE_FAILED",
+          "unresolved": "false",
+          "kind": "python",
+          "label": "alert",
+          "badges": "AT_LEAST_ONE_FAILED\nserverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:refresh_dashboard",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "refresh_dashboard",
+          "taskType": "sql",
+          "source": "9d3f2b1a",
+          "unresolved": "false",
+          "kind": "sql",
+          "label": "refresh_dashboard",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "cluster:ingest_cluster",
+        "type": "databricks/job+cluster",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "ingest_cluster",
+          "badges": "15.4.x-scala2.12\nStandard_DS3_v2\n2 workers",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:ingest->quality_gate",
+        "type": "databricks/job+edge",
+        "source": "task:ingest",
+        "target": "task:quality_gate",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:quality_gate->publish",
+        "type": "databricks/job+edge",
+        "source": "task:quality_gate",
+        "target": "task:publish",
+        "attributes": {
+          "outcome": "true",
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:quality_gate->alert",
+        "type": "databricks/job+edge",
+        "source": "task:quality_gate",
+        "target": "task:alert",
+        "attributes": {
+          "outcome": "false",
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:publish->refresh_dashboard",
+        "type": "databricks/job+edge",
+        "source": "task:publish",
+        "target": "task:refresh_dashboard",
+        "attributes": {
+          "kind": "depends"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "databricks.rename-task",
+      "args": {
+        "value": "ingest"
+      },
+      "select": [
+        "task:publish"
+      ],
+      "refused": {
+        "reason": "A task named 'ingest' is already there."
+      },
+      "expectFile": "job.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "databricks.rename-task",
+      "args": {
+        "value": ""
+      },
+      "refused": {
+        "reason": "A task needs a key."
+      },
+      "expectFile": "job.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "databricks.assign-cluster",
+      "args": {
+        "target": "task:publish",
+        "value": "warp_core"
+      },
+      "refused": {
+        "reason": "There is no cluster named 'warp_core' in this job."
+      },
+      "expectFile": "job.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:ingest->task:ingest"
+      },
+      "refused": {
+        "reason": "A task cannot depend on itself."
+      },
+      "expectFile": "job.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:ingest->task:quality_gate"
+      },
+      "refused": {
+        "reason": "'quality_gate' already depends on 'ingest'."
+      },
+      "expectFile": "job.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "databricks.disconnect:ingest",
+      "args": {
+        "target": "task:quality_gate"
+      },
+      "expectFile": "after-1.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "job.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

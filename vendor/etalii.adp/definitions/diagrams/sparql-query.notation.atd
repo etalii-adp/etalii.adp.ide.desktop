@@ -1,0 +1,538 @@
+atd 0.1
+part of w3c/sparql
+
+// The sparql query's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+coordinates {
+  system canvas {
+    kind: cartesian
+    x: { kind: linear }
+    y: { kind: linear }
+    doc: "Free canvas units; nothing snaps. The computed layout starts at (40, 90), below the header."
+  }
+}
+
+// ---------------------------------------------------------------- Notation
+
+/// Variables dashed, because they are what the query asks for; concrete terms solid, because they are pinned down;
+/// OPTIONAL and MINUS frames dashed, GRAPH and SERVICE frames dotted, the rest solid; FILTER, BIND and VALUES as plain
+/// text.
+notation {
+  theme {
+    tokens: {
+      color.surface: "#ffffff"
+      color.border: "#e2e8f0"
+      color.node.border: "#8892a6"
+      color.text: "#0f172a"
+      color.text.muted: "#64748b"
+      color.primary: limegreen
+      color.warning: "#b45309"
+      font.size.node: 12
+      font.size.hint: 11
+      font.size.small: 10
+    }
+    modes: {
+      dark: {
+        color.surface: "#1e293b"
+        color.border: "#334155"
+        color.text: "#f1f5f9"
+        color.text.muted: "#94a3b8"
+        color.warning: "#fbbf24"
+      }
+    }
+    defaultMode: light
+    followSystem: true
+  }
+
+  style node {
+    fill: $color.surface
+    stroke: { color: $color.node.border, width: 1.5 }
+    font: { size: $font.size.node, color: $color.text }
+    textAlign: center
+  }
+
+  style variable extends node {
+    stroke: { dash: [5, 3] }
+  }
+
+  style hint {
+    font: { size: $font.size.hint, color: $color.text.muted }
+  }
+
+  style frame {
+    fill: transparent
+    stroke: { color: $color.border, width: 1 }
+  }
+
+  node Term {
+    shape rect
+    style: node
+    size: { fixed: [170, 64] }
+    anchors: { mode: outline }
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    refusals: {
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label @display as display {
+      position: { anchor: [0.5, 0.5], offset: [0, 2] }
+      editable: false
+      wrap: none
+      overflow: ellipsis
+      maxWidth: parent
+    }
+  }
+
+  /// Dashed, because a variable is what the query asks for; the arrow marks what leaves the query without consulting
+  /// the header.
+  node Variable {
+    shape rect
+    style: variable
+    size: { fixed: [170, 64] }
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    refusals: {
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label @display as display {
+      position: { anchor: [0.5, 0.5], offset: [0, 2] }
+      editable: false
+      wrap: none
+      overflow: ellipsis
+      maxWidth: parent
+    }
+    label @definingExpression as definition {
+      editable: false
+      position: { anchor: [0, 1], offset: [8, -10], align: start }
+      style: { font: { size: $font.size.small, color: $color.text.muted } }
+      visible: (self.definingExpression != '')
+      wrap: none
+    }
+    badge projected {
+      position: top-left
+      offset: [8, 16]
+      text: "→"
+      style: { font: { size: 12, color: $color.primary } }
+      visible: (self.projected)
+    }
+  }
+
+  /// A variable nobody named: present, and visibly provisional. A move is refused with the reason of its ephemeral id
+  /// rule.
+  node AnonymousVariable {
+    shape rect
+    style: { extends: variable, opacity: 0.7 }
+    size: { fixed: [170, 64] }
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    refusals: {
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label @display as display {
+      position: { anchor: [0.5, 0.5], offset: [0, 2] }
+      editable: false
+      wrap: none
+      overflow: ellipsis
+      maxWidth: parent
+    }
+  }
+
+  /// Square corners, to read as a value rather than a thing; the datatype or language tag sits in the lower left.
+  node Literal {
+    shape rect
+    style: node
+    size: { fixed: [170, 64] }
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    refusals: {
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label @display as display {
+      position: { anchor: [0.5, 0.5], offset: [0, 2] }
+      editable: false
+      wrap: none
+      overflow: ellipsis
+      maxWidth: parent
+    }
+    label @annotation as annotation {
+      editable: false
+      position: { anchor: [0, 1], offset: [8, -10], align: start }
+      style: { font: { size: $font.size.small, color: $color.text.muted } }
+      visible: (self.annotation != '')
+    }
+  }
+
+  /// A heavier outline marks a collapsed subquery: one level of honesty beats nested unreadability.
+  node SubQuery {
+    shape rect
+    style: { extends: node, stroke: { width: 2 } }
+    size: { fixed: [170, 64] }
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    refusals: {
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label @display as display {
+      position: { anchor: [0.5, 0.5], offset: [0, 2] }
+      editable: false
+      wrap: none
+      overflow: ellipsis
+      maxWidth: parent
+    }
+    label "subquery" as marker {
+      editable: false
+      position: { anchor: [0, 1], offset: [8, -10], align: start }
+      style: { font: { size: $font.size.small, color: $color.text.muted } }
+    }
+  }
+
+  /// A frame behind its contents; edges cross its border to reach what lives outside it. A stored position moves the
+  /// frame and what layout placed inside it (gap 5 of sparql-query.md).
+  node Scope {
+    shape rect
+    style: frame
+    container: { layout: grid, columns: 3, gap: 60, padding: 36, header: { size: 30, side: top }, clip: false }
+    size: { min: [170, 94], autoSize: fitContent, resizable: false }
+    layer: background
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    refusals: {
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label @label as label { position: outside-top, editable: false, style: hint, visible: (self.label != '') }
+    variant v0 when self.scopeKind == 'optional' || self.scopeKind == 'minus' {
+      style: { extends: frame, stroke: { dash: [4, 4] } }
+    }
+    variant v1 when self.scopeKind == 'graph' || self.scopeKind == 'service' {
+      style: { extends: frame, stroke: { dash: [2, 3] } }
+    }
+  }
+
+  node Annotation {
+    shape text
+    style: hint
+    size: { default: [120, 14], resizable: false }
+    layer: foreground
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    refusals: {
+      move: ["An annotation stays with what it constrains; move that instead."]
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label @text as text { position: center, editable: false, wrap: none }
+  }
+
+  edge TriplePattern {
+    line {
+      stroke: { color: $color.text.muted, width: 1.5 }
+      routing: straight
+      bendpoints: { editable: false }
+    }
+    marker source none
+    marker target arrowFilled
+    deletable: false
+    reconnectable: false
+    layer: belowNodes
+    refusals: {
+      move: ["An edge is drawn between its endpoints; move one of those instead."]
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label @predicate as predicate { at: middle, side: above, distance: 6, editable: false, draggable: false, style: hint }
+    /// A property path is a multi-step ask, and says so.
+    variant v0 when self.isPath {
+      line { stroke: { color: $color.text.muted, width: 1.5, dash: [6, 2] }, routing: straight }
+    }
+  }
+
+  edge ProjectedJoin {
+    line {
+      stroke: { color: $color.text.muted, width: 1.5 }
+      routing: straight
+      bendpoints: { editable: false }
+    }
+    marker source none
+    marker target arrowFilled
+    deletable: false
+    reconnectable: false
+    refusals: {
+      move: ["An edge is drawn between its endpoints; move one of those instead."]
+      reparent: [
+        "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      ]
+    }
+    label ('?' + self.name) as name { at: middle, side: above, distance: 6, editable: false, draggable: false, style: hint }
+  }
+
+  canvas {
+    background: $color.surface
+    header: {
+      rows: [
+        { id: "form", text: @headerForm, editable: false },
+        { id: "modifiers", text: @modifiers, editable: false, visible: (self.modifiers != '') }
+      ]
+      doc: "The query's form and then its dataset clauses and solution modifiers. For a body that cannot be read it shows the default form, `SELECT` (finding B6, gap 7 of sparql-query.md)."
+    }
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+/// Empty on purpose: a read-only diagram that offered a palette would be promising an edit it cannot make.
+toolbox {
+  searchable: false
+  generic: { select: true, pan: true, lasso: false, text: false, note: false, image: false, freehand: false }
+}
+
+// ---------------------------------------------------------------- Forms
+
+form queryInspector for diagram {
+  usage: [inspector]
+  section {
+    label: "Query"
+    field headerForm "Form" {
+      id: "form"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    field modifiers "Modifiers" {
+      id: "modifiers"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form variableInspector for Variable {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field display "Variable" {
+      id: "name"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    field projected "Projected" {
+      id: "projected"
+      widget: readonly
+      display: (self.projected ? 'Yes' : 'No')
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+  section {
+    label: "Structure"
+    field joinCount "Joins" {
+      id: "joins"
+      widget: readonly
+      display: (string(self.joinCount))
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    field definingExpression "Defined by" {
+      id: "definition"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form anonymousInspector for AnonymousVariable {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field display "Anonymous variable" {
+      id: "name"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    item projected "Projected" {
+      kind: computed
+      value: No
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+  section {
+    label: "Structure"
+    item joins "Joins" {
+      kind: computed
+      value: "0"
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    item definition "Defined by" {
+      kind: computed
+      value: ""
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form iriInspector for Iri {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field display "Prefixed name" {
+      id: "display"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    field full "IRI" {
+      id: "full"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    item annotation "Type" {
+      kind: computed
+      value: ""
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form literalInspector for Literal {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field display "Literal" {
+      id: "display"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    field full "As written" {
+      id: "full"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    field annotation "Type" {
+      id: "annotation"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form subQueryInspector for SubQuery {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field display "Projection" {
+      id: "display"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+  section {
+    label: "Query"
+    field text "Subquery" {
+      id: "text"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form scopeInspector for Scope {
+  usage: [inspector]
+  section {
+    label: "Structure"
+    field scopeKind "Group" {
+      id: "kind"
+      widget: readonly
+      display: (self.scopeKind.upperAscii())
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+    field label "Constraint" {
+      id: "label"
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form patternInspector for TriplePattern {
+  usage: [inspector]
+  section {
+    label: "Structure"
+    field predicate {
+      id: "label"
+      label: (self.isPath ? 'Property path' : 'Predicate')
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form joinInspector for ProjectedJoin {
+  usage: [inspector]
+  section {
+    label: "Structure"
+    field name "Predicate" {
+      id: "label"
+      widget: readonly
+      display: ('?' + self.name)
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+form annotationInspector for Annotation {
+  usage: [inspector]
+  section {
+    label: "Structure"
+    field text {
+      id: "text"
+      label: (self.constraintKind.upperAscii())
+      widget: readonly
+      readOnlyReasons: ["This diagram reads the query; edit the .rq file in a text editor and the diagram follows."]
+    }
+  }
+}
+
+/// Deterministic and bottom-up over the scope tree, with no physics: same file, same picture. Authored positions
+/// override computed ones.
+layout {
+  default scopeGrid
+  /// Each scope places its own nodes, then its child regions, in rows of three, each row as tall as its tallest member;
+  /// a child region is one block the size of its own grid. The CONSTRUCT template sits on the root row beside the where
+  /// clause's items.
+  algorithm scopeGrid capability layout.nestedGrid {
+    columns: 3
+    columnGap: 60
+    rowGap: 48
+    padding: 36
+    labelBand: 30
+    origin: [40, 90]
+  }
+  trigger: always
+  respect: all
+  animate: false
+}
+
+viewpoint query "Query" { exclude: [Prefix, Pattern], default: true }

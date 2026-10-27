@@ -1,0 +1,97 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.structurizr` from what the desktop host's module shows when parity/cases/c4/component/nested-relationships.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "workspace \"Nested relationships\" {\n    model {\n        u = person \"User\" \"A user.\" {\n            -> s \"Uses\" \"HTTPS\"\n        }\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\" {\n                -> api \"Calls\" \"JSON/HTTPS\"\n            }\n            api = container \"API\" \"Answers.\" \"Kotlin\"\n        }\n        u -> web \"Visits\" \"HTTPS\" {\n            tags \"Async\"\n        }\n        u -> nobody \"Names nothing\" \"HTTPS\"\n        live = deploymentEnvironment \"Live\" {\n            n = deploymentNode \"Server\" \"A box.\" \"Linux\" {\n                wi = containerInstance web\n                ai = containerInstance api\n                gw = infrastructureNode \"Gateway\" \"Routes.\" \"Nginx\"\n                gw -> wi \"Forwards to\" \"HTTPS\"\n            }\n            n -> gw \"Hosts\" \"Process\"\n        }\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n        deployment s \"Live\" \"live\" {\n            include *\n        }\n    }\n}\n",
+    "files": {
+      "nested-relationships.adp": "c4/component\nbody: nested-relationships.dsl\n"
+    }
+  },
+  "args": {
+    "view": "component"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "User",
+          "description": "A user.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "s",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "System",
+          "description": "A system.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "System Context diagram for System",
+          "viewKind": "SystemContext",
+          "viewKey": "context",
+          "legend.0.label": "Person",
+          "legend.0.background": "#08427b",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "Person",
+          "legend.1.label": "Software System",
+          "legend.1.background": "#1168bd",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "u->s@4",
+        "type": "c4/model+relationship",
+        "source": "u",
+        "target": "s",
+        "attributes": {
+          "description": "Uses",
+          "technology": "HTTPS",
+          "sourceX": "0",
+          "sourceY": "39.4",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "238.20000000000002",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "c4.dangling-relationship",
+        "severity": "warning",
+        "line": 15,
+        "message": "The relationship on line 15 names 'nobody', which the model does not declare."
+      }
+    ]
+  }
+}

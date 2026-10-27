@@ -1,0 +1,1800 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record gartner/hypecycle-graph` from parity/scripts/gartner/hypecycle-graph/coal-technologies.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "gartner/hypecycle-graph",
+  "description": "../../../gartner-hype-cycle-graph.atd",
+  "inputs": {
+    "body": "coal-technologies.ghg",
+    "registration": "coal-technologies.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "newcomen-engine",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Newcomen pumping engine",
+          "start": "20544",
+          "stop": "21600",
+          "row": "0",
+          "phases": "4",
+          "tags": "mining, steam",
+          "description": "Pumped water out of flooded coal mines; the first practical steam engine."
+        }
+      },
+      {
+        "id": "safety-lamp",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Miner's safety lamp",
+          "start": "21780",
+          "stop": "22800",
+          "row": "2",
+          "phases": "4",
+          "tags": "mining, safety",
+          "description": "Davy's and Stephenson's lamps of 1815, which let miners work among firedamp."
+        }
+      },
+      {
+        "id": "mechanised-coal-cutting",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Mechanised coal cutting",
+          "start": "22560",
+          "stop": "23520",
+          "row": "0",
+          "phases": "4",
+          "tags": "mining"
+        }
+      },
+      {
+        "id": "surface-mining",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Surface mining",
+          "start": "23040",
+          "stop": "24312",
+          "row": "2",
+          "phases": "4",
+          "tags": "mining",
+          "description": "Draglines and shovels stripping the ground above shallow seams."
+        }
+      },
+      {
+        "id": "longwall-mining",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Powered longwall mining",
+          "start": "23400",
+          "stop": "24312",
+          "row": "4",
+          "phases": "4",
+          "tags": "mining",
+          "description": "A shearer runs along the coal face under self-advancing roof supports."
+        }
+      },
+      {
+        "id": "mountaintop-removal",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Mountaintop removal",
+          "start": "23640",
+          "stop": "24312",
+          "row": "0",
+          "phases": "3",
+          "tags": "mining, environment"
+        }
+      },
+      {
+        "id": "autonomous-mining",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Autonomous mining",
+          "start": "24096",
+          "stop": "24480",
+          "row": "6",
+          "phases": "2",
+          "tags": "mining, automation",
+          "description": "Driverless haul trucks and remotely run longwalls."
+        }
+      },
+      {
+        "id": "coke-smelting",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coke iron smelting",
+          "start": "20508",
+          "stop": "21600",
+          "row": "8",
+          "phases": "4",
+          "tags": "iron",
+          "description": "Abraham Darby smelted iron with coke instead of charcoal at Coalbrookdale in 1709."
+        }
+      },
+      {
+        "id": "watt-steam-engine",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Watt steam engine",
+          "start": "21314",
+          "stop": "22200",
+          "row": "10",
+          "phases": "4",
+          "tags": "steam",
+          "description": "A separate condenser made the steam engine efficient enough to use anywhere."
+        }
+      },
+      {
+        "id": "coal-gas-lighting",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal gas lighting",
+          "start": "21747",
+          "stop": "23520",
+          "row": "12",
+          "phases": "4",
+          "tags": "gas",
+          "description": "Town gas made by heating coal lit streets and homes for a century and a half."
+        }
+      },
+      {
+        "id": "steamships",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Steamships",
+          "start": "21828",
+          "stop": "23400",
+          "row": "8",
+          "phases": "4",
+          "tags": "steam, transport"
+        }
+      },
+      {
+        "id": "steam-locomotive",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Steam locomotive",
+          "start": "21908",
+          "stop": "23520",
+          "row": "14",
+          "phases": "4",
+          "peakEnd": "22152",
+          "tags": "steam, transport",
+          "description": "From the Stockton and Darlington railway on; railway mania peaked in 1845."
+        }
+      },
+      {
+        "id": "coal-tar-chemistry",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal tar chemistry",
+          "start": "22274",
+          "stop": "23400",
+          "row": "10",
+          "phases": "4",
+          "tags": "chemistry",
+          "description": "Perkin's mauveine turned the gasworks' waste tar into dyes, drugs and explosives."
+        }
+      },
+      {
+        "id": "coal-power-stations",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal-fired power stations",
+          "start": "22584",
+          "stop": "24312",
+          "row": "16",
+          "phases": "4",
+          "tags": "power",
+          "description": "From Holborn Viaduct and Pearl Street in 1882."
+        }
+      },
+      {
+        "id": "electrostatic-precipitators",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Electrostatic precipitators",
+          "start": "22884",
+          "stop": "23880",
+          "row": "18",
+          "phases": "4",
+          "tags": "environment, power",
+          "description": "Frederick Cottrell's electrified plates pulled fly ash out of the flue gas."
+        }
+      },
+      {
+        "id": "pulverised-coal-firing",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Pulverised coal firing",
+          "start": "23016",
+          "stop": "24000",
+          "row": "20",
+          "phases": "4",
+          "tags": "power"
+        }
+      },
+      {
+        "id": "supercritical-boilers",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Supercritical boilers",
+          "start": "23484",
+          "stop": "24312",
+          "row": "22",
+          "phases": "4",
+          "tags": "power",
+          "description": "Steam above its critical point, from Philo 6 in 1957 to ultra-supercritical plants."
+        }
+      },
+      {
+        "id": "flue-gas-desulfurisation",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Flue-gas desulfurisation",
+          "start": "23640",
+          "stop": "24312",
+          "row": "24",
+          "phases": "4",
+          "tags": "environment, power",
+          "description": "Scrubbers against acid rain, required by clean air laws from 1970 on."
+        }
+      },
+      {
+        "id": "fluidised-bed-combustion",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Fluidised bed combustion",
+          "start": "23700",
+          "stop": "24240",
+          "row": "26",
+          "phases": "3",
+          "tags": "power"
+        }
+      },
+      {
+        "id": "igcc",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Integrated gasification combined cycle",
+          "start": "23808",
+          "stop": "24300",
+          "row": "28",
+          "phases": "2",
+          "tags": "power, gasification",
+          "description": "Gasify the coal first, then burn the gas in a turbine; from Cool Water in 1984."
+        }
+      },
+      {
+        "id": "coal-hydrogenation",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal hydrogenation",
+          "start": "22956",
+          "stop": "23400",
+          "row": "30",
+          "phases": "3",
+          "tags": "liquids",
+          "description": "Friedrich Bergius's process for turning coal into oil."
+        }
+      },
+      {
+        "id": "fischer-tropsch",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Fischer-Tropsch coal-to-liquids",
+          "start": "23100",
+          "stop": "24240",
+          "row": "32",
+          "phases": "4",
+          "tags": "liquids, gasification"
+        }
+      },
+      {
+        "id": "coal-gasification",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal gasification",
+          "start": "23172",
+          "stop": "24240",
+          "row": "34",
+          "phases": "4",
+          "tags": "gasification",
+          "description": "The Lurgi gasifier of 1931 and its successors, making synthesis gas from coal."
+        }
+      },
+      {
+        "id": "underground-coal-gasification",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Underground coal gasification",
+          "start": "23196",
+          "stop": "24420",
+          "row": "36",
+          "phases": "2",
+          "tags": "gasification",
+          "description": "Gasifying a seam where it lies, tried in the Soviet Union from the 1930s."
+        }
+      },
+      {
+        "id": "coal-to-chemicals",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal-to-chemicals",
+          "start": "24048",
+          "stop": "24420",
+          "row": "30",
+          "phases": "2",
+          "tags": "chemistry, gasification",
+          "description": "China's plants making methanol, olefins and fertiliser from coal."
+        }
+      },
+      {
+        "id": "smoke-abatement",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Smoke abatement",
+          "start": "22236",
+          "stop": "23640",
+          "row": "38",
+          "phases": "4",
+          "tags": "environment, policy",
+          "description": "From London's Smoke Nuisance Act of 1853 to the Clean Air Act after the Great Smog of 1952."
+        }
+      },
+      {
+        "id": "carbon-capture-and-storage",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Carbon capture and storage",
+          "start": "24060",
+          "stop": "24540",
+          "row": "38",
+          "phases": "2",
+          "peakEnd": "24191",
+          "tags": "climate, power",
+          "description": "Capturing a coal plant's carbon dioxide and burying it; most projects stalled after 2015."
+        }
+      },
+      {
+        "id": "mine-water-heat",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Mine water heat",
+          "start": "24105",
+          "stop": "24480",
+          "row": "40",
+          "phases": "2",
+          "tags": "heat, reuse",
+          "description": "Flooded mines as heat stores, as in Heerlen since 2008."
+        }
+      },
+      {
+        "id": "coal-phase-out",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal phase-out",
+          "start": "24214",
+          "stop": "24540",
+          "row": "42",
+          "phases": "1",
+          "tags": "climate, policy",
+          "description": "Governments committing to close their coal plants, from the Powering Past Coal Alliance on."
+        }
+      },
+      {
+        "id": "coal-to-hydrogen",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal to hydrogen with capture",
+          "start": "24252",
+          "stop": "24480",
+          "row": "44",
+          "phases": "1",
+          "tags": "gasification, climate, upcoming",
+          "description": "Hydrogen gasified from coal, with its carbon dioxide captured."
+        }
+      },
+      {
+        "id": "coal-plant-repowering",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal plants repowered",
+          "start": "24257",
+          "stop": "24540",
+          "row": "46",
+          "phases": "1",
+          "tags": "power, reuse, upcoming",
+          "description": "Old coal sites reused for reactors and batteries, keeping their grid connection."
+        }
+      },
+      {
+        "id": "critical-minerals-from-coal-ash",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Critical minerals from coal ash",
+          "start": "24312",
+          "stop": "24504",
+          "row": "48",
+          "phases": "1",
+          "tags": "mining, reuse, conceptual",
+          "description": "Rare earths and lithium recovered from a century of ash ponds."
+        }
+      },
+      {
+        "id": "coal-to-carbon-materials",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Coal to carbon materials",
+          "start": "24324",
+          "stop": "24540",
+          "row": "50",
+          "phases": "1",
+          "tags": "chemistry, conceptual",
+          "description": "Coal as the feedstock for graphite, carbon fibre and graphene instead of fuel."
+        }
+      },
+      {
+        "id": "direct-carbon-fuel-cells",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Direct carbon fuel cells",
+          "start": "24360",
+          "stop": "24576",
+          "row": "52",
+          "phases": "1",
+          "tags": "power, conceptual",
+          "description": "Turning carbon into electricity electrochemically, without burning it."
+        }
+      },
+      {
+        "id": "rainhill-trials",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Rainhill trials",
+          "date": "21957",
+          "row": "13",
+          "tags": "steam, transport",
+          "description": "Stephenson's Rocket won the trials for the Liverpool and Manchester Railway, and with them the case for the steam locomotive."
+        }
+      },
+      {
+        "id": "pearl-street-station",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Pearl Street Station opens",
+          "date": "22592",
+          "row": "15",
+          "tags": "power",
+          "description": "Edison's first commercial central power station, in Manhattan, burned coal to light the streets around it."
+        }
+      },
+      {
+        "id": "great-smog",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Great Smog of London",
+          "date": "23435",
+          "row": "37",
+          "tags": "environment, policy",
+          "description": "Five days of coal smoke trapped under fog in London; thousands died, and the Clean Air Act followed in 1956."
+        }
+      },
+      {
+        "id": "us-clean-air-act",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "US Clean Air Act",
+          "date": "23651",
+          "row": "23",
+          "tags": "environment, policy",
+          "description": "Federal limits on sulphur dioxide made scrubbers a condition of building a coal plant."
+        }
+      },
+      {
+        "id": "oil-crisis-1973",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "1973 oil crisis",
+          "date": "23685",
+          "row": "33",
+          "tags": "policy, liquids",
+          "description": "The oil embargo made fuels and gas made from coal look strategic again."
+        }
+      },
+      {
+        "id": "paris-agreement",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Paris Agreement",
+          "date": "24191",
+          "row": "41",
+          "tags": "climate, policy",
+          "description": "The goal of holding warming well below two degrees put a date on unabated coal power."
+        }
+      },
+      {
+        "id": "felling-disaster",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Felling mine disaster",
+          "date": "21748",
+          "row": "1",
+          "tags": "mining, safety",
+          "description": "An explosion of firedamp killed 92 at Felling colliery and led to the call for a safe lamp."
+        }
+      },
+      {
+        "id": "liverpool-manchester-railway",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Liverpool and Manchester Railway opens",
+          "date": "21968",
+          "row": "15",
+          "tags": "steam, transport",
+          "description": "The first intercity railway worked entirely by steam locomotives."
+        }
+      },
+      {
+        "id": "mauveine",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Perkin makes mauveine",
+          "date": "22274",
+          "row": "9",
+          "tags": "chemistry",
+          "description": "A dye made by accident from coal tar, and the start of the synthetic dye industry."
+        }
+      },
+      {
+        "id": "note-projections",
+        "type": "Note",
+        "parent": null,
+        "attributes": {
+          "text": "Everything drawn after 2026 is a projection, not a record.\nSee the readme.",
+          "at": "24504",
+          "row": "40",
+          "width": "260",
+          "height": "80"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "coke-smelting--newcomen-engine",
+        "type": "Influence",
+        "source": "coke-smelting",
+        "target": "newcomen-engine",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "top",
+          "fromAt": "0.51",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.48",
+          "description": "Coalbrookdale cast the cylinders for Newcomen engines."
+        }
+      },
+      {
+        "id": "newcomen-engine--watt-steam-engine",
+        "type": "Influence",
+        "source": "newcomen-engine",
+        "target": "watt-steam-engine",
+        "attributes": {
+          "fromPhase": "slope",
+          "fromEdge": "bottom",
+          "fromAt": "0.62",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.24",
+          "description": "Watt found the condenser while repairing a model Newcomen engine."
+        }
+      },
+      {
+        "id": "watt-steam-engine--coke-smelting",
+        "type": "Influence",
+        "source": "watt-steam-engine",
+        "target": "coke-smelting",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "top",
+          "fromAt": "0",
+          "toPhase": "slope",
+          "toEdge": "bottom",
+          "toAt": "0.96",
+          "description": "Steam-driven bellows made coke furnaces bigger."
+        }
+      },
+      {
+        "id": "newcomen-engine--safety-lamp",
+        "type": "Influence",
+        "source": "newcomen-engine",
+        "target": "safety-lamp",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.6",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.28",
+          "description": "Pumped mines went deeper, into the firedamp the lamp was made for."
+        }
+      },
+      {
+        "id": "watt-steam-engine--coal-gas-lighting",
+        "type": "Influence",
+        "source": "watt-steam-engine",
+        "target": "coal-gas-lighting",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.6",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.4",
+          "description": "William Murdoch, gas lighting's pioneer, worked for Boulton and Watt."
+        }
+      },
+      {
+        "id": "coke-smelting--coal-gas-lighting",
+        "type": "Influence",
+        "source": "coke-smelting",
+        "target": "coal-gas-lighting",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.6",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.04"
+        }
+      },
+      {
+        "id": "watt-steam-engine--steamships",
+        "type": "Influence",
+        "source": "watt-steam-engine",
+        "target": "steamships",
+        "attributes": {
+          "fromPhase": "slope",
+          "fromEdge": "top",
+          "fromAt": "0.62",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.44"
+        }
+      },
+      {
+        "id": "watt-steam-engine--steam-locomotive",
+        "type": "Influence",
+        "source": "watt-steam-engine",
+        "target": "steam-locomotive",
+        "attributes": {
+          "fromPhase": "slope",
+          "fromEdge": "bottom",
+          "fromAt": "0.59",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.26"
+        }
+      },
+      {
+        "id": "coal-gas-lighting--coal-tar-chemistry",
+        "type": "Influence",
+        "source": "coal-gas-lighting",
+        "target": "coal-tar-chemistry",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "top",
+          "fromAt": "0.5",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.5",
+          "description": "Coal tar was the gasworks' waste."
+        }
+      },
+      {
+        "id": "coal-gas-lighting--smoke-abatement",
+        "type": "Influence",
+        "source": "coal-gas-lighting",
+        "target": "smoke-abatement",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.49",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.51"
+        }
+      },
+      {
+        "id": "coal-power-stations--mechanised-coal-cutting",
+        "type": "Influence",
+        "source": "coal-power-stations",
+        "target": "mechanised-coal-cutting",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "top",
+          "fromAt": "0.47",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.96",
+          "description": "Electric motors drove the first reliable coal cutters."
+        }
+      },
+      {
+        "id": "coal-power-stations--smoke-abatement",
+        "type": "Influence",
+        "source": "coal-power-stations",
+        "target": "smoke-abatement",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "bottom",
+          "fromAt": "0.29",
+          "toPhase": "trough",
+          "toEdge": "top",
+          "toAt": "0.35"
+        }
+      },
+      {
+        "id": "smoke-abatement--electrostatic-precipitators",
+        "type": "Influence",
+        "source": "smoke-abatement",
+        "target": "electrostatic-precipitators",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "top",
+          "fromAt": "0.74",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.37"
+        }
+      },
+      {
+        "id": "coal-tar-chemistry--coal-hydrogenation",
+        "type": "Influence",
+        "source": "coal-tar-chemistry",
+        "target": "coal-hydrogenation",
+        "attributes": {
+          "fromPhase": "slope",
+          "fromEdge": "bottom",
+          "fromAt": "0.53",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.44"
+        }
+      },
+      {
+        "id": "coal-power-stations--pulverised-coal-firing",
+        "type": "Influence",
+        "source": "coal-power-stations",
+        "target": "pulverised-coal-firing",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.39",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.69"
+        }
+      },
+      {
+        "id": "steam-locomotive--surface-mining",
+        "type": "Influence",
+        "source": "steam-locomotive",
+        "target": "surface-mining",
+        "attributes": {
+          "fromPhase": "slope",
+          "fromEdge": "top",
+          "fromAt": "0.6",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.4",
+          "description": "Steam shovels dug the first large open-cast pits."
+        }
+      },
+      {
+        "id": "coal-hydrogenation--fischer-tropsch",
+        "type": "Influence",
+        "source": "coal-hydrogenation",
+        "target": "fischer-tropsch",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.57",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.47"
+        }
+      },
+      {
+        "id": "coal-gasification--fischer-tropsch",
+        "type": "Influence",
+        "source": "coal-gasification",
+        "target": "fischer-tropsch",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "top",
+          "fromAt": "0.38",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.62",
+          "description": "Fischer-Tropsch plants run on the gasifiers' synthesis gas."
+        }
+      },
+      {
+        "id": "coal-gasification--underground-coal-gasification",
+        "type": "Influence",
+        "source": "coal-gasification",
+        "target": "underground-coal-gasification",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "bottom",
+          "fromAt": "0.62",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.45"
+        }
+      },
+      {
+        "id": "mechanised-coal-cutting--longwall-mining",
+        "type": "Influence",
+        "source": "mechanised-coal-cutting",
+        "target": "longwall-mining",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.58",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.42"
+        }
+      },
+      {
+        "id": "pulverised-coal-firing--supercritical-boilers",
+        "type": "Influence",
+        "source": "pulverised-coal-firing",
+        "target": "supercritical-boilers",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.64",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.34"
+        }
+      },
+      {
+        "id": "smoke-abatement--flue-gas-desulfurisation",
+        "type": "Influence",
+        "source": "smoke-abatement",
+        "target": "flue-gas-desulfurisation",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "top",
+          "fromAt": "0.72",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.28",
+          "description": "The clean air laws led on to controls against acid rain."
+        }
+      },
+      {
+        "id": "electrostatic-precipitators--flue-gas-desulfurisation",
+        "type": "Influence",
+        "source": "electrostatic-precipitators",
+        "target": "flue-gas-desulfurisation",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.5",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.72"
+        }
+      },
+      {
+        "id": "surface-mining--mountaintop-removal",
+        "type": "Influence",
+        "source": "surface-mining",
+        "target": "mountaintop-removal",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "top",
+          "fromAt": "0.62",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.33"
+        }
+      },
+      {
+        "id": "coal-power-stations--fluidised-bed-combustion",
+        "type": "Influence",
+        "source": "coal-power-stations",
+        "target": "fluidised-bed-combustion",
+        "attributes": {
+          "fromPhase": "slope",
+          "fromEdge": "bottom",
+          "fromAt": "0.57",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.68"
+        }
+      },
+      {
+        "id": "flue-gas-desulfurisation--fluidised-bed-combustion",
+        "type": "Influence",
+        "source": "flue-gas-desulfurisation",
+        "target": "fluidised-bed-combustion",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "bottom",
+          "fromAt": "0.68",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.31",
+          "description": "Limestone in the bed captures the sulphur as it burns."
+        }
+      },
+      {
+        "id": "coal-gasification--igcc",
+        "type": "Influence",
+        "source": "coal-gasification",
+        "target": "igcc",
+        "attributes": {
+          "fromPhase": "slope",
+          "fromEdge": "top",
+          "fromAt": "0.55",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.44"
+        }
+      },
+      {
+        "id": "fischer-tropsch--coal-to-chemicals",
+        "type": "Influence",
+        "source": "fischer-tropsch",
+        "target": "coal-to-chemicals",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "top",
+          "fromAt": "0.52",
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.46"
+        }
+      },
+      {
+        "id": "coal-power-stations--carbon-capture-and-storage",
+        "type": "Influence",
+        "source": "coal-power-stations",
+        "target": "carbon-capture-and-storage",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.22",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.16"
+        }
+      },
+      {
+        "id": "igcc--carbon-capture-and-storage",
+        "type": "Influence",
+        "source": "igcc",
+        "target": "carbon-capture-and-storage",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.28",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.5",
+          "description": "Kemper County was to capture carbon from a gasification plant."
+        }
+      },
+      {
+        "id": "supercritical-boilers--carbon-capture-and-storage",
+        "type": "Influence",
+        "source": "supercritical-boilers",
+        "target": "carbon-capture-and-storage",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.33",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.87"
+        }
+      },
+      {
+        "id": "longwall-mining--autonomous-mining",
+        "type": "Influence",
+        "source": "longwall-mining",
+        "target": "autonomous-mining",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.28",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.28"
+        }
+      },
+      {
+        "id": "surface-mining--autonomous-mining",
+        "type": "Influence",
+        "source": "surface-mining",
+        "target": "autonomous-mining",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.55",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.7"
+        }
+      },
+      {
+        "id": "longwall-mining--mine-water-heat",
+        "type": "Influence",
+        "source": "longwall-mining",
+        "target": "mine-water-heat",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.67",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.71",
+          "description": "Closed deep mines left flooded galleries behind."
+        }
+      },
+      {
+        "id": "coal-power-stations--coal-phase-out",
+        "type": "Influence",
+        "source": "coal-power-stations",
+        "target": "coal-phase-out",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.53",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.35"
+        }
+      },
+      {
+        "id": "mountaintop-removal--coal-phase-out",
+        "type": "Influence",
+        "source": "mountaintop-removal",
+        "target": "coal-phase-out",
+        "attributes": {
+          "fromPhase": "slope",
+          "fromEdge": "bottom",
+          "fromAt": "0.68",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.58"
+        }
+      },
+      {
+        "id": "carbon-capture-and-storage--coal-phase-out",
+        "type": "Influence",
+        "source": "carbon-capture-and-storage",
+        "target": "coal-phase-out",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.79",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.83",
+          "description": "Without working capture, closing the plants was the remaining route."
+        }
+      },
+      {
+        "id": "coal-gasification--coal-to-hydrogen",
+        "type": "Influence",
+        "source": "coal-gasification",
+        "target": "coal-to-hydrogen",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.6",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.28"
+        }
+      },
+      {
+        "id": "carbon-capture-and-storage--coal-to-hydrogen",
+        "type": "Influence",
+        "source": "carbon-capture-and-storage",
+        "target": "coal-to-hydrogen",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.5",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.71"
+        }
+      },
+      {
+        "id": "coal-phase-out--coal-plant-repowering",
+        "type": "Influence",
+        "source": "coal-phase-out",
+        "target": "coal-plant-repowering",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "bottom",
+          "fromAt": "0.29",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.44"
+        }
+      },
+      {
+        "id": "coal-power-stations--critical-minerals-from-coal-ash",
+        "type": "Influence",
+        "source": "coal-power-stations",
+        "target": "critical-minerals-from-coal-ash",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.79",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.28",
+          "description": "The ash ponds are what the plants leave behind."
+        }
+      },
+      {
+        "id": "coal-phase-out--critical-minerals-from-coal-ash",
+        "type": "Influence",
+        "source": "coal-phase-out",
+        "target": "critical-minerals-from-coal-ash",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "bottom",
+          "fromAt": "0.72",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.72"
+        }
+      },
+      {
+        "id": "coal-to-chemicals--coal-to-carbon-materials",
+        "type": "Influence",
+        "source": "coal-to-chemicals",
+        "target": "coal-to-carbon-materials",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.66",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.69"
+        }
+      },
+      {
+        "id": "coal-tar-chemistry--coal-to-carbon-materials",
+        "type": "Influence",
+        "source": "coal-tar-chemistry",
+        "target": "coal-to-carbon-materials",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.6",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.28",
+          "description": "Coal tar pitch was already the stuff of carbon electrodes."
+        }
+      },
+      {
+        "id": "igcc--direct-carbon-fuel-cells",
+        "type": "Influence",
+        "source": "igcc",
+        "target": "direct-carbon-fuel-cells",
+        "attributes": {
+          "fromPhase": "trough",
+          "fromEdge": "bottom",
+          "fromAt": "0.72",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.4",
+          "description": "Electricity from coal without a flame."
+        }
+      },
+      {
+        "id": "rainhill-trials--steam-locomotive",
+        "type": "Influence",
+        "source": "rainhill-trials",
+        "target": "steam-locomotive",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.69"
+        }
+      },
+      {
+        "id": "pearl-street-station--coal-power-stations",
+        "type": "Influence",
+        "source": "pearl-street-station",
+        "target": "coal-power-stations",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.04"
+        }
+      },
+      {
+        "id": "great-smog--smoke-abatement",
+        "type": "Influence",
+        "source": "great-smog",
+        "target": "smoke-abatement",
+        "attributes": {
+          "toPhase": "plateau",
+          "toEdge": "top",
+          "toAt": "0.42"
+        }
+      },
+      {
+        "id": "great-smog--electrostatic-precipitators",
+        "type": "Influence",
+        "source": "great-smog",
+        "target": "electrostatic-precipitators",
+        "attributes": {
+          "toPhase": "slope",
+          "toEdge": "bottom",
+          "toAt": "0.45"
+        }
+      },
+      {
+        "id": "us-clean-air-act--flue-gas-desulfurisation",
+        "type": "Influence",
+        "source": "us-clean-air-act",
+        "target": "flue-gas-desulfurisation",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.27"
+        }
+      },
+      {
+        "id": "oil-crisis-1973--coal-gasification",
+        "type": "Influence",
+        "source": "oil-crisis-1973",
+        "target": "coal-gasification",
+        "attributes": {
+          "toPhase": "trough",
+          "toEdge": "top",
+          "toAt": "0.93"
+        }
+      },
+      {
+        "id": "oil-crisis-1973--fischer-tropsch",
+        "type": "Influence",
+        "source": "oil-crisis-1973",
+        "target": "fischer-tropsch",
+        "attributes": {
+          "toPhase": "slope",
+          "toEdge": "bottom",
+          "toAt": "0.41"
+        }
+      },
+      {
+        "id": "paris-agreement--coal-phase-out",
+        "type": "Influence",
+        "source": "paris-agreement",
+        "target": "coal-phase-out",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.16"
+        }
+      },
+      {
+        "id": "paris-agreement--carbon-capture-and-storage",
+        "type": "Influence",
+        "source": "paris-agreement",
+        "target": "carbon-capture-and-storage",
+        "attributes": {
+          "toPhase": "trough",
+          "toEdge": "bottom",
+          "toAt": "0.2"
+        }
+      },
+      {
+        "id": "felling-disaster--safety-lamp",
+        "type": "Influence",
+        "source": "felling-disaster",
+        "target": "safety-lamp",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.67"
+        }
+      },
+      {
+        "id": "liverpool-manchester-railway--steam-locomotive",
+        "type": "Influence",
+        "source": "liverpool-manchester-railway",
+        "target": "steam-locomotive",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "bottom",
+          "toAt": "0.45"
+        }
+      },
+      {
+        "id": "mauveine--coal-tar-chemistry",
+        "type": "Influence",
+        "source": "mauveine",
+        "target": "coal-tar-chemistry",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.4"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "ghg.rename",
+      "args": {
+        "value": "Newcomen atmospheric engine"
+      },
+      "select": [
+        "newcomen-engine"
+      ],
+      "expectFile": "after-1.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "ghg.phases",
+        "value": "Peak, Trough and Slope"
+      },
+      "expectFile": "after-2.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "ghg.peak-end",
+        "value": "1730-01"
+      },
+      "expectFile": "after-3.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "ghg.trough-end",
+        "value": "1760-06"
+      },
+      "expectFile": "after-4.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "ghg.stop",
+        "value": "1820-01"
+      },
+      "expectFile": "after-5.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "ghg.even-phases",
+      "expectFile": "after-6.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-5.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "ghg.tags",
+        "value": "mining, steam, pumps, mining"
+      },
+      "expectFile": "after-7.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "property": {
+        "element": "safety-lamp",
+        "attribute": "ghg.description",
+        "value": ""
+      },
+      "expectFile": "after-8.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "property": {
+        "element": "mechanised-coal-cutting",
+        "attribute": "ghg.description",
+        "value": "Cutters driven by compressed air, then by electricity."
+      },
+      "expectFile": "after-9.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "property": {
+        "element": "mechanised-coal-cutting",
+        "attribute": "ghg.start",
+        "value": "1882-06"
+      },
+      "expectFile": "after-10.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "move": {
+        "element": "surface-mining"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"surface-mining\"],\"to\":{\"x\":1010,\"y\":230}}",
+      "expectFile": "after-11.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "ghg.date",
+        "value": "1829-11"
+      },
+      "select": [
+        "rainhill-trials"
+      ],
+      "expectFile": "after-12.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "ghg.name",
+        "value": "Rainhill locomotive trials"
+      },
+      "expectFile": "after-13.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "ghg.tags",
+        "value": ""
+      },
+      "expectFile": "after-14.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "ghg.add.trend",
+      "args": {
+        "target": "new:6960,2520"
+      },
+      "ids": [
+        "32lkzg78n14tzy1chkfn6zd2u"
+      ],
+      "expectFile": "after-15.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "property": {
+        "element": "32lkzg78n14tzy1chkfn6zd2u",
+        "attribute": "ghg.name",
+        "value": "Coal mine methane capture"
+      },
+      "expectFile": "after-16.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "property": {
+        "element": "32lkzg78n14tzy1chkfn6zd2u",
+        "attribute": "ghg.phases",
+        "value": "Peak and Trough"
+      },
+      "expectFile": "after-17.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "ghg.add.trigger",
+      "args": {
+        "target": "new:6000,2580"
+      },
+      "ids": [
+        "0qd5kemq533c4fmpfrg7btxdm"
+      ],
+      "expectFile": "after-18.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "action": "ghg.add.note",
+      "args": {
+        "target": "new:7100,2650"
+      },
+      "ids": [
+        "7ms4dby15gsa7372b9ts16mbe"
+      ],
+      "expectFile": "after-19.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "property": {
+        "element": "7ms4dby15gsa7372b9ts16mbe",
+        "attribute": "ghg.text",
+        "value": "Methane from closed mines\nis a projection too."
+      },
+      "expectFile": "after-20.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "property": {
+        "element": "note-projections",
+        "attribute": "ghg.size",
+        "value": "200 x 90"
+      },
+      "expectFile": "after-21.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "move": {
+        "element": "note-projections"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"note-projections\"],\"to\":{\"x\":5900,\"y\":2300}}",
+      "expectFile": "after-22.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "action": "ghg.connect.influence",
+      "args": {
+        "target": "rel:longwall-mining->32lkzg78n14tzy1chkfn6zd2u"
+      },
+      "ids": [
+        "7lb3a136zpql3tmkh42anpahm"
+      ],
+      "expectFile": "after-23.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "property": {
+        "element": "7lb3a136zpql3tmkh42anpahm",
+        "attribute": "ghg.to-attachment",
+        "value": "trough/bottom/0.25"
+      },
+      "expectFile": "after-24.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "property": {
+        "element": "7lb3a136zpql3tmkh42anpahm",
+        "attribute": "ghg.description",
+        "value": "Longwall faces released the gas."
+      },
+      "expectFile": "after-25.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "action": "ghg.disconnect",
+      "args": {
+        "target": "coke-smelting--newcomen-engine"
+      },
+      "expectFile": "after-26.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-25.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "action": "ghg.remove",
+      "args": {
+        "confirm": true
+      },
+      "select": [
+        "autonomous-mining"
+      ],
+      "expectFile": "after-27.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-25.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.30.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-27.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.31.json"
+      }
+    },
+    {
+      "action": "ghg.remove",
+      "select": [
+        "0qd5kemq533c4fmpfrg7btxdm"
+      ],
+      "expectFile": "after-28.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.32.json"
+      }
+    },
+    {
+      "action": "ghg.arrange",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "after-29.ghg",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.33.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/gartner/hypecycle-graph/coal-technologies/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

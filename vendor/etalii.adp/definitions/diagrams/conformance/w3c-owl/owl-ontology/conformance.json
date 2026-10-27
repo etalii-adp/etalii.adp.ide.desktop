@@ -1,0 +1,590 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/owl` from parity/cases/w3c/owl/owl-ontology.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/owl",
+  "description": "../../../w3c-owl.atd",
+  "inputs": {
+    "body": "owl-ontology.ttl",
+    "registration": "owl-ontology.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/pizza",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "ontology",
+          "iri": "http://example.org/pizza",
+          "display": "Pizza ontology",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Pizza ontology",
+          "rows.1.predicate": "owl:versionInfo",
+          "rows.1.value": "1.0",
+          "rows.2.predicate": "owl:imports",
+          "rows.2.value": "http://example.org/base",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Pizza",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/pizza#Pizza",
+          "display": "Pizza",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Pizza",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "ind:http://example.org/pizza#Pizza",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "individual",
+          "iri": "http://example.org/pizza#Pizza",
+          "display": "Pizza",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Topping",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/pizza#Topping",
+          "display": ":Topping",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#VegetarianTopping",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/pizza#VegetarianTopping",
+          "display": ":VegetarianTopping",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#MeatTopping",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/pizza#MeatTopping",
+          "display": ":MeatTopping",
+          "deprecated": "true",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Vegetarian",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/pizza#Vegetarian",
+          "display": ":Vegetarian",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "∀ :hasTopping.:VegetarianTopping",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/pizza#Vegetarian",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#VeggiePizza",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/pizza#VeggiePizza",
+          "display": ":VeggiePizza",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Special",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/pizza#Special",
+          "display": ":Special",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "(:Vegetarian ∪ ∃ :hasTopping.…)",
+          "elided": "true",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/pizza#Special",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "∃ :hasTopping.(:MeatTopping ∩ ext:Smoked)",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/pizza#Special",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "(:MeatTopping ∩ ext:Smoked)",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/pizza#Special",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#integer",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "iri": "http://www.w3.org/2001/XMLSchema#integer",
+          "display": "xsd:integer",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Margherita",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "individual",
+          "iri": "http://example.org/pizza#Margherita",
+          "display": "Margherita",
+          "badges.0": "Pizza",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Margherita",
+          "rows.1.predicate": ":hasCalories",
+          "rows.1.value": "850",
+          "rows.1.annotation": "xsd:integer",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Mozzarella",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "individual",
+          "iri": "http://example.org/pizza#Mozzarella",
+          "display": ":Mozzarella",
+          "badges.0": ":VegetarianTopping",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#HomemadeBase",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/pizza#HomemadeBase",
+          "display": ":HomemadeBase",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/external#Base",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/external#Base",
+          "display": "ext:Base",
+          "deprecated": "false",
+          "external": "true"
+        }
+      },
+      {
+        "id": "thing:http://example.org/pizza#toppingOf|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/pizza#toppingOf|range",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/pizza#hasNote|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "dt:http://example.org/pizza#hasNote",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "display": "Literal",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/external#Smoked",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/external#Smoked",
+          "display": "ext:Smoked",
+          "deprecated": "false",
+          "external": "true"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/pizza#Pizza|http://example.org/pizza#hasTopping|res:http://example.org/pizza#Topping",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#Pizza",
+        "target": "res:http://example.org/pizza#Topping",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "res:http://example.org/pizza#Pizza",
+          "toElementId": "res:http://example.org/pizza#Topping",
+          "label": ":hasTopping (inverse functional, inverse of :toppingOf)",
+          "propertyIri": "http://example.org/pizza#hasTopping"
+        }
+      },
+      {
+        "id": "edge:thing:http://example.org/pizza#toppingOf|domain|http://example.org/pizza#toppingOf|thing:http://example.org/pizza#toppingOf|range",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://example.org/pizza#toppingOf|domain",
+        "target": "thing:http://example.org/pizza#toppingOf|range",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "thing:http://example.org/pizza#toppingOf|domain",
+          "toElementId": "thing:http://example.org/pizza#toppingOf|range",
+          "label": ":toppingOf",
+          "propertyIri": "http://example.org/pizza#toppingOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Pizza|http://example.org/pizza#hasCalories|res:http://www.w3.org/2001/XMLSchema#integer",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#Pizza",
+        "target": "res:http://www.w3.org/2001/XMLSchema#integer",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "res:http://example.org/pizza#Pizza",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#integer",
+          "label": ":hasCalories (functional)",
+          "propertyIri": "http://example.org/pizza#hasCalories"
+        }
+      },
+      {
+        "id": "edge:thing:http://example.org/pizza#hasNote|domain|http://example.org/pizza#hasNote|dt:http://example.org/pizza#hasNote",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://example.org/pizza#hasNote|domain",
+        "target": "dt:http://example.org/pizza#hasNote",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "thing:http://example.org/pizza#hasNote|domain",
+          "toElementId": "dt:http://example.org/pizza#hasNote",
+          "label": ":hasNote",
+          "propertyIri": "http://example.org/pizza#hasNote"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Topping",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#VegetarianTopping",
+        "target": "res:http://example.org/pizza#Topping",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/pizza#VegetarianTopping",
+          "toElementId": "res:http://example.org/pizza#Topping",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2002/07/owl#disjointWith|res:http://example.org/pizza#MeatTopping",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#VegetarianTopping",
+        "target": "res:http://example.org/pizza#MeatTopping",
+        "attributes": {
+          "kind": "disjoint",
+          "fromElementId": "res:http://example.org/pizza#VegetarianTopping",
+          "toElementId": "res:http://example.org/pizza#MeatTopping",
+          "propertyIri": "http://www.w3.org/2002/07/owl#disjointWith"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#MeatTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Topping",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#MeatTopping",
+        "target": "res:http://example.org/pizza#Topping",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/pizza#MeatTopping",
+          "toElementId": "res:http://example.org/pizza#Topping",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Pizza",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#Vegetarian",
+        "target": "res:http://example.org/pizza#Pizza",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/pizza#Vegetarian",
+          "toElementId": "res:http://example.org/pizza#Pizza",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2002/07/owl#equivalentClass|res:http://example.org/pizza#VeggiePizza",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#Vegetarian",
+        "target": "res:http://example.org/pizza#VeggiePizza",
+        "attributes": {
+          "kind": "equivalent",
+          "fromElementId": "res:http://example.org/pizza#Vegetarian",
+          "toElementId": "res:http://example.org/pizza#VeggiePizza",
+          "propertyIri": "http://www.w3.org/2002/07/owl#equivalentClass"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Margherita|http://example.org/pizza#hasTopping|res:http://example.org/pizza#Mozzarella",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#Margherita",
+        "target": "res:http://example.org/pizza#Mozzarella",
+        "attributes": {
+          "kind": "assertion",
+          "fromElementId": "res:http://example.org/pizza#Margherita",
+          "toElementId": "res:http://example.org/pizza#Mozzarella",
+          "label": ":hasTopping",
+          "propertyIri": "http://example.org/pizza#hasTopping"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#HomemadeBase|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/external#Base",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#HomemadeBase",
+        "target": "res:http://example.org/external#Base",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/pizza#HomemadeBase",
+          "toElementId": "res:http://example.org/external#Base",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Pizza|http://www.w3.org/2002/07/owl#AllDisjointClasses|res:http://example.org/pizza#Topping",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#Pizza",
+        "target": "res:http://example.org/pizza#Topping",
+        "attributes": {
+          "kind": "disjoint",
+          "fromElementId": "res:http://example.org/pizza#Pizza",
+          "toElementId": "res:http://example.org/pizza#Topping",
+          "propertyIri": "http://www.w3.org/2002/07/owl#AllDisjointClasses"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/pizza#VegetarianTopping",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "target": "res:http://example.org/pizza#VegetarianTopping",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "toElementId": "res:http://example.org/pizza#VegetarianTopping"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#Vegetarian",
+        "target": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/pizza#Vegetarian",
+          "toElementId": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/pizza#Vegetarian",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/pizza#Vegetarian",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "res:http://example.org/pizza#Vegetarian"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/pizza#MeatTopping",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "target": "res:http://example.org/pizza#MeatTopping",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+          "toElementId": "res:http://example.org/pizza#MeatTopping"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/external#Smoked",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "target": "res:http://example.org/external#Smoked",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+          "toElementId": "res:http://example.org/external#Smoked"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0||expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+          "toElementId": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0||expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/pizza#Special",
+        "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "attributes": {
+          "kind": "equivalent",
+          "fromElementId": "res:http://example.org/pizza#Special",
+          "toElementId": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "propertyIri": "http://www.w3.org/2002/07/owl#equivalentClass"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "owl.deprecated-reference",
+        "severity": "information",
+        "line": 19,
+        "message": ":MeatTopping is deprecated, and something not deprecated still references it."
+      },
+      {
+        "rule": "owl.imports-not-fetched",
+        "severity": "information",
+        "line": 8,
+        "message": "This ontology imports http://example.org/base, which is not fetched: the diagram shows what this file asserts, not the import closure a reasoner would load."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

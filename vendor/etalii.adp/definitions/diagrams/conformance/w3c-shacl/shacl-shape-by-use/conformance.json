@@ -1,0 +1,117 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/shacl` from parity/cases/w3c/shacl/shacl-shape-by-use.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/shacl",
+  "description": "../../../w3c-shacl.atd",
+  "inputs": {
+    "body": "shacl-shape-by-use.ttl",
+    "registration": "shacl-shape-by-use.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/shapes#PersonShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#PersonShape",
+          "display": "ex:PersonShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false",
+          "targets.0.kind": "SHACL_TARGET_KIND_PROTO_CLASS",
+          "targets.0.termDisplay": "ex:Person",
+          "targets.0.termIri": "http://example.org/shapes#Person",
+          "targets.0.describedInFile": "false",
+          "targets.0.shapeIri": "http://example.org/shapes#PersonShape",
+          "targets.0.predicateIri": "http://www.w3.org/ns/shacl#targetClass",
+          "targets.1.kind": "SHACL_TARGET_KIND_PROTO_NODE",
+          "targets.1.termDisplay": "ex:alice",
+          "targets.1.termIri": "http://example.org/shapes#alice",
+          "targets.1.describedInFile": "false",
+          "targets.1.shapeIri": "http://example.org/shapes#PersonShape",
+          "targets.1.predicateIri": "http://www.w3.org/ns/shacl#targetNode",
+          "rows.0.path": "ex:name",
+          "rows.0.summary": "xsd:string",
+          "rows.0.cardinality": "[1..*]",
+          "rows.0.sparql": "false",
+          "rows.0.blank": "true",
+          "rows.1.path": "ex:address/ex:city",
+          "rows.1.cardinality": "[0..*]",
+          "rows.1.sparql": "false",
+          "rows.1.blank": "true",
+          "rows.2.path": "^ex:knows",
+          "rows.2.cardinality": "[0..5]",
+          "rows.2.sparql": "false",
+          "rows.2.blank": "true"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#CityShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/shapes#CityShape",
+          "display": "ex:CityShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false",
+          "rows.0.path": "ex:postcode",
+          "rows.0.summary": "pattern ^[0-9]{4}",
+          "rows.0.cardinality": "[0..*]",
+          "rows.0.sparql": "false",
+          "rows.0.blank": "true"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "shacl-edge:res:http://example.org/shapes#PersonShape|node|res:http://example.org/shapes#CityShape",
+        "type": "w3c/shacl+edge",
+        "source": "res:http://example.org/shapes#PersonShape",
+        "target": "res:http://example.org/shapes#CityShape",
+        "attributes": {
+          "fromElementId": "res:http://example.org/shapes#PersonShape",
+          "toElementId": "res:http://example.org/shapes#CityShape",
+          "kind": "node",
+          "label": "ex:address/ex:city"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

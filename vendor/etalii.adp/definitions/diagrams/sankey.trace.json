@@ -1,0 +1,330 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "etalii/sankey",
+  "description": "sankey.atd",
+  "companion": {
+    "file": "sankey.md",
+    "sections": [
+      "What DISL cannot express",
+      "Language gaps",
+      "Other differences a runtime will meet",
+      "What remains in the module, and why"
+    ],
+    "reports": [
+      "sankey-report.md"
+    ]
+  },
+  "items": [
+    {
+      "id": "what-disl-cannot-express/1",
+      "text": "**An entry that is kept, reported and not drawn** (finding A7). A node without an id, and",
+      "statedBy": "fn drawnNode"
+    },
+    {
+      "id": "what-disl-cannot-express/2",
+      "text": "**Findings in the order of the file** (A8). The module lists every finding by its line,",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "ATD orders findings by code and then by line; no construct sorts them by line across codes (sankey.md, gap 8)."
+    },
+    {
+      "id": "what-disl-cannot-express/3",
+      "text": "**The reader's sentences for an entry that is still drawn** (A10, B4).",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/557",
+      "reason": "No built-in reports a reader finding on an entry that is still drawn, worded from what the reader saw, and host attributes are invisible to constraints (sankey.md, gap 3)."
+    },
+    {
+      "id": "what-disl-cannot-express/4",
+      "text": "**The notation and gestures of A15.** A flow is a filled ribbon whose top and bottom",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/558",
+      "reason": "ATD's edges are stroked, a bezier has no least reach, reorder is for a child of an ordered container, and a drop cannot choose a top-level index and write an attribute from its point (sankey.md, gap 9)."
+    },
+    {
+      "id": "what-disl-cannot-express/5",
+      "text": "**The wire ids** are under `x-sankey`, as ruled for every converted tool (Peter,",
+      "statedBy": "tool"
+    },
+    {
+      "id": "language-gaps/1",
+      "text": "1 and 2. FBL: written text and a value that will not read (closed)",
+      "statedBy": "binding skv"
+    },
+    {
+      "id": "language-gaps/2",
+      "text": "3. DISL: reader findings for an entry that is still drawn",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/557",
+      "reason": "No built-in reports a reader finding on an entry that is still drawn, worded from what the reader saw, and host attributes are invisible to constraints (sankey.md, gap 3)."
+    },
+    {
+      "id": "language-gaps/3",
+      "text": "4. FBL and DISL: the header",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/566",
+      "reason": "A header's three findings cannot be told apart or worded, since builtIn reaches std. codes only and FBL's header reports one fbl.header-mismatch (sankey.md, gap 4)."
+    },
+    {
+      "id": "language-gaps/4",
+      "text": "5 and 6. FBL: a new entry",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/567",
+      "reason": "FBL does not say that an entry inserted into an empty flow sequence opens it into a block sequence, nor that a new item copies its previous sibling's gap after the dash (sankey.md, gaps 5 and 6)."
+    },
+    {
+      "id": "language-gaps/5",
+      "text": "7. DISL: an entry that is kept, reported and not drawn",
+      "statedBy": "fn drawnNode"
+    },
+    {
+      "id": "language-gaps/6",
+      "text": "8. DISL: findings in the order of the file",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "ATD orders findings by code and then by line; no construct sorts them by line across codes (sankey.md, gap 8)."
+    },
+    {
+      "id": "language-gaps/7",
+      "text": "9. DISL: a ribbon, a bezier reach, a reorder in a computed column, a drop that writes its",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/558",
+      "reason": "ATD's edges are stroked, a bezier has no least reach, reorder is for a child of an ordered container, and a drop cannot choose a top-level index and write an attribute from its point (sankey.md, gap 9)."
+    },
+    {
+      "id": "language-gaps/8",
+      "text": "10. DISL: what a dangling end was written with",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/553",
+      "reason": "CEL reads a relation's end that names nothing as null, and no member answers the text it was written with; writtenEnd reads such an end as the empty text (sankey.md, gap 10)."
+    },
+    {
+      "id": "language-gaps/9",
+      "text": "11. FBL: the members of an entry written as a flow mapping",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/568",
+      "reason": "FBL's YAML family binds no member of an entry written as a flow mapping (sankey.md, gap 11)."
+    },
+    {
+      "id": "language-gaps/10",
+      "text": "12. FBL and DISL: the id a model change names when the specification derives one",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/554",
+      "reason": "Which id a model change names when the description derives an id and the binding addresses the entry by its place is unstated (sankey.md, gap 12)."
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/1",
+      "text": "**Rounding.** The module rounds a stepped value, a starting value and a thickness with",
+      "statedBy": "operation increaseValue"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/2",
+      "text": "**`formatNumber` is not ICU.** DISL 12.4 says `formatNumber` formats with ICU in",
+      "statedBy": "fn valueText"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/3",
+      "text": "**`backward` is not drawn.** `sankey.backward-flow` says a backward flow \"loops round",
+      "statedBy": "constraint backwardFlow"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/4",
+      "text": "**`#rgb` is read, `#rrggbb` is said.** A three-digit hex is a colour the module reads and",
+      "statedBy": "fn isHex"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/5",
+      "text": "**A flow's value ignores its nodes' formats.** A flow's tooltip uses the document's",
+      "statedBy": "fn flowDisplay"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/6",
+      "text": "**A dropped node is pinned to its column.** A node dropped anywhere but the first column",
+      "statedBy": "operation addNodeHere"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/layout.rs",
+      "lines": "96-117",
+      "behaviour": "Draws a node with an id no earlier entry took, and a flow whose ends are drawn and differ and whose id no earlier entry took.",
+      "statedBy": "fn drawn"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/layout.rs",
+      "lines": "118-127",
+      "behaviour": "A node's value is the larger of what flows into it and out of it over drawn flows.",
+      "statedBy": "element Node"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/layout.rs",
+      "lines": "400-427",
+      "behaviour": "A node's column is the one it states, or one past the furthest node that flows into it over the flows that close no cycle.",
+      "statedBy": "fn sankeyColumns"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/layout.rs",
+      "lines": "128-160",
+      "behaviour": "One scale for every bar and band, the fullest column filling 560 times the thickness; a bar at least 6 tall.",
+      "statedBy": "fn sankeyScale"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/layout.rs",
+      "lines": "161-294",
+      "behaviour": "Stacks each column centred on the extent, relaxes it in 24 passes weighted 0.99 to the n-th, keeps each column in order within the extent, and gives each band's ends as fractions of its bars.",
+      "statedBy": "algorithm sankey"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/layout.rs",
+      "lines": "295-398",
+      "behaviour": "Stacks the bands at a bar in the order of the nodes at their other ends, ties in document order.",
+      "statedBy": "capability layout.flowRelaxation"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/arrangement.rs",
+      "lines": "1-212",
+      "behaviour": "Arrange diagram: the order of least weighted crossing by barycentre sweeps, keeping only an improvement, written as the order of the entries.",
+      "statedBy": "algorithm sankeyArrange"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/parser.rs",
+      "lines": "46-284",
+      "behaviour": "Reads the header, the settings, the nodes and the flows from the document's YAML, with the reader's sentences on the lines they concern.",
+      "statedBy": "binding skv"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/parser.rs",
+      "lines": "249-268",
+      "behaviour": "Reports a key it does not read on an entry that is still drawn.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/557",
+      "reason": "No built-in reports a reader finding on an entry that is still drawn, worded from what the reader saw, and host attributes are invisible to constraints (sankey.md, gap 3)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/rules.rs",
+      "lines": "47-191",
+      "behaviour": "The findings: missing and duplicate ids, dangling and self flows, missing and negative values, unknown colours and backward flows.",
+      "statedBy": "constraints"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/rules.rs",
+      "lines": "192-206",
+      "behaviour": "Lists the findings by their line, whatever their code.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "ATD orders findings by code and then by line; no construct sorts them by line across codes (sankey.md, gap 8)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/format.rs",
+      "lines": "14-74",
+      "behaviour": "Writes a value through a format and resolves a colour to a palette word or a hex.",
+      "statedBy": "fn formatValue"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/actions.rs",
+      "lines": "57-266",
+      "behaviour": "The diagram's, a node's and a flow's actions, enabled with their reasons, and how each runs.",
+      "statedBy": "operation arrange"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/actions.rs",
+      "lines": "328-466",
+      "behaviour": "The property rows of a node, a flow and the diagram, with their choices.",
+      "statedBy": "form node"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/commands.rs",
+      "lines": "166-446",
+      "behaviour": "Each edit as one command that rewrites the document's text: add, connect, remove, set a property, step a value, scale the thickness, arrange.",
+      "hostConcern": "undo-stack",
+      "reason": "The history is the host's; the description says each gesture is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/commands.rs",
+      "lines": "391-415",
+      "behaviour": "The default step is a tenth of the value's order of magnitude, 0.1 below 10.",
+      "statedBy": "fn defaultStep"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/writer.rs",
+      "lines": "13-156",
+      "behaviour": "Writes a key, a node and a flow into the document, copying the previous entry's indentation.",
+      "statedBy": "binding skv"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/view.rs",
+      "lines": "27-30",
+      "behaviour": "The sentences that refuse a reparent and a move of a band.",
+      "statedBy": "notation node Node refusals"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/view.rs",
+      "lines": "107-160",
+      "behaviour": "Reorders a node within its column by where it is dropped.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/558",
+      "reason": "ATD's edges are stroked, a bezier has no least reach, reorder is for a child of an ordered container, and a drop cannot choose a top-level index and write an attribute from its point (sankey.md, gap 9)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/mapper.rs",
+      "lines": "38-158",
+      "behaviour": "Maps the model to the wire's element kinds, with the viewport filter.",
+      "statedBy": "tool"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sankey/src/theme.rs",
+      "lines": "1-40",
+      "behaviour": "The light and dark palettes.",
+      "statedBy": "notation theme"
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/job` from parity/cases/databricks/job/cycle.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/job",
+  "description": "../../../databricks-job.atd",
+  "inputs": {
+    "body": "cycle-downstream.yml",
+    "registration": "cycle-downstream.job.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "task:left",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "left",
+          "taskType": "notebook",
+          "source": "notebooks/left",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "left",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:right",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "right",
+          "taskType": "notebook",
+          "source": "notebooks/right",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "right",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:after_circle",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "after_circle",
+          "taskType": "notebook",
+          "source": "notebooks/after",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "after_circle",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:further_after",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "further_after",
+          "taskType": "notebook",
+          "source": "notebooks/further",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "further_after",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:independent",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "independent",
+          "taskType": "notebook",
+          "source": "notebooks/independent",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "independent",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:right->left",
+        "type": "databricks/job+edge",
+        "source": "task:right",
+        "target": "task:left",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:left->right",
+        "type": "databricks/job+edge",
+        "source": "task:left",
+        "target": "task:right",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:right->after_circle",
+        "type": "databricks/job+edge",
+        "source": "task:right",
+        "target": "task:after_circle",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:after_circle->further_after",
+        "type": "databricks/job+edge",
+        "source": "task:after_circle",
+        "target": "task:further_after",
+        "attributes": {
+          "kind": "depends"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 6,
+        "message": "'left' is part of a dependency circle, so it can never run. Break the circle."
+      },
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 11,
+        "message": "'right' is part of a dependency circle, so it can never run. Break the circle."
+      },
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 16,
+        "message": "'after_circle' is part of a dependency circle, so it can never run. Break the circle."
+      },
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 21,
+        "message": "'further_after' is part of a dependency circle, so it can never run. Break the circle."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

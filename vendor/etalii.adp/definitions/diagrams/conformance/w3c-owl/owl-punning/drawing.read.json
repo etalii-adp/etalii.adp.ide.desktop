@@ -1,0 +1,623 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "dt:http://example.org/zoo#wingspan",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 250,
+        "y": 10,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Literal",
+          "font": "13 400",
+          "position": {
+            "x": 345,
+            "y": 49.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 315,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "(ex:Eagle ∪ ex:Hawk)",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 353.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "ind:http://example.org/zoo#Eagle",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 620,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "ex:Species",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 660
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:Eagle",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 640
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/zoo#Bird",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:Bird",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 39.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/zoo#Eagle",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 0,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:Eagle",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 39.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/zoo#Hawk",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 130,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:Hawk",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 169.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/zoo#Raptor",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 305,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:Raptor",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 344.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/zoo#Species",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 175,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:Species",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 214.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/2001/XMLSchema#boolean",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 866,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "xsd:boolean",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 905.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "thing:http://example.org/zoo#eats|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 866,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 302.25,
+            "y": 889.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://example.org/zoo#eats|range",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 500,
+        "y": 866,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 552.25,
+            "y": 889.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://example.org/zoo#ringed|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 750,
+        "y": 866,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 802.25,
+            "y": 889.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/zoo#Eagle",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "res:http://example.org/zoo#Eagle",
+      "route": [
+        {
+          "x": 374.57,
+          "y": 316.74
+        },
+        {
+          "x": 595.43,
+          "y": 68.26
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/zoo#Hawk",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "res:http://example.org/zoo#Hawk",
+      "route": [
+        {
+          "x": 391.27,
+          "y": 319.43
+        },
+        {
+          "x": 578.73,
+          "y": 195.57
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/zoo#Bird|http://example.org/zoo#wingspan|dt:http://example.org/zoo#wingspan",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/zoo#Bird",
+      "target": "dt:http://example.org/zoo#wingspan",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 38.78
+        },
+        {
+          "x": 250,
+          "y": 41.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:wingspan",
+          "font": "11 400",
+          "position": {
+            "x": 219.72,
+            "y": 33.99
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/zoo#Eagle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/zoo#Eagle",
+      "target": "res:http://example.org/zoo#Bird",
+      "route": [
+        {
+          "x": 530,
+          "y": 35
+        },
+        {
+          "x": 190,
+          "y": 35
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/zoo#Hawk|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/zoo#Hawk",
+      "target": "res:http://example.org/zoo#Bird",
+      "route": [
+        {
+          "x": 545.92,
+          "y": 145.6
+        },
+        {
+          "x": 174.08,
+          "y": 54.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/zoo#Raptor",
+      "target": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 343.78
+        },
+        {
+          "x": 250.56,
+          "y": 346.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "edge:thing:http://example.org/zoo#eats|domain|http://example.org/zoo#eats|thing:http://example.org/zoo#eats|range",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://example.org/zoo#eats|domain",
+      "target": "thing:http://example.org/zoo#eats|range",
+      "route": [
+        {
+          "x": 354.5,
+          "y": 885.25
+        },
+        {
+          "x": 500,
+          "y": 885.25
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:eats",
+          "font": "11 400",
+          "position": {
+            "x": 427.25,
+            "y": 879.25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:thing:http://example.org/zoo#ringed|domain|http://example.org/zoo#ringed|res:http://www.w3.org/2001/XMLSchema#boolean",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://example.org/zoo#ringed|domain",
+      "target": "res:http://www.w3.org/2001/XMLSchema#boolean",
+      "route": [
+        {
+          "x": 750.1,
+          "y": 886.41
+        },
+        {
+          "x": 190,
+          "y": 898.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:ringed",
+          "font": "11 400",
+          "position": {
+            "x": 470.05,
+            "y": 886.65
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:thing:http://example.org/zoo#eats|domain|http://example.org/zoo#eats|thing:http://example.org/zoo#eats|range",
+    "edge:res:http://example.org/zoo#Bird|http://example.org/zoo#wingspan|dt:http://example.org/zoo#wingspan",
+    "edge:thing:http://example.org/zoo#ringed|domain|http://example.org/zoo#ringed|res:http://www.w3.org/2001/XMLSchema#boolean",
+    "edge:res:http://example.org/zoo#Eagle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+    "edge:res:http://example.org/zoo#Hawk|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+    "edge:expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/zoo#Eagle",
+    "edge:expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/zoo#Hawk",
+    "edge:res:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "res:http://example.org/zoo#Bird",
+    "res:http://example.org/zoo#Species",
+    "res:http://example.org/zoo#Eagle",
+    "ind:http://example.org/zoo#Eagle",
+    "res:http://example.org/zoo#Hawk",
+    "res:http://example.org/zoo#Raptor",
+    "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "res:http://www.w3.org/2001/XMLSchema#boolean",
+    "thing:http://example.org/zoo#eats|domain",
+    "thing:http://example.org/zoo#eats|range",
+    "dt:http://example.org/zoo#wingspan",
+    "thing:http://example.org/zoo#ringed|domain"
+  ]
+}

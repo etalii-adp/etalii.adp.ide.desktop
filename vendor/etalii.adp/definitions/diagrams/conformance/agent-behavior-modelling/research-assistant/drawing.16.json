@@ -1,0 +1,682 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "1",
+      "type": "Sequence",
+      "shape": "path",
+      "bounds": {
+        "x": 784,
+        "y": 30,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do in order",
+          "font": "10 600",
+          "position": {
+            "x": 884,
+            "y": 50
+          }
+        },
+        {
+          "id": "label",
+          "text": "Answer the research question",
+          "font": "12 400",
+          "position": {
+            "x": 884,
+            "y": 70
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.composite",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "1.1",
+        "1.2"
+      ]
+    },
+    {
+      "id": "1.1",
+      "type": "Fallback",
+      "shape": "path",
+      "bounds": {
+        "x": 442,
+        "y": 190,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Try in order",
+          "font": "10 600",
+          "position": {
+            "x": 542,
+            "y": 210
+          }
+        },
+        {
+          "id": "label",
+          "text": "Settle the question",
+          "font": "12 400",
+          "position": {
+            "x": 542,
+            "y": 230
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.composite",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "1.1.1",
+        "1.1.2",
+        "1.1.3",
+        "1.1.4"
+      ]
+    },
+    {
+      "id": "1.1.1",
+      "type": "AskUser",
+      "shape": "path",
+      "bounds": {
+        "x": 100,
+        "y": 306,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Ask the user",
+          "font": "10 600",
+          "position": {
+            "x": 200,
+            "y": 326
+          }
+        },
+        {
+          "id": "label",
+          "text": "What is the answer for, and …",
+          "font": "12 400",
+          "position": {
+            "x": 200,
+            "y": 346
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.other",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.1.2",
+      "type": "Check",
+      "shape": "path",
+      "bounds": {
+        "x": 328,
+        "y": 306,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Check",
+          "font": "10 600",
+          "position": {
+            "x": 428,
+            "y": 326
+          }
+        },
+        {
+          "id": "label",
+          "text": "The question names its topic…",
+          "font": "12 400",
+          "position": {
+            "x": 428,
+            "y": 346
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.check",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.1.3",
+      "type": "Check",
+      "shape": "path",
+      "bounds": {
+        "x": 556,
+        "y": 306,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Check",
+          "font": "10 600",
+          "position": {
+            "x": 656,
+            "y": 326
+          }
+        },
+        {
+          "id": "label",
+          "text": "The user has said which sour…",
+          "font": "12 400",
+          "position": {
+            "x": 656,
+            "y": 346
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.check",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.1.4",
+      "type": "Do",
+      "shape": "path",
+      "bounds": {
+        "x": 784,
+        "y": 306,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do",
+          "font": "10 600",
+          "position": {
+            "x": 884,
+            "y": 326
+          }
+        },
+        {
+          "id": "label",
+          "text": "Answer with the draft and it…",
+          "font": "12 400",
+          "position": {
+            "x": 884,
+            "y": 346
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.action",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.2",
+      "type": "Parallel",
+      "shape": "path",
+      "bounds": {
+        "x": 1126,
+        "y": 190,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do together",
+          "font": "10 600",
+          "position": {
+            "x": 1226,
+            "y": 210
+          }
+        },
+        {
+          "id": "label",
+          "text": "Search every source",
+          "font": "12 400",
+          "position": {
+            "x": 1226,
+            "y": 230
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.composite",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "1.2.1",
+        "1.2.2"
+      ]
+    },
+    {
+      "id": "1.2.1",
+      "type": "Delegate",
+      "shape": "path",
+      "bounds": {
+        "x": 1012,
+        "y": 306,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Delegate",
+          "font": "10 600",
+          "position": {
+            "x": 1112,
+            "y": 326
+          }
+        },
+        {
+          "id": "label",
+          "text": "Search the user's own docume…",
+          "font": "12 400",
+          "position": {
+            "x": 1112,
+            "y": 346
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.other",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.2.2",
+      "type": "Delegate",
+      "shape": "path",
+      "bounds": {
+        "x": 1240,
+        "y": 306,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Delegate",
+          "font": "10 600",
+          "position": {
+            "x": 1340,
+            "y": 326
+          }
+        },
+        {
+          "id": "label",
+          "text": "Search news and official pub…",
+          "font": "12 400",
+          "position": {
+            "x": 1340,
+            "y": 346
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.other",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "child:1.1",
+      "type": "Child",
+      "source": "1",
+      "target": "1.1",
+      "route": [
+        {
+          "x": 884,
+          "y": 90
+        },
+        {
+          "x": 884,
+          "y": 140
+        },
+        {
+          "x": 542,
+          "y": 140
+        },
+        {
+          "x": 542,
+          "y": 190
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.1.1",
+      "type": "Child",
+      "source": "1.1",
+      "target": "1.1.1",
+      "route": [
+        {
+          "x": 542,
+          "y": 250
+        },
+        {
+          "x": 542,
+          "y": 278
+        },
+        {
+          "x": 200,
+          "y": 278
+        },
+        {
+          "x": 200,
+          "y": 306
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.1.2",
+      "type": "Child",
+      "source": "1.1",
+      "target": "1.1.2",
+      "route": [
+        {
+          "x": 542,
+          "y": 250
+        },
+        {
+          "x": 542,
+          "y": 278
+        },
+        {
+          "x": 428,
+          "y": 278
+        },
+        {
+          "x": 428,
+          "y": 306
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.1.3",
+      "type": "Child",
+      "source": "1.1",
+      "target": "1.1.3",
+      "route": [
+        {
+          "x": 542,
+          "y": 250
+        },
+        {
+          "x": 542,
+          "y": 278
+        },
+        {
+          "x": 656,
+          "y": 278
+        },
+        {
+          "x": 656,
+          "y": 306
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.1.4",
+      "type": "Child",
+      "source": "1.1",
+      "target": "1.1.4",
+      "route": [
+        {
+          "x": 542,
+          "y": 250
+        },
+        {
+          "x": 542,
+          "y": 278
+        },
+        {
+          "x": 884,
+          "y": 278
+        },
+        {
+          "x": 884,
+          "y": 306
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.2",
+      "type": "Child",
+      "source": "1",
+      "target": "1.2",
+      "route": [
+        {
+          "x": 884,
+          "y": 90
+        },
+        {
+          "x": 884,
+          "y": 140
+        },
+        {
+          "x": 1226,
+          "y": 140
+        },
+        {
+          "x": 1226,
+          "y": 190
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.2.1",
+      "type": "Child",
+      "source": "1.2",
+      "target": "1.2.1",
+      "route": [
+        {
+          "x": 1226,
+          "y": 250
+        },
+        {
+          "x": 1226,
+          "y": 278
+        },
+        {
+          "x": 1112,
+          "y": 278
+        },
+        {
+          "x": 1112,
+          "y": 306
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.2.2",
+      "type": "Child",
+      "source": "1.2",
+      "target": "1.2.2",
+      "route": [
+        {
+          "x": 1226,
+          "y": 250
+        },
+        {
+          "x": 1226,
+          "y": 278
+        },
+        {
+          "x": 1340,
+          "y": 278
+        },
+        {
+          "x": 1340,
+          "y": 306
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "child:1.1",
+    "child:1.1.1",
+    "child:1.1.2",
+    "child:1.1.3",
+    "child:1.1.4",
+    "child:1.2",
+    "child:1.2.1",
+    "child:1.2.2",
+    "1",
+    "1.1",
+    "1.1.1",
+    "1.1.2",
+    "1.1.3",
+    "1.1.4",
+    "1.2",
+    "1.2.1",
+    "1.2.2"
+  ]
+}

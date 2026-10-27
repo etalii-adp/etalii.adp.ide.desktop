@@ -1,0 +1,121 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/cases/databricks/job/missing-upstream.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "task:first_waiter",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "first_waiter",
+          "taskType": "notebook",
+          "source": "notebooks/first",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "first_waiter",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:second_waiter",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "second_waiter",
+          "taskType": "notebook",
+          "source": "notebooks/second",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "second_waiter",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:ghost",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "ghost",
+          "taskType": "other",
+          "source": "",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "ghost",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:phantom",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "phantom",
+          "taskType": "other",
+          "source": "",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "phantom",
+          "badges": "serverless"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:ghost->first_waiter",
+        "source": "task:ghost",
+        "target": "task:first_waiter"
+      },
+      {
+        "id": "edge:ghost->second_waiter",
+        "source": "task:ghost",
+        "target": "task:second_waiter"
+      },
+      {
+        "id": "edge:phantom->second_waiter",
+        "source": "task:phantom",
+        "target": "task:second_waiter"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 260,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "top",
+    "band": "self.id.startsWith('cluster:')",
+    "placeholder": "self.unresolved"
+  },
+  "output": {
+    "positions": {
+      "task:first_waiter": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "task:second_waiter": {
+        "x": 0.0,
+        "y": 120.0
+      },
+      "task:ghost": {
+        "x": 0.0,
+        "y": 240.0
+      },
+      "task:phantom": {
+        "x": 0.0,
+        "y": 360.0
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/scripts/databricks/bundle/lakehouse.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "# The lakehouse bundle: one nightly ingest job (declared in resources/), one declarative\n# pipeline refining bronze into gold, deployed to a development and a production target.\nbundle:\n  name: lakehouse\n\ninclude:\n  - resources/*.yml\n\nvariables:\n  catalog:\n    description: The Unity Catalog everything below writes into.\n    default: lakehouse_dev\n  warehouse_id:\n    description: The SQL warehouse the dashboard refresh runs on.\n    default: \"4b9b953939869799\"\n\nresources:\n  pipelines:\n    bronze_to_gold:\n      name: Bronze to gold\n      catalog: ${var.catalog}\n      schema: gold\n      serverless: true\n      channel: CURRENT\n      libraries:\n        - notebook:\n            path: transformations/bronze\n        - notebook:\n            path: transformations/silver\n        - glob:\n            include: transformations/gold/**\n      notifications:\n        - email_recipients:\n            - data-eng@vrenken.eu\n          alerts:\n            - on-update-failure\n            - on-update-fatal-failure\n\ntargets:\n  dev:\n    mode: development\n    default: true\n  prod:\n    mode: production\n    resources:\n      pipelines:\n        bronze_to_gold:\n          catalog: lakehouse_prod\n          serverless: false\n      jobs:\n        nightly_ingest:\n          schedule:\n            quartz_cron_expression: \"0 0 2 * * ?\"\n",
+    "files": {
+      "databricks.adp": "databricks/bundle\nbody: databricks.yml\nlayout:\n  bundle: -68.665 289.917\n  resource:pipelines/bronze_to_gold: 264.095 283.29\n"
+    }
+  },
+  "args": {
+    "reading": "bundle"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "lakehouse",
+          "kind": "bundle",
+          "label": "lakehouse",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:pipelines/bronze_to_gold",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "bronze_to_gold",
+          "kind": "pipelines",
+          "label": "bronze_to_gold",
+          "badges": "pipelines",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "true",
+          "overrideCount": "0",
+          "label": "dev",
+          "width": "220",
+          "height": "120"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "2",
+          "label": "prod",
+          "width": "220",
+          "height": "120"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "override:prod/pipelines/bronze_to_gold",
+        "type": "databricks/bundle+edge",
+        "source": "target:prod",
+        "target": "resource:pipelines/bronze_to_gold",
+        "attributes": {
+          "kind": "override"
+        }
+      },
+      {
+        "id": "override:prod/jobs/nightly_ingest",
+        "type": "databricks/bundle+edge",
+        "source": "target:prod",
+        "target": "resource:jobs/nightly_ingest",
+        "attributes": {
+          "kind": "override"
+        }
+      }
+    ],
+    "findings": []
+  }
+}

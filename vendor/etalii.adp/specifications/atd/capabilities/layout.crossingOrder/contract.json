@@ -1,0 +1,54 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.crossingOrder",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "The order within each column of a layered diagram whose weighted edges cross least, by the barycentre method. A node takes part when its `column` is not null, and an edge when both its ends take part and are in different columns; an edge is taken from its end in the lower column to its end in the higher. A node's weight is the larger of the sums of the weights of its edges in and out, at least 0.000001, and its position is where its middle sits in its column's stack of weights, as a fraction of the column's total. Two edges cost the product of their weights (each at least 0.000001) when they share no end and their order differs at the two ends of the columns both span, interpolating each edge's position linearly between its columns. Up to `sweeps` sweeps run while the cost is above 0, alternating left to right and right to left from the first: each column after (or, right to left, before) the first in the sweep's direction takes each node to the weighted mean position of its neighbours on the side the sweep comes from, keeping its own position when it has none there, with a stable sort, and the positions are measured again after each column. Each sweep's arrangement is scored, and the result is the cheapest seen, the input's own order first, so an arranged input comes back unchanged. Positions place each column's nodes in that order from `origin`, `columnGap` apart and `nodeGap` between nodes; its `values` give each node its `rank`, its place in its column from 0. Its fixtures are recorded with the cases of the descriptions that require it (spec 035, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "column": {
+      "type": "query",
+      "required": true,
+      "doc": "A node's column, an integer from 0; null leaves the node out."
+    },
+    "weight": {
+      "type": "query",
+      "required": true,
+      "doc": "An edge's weight, a number of 0 or more; null leaves the edge out."
+    },
+    "sweeps": {
+      "type": "integer",
+      "default": 24,
+      "doc": "The most sweeps that run."
+    },
+    "origin": {
+      "type": "list",
+      "default": [
+        0,
+        0
+      ],
+      "doc": "The top left corner of the first column."
+    },
+    "columnGap": {
+      "type": "number",
+      "default": 320,
+      "doc": "The distance from one column's left edge to the next's."
+    },
+    "nodeGap": {
+      "type": "number",
+      "default": 36,
+      "doc": "The gap between two nodes of a column, edge to edge."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

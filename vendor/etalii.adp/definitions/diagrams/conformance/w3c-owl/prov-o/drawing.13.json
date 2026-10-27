@@ -1,0 +1,4190 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "dt:http://www.w3.org/ns/prov#value",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 250,
+        "y": 390,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Literal",
+          "font": "13 400",
+          "position": {
+            "x": 345,
+            "y": 429.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 780,
+        "y": 390,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "≤ 0 hadActivity",
+          "font": "11 400",
+          "position": {
+            "x": 875,
+            "y": 428.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "ind:http://www.w3.org/ns/prov#EmptyCollection",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 1820,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "EmptyCollection",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 1840
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 250,
+        "y": 870,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "xsd:dateTime",
+          "font": "13 400",
+          "position": {
+            "x": 345,
+            "y": 909.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/2002/07/owl#Thing",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 120,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "owl:Thing",
+          "font": "13 400",
+          "position": {
+            "x": 52.25,
+            "y": 143.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "http://www.w3.org/ns/prov#",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Activity",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 250,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Activity",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 289.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 380,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ActivityInfluence",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 419.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Agent",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 730,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Agent",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 769.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#AgentInfluence",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 685,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "AgentInfluence",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 724.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Association",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 900,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Association",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 939.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Attribution",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 1030,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Attribution",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 1069.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Bundle",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 120,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Bundle",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 159.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Collection",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 250,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Collection",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 289.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Communication",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 380,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Communication",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 419.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Delegation",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 1160,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Delegation",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 1199.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Derivation",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 510,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Derivation",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 549.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#EmptyCollection",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 120,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "EmptyCollection",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 159.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#End",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 1290,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "End",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 1329.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 380,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Entity",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 419.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#EntityInfluence",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 555,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "EntityInfluence",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 594.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Generation",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 640,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Generation",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 679.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Influence",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 555,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Influence",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 594.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 860,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "InstantaneousEvent",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 899.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Invalidation",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 770,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Invalidation",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 809.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Location",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 1035,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Location",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 1074.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Organization",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 815,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Organization",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 854.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Person",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 945,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Person",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 984.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Plan",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 250,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Plan (prescriptive)",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 289.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#PrimarySource",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1590,
+        "y": 250,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "PrimarySource",
+          "font": "13 400",
+          "position": {
+            "x": 1685,
+            "y": 289.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Quotation",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1590,
+        "y": 380,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Quotation",
+          "font": "13 400",
+          "position": {
+            "x": 1685,
+            "y": 419.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Recipe",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1590,
+        "y": 120,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Recipe",
+          "font": "13 400",
+          "position": {
+            "x": 1685,
+            "y": 159.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Revision",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1590,
+        "y": 510,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Revision",
+          "font": "13 400",
+          "position": {
+            "x": 1685,
+            "y": 549.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Role",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 1210,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Role",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 1249.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#SoftwareAgent",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 1075,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "SoftwareAgent",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 1114.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Start",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 1420,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Start",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 1459.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#Usage",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 1550,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Usage",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 1589.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/ns/prov#grandmasPie",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 1820,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": ":grandmasPie",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 1840
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "thing:http://www.w3.org/ns/prov#atLocation|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 1045,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 302.25,
+            "y": 1068.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://www.w3.org/ns/prov#followedRecipe|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 658,
+        "y": 2050,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 710.25,
+            "y": 2073.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://www.w3.org/ns/prov#followedRecipe|range",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 2138.5,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 52.25,
+            "y": 2162.08
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://www.w3.org/ns/prov#influenced|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 2050,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 52.25,
+            "y": 2073.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://www.w3.org/ns/prov#influenced|range",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 164.5,
+        "y": 2050,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 216.75,
+            "y": 2073.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 565,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 302.25,
+            "y": 588.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 329,
+        "y": 2050,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 381.25,
+            "y": 2073.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 493.5,
+        "y": 2050,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 545.75,
+            "y": 2073.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "target": "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "route": [
+        {
+          "x": 719.44,
+          "y": 418.78
+        },
+        {
+          "x": 780.56,
+          "y": 421.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "target": "res:http://www.w3.org/ns/prov#Influence",
+      "route": [
+        {
+          "x": 554.25,
+          "y": 438.36
+        },
+        {
+          "x": 165.75,
+          "y": 566.64
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#EntityInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+      "route": [
+        {
+          "x": 625,
+          "y": 450
+        },
+        {
+          "x": 625,
+          "y": 555
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/ns/prov#activity|res:http://www.w3.org/ns/prov#Activity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "target": "res:http://www.w3.org/ns/prov#Activity",
+      "route": [
+        {
+          "x": 545.92,
+          "y": 395.6
+        },
+        {
+          "x": 174.08,
+          "y": 304.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "activity",
+          "font": "11 400",
+          "position": {
+            "x": 360,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 320
+        },
+        {
+          "x": 95,
+          "y": 380
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#endedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "route": [
+        {
+          "x": 108.96,
+          "y": 319.62
+        },
+        {
+          "x": 330.89,
+          "y": 870
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "endedAtTime",
+          "font": "11 400",
+          "position": {
+            "x": 219.92,
+            "y": 588.81
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#generated|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 320
+        },
+        {
+          "x": 95,
+          "y": 380
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "generated (inverse of wasGeneratedBy)",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#invalidated|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 320
+        },
+        {
+          "x": 95,
+          "y": 380
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "invalidated (inverse of wasInvalidatedBy)",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedAssociation|res:http://www.w3.org/ns/prov#Association",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Association",
+      "route": [
+        {
+          "x": 143.93,
+          "y": 315
+        },
+        {
+          "x": 1106.07,
+          "y": 905
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedAssociation",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 604
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedCommunication|res:http://www.w3.org/ns/prov#Communication",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Communication",
+      "route": [
+        {
+          "x": 185.14,
+          "y": 296.05
+        },
+        {
+          "x": 1064.86,
+          "y": 403.95
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedCommunication",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedEnd|res:http://www.w3.org/ns/prov#End",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#End",
+      "route": [
+        {
+          "x": 128.4,
+          "y": 317.77
+        },
+        {
+          "x": 1121.6,
+          "y": 1292.23
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedEnd",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 799
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedStart|res:http://www.w3.org/ns/prov#Start",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Start",
+      "route": [
+        {
+          "x": 125.08,
+          "y": 318.2
+        },
+        {
+          "x": 1124.92,
+          "y": 1421.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedStart",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 864
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedUsage|res:http://www.w3.org/ns/prov#Usage",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Usage",
+      "route": [
+        {
+          "x": 122.33,
+          "y": 318.52
+        },
+        {
+          "x": 1127.67,
+          "y": 1551.48
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedUsage",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 929
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#startedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "route": [
+        {
+          "x": 108.96,
+          "y": 319.62
+        },
+        {
+          "x": 330.89,
+          "y": 870
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "startedAtTime",
+          "font": "11 400",
+          "position": {
+            "x": 219.92,
+            "y": 588.81
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#used|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 320
+        },
+        {
+          "x": 95,
+          "y": 380
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "used",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasAssociatedWith|res:http://www.w3.org/ns/prov#Agent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Agent",
+      "route": [
+        {
+          "x": 95,
+          "y": 320
+        },
+        {
+          "x": 95,
+          "y": 730
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasAssociatedWith",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 519
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasEndedBy|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 320
+        },
+        {
+          "x": 95,
+          "y": 380
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasEndedBy",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasInformedBy|res:http://www.w3.org/ns/prov#Activity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Activity",
+      "route": [
+        {
+          "x": 95,
+          "y": 285
+        },
+        {
+          "x": 95,
+          "y": 285
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasInformedBy",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 279
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasStartedBy|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Activity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 320
+        },
+        {
+          "x": 95,
+          "y": 380
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasStartedBy",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#AgentInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#AgentInfluence",
+      "target": "res:http://www.w3.org/ns/prov#Influence",
+      "route": [
+        {
+          "x": 545.92,
+          "y": 700.6
+        },
+        {
+          "x": 174.08,
+          "y": 609.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#AgentInfluence|http://www.w3.org/ns/prov#agent|res:http://www.w3.org/ns/prov#Agent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#AgentInfluence",
+      "target": "res:http://www.w3.org/ns/prov#Agent",
+      "route": [
+        {
+          "x": 532.43,
+          "y": 727.86
+        },
+        {
+          "x": 187.57,
+          "y": 757.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "agent",
+          "font": "11 400",
+          "position": {
+            "x": 360,
+            "y": 736.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Agent",
+      "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "route": [
+        {
+          "x": 95,
+          "y": 800
+        },
+        {
+          "x": 95,
+          "y": 860
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/ns/prov#actedOnBehalfOf|res:http://www.w3.org/ns/prov#Agent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Agent",
+      "target": "res:http://www.w3.org/ns/prov#Agent",
+      "route": [
+        {
+          "x": 95,
+          "y": 765
+        },
+        {
+          "x": 95,
+          "y": 765
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "actedOnBehalfOf",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 759
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/ns/prov#qualifiedDelegation|res:http://www.w3.org/ns/prov#Delegation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Agent",
+      "target": "res:http://www.w3.org/ns/prov#Delegation",
+      "route": [
+        {
+          "x": 158.87,
+          "y": 790.91
+        },
+        {
+          "x": 1091.13,
+          "y": 1169.09
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedDelegation",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 974
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Association|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Association",
+      "target": "res:http://www.w3.org/ns/prov#AgentInfluence",
+      "route": [
+        {
+          "x": 1091.13,
+          "y": 909.09
+        },
+        {
+          "x": 688.87,
+          "y": 745.91
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Association|http://www.w3.org/ns/prov#hadPlan|res:http://www.w3.org/ns/prov#Plan",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Association",
+      "target": "res:http://www.w3.org/ns/prov#Plan",
+      "route": [
+        {
+          "x": 1155,
+          "y": 900
+        },
+        {
+          "x": 1155,
+          "y": 320
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "hadPlan",
+          "font": "11 400",
+          "position": {
+            "x": 1155,
+            "y": 604
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Attribution|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Attribution",
+      "target": "res:http://www.w3.org/ns/prov#AgentInfluence",
+      "route": [
+        {
+          "x": 1108.21,
+          "y": 1034.54
+        },
+        {
+          "x": 671.79,
+          "y": 750.46
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Bundle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Bundle",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 567.95,
+          "y": 182.99
+        },
+        {
+          "x": 152.05,
+          "y": 387.01
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Collection|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Collection",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 545.92,
+          "y": 304.4
+        },
+        {
+          "x": 174.08,
+          "y": 395.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Collection|http://www.w3.org/ns/prov#hadMember|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Collection",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 545.92,
+          "y": 304.4
+        },
+        {
+          "x": 174.08,
+          "y": 395.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "hadMember",
+          "font": "11 400",
+          "position": {
+            "x": 360,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Communication|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Communication",
+      "target": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "route": [
+        {
+          "x": 1060,
+          "y": 415
+        },
+        {
+          "x": 720,
+          "y": 415
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Delegation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Delegation",
+      "target": "res:http://www.w3.org/ns/prov#AgentInfluence",
+      "route": [
+        {
+          "x": 1118.88,
+          "y": 1162.63
+        },
+        {
+          "x": 661.12,
+          "y": 752.37
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Derivation",
+      "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+      "route": [
+        {
+          "x": 1062.43,
+          "y": 552.86
+        },
+        {
+          "x": 717.57,
+          "y": 582.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/ns/prov#hadGeneration|res:http://www.w3.org/ns/prov#Generation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Derivation",
+      "target": "res:http://www.w3.org/ns/prov#Generation",
+      "route": [
+        {
+          "x": 1155,
+          "y": 580
+        },
+        {
+          "x": 1155,
+          "y": 640
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "hadGeneration",
+          "font": "11 400",
+          "position": {
+            "x": 1155,
+            "y": 604
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/ns/prov#hadUsage|res:http://www.w3.org/ns/prov#Usage",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Derivation",
+      "target": "res:http://www.w3.org/ns/prov#Usage",
+      "route": [
+        {
+          "x": 1155,
+          "y": 580
+        },
+        {
+          "x": 1155,
+          "y": 1550
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "hadUsage",
+          "font": "11 400",
+          "position": {
+            "x": 1155,
+            "y": 1059
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#EmptyCollection|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Collection",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#EmptyCollection",
+      "target": "res:http://www.w3.org/ns/prov#Collection",
+      "route": [
+        {
+          "x": 1075.92,
+          "y": 174.4
+        },
+        {
+          "x": 704.08,
+          "y": 265.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#End|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#End",
+      "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+      "route": [
+        {
+          "x": 1130.61,
+          "y": 1291.17
+        },
+        {
+          "x": 649.39,
+          "y": 623.83
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#End|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#End",
+      "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "route": [
+        {
+          "x": 1091.13,
+          "y": 1299.09
+        },
+        {
+          "x": 158.87,
+          "y": 920.91
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#EntityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#EntityInfluence",
+      "target": "res:http://www.w3.org/ns/prov#Influence",
+      "route": [
+        {
+          "x": 530,
+          "y": 590
+        },
+        {
+          "x": 190,
+          "y": 590
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#EntityInfluence|http://www.w3.org/ns/prov#entity|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#EntityInfluence",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 554.25,
+          "y": 566.64
+        },
+        {
+          "x": 165.75,
+          "y": 438.36
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "entity",
+          "font": "11 400",
+          "position": {
+            "x": 360,
+            "y": 496.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "route": [
+        {
+          "x": 95,
+          "y": 450
+        },
+        {
+          "x": 95,
+          "y": 860
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#alternateOf|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 415
+        },
+        {
+          "x": 95,
+          "y": 415
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "alternateOf",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 409
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#generatedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "route": [
+        {
+          "x": 112.55,
+          "y": 449.4
+        },
+        {
+          "x": 327.14,
+          "y": 870
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "generatedAtTime",
+          "font": "11 400",
+          "position": {
+            "x": 219.85,
+            "y": 653.7
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#hadPrimarySource|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 415
+        },
+        {
+          "x": 95,
+          "y": 415
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "hadPrimarySource",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 409
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#invalidatedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "route": [
+        {
+          "x": 112.55,
+          "y": 449.4
+        },
+        {
+          "x": 327.14,
+          "y": 870
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "invalidatedAtTime",
+          "font": "11 400",
+          "position": {
+            "x": 219.85,
+            "y": 653.7
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedAttribution|res:http://www.w3.org/ns/prov#Attribution",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Attribution",
+      "route": [
+        {
+          "x": 143.93,
+          "y": 445
+        },
+        {
+          "x": 1106.07,
+          "y": 1035
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedAttribution",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 734
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedDerivation|res:http://www.w3.org/ns/prov#Derivation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Derivation",
+      "route": [
+        {
+          "x": 185.14,
+          "y": 426.05
+        },
+        {
+          "x": 1064.86,
+          "y": 533.95
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedDerivation",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 474
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedGeneration|res:http://www.w3.org/ns/prov#Generation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Generation",
+      "route": [
+        {
+          "x": 174.08,
+          "y": 434.4
+        },
+        {
+          "x": 1075.92,
+          "y": 655.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedGeneration",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 539
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedInvalidation|res:http://www.w3.org/ns/prov#Invalidation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Invalidation",
+      "route": [
+        {
+          "x": 162.22,
+          "y": 439.73
+        },
+        {
+          "x": 1087.78,
+          "y": 780.27
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedInvalidation",
+          "font": "11 400",
+          "position": {
+            "x": 625,
+            "y": 604
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedPrimarySource|res:http://www.w3.org/ns/prov#PrimarySource",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#PrimarySource",
+      "route": [
+        {
+          "x": 187.74,
+          "y": 407.42
+        },
+        {
+          "x": 1592.26,
+          "y": 292.58
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedPrimarySource",
+          "font": "11 400",
+          "position": {
+            "x": 890,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedQuotation|res:http://www.w3.org/ns/prov#Quotation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Quotation",
+      "route": [
+        {
+          "x": 190,
+          "y": 415
+        },
+        {
+          "x": 1590,
+          "y": 415
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedQuotation",
+          "font": "11 400",
+          "position": {
+            "x": 890,
+            "y": 409
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedRevision|res:http://www.w3.org/ns/prov#Revision",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Revision",
+      "route": [
+        {
+          "x": 187.74,
+          "y": 422.58
+        },
+        {
+          "x": 1592.26,
+          "y": 537.42
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedRevision",
+          "font": "11 400",
+          "position": {
+            "x": 890,
+            "y": 474
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#specializationOf|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 415
+        },
+        {
+          "x": 95,
+          "y": 415
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "specializationOf",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 409
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#value|dt:http://www.w3.org/ns/prov#value",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "dt:http://www.w3.org/ns/prov#value",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 418.78
+        },
+        {
+          "x": 250,
+          "y": 421.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "value",
+          "font": "11 400",
+          "position": {
+            "x": 219.72,
+            "y": 413.99
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasAttributedTo|res:http://www.w3.org/ns/prov#Agent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Agent",
+      "route": [
+        {
+          "x": 95,
+          "y": 450
+        },
+        {
+          "x": 95,
+          "y": 730
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasAttributedTo",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 584
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasDerivedFrom|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 415
+        },
+        {
+          "x": 95,
+          "y": 415
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasDerivedFrom",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 409
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasGeneratedBy|res:http://www.w3.org/ns/prov#Activity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Activity",
+      "route": [
+        {
+          "x": 95,
+          "y": 380
+        },
+        {
+          "x": 95,
+          "y": 320
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasGeneratedBy",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasInvalidatedBy|res:http://www.w3.org/ns/prov#Activity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Activity",
+      "route": [
+        {
+          "x": 95,
+          "y": 380
+        },
+        {
+          "x": 95,
+          "y": 320
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasInvalidatedBy",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 344
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasQuotedFrom|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 415
+        },
+        {
+          "x": 95,
+          "y": 415
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasQuotedFrom",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 409
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasRevisionOf|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Entity",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 95,
+          "y": 415
+        },
+        {
+          "x": 95,
+          "y": 415
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasRevisionOf",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 409
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Generation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Generation",
+      "target": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "route": [
+        {
+          "x": 1097.95,
+          "y": 647.01
+        },
+        {
+          "x": 682.05,
+          "y": 442.99
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Generation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Generation",
+      "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "route": [
+        {
+          "x": 1072.23,
+          "y": 692.18
+        },
+        {
+          "x": 177.77,
+          "y": 877.82
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadActivity|res:http://www.w3.org/ns/prov#Activity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Influence",
+      "target": "res:http://www.w3.org/ns/prov#Activity",
+      "route": [
+        {
+          "x": 95,
+          "y": 555
+        },
+        {
+          "x": 95,
+          "y": 320
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "hadActivity",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 431.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadRole|res:http://www.w3.org/ns/prov#Role",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Influence",
+      "target": "res:http://www.w3.org/ns/prov#Role",
+      "route": [
+        {
+          "x": 95,
+          "y": 625
+        },
+        {
+          "x": 95,
+          "y": 1210
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "hadRole",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 911.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#influencer|res:http://www.w3.org/2002/07/owl#Thing",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Influence",
+      "target": "res:http://www.w3.org/2002/07/owl#Thing",
+      "route": [
+        {
+          "x": 91.68,
+          "y": 555.02
+        },
+        {
+          "x": 54.07,
+          "y": 158.49
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "influencer",
+          "font": "11 400",
+          "position": {
+            "x": 72.88,
+            "y": 350.75
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#InstantaneousEvent|http://www.w3.org/ns/prov#atTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "target": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 898.78
+        },
+        {
+          "x": 250,
+          "y": 901.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "atTime",
+          "font": "11 400",
+          "position": {
+            "x": 219.72,
+            "y": 893.99
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Invalidation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Invalidation",
+      "target": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+      "route": [
+        {
+          "x": 1112.47,
+          "y": 773.7
+        },
+        {
+          "x": 667.53,
+          "y": 446.3
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Invalidation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Invalidation",
+      "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "route": [
+        {
+          "x": 1062.43,
+          "y": 812.86
+        },
+        {
+          "x": 187.57,
+          "y": 887.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Organization|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Organization",
+      "target": "res:http://www.w3.org/ns/prov#Agent",
+      "route": [
+        {
+          "x": 537.9,
+          "y": 836.03
+        },
+        {
+          "x": 182.1,
+          "y": 778.97
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Person|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Person",
+      "target": "res:http://www.w3.org/ns/prov#Agent",
+      "route": [
+        {
+          "x": 561.13,
+          "y": 954.09
+        },
+        {
+          "x": 158.87,
+          "y": 790.91
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Bundle",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Plan",
+      "target": "res:http://www.w3.org/ns/prov#Bundle",
+      "route": [
+        {
+          "x": 1075.92,
+          "y": 265.6
+        },
+        {
+          "x": 704.08,
+          "y": 174.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Plan",
+      "target": "res:http://www.w3.org/ns/prov#Entity",
+      "route": [
+        {
+          "x": 1064.86,
+          "y": 296.05
+        },
+        {
+          "x": 185.14,
+          "y": 403.95
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#PrimarySource|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#PrimarySource",
+      "target": "res:http://www.w3.org/ns/prov#Derivation",
+      "route": [
+        {
+          "x": 1627.95,
+          "y": 312.99
+        },
+        {
+          "x": 1212.05,
+          "y": 517.01
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Quotation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Quotation",
+      "target": "res:http://www.w3.org/ns/prov#Derivation",
+      "route": [
+        {
+          "x": 1605.92,
+          "y": 434.4
+        },
+        {
+          "x": 1234.08,
+          "y": 525.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Recipe|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Plan",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Recipe",
+      "target": "res:http://www.w3.org/ns/prov#Plan",
+      "route": [
+        {
+          "x": 1605.92,
+          "y": 174.4
+        },
+        {
+          "x": 1234.08,
+          "y": 265.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Revision|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Revision",
+      "target": "res:http://www.w3.org/ns/prov#Derivation",
+      "route": [
+        {
+          "x": 1590,
+          "y": 545
+        },
+        {
+          "x": 1250,
+          "y": 545
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#SoftwareAgent|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#SoftwareAgent",
+      "target": "res:http://www.w3.org/ns/prov#Agent",
+      "route": [
+        {
+          "x": 578.21,
+          "y": 1079.54
+        },
+        {
+          "x": 141.79,
+          "y": 795.46
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Start|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Start",
+      "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+      "route": [
+        {
+          "x": 1134.08,
+          "y": 1420.86
+        },
+        {
+          "x": 645.92,
+          "y": 624.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Start|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Start",
+      "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "route": [
+        {
+          "x": 1100.66,
+          "y": 1426.29
+        },
+        {
+          "x": 149.34,
+          "y": 923.71
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Usage|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Usage",
+      "target": "res:http://www.w3.org/ns/prov#EntityInfluence",
+      "route": [
+        {
+          "x": 1136.71,
+          "y": 1550.66
+        },
+        {
+          "x": 643.29,
+          "y": 624.34
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://www.w3.org/ns/prov#Usage|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "type": "w3c/owl+edge",
+      "source": "res:http://www.w3.org/ns/prov#Usage",
+      "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+      "route": [
+        {
+          "x": 1108.21,
+          "y": 1554.54
+        },
+        {
+          "x": 141.79,
+          "y": 925.46
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:thing:http://www.w3.org/ns/prov#atLocation|domain|http://www.w3.org/ns/prov#atLocation|res:http://www.w3.org/ns/prov#Location",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://www.w3.org/ns/prov#atLocation|domain",
+      "target": "res:http://www.w3.org/ns/prov#Location",
+      "route": [
+        {
+          "x": 250.15,
+          "y": 1065.7
+        },
+        {
+          "x": 189.73,
+          "y": 1067.37
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "atLocation",
+          "font": "11 400",
+          "position": {
+            "x": 219.94,
+            "y": 1060.53
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:thing:http://www.w3.org/ns/prov#followedRecipe|domain|http://www.w3.org/ns/prov#followedRecipe|thing:http://www.w3.org/ns/prov#followedRecipe|range",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://www.w3.org/ns/prov#followedRecipe|domain",
+      "target": "thing:http://www.w3.org/ns/prov#followedRecipe|range",
+      "route": [
+        {
+          "x": 661.17,
+          "y": 2075.85
+        },
+        {
+          "x": 101.33,
+          "y": 2151.15
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":followedRecipe",
+          "font": "11 400",
+          "position": {
+            "x": 381.25,
+            "y": 2107.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:thing:http://www.w3.org/ns/prov#influenced|domain|http://www.w3.org/ns/prov#influenced|thing:http://www.w3.org/ns/prov#influenced|range",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://www.w3.org/ns/prov#influenced|domain",
+      "target": "thing:http://www.w3.org/ns/prov#influenced|range",
+      "route": [
+        {
+          "x": 104.5,
+          "y": 2069.25
+        },
+        {
+          "x": 164.5,
+          "y": 2069.25
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "influenced (inverse of wasInfluencedBy)",
+          "font": "11 400",
+          "position": {
+            "x": 134.5,
+            "y": 2063.25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain|http://www.w3.org/ns/prov#qualifiedInfluence|res:http://www.w3.org/ns/prov#Influence",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain",
+      "target": "res:http://www.w3.org/ns/prov#Influence",
+      "route": [
+        {
+          "x": 250.15,
+          "y": 585.7
+        },
+        {
+          "x": 189.73,
+          "y": 587.37
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "qualifiedInfluence",
+          "font": "11 400",
+          "position": {
+            "x": 219.94,
+            "y": 580.53
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain|http://www.w3.org/ns/prov#wasInfluencedBy|thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain",
+      "target": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+      "route": [
+        {
+          "x": 433.5,
+          "y": 2069.25
+        },
+        {
+          "x": 493.5,
+          "y": 2069.25
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "wasInfluencedBy",
+          "font": "11 400",
+          "position": {
+            "x": 463.5,
+            "y": 2063.25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/ns/prov#actedOnBehalfOf|res:http://www.w3.org/ns/prov#Agent",
+    "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/ns/prov#activity|res:http://www.w3.org/ns/prov#Activity",
+    "edge:res:http://www.w3.org/ns/prov#AgentInfluence|http://www.w3.org/ns/prov#agent|res:http://www.w3.org/ns/prov#Agent",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#alternateOf|res:http://www.w3.org/ns/prov#Entity",
+    "edge:thing:http://www.w3.org/ns/prov#atLocation|domain|http://www.w3.org/ns/prov#atLocation|res:http://www.w3.org/ns/prov#Location",
+    "edge:res:http://www.w3.org/ns/prov#EntityInfluence|http://www.w3.org/ns/prov#entity|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#generated|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadActivity|res:http://www.w3.org/ns/prov#Activity",
+    "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/ns/prov#hadGeneration|res:http://www.w3.org/ns/prov#Generation",
+    "edge:res:http://www.w3.org/ns/prov#Collection|http://www.w3.org/ns/prov#hadMember|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Association|http://www.w3.org/ns/prov#hadPlan|res:http://www.w3.org/ns/prov#Plan",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#hadPrimarySource|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadRole|res:http://www.w3.org/ns/prov#Role",
+    "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/ns/prov#hadUsage|res:http://www.w3.org/ns/prov#Usage",
+    "edge:thing:http://www.w3.org/ns/prov#influenced|domain|http://www.w3.org/ns/prov#influenced|thing:http://www.w3.org/ns/prov#influenced|range",
+    "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#influencer|res:http://www.w3.org/2002/07/owl#Thing",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#invalidated|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedAssociation|res:http://www.w3.org/ns/prov#Association",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedAttribution|res:http://www.w3.org/ns/prov#Attribution",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedCommunication|res:http://www.w3.org/ns/prov#Communication",
+    "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/ns/prov#qualifiedDelegation|res:http://www.w3.org/ns/prov#Delegation",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedDerivation|res:http://www.w3.org/ns/prov#Derivation",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedEnd|res:http://www.w3.org/ns/prov#End",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedGeneration|res:http://www.w3.org/ns/prov#Generation",
+    "edge:thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain|http://www.w3.org/ns/prov#qualifiedInfluence|res:http://www.w3.org/ns/prov#Influence",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedInvalidation|res:http://www.w3.org/ns/prov#Invalidation",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedPrimarySource|res:http://www.w3.org/ns/prov#PrimarySource",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedQuotation|res:http://www.w3.org/ns/prov#Quotation",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedRevision|res:http://www.w3.org/ns/prov#Revision",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedStart|res:http://www.w3.org/ns/prov#Start",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedUsage|res:http://www.w3.org/ns/prov#Usage",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#specializationOf|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#used|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasAssociatedWith|res:http://www.w3.org/ns/prov#Agent",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasAttributedTo|res:http://www.w3.org/ns/prov#Agent",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasDerivedFrom|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasEndedBy|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasGeneratedBy|res:http://www.w3.org/ns/prov#Activity",
+    "edge:thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain|http://www.w3.org/ns/prov#wasInfluencedBy|thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasInformedBy|res:http://www.w3.org/ns/prov#Activity",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasInvalidatedBy|res:http://www.w3.org/ns/prov#Activity",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasQuotedFrom|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasRevisionOf|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasStartedBy|res:http://www.w3.org/ns/prov#Entity",
+    "edge:thing:http://www.w3.org/ns/prov#followedRecipe|domain|http://www.w3.org/ns/prov#followedRecipe|thing:http://www.w3.org/ns/prov#followedRecipe|range",
+    "edge:res:http://www.w3.org/ns/prov#InstantaneousEvent|http://www.w3.org/ns/prov#atTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#endedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#generatedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#invalidatedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#startedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#value|dt:http://www.w3.org/ns/prov#value",
+    "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+    "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#EntityInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+    "edge:res:http://www.w3.org/ns/prov#AgentInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+    "edge:res:http://www.w3.org/ns/prov#Association|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Attribution|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Bundle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Collection|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Communication|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Delegation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+    "edge:res:http://www.w3.org/ns/prov#EmptyCollection|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Collection",
+    "edge:res:http://www.w3.org/ns/prov#End|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+    "edge:res:http://www.w3.org/ns/prov#End|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+    "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+    "edge:res:http://www.w3.org/ns/prov#EntityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+    "edge:res:http://www.w3.org/ns/prov#Generation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Generation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+    "edge:res:http://www.w3.org/ns/prov#Invalidation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Invalidation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+    "edge:res:http://www.w3.org/ns/prov#Organization|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+    "edge:res:http://www.w3.org/ns/prov#Person|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+    "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+    "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Bundle",
+    "edge:res:http://www.w3.org/ns/prov#PrimarySource|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+    "edge:res:http://www.w3.org/ns/prov#Quotation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+    "edge:res:http://www.w3.org/ns/prov#Revision|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+    "edge:res:http://www.w3.org/ns/prov#SoftwareAgent|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+    "edge:res:http://www.w3.org/ns/prov#Start|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Start|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+    "edge:res:http://www.w3.org/ns/prov#Usage|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+    "edge:res:http://www.w3.org/ns/prov#Usage|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+    "edge:res:http://www.w3.org/ns/prov#Recipe|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Plan",
+    "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "res:http://www.w3.org/2002/07/owl#Thing",
+    "res:http://www.w3.org/ns/prov#",
+    "res:http://www.w3.org/ns/prov#Activity",
+    "res:http://www.w3.org/ns/prov#Entity",
+    "res:http://www.w3.org/ns/prov#ActivityInfluence",
+    "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "res:http://www.w3.org/ns/prov#Influence",
+    "res:http://www.w3.org/ns/prov#EntityInfluence",
+    "res:http://www.w3.org/ns/prov#Agent",
+    "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+    "res:http://www.w3.org/ns/prov#AgentInfluence",
+    "res:http://www.w3.org/ns/prov#Association",
+    "res:http://www.w3.org/ns/prov#Attribution",
+    "res:http://www.w3.org/ns/prov#Bundle",
+    "res:http://www.w3.org/ns/prov#Collection",
+    "res:http://www.w3.org/ns/prov#Communication",
+    "res:http://www.w3.org/ns/prov#Delegation",
+    "res:http://www.w3.org/ns/prov#Derivation",
+    "res:http://www.w3.org/ns/prov#EmptyCollection",
+    "ind:http://www.w3.org/ns/prov#EmptyCollection",
+    "res:http://www.w3.org/ns/prov#End",
+    "res:http://www.w3.org/ns/prov#Generation",
+    "res:http://www.w3.org/ns/prov#Invalidation",
+    "res:http://www.w3.org/ns/prov#Location",
+    "res:http://www.w3.org/ns/prov#Organization",
+    "res:http://www.w3.org/ns/prov#Person",
+    "res:http://www.w3.org/ns/prov#Plan",
+    "res:http://www.w3.org/ns/prov#PrimarySource",
+    "res:http://www.w3.org/ns/prov#Quotation",
+    "res:http://www.w3.org/ns/prov#Revision",
+    "res:http://www.w3.org/ns/prov#Role",
+    "res:http://www.w3.org/ns/prov#SoftwareAgent",
+    "res:http://www.w3.org/ns/prov#Start",
+    "res:http://www.w3.org/ns/prov#Usage",
+    "res:http://www.w3.org/2001/XMLSchema#dateTime",
+    "res:http://www.w3.org/ns/prov#Recipe",
+    "res:http://www.w3.org/ns/prov#grandmasPie",
+    "thing:http://www.w3.org/ns/prov#atLocation|domain",
+    "thing:http://www.w3.org/ns/prov#influenced|domain",
+    "thing:http://www.w3.org/ns/prov#influenced|range",
+    "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain",
+    "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain",
+    "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+    "thing:http://www.w3.org/ns/prov#followedRecipe|domain",
+    "thing:http://www.w3.org/ns/prov#followedRecipe|range",
+    "dt:http://www.w3.org/ns/prov#value"
+  ]
+}

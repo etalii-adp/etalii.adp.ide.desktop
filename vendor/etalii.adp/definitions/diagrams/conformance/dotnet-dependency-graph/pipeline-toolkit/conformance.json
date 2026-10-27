@@ -1,0 +1,514 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record dotnet/dependency-graph` from parity/scripts/dotnet/dependency-graph/pipeline-toolkit.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "dotnet/dependency-graph",
+  "description": "../../../dotnet-dependency-graph.atd",
+  "inputs": {
+    "body": "PipelineToolkit.slnx",
+    "registration": "PipelineToolkit.adp",
+    "Directory.Packages.props": "Directory.Packages.props",
+    "src/Pipeline.Cli/Pipeline.Cli.csproj": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+    "src/Pipeline.Core/Pipeline.Core.csproj": "src/Pipeline.Core/Pipeline.Core.csproj",
+    "src/Pipeline.Storage/Pipeline.Storage.csproj": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+    "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "type": "dotnet/dependency-graph+project",
+        "parent": null,
+        "attributes": {
+          "name": "Pipeline.Core",
+          "kind": "Project",
+          "projectRelativePath": "src/Pipeline.Core/Pipeline.Core.csproj",
+          "targetFrameworks": "net10.0",
+          "width": "220",
+          "height": "56"
+        }
+      },
+      {
+        "id": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "type": "dotnet/dependency-graph+project",
+        "parent": null,
+        "attributes": {
+          "name": "Pipeline.Storage",
+          "kind": "Project",
+          "projectRelativePath": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+          "targetFrameworks": "net10.0, netstandard2.0",
+          "width": "220",
+          "height": "56"
+        }
+      },
+      {
+        "id": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "type": "dotnet/dependency-graph+project",
+        "parent": null,
+        "attributes": {
+          "name": "Pipeline.Cli",
+          "kind": "Project",
+          "projectRelativePath": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+          "targetFrameworks": "net10.0",
+          "width": "220",
+          "height": "56"
+        }
+      },
+      {
+        "id": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "type": "dotnet/dependency-graph+project",
+        "parent": null,
+        "attributes": {
+          "name": "Pipeline.Core.Tests",
+          "kind": "Project",
+          "projectRelativePath": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+          "targetFrameworks": "net10.0",
+          "width": "220",
+          "height": "56"
+        }
+      },
+      {
+        "id": "package:Serilog",
+        "type": "dotnet/dependency-graph+package",
+        "parent": null,
+        "attributes": {
+          "name": "Serilog",
+          "kind": "Package",
+          "versions": "3.1.1, 4.4.0",
+          "hasVersionConflict": "true",
+          "dependentProjectCount": "3",
+          "isAmbient": "false",
+          "width": "220",
+          "height": "56"
+        }
+      },
+      {
+        "id": "package:System.Text.Json",
+        "type": "dotnet/dependency-graph+package",
+        "parent": null,
+        "attributes": {
+          "name": "System.Text.Json",
+          "kind": "Package",
+          "versions": "10.0.0",
+          "hasVersionConflict": "false",
+          "dependentProjectCount": "1",
+          "isAmbient": "false",
+          "width": "220",
+          "height": "56"
+        }
+      },
+      {
+        "id": "package:xunit.v3",
+        "type": "dotnet/dependency-graph+package",
+        "parent": null,
+        "attributes": {
+          "name": "xunit.v3",
+          "kind": "Package",
+          "versions": "4.1.0",
+          "hasVersionConflict": "false",
+          "dependentProjectCount": "1",
+          "isAmbient": "false",
+          "width": "220",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "depends:project:src/Pipeline.Core/Pipeline.Core.csproj->package:Serilog",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "target": "package:Serilog",
+        "attributes": {
+          "kind": "PackageReference"
+        }
+      },
+      {
+        "id": "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "target": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "attributes": {
+          "kind": "ProjectReference"
+        }
+      },
+      {
+        "id": "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->package:System.Text.Json",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "target": "package:System.Text.Json",
+        "attributes": {
+          "kind": "PackageReference"
+        }
+      },
+      {
+        "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "target": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "attributes": {
+          "kind": "ProjectReference"
+        }
+      },
+      {
+        "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "target": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "attributes": {
+          "kind": "ProjectReference"
+        }
+      },
+      {
+        "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "target": "package:Serilog",
+        "attributes": {
+          "kind": "PackageReference"
+        }
+      },
+      {
+        "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "target": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "attributes": {
+          "kind": "ProjectReference"
+        }
+      },
+      {
+        "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:xunit.v3",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "target": "package:xunit.v3",
+        "attributes": {
+          "kind": "PackageReference"
+        }
+      },
+      {
+        "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:Serilog",
+        "type": "dotnet/dependency-graph+edge",
+        "source": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "target": "package:Serilog",
+        "attributes": {
+          "kind": "PackageReference"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "move": {
+        "element": "project:src/Pipeline.Core/Pipeline.Core.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:src/Pipeline.Core/Pipeline.Core.csproj\"],\"to\":{\"x\":40,\"y\":20}}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "move": {
+        "element": "package:Serilog"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"package:Serilog\"],\"dx\":0,\"dy\":300}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:src/Pipeline.Storage/Pipeline.Storage.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:src/Pipeline.Storage/Pipeline.Storage.csproj\"],\"dx\":-50,\"dy\":40}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:src/Pipeline.Cli/Pipeline.Cli.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:src/Pipeline.Cli/Pipeline.Cli.csproj\"],\"dx\":12.3456,\"dy\":-7.8912}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj\"],\"to\":{\"x\":800.5,\"y\":-40.25}}",
+      "select": [
+        "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj"
+      ],
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:src/Pipeline.Core/Pipeline.Core.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:src/Pipeline.Core/Pipeline.Core.csproj\"],\"dx\":30,\"dy\":30}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "move": {
+        "element": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog\"],\"to\":{\"x\":100,\"y\":100}}",
+      "refused": {
+        "reason": "That element is not something this diagram can move."
+      },
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "parent": "project:src/Pipeline.Cli/Pipeline.Cli.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:src/Pipeline.Core/Pipeline.Core.csproj\"],\"parent\":\"project:src/Pipeline.Cli/Pipeline.Cli.csproj\"}",
+      "refused": {
+        "reason": "A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow."
+      },
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "property": {
+        "element": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "attribute": "Name",
+        "value": "Renamed"
+      },
+      "refused": {
+        "reason": "Defined in src/Pipeline.Cli/Pipeline.Cli.csproj; edit it in a text editor."
+      },
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "move": {
+        "element": "package:System.Text.Json"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"package:System.Text.Json\"],\"to\":{\"x\":0,\"y\":0}}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "move": {
+        "element": "package:xunit.v3"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"package:xunit.v3\"],\"dx\":181.6,\"dy\":0}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:src/Pipeline.Cli/Pipeline.Cli.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:src/Pipeline.Cli/Pipeline.Cli.csproj\"],\"to\":{\"x\":409.4,\"y\":168}}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "move": {
+        "element": "package:Serilog"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"package:Serilog\"],\"dx\":0,\"dy\":50}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "move": {
+        "element": "package:System.Text.Json"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"package:System.Text.Json\"],\"dx\":0,\"dy\":50}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "move": {
+        "element": "package:xunit.v3"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"package:xunit.v3\"],\"dx\":0,\"dy\":50}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "redo": true
+    },
+    {
+      "redo": true,
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:src/Pipeline.Storage/Pipeline.Storage.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:src/Pipeline.Storage/Pipeline.Storage.csproj\"],\"to\":{\"x\":0.0001,\"y\":3.33333}}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj\"],\"to\":{\"x\":-120.5,\"y\":-60.0625}}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "move": {
+        "element": "project:src/Pipeline.Storage/Pipeline.Storage.csproj"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"project:src/Pipeline.Storage/Pipeline.Storage.csproj\"],\"dx\":5,\"dy\":5}",
+      "expectFile": "PipelineToolkit.slnx",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/dotnet/dependency-graph/pipeline-toolkit/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

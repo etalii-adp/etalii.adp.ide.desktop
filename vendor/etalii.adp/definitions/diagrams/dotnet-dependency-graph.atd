@@ -1,0 +1,278 @@
+atd 0.1
+
+/// Which projects a solution builds, which NuGet packages they consume, and every reference between them - read from
+/// the project files rather than drawn by hand.
+///
+/// A derived diagram type. Its elements are a projection of files the user maintains elsewhere: a `.sln` or `.slnx`
+/// solution, the project files it names, the `Directory.Packages.props` files above them and the local NuGet cache.
+/// Nothing in the model is authored and nothing in the solution is ever written; the only thing a user changes is where
+/// the boxes are. The model is read by the capability `reader.msbuildSolution`, which also computes every
+/// package's versions, conflict, dependent count and ambient marking and every project's .NET version, so those are
+/// stored, read-only attributes here rather than derived ones. What DISL cannot state is described in
+/// `dotnet-dependency-graph.md` beside this file; the standalone wire ids are under `x-dotnet`.
+diagram dotnet/dependency-graph version "0.2.0" {
+  doc {
+    tags: ["dotnet", "nuget", "msbuild", "solution", "dependencies", "software delivery"]
+    seeAlso: [
+      {
+        title: "PackageReference in project files"
+        href: "https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files"
+      },
+      {
+        title: "Central Package Management"
+        href: "https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management"
+      },
+      { title: "What DISL cannot express for this tool", href: "dotnet-dependency-graph.md" }
+    ]
+  }
+  label ".NET dependency graph"
+  id: "net.etalii.adp.dotnet.dependency-graph"
+  license: "Apache-2.0"
+  authors: [{ name: "Peter Vrenken", url: "https://github.com/vrenken" }]
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/dotnet-dependency-graph"
+  icon: "mdi-file-tree-outline"
+  requires: { conformance: standard }
+
+  import "dotnet-dependency-graph.notation.atd"
+  import "dotnet-dependency-graph.solution.atd"
+  requires capability layout.rankedColumns@^1
+  requires capability analysis.msbuildImports@^1
+  requires capability reader.msbuildSolution@^1
+
+  /// Two node kinds and two reference kinds. Every attribute is read-only: its value comes from a file the build owns,
+  /// and the remedy for a wrong value is always to edit that file.
+  model {
+    document {
+      /// The solution this diagram is bound to, relative to the registration - the `body:` header. Stated, never
+      /// inferred, so a folder holding two solutions is unambiguous.
+      attribute solution: string readonly { label: "Solution" }
+      /// Whether packages marked ambient are drawn.
+      attribute showAmbientPackages: bool default false {
+        transient: true
+        label: "Show ambient packages"
+        doc: {
+          rationale: "Hidden by default: a graph whose readability depends on the reader finding a control is not readable. A way of looking at the solution rather than a fact about it, so it is never persisted; it resets when the diagram is opened again."
+        }
+      }
+    }
+
+    /// Something a project in the solution can depend on, or a project itself.
+    element DependencyNode {
+      abstract: true
+      /// What the box is labelled: the project file name without its extension, or the package id as the first
+      /// reference read spells it.
+      attribute name: string required readonly { label: "Name" }
+    }
+
+    /// One project the solution names and which is on disk.
+    ///
+    /// A project the solution names but which is not on disk is not an element; the rest of the graph is still drawn.
+    element Project extends DependencyNode {
+      label "Project"
+      icon: "mdi-language-csharp"
+      labelAttribute: name
+      /// The project file's path relative to the solution, forward-slashed on every platform. The element id is built
+      /// from it, so a stored position survives a rename of the assembly but not a move of the file.
+      attribute path: string required readonly { key: true, unique: diagram, label: "Path" }
+      /// Every framework in `TargetFramework` or `TargetFrameworks`, de-duplicated case-insensitively. Multi-targeting
+      /// is ordinary; a value holding an unexpanded `$(...)` property is not a framework and is left out.
+      attribute targetFrameworks: string many readonly { label: "Target frameworks" }
+      /// The .NET version the target frameworks name, where they name one; unset otherwise.
+      ///
+      /// Read by the reader: every target framework of the form `net<major>.<minor>` names `<major>.<minor>`, and the
+      /// distinct ones are joined by `, ` in ordinal order, so a project multi-targeted across two versions shows both.
+      /// `netstandard2.0` or `net472` name none, which the inspector shows as *Not discoverable* rather than as a
+      /// blank.
+      attribute dotNetVersion: string readonly { label: ".NET version" }
+    }
+
+    /// One NuGet package the solution consumes, however many projects consume it.
+    ///
+    /// One element per package id, **never per version**: a version bump must not change the id and cost the user a
+    /// stored position. A package asked for at several versions is one element marked as a version conflict. The reader
+    /// computes the four attributes below once per reading, from every reference to the package.
+    element Package extends DependencyNode {
+      label "Package"
+      icon: "mdi-package-variant-closed"
+      labelAttribute: name
+      /// Every version the solution's projects ask for, distinct and ordered without regard to case. Empty when no
+      /// reference's version could be discovered.
+      attribute versions: string many readonly { label: "Versions" }
+      /// The projects disagree about the version: two known versions, or a known one beside a reference whose version
+      /// could not be discovered.
+      attribute hasVersionConflict: bool readonly default false {
+        label: "Version conflict"
+        doc: {
+          rationale: "Collapsing loudly: one element, both versions, marked - rather than two disconnected boxes or a silent collapse."
+        }
+      }
+      /// How many of the solution's projects reference this package.
+      attribute dependentProjectCount: int readonly default 0 { label: "Dependent projects" }
+      /// Referenced by so many of the solution's projects that the edge discriminates nothing.
+      ///
+      /// A package referenced by at least `max(5, ceil(0.15 × number of projects))` projects is ambient. Hidden by
+      /// default, never removed.
+      attribute isAmbient: bool readonly default false {
+        label: "Ambient"
+        doc: {
+          rationale: "Measured on the standalone repository's own solution: 104 projects, 17 packages, four of which carry 97 of the 155 package references. An edge on 26 of 104 projects says *this is a test project*, which the project's name already says. Degree rather than a curated name list, which needs maintaining and is wrong on the next repository. Only packages: the two highest-degree nodes there are projects, and they carry the opposite information."
+        }
+      }
+      /// The package author's description, from the local NuGet cache only; unset when the package was never restored
+      /// on this machine.
+      attribute description: text readonly {
+        label: "Description"
+        doc: {
+          rationale: "No feed is queried and no network call is made (the user's recorded decision). A package never restored here shows *Not available* instead; never an error, a wait or an empty diagram."
+        }
+      }
+    }
+
+    /// A `ProjectReference`: directed from the referencing project to the referenced one. A reference to a project the
+    /// solution does not contain is not drawn.
+    relation ProjectReference from Project to Project {
+      label "Project reference"
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+    }
+
+    /// A direct `PackageReference`: directed from the project to the package. Transitive packages are never drawn. One
+    /// project declaring the same package twice is one reference.
+    relation PackageReference from Project to Package {
+      label "Package reference"
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// What a box says about itself, as its tooltip and its accessible name: `Project <name>`, or `Package <id>` followed
+  /// by its versions in parentheses when any are known and by `- referenced at more than one version` when they
+  /// conflict.
+  fn title(e: Element) -> string {
+    return e.isA('Package') ? 'Package ' + e.name + (e.versions.size() > 0 ? ' (' + e.versions.join(', ') + ')' : '') + (e.hasVersionConflict ? ' - referenced at more than one version' : '') : 'Project ' + e.name
+  }
+
+  /// A project's dependency depth: 0 when it references no project of the solution, else one more than the deepest
+  /// project it references. A project reached again while it is being visited counts as depth 0, so a cycle, which
+  /// MSBuild refuses but a file may still hold, cannot hang the layout (dotnet-dependency-graph.md, section 'Layout').
+  fn dependencyDepth(p: Project, chain: list<string>) -> int recursion 64 {
+    var depth = 0
+    for r in p.outgoing.filter(r, r.isA('ProjectReference')) limit 100000 {
+      let below = r.target.id in chain || r.target.id == p.id ? 0 : dependencyDepth(r.target, chain + [p.id])
+      depth = math.greatest(depth, below + 1)
+    }
+    return depth
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Selects the project file in the workspace explorer. A package is not a file in the workspace, so it reveals
+  /// nothing.
+  operation revealProjectFile "Reveal project file" for Project {
+    icon: "mdi-file-find-outline"
+    open self.path
+  }
+
+  /// Draws every package, including the ambient ones.
+  operation showAmbientPackages "Show them" for diagram {
+    enabled !diagram.showAmbientPackages && diagram.nodesOfType('Package').exists(p, p.isAmbient)
+    set diagram.showAmbientPackages = true
+  }
+
+  /// Hides the ambient packages again, and the references to them.
+  operation hideAmbientPackages "Hide ambient packages" for diagram {
+    enabled diagram.showAmbientPackages
+    set diagram.showAmbientPackages = false
+  }
+  reason projectFile {
+    message ('Defined in ' + self.path + '; edit it in a text editor.')
+    doc: "Cause first, then the remedy, naming the file the value lives in."
+  }
+  reason referencingProjects {
+    message "Defined in the project files that reference it; edit it in a text editor."
+  }
+  message std.readOnly "A .NET dependency graph shows the solution as it is and changes nothing in it. Edit the project file this value comes from, and the diagram will follow."
+
+  behavior {
+    doc: "The model is read-only; besides dragging a box, the three operations are the only commands."
+    deletion: {
+      Project: { relations: forbid, references: forbid }
+      Package: { relations: forbid, references: forbid }
+    }
+    clipboard: { relations: none }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// The model is not stored by this diagram type: it is read from the solution each time. The registration (`.adp`)
+  /// holds the binding and the positions the user dragged, nothing else. No `.sln`, `.slnx` or project file is ever
+  /// written.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: natural
+      prefix: { Project: "project:", Package: "package:" }
+      stable: true
+      pattern: "^(project|package|depends):.{1,1024}$"
+      doc: "A project is `project:<path>`, a package `package:<id>`, and a reference `depends:<source id>-><target id>`. A project's path holds `/`, a reference holds `>` and two ids, and either can pass 128 characters, so the pattern admits them where DISL 11.5's default would not."
+    }
+    view: { store: [bounds], styleOverrides: none }
+    // DISL binding: https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/dotnet-dependency-graph/backend/EtAlii.Adp.Diagram.DotNetDependencyGraph/dotnet-dependency-graph.fbl#solution
+  }
+
+  plugin net.etalii.adp.dotnet.solution {
+    version: "^0.1.0"
+    provides: [persistenceFormat, action]
+    required: true
+    plans: []
+    args: { action: { type: string, doc: "`revealProjectFile`." } }
+    doc: "Reads a `.sln` or `.slnx`, the project files it names, the `Directory.Packages.props` files above them and the local NuGet cache into the model, computes the packages' and projects' read-only summaries, watches those files, and never writes any of them."
+  }
+  plugin net.etalii.adp.dotnet.dependencyLayers {
+    version: "^0.1.0"
+    provides: [layout]
+    required: false
+    fallback: { layout: layered }
+    args: {
+      layerWidth: { type: number, default: 320 }
+      rowHeight: { type: number, default: 90 }
+      packageBandGap: { type: number, default: 200 }
+      layerWrapAt: { type: int, default: 12 }
+      wrapColumnWidth: { type: number, default: 260 }
+    }
+    doc: "The depth-layered placement with wrapped layers and a package band. Without it, a generic layered layout is a fair approximation."
+  }
+
+  x-dotnet: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. The element kinds on the wire are the prefix followed by project, package or edge. A type or relation is keyed by its name, an action by its operation, a property by its form item's row id: its id, else its attribute."
+    typePrefix: "dotnet/dependency-graph+"
+    types: {
+      Project: project
+      Package: package
+      ProjectReference: project-reference
+      PackageReference: package-reference
+    }
+    actions: { revealProjectFile: "dotnet-dependency.activate" }
+    properties: {
+      name: "dotnet.name"
+      path: "dotnet.path"
+      targetFrameworks: "dotnet.target-frameworks"
+      dotNetVersion: "dotnet.dotnet-version"
+      packageId: "dotnet.package-id"
+      packageVersion: "dotnet.package-version"
+      packageVersionConflict: "dotnet.package-version-conflict"
+      packageDescription: "dotnet.package-description"
+    }
+  }
+  x-adp: {
+    kind: Diagram
+    state: Prototype
+    companion: "dotnet-dependency-graph.md"
+    documentExtensions: [".sln", ".slnx"]
+    sharedExtension: true
+  }
+}

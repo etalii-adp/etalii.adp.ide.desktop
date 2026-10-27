@@ -1,0 +1,846 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "cafes",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 294.4
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Cafés",
+          "font": "13 700",
+          "position": {
+            "x": -10,
+            "y": 142.2
+          }
+        },
+        {
+          "id": "note",
+          "text": "+10% Y/Y",
+          "font": "11 400 italic",
+          "position": {
+            "x": -10,
+            "y": 173.2
+          }
+        },
+        {
+          "id": "value",
+          "text": "€1,840M",
+          "font": "12 400",
+          "position": {
+            "x": -10,
+            "y": 158.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#0f766e"
+      }
+    },
+    {
+      "id": "cost-of-revenue",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 640,
+        "y": 338.05,
+        "w": 24,
+        "h": 302.4
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Cost of revenue",
+          "font": "13 700",
+          "position": {
+            "x": 674,
+            "y": 484.25
+          }
+        },
+        {
+          "id": "value",
+          "text": "(€1,890M)",
+          "font": "12 400",
+          "position": {
+            "x": 674,
+            "y": 500.25
+          }
+        }
+      ],
+      "style": {
+        "fill": "#a3151a"
+      }
+    },
+    {
+      "id": "general",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 1280,
+        "y": 380.34,
+        "w": 24,
+        "h": 67.2
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "General & administrative",
+          "font": "13 700",
+          "position": {
+            "x": 1314,
+            "y": 408.94
+          }
+        },
+        {
+          "id": "value",
+          "text": "(€420M)",
+          "font": "12 400",
+          "position": {
+            "x": 1314,
+            "y": 424.94
+          }
+        }
+      ],
+      "style": {
+        "fill": "#a3151a"
+      }
+    },
+    {
+      "id": "gross-profit",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 640,
+        "y": 44.45,
+        "w": 24,
+        "h": 257.6
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Gross profit",
+          "font": "13 700",
+          "position": {
+            "x": 674,
+            "y": 168.25
+          }
+        },
+        {
+          "id": "note",
+          "text": "46% margin",
+          "font": "11 400 italic",
+          "position": {
+            "x": 674,
+            "y": 199.25
+          }
+        },
+        {
+          "id": "value",
+          "text": "€1,610M",
+          "font": "12 400",
+          "position": {
+            "x": 674,
+            "y": 184.25
+          }
+        }
+      ],
+      "style": {
+        "fill": "#15803d"
+      }
+    },
+    {
+      "id": "licensing",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 639.2,
+        "w": 24,
+        "h": 28.8
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Licensing",
+          "font": "13 700",
+          "position": {
+            "x": -10,
+            "y": 648.6
+          }
+        },
+        {
+          "id": "note",
+          "text": "+21% Y/Y",
+          "font": "11 400 italic",
+          "position": {
+            "x": -10,
+            "y": 679.6
+          }
+        },
+        {
+          "id": "value",
+          "text": "€180M",
+          "font": "12 400",
+          "position": {
+            "x": -10,
+            "y": 664.6
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1d4ed8"
+      }
+    },
+    {
+      "id": "marketing",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 1280,
+        "y": 207.54,
+        "w": 24,
+        "h": 67.2
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Marketing",
+          "font": "13 700",
+          "position": {
+            "x": 1314,
+            "y": 236.14
+          }
+        },
+        {
+          "id": "value",
+          "text": "(€420M)",
+          "font": "12 400",
+          "position": {
+            "x": 1314,
+            "y": 252.14
+          }
+        }
+      ],
+      "style": {
+        "fill": "#a3151a"
+      }
+    },
+    {
+      "id": "net-profit",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 1280,
+        "y": 45.94,
+        "w": 24,
+        "h": 67.2
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Net profit",
+          "font": "13 700",
+          "position": {
+            "x": 1314,
+            "y": 74.54
+          }
+        },
+        {
+          "id": "note",
+          "text": "12% margin",
+          "font": "11 400 italic",
+          "position": {
+            "x": 1314,
+            "y": 105.54
+          }
+        },
+        {
+          "id": "value",
+          "text": "€420M",
+          "font": "12 400",
+          "position": {
+            "x": 1314,
+            "y": 90.54
+          }
+        }
+      ],
+      "style": {
+        "fill": "#15803d"
+      }
+    },
+    {
+      "id": "operating-expenses",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 960,
+        "y": 171.71,
+        "w": 24,
+        "h": 168
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Operating expenses",
+          "font": "13 700",
+          "position": {
+            "x": 994,
+            "y": 250.71
+          }
+        },
+        {
+          "id": "value",
+          "text": "(€1,050M)",
+          "font": "12 400",
+          "position": {
+            "x": 994,
+            "y": 266.71
+          }
+        }
+      ],
+      "style": {
+        "fill": "#a3151a"
+      }
+    },
+    {
+      "id": "operating-profit",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 960,
+        "y": 46.11,
+        "w": 24,
+        "h": 89.6
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Operating profit",
+          "font": "13 700",
+          "position": {
+            "x": 994,
+            "y": 85.91
+          }
+        },
+        {
+          "id": "note",
+          "text": "16% margin",
+          "font": "11 400 italic",
+          "position": {
+            "x": 994,
+            "y": 116.91
+          }
+        },
+        {
+          "id": "value",
+          "text": "€560M",
+          "font": "12 400",
+          "position": {
+            "x": 994,
+            "y": 101.91
+          }
+        }
+      ],
+      "style": {
+        "fill": "#15803d"
+      }
+    },
+    {
+      "id": "packaged",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 330.4,
+        "w": 24,
+        "h": 153.6
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Packaged coffee",
+          "font": "13 700",
+          "position": {
+            "x": -10,
+            "y": 402.2
+          }
+        },
+        {
+          "id": "note",
+          "text": "+4% Y/Y",
+          "font": "11 400 italic",
+          "position": {
+            "x": -10,
+            "y": 433.2
+          }
+        },
+        {
+          "id": "value",
+          "text": "€960M",
+          "font": "12 400",
+          "position": {
+            "x": -10,
+            "y": 418.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aa5500"
+      }
+    },
+    {
+      "id": "research",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 1280,
+        "y": 310.74,
+        "w": 24,
+        "h": 33.6
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Research & development",
+          "font": "13 700",
+          "position": {
+            "x": 1314,
+            "y": 322.54
+          }
+        },
+        {
+          "id": "value",
+          "text": "(€210M)",
+          "font": "12 400",
+          "position": {
+            "x": 1314,
+            "y": 338.54
+          }
+        }
+      ],
+      "style": {
+        "fill": "#a3151a"
+      }
+    },
+    {
+      "id": "revenue",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 320,
+        "y": 37.28,
+        "w": 24,
+        "h": 560
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Revenue",
+          "font": "13 700",
+          "position": {
+            "x": 354,
+            "y": 312.28
+          }
+        },
+        {
+          "id": "note",
+          "text": "+6% Y/Y",
+          "font": "11 400 italic",
+          "position": {
+            "x": 354,
+            "y": 343.28
+          }
+        },
+        {
+          "id": "value",
+          "text": "€3,500M",
+          "font": "12 400",
+          "position": {
+            "x": 354,
+            "y": 328.28
+          }
+        }
+      ],
+      "style": {
+        "fill": "#666666"
+      }
+    },
+    {
+      "id": "tax",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 1280,
+        "y": 149.14,
+        "w": 24,
+        "h": 22.4
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Tax",
+          "font": "13 700",
+          "position": {
+            "x": 1314,
+            "y": 155.34
+          }
+        },
+        {
+          "id": "value",
+          "text": "(€140M)",
+          "font": "12 400",
+          "position": {
+            "x": 1314,
+            "y": 171.34
+          }
+        }
+      ],
+      "style": {
+        "fill": "#a3151a"
+      }
+    },
+    {
+      "id": "wholesale",
+      "type": "etalii/sankey+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 520,
+        "w": 24,
+        "h": 83.2
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Wholesale & roasting",
+          "font": "13 700",
+          "position": {
+            "x": -10,
+            "y": 556.6
+          }
+        },
+        {
+          "id": "note",
+          "text": "-2% Y/Y",
+          "font": "11 400 italic",
+          "position": {
+            "x": -10,
+            "y": 587.6
+          }
+        },
+        {
+          "id": "value",
+          "text": "€520M",
+          "font": "12 400",
+          "position": {
+            "x": -10,
+            "y": 572.6
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1d4ed8"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "cafes->revenue",
+      "type": "etalii/sankey+flow",
+      "source": "cafes",
+      "target": "revenue",
+      "route": [
+        {
+          "x": 24,
+          "y": 165.84
+        },
+        {
+          "x": 320,
+          "y": 165.84
+        }
+      ],
+      "style": {
+        "fill": "#666666",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "gross-profit->operating-expenses",
+      "type": "etalii/sankey+flow",
+      "source": "gross-profit",
+      "target": "operating-expenses",
+      "route": [
+        {
+          "x": 664,
+          "y": 236.88
+        },
+        {
+          "x": 960,
+          "y": 236.88
+        }
+      ],
+      "style": {
+        "fill": "#a3151a",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "gross-profit->operating-profit",
+      "type": "etalii/sankey+flow",
+      "source": "gross-profit",
+      "target": "operating-profit",
+      "route": [
+        {
+          "x": 664,
+          "y": 90.08
+        },
+        {
+          "x": 960,
+          "y": 90.08
+        }
+      ],
+      "style": {
+        "fill": "#15803d",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "licensing->revenue",
+      "type": "etalii/sankey+flow",
+      "source": "licensing",
+      "target": "revenue",
+      "route": [
+        {
+          "x": 24,
+          "y": 618.24
+        },
+        {
+          "x": 320,
+          "y": 618.24
+        }
+      ],
+      "style": {
+        "fill": "#666666",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "operating-expenses->general",
+      "type": "etalii/sankey+flow",
+      "source": "operating-expenses",
+      "target": "general",
+      "route": [
+        {
+          "x": 984,
+          "y": 360.03
+        },
+        {
+          "x": 1280,
+          "y": 360.03
+        }
+      ],
+      "style": {
+        "fill": "#a3151a",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "operating-expenses->marketing",
+      "type": "etalii/sankey+flow",
+      "source": "operating-expenses",
+      "target": "marketing",
+      "route": [
+        {
+          "x": 984,
+          "y": 223.23
+        },
+        {
+          "x": 1280,
+          "y": 223.23
+        }
+      ],
+      "style": {
+        "fill": "#a3151a",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "operating-expenses->research",
+      "type": "etalii/sankey+flow",
+      "source": "operating-expenses",
+      "target": "research",
+      "route": [
+        {
+          "x": 984,
+          "y": 291.63
+        },
+        {
+          "x": 1280,
+          "y": 291.63
+        }
+      ],
+      "style": {
+        "fill": "#a3151a",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "operating-profit->net-profit",
+      "type": "etalii/sankey+flow",
+      "source": "operating-profit",
+      "target": "net-profit",
+      "route": [
+        {
+          "x": 984,
+          "y": 79.63
+        },
+        {
+          "x": 1280,
+          "y": 79.63
+        }
+      ],
+      "style": {
+        "fill": "#15803d",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "operating-profit->tax",
+      "type": "etalii/sankey+flow",
+      "source": "operating-profit",
+      "target": "tax",
+      "route": [
+        {
+          "x": 984,
+          "y": 142.42
+        },
+        {
+          "x": 1280,
+          "y": 142.42
+        }
+      ],
+      "style": {
+        "fill": "#a3151a",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "packaged->revenue",
+      "type": "etalii/sankey+flow",
+      "source": "packaged",
+      "target": "revenue",
+      "route": [
+        {
+          "x": 24,
+          "y": 407.84
+        },
+        {
+          "x": 320,
+          "y": 407.84
+        }
+      ],
+      "style": {
+        "fill": "#666666",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "revenue->cost-of-revenue",
+      "type": "etalii/sankey+flow",
+      "source": "revenue",
+      "target": "cost-of-revenue",
+      "route": [
+        {
+          "x": 344,
+          "y": 467.67
+        },
+        {
+          "x": 640,
+          "y": 467.67
+        }
+      ],
+      "style": {
+        "fill": "#a3151a",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "revenue->gross-profit",
+      "type": "etalii/sankey+flow",
+      "source": "revenue",
+      "target": "gross-profit",
+      "route": [
+        {
+          "x": 344,
+          "y": 169.67
+        },
+        {
+          "x": 640,
+          "y": 169.67
+        }
+      ],
+      "style": {
+        "fill": "#15803d",
+        "opacity": 0.42
+      }
+    },
+    {
+      "id": "wholesale->revenue",
+      "type": "etalii/sankey+flow",
+      "source": "wholesale",
+      "target": "revenue",
+      "route": [
+        {
+          "x": 24,
+          "y": 544.24
+        },
+        {
+          "x": 320,
+          "y": 544.24
+        }
+      ],
+      "style": {
+        "fill": "#666666",
+        "opacity": 0.42
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "cafes->revenue",
+    "packaged->revenue",
+    "wholesale->revenue",
+    "licensing->revenue",
+    "revenue->gross-profit",
+    "revenue->cost-of-revenue",
+    "gross-profit->operating-profit",
+    "gross-profit->operating-expenses",
+    "operating-profit->net-profit",
+    "operating-profit->tax",
+    "operating-expenses->marketing",
+    "operating-expenses->research",
+    "operating-expenses->general",
+    "cafes",
+    "packaged",
+    "wholesale",
+    "licensing",
+    "revenue",
+    "gross-profit",
+    "cost-of-revenue",
+    "operating-profit",
+    "operating-expenses",
+    "net-profit",
+    "tax",
+    "marketing",
+    "research",
+    "general"
+  ]
+}

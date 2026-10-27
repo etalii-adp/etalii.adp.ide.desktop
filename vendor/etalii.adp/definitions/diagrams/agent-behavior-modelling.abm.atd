@@ -1,0 +1,235 @@
+atd 0.1
+part of etalii/agent-behavior-modelling
+
+// The Agent Behavior Modelling's Markdown body, in a part of its own (ATD §5.2, §9).
+
+/// Agent Behavior Modelling's Markdown file format (definitions/diagrams/agent-behavior-modelling.dis and
+/// agent-behavior-modelling.md, section The file format) declared as a binding of the bullets family (FBL 0.7, section
+/// 4.8), taken from specifications/fbl/behavior-tree.fbl. It is the description's reading of the format in place of the
+/// persistence plugin net.etalii.adp.etalii.abmMarkdown, which the specification's binding
+/// agent-behavior-modelling.fbl#abm names as its reader, so no code of this tool type reads or writes the file. The
+/// tree is the list items under the first heading Behavior or Behaviour, at any level, case-insensitive. A node is one
+/// item, its keyword in bold with the label after it (- **Do in order:** Handle the request), one rule per keyword,
+/// read without regard to case, with the colon inside or after the bold. Retry's count is inside its keyword and is the
+/// attempts attribute. An item without a keyword is an implicit Do, read by the last rule. Nothing in the Markdown
+/// names a node: no rule has an id, so a node's id is the one the specification derives from its place (1, 1.2, 1.2.1).
+/// Notes are the item's continuation lines. A nested item is a child of the item it is nested in, whatever that item's
+/// type, so the tool's own constraints report a leaf with children and a wrapper with more than one; the containment
+/// checks DISL builds in are switched off in the specification. The first node added to a file without the section
+/// appends ## Behavior at the end of the file. Everything else in the file, the legend the tool writes into a new file
+/// included, is unbound and kept byte for byte. Known differences from the tool's own reader and writer (AbmParser.cs,
+/// AbmWriter.cs, ported to the desktop host's parser.rs and writer.rs), which FBL cannot state: (1) the tool reads only
+/// the first list in the section, ending it at a line in the list's column that is not an item, where this binding
+/// reads every item that stands in the section; (2) the tool writes Retry up to 1 time, singular, for a count of one,
+/// where this binding writes the count's digits in place and keeps the word that was there, and a new Retry is written
+/// with times whatever its count; (3) the tool's notes leave out the trailing whitespace of each line, which the
+/// continuation keeps; (4) the tool rewrites a renamed item's whole line in its canonical form (**Keyword:** label, one
+/// space after the marker, no space after the bold when the label is empty), where this binding replaces the label
+/// alone; (5) the tool ends the section at a heading of its level or higher even inside a list item and indented up to
+/// three columns, and closes a fence on any line that starts with the fence's first three characters, where FBL 0.7
+/// reads such a line as an item's continuation, and closes a fence only on a run of the same character with nothing
+/// after it; (6) the tool suggests the reading for a Behavior heading in any case, where claims.suggest is a substring
+/// and matches # Behavior and # Behaviour as written; (7) the tool does not read an item with no text after its marker,
+/// which this binding reads as an implicit Do with an empty label; (8) the tool titles a new file Agent when the name
+/// leaves nothing, where the template writes {base}.
+binding abm family bullets {
+  label "Agent behavior model, Markdown"
+  claims {
+    extensions: [".md"]
+    shared: true
+    registrationOnly: true
+    origins: ["etalii/agent-behavior-modelling"]
+    suggest: { contains: ["# Behavior", "# Behaviour"] }
+  }
+  text { newline: crlf, indent: 2, finalNewline: true }
+  section behavior "^Behaviou?r$" {
+    doc: "The first heading whose text is Behavior or Behaviour, at any level; the section ends at the next heading with as many # or fewer."
+    caseInsensitive: true
+  }
+
+  element Sequence as sequence line "^\\*\\*\\s*Do +in +order\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Do in order:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element Fallback as fallback line "^\\*\\*\\s*Try +in +order\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Try in order:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element Parallel as parallel line "^\\*\\*\\s*Do +together\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Do together:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  /// The count is part of the keyword: Retry up to 3 times, Retry up to 1 time. The binding reads either form and
+  /// writes the count's digits in place; a new Retry is written with times.
+  element Retry as retry line "^\\*\\*\\s*Retry +up +to +(?<attempts>\\d{1,6}) +times?\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute attempts from group "attempts" { number: shortest empty: refuse }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Retry up to {attempts} times:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element RepeatUntil as repeat-until line "^\\*\\*\\s*Repeat +until\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Repeat until:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element Guard as guard line "^\\*\\*\\s*Only +while\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Only while:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element Approval as approval line "^\\*\\*\\s*Ask +approval +before\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Ask approval before:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element Check as check line "^\\*\\*\\s*Check\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Check:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element Do as do line "^\\*\\*\\s*Do\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Do:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element AskUser as ask-user line "^\\*\\*\\s*Ask +the +user\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Ask the user:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  element Delegate as delegate line "^\\*\\*\\s*Delegate\\s*(?::\\s*\\*\\*|\\*\\*:?)\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    insert {
+      place: last-child
+      container: behavior
+      create: { at: end-of-document, text: "## Behavior" }
+      emit: "**Delegate:**[ {label}]"
+    }
+    remove {}
+    caseInsensitive: true
+  }
+
+  /// An item with no keyword, or with a bold lead that is none of the eleven (a Retry without a count among them), is
+  /// a Do labelled with the whole item, and its implicit attribute is true. This rule comes after the keyword rules,
+  /// so it takes only what none of them took, and every item of the section is read. It has no insert: a Do is added
+  /// through the rule do, with its keyword.
+  element Do as implicit-do line "^\\s*(?<label>.*?)\\s*$" {
+    parent sequence, fallback, parallel, retry, repeat-until, guard, approval, check, do, ask-user, delegate, implicit-do slot children
+    within behavior
+    attribute label from group "label" { empty: keep }
+    attribute notes from continuation { empty: remove }
+    attribute implicit from value "true"
+    remove {}
+  }
+
+  template: {
+    text: "# {base}\r\n\r\nDescribe the agent here: who it works for, and what it is for.\r\n\r\n## How to follow the behavior\r\n\r\nThe behavior below is a behavior tree, and it is your instructions. Start at its first node and work through it from the top. Each list item is a node; the items indented under a node are its children, in order. Every node ends in success or failure, and its parent decides what happens next:\r\n\r\n- **Do in order** runs its children one after another, and fails as soon as one fails.\r\n- **Try in order** tries its children one after another, and succeeds as soon as one succeeds.\r\n- **Do together** runs its children independently, at the same time where you can, and succeeds when all of them succeed.\r\n- **Retry up to N times** runs its child again when it fails, at most N times in all.\r\n- **Repeat until** runs its child again and again until its condition holds.\r\n- **Only while** runs its child only while its condition holds, and abandons it when the condition stops holding.\r\n- **Ask approval before** says what its child is about to do and waits for the user's explicit approval; without it, the node fails.\r\n- **Check** answers its question from the conversation, your memory or a tool result; it succeeds when the answer is yes, and never acts.\r\n- **Do** carries out one piece of work: a tool call, an answer, an edit.\r\n- **Ask the user** asks its question and waits for the answer.\r\n- **Delegate** hands its task to a sub-agent, or follows the behavior file it links to.\r\n\r\nLines under a node that are not list items are notes: follow them while you carry out that node.\r\n\r\n## Behavior\r\n\r\n- **Do in order:** Handle the request\r\n"
+    doc: "The tool's new document: a title, one line saying what the file is for, the section that tells the agent how to follow the tree, and the Behavior section with one Do in order."
+  }
+}

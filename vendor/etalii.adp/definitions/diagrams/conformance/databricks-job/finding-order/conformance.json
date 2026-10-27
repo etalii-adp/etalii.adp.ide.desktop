@@ -1,0 +1,291 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/job` from parity/cases/databricks/job/finding-order.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/job",
+  "description": "../../../databricks-job.atd",
+  "inputs": {
+    "body": "finding-order.yml",
+    "registration": "finding-order.job.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "task:both",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "both",
+          "taskType": "notebook",
+          "source": "notebooks/both",
+          "clusterKey": "imaginary_cluster",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "both",
+          "badges": "imaginary_cluster",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:plain_missing",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "plain_missing",
+          "taskType": "notebook",
+          "source": "notebooks/plain",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "plain_missing",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:both",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "both",
+          "taskType": "notebook",
+          "source": "notebooks/both_again",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "both",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:ring_a",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "ring_a",
+          "taskType": "notebook",
+          "source": "notebooks/ring_a",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "ring_a",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:ring_b",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "ring_b",
+          "taskType": "notebook",
+          "source": "notebooks/ring_b",
+          "clusterKey": "other_imaginary",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "ring_b",
+          "badges": "other_imaginary",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:first_missing",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "first_missing",
+          "taskType": "other",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "first_missing",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:second_missing",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "second_missing",
+          "taskType": "other",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "second_missing",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:third_missing",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "third_missing",
+          "taskType": "other",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "third_missing",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "cluster:real_cluster",
+        "type": "databricks/job+cluster",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "real_cluster",
+          "badges": "15.4.x-scala2.12\n1 workers",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:first_missing->both",
+        "type": "databricks/job+edge",
+        "source": "task:first_missing",
+        "target": "task:both",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:second_missing->both",
+        "type": "databricks/job+edge",
+        "source": "task:second_missing",
+        "target": "task:both",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:third_missing->plain_missing",
+        "type": "databricks/job+edge",
+        "source": "task:third_missing",
+        "target": "task:plain_missing",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:ring_b->ring_a",
+        "type": "databricks/job+edge",
+        "source": "task:ring_b",
+        "target": "task:ring_a",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:ring_a->ring_b",
+        "type": "databricks/job+edge",
+        "source": "task:ring_a",
+        "target": "task:ring_b",
+        "attributes": {
+          "kind": "depends"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.task-key-missing",
+        "severity": "error",
+        "line": 11,
+        "message": "A task has no task_key. Give it one, or nothing can depend on it."
+      },
+      {
+        "rule": "databricks.missing-task",
+        "severity": "error",
+        "line": 16,
+        "message": "'both' depends on 'first_missing', which is not a task in this job. Fix the key or remove the dependency."
+      },
+      {
+        "rule": "databricks.missing-task",
+        "severity": "error",
+        "line": 17,
+        "message": "'both' depends on 'second_missing', which is not a task in this job. Fix the key or remove the dependency."
+      },
+      {
+        "rule": "databricks.dangling-cluster",
+        "severity": "error",
+        "line": 13,
+        "message": "'both' runs on cluster 'imaginary_cluster', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless."
+      },
+      {
+        "rule": "databricks.missing-task",
+        "severity": "error",
+        "line": 22,
+        "message": "'plain_missing' depends on 'third_missing', which is not a task in this job. Fix the key or remove the dependency."
+      },
+      {
+        "rule": "databricks.dangling-cluster",
+        "severity": "error",
+        "line": 33,
+        "message": "'ring_b' runs on cluster 'other_imaginary', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless."
+      },
+      {
+        "rule": "databricks.duplicate-task-key",
+        "severity": "error",
+        "line": 25,
+        "message": "The task key 'both' is used more than once. Every task needs its own."
+      },
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 28,
+        "message": "'ring_a' is part of a dependency circle, so it can never run. Break the circle."
+      },
+      {
+        "rule": "databricks.cycle",
+        "severity": "error",
+        "line": 33,
+        "message": "'ring_b' is part of a dependency circle, so it can never run. Break the circle."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

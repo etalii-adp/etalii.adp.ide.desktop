@@ -1,0 +1,311 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record gartner/hypecycle-graph` from parity/cases/gartner/hypecycle-graph/findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "gartner/hypecycle-graph",
+  "description": "../../../gartner-hype-cycle-graph.atd",
+  "inputs": {
+    "body": "findings.ghg"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "steam",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Steam",
+          "start": "21600",
+          "stop": "22200",
+          "row": "1",
+          "phases": "4"
+        }
+      },
+      {
+        "id": "backwards",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Backwards",
+          "start": "22800",
+          "stop": "22680",
+          "row": "2",
+          "phases": "2"
+        }
+      },
+      {
+        "id": "five-phases",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Five phases",
+          "start": "21600",
+          "stop": "22800",
+          "row": "3",
+          "phases": "5"
+        }
+      },
+      {
+        "id": "out-of-order",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Out of order",
+          "start": "21600",
+          "stop": "22800",
+          "row": "4",
+          "phases": "4",
+          "peakEnd": "22320",
+          "troughEnd": "21840"
+        }
+      },
+      {
+        "id": "trend@31",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Steam again",
+          "start": "21720",
+          "stop": "21960",
+          "row": "5",
+          "phases": "1"
+        }
+      },
+      {
+        "id": "undated",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Undated",
+          "row": "6"
+        }
+      },
+      {
+        "id": "patent",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Patent",
+          "date": "21545",
+          "row": "1"
+        }
+      },
+      {
+        "id": "unplaced",
+        "type": "Note",
+        "parent": null,
+        "attributes": {
+          "text": "A note without a place",
+          "row": "7"
+        }
+      },
+      {
+        "id": "flat",
+        "type": "Note",
+        "parent": null,
+        "attributes": {
+          "text": "A note without a height",
+          "at": "21840",
+          "row": "8",
+          "width": "120",
+          "height": "0"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "bad-ends",
+        "type": "Influence",
+        "source": "out-of-order",
+        "target": "five-phases",
+        "attributes": {
+          "fromPhase": "summit",
+          "fromEdge": "middle",
+          "fromAt": "1.5",
+          "toPhase": "peak",
+          "toEdge": "side",
+          "toAt": "0.5"
+        }
+      },
+      {
+        "id": "into-trigger",
+        "type": "Influence",
+        "source": "out-of-order",
+        "target": "patent",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "bottom",
+          "fromAt": "0.5",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.5"
+        }
+      },
+      {
+        "id": "self",
+        "type": "Influence",
+        "source": "five-phases",
+        "target": "five-phases",
+        "attributes": {
+          "fromPhase": "peak",
+          "fromEdge": "bottom",
+          "fromAt": "0.5",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.5"
+        }
+      },
+      {
+        "id": "once",
+        "type": "Influence",
+        "source": "patent",
+        "target": "out-of-order",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.2"
+        }
+      },
+      {
+        "id": "twice",
+        "type": "Influence",
+        "source": "patent",
+        "target": "out-of-order",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.4"
+        }
+      },
+      {
+        "id": "thrice",
+        "type": "Influence",
+        "source": "patent",
+        "target": "out-of-order",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.6"
+        }
+      },
+      {
+        "id": "dangling",
+        "type": "Influence",
+        "source": "nowhere",
+        "target": "out-of-order",
+        "attributes": {
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.5"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "ghg.duplicate-influence",
+        "severity": "warning",
+        "element": "twice",
+        "message": "`patent` influences `out-of-order` 3 times; a trend influences another once in each direction."
+      },
+      {
+        "rule": "ghg.self-influence",
+        "severity": "warning",
+        "element": "self",
+        "message": "`self` has `five-phases` influence itself; a trend cannot."
+      },
+      {
+        "rule": "ghg.stop-before-start",
+        "severity": "warning",
+        "element": "backwards",
+        "message": "`backwards` stops at 1890-01, not after it starts at 1900-01; a trend is at least a month long."
+      },
+      {
+        "rule": "ghg.phase-count",
+        "severity": "warning",
+        "element": "five-phases",
+        "message": "`five-phases` shows 5 phases; a trend shows 1 to 4."
+      },
+      {
+        "rule": "ghg.boundary-order",
+        "severity": "warning",
+        "element": "out-of-order",
+        "message": "`out-of-order`'s `trough-end: 1820-01` is out of order or outside 1800-01 to 1900-01."
+      },
+      {
+        "rule": "ghg.bad-attachment",
+        "severity": "warning",
+        "element": "bad-ends",
+        "message": "`bad-ends`'s from end (summit/middle/1.5) does not name a phase, a top or bottom edge, and an `at` from 0 to 1."
+      },
+      {
+        "rule": "ghg.bad-attachment",
+        "severity": "warning",
+        "element": "bad-ends",
+        "message": "`bad-ends`'s to end (peak/side/0.5) does not name a phase, a top or bottom edge, and an `at` from 0 to 1."
+      },
+      {
+        "rule": "ghg.dangling-reference",
+        "severity": "warning",
+        "element": "dangling",
+        "message": "`dangling` comes from `nowhere`, which is not a trend or a trigger in this document."
+      },
+      {
+        "rule": "ghg.influence-into-trigger",
+        "severity": "warning",
+        "element": "into-trigger",
+        "message": "`into-trigger` ends at the trigger `patent`; an influence cannot end at a trigger."
+      },
+      {
+        "rule": "ghg.trigger-date",
+        "severity": "warning",
+        "element": "undated",
+        "message": "`undated` has no `date` written as YYYY-MM; a trigger cannot be drawn without one."
+      },
+      {
+        "rule": "ghg.note-position",
+        "severity": "warning",
+        "element": "unplaced",
+        "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+      },
+      {
+        "rule": "ghg.note-position",
+        "severity": "warning",
+        "element": "flat",
+        "message": "`flat` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

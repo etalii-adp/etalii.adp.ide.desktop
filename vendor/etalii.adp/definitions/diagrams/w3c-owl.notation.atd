@@ -1,0 +1,575 @@
+atd 0.1
+part of w3c/owl
+
+// The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+/// VOWL's structural vocabulary - ellipse classes, box datatypes, a dashed small owl:Thing, a doubled outline for
+/// equivalence, labelled property edges, dimmed deprecated and external terms - without its fixed palette: kind is
+/// carried by shape and line style, colours come from the host's theme. The tokens copy standalone's theme variables
+/// (`src/client/src/index.css`), light and dark.
+notation {
+  theme {
+    tokens: {
+      color.surface: "#ffffff"
+      color.text: "#0f172a"
+      color.text.muted: "#64748b"
+      color.border: "#e2e8f0"
+      color.node.outline: "#8892a6"
+      color.primary: "limegreen"
+      color.warning: "#b45309"
+      font.body: "system-ui, sans-serif"
+      font.mono: "ui-monospace, monospace"
+    }
+    modes: {
+      dark: {
+        color.surface: "#1e293b"
+        color.text: "#f1f5f9"
+        color.text.muted: "#94a3b8"
+        color.border: "#334155"
+        color.warning: "#fbbf24"
+      }
+    }
+    followSystem: true
+  }
+  style node {
+    fill: $color.surface,
+    stroke: { color: $color.border, width: 1 },
+    font: { size: 12, color: $color.text }
+  }
+  style expression extends node { stroke: { dash: [3, 2], dashScale: absolute }, font: { size: 11 } }
+  style badges { font: { size: 11, color: $color.primary } }
+  style row { font: { size: 11, color: $color.text.muted } }
+  style edge { stroke: { color: $color.text.muted, width: 1.5 } }
+  style dimmed { opacity: 0.55 }
+  style doubled { stroke: { double: { gap: 4 } } }
+
+  node Class {
+    shape ellipse
+    label (self.display) as name { position: center, overflow: ellipsis, maxLines: 1, editable: false }
+    port axiomLeft { shape: "none", side: left, position: 0.5 }
+    port axiomRight { shape: "none", side: right, position: 0.5 }
+    style: "node"
+    size: { fixed: [190, 70] }
+    conditions: [{ when: (self.doubled), style: "doubled", doc: "Equivalence: a second ring 4 inside the first." }, {
+      when: (self.deprecated || self.external)
+      style: "dimmed"
+      doc: "Deprecated and borrowed terms are dimmed alike."
+    }
+    ]
+    tooltip: (self.display)
+    doubleClick: "openForm"
+  }
+
+  node Thing {
+    shape ellipse
+    label (self.display) as name { position: center, overflow: ellipsis, maxLines: 1, editable: false }
+    port axiomLeft { shape: "none", side: left, position: 0.5 }
+    port axiomRight { shape: "none", side: right, position: 0.5 }
+    style: "node"
+    size: { fixed: [104.5, 38.5] }
+    conditions: [{
+      when: (true)
+      style: { stroke: { dash: [4, 3], dashScale: absolute } }
+      doc: "owl:Thing is drawn dashed and at 0.55 of a class's size."
+    }
+    , { when: (self.doubled), style: "doubled" }, { when: (self.deprecated), style: "dimmed" }]
+    tooltip: (self.display)
+  }
+
+  node ThingAnchor {
+    shape ellipse
+    label "Thing" as name { position: center, editable: false }
+    style: { extends: "node", stroke: { dash: [4, 3], dashScale: absolute } }
+    size: { fixed: [104.5, 38.5] }
+    tooltip: "Thing"
+    deletable: false
+    copyable: false
+  }
+
+  node Datatype {
+    shape rect
+    label (self.display) as name { position: center, overflow: ellipsis, maxLines: 1, editable: false }
+    style: "node"
+    size: { fixed: [190, 70] }
+    conditions: [{ when: (self.deprecated), style: "dimmed" }]
+    tooltip: (self.display)
+    doubleClick: "openForm"
+  }
+
+  node LiteralAnchor {
+    shape rect
+    label "Literal" as name { position: center, editable: false }
+    style: "node"
+    size: { fixed: [190, 70] }
+    tooltip: "Literal"
+    deletable: false
+    copyable: false
+  }
+
+  node Individual {
+    shape rect
+    label (self.display) as title {
+      position: { anchor: [0.5, 0], offset: [0, 20] },
+      overflow: ellipsis,
+      maxLines: 1,
+      editable: false
+    }
+    label (self.badges.join(' · ')) as badges {
+      position: { anchor: [0, 0], offset: [8, 40], align: start }
+      style: "badges"
+      overflow: ellipsis
+      maxLines: 1
+      visible: (size(self.badges) > 0)
+    }
+    compartment rows {
+      items: @rows
+      itemText: (item.predicate + ': ' + item.value + ' ' + item.annotation)
+      itemStyle: "row"
+      layout: vertical
+      separator: none
+      overflow: ellipsis
+      editable: { add: false, remove: false, reorder: false, inline: false }
+    }
+    style: "node"
+    size: { width: 220, height: (30 + (size(self.badges) > 0 ? 16 : 0) + 16 * size(self.rows) + 10), resizable: false }
+    conditions: [{ when: (self.deprecated || self.external), style: "dimmed" }]
+    tooltip: (self.display)
+    doubleClick: "openForm"
+  }
+
+  node OntologyHeader {
+    shape rect
+    label (self.display) as title {
+      position: { anchor: [0.5, 0], offset: [0, 20] },
+      overflow: ellipsis,
+      maxLines: 1,
+      editable: false
+    }
+    compartment rows {
+      items: @rows
+      itemText: (item.predicate + ': ' + item.value + ' ' + item.annotation)
+      itemStyle: "row"
+      layout: vertical
+      separator: none
+      overflow: ellipsis
+      editable: { add: false, remove: false, reorder: false, inline: false }
+    }
+    style: "node"
+    size: { width: 220, height: (30 + 16 * size(self.rows) + 10), resizable: false }
+    conditions: [{ when: (self.deprecated), style: "dimmed" }]
+    tooltip: (self.display)
+    doubleClick: "openForm"
+  }
+
+  node Restriction {
+    shape ellipse
+    label (roundLabel(self.display, self.elided)) as name {
+      position: center,
+      overflow: ellipsis,
+      maxLines: 1,
+      editable: false
+    }
+    style: "expression"
+    size: { fixed: [190, 70] }
+    conditions: [{ when: (self.doubled), style: "doubled" }, {
+      when: (self.malformed)
+      style: { stroke: { color: $color.warning } }
+      doc: "A broken structure is marked, not hidden."
+    }
+    ]
+    tooltip: (self.display)
+    deletable: false
+    copyable: false
+  }
+
+  node Operator {
+    shape ellipse
+    label (roundLabel(self.display, self.elided)) as name {
+      position: center,
+      overflow: ellipsis,
+      maxLines: 1,
+      editable: false
+    }
+    style: "expression"
+    size: { fixed: [190, 70] }
+    conditions: [{ when: (self.doubled), style: "doubled" }, {
+      when: (self.malformed),
+      style: { stroke: { color: $color.warning } }
+    }
+    ]
+    tooltip: (self.display)
+    deletable: false
+    copyable: false
+  }
+
+  /// Dashed, with an arrow at the superclass.
+  edge SubClassOf {
+    line { stroke: { color: $color.text.muted, width: 1.5, dash: [6, 4], dashScale: absolute }, routing: straight }
+    marker source none
+    marker target arrow
+    reconnectable: false
+  }
+
+  /// Solid and heavier, no marker; both ends also wear the doubled outline.
+  edge EquivalentClass {
+    line { stroke: { color: $color.text.muted, width: 2 }, routing: straight }
+    marker source none
+    marker target none
+    reconnectable: false
+  }
+
+  /// Dotted with round caps, no marker.
+  edge DisjointWith {
+    line {
+      stroke: { color: $color.text.muted, width: 1.5, dash: [1, 5], dashScale: absolute, cap: round }
+      routing: straight
+    }
+    marker source none
+    marker target none
+    reconnectable: false
+    deletable: (!self.fromGroup)
+  }
+
+  edge ObjectProperty {
+    line { stroke: { color: $color.text.muted, width: 1.5 }, routing: straight }
+    marker source none
+    marker target arrow
+    label (self.label) as name { at: middle, side: above, distance: 6, editable: false }
+    reconnectable: false
+    deletable: false
+  }
+
+  edge DatatypeProperty {
+    line { stroke: { color: $color.text.muted, width: 1.5 }, routing: straight }
+    marker source none
+    marker target arrow
+    label (self.label) as name { at: middle, side: above, distance: 6, editable: false }
+    reconnectable: false
+    deletable: false
+  }
+
+  edge Assertion {
+    line { stroke: { color: $color.text.muted, width: 1.5 }, routing: straight }
+    marker source none
+    marker target arrow
+    label (self.name) as name { at: middle, side: above, distance: 6, editable: false }
+    reconnectable: false
+  }
+
+  edge References {
+    line {
+      stroke: { color: $color.text.muted, width: 1.5, opacity: 0.7, dash: [2, 3], dashScale: absolute }
+      routing: straight
+    }
+    marker source none
+    marker target none
+    reconnectable: false
+    deletable: false
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true }
+  group ontology "OWL" {
+    /// A named class. Drop it where it should sit; you will be asked for its name.
+    tool class "Class" { kind: operation, operation: "addClass", icon: "mdi-shape-circle-plus", mode: drop }
+    /// A property relating individuals to individuals - drawn as an edge once it has a domain and a range.
+    tool objectProperty "Object property" {
+      kind: operation,
+      operation: "addObjectProperty",
+      icon: "mdi-ray-start-arrow",
+      mode: drop
+    }
+    /// A property relating individuals to data values - drawn as an edge to its datatype.
+    tool datatypeProperty "Datatype property" {
+      kind: operation,
+      operation: "addDatatypeProperty",
+      icon: "mdi-form-textbox",
+      mode: drop
+    }
+    /// A named individual - a member of the classes this ontology describes.
+    tool individual "Individual" {
+      kind: operation,
+      operation: "addIndividual",
+      icon: "mdi-account-outline",
+      mode: drop
+    }
+  }
+  /// Every named term, the individual role of a punned IRI included; an expression, an anchor and a property edge have
+  /// no menu.
+  context for Class, Thing, Datatype, Individual, OntologyHeader {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: operation, operation: "renameResource", icon: "mdi-pencil-outline", shortcut: "F2" }
+    tool { kind: operation, operation: "removeResource", icon: "mdi-delete-outline", shortcut: "Delete" }
+  }
+  context for SubClassOf, EquivalentClass, DisjointWith, Assertion when self.direct {
+    placement: menu
+    standardEntries: false
+    tool "Remove statement" {
+      kind: operation,
+      operation: "removeStatement",
+      icon: "mdi-vector-polyline-remove",
+      shortcut: "Delete"
+    }
+  }
+  /// A placement: the empty canvas at a point.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add resource here…" { kind: operation, operation: "addResource", icon: "mdi-card-plus-outline" }
+    tool "Declare prefix…" { kind: operation, operation: "declarePrefix", icon: "mdi-at" }
+    tool "Add class here…" {
+      kind: operation
+      operation: "addClass"
+      icon: "mdi-shape-circle-plus"
+      visible: (diagram.nodesOfType('Triple').exists(t, typeTriple(t) && t.o == 'http://www.w3.org/2002/07/owl#Ontology'))
+    }
+    tool "Add object property…" {
+      kind: operation
+      operation: "addObjectProperty"
+      icon: "mdi-ray-start-arrow"
+      visible: (diagram.nodesOfType('Triple').exists(t, typeTriple(t) && t.o == 'http://www.w3.org/2002/07/owl#Ontology'))
+    }
+    tool "Add datatype property…" {
+      kind: operation
+      operation: "addDatatypeProperty"
+      icon: "mdi-form-textbox"
+      visible: (diagram.nodesOfType('Triple').exists(t, typeTriple(t) && t.o == 'http://www.w3.org/2002/07/owl#Ontology'))
+    }
+    tool "Add individual…" {
+      kind: operation
+      operation: "addIndividual"
+      icon: "mdi-account-outline"
+      visible: (diagram.nodesOfType('Triple').exists(t, typeTriple(t) && t.o == 'http://www.w3.org/2002/07/owl#Ontology'))
+    }
+  }
+  /// A finished connect gesture between two elements.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    tool "Subclass of" {
+      kind: operation
+      operation: "subclass"
+      icon: "mdi-file-tree"
+      visible: (source.id.startsWith('res:') && target.id.startsWith('res:') && (diagram.nodesOfType('Triple').exists(t, t.sKind == 'iri' && t.s == source.iri && ((typeTriple(t) && t.o in ['http://www.w3.org/2002/07/owl#Class', 'http://www.w3.org/2000/01/rdf-schema#Class']) || t.p == 'http://www.w3.org/2000/01/rdf-schema#subClassOf')) || diagram.nodesOfType('Triple').exists(t, t.oKind == 'iri' && t.o == source.iri && t.p in ['http://www.w3.org/2000/01/rdf-schema#subClassOf', 'http://www.w3.org/2000/01/rdf-schema#domain', 'http://www.w3.org/2000/01/rdf-schema#range'])) && (diagram.nodesOfType('Triple').exists(t, t.sKind == 'iri' && t.s == target.iri && ((typeTriple(t) && t.o in ['http://www.w3.org/2002/07/owl#Class', 'http://www.w3.org/2000/01/rdf-schema#Class']) || t.p == 'http://www.w3.org/2000/01/rdf-schema#subClassOf')) || diagram.nodesOfType('Triple').exists(t, t.oKind == 'iri' && t.o == target.iri && t.p in ['http://www.w3.org/2000/01/rdf-schema#subClassOf', 'http://www.w3.org/2000/01/rdf-schema#domain', 'http://www.w3.org/2000/01/rdf-schema#range'])))
+      args: { from: (source), to: (target) }
+    }
+    tool "Relate…" {
+      kind: operation,
+      operation: "relate",
+      icon: "mdi-ray-start-arrow",
+      args: { from: (source), to: (target) }
+    }
+  }
+}
+
+form termInspector for Class, Thing, Datatype, Individual, OntologyHeader {
+  usage: [inspector]
+  section "Identity" {
+    field iri {
+      widget: readonly,
+      readOnlyReasons: ["Rename through the context menu, so every reference follows the name."]
+    }
+    field typesText {
+      id: "types"
+      widget: readonly
+      readOnlyReasons: ["Types are stated by triples; add or remove them as statements."]
+    }
+  }
+  section "Documentation" {
+    field label { widget: text, readOnlyReasons: [{ reason: "truncated" }] }
+    field comment { widget: text, readOnlyReasons: [{ reason: "truncated" }] }
+  }
+  section "Axioms" {
+    /// One row per axiom, each with its own wire id (`x-owl`); a row rendering an expression reads the expression's
+    /// identity sentence (`w3c-owl.md`).
+    field axioms {
+      widget: readonly
+      visible: (size(self.axioms) > 0)
+      readOnlyReasons: ["Axioms are stated by triples; draw or remove them as edges and statements."]
+    }
+  }
+}
+
+form expressionInspector for Expression {
+  usage: [inspector]
+  section "Identity" {
+    field text {
+      id: "expression"
+      widget: readonly
+      readOnlyReasons: ["That is an anonymous class expression, whose identity does not survive an edit to the file, so nothing about it can be edited from the diagram. Edit the expression as text."]
+    }
+  }
+}
+
+form propertyInspector for ObjectProperty, DatatypeProperty {
+  usage: [inspector]
+  section "Identity" {
+    visible: (self.declared)
+    field property {
+      id: "iri"
+      widget: readonly
+      readOnlyReasons: ["Rename through the context menu, so every reference follows the name."]
+    }
+  }
+  section "Axioms" {
+    visible: (self.declared && size(self.axioms) > 0)
+    field axioms {
+      widget: readonly
+      readOnlyReasons: ["Axioms are stated by triples; draw or remove them as edges and statements."]
+    }
+  }
+}
+
+form assertionInspector for Assertion {
+  usage: [inspector]
+  section "Identity" {
+    field predicate {
+      id: "iri"
+      widget: readonly
+      visible: (self.declared)
+      readOnlyReasons: ["Rename through the context menu, so every reference follows the name."]
+    }
+    field predicate {
+      id: "predicateIri"
+      widget: readonly
+      visible: (!self.declared && self.direct)
+      display: (rdfDisplayName(self.predicate))
+      readOnlyReasons: ["A statement's predicate is the statement; remove and restate to change it."]
+    }
+  }
+  section "Axioms" {
+    visible: (self.declared && size(self.axioms) > 0)
+    field axioms {
+      widget: readonly
+      readOnlyReasons: ["Axioms are stated by triples; draw or remove them as edges and statements."]
+    }
+  }
+}
+
+form axiomInspector for SubClassOf, EquivalentClass, DisjointWith {
+  usage: [inspector]
+  section "Identity" {
+    visible: (self.direct)
+    item predicateIri "Predicate" {
+      kind: computed
+      value: "rdfDisplayName(self.sources[0].p)"
+      readOnlyReasons: ["A statement's predicate is the statement; remove and restate to change it."]
+    }
+  }
+}
+
+form addResourceDialog "Add resource" for diagram {
+  usage: [popover]
+  icon: "mdi-card-plus-outline"
+  submitLabel: "Add"
+  field iri "IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form declarePrefixDialog "Declare prefix" for diagram {
+  usage: [popover]
+  icon: "mdi-at"
+  submitLabel: "Declare"
+  field declaration "Declaration, e.g. ex: http://example.org/" {
+    validate: [{
+      rule: (value.matches('^\\s*[^:\\s]+\\s*:\\s*<?[A-Za-z][A-Za-z0-9+.-]*:[^\\s<>]*>?\\s*$'))
+      message: "Write the declaration as 'prefix: iri', e.g. ex: http://example.org/."
+    }
+    ]
+  }
+}
+
+form relateDialog "Relate" for diagram {
+  usage: [popover]
+  icon: "mdi-ray-start-arrow"
+  submitLabel: "Relate"
+  field predicate "Predicate (IRI or prefixed name)" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form renameDialog "Rename resource" for Term {
+  usage: [popover]
+  icon: "mdi-pencil-outline"
+  submitLabel: "Rename"
+  field newName "New IRI or prefixed name" {
+    initial: (rdfCompress(self.iri))
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }, {
+      rule: (!diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == rdfResolveTerm(value)) || (t.oKind == 'iri' && t.o == rdfResolveTerm(value))))
+      message: (rdfResolveTerm(value) + ' already names something in this document; renaming onto it would silently merge two resources.')
+    }
+    ]
+  }
+}
+
+form addClassDialog "Add class" for diagram {
+  usage: [popover]
+  icon: "mdi-shape-circle-plus"
+  submitLabel: "Add"
+  field iri "IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form addObjectPropertyDialog "Add object property" for diagram {
+  usage: [popover]
+  icon: "mdi-shape-circle-plus"
+  submitLabel: "Add"
+  field iri "IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form addDatatypePropertyDialog "Add datatype property" for diagram {
+  usage: [popover]
+  icon: "mdi-shape-circle-plus"
+  submitLabel: "Add"
+  field iri "IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+form addIndividualDialog "Add individual" for diagram {
+  usage: [popover]
+  icon: "mdi-shape-circle-plus"
+  submitLabel: "Add"
+  field iri "IRI or prefixed name" {
+    validate: [{ rule: (rdfResolveTerm(value) != ''), message: (rdfTermRefusal(value)) }]
+  }
+}
+
+/// Pure and deterministic, no physics: the same file always opens the same way. Authored positions from the
+/// registration override computed ones for named terms only; expressions and anchors always take their computed place.
+layout {
+  default depthColumns
+  /// The header card top-left; classes in columns by asserted subclass depth, roots left, a cycle collapsed to one
+  /// depth; each class's expressions, datatypes and anchors in a lane beside it; individuals in a five-wide band below;
+  /// anything left over in a band below that.
+  algorithm depthColumns capability layout.depthColumns {
+    columnWidth: 530
+    laneOffset: 250
+    slotHeight: 130
+    satelliteHeight: 110
+    satelliteOffset: 10
+    headerGap: 80
+    bandGap: 140
+    bandColumns: 5
+    bandColumnGap: 60
+    bandRowGap: 50
+    role: (self.isA('OntologyHeader') ? 'header' : (self.isA('Individual') ? 'individual' : ((self.isA('Class') || self.isA('Thing')) && self.id.startsWith('res:') ? 'class' : 'satellite')))
+    supers: ((self.isA('Class') || self.isA('Thing')) ? self.outgoingOf('SubClassOf').map(r, r.target.id) : [])
+    owner: (self.isA('Expression') && self.axiomOwner != null ? self.axiomOwner.id : '')
+    pinnable: (self.id.startsWith('res:') || self.id.startsWith('ind:'))
+  }
+  /// The declarative approximation of depthColumns, for a runtime without the capability: a layered layout over the subclass edges, which run from subclass to
+  /// superclass, so direction left puts the roots on the left.
+  algorithm fallback { algorithm: "layered", direction: left, spacing: { node: 60, layer: 90 } }
+  trigger: always
+  respect: all
+  incremental: false
+}
+
+viewpoint ontology "Ontology" { exclude: ["Triple", "Prefix", "Base"], default: true }

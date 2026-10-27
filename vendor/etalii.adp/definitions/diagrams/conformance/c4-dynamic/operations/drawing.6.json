@@ -1,0 +1,627 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "api",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 720,
+        "y": -128.4,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books deliveries and answers where a\nparcel is.",
+          "font": "10 400",
+          "position": {
+            "x": 840,
+            "y": -70.4
+          }
+        },
+        {
+          "id": "name",
+          "text": "Tracking API",
+          "font": "13 600",
+          "position": {
+            "x": 840,
+            "y": -106.4
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Java 21]",
+          "font": "10 400",
+          "position": {
+            "x": 840,
+            "y": -90.4
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "broker",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 360,
+        "y": -49.2,
+        "w": 240,
+        "h": 118
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Carries scan events so ingest and\nnotification are not one step.",
+          "font": "10 400",
+          "position": {
+            "x": 480,
+            "y": 8.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Event Broker",
+          "font": "13 600",
+          "position": {
+            "x": 480,
+            "y": -27.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Apache Kafka]",
+          "font": "10 400",
+          "position": {
+            "x": 480,
+            "y": -11.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "database",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 360,
+        "y": -207.6,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Stores deliveries, parcels and every\nscan against them.",
+          "font": "10 400",
+          "position": {
+            "x": 480,
+            "y": -149.6
+          }
+        },
+        {
+          "id": "name",
+          "text": "Delivery Database",
+          "font": "13 600",
+          "position": {
+            "x": 480,
+            "y": -185.6
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: PostgreSQL 16]",
+          "font": "10 400",
+          "position": {
+            "x": 480,
+            "y": -169.6
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "email",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 371.75,
+        "y": 128.8,
+        "w": 216.5,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "The corporate mail relay.",
+          "font": "10 400",
+          "position": {
+            "x": 480,
+            "y": 186.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "E-mail System",
+          "font": "13 600",
+          "position": {
+            "x": 480,
+            "y": 150.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 480,
+            "y": 166.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#999999",
+        "stroke": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "mobile",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": -49.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Scans parcels at pickup, handover and\ndelivery.",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 8.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Courier App",
+          "font": "13 600",
+          "position": {
+            "x": 120,
+            "y": -27.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Kotlin and Jetpack Compose]",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": -11.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "sender",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 720,
+        "y": 30,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books a delivery and follows where the\nparcel is.",
+          "font": "10 400",
+          "position": {
+            "x": 840,
+            "y": 88
+          }
+        },
+        {
+          "id": "name",
+          "text": "",
+          "font": "13 600",
+          "position": {
+            "x": 840,
+            "y": 52
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 840,
+            "y": 68
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "api->broker@182",
+      "type": "c4/model+relationship",
+      "source": "api",
+      "target": "broker",
+      "route": [
+        {
+          "x": 720,
+          "y": -49.53
+        },
+        {
+          "x": 600,
+          "y": -19.87
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "3. Publishes a parcel moved event",
+          "font": "10 400",
+          "position": {
+            "x": 660,
+            "y": -40.7
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "api->database@181",
+      "type": "c4/model+relationship",
+      "source": "api",
+      "target": "database",
+      "route": [
+        {
+          "x": 720,
+          "y": -105.6
+        },
+        {
+          "x": 600,
+          "y": -132
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "2. Records the scan against the parcel",
+          "font": "10 400",
+          "position": {
+            "x": 660,
+            "y": -124.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "api->email@184",
+      "type": "c4/model+relationship",
+      "source": "api",
+      "target": "email",
+      "route": [
+        {
+          "x": 768.41,
+          "y": -30
+        },
+        {
+          "x": 537.33,
+          "y": 128.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "5. Sends the sender an update",
+          "font": "10 400",
+          "position": {
+            "x": 652.87,
+            "y": 43.4
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "broker->api@183",
+      "type": "c4/model+relationship",
+      "source": "broker",
+      "target": "api",
+      "route": [
+        {
+          "x": 600,
+          "y": -19.87
+        },
+        {
+          "x": 720,
+          "y": -49.53
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "4. Delivers the event to the notifier",
+          "font": "10 400",
+          "position": {
+            "x": 660,
+            "y": -40.7
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "email->sender@185",
+      "type": "c4/model+relationship",
+      "source": "email",
+      "target": "sender",
+      "route": [
+        {
+          "x": 588.25,
+          "y": 141.44
+        },
+        {
+          "x": 720,
+          "y": 108.87
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "6. Arrives as mail",
+          "font": "10 400",
+          "position": {
+            "x": 654.13,
+            "y": 119.15
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "mobile->api@180",
+      "type": "c4/model+relationship",
+      "source": "mobile",
+      "target": "api",
+      "route": [
+        {
+          "x": 240,
+          "y": -13.2
+        },
+        {
+          "x": 720,
+          "y": -66
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "1. Posts the scan",
+          "font": "10 400",
+          "position": {
+            "x": 480,
+            "y": -45.6
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "legend",
+      "text": "Dynamic diagram for Courier Tracking",
+      "bounds": {
+        "x": 0,
+        "y": -237.6,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": 0,
+        "y": 237.6,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "band",
+      "bounds": {
+        "x": 36,
+        "y": 227.6,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Container",
+      "bounds": {
+        "x": 53,
+        "y": 237.6,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": 119.45,
+        "y": 227.6,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Software System (external)",
+      "bounds": {
+        "x": 136.45,
+        "y": 237.6,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:7",
+      "kind": "band",
+      "bounds": {
+        "x": 305.75,
+        "y": 227.6,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:8",
+      "kind": "legend",
+      "text": "Person",
+      "bounds": {
+        "x": 322.75,
+        "y": 237.6,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "mobile->api@180",
+    "api->database@181",
+    "api->broker@182",
+    "broker->api@183",
+    "api->email@184",
+    "email->sender@185",
+    "mobile",
+    "api",
+    "database",
+    "broker",
+    "email",
+    "sender",
+    "chrome:1",
+    "chrome:2",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6",
+    "chrome:7",
+    "chrome:8"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/cases/c4/system-landscape/hierarchical-identifiers.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "u",
+        "type": "person",
+        "width": 160.0,
+        "height": 78.8
+      },
+      {
+        "id": "api",
+        "type": "container",
+        "width": 160.0,
+        "height": 78.8,
+        "parent": "boundary:a"
+      },
+      {
+        "id": "b",
+        "type": "software system",
+        "width": 160.0,
+        "height": 78.8
+      },
+      {
+        "id": "boundary:a",
+        "type": "software system",
+        "width": 0.0,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "u->a.api#1",
+        "source": "u",
+        "target": "a.api"
+      },
+      {
+        "id": "u->b.api#2",
+        "source": "u",
+        "target": "b.api"
+      },
+      {
+        "id": "u->api#3",
+        "source": "u",
+        "target": "api"
+      }
+    ]
+  },
+  "args": {
+    "mode": "enclose",
+    "direction": "'tb'",
+    "rankSeparation": "120",
+    "nodeSeparation": "60",
+    "pinsIgnored": "false",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "u": {
+        "x": -190.0,
+        "y": 0.0
+      },
+      "b": {
+        "x": 30.0,
+        "y": 0.0
+      },
+      "api": {
+        "x": -80.0,
+        "y": 198.8
+      },
+      "boundary:a": {
+        "x": -112.0,
+        "y": 166.8
+      }
+    }
+  }
+}

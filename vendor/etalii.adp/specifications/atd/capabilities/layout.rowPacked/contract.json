@@ -1,0 +1,51 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.rowPacked",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "A row-packed drawing for a diagram read for its order rather than its durations: every node keeps the rows its `position` covers and is drawn at `packedWidth` where it has one, and the nodes are placed left to right in the order of their `position`'s left edge (ties by id). Nodes starting at one left edge are placed as a group at the larger of where the previous group ended and where every row it covers is free again: the last node's right edge there plus `gap`, plus the node's `leading` room for a label drawn before it; with `followConnections`, also no earlier than halfway along every node already placed that an edge leads from, plus `gap` and its `leading`. A later node of a group on a row an earlier one took follows it there. The first group keeps its own left edge. A node covers every row line from `floor(top / rowStep)` to `floor((bottom - 1) / rowStep)`, or the row of its own top without `rowStep`. Positions are the nodes' top-left corners and keep each node's `y`; `sizes` gives the width of each node of `types` (every node without `types`).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "gap": {
+      "type": "number",
+      "default": 4,
+      "doc": "The least clear space between two nodes on one row."
+    },
+    "rowStep": {
+      "type": "number",
+      "doc": "The distance between two row lines; absent, a node's row is its own top."
+    },
+    "followConnections": {
+      "type": "boolean",
+      "default": false,
+      "doc": "Whether a node an edge leads into starts no earlier than halfway along its source."
+    },
+    "types": {
+      "type": "list",
+      "doc": "The node types drawn at their packed width; absent, every node is. A node of another type keeps its own width and is still placed in order and clear of its neighbours."
+    },
+    "width": {
+      "type": "number",
+      "doc": "One width every node of `types` is drawn at; absent, each takes its `packedWidth`, or keeps its own width without one."
+    },
+    "packedWidth": {
+      "type": "query",
+      "doc": "The width a node is drawn at, where it is bound per node."
+    },
+    "leading": {
+      "type": "query",
+      "doc": "The room a node needs clear before its left edge, for a label drawn there; absent, none."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

@@ -1,0 +1,227 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record systems/causal-loop-diagram` from parity/cases/systems/causal-loop-diagram/refusals.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "systems/causal-loop-diagram",
+  "description": "../../../causal-loop-diagram.atd",
+  "inputs": {
+    "body": "graph.cld"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "variable:population",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "population",
+          "label": "Population"
+        }
+      },
+      {
+        "id": "variable:births",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "births",
+          "label": "Births"
+        }
+      },
+      {
+        "id": "variable:deaths",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "deaths",
+          "label": "Deaths"
+        }
+      },
+      {
+        "id": "loop:R1",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "R1",
+          "title": "Births beget births",
+          "members": "variable:population, variable:births"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "link:population|births",
+        "type": "CausalLink",
+        "source": "variable:population",
+        "target": "variable:births",
+        "attributes": {
+          "causeName": "population",
+          "effectName": "births",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:births|population",
+        "type": "CausalLink",
+        "source": "variable:births",
+        "target": "variable:population",
+        "attributes": {
+          "causeName": "births",
+          "effectName": "population",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "causal-loop.add-link",
+      "args": {
+        "value": "nobody"
+      },
+      "select": [
+        "variable:population"
+      ],
+      "refused": {
+        "reason": "No variable of that name is in this diagram, so there is nothing to change."
+      },
+      "expectFile": "graph.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-link",
+      "args": {
+        "value": "births"
+      },
+      "refused": {
+        "reason": "That link is already stated in this diagram."
+      },
+      "expectFile": "graph.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-link",
+      "args": {
+        "value": "deaths"
+      },
+      "expectFile": "after-1.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-loop",
+      "args": {
+        "value": "B 2"
+      },
+      "select": [
+        "variable:deaths"
+      ],
+      "refused": {
+        "reason": "A name needs at least one character and no whitespace, because a statement is read as words on one line."
+      },
+      "expectFile": "after-1.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-loop",
+      "args": {
+        "value": "R1"
+      },
+      "refused": {
+        "reason": "A loop of that identifier is already stated in this diagram."
+      },
+      "expectFile": "after-1.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-loop",
+      "args": {
+        "value": "B2"
+      },
+      "expectFile": "after-2.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B2",
+          "message": "Loop B2 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "property": {
+        "element": "variable:deaths",
+        "attribute": "causal-loop.variable-id",
+        "value": "births"
+      },
+      "refused": {
+        "reason": "Another Variable is already named 'births'."
+      },
+      "expectFile": "after-2.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B2",
+          "message": "Loop B2 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

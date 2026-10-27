@@ -1,0 +1,455 @@
+atd 0.1
+part of ansible/structure
+
+// The ansible project structure's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+coordinates {
+  system canvas {
+    kind: cartesian
+    x: { kind: linear }
+    y: { kind: linear }
+    doc: "One free canvas in canvas units, without snapping. Positions are computed by the layout; the ones a user drags are the only ones stored."
+  }
+}
+
+// ---------------------------------------------------------------- Notation
+
+/// Every visual distinction is carried by more than colour: each node kind has its own outline weight or dash, and each
+/// relation kind its own line.
+notation {
+  theme {
+    tokens: {
+      color.surface: "#FFFFFF"
+      color.surface.raised: "rgb(0 0 0 / 6%)"
+      color.text: "#1F1E1C"
+      color.text.muted: "#6B6A65"
+      color.border: "#8A8880"
+      color.primary: "#2F6FB2"
+      color.warning: "#B7791F"
+      color.play.hue0: "#4F8CC9"
+      color.play.hue1: "#57A773"
+      color.play.hue2: "#C96F4F"
+      color.play.hue3: "#8A6FC9"
+      color.play.hue4: "#C9A84F"
+      color.play.hue5: "#4FB5C9"
+      font.body: "system-ui, sans-serif"
+      font.mono: "ui-monospace, monospace"
+    }
+    modes: {
+      dark: {
+        color.surface: "#1F1E1C"
+        color.surface.raised: "rgb(255 255 255 / 6%)"
+        color.text: "#F1EFE8"
+        color.text.muted: "#A9A79F"
+        color.border: "#B4B2A9"
+        color.play.hue0: "#7FB0E0"
+        color.play.hue1: "#7FC79A"
+        color.play.hue2: "#E0947A"
+        color.play.hue3: "#AB96E0"
+        color.play.hue4: "#E0C87F"
+        color.play.hue5: "#7FD0E0"
+      }
+    }
+    followSystem: true
+  }
+  textMetric: { kind: average, advance: 0.55, count: utf16 }
+
+  style node {
+    fill: $color.surface.raised
+    stroke: { color: $color.border, width: 1.5 }
+    font: { family: $font.body, size: 13, color: $color.text }
+    cursor: pointer
+  }
+
+  style band extends node {
+    fill: $color.surface
+    stroke: { color: $color.text.muted, width: 1.5 }
+  }
+
+  style edgeLabel {
+    font: { family: $font.mono, size: 10, color: $color.text.muted }
+  }
+
+  style unresolved {
+    fill: none
+    stroke: { color: $color.warning, width: 1.5, dash: [3, 3], dashScale: absolute }
+    font: { family: $font.mono, size: 10, color: $color.warning }
+  }
+
+  style unresolvedDependency extends unresolved {
+    stroke: { color: $color.warning, width: 2, dash: [3, 3], dashScale: absolute, cap: round }
+  }
+
+  node AnsibleNode {
+    shape rect
+    style: node
+    size: { default: [72, 32], min: [72, 32], autoSize: fitWidth, resizable: false }
+    anchors: { mode: sides }
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: revealFile
+    accessibility: { role: button }
+    label @name as name { position: center, editable: false, wrap: none, overflow: ellipsis }
+    state hover { stroke: { width: 2 } }
+  }
+
+  node Playbook {
+    style: { extends: node, stroke: { color: $color.primary, width: 2 } }
+    tooltip: (self.hosts != '' ? 'Playbook ' + self.name + ' — hosts: ' + self.hosts : 'Playbook ' + self.name)
+  }
+
+  /// Six palette slots, wrapped: a play's tint is its project-wide play index modulo six, the hue mixed 18 % into the
+  /// raised surface. A playbook box is never tinted.
+  node Play {
+    style: {
+      extends: node
+      fill: (color(token('color.play.hue' + string(self.playIndex % 6))).mix(token('color.surface.raised'), 0.82))
+      stroke: {
+        color: (token('color.play.hue' + string(self.playIndex % 6)))
+        width: 1.5
+        dash: [6, 3]
+        dashScale: absolute
+      }
+    }
+    tooltip: (self.hosts != '' ? 'Play ' + self.name + ' — hosts: ' + self.hosts : 'Play ' + self.name)
+  }
+
+  node Role {
+    shape { type: roundedRect, params: { radius: 10 } }
+    tooltip: ('Role ' + self.name)
+    conditions: [
+      {
+        when: (self.hollow)
+        style: { stroke: { dash: [4, 4], dashScale: absolute }, opacity: 0.6 }
+        doc: "A role folder with nothing Ansible would run in it looks unfinished, because it is."
+      }
+    ]
+  }
+
+  node TaskFile {
+    style: {
+      extends: node
+      fill: $color.surface
+      stroke: { color: $color.border, width: 1.5, dash: [2, 2], dashScale: absolute }
+    }
+    tooltip: ('Task file ' + self.name)
+  }
+
+  node Inventory {
+    style: band
+    tooltip: ('Inventory ' + self.name)
+  }
+
+  node VariableFolder {
+    style: band
+    tooltip: ('Variables ' + self.name)
+  }
+
+  /// Out of the source's right side, into the target's left side, curving horizontally through the corridor between
+  /// columns.
+  edge AnsibleRelation {
+    line {
+      stroke: { color: $color.text.muted, width: 1.5, dash: (self.dynamic ? [5.0, 4.0] : []) }
+      routing: bezier
+      startDirection: right
+      endDirection: right
+      bendpoints: { editable: false }
+    }
+    marker target arrowFilled
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "right", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "left", x: 0, y: 0.5 }] }
+    }
+    stub: {
+      length: 48
+      side: right
+      style: unresolved
+      label: {
+        id: "unresolved"
+        text: (self.targetAsWritten + (self.resolution == 'expression' ? ' (expression)' : ' (missing)'))
+        side: above
+      }
+      doc: "A target that is missing or an expression: a 48-unit line out of the source's right side at mid-height in the warning colour, with the target's own words above it, left-aligned 8 units in."
+    }
+    selectable: true
+    deletable: false
+    reconnectable: false
+    label (self.condition != '' ? enumLabel('Directive', self.directive) + ' when ' + self.condition : enumLabel('Directive', self.directive)) as directive { at: middle, side: above, distance: 6, editable: false, draggable: false, style: edgeLabel }
+  }
+
+  /// A role depending on a role is not the same as a playbook listing one, so it is not drawn alike.
+  edge DependsOn {
+    line {
+      stroke: { color: $color.primary, width: 2, dash: [1, 4], dashScale: absolute, cap: round }
+      routing: bezier
+      bendpoints: { editable: false }
+    }
+    stub: {
+      length: 48
+      side: right
+      style: unresolvedDependency
+      label: {
+        id: "unresolved"
+        text: (self.targetAsWritten + (self.resolution == 'expression' ? ' (expression)' : ' (missing)'))
+        side: above
+      }
+      doc: "As every stub, at the dependency's own width and round cap."
+    }
+  }
+
+  /// A play reaching an inventory leaves the execution story, and reads as an aside.
+  edge Targets {
+    line {
+      stroke: { color: $color.text.muted, width: 1, opacity: 0.55 }
+      routing: bezier
+      bendpoints: { editable: false }
+    }
+  }
+
+  canvas {
+    empty: {
+      text: "Nothing here is laid out the way Ansible expects, so there is nothing to draw. Playbooks at the folder root or under playbooks/, roles under roles/, inventories under inventories/."
+      doc: "Shown once the folder has been read and holds nothing recognised, whether it exists or not. The tool set the three folder names in a monospace font until its canvas drew this definition, which a Message cannot state (ansible-structure.md, gap 11)."
+    }
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+/// This diagram offers no creation tools.
+toolbox {
+  doc {
+    rationale: "Nothing can be created on a diagram that writes nothing. The one edit is dragging a node to a new place."
+  }
+  searchable: false
+  generic: { select: true, pan: true, lasso: false, text: false, note: false, image: false, freehand: false }
+}
+
+// ---------------------------------------------------------------- Forms
+
+/// Every row is defined in the playbook file. A play shows its playbook's plays and imports; a playbook with more than
+/// one play shows no roles and no hosts, which its plays carry.
+form playbookInspector for Playbook, Play {
+  usage: [inspector]
+  section "Identity" {
+    field name { id: "name", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+  }
+  section "Runs" {
+    item plays "Plays" {
+      kind: computed
+      widget: readonly
+      value: (cel.bind(plays, playbookOf(self).plays, plays.size() == 1 ? (plays[0].name != '' ? plays[0].name : '1') : string(plays.size())))
+      visible: (playbookOf(self).plays.size() > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item roles "Roles" {
+      kind: computed
+      widget: readonly
+      value: (self.outgoingOf('UsesRole').map(r, r.targetAsWritten).join(', '))
+      visible: (self.outgoingOf('UsesRole').size() > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item imports "Imports" {
+      kind: computed
+      widget: readonly
+      value: (playbookOf(self).outgoingOf('ImportsPlaybook').map(r, r.targetAsWritten).join(', '))
+      visible: (playbookOf(self).outgoingOf('ImportsPlaybook').size() > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+  }
+  section "Targets" {
+    field hosts {
+      id: "hosts"
+      widget: readonly
+      visible: (self.hosts != '')
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item inventories "Reaches" {
+      kind: computed
+      widget: readonly
+      value: (self.outgoingOf('Targets').map(r, r.target.name).join(', '))
+      visible: (self.outgoingOf('Targets').size() > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+  }
+}
+
+/// A count of zero is not shown, so the rows say what a role has rather than what it lacks. Meta and Depends on are
+/// defined in the role's meta/main.yml.
+form roleInspector for Role {
+  usage: [inspector]
+  section "Identity" {
+    field name { id: "name", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+  }
+  section "Contents" {
+    item tasks "Task files" {
+      kind: computed
+      widget: readonly
+      value: (string(self.contents.taskFiles))
+      visible: (self.contents.taskFiles > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item handlers "Handlers" {
+      kind: computed
+      widget: readonly
+      value: (string(self.contents.handlers))
+      visible: (self.contents.handlers > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item templates "Templates" {
+      kind: computed
+      widget: readonly
+      value: (string(self.contents.templates))
+      visible: (self.contents.templates > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item files "Files" {
+      kind: computed
+      widget: readonly
+      value: (string(self.contents.files))
+      visible: (self.contents.files > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item defaults "Defaults" {
+      kind: computed
+      widget: readonly
+      value: (string(self.contents.defaults))
+      visible: (self.contents.defaults > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item vars "Vars" {
+      kind: computed
+      widget: readonly
+      value: (string(self.contents.vars))
+      visible: (self.contents.vars > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+    item meta "Meta" {
+      kind: computed
+      widget: readonly
+      value: yes
+      visible: (self.contents.hasMeta)
+      readOnlyReasons: [{ reason: "roleMeta" }]
+    }
+    item hollow "Hollow" {
+      kind: computed
+      widget: readonly
+      value: "yes - Ansible would find nothing to run here"
+      visible: (self.hollow)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+  }
+  section "Relationships" {
+    item dependencies "Depends on" {
+      kind: computed
+      widget: readonly
+      value: (self.outgoingOf('DependsOn').map(r, r.targetAsWritten).join(', '))
+      visible: (self.outgoingOf('DependsOn').size() > 0)
+      readOnlyReasons: [{ reason: "roleMeta" }]
+    }
+    item usedBy "Used by" {
+      kind: computed
+      widget: readonly
+      value: (self.incomingOf('UsesRole').map(r, r.declaredIn).distinct().join(', '))
+      visible: (self.incomingOf('UsesRole').size() > 0)
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+  }
+}
+
+/// Identity only. The rows of the Groups section (one per group, '1 host' or 'N hosts', row id ansible.group. and the
+/// group's name) and of the Variables section (one per variable folder, '1 file' or 'N files', defined in that folder,
+/// row id ansible.vars. and its name) are one row per item of a list, which a form item cannot state; the module's
+/// AnsibleInventoryRows adds them after these (ansible-structure.md, gap 7).
+form inventoryInspector for Inventory {
+  usage: [inspector]
+  section "Identity" {
+    field name { id: "name", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+  }
+}
+
+form variableFolderInspector for VariableFolder {
+  usage: [inspector]
+  section "Identity" {
+    field name { id: "name", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+  }
+  section "Variables" {
+    item files "Files" {
+      kind: computed
+      widget: readonly
+      value: (string(self.fileCount))
+      readOnlyReasons: [{ reason: "ownPath" }]
+    }
+  }
+}
+
+form taskFileInspector for TaskFile {
+  usage: [inspector]
+  section "Identity" {
+    field name { id: "name", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownPath" }] }
+  }
+}
+
+/// What declared the relation, and what it says as written: the answer to 'why is this here'. Every row is defined in
+/// the declaring file.
+form relationInspector for UsesRole, ImportsPlaybook, IncludesTasks, DependsOn, Targets {
+  usage: [inspector]
+  section "Declaration" {
+    item declaredIn "Declared in" {
+      kind: computed
+      widget: readonly
+      value: (self.declaredIn + ':' + string(self.declaredAtLine))
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    item directive "Directive" {
+      kind: computed
+      widget: readonly
+      value: (enumLabel('Directive', self.directive))
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field targetAsWritten { id: "target", widget: readonly, readOnlyReasons: [{ reason: "declaringFile" }] }
+    field condition {
+      id: "condition"
+      widget: readonly
+      visible: (self.condition != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    item resolution "Resolves to" {
+      kind: computed
+      widget: readonly
+      value: (self.resolution == 'missing' ? 'nothing in this folder' : 'an expression, so it is not knowable without running Ansible')
+      visible: (self.resolution != 'resolved')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+/// Positions are computed every time the folder changes, and a position a user dragged a node to wins over the computed
+/// one.
+layout {
+  default ranks
+  /// Entry playbooks, then what they import, then plays, then roles, then task files, left to right, every node of a
+  /// rank at the rank's width; inventories and variable folders in a band beneath. ansible-structure.md, section
+  /// 'Layout'.
+  algorithm ranks capability layout.rankedColumns {
+    rank: (self.isA('Inventory') || self.isA('VariableFolder') ? null : ansibleRank(self))
+    band: (self.isA('Inventory') || self.isA('VariableFolder'))
+    bandPlacement: below
+    origin: [0, 0]
+    columnGap: 96
+    rowGap: 24
+    uniformWidth: true
+    bandGap: 96
+  }
+  /// What a runtime without the plugin uses. It keeps the reading direction, not the columns or the band.
+  algorithm fallback { algorithm: layered, direction: right, spacing: { node: 24, layer: 96 }, edgeRouting: bezier }
+  trigger: onChange
+  respect: all
+  animate: false
+}

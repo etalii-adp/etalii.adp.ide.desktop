@@ -1,0 +1,354 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/bundle` from parity/scripts/databricks/bundle/lakehouse.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/bundle",
+  "description": "../../../databricks-bundle.atd",
+  "inputs": {
+    "body": "databricks.yml",
+    "registration": "databricks.adp",
+    "databricks.pipeline.adp": "databricks.pipeline.adp",
+    "readme.md": "readme.md",
+    "resources/nightly-ingest.adp": "resources/nightly-ingest.adp",
+    "resources/nightly-ingest.yml": "resources/nightly-ingest.yml"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "lakehouse",
+          "kind": "bundle",
+          "label": "lakehouse",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:pipelines/bronze_to_gold",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "bronze_to_gold",
+          "kind": "pipelines",
+          "label": "bronze_to_gold",
+          "badges": "pipelines",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "true",
+          "overrideCount": "0",
+          "label": "dev",
+          "width": "220",
+          "height": "120"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "2",
+          "label": "prod",
+          "width": "220",
+          "height": "120"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "override:prod/pipelines/bronze_to_gold",
+        "type": "databricks/bundle+edge",
+        "source": "target:prod",
+        "target": "resource:pipelines/bronze_to_gold",
+        "attributes": {
+          "kind": "override"
+        }
+      },
+      {
+        "id": "override:prod/jobs/nightly_ingest",
+        "type": "databricks/bundle+edge",
+        "source": "target:prod",
+        "target": "resource:jobs/nightly_ingest",
+        "attributes": {
+          "kind": "override"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "databricks.rename-bundle",
+      "args": {
+        "value": "lakehouse_core"
+      },
+      "select": [
+        "bundle"
+      ],
+      "expectFile": "after-1.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "element": "bundle",
+        "attribute": "Name",
+        "value": "lake house: main"
+      },
+      "expectFile": "after-2.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "element": "bundle",
+        "attribute": "Name",
+        "value": ""
+      },
+      "refused": {
+        "reason": "A bundle needs a name."
+      },
+      "expectFile": "after-2.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "databricks.add-resource:jobs",
+      "args": {
+        "target": "bundle",
+        "value": "nightly_ingest_v2"
+      },
+      "ids": [
+        "resource:jobs/nightly_ingest_v2"
+      ],
+      "expectFile": "after-3.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "databricks.add-resource:pipelines",
+      "args": {
+        "target": "bundle",
+        "value": "silver_only"
+      },
+      "ids": [
+        "resource:pipelines/silver_only"
+      ],
+      "expectFile": "after-4.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "databricks.add-resource:jobs",
+      "args": {
+        "target": "bundle",
+        "value": " audit "
+      },
+      "ids": [
+        "resource:jobs/audit"
+      ],
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "databricks.add-resource:pipelines",
+      "args": {
+        "target": "bundle",
+        "value": "silver_only"
+      },
+      "refused": {
+        "reason": "A pipelines resource named 'silver_only' is already there."
+      },
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-4.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "databricks.simulated.deploy",
+      "args": {
+        "target": "target:dev"
+      },
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "property": {
+        "element": "target:prod",
+        "attribute": "Target",
+        "value": "staging"
+      },
+      "refused": {
+        "reason": "The target's key is the file's structure."
+      },
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "move": {
+        "element": "bundle"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"bundle\"],\"to\":{\"x\":0,\"y\":-40}}",
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "move": {
+        "element": "target:prod"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"target:prod\"],\"to\":{\"x\":300,\"y\":520}}",
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "move": {
+        "element": "resource:jobs/audit"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"resource:jobs/audit\"],\"to\":{\"x\":520.25,\"y\":180}}",
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "move": {
+        "element": "resource:pipelines/bronze_to_gold"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"resource:pipelines/bronze_to_gold\"],\"dx\":10,\"dy\":10}",
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "move": {
+        "element": "override:prod/pipelines/bronze_to_gold"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"override:prod/pipelines/bronze_to_gold\"],\"to\":{\"x\":0,\"y\":0}}",
+      "refused": {
+        "reason": "That element is not something this diagram can move."
+      },
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/databricks/bundle/lakehouse/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

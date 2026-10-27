@@ -324,9 +324,14 @@ form connection for Connection {
 }
 
 layout {
-  algorithm rowArrange {
-    algorithm: "plugin:net.etalii.adp.generic.timelineRowArrange"
-    doc: "Arrange diagram (`timeline.arrange`): rows only, because across is the data. Not the standard `rows` algorithm (10.2): besides packing elements onto as few rows as their extents at the canvas's first fit allow, with related elements drawn to nearby rows, it keeps a moment and an element later than it that it is linked to on different rows, so their link does not run through the moment's label. See the plugin's doc."
+  /// Arrange diagram (`timeline.arrange`): rows only, because across is the data. Each element covers across what it
+  /// does at the canvas's first fit (`arrangedLeft`, `arrangedRight`), and a moment and a later element it is linked
+  /// to are kept on different rows (`keptApart`), so their link does not run through the moment's label.
+  algorithm rowArrange capability layout.rowPacking {
+    gap: 12
+    left: (arrangedLeft(self))
+    right: (arrangedRight(self))
+    apart: (keptApart(self))
   }
   trigger: manual
   respect: all

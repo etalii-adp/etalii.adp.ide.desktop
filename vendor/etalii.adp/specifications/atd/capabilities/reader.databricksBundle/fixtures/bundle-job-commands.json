@@ -1,0 +1,131 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/cases/databricks/bundle/job-commands.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\nbundle:\n  name: lakehouse-nightly\n\ninclude:\n  - resources/*.yml\n\nvariables:\n  catalog:\n    description: The Unity Catalog written to.\n    default: lakehouse_dev\n  warehouse_id:\n    default: \"4b9b953939869799\"\n\nsync:\n  exclude:\n    - notebooks/scratch/**\n\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n  pipelines:\n    bronze_to_gold:\n      name: Bronze to gold\n  experiments:\n    churn_model:\n      name: /Shared/churn\n\ntargets:\n  dev:\n    mode: development\n    default: true\n  prod:\n    mode: production\n    resources:\n      jobs:\n        nightly_ingest:\n          schedule:\n            quartz_cron_expression: \"0 0 2 * * ?\"\n",
+    "files": {
+      "databricks.adp": "databricks/bundle\nbody: databricks.yml\n"
+    }
+  },
+  "args": {
+    "reading": "bundle"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "lakehouse-nightly",
+          "kind": "bundle",
+          "label": "lakehouse-nightly",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:jobs/nightly_ingest",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "jobs",
+          "key": "nightly_ingest",
+          "kind": "jobs",
+          "label": "nightly_ingest",
+          "badges": "jobs",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:pipelines/bronze_to_gold",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "bronze_to_gold",
+          "kind": "pipelines",
+          "label": "bronze_to_gold",
+          "badges": "pipelines",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "unknown:sync",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "sync",
+          "key": "sync",
+          "kind": "sync",
+          "label": "sync",
+          "badges": "sync",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "unknown:resources.experiments",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "resources.experiments",
+          "key": "experiments",
+          "kind": "resources.experiments",
+          "label": "experiments",
+          "badges": "resources.experiments",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "true",
+          "overrideCount": "0",
+          "label": "dev",
+          "width": "220",
+          "height": "120"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "1",
+          "label": "prod",
+          "width": "220",
+          "height": "120"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "override:prod/jobs/nightly_ingest",
+        "type": "databricks/bundle+edge",
+        "source": "target:prod",
+        "target": "resource:jobs/nightly_ingest",
+        "attributes": {
+          "kind": "override"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.no-libraries",
+        "severity": "error",
+        "line": 24,
+        "message": "The pipeline 'Bronze to gold' has no libraries, so it has nothing to run. Add at least one notebook, file or glob."
+      }
+    ]
+  }
+}

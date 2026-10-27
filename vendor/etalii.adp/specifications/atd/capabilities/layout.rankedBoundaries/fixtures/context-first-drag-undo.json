@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/cases/c4/context/first-drag-undo.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "a",
+        "type": "software system",
+        "width": 160.0,
+        "height": 78.8,
+        "pinned": {
+          "x": 100.0,
+          "y": 50.0
+        }
+      },
+      {
+        "id": "b",
+        "type": "software system",
+        "width": 160.0,
+        "height": 78.8
+      }
+    ],
+    "edges": [
+      {
+        "id": "a->b#1",
+        "source": "a",
+        "target": "b"
+      }
+    ]
+  },
+  "args": {
+    "mode": "enclose",
+    "direction": "'tb'",
+    "rankSeparation": "120",
+    "nodeSeparation": "60",
+    "pinsIgnored": "false",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "a": {
+        "x": 100.0,
+        "y": 50.0
+      },
+      "b": {
+        "x": -80.0,
+        "y": 198.8
+      }
+    }
+  }
+}

@@ -1,0 +1,872 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/skos` from parity/cases/w3c/skos/layered-schemes.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/skos",
+  "description": "../../../w3c-skos.atd",
+  "inputs": {
+    "body": "layered-schemes.ttl",
+    "registration": "layered-schemes.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/kinds#empty",
+        "type": "w3c/skos+scheme",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#empty",
+          "label": "Empty",
+          "languageTag": "en",
+          "labelKind": "0",
+          "memberCount": "0"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#farm",
+        "type": "w3c/skos+scheme",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#farm",
+          "label": "Farm",
+          "languageTag": "en",
+          "labelKind": "0",
+          "memberCount": "4"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#zoo",
+        "type": "w3c/skos+scheme",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#zoo",
+          "label": "Zoo",
+          "languageTag": "en",
+          "labelKind": "0",
+          "memberCount": "24"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#animal",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#animal",
+          "label": "animal",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "schemeIris.1": "http://example.org/kinds#farm",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#cow",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#cow",
+          "label": "cow",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#farm",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#left",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#left",
+          "label": "left",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#farm",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#right",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#right",
+          "label": "right",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#farm",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#bird",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#bird",
+          "label": "bird",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#mammal",
+          "label": "mammal",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#bat",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#bat",
+          "label": "bat",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species01",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species01",
+          "label": "species 1",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species02",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species02",
+          "label": "species 2",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species03",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species03",
+          "label": "species 3",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species04",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species04",
+          "label": "species 4",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species05",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species05",
+          "label": "species 5",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species06",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species06",
+          "label": "species 6",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species07",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species07",
+          "label": "species 7",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species08",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species08",
+          "label": "species 8",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species09",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species09",
+          "label": "species 9",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species10",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species10",
+          "label": "species 10",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species11",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species11",
+          "label": "species 11",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species12",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species12",
+          "label": "species 12",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species13",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species13",
+          "label": "species 13",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species14",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species14",
+          "label": "species 14",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species15",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species15",
+          "label": "species 15",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species16",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species16",
+          "label": "species 16",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species17",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species17",
+          "label": "species 17",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species18",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species18",
+          "label": "species 18",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species19",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species19",
+          "label": "species 19",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species20",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#species20",
+          "label": "species 20",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/kinds#zoo",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#lost",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#lost",
+          "label": "lost",
+          "languageTag": "en",
+          "labelKind": "0",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#stray",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#stray",
+          "label": "stray",
+          "languageTag": "en",
+          "labelKind": "0",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#herd",
+        "type": "w3c/skos+collection",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#herd",
+          "label": "herd",
+          "languageTag": "en",
+          "labelKind": "0",
+          "ordered": "false",
+          "memberIds.0": "res:http://example.org/kinds#cow"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#pets",
+        "type": "w3c/skos+collection",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/kinds#pets",
+          "label": "pets",
+          "languageTag": "en",
+          "labelKind": "0",
+          "ordered": "false",
+          "memberIds.0": "res:http://example.org/kinds#bat",
+          "memberIds.1": "res:http://example.org/kinds#cow"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/kinds#bat|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#bird",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#bird",
+        "target": "res:http://example.org/kinds#bat",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#bird",
+          "toElementId": "res:http://example.org/kinds#bat",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#bat|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#bat",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#bat",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#bird|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#animal",
+        "target": "res:http://example.org/kinds#bird",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#animal",
+          "toElementId": "res:http://example.org/kinds#bird",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#cow|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#animal",
+        "target": "res:http://example.org/kinds#cow",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#animal",
+          "toElementId": "res:http://example.org/kinds#cow",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#left|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#right",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#right",
+        "target": "res:http://example.org/kinds#left",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#right",
+          "toElementId": "res:http://example.org/kinds#left",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#lost|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#stray",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#stray",
+        "target": "res:http://example.org/kinds#lost",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#stray",
+          "toElementId": "res:http://example.org/kinds#lost",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#mammal|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#animal",
+        "target": "res:http://example.org/kinds#mammal",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#animal",
+          "toElementId": "res:http://example.org/kinds#mammal",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#right|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#left",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#left",
+        "target": "res:http://example.org/kinds#right",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#left",
+          "toElementId": "res:http://example.org/kinds#right",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species01|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species01",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species01",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species02|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species02",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species02",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species03|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species03",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species03",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species04|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species04",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species04",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species05|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species05",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species05",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species06|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species06",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species06",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species07|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species07",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species07",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species08|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species08",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species08",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species09|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species09",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species09",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species10|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species10",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species10",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species11|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species11",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species11",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species12|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species12",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species12",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species13|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species13",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species13",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species14|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species14",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species14",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species15|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species15",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species15",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species16|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species16",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species16",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species17|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species17",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species17",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species18|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species18",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species18",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species19|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species19",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species19",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species20|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species20",
+        "attributes": {
+          "fromElementId": "res:http://example.org/kinds#mammal",
+          "toElementId": "res:http://example.org/kinds#species20",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "skos.hierarchy-cycle",
+        "severity": "error",
+        "line": 33,
+        "message": "The broader/narrower hierarchy runs in a circle through left, right. The diagram draws every edge and breaks the circle for layering only."
+      },
+      {
+        "rule": "skos.unfiled-concept",
+        "severity": "information",
+        "message": "lost is in no concept scheme and under no top concept - legal SKOS, and usually a mistake. It draws in the unfiled band."
+      },
+      {
+        "rule": "skos.unfiled-concept",
+        "severity": "information",
+        "message": "stray is in no concept scheme and under no top concept - legal SKOS, and usually a mistake. It draws in the unfiled band."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

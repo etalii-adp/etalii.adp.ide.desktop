@@ -1,0 +1,77 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record gartner/hypecycle-graph` from parity/cases/gartner/hypecycle-graph/not-yaml.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "gartner/hypecycle-graph",
+  "description": "../../../gartner-hype-cycle-graph.atd",
+  "inputs": {
+    "body": "not-yaml.ghg"
+  },
+  "read": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "ghg.unreadable-entry",
+        "severity": "warning",
+        "line": 2,
+        "message": "The document could not be read as YAML: A flow collection is never closed."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "ghg.add.trend",
+      "args": {
+        "target": "new:0,0"
+      },
+      "refused": {
+        "reason": "not-yaml.ghg could not be read, so it cannot be edited."
+      },
+      "expectFile": "not-yaml.ghg",
+      "findings": [
+        {
+          "rule": "ghg.unreadable-entry",
+          "severity": "warning",
+          "line": 2,
+          "message": "The document could not be read as YAML: A flow collection is never closed."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

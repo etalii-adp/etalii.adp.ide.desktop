@@ -1,0 +1,51 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "1",
+      "type": "Do",
+      "shape": "path",
+      "bounds": {
+        "x": 100,
+        "y": 30,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do",
+          "font": "10 600",
+          "position": {
+            "x": 200,
+            "y": 50
+          }
+        },
+        {
+          "id": "label",
+          "text": "First step",
+          "font": "12 400",
+          "position": {
+            "x": 200,
+            "y": 70
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.action",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [],
+  "chrome": [],
+  "order": [
+    "1"
+  ]
+}

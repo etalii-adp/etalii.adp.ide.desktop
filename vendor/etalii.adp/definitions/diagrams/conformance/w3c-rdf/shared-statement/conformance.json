@@ -1,0 +1,145 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/shared-statement.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "shared-statement.ttl",
+    "registration": "shared-statement.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/alice",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/alice",
+          "display": "ex:alice",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Alice",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/bob",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/bob",
+          "display": "ex:bob",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Bob",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/carol",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/carol",
+          "display": "ex:carol",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/alice|http://example.org/knows|res:http://example.org/bob",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/alice",
+        "target": "res:http://example.org/bob",
+        "attributes": {
+          "fromElementId": "res:http://example.org/alice",
+          "toElementId": "res:http://example.org/bob",
+          "predicate": "ex:knows",
+          "predicateIri": "http://example.org/knows"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/alice|http://example.org/knows|res:http://example.org/carol",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/alice",
+        "target": "res:http://example.org/carol",
+        "attributes": {
+          "fromElementId": "res:http://example.org/alice",
+          "toElementId": "res:http://example.org/carol",
+          "predicate": "ex:knows",
+          "predicateIri": "http://example.org/knows"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/alice|http://example.org/worksWith|res:http://example.org/bob",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/alice",
+        "target": "res:http://example.org/bob",
+        "attributes": {
+          "fromElementId": "res:http://example.org/alice",
+          "toElementId": "res:http://example.org/bob",
+          "predicate": "ex:worksWith",
+          "predicateIri": "http://example.org/worksWith"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/bob|http://example.org/knows|res:http://example.org/alice",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/bob",
+        "target": "res:http://example.org/alice",
+        "attributes": {
+          "fromElementId": "res:http://example.org/bob",
+          "toElementId": "res:http://example.org/alice",
+          "predicate": "ex:knows",
+          "predicateIri": "http://example.org/knows"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/carol|http://example.org/knows|res:http://example.org/bob",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/carol",
+        "target": "res:http://example.org/bob",
+        "attributes": {
+          "fromElementId": "res:http://example.org/carol",
+          "toElementId": "res:http://example.org/bob",
+          "predicate": "ex:knows",
+          "predicateIri": "http://example.org/knows"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

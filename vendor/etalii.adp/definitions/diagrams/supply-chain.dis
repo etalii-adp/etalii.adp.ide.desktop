@@ -172,8 +172,8 @@
       "params": [{ "name": "n", "type": "Element" }, { "name": "s", "type": "Element" }],
       "returns": "string",
       "uses": ["diagram"],
-      "cel": "n == s || (!s.isA('Flow') && n in upFrom(s)) ? 'selected' : (upFrom(s).exists(u, u in n.reachable('Flow')) || (s.isA('Flow') && n in upFrom(s)) ? 'upstream' : (downFrom(s).exists(d, n in d.reachable('Flow')) || (s.isA('Flow') && n in downFrom(s)) ? 'downstream' : 'dimmed'))",
-      "doc": "A node's mark while `s` is selected: selected when it is what the walks start from (a selected node, a selected group's members); upstream when it supplies a start, directly or not, and a selected flow's supplier; downstream when a start supplies it, and a selected flow's consumer; dimmed otherwise. A node reached both ways keeps upstream, the walk that runs first."
+      "cel": "n == s || (!s.isA('Flow') && n in upFrom(s)) ? 'selected' : (s.isA('Flow') && n in downFrom(s) ? 'downstream' : (s.isA('Flow') && n in upFrom(s) ? 'upstream' : (upFrom(s).exists(u, u in n.reachable('Flow')) ? 'upstream' : (downFrom(s).exists(d, n in d.reachable('Flow')) ? 'downstream' : 'dimmed'))))",
+      "doc": "A node's mark while `s` is selected: selected when it is what the walks start from (a selected node, a selected group's members); a selected flow's consumer downstream and its supplier upstream, whatever the walks find, so that on a cycle the consumer is downstream though it also supplies the supplier; otherwise upstream when it supplies a start, directly or not, downstream when a start supplies it, and dimmed when neither. A node reached both ways keeps upstream, the walk that runs first."
     },
     "traceOf": {
       "params": [{ "name": "e", "type": "Element" }],
@@ -492,7 +492,7 @@
     "shapes": {
       "supplyCard": {
         "label": "Supply chain card",
-        "doc": "A card with rounded corners: a header band in the stage's colour across the top, squared where it meets the body, and a 4-unit share bar on a track along the foot, inset 14 on each side and 12 from the bottom.",
+        "doc": "A card with rounded corners: a header band in the stage's colour across the top, its corners rounded by 10 and squared where it meets the body by a strip of the same colour over its lower 10, and a 4-unit share bar on a track along the foot, inset 14 on each side and 12 from the bottom.",
         "params": {
           "share": { "type": "number", "unit": "fraction", "default": 0, "min": 0, "max": 1, "persist": "none",
                      "doc": "The node's share of the largest quantity in its unit; bound by the node notation." }
@@ -500,17 +500,10 @@
         "parts": [
           { "id": "body", "shape": { "type": "roundedRect", "params": { "radius": 8 } },
             "box": { "x": 0, "y": 0, "w": "w", "h": "h" }, "outline": true },
-          { "id": "header",
-            "shape": { "path": { "segments": [
-              { "op": "M", "x": 0, "y": 24 },
-              { "op": "L", "x": 0, "y": 8 },
-              { "op": "Q", "cx": 0, "cy": 0, "x": 8, "y": 0 },
-              { "op": "L", "x": "w - 8.0", "y": 0 },
-              { "op": "Q", "cx": "w", "cy": 0, "x": "w", "y": 8 },
-              { "op": "L", "x": "w", "y": 24 },
-              { "op": "Z" }
-            ] } },
+          { "id": "header", "shape": { "type": "roundedRect", "params": { "radius": 10 } },
             "box": { "x": 0, "y": 0, "w": "w", "h": 24 } },
+          { "id": "headerSeam", "shape": "rect",
+            "box": { "x": 0, "y": 14, "w": "w", "h": 10 } },
           { "id": "barTrack", "shape": { "type": "roundedRect", "params": { "radius": 2 } },
             "box": { "x": 14, "y": "h - 12.0", "w": "w - 28.0", "h": 4 } },
           { "id": "bar", "shape": { "type": "roundedRect", "params": { "radius": 2 } },
@@ -524,7 +517,7 @@
       "Stage": {
         "shape": { "type": "supplyCard", "params": { "share": { "cel": "quantityShare(self)" } } },
         "style": "card",
-        "partStyles": { "header": "stageHeader", "barTrack": "barTrack", "bar": "stageBar" },
+        "partStyles": { "header": "stageHeader", "headerSeam": "stageHeader", "barTrack": "barTrack", "bar": "stageBar" },
         "size": { "fixed": [192, 96] },
         "placement": {
           "system": "canvas",
@@ -536,12 +529,12 @@
           "doc": "Stored only when both x and y are written; otherwise the layout places the card (supply-chain.md, section 'Layout'). A drag writes both, rounded, and may move the node into another group (section 'Interaction')."
         },
         "labels": [
-          { "id": "stage", "text": { "cel": "upper(stageLabel(self.stage))" }, "position": { "anchor": [0, 0], "offset": [14, 16] },
+          { "id": "stage", "text": { "cel": "upper(stageLabel(self.stage))" }, "position": { "anchor": [0, 0], "offset": [14, 16], "align": "start" },
             "style": "stageTitle", "editable": false, "wrap": "none" },
-          { "id": "name", "text": { "cel": "nameOf(self)" }, "position": { "anchor": [0, 0], "offset": [14, 46] },
+          { "id": "name", "text": { "cel": "nameOf(self)" }, "position": { "anchor": [0, 0], "offset": [14, 46], "align": "start" },
             "style": "nodeName", "editable": "inline", "wrap": "none", "overflow": "ellipsis", "maxWidth": 164 },
           { "id": "amount", "text": { "cel": "has(self.quantity) ? formatAmount(self.quantity) + (self.unit != '' ? ' ' + self.unit : '') : '—'" },
-            "position": { "anchor": [0, 0], "offset": [14, 74] }, "style": "amount", "editable": false, "wrap": "none", "overflow": "ellipsis" }
+            "position": { "anchor": [0, 0], "offset": [14, 74], "align": "start" }, "style": "amount", "editable": false, "wrap": "none", "overflow": "ellipsis" }
         ],
         "anchors": { "mode": "sides", "sides": ["left", "right"] },
         "tooltip": { "cel": "stageLabel(self.stage) + ': ' + nameOf(self) + (has(self.quantity) ? ' — ' + formatAmount(self.quantity) + (self.unit != '' ? ' ' + self.unit : '') : '')" },
@@ -568,7 +561,7 @@
           "doc": "Read only while the group has no members. Dragging a group with members moves them all."
         },
         "labels": [
-          { "id": "name", "text": { "cel": "nameOf(self)" }, "position": { "anchor": [0, 0], "offset": [16, 26] },
+          { "id": "name", "text": { "cel": "nameOf(self)" }, "position": { "anchor": [0, 0], "offset": [16, 26], "align": "start" },
             "style": "groupTitle", "editable": "inline", "wrap": "none", "overflow": "ellipsis" },
           { "id": "members", "text": { "cel": "string(members(self).size()) + (members(self).size() == 1 ? ' node' : ' nodes')" },
             "position": { "anchor": [1, 0], "offset": [-16, 26], "align": "end" }, "style": "groupMembers", "editable": false }
@@ -1081,13 +1074,13 @@
       "Stage": {
         "relations": "delete",
         "confirm": {
-          "count": "diagram.relationsOfType('Flow').filter(f, written(self, 'id') != '' && (written(f, 'from') == written(self, 'id') || written(f, 'to') == written(self, 'id'))).size()",
+          "count": "diagram.relationsOfType('Flow').filter(f, written(f, 'from') == written(self, 'id') || written(f, 'to') == written(self, 'id')).size()",
           "threshold": 1,
           "title": "Remove",
           "message": { "cel": "'Removing this node also removes the ' + string(count) + (count == 1 ? ' flow' : ' flows') + ' to or from it.'" },
           "confirmLabel": "Remove",
           "danger": true,
-          "doc": "Every flow the file writes to or from the node's id, drawn or not, is removed with it in the same undoable step. With none it happens at once."
+          "doc": "Every flow the file writes to or from the node's id, drawn or not, is removed with it in the same undoable step; a node written without an id counts the flows written without that end. With none it happens at once."
         }
       },
       "Group": {

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.helmChart",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads a Helm chart folder, read-only: `Chart.yaml`, `Chart.lock`, the values files with every scalar as written, `values.schema.json`, the CRDs, the templates line by line with the values each condition and reference resolves to in the default values, the named templates they include, and the charts under `charts/`. It never writes and plans no change. Its fixtures are recorded with the Helm chart's cases (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderInput"
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderResult"
+  },
+  "laws": [
+    "deterministic",
+    "readingNeverFails"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

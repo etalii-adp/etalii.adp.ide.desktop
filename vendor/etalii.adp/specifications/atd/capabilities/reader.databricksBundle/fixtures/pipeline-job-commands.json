@@ -1,0 +1,112 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/cases/databricks/pipeline/job-commands.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "# Two jobs and two pipelines in one file, each reading with a finding of its own.\nbundle:\n  name: twin_bundle\n\nresources:\n  jobs:\n    job_a:\n      name: Job A\n      tasks:\n        - task_key: ingest\n          job_cluster_key: missing_cluster\n          notebook_task:\n            notebook_path: notebooks/a_ingest\n        - task_key: shape\n          depends_on:\n            - task_key: ingest\n          notebook_task:\n            notebook_path: notebooks/a_shape\n    job_b:\n      name: Job B\n      tasks:\n        - task_key: ingest\n          notebook_task:\n            notebook_path: notebooks/b_ingest\n        - task_key: report\n          depends_on:\n            - task_key: absent\n          notebook_task:\n            notebook_path: notebooks/b_report\n  pipelines:\n    pipe_a:\n      name: Pipe A\n      catalog: main\n      schema: bronze\n      libraries:\n        - notebook:\n            path: transformations/a\n    pipe_b:\n      name: Pipe B\n      schema: silver\n      libraries:\n        - notebook:\n            path: transformations/b\n\ntargets:\n  dev:\n    mode: development\n  prod:\n    mode: production\n",
+    "files": {
+      "two-jobs-two-pipelines.pipeline.adp": "databricks/pipeline\nbody: two-jobs-two-pipelines.yml\nresource: pipe_b\n"
+    }
+  },
+  "args": {
+    "reading": "pipeline"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "library:transformations/b",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/b",
+          "badges": "notebook",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "pipeline",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "pipeline",
+          "kind": "pipeline",
+          "label": "Pipe B",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "target",
+          "kind": "target",
+          "label": "silver",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "compute",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "cluster",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "flow:transformations/b->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:transformations/b",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:pipeline->target",
+        "type": "databricks/pipeline+edge",
+        "source": "pipeline",
+        "target": "target",
+        "attributes": {
+          "kind": "flow"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.dangling-cluster",
+        "severity": "error",
+        "line": 10,
+        "message": "'ingest' runs on cluster 'missing_cluster', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless."
+      },
+      {
+        "rule": "databricks.missing-task",
+        "severity": "error",
+        "line": 27,
+        "message": "'report' depends on 'absent', which is not a task in this job. Fix the key or remove the dependency."
+      },
+      {
+        "rule": "databricks.no-default-target",
+        "severity": "warning",
+        "line": 46,
+        "message": "No target says default: true, so every deploy must name one. Mark one target as the default."
+      },
+      {
+        "rule": "databricks.schema-without-catalog",
+        "severity": "warning",
+        "line": 38,
+        "message": "The pipeline 'Pipe B' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too."
+      }
+    ]
+  }
+}

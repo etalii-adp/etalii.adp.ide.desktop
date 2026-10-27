@@ -1,0 +1,153 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bands` from what the desktop host's module shows when parity/cases/databricks/bundle/job-commands.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "lakehouse-nightly",
+          "kind": "bundle",
+          "label": "lakehouse-nightly",
+          "badges": ""
+        }
+      },
+      {
+        "id": "resource:jobs/nightly_ingest",
+        "type": "databricks/bundle+resource",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "jobs",
+          "key": "nightly_ingest",
+          "kind": "jobs",
+          "label": "nightly_ingest",
+          "badges": "jobs"
+        }
+      },
+      {
+        "id": "resource:pipelines/bronze_to_gold",
+        "type": "databricks/bundle+resource",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "bronze_to_gold",
+          "kind": "pipelines",
+          "label": "bronze_to_gold",
+          "badges": "pipelines"
+        }
+      },
+      {
+        "id": "unknown:sync",
+        "type": "databricks/bundle+resource",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "sync",
+          "key": "sync",
+          "kind": "sync",
+          "label": "sync",
+          "badges": "sync"
+        }
+      },
+      {
+        "id": "unknown:resources.experiments",
+        "type": "databricks/bundle+resource",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "resources.experiments",
+          "key": "experiments",
+          "kind": "resources.experiments",
+          "label": "experiments",
+          "badges": "resources.experiments"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "width": 220.0,
+        "height": 120.0,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "true",
+          "overrideCount": "0",
+          "label": "dev"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "width": 220.0,
+        "height": 120.0,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "1",
+          "label": "prod"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "override:prod/jobs/nightly_ingest",
+        "source": "target:prod",
+        "target": "resource:jobs/nightly_ingest"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 260,
+    "bands": [
+      {
+        "members": "self.id == 'bundle'",
+        "y": 0
+      },
+      {
+        "members": "self.id.startsWith('resource:') || self.id.startsWith('unknown:')",
+        "y": 180
+      },
+      {
+        "members": "self.id.startsWith('target:')",
+        "y": 400
+      }
+    ]
+  },
+  "output": {
+    "positions": {
+      "bundle": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "resource:jobs/nightly_ingest": {
+        "x": 0.0,
+        "y": 180.0
+      },
+      "resource:pipelines/bronze_to_gold": {
+        "x": 260.0,
+        "y": 180.0
+      },
+      "unknown:sync": {
+        "x": 520.0,
+        "y": 180.0
+      },
+      "unknown:resources.experiments": {
+        "x": 780.0,
+        "y": 180.0
+      },
+      "target:dev": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "target:prod": {
+        "x": 260.0,
+        "y": 400.0
+      }
+    }
+  }
+}

@@ -1,0 +1,1859 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/owl/class-expressions.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix : <http://example.org/shapes#> .\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n: a owl:Ontology .\n\n:Shape a owl:Class .\n:Polygon a owl:Class ; rdfs:label \"Polygon\" .\n:Circle a owl:Class .\n:Colour a owl:Class .\n:Red a owl:NamedIndividual , :Colour .\n:Green a owl:NamedIndividual , :Colour .\n:hasSide a owl:ObjectProperty .\n:hasColour a owl:ObjectProperty .\n:hasArea a owl:DatatypeProperty .\n\n:Unround a owl:Class ;\n    owl:equivalentClass [ a owl:Class ; owl:complementOf :Circle ] .\n\n:Primary a owl:Class ;\n    owl:equivalentClass [ a owl:Class ; owl:oneOf ( :Red :Green ) ] .\n\n:Triangle a owl:Class ;\n    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasSide ; owl:cardinality \"3\"^^xsd:nonNegativeInteger ] ,\n        [ a owl:Restriction ; owl:onProperty :hasColour ; owl:hasValue :Red ] .\n\n:Square a owl:Class ;\n    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasSide ; owl:minQualifiedCardinality \"4\"^^xsd:nonNegativeInteger ; owl:onClass :Polygon ] ,\n        [ a owl:Restriction ; owl:onProperty :hasArea ; owl:maxQualifiedCardinality \"1\"^^xsd:nonNegativeInteger ; owl:onDataRange xsd:decimal ] ,\n        [ a owl:Restriction ; owl:onProperty :hasSide ; owl:qualifiedCardinality \"4\"^^xsd:nonNegativeInteger ; owl:onClass :Shape ] ,\n        [ a owl:Restriction ; owl:onProperty :hasSide ; owl:minCardinality \"1\"^^xsd:nonNegativeInteger ] .\n\n:Nested a owl:Class ;\n    owl:equivalentClass [ a owl:Class ; owl:intersectionOf ( :Shape [ a owl:Restriction ; owl:onProperty :hasSide ; owl:someValuesFrom [ a owl:Class ; owl:unionOf ( :Polygon [ a owl:Class ; owl:complementOf [ a owl:Restriction ; owl:onProperty :hasColour ; owl:allValuesFrom :Colour ] ] ) ] ] ) ] .\n\n:Unfinished a owl:Class ;\n    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasSide ] ,\n        [ a owl:Restriction ; owl:someValuesFrom :Shape ] ,\n        [ a owl:Class ; owl:unionOf () ] .\n\n:Loop a owl:Class ;\n    owl:disjointWith _:loop .\n_:loop a owl:Class ; owl:complementOf _:loop .\n\n:Polygon rdfs:subClassOf :Shape .\n:Triangle rdfs:subClassOf :Polygon .\n:Square rdfs:subClassOf :Polygon , :Shape .\n:Round a owl:Class ; rdfs:subClassOf :Curved .\n:Curved a owl:Class ; rdfs:subClassOf :Round .\n:Circle rdfs:subClassOf :Round .\n",
+    "files": {
+      "class-expressions.adp": "w3c/owl\nbody: class-expressions.ttl\nlayout:\n  res:http://example.org/shapes#Square: 900 40\n  res:http://example.org/shapes#Red: 1200 700\n  expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0: 5 5\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "",
+          "iri": "http://example.org/shapes#",
+          "line": 1
+        }
+      },
+      {
+        "id": "prefix:owl",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "owl",
+          "iri": "http://www.w3.org/2002/07/owl#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdf",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdf",
+          "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 4
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Ontology",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Ontology",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Shape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Shape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Shape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Polygon|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Polygon",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Polygon",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Polygon|http://www.w3.org/2000/01/rdf-schema#label|Polygon",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Polygon",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Polygon",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Polygon",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Circle|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Circle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Circle",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Colour|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Colour",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Colour",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 12
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Red|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#NamedIndividual",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Red",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Red",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#NamedIndividual",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Red|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://example.org/shapes#Colour",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Red",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Red",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://example.org/shapes#Colour",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Green|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#NamedIndividual",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Green",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Green",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#NamedIndividual",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Green|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://example.org/shapes#Colour",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Green",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Green",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://example.org/shapes#Colour",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#hasSide|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#ObjectProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#hasSide",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasSide",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#ObjectProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 15
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#hasColour|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#ObjectProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#hasColour",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasColour",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#ObjectProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 16
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#hasArea|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#DatatypeProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#hasArea",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasArea",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#DatatypeProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 17
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Unround|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Unround",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Unround",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 20
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/2002/07/owl#complementOf|http://example.org/shapes#Circle",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#complementOf",
+          "o": "http://example.org/shapes#Circle",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 20
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Unround",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Unround",
+          "p": "http://www.w3.org/2002/07/owl#equivalentClass",
+          "o": "0",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 20
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Primary|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Primary",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Primary",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/shapes#Red",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/shapes#Red",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|3",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "3",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/shapes#Green",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/shapes#Green",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/2002/07/owl#oneOf|2",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#oneOf",
+          "o": "2",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Primary",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Primary",
+          "p": "http://www.w3.org/2002/07/owl#equivalentClass",
+          "o": "1",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Triangle|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Triangle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Triangle",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 25
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasSide",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasSide",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/2002/07/owl#cardinality|3",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#cardinality",
+          "o": "3",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|4",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Triangle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Triangle",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "4",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:5|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "5",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:5|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasColour",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "5",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasColour",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:5|http://www.w3.org/2002/07/owl#hasValue|http://example.org/shapes#Red",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "5",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#hasValue",
+          "o": "http://example.org/shapes#Red",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|5",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Triangle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Triangle",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "5",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Square|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Square",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Square",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 29
+        }
+      },
+      {
+        "id": "triple:6|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "6",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:6|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasSide",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "6",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasSide",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:6|http://www.w3.org/2002/07/owl#minQualifiedCardinality|4",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "6",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#minQualifiedCardinality",
+          "o": "4",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:6|http://www.w3.org/2002/07/owl#onClass|http://example.org/shapes#Polygon",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "6",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onClass",
+          "o": "http://example.org/shapes#Polygon",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|6",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Square",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Square",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "6",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:7|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "7",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:7|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasArea",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "7",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasArea",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:7|http://www.w3.org/2002/07/owl#maxQualifiedCardinality|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "7",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#maxQualifiedCardinality",
+          "o": "1",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:7|http://www.w3.org/2002/07/owl#onDataRange|http://www.w3.org/2001/XMLSchema#decimal",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "7",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onDataRange",
+          "o": "http://www.w3.org/2001/XMLSchema#decimal",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|7",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Square",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Square",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "7",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:8|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "8",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 32
+        }
+      },
+      {
+        "id": "triple:8|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasSide",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "8",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasSide",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 32
+        }
+      },
+      {
+        "id": "triple:8|http://www.w3.org/2002/07/owl#qualifiedCardinality|4",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "8",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#qualifiedCardinality",
+          "o": "4",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+          "line": 32
+        }
+      },
+      {
+        "id": "triple:8|http://www.w3.org/2002/07/owl#onClass|http://example.org/shapes#Shape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "8",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onClass",
+          "o": "http://example.org/shapes#Shape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 32
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|8",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Square",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Square",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "8",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 32
+        }
+      },
+      {
+        "id": "triple:9|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "9",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:9|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasSide",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "9",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasSide",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:9|http://www.w3.org/2002/07/owl#minCardinality|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "9",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#minCardinality",
+          "o": "1",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|9",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Square",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Square",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "9",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Nested|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Nested",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Nested",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 35
+        }
+      },
+      {
+        "id": "triple:10|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "10",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:11|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/shapes#Shape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "11",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/shapes#Shape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:13|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "13",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:13|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasSide",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "13",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasSide",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:14|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "14",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:15|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/shapes#Polygon",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "15",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/shapes#Polygon",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:17|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "17",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:18|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "18",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:18|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasColour",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "18",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasColour",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:18|http://www.w3.org/2002/07/owl#allValuesFrom|http://example.org/shapes#Colour",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "18",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#allValuesFrom",
+          "o": "http://example.org/shapes#Colour",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:17|http://www.w3.org/2002/07/owl#complementOf|18",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "17",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#complementOf",
+          "o": "18",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:15|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|16",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "15",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "16",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:16|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|17",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "16",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "17",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:16|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "16",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:14|http://www.w3.org/2002/07/owl#unionOf|15",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "14",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#unionOf",
+          "o": "15",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:13|http://www.w3.org/2002/07/owl#someValuesFrom|14",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "13",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#someValuesFrom",
+          "o": "14",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:11|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|12",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "11",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "12",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:12|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|13",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "12",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "13",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:12|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "12",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:10|http://www.w3.org/2002/07/owl#intersectionOf|11",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "10",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#intersectionOf",
+          "o": "11",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|10",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Nested",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Nested",
+          "p": "http://www.w3.org/2002/07/owl#equivalentClass",
+          "o": "10",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Unfinished|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Unfinished",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Unfinished",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 38
+        }
+      },
+      {
+        "id": "triple:19|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "19",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 39
+        }
+      },
+      {
+        "id": "triple:19|http://www.w3.org/2002/07/owl#onProperty|http://example.org/shapes#hasSide",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "19",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasSide",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 39
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|19",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Unfinished",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Unfinished",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "19",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 39
+        }
+      },
+      {
+        "id": "triple:20|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "20",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 40
+        }
+      },
+      {
+        "id": "triple:20|http://www.w3.org/2002/07/owl#someValuesFrom|http://example.org/shapes#Shape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "20",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#someValuesFrom",
+          "o": "http://example.org/shapes#Shape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 40
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|20",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Unfinished",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Unfinished",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "20",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 40
+        }
+      },
+      {
+        "id": "triple:21|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "21",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 41
+        }
+      },
+      {
+        "id": "triple:21|http://www.w3.org/2002/07/owl#unionOf|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "21",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#unionOf",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 41
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|21",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Unfinished",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Unfinished",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "21",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 41
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Loop|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Loop",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Loop",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 43
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|22",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Loop",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Loop",
+          "p": "http://www.w3.org/2002/07/owl#disjointWith",
+          "o": "22",
+          "oKind": "blank",
+          "oLabel": "loop",
+          "language": "",
+          "datatype": "",
+          "line": 44
+        }
+      },
+      {
+        "id": "triple:22|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "22",
+          "sKind": "blank",
+          "sLabel": "loop",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 45
+        }
+      },
+      {
+        "id": "triple:22|http://www.w3.org/2002/07/owl#complementOf|22",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "22",
+          "sKind": "blank",
+          "sLabel": "loop",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#complementOf",
+          "o": "22",
+          "oKind": "blank",
+          "oLabel": "loop",
+          "language": "",
+          "datatype": "",
+          "line": 45
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Polygon|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/shapes#Shape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Polygon",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Polygon",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/shapes#Shape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 47
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/shapes#Polygon",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Triangle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Triangle",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/shapes#Polygon",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 48
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/shapes#Polygon",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Square",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Square",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/shapes#Polygon",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 49
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/shapes#Shape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Square",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Square",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/shapes#Shape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 49
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Round|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Round",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Round",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 50
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Round|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/shapes#Curved",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Round",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Round",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/shapes#Curved",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 50
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Curved|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Curved",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Curved",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 51
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Curved|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/shapes#Round",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Curved",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Curved",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/shapes#Round",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 51
+        }
+      },
+      {
+        "id": "triple:http://example.org/shapes#Circle|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/shapes#Round",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/shapes#Circle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Circle",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/shapes#Round",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 52
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

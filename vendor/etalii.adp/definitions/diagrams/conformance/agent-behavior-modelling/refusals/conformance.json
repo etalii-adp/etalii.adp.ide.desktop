@@ -1,0 +1,280 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/agent-behavior-modelling` from parity/cases/etalii/agent-behavior-modelling/refusals.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "etalii/agent-behavior-modelling",
+  "description": "../../../agent-behavior-modelling.atd",
+  "inputs": {
+    "body": "refusals.md",
+    "registration": "refusals.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "1",
+        "type": "Sequence",
+        "parent": null,
+        "attributes": {
+          "label": "Root"
+        }
+      },
+      {
+        "id": "1.1",
+        "type": "Do",
+        "parent": "1",
+        "attributes": {
+          "label": "A leaf",
+          "implicit": "false"
+        }
+      },
+      {
+        "id": "1.2",
+        "type": "Retry",
+        "parent": "1",
+        "attributes": {
+          "label": "Wrapper",
+          "attempts": "3"
+        }
+      },
+      {
+        "id": "1.2.1",
+        "type": "Do",
+        "parent": "1.2",
+        "attributes": {
+          "label": "Its child",
+          "implicit": "false"
+        }
+      },
+      {
+        "id": "1.3",
+        "type": "Fallback",
+        "parent": "1",
+        "attributes": {
+          "label": "Alternatives"
+        }
+      },
+      {
+        "id": "1.3.1",
+        "type": "Check",
+        "parent": "1.3",
+        "attributes": {
+          "label": "One"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "child:1.1",
+        "type": "Child",
+        "source": "1",
+        "target": "1.1",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.2",
+        "type": "Child",
+        "source": "1",
+        "target": "1.2",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.2.1",
+        "type": "Child",
+        "source": "1.2",
+        "target": "1.2.1",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.3",
+        "type": "Child",
+        "source": "1",
+        "target": "1.3",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.3.1",
+        "type": "Child",
+        "source": "1.3",
+        "target": "1.3.1",
+        "attributes": {}
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "abm.add.check",
+      "args": {
+        "target": "1.1"
+      },
+      "refused": {
+        "reason": "That action is not available for this item."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "abm.add.action",
+      "args": {
+        "target": "1.2"
+      },
+      "refused": {
+        "reason": "That action is not available for this item."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1->1.3"
+      },
+      "refused": {
+        "reason": "That node is already there."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1.3->1"
+      },
+      "refused": {
+        "reason": "A node cannot move beneath itself."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1.1->1.3.1"
+      },
+      "refused": {
+        "reason": "\"Do\" holds no children."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1.2->1.3.1"
+      },
+      "refused": {
+        "reason": "\"Retry up to 3 times\" holds exactly one child, and already has it."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.3",
+        "attribute": "Kind",
+        "value": "Do"
+      },
+      "refused": {
+        "reason": "\"Do\" holds no children, and this node has 1 child."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.2",
+        "attribute": "Attempts",
+        "value": "0"
+      },
+      "refused": {
+        "reason": "'0' is not a number of attempts; a Retry allows at least 1."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "abm.arrange",
+      "args": {
+        "target": "1"
+      },
+      "refused": {
+        "reason": "This behavior model is already arranged."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "abm.move-later",
+      "args": {
+        "target": "1.3"
+      },
+      "refused": {
+        "reason": "That action is not available for this item."
+      },
+      "expectFile": "refusals.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

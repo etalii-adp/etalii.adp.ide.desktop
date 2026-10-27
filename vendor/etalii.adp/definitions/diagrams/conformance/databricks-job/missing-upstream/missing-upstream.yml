@@ -1,0 +1,17 @@
+resources:
+  jobs:
+    stubbed:
+      name: Two tasks wait for a task nobody declares
+      tasks:
+        - task_key: first_waiter
+          depends_on:
+            - task_key: ghost
+          notebook_task:
+            notebook_path: notebooks/first
+        - task_key: second_waiter
+          depends_on:
+            - task_key: ghost
+            - task_key: phantom
+              outcome: "true"
+          notebook_task:
+            notebook_path: notebooks/second

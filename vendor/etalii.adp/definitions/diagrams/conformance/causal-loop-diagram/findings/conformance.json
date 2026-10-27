@@ -1,0 +1,315 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record systems/causal-loop-diagram` from parity/cases/systems/causal-loop-diagram/findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "systems/causal-loop-diagram",
+  "description": "../../../causal-loop-diagram.atd",
+  "inputs": {
+    "body": "findings.cld"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "variable:a",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "a",
+          "label": "A"
+        }
+      },
+      {
+        "id": "variable:b",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "b",
+          "label": "B"
+        }
+      },
+      {
+        "id": "variable:c",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "c",
+          "label": "C"
+        }
+      },
+      {
+        "id": "variable:d",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "d",
+          "label": "D"
+        }
+      },
+      {
+        "id": "variable:e",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "e",
+          "label": "E"
+        }
+      },
+      {
+        "id": "loop:R1",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "R1",
+          "title": "Says reinforcing",
+          "members": "variable:a, variable:b, variable:c, variable:d"
+        }
+      },
+      {
+        "id": "loop:B2",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "B2",
+          "title": "Undecidable",
+          "members": "variable:b, variable:d"
+        }
+      },
+      {
+        "id": "loop:R3",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "R3",
+          "title": "Not a cycle",
+          "members": "variable:a, variable:e"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "link:a|b",
+        "type": "CausalLink",
+        "source": "variable:a",
+        "target": "variable:b",
+        "attributes": {
+          "causeName": "a",
+          "effectName": "b",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:b|c",
+        "type": "CausalLink",
+        "source": "variable:b",
+        "target": "variable:c",
+        "attributes": {
+          "causeName": "b",
+          "effectName": "c",
+          "polarity": "negative",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:c|d",
+        "type": "CausalLink",
+        "source": "variable:c",
+        "target": "variable:d",
+        "attributes": {
+          "causeName": "c",
+          "effectName": "d",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:d|a",
+        "type": "CausalLink",
+        "source": "variable:d",
+        "target": "variable:a",
+        "attributes": {
+          "causeName": "d",
+          "effectName": "a",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:a|c",
+        "type": "CausalLink",
+        "source": "variable:a",
+        "target": "variable:c",
+        "attributes": {
+          "causeName": "a",
+          "effectName": "c",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:c|a",
+        "type": "CausalLink",
+        "source": "variable:c",
+        "target": "variable:a",
+        "attributes": {
+          "causeName": "c",
+          "effectName": "a",
+          "polarity": "negative",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:b|d",
+        "type": "CausalLink",
+        "source": "variable:b",
+        "target": "variable:d",
+        "attributes": {
+          "causeName": "b",
+          "effectName": "d",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:d|b",
+        "type": "CausalLink",
+        "source": "variable:d",
+        "target": "variable:b",
+        "attributes": {
+          "causeName": "d",
+          "effectName": "b",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:e|nowhere",
+        "type": "CausalLink",
+        "source": "variable:e",
+        "target": "nowhere",
+        "attributes": {
+          "causeName": "e",
+          "effectName": "nowhere",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "causal-loop.unreadable-line",
+        "severity": "warning",
+        "line": 20,
+        "message": "'bogus' is not a statement this reading knows."
+      },
+      {
+        "rule": "causal-loop.unreadable-line",
+        "severity": "warning",
+        "line": 21,
+        "message": "A link reads 'link <from> -> <to>', optionally followed by a polarity, 'delayed', 'flipped', a weight and a label."
+      },
+      {
+        "rule": "causal-loop.unreadable-line",
+        "severity": "warning",
+        "line": 22,
+        "message": "'weight=heavy' does not read as a weight."
+      },
+      {
+        "rule": "causal-loop.unreadable-line",
+        "severity": "warning",
+        "line": 23,
+        "message": "A variable needs an id of at least one character."
+      },
+      {
+        "rule": "causal-loop.dangling-link",
+        "severity": "warning",
+        "element": "link:e|nowhere",
+        "message": "The link from 'e' to 'nowhere' names 'nowhere', which this document does not declare as a variable, so the link is not drawn."
+      },
+      {
+        "rule": "causal-loop.label-disagrees",
+        "severity": "warning",
+        "element": "loop:R1",
+        "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+      },
+      {
+        "rule": "causal-loop.undecidable-loop",
+        "severity": "warning",
+        "element": "loop:B2",
+        "message": "Loop B2 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+      },
+      {
+        "rule": "causal-loop.loop-is-not-a-cycle",
+        "severity": "warning",
+        "element": "loop:R3",
+        "message": "Loop R3 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+      },
+      {
+        "rule": "causal-loop.unlabelled-loop",
+        "severity": "information",
+        "message": "The links form a feedback loop through a → b → c that no loop statement names. It is reinforcing."
+      },
+      {
+        "rule": "causal-loop.unlabelled-loop",
+        "severity": "information",
+        "message": "The links form a feedback loop through a → b → d that no loop statement names. It is of a polarity that cannot be counted, because a link in it states none."
+      },
+      {
+        "rule": "causal-loop.unlabelled-loop",
+        "severity": "information",
+        "message": "The links form a feedback loop through a → c → d that no loop statement names. It is reinforcing."
+      },
+      {
+        "rule": "causal-loop.unlabelled-loop",
+        "severity": "information",
+        "message": "The links form a feedback loop through a → c that no loop statement names. It is balancing."
+      },
+      {
+        "rule": "causal-loop.unlabelled-loop",
+        "severity": "information",
+        "message": "The links form a feedback loop through b → c → d that no loop statement names. It is balancing."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

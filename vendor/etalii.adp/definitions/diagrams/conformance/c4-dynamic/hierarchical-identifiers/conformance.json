@@ -1,0 +1,174 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record c4/dynamic` from parity/cases/c4/dynamic/hierarchical-identifiers.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "c4/dynamic",
+  "description": "../../../c4-dynamic.atd",
+  "inputs": {
+    "body": "hierarchical-identifiers.dsl",
+    "registration": "hierarchical-identifiers.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "User",
+          "description": "A user.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "api",
+        "type": "c4/model+node",
+        "parent": "a",
+        "attributes": {
+          "kind": "Container",
+          "name": "API",
+          "description": "A's API.",
+          "technology": "Go",
+          "typeLine": "[Container: Go]",
+          "external": "false",
+          "parentId": "a",
+          "width": "160",
+          "height": "78.8",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "b",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "B",
+          "description": "Second.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "boundary:a",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "A",
+          "kind": "Software System",
+          "width": "224",
+          "height": "162.4"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "Container diagram for A",
+          "viewKind": "Container",
+          "viewKey": "a",
+          "legend.0.label": "Person",
+          "legend.0.background": "#08427b",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "Person",
+          "legend.1.label": "Container",
+          "legend.1.background": "#438dd5",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "RoundedBox",
+          "legend.2.label": "Software System",
+          "legend.2.background": "#1168bd",
+          "legend.2.color": "#ffffff",
+          "legend.2.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "u->api@13",
+        "type": "c4/model+relationship",
+        "source": "u",
+        "target": "api",
+        "attributes": {
+          "description": "Calls whichever",
+          "technology": "HTTPS",
+          "sourceX": "-110",
+          "sourceY": "39.4",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "238.20000000000002",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "b",
+        "message": "'B' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.dangling-relationship",
+        "severity": "warning",
+        "line": 11,
+        "message": "The relationship on line 11 names 'a.api', which the model does not declare."
+      },
+      {
+        "rule": "c4.dangling-relationship",
+        "severity": "warning",
+        "line": 12,
+        "message": "The relationship on line 12 names 'b.api', which the model does not declare."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (drawing)"
+    }
+  }
+}

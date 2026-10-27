@@ -1,0 +1,118 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record c4/dynamic` from parity/cases/c4/dynamic/autolayout-ignores-positions.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "c4/dynamic",
+  "description": "../../../c4-dynamic.atd",
+  "inputs": {
+    "body": "autolayout-ignores-positions.dsl",
+    "registration": "autolayout-ignores-positions.adp",
+    "autolayout-ignores-positions.layout.json": "autolayout-ignores-positions.layout.json"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "a",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "A",
+          "description": "First.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "b",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "B",
+          "description": "Second.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "System Landscape diagram for Auto layout",
+          "viewKind": "SystemLandscape",
+          "viewKey": "auto",
+          "legend.0.label": "Software System",
+          "legend.0.background": "#1168bd",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "a->b@5",
+        "type": "c4/model+relationship",
+        "source": "a",
+        "target": "b",
+        "attributes": {
+          "description": "Calls",
+          "technology": "HTTPS",
+          "sourceX": "80",
+          "sourceY": "0",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "440",
+          "destinationY": "0",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (drawing)"
+    }
+  }
+}

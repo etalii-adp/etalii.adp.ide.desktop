@@ -1,0 +1,563 @@
+atd 0.1
+
+/// What runs what, and where a value comes from: playbooks, roles, inventories and the include, import and dependency
+/// relations between them, drawn from the folder as it is.
+///
+/// A read-only diagram of an Ansible project. Its subject is a folder, not a document: every element and relation is
+/// read from Ansible's own files (playbooks, `roles/`, `inventories/`, `meta/main.yml`), and nothing in that folder is
+/// ever written. The one thing a user changes is where a node sits, and that is stored in the registration beside the
+/// folder, never in Ansible's files.
+///
+/// The folder is read through the binding `ansible-structure.fbl#ansible` by the capability
+/// `reader.ansibleProject`, which delivers every node and relation, a relation whose target is missing or an
+/// expression without a target, and one finding per file that does not parse. The ids, the derived attributes, the
+/// property rows other than an inventory's groups and variable folders, four of the five findings and the reparenting
+/// refusal are stated here. What DISL 0.3 and FBL 0.2 cannot state is in `ansible-structure.md` beside this file; the
+/// standalone wire ids are under `x-ansible`.
+diagram ansible/structure version "0.2.0" {
+  doc {
+    tags: ["ansible", "infrastructure", "software delivery", "read-only", "folder"]
+    seeAlso: [
+      {
+        title: "Ansible directory layout"
+        href: "https://charlesreid1.com/wiki/Ansible/Directory_Layout/Details"
+      },
+      {
+        title: "Role dependencies"
+        href: "https://oneuptime.com/blog/post/2026-01-24-ansible-roles-dependencies/view"
+      },
+      {
+        title: "ansible-playbook-grapher"
+        href: "https://github.com/haidaraM/ansible-playbook-grapher"
+      },
+      { title: "What DISL and FBL cannot express for this tool", href: "ansible-structure.md" }
+    ]
+  }
+  label "Ansible project structure"
+  id: "net.etalii.adp.ansible.structure"
+  license: "Apache-2.0"
+  authors: [{ name: "Peter Vrenken", url: "https://github.com/vrenken" }]
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/ansible-structure"
+  icon: "mdi-sitemap"
+  requires: { conformance: standard }
+
+  import "ansible-structure.notation.atd"
+  import "ansible-structure.ansible.atd"
+  requires capability layout.rankedColumns@^1
+  requires capability reader.ansibleProject@^1
+
+  /// Ansible's own vocabulary. Every element is delivered by the `reader.ansibleProject` reader from the
+  /// registered folder; none is created, edited or deleted from the diagram, and every attribute is read-only.
+  model {
+
+    /// Everything drawn as a box. Each one stands for a file or folder of the project, and activating it reveals that
+    /// file or folder.
+    element AnsibleNode {
+      abstract: true
+      labelAttribute: name
+      /// What a reader calls it.
+      attribute name: string readonly default "" { label: "Name", group: "Identity" }
+      /// The file or folder it stands for, relative to the registered folder, with '/' separators.
+      attribute path: string readonly default "" { label: "Path", group: "Identity" }
+    }
+
+    /// A YAML file at the folder root or in playbooks/ whose top level is a non-empty list of mappings.
+    ///
+    /// Its name is the file name. When the file holds exactly one play, that play is not drawn as a box of its own: the
+    /// playbook stands for it, carries its hosts pattern and is the source of its role and target relations.
+    element Playbook extends AnsibleNode {
+      label "Playbook"
+      /// Every play of the file, in file order, drawn or not.
+      attribute plays: PlayFacts many readonly
+      /// The hosts: pattern of its one play when it holds exactly one, else empty.
+      attribute hosts: string readonly default "" { label: "Hosts", group: "Targets" }
+      /// ansible.cfg, requirements.yml, requirements.yaml and collections/requirements.yml or .yaml, those present,
+      /// carried on every playbook and play rather than drawn.
+      attribute annotations: string many readonly
+    }
+
+    /// One play of a playbook, drawn only when its playbook holds more than one.
+    ///
+    /// Its name is its name:, or 'play N' (1-based) when it has none. Its path is its playbook's file. Its identity is
+    /// positional: plays run in file order, may be unnamed and may share names.
+    element Play extends AnsibleNode {
+      label "Play"
+      /// Its 0-based position among the playbook's plays.
+      attribute ordinal: int readonly default 0 { min: 0 }
+      /// Its hosts: pattern as written.
+      attribute hosts: string readonly default "" { label: "Hosts", group: "Targets" }
+      /// Its position in declaration order across the whole project, counting the plays of single-play playbooks too,
+      /// so two playbooks' plays never share a colour.
+      attribute playIndex: int readonly default 0 { min: 0 }
+      attribute annotations: string many readonly
+    }
+
+    /// A folder under roles/. Its name is the folder name, which is what a playbook writes to use it.
+    element Role extends AnsibleNode {
+      label "Role"
+      attribute contents: RoleContents readonly { group: "Contents" }
+      /// The folder holds none of the canonical content, so Ansible would find nothing to run in it.
+      attribute hollow: bool {
+        label: "Hollow"
+        group: "Contents"
+        derived: (self.contents.taskFiles == 0 && self.contents.handlers == 0 && self.contents.templates == 0 && self.contents.files == 0 && self.contents.defaults == 0 && self.contents.vars == 0 && !self.contents.hasMeta && !self.contents.hasLibrary)
+      }
+    }
+
+    /// One of a role's task files, drawn only when an include_tasks or import_tasks names it, and once however often it
+    /// is named. The others are only counted in the role's contents.
+    element TaskFile extends AnsibleNode {
+      label "Task file"
+    }
+
+    /// An environment folder under inventories/, or a root inventory file (inventory, hosts, and their .yml and .yaml
+    /// forms). Drawn in a band beneath the execution flow.
+    element Inventory extends AnsibleNode {
+      label "Inventory"
+      attribute name: string readonly default "" { label: "Environment", group: "Identity" }
+      /// The groups it defines, from YAML (all, children, then the group; or a top-level group with hosts) or from INI
+      /// ([group] and [group:children]).
+      attribute groups: InventoryGroup many readonly { label: "Groups", group: "Groups" }
+      /// Its group_vars and host_vars folders: those in the environment folder, or, for a root inventory file, those at
+      /// the folder root.
+      attribute variableFolders: VariableFolderFacts many readonly { label: "Variables", group: "Variables" }
+    }
+
+    /// A group_vars or host_vars folder. That these files exist and feed an inventory is a fact; which variable a play
+    /// reads is an inference, so no per-variable relation is ever drawn.
+    element VariableFolder extends AnsibleNode {
+      label "Variable folder"
+      attribute fileCount: int readonly default 0 { min: 0, label: "Files", group: "Variables" }
+    }
+
+    /// Every relation is declared by a directive in a file, and its properties answer 'why is this here'. A relation
+    /// whose target is missing or an expression is kept without a target and drawn as a stub. A relation from a node to
+    /// itself, such as a role that names itself as a dependency, is kept and reported by nothing.
+    relation AnsibleRelation from AnsibleNode to AnsibleNode {
+      abstract: true
+      allowSelfLoops: true
+      attribute directive: Directive readonly default roles { label: "Directive", group: "Declaration" }
+      /// Never evaluated and never normalised: the text a reader will find in the file.
+      attribute targetAsWritten: string readonly default "" { label: "Target", group: "Declaration" }
+      /// The when: guarding it, as written; a list of conditions is joined with ' and '. Never evaluated.
+      attribute condition: string readonly default "" { label: "When", group: "Declaration" }
+      attribute declaredIn: string readonly default "" { label: "Declared in", group: "Declaration" }
+      attribute declaredAtLine: int readonly default 0 { min: 0, group: "Declaration" }
+      attribute resolution: Resolution readonly default resolved { label: "Resolves to", group: "Declaration" }
+      /// Resolved during the run (include_*) rather than before it: drawn dashed where the static kinds are solid.
+      attribute dynamic: bool { derived: (self.directive == 'includeRole' || self.directive == 'includeTasks') }
+      target: { optional: true }
+    }
+
+    /// A play lists a role in roles:, or names one with import_role or include_role written on the play itself; or a
+    /// role's tasks name another role with import_role or include_role. A play's own tasks: list is not read.
+    relation UsesRole extends AnsibleRelation from Playbook, Play, Role to Role {
+      label "Uses role"
+      allowSelfLoops: true
+      target: { optional: true }
+    }
+
+    /// A playbook's top-level import_playbook entry, resolved relative to the importing file.
+    relation ImportsPlaybook extends AnsibleRelation from Playbook to Playbook {
+      label "Imports playbook"
+      allowSelfLoops: true
+      target: { optional: true }
+    }
+
+    /// A role's tasks include_tasks or import_tasks another of its task files, resolved relative to the including file.
+    relation IncludesTasks extends AnsibleRelation from Role to TaskFile {
+      label "Includes tasks"
+      allowSelfLoops: true
+      target: { optional: true }
+    }
+
+    /// A role's meta/main.yml declares another role as a dependency.
+    relation DependsOn extends AnsibleRelation from Role to Role {
+      label "Depends on"
+      allowSelfLoops: true
+      target: { optional: true }
+    }
+
+    /// A play's hosts: pattern matches a group an inventory defines: one relation per inventory that matches, always
+    /// with its target. Its directive is roles:, its target as written the hosts pattern, its declaring file empty and
+    /// its line the play's (ansible-structure.md, quirk 2).
+    relation Targets extends AnsibleRelation from Playbook, Play to Inventory {
+      label "Targets"
+      allowSelfLoops: true
+    }
+
+    /// Which Ansible directive declared a relation. They mean different things to Ansible, so they are kept apart. The
+    /// labels are the property rows' and the relation labels' words.
+    enum Directive {
+      /// A play's roles: list. Static. Also what every Targets relation carries (ansible-structure.md, quirk 2).
+      roles { label: "roles:" }
+      /// Static.
+      importRole { label: "import_role" }
+      /// Dynamic: resolved during the run.
+      includeRole { label: "include_role" }
+      /// At a playbook's top level, a sibling of its plays. Static.
+      importPlaybook { label: "import_playbook" }
+      /// Within a role's tasks. Static.
+      importTasks { label: "import_tasks" }
+      /// Within a role's tasks. Dynamic.
+      includeTasks { label: "include_tasks" }
+      /// A meta/main.yml dependencies: entry. Role to role.
+      dependencies { label: "dependencies" }
+    }
+
+    /// What became of a relation's target. Three states rather than two: collapsing 'expression' into 'missing' would
+    /// report a missing role for every parameterised role.
+    enum Resolution {
+      /// The thing it names is in the folder.
+      resolved { label: "Resolved" }
+      /// The thing it names is not in the folder. The relation has no target, and one of the missing-target rules
+      /// reports it.
+      missing { label: "Missing" }
+      /// The target holds `{{`, so what it names is not knowable without running Ansible. The relation has no target
+      /// and is never reported.
+      expression { label: "Expression" }
+    }
+
+    /// Which of a role's canonical subfolders exist and how many files each holds directly, so a role that does the
+    /// work reads differently from one that is a name and nothing else.
+    datatype RoleContents {
+      fields: {
+        taskFiles: { type: int, min: 0, default: 0, label: "Task files", doc: "YAML files in tasks/." }
+        handlers: {
+          type: int
+          min: 0
+          default: 0
+          label: "Handlers"
+          doc: "Files in handlers/, YAML or not."
+        }
+        templates: { type: int, min: 0, default: 0, label: "Templates", doc: "Files in templates/." }
+        files: { type: int, min: 0, default: 0, label: "Files", doc: "Files in files/." }
+        defaults: {
+          type: int
+          min: 0
+          default: 0
+          label: "Defaults"
+          doc: "Files in defaults/, YAML or not."
+        }
+        vars: { type: int, min: 0, default: 0, label: "Vars", doc: "Files in vars/, YAML or not." }
+        hasMeta: { type: bool, default: false, label: "Meta", doc: "A meta/ folder exists, empty or not." }
+        hasLibrary: { type: bool, default: false, label: "Library", doc: "A library/ folder exists." }
+      }
+    }
+
+    /// One play of a playbook as written: what the unmatched-hosts rule reads, for a play that is drawn and for the one
+    /// play a single-play playbook stands for alike.
+    datatype PlayFacts {
+      fields: {
+        ordinal: {
+          type: int
+          min: 0
+          default: 0
+          doc: "Its 0-based position among the playbook's plays; import_playbook entries do not count."
+        }
+        name: {
+          type: string
+          default: ""
+          doc: "Its name: as written, empty when it has none. Never the drawn label."
+        }
+        hosts: { type: string, default: "", doc: "Its hosts: pattern as written." }
+        line: { type: int, min: 0, default: 0, doc: "The 1-based line the play starts on." }
+      }
+    }
+
+    /// One group an inventory defines, and how many hosts it names. What a play's hosts: pattern is matched against.
+    datatype InventoryGroup {
+      fields: {
+        name: { type: string, default: "" }
+        hostCount: { type: int, min: 0, default: 0, label: "Hosts" }
+      }
+    }
+
+    /// One group_vars or host_vars folder an inventory reads, as its property rows show it.
+    datatype VariableFolderFacts {
+      fields: {
+        name: { type: string, default: "" }
+        path: { type: string, default: "" }
+        fileCount: { type: int, min: 0, default: 0 }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// The tokens of a hosts pattern: split on ':' and ',', each trimmed, empty ones dropped. `::1` therefore becomes the
+  /// one token `1` (ansible-structure.md, quirk 1).
+  fn hostTokens(pattern: string) -> list<string> {
+    return pattern.replace(',', ':').split(':').map(t, t.trim()).filter(t, t != '')
+  }
+
+  /// Whether every token of a hosts pattern names something Ansible resolves without an inventory entry, compared
+  /// ignoring case. Such a play is never reported as unmatched. A pattern with no token at all counts as implicit.
+  fn isImplicitHosts(pattern: string) -> bool {
+    return hostTokens(pattern).all(t, t.lowerAscii() in ['all', '*', 'localhost', '127.0.0.1', '::1'])
+  }
+
+  /// The playbook a playbook or play node stands in: the playbook with the node's path. A play's path is its playbook's
+  /// file.
+  fn playbookOf(e: AnsibleNode) -> Playbook {
+    // uses: ['diagram']
+    return diagram.nodesOfType('Playbook').filter(p, p.path == e.path)[0]
+  }
+
+  /// A playbook's rank: the longest chain of `import_playbook` relations that reaches it from a playbook nothing
+  /// imports. A playbook met again on the chain ends it rather than recursing (ansible-structure.md, section 'Layout').
+  fn playbookRank(p: Playbook, chain: list<string>) -> int recursion 64 {
+    var rank = 0
+    for r in p.incoming.filter(r, r.isA('ImportsPlaybook')) limit 100000 {
+      if !(r.source.id in chain) && r.source.id != p.id {
+        rank = math.greatest(rank, playbookRank(r.source, chain + [p.id]) + 1)
+      }
+    }
+    return rank
+  }
+
+  /// The rank of the roles' column: one past the deepest playbook or play; every role shares it.
+  fn roleRank() -> int {
+    // uses: ['diagram']
+    var deepest = -1
+    for p in diagram.nodesOfType('Playbook') limit 100000 {
+      let rank = playbookRank(p, [])
+      deepest = math.greatest(deepest, diagram.nodesOfType('Play').exists(q, q.path == p.path) ? rank + 1 : rank)
+    }
+    return deepest + 1
+  }
+
+  /// A node's rank in the layout `ranks`, left to right: a playbook's import depth, a play one past its playbook, every
+  /// role in the rank after the deepest playbook or play, and every task file in the rank after that. An inventory or a
+  /// variable folder has none: it is in the band beneath.
+  fn ansibleRank(n: AnsibleNode) -> int {
+    if n.isA('Playbook') {
+      return playbookRank(n, [])
+    }
+    if n.isA('Play') {
+      return playbookRank(playbookOf(n), []) + 1
+    }
+    if n.isA('Role') {
+      return roleRank()
+    }
+    if n.isA('TaskFile') {
+      return roleRank() + 1
+    }
+    return -1
+  }
+
+  /// The read-only reason of every property row: the file the value lives in, and how it is edited.
+  fn definedIn(file: string) -> string {
+    return 'Defined in ' + file + '; edit it in a text editor.'
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// The structural mistakes the diagram can see are the ones that bite at deploy time. Every rule fires on a mistake
+  /// somebody made, never on a convention nobody agreed to: an unconventional layout, such as playbooks kept in plays/,
+  /// is an undrawn folder and no finding, and an expression target is never reported. The order the tool lists its
+  /// findings in is not stated here (ansible-structure.md, gap 8).
+  constraints {
+    groups: {
+      structure: { label: "Project structure", doc: "What Ansible would trip over." }
+      readOnly: { label: "Read-only diagram", doc: "Gestures this diagram refuses, with the reason." }
+    }
+    builtin std.unparseable {
+      code: "ansible.unreadable-yaml"
+      message: (detail.reason)
+      doc: "The plugin reports one finding per file that does not parse, at the parser's line, with YamlDotNet's own message less its position prefix as the reason, and the rest of the folder is still read. The tool's sentence is \"'<file>' is not readable YAML: <reason>\", which names the file; DISL gives this message the reason only, so the module's AnsibleFindings composes the sentence from the finding's file and its reason (ansible-structure.md, gap 6). An inventory that is not YAML is read as INI and reported by nothing. A folder that is not there, or holds nothing recognised, opens empty with no finding."
+    }
+    builtin std.duplicateId {
+      enabled: false
+      doc: "Two relations can have one id: a role named twice in one roles: list, or named by import_role and include_role in one role's tasks; and two root inventory files give the root's group_vars one id twice. The tool reports nothing about it (standalone Q3)."
+    }
+
+    /// A play, a role's tasks or a meta/main.yml names a role with no folder under roles/, at the declaring file and
+    /// line.
+    constraint roleMissing for UsesRole, DependsOn {
+      doc {
+        rationale: "A missing role means writing a role or correcting a name. An expression target is never reported: unknown is not wrong."
+      }
+      label "Role missing"
+      rule self.resolution != 'missing'
+      severity error
+      message (self.isA('DependsOn') ? "The role '" + self.targetAsWritten + "' is declared as a dependency but has no folder under roles/." : "The role '" + self.targetAsWritten + "' has no folder under roles/.")
+      code: "ansible.role-missing"
+      group: "structure"
+      location: ({'file': self.declaredIn, 'line': self.declaredAtLine})
+    }
+
+    /// An import_playbook, import_tasks or include_tasks names a file that is not there, at the declaring file and
+    /// line.
+    constraint danglingImport for ImportsPlaybook, IncludesTasks {
+      doc { rationale: "A dangling import means a file that moved or was never added." }
+      label "Dangling import"
+      rule self.resolution != 'missing'
+      severity error
+      message ("'" + self.targetAsWritten + "' is " + (self.directive == 'includeTasks' ? 'included' : 'imported') + " here, but there is no such file.")
+      code: "ansible.dangling-import"
+      group: "structure"
+      location: ({'file': self.declaredIn, 'line': self.declaredAtLine})
+    }
+
+    /// A play's hosts: pattern matches no group any inventory defines: no Targets relation leaves the node that stands
+    /// for the play. One finding per play, drawn or not, at the playbook file and the play's line, naming the play by
+    /// its name as written.
+    constraint unmatchedHosts for Playbook {
+      doc {
+        rationale: "The mistake that deploys nothing and says so only at run time. Silent when the folder has no inventory at all, and for patterns whose every token Ansible resolves without one (all, *, localhost, 127.0.0.1, ::1)."
+      }
+      label "Unmatched hosts"
+      when item.hosts != '' && diagram.nodesOfType('Inventory').size() > 0 && !isImplicitHosts(item.hosts)
+      rule (self.plays.size() > 1 ? diagram.nodesOfType('Play').filter(p, p.path == self.path && p.ordinal == item.ordinal) : [self]).exists(o, o.outgoingOf('Targets').size() > 0)
+      severity warning
+      message ((item.name != '' ? "The play '" + item.name + "'" : 'A play') + " targets '" + item.hosts + "', which no inventory defines.")
+      code: "ansible.unmatched-hosts"
+      group: "structure"
+      forEach: (self.plays)
+      location: ({'file': self.path, 'line': item.line})
+    }
+
+    /// A folder under roles/ holds no canonical content at all, at the role folder without a line.
+    constraint emptyRole for Role {
+      doc {
+        rationale: "Ansible would find nothing to run in it, so a playbook naming it does less than its author thinks."
+      }
+      label "Empty role"
+      rule !self.hollow
+      severity warning
+      message ("The role '" + self.name + "' has none of the folders Ansible looks in, so it does nothing.")
+      code: "ansible.empty-role"
+      group: "structure"
+      location: ({'file': self.path})
+    }
+
+    /// Nothing nests by dragging. Repositioning a node is allowed and writes the registration; moving it into another
+    /// is refused. Every other write is refused by the binding's readOnly sentence, which this definition does not
+    /// repeat.
+    constraint noReparent {
+      rule false
+      message "An Ansible structure diagram is drawn from the folder's own files, so nothing on it can be moved from here. Move a role by moving its folder."
+      group: "readOnly"
+      kind: containment
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Reveals the node's file or folder in the host's explorer: the playbook file (a play reveals its playbook), the
+  /// role folder, the task file, the inventory folder or file, the variable folder. Also bound to double-click, and to
+  /// Space, which an operation's one shortcut cannot state (ansible-structure.md, gap 9).
+  operation revealFile "Reveal file" for AnsibleNode {
+    shortcut: Enter
+    open self.path
+  }
+  reason ownPath {
+    message (definedIn(self.path))
+    doc: "The node's own file or folder."
+  }
+  reason roleMeta {
+    message (definedIn(self.path + '/meta/main.yml'))
+    doc: "A role's meta/main.yml, named so whether the file is main.yml, main.yaml or absent."
+  }
+  reason declaringFile {
+    message (definedIn(self.declaredIn))
+    doc: "The file that declares a relation; empty for a Targets relation (ansible-structure.md, quirk 2)."
+  }
+
+  behavior {
+    doc: "The only edit is a reposition, one undoable step that writes the position into the registration. Activating a node reveals its file or folder."
+    clipboard: { relations: none, crossDocument: false }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// The registered folder is the model and is never written: it is read through the binding by its reader capability, and the
+  /// binding is read-only. The only stored data is the position of each node a user dragged, in the registration's
+  /// layout: block.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: derived
+      expression: ('edge:' + self.source.id + '|' + self.type + '|' + self.targetAsWritten)
+      pattern: "^\\S.{0,1023}$"
+      doc: "Read from the folder, never generated: a prefix and the folder-relative path or name, so a selection and a stored position survive every edit that does not move the thing itself. A relation's id is `edge:`, its source's id, its type and its target as written, joined by a vertical bar, so a missing role's relation keeps its id when the role appears. Paths hold '/' and relation ids '|' and spaces, so the pattern admits any id that does not start with white space."
+      types: {
+        Playbook: { strategy: derived, expression: ('playbook:' + self.path) }
+        Play: {
+          strategy: derived
+          expression: ('play:' + self.path + '#' + string(self.ordinal))
+          doc: "Positional: reordering plays moves stored positions with the index."
+        }
+        Role: { strategy: derived, expression: ('role:' + self.name) }
+        TaskFile: { strategy: derived, expression: ('taskfile:' + self.path) }
+        Inventory: { strategy: derived, expression: ('inventory:' + self.path) }
+        VariableFolder: { strategy: derived, expression: ('vars:' + self.path) }
+        Targets: {
+          strategy: derived
+          expression: ('edge:' + self.source.id + '|Targets|' + self.targetAsWritten + '|' + self.target.id)
+        }
+      }
+    }
+    view: { store: [bounds], styleOverrides: none }
+    // DISL binding: https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/ansible-structure/backend/EtAlii.Adp.Diagram.AnsibleStructure/ansible-structure.fbl#ansible
+  }
+
+  plugin net.etalii.adp.ansible.folder {
+    version: "^0.1.0"
+    provides: [persistenceFormat, layout, action]
+    required: true
+    plans: []
+    fallback: { layout: layered }
+    args: {
+      action: {
+        type: string
+        doc: "For the action extension point: 'reveal' reveals the selected node's file or folder."
+      }
+    }
+    doc: "The binding's reader: recognises Ansible's own layout and directives, resolves every relation's target, tolerates files that do not parse, and delivers nodes and relations in the order the tool reads them. It never writes and plans no change, because the binding is read-only. It is also the ranked layout and the reveal action. What it reads, and why it is a plugin, is in ansible-structure.md."
+  }
+
+  x-ansible: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-dotnet does for the .NET dependency graph. The element kinds on the wire are the prefix followed by one of the names below. A type or relation is keyed by its name, a property by its form item's row id. The rows ansible.group. and ansible.vars. with a name are not here: they are gap 7's. There are no tools and no actions."
+    typePrefix: "ansible/structure+"
+    types: {
+      Playbook: playbook
+      Play: play
+      Role: role
+      TaskFile: taskfile
+      Inventory: inventory
+      VariableFolder: vars
+      UsesRole: edge
+      ImportsPlaybook: edge
+      IncludesTasks: edge
+      DependsOn: edge
+      Targets: edge
+    }
+    properties: {
+      name: "ansible.name"
+      path: "ansible.path"
+      plays: "ansible.plays"
+      roles: "ansible.roles"
+      imports: "ansible.imports"
+      hosts: "ansible.hosts"
+      inventories: "ansible.inventories"
+      tasks: "ansible.tasks"
+      handlers: "ansible.handlers"
+      templates: "ansible.templates"
+      files: "ansible.files"
+      defaults: "ansible.defaults"
+      vars: "ansible.vars"
+      meta: "ansible.meta"
+      hollow: "ansible.hollow"
+      dependencies: "ansible.dependencies"
+      usedBy: "ansible.used-by"
+      declaredIn: "ansible.declared-in"
+      directive: "ansible.directive"
+      target: "ansible.target"
+      condition: "ansible.condition"
+      resolution: "ansible.resolution"
+    }
+  }
+  x-adp: { kind: Diagram, state: Prototype, subject: folder, companion: "ansible-structure.md" }
+}

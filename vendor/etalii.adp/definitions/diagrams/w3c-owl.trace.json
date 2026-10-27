@@ -1,0 +1,290 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "w3c/owl",
+  "description": "w3c-owl.atd",
+  "companion": {
+    "file": "w3c-owl.md",
+    "sections": [
+      "1. What the definition now carries"
+    ]
+  },
+  "items": [
+    {
+      "id": "1-what-the-definition-now-carries/1",
+      "text": "**Classification by role, punning included** (4.11.2): class, `owl:Thing`, datatype, individual and ontology header are derived node types",
+      "statedBy": "element Class"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/2",
+      "text": "**The anchors** a property without a stated domain or range attaches to, `thing:{property}|domain`, `thing:{property}|range` and",
+      "statedBy": "element ThingAnchor"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/3",
+      "text": "**Class expressions**: every blank object of `rdfs:subClassOf`, `owl:equivalentClass` or `owl:disjointWith` with a named subject, and",
+      "statedBy": "element Expression"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/4",
+      "text": "**Edges**: subclass, equivalence, disjointness (pairwise over `owl:AllDisjointClasses`), object and datatype properties from each domain to",
+      "statedBy": "relation SubClassOf"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/5",
+      "text": "**The five `owl.*` findings** are constraints: `owl.subclass-cycle` over `diagram.cycles` (D5), the other four over the triples. The five",
+      "statedBy": "constraint subclassCycle"
+    },
+    {
+      "id": "1-what-the-definition-now-carries/6",
+      "text": "**Ids that are never stored**: an expression's and an anchor's, each with today's sentence as the reason a move is refused.",
+      "statedBy": "element Expression"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/parser.rs",
+      "lines": "335-348",
+      "behaviour": "A Turtle or N-Triples body is parsed into its triples, prefix declarations and base, a body that does not parse stopping at a line with the parser's sentence.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/store.rs",
+      "lines": "56-72",
+      "behaviour": "A byte order mark is stripped before the body is read and remembered so a write puts it back.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/validator.rs",
+      "lines": "102-163",
+      "behaviour": "The five family findings: a re-declared prefix, a relative IRI without a base, a malformed language tag and an XSD datatype XSD does not define, shared by every reading of the body.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/validator.rs",
+      "lines": "78-90",
+      "behaviour": "A body that does not parse gives only `rdf.unparseable`, which replaces every other finding.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "27-79",
+      "behaviour": "An added triple is appended to its subject's statement as a `;` continuation matching its indentation, or written as a new statement at the end.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "83-88",
+      "behaviour": "A removed triple takes its whole lines where it owns them, its fragment and stranded separator where it shares a line, and its statement where it is the last.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "154-182",
+      "behaviour": "A renamed term is rewritten in every token naming it, in subject, predicate, object and datatype position, prefixed or full.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "186-218",
+      "behaviour": "A literal object is rewritten in place, its neighbouring bytes untouched.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "221-238",
+      "behaviour": "A new prefix is declared beside the existing declarations, after the last one.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/writer.rs",
+      "lines": "242-261",
+      "behaviour": "An IRI is written prefixed under the longest declared namespace that leaves a clean local name, else bracketed.",
+      "statedBy": "fn rdfCompress"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "262-268",
+      "behaviour": "An IRI is drawn as its prefixed name when it compresses, else as its local name.",
+      "statedBy": "fn rdfDisplayName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/projection.rs",
+      "lines": "271-276",
+      "behaviour": "The local name of an IRI is what follows its last '#' or '/', or the whole IRI.",
+      "statedBy": "fn rdfLocalName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/term_input.rs",
+      "lines": "8-40",
+      "behaviour": "A typed term is a full IRI, a bracketed IRI or a prefixed name under the file's declarations, an undeclared prefix refused by name.",
+      "statedBy": "fn rdfTermResolution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "354-364",
+      "behaviour": "A typed prefix declaration is `prefix: iri`, brackets tolerated, the IRI absolute.",
+      "statedBy": "fn rdfPrefixDeclaration"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "267-287",
+      "behaviour": "Renaming onto a name the document already uses is refused, and a declaration that is not `prefix: iri` is refused with the example.",
+      "statedBy": "operation renameResource"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/actions.rs",
+      "lines": "299-351",
+      "behaviour": "The answers to the family's prompts become edits: a declared prefix, a renamed term, a removed resource, a relation, a new resource typed `rdfs:Resource`.",
+      "statedBy": "operation declarePrefix"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/registration_layout.rs",
+      "lines": "72-90",
+      "behaviour": "Stored positions are read from the registration's `layout:` block, keyed by element id.",
+      "statedBy": "binding turtle"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/reading.rs",
+      "lines": "69-77",
+      "behaviour": "A stored position wins over the computed one for an element the reading draws; a stored position of an element it does not draw is ignored.",
+      "statedBy": "algorithm depthColumns"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/owl/layout.rs",
+      "lines": "58-184",
+      "behaviour": "The header stands top left, the classes in columns by asserted subclass depth with a cycle sharing one depth, each class's expressions and anchors in a lane beside it, the individuals and then every other node in five-wide bands below.",
+      "statedBy": "algorithm depthColumns"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/selection.rs",
+      "lines": "61-63",
+      "behaviour": "While the RDF graph reading is cut by its budget every edit is withheld.",
+      "statedBy": "reason truncated"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/view.rs",
+      "lines": "173-179",
+      "behaviour": "The drawn elements are streamed to the canvas a viewport at a time, as the module's payloads.",
+      "hostConcern": "rendering",
+      "reason": "Delivering the drawn elements to the canvas, a viewport at a time, is how the host renders what the description derives; the description states the elements and their attributes."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/commands.rs",
+      "lines": "202-269",
+      "behaviour": "An edit is applied to the body and recorded on the host's history for undo and redo.",
+      "hostConcern": "undo-stack",
+      "reason": "The history that undoes and redoes an edit is the host's; the description states the edit as model changes the binding writes."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/owl/projection.rs",
+      "lines": "400-643",
+      "behaviour": "Classes, `owl:Thing`, datatypes, individuals and the ontology header by role, punning included, the anchors of properties without a usable domain or range, the class expressions, and the subclass, equivalence, disjointness, property and assertion edges.",
+      "statedBy": "element Class"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/owl/hierarchy.rs",
+      "lines": "27-57",
+      "behaviour": "A class's depth is one past its deepest asserted superclass, the classes of a cycle sharing one depth.",
+      "statedBy": "algorithm depthColumns"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/owl/layout.rs",
+      "lines": "209-216",
+      "behaviour": "A stored position applies only to an IRI-derived node, never to an expression or an anchor.",
+      "statedBy": "algorithm depthColumns"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/owl/expression.rs",
+      "lines": "33-53",
+      "behaviour": "A class expression is rendered in description-logic notation, two levels deep on the canvas and uncapped in the property grid, `…` for what is cut or revisited.",
+      "statedBy": "fn owlText"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "552676b",
+      "path": "modules/diagrams/rdf/src/owl/validator.rs",
+      "lines": "51-177",
+      "behaviour": "The five `owl.*` findings: a subclass cycle, a malformed expression, an undeclared property, a reference to a deprecated term and imports that are not fetched.",
+      "statedBy": "constraint subclassCycle"
+    }
+  ]
+}

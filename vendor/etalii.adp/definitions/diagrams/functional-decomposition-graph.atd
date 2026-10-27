@@ -1,0 +1,648 @@
+atd 0.1
+
+/// What an application is made of - its screens, the actions on them, the data it keeps and the functions behind them -
+/// each owned by one parent, with Shows for where an action leads.
+///
+/// A functional decomposition graph structures frontend application development before and while it is built: which
+/// screens exist and how they nest, what a user can do on each, which data each screen and action works on, and which
+/// background processes sit behind them.
+///
+/// Four kinds of element (UI Element, Data Element, Action, Function) are linked parent to child by four **ownership**
+/// relations, which together form a set of strict trees: every element has at most one parent and ownership never
+/// loops. A fifth relation, **Shows**, is navigation: an Action shows or updates one UI Element, and navigation may
+/// loop back (a task list, a task detail and back to the task list). Comments annotate the graph and connect to
+/// nothing. The `.fdg` document is read and written through the FBL binding the standalone module ships. What DISL 0.3
+/// cannot state, the wire ids, is declared under `x-fdg`, and everything else DISL 0.3 cannot express is described in
+/// `functional-decomposition-graph.md` beside this file.
+diagram etalii/functional-decomposition-graph version "0.2.0" {
+  doc {
+    rationale: "Because only meaningful links can be drawn, the diagram doubles as a check on the design: ownership stays a clean tree, while navigation is free to loop back."
+    tags: ["frontend", "decomposition", "ui", "software delivery"]
+    audience: [user, author]
+    seeAlso: [{ title: "What DISL cannot express for this tool", href: "functional-decomposition-graph.md" }]
+  }
+  label "Functional decomposition graph"
+  id: "net.etalii.adp.etalii.functional-decomposition-graph"
+  defaultLocale: en
+  authors: [{ name: "Peter Vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/functional-decomposition-graph"
+  icon: "mdi-file-tree-outline"
+  fileExtension: "fdg"
+  requires: {
+    conformance: standard
+    features: ["placement.bound", "shape.custom", "edge.bezier", "label.parse", "persistence.fbl"]
+  }
+
+  import "functional-decomposition-graph.notation.atd"
+  import "functional-decomposition-graph.fdg.atd"
+
+  /// Five element types and five relation types, and two types for the entries the notation does not have. The four
+  /// named element types are linked parent to child by the four ownership relations; Shows links an Action to the UI
+  /// Element it shows; a Comment links to nothing. Every type carries the document's spelling of itself in
+  /// `documentType`, which the tool's sentences use.
+  model {
+
+    /// Everything that can be placed on a functional decomposition graph. Its top-left corner and its width are stored;
+    /// the y axis grows downwards.
+    element FdgElement {
+      abstract: true
+      /// What this element means. Kept in the document and shown in the property grid, but never drawn on the diagram.
+      attribute description: text {
+        label: "Description"
+        markup: plain
+        doc: {
+          rationale: "Requirement 7.1 of the standalone specification: every element and connection has a Description that is never shown on the diagram."
+        }
+      }
+      /// The left edge. A value that does not read as a number keeps the element at zero.
+      attribute x: number default 0 { unit: "canvas units" }
+      /// The top edge, downwards.
+      attribute y: number default 0 { unit: "canvas units" }
+      /// At least 80. A width below 80 that is entered or dragged is written as 80, never refused; a stored one below
+      /// 80 is kept, drawn and reported.
+      attribute width: number { label: "Width", min: 80, unit: "canvas units", outOfRange: { drag: clamp, typed: clamp } }
+      /// The entry's `type:` as the document writes it. Fixed for every type the notation has; read from the file for
+      /// an entry of a type it does not have.
+      attribute documentType: string readonly
+    }
+
+    /// An element that shows its Name inside its shape: a UI Element, Data Element, Action or Function, and an entry of
+    /// a type the notation does not have.
+    element NamedElement extends FdgElement {
+      abstract: true
+      labelAttribute: name
+      /// Drawn inside the shape, editable in place and in the property grid. It may be empty.
+      attribute name: string { label: "Name" }
+      /// The named types share one height of 48: read-only, never written to the `.fdg`, and a stored value is ignored.
+      attribute height: number { fixed: 48, readOnlyReasons: ["Only a Comment has its own height; the others share one."] }
+    }
+
+    /// A screen, or a part of one. Drop it where it belongs; its parent is a connection drawn to it.
+    ///
+    /// UI windows, pages and components. A UI Element may own child UI Elements, Actions, Data Elements and Functions,
+    /// and has at most one parent UI Element.
+    element UiElement extends NamedElement {
+      doc { tags: ["screen", "page", "component", "window"] }
+      label "UI element"
+      icon: "mdi-application-outline"
+      attribute documentType: string { fixed: ui-element }
+    }
+
+    /// Something the application keeps. A screen, an action or other data owns it.
+    ///
+    /// Input fields, data objects and collections shown in a list. A Data Element may own nested Data Elements (child
+    /// properties) and Functions, and has at most one parent in total among UI Element, Action and Data Element.
+    element DataElement extends NamedElement {
+      doc { tags: ["data", "field", "object", "collection"] }
+      label "Data element"
+      icon: "mdi-database-outline"
+      attribute documentType: string { fixed: data-element }
+    }
+
+    /// Something the user does on a screen. A screen owns it.
+    ///
+    /// Actions and interactions, for example a button click. An Action has at most one parent UI Element, may own Data
+    /// Elements and Functions, and shows at most one UI Element.
+    element Action extends NamedElement {
+      doc { tags: ["action", "interaction", "click"] }
+      label "Action"
+      icon: "mdi-gesture-tap"
+      attribute documentType: string { fixed: action }
+    }
+
+    /// Something that runs behind the screens. Anything but a Comment may own it.
+    ///
+    /// Background processes and important code functions. A Function has at most one parent in total among UI Element,
+    /// Action, Data Element and Function; Function to Function is a call chain. A background process shared by several
+    /// parents cannot be drawn: each parent needs its own Function.
+    element Function extends NamedElement {
+      doc { tags: ["function", "background process", "service"] }
+      label "Function"
+      icon: "mdi-cog-outline"
+      attribute documentType: string { fixed: function }
+    }
+
+    /// A note on the graph. It connects to nothing.
+    ///
+    /// A resizable, multiline box whose text wraps automatically. A Comment has no Name: its text is its content,
+    /// editable in place and in the property grid.
+    element Comment extends FdgElement {
+      doc { tags: ["note", "comment"] }
+      label "Comment"
+      icon: "mdi-note-text-outline"
+      labelAttribute: text
+      /// The comment's content, drawn wrapped inside the box. Line breaks are kept.
+      attribute text: text { label: "Text", markup: plain }
+      /// Stored only for a Comment, at least 48. A height below 48 that is entered or dragged is written as 48, never
+      /// refused.
+      attribute height: number { label: "Height", min: 48, unit: "canvas units", outOfRange: { drag: clamp, typed: clamp } }
+      /// A `name` written on a Comment by hand. It is kept, shown nowhere and edited by nothing, and it counts when a
+      /// new element is named (`uniqueName`).
+      attribute name: string readonly { readOnlyReasons: ["A Comment has no name; its text is its content."] }
+      attribute documentType: string { fixed: comment }
+    }
+
+    /// An entry of `elements:` whose `type:` names no element type of this notation, or that has none.
+    ///
+    /// Kept byte for byte, never drawn, and reported. It has no tool, no notation and no creation: nothing makes one
+    /// but a hand edit. Its id counts where ids are counted, and a connection to it is reported by the type check with
+    /// the type it was written with. It is renamed, removed, resized and described like a named element.
+    element UnknownElement extends NamedElement {
+      label "Unknown element"
+    }
+
+    /// Every link of a functional decomposition graph: directed, from parent to child, never from an element to itself,
+    /// and never to or from a Comment.
+    relation FdgRelation {
+      abstract: true
+      directed: true
+      allowSelfLoops: false
+      /// Drawn beside the curve when given; when empty nothing is drawn.
+      attribute name: string { label: "Name" }
+      /// What this link means. Never drawn on the diagram.
+      attribute description: text { label: "Description", markup: plain }
+      /// The connection's `type:` as the document writes it.
+      attribute documentType: string readonly
+    }
+
+    /// Ownership: the four relations a decomposition is made of.
+    ///
+    /// UI child, Action, Data and Function together form a set of strict trees. Each child kind has exactly one
+    /// ownership relation arriving at it, and that relation allows one parent, so every element has at most one parent
+    /// in total. `acyclic` on this abstract type covers all four subtypes together (4.9): no directed cycle may run
+    /// through any mix of them. Shows is not ownership and is exempt.
+    relation Ownership extends FdgRelation {
+      doc {
+        rationale: "The one-parent limits alone do not prevent a loop - a Data Element that owns another which owns it back has one parent each - so it is the cycle rule that keeps ownership loop-free."
+      }
+      abstract: true
+      acyclic: true
+    }
+
+    /// A UI Element nested in another: a page holding a list, a list holding a row. A UI Element may have any number of
+    /// UI children.
+    relation UiChild extends Ownership from UiElement to UiElement {
+      label "UI child"
+      allowSelfLoops: false
+      attribute documentType: string { fixed: ui-child }
+      target: { max: 1, role: child, doc: "A UI Element has at most one parent UI Element." }
+    }
+
+    /// An Action offered by a UI Element, such as a button click. A UI Element may have any number of Actions.
+    relation OwnsAction extends Ownership from UiElement to Action {
+      label "Action"
+      allowSelfLoops: false
+      attribute documentType: string { fixed: owns-action }
+      target: { max: 1, role: action, doc: "An Action has at most one parent." }
+    }
+
+    /// Data a UI Element shows or binds, data an Action works on, or a child property of a Data Element (nesting
+    /// allowed). A parent may have any number of Data Elements.
+    relation OwnsData extends Ownership from UiElement, Action, DataElement to DataElement {
+      label "Data"
+      allowSelfLoops: false
+      attribute documentType: string { fixed: owns-data }
+      target: { max: 1, role: data, doc: "A Data Element has at most one parent in total." }
+    }
+
+    /// A background process or important code function that relates to its parent. Function to Function is a call
+    /// chain. A parent may have any number of Functions.
+    relation OwnsFunction extends Ownership from UiElement, Action, DataElement, Function to Function {
+      label "Function"
+      allowSelfLoops: false
+      attribute documentType: string { fixed: owns-function }
+      target: { max: 1, role: function, doc: "A Function has at most one parent in total." }
+    }
+
+    /// An Action shows a page, or updates a UI Element.
+    ///
+    /// Navigation, not ownership: it is exempt from the cycle rule, so an Action may show its own page or any page
+    /// above it, and a navigation round trip can be drawn. A UI Element may be shown by any number of Actions.
+    relation Shows extends FdgRelation from Action to UiElement {
+      label "Shows"
+      allowSelfLoops: false
+      attribute documentType: string { fixed: shows }
+      source: { max: 1, role: action, doc: "An Action shows or updates at most one UI Element." }
+      target: { role: shown }
+    }
+
+    /// An entry of `connections:` whose `type:` names no relation of this notation, or that has none.
+    ///
+    /// Kept byte for byte, never drawn, and reported. It has no tool, no notation and no connect gesture: nothing makes
+    /// one but a hand edit. Its id counts where ids are counted. It is renamed, removed and described like any
+    /// connection.
+    relation UnknownConnection extends FdgRelation from FdgElement to FdgElement {
+      label "Unknown connection"
+      allowSelfLoops: false
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// The document's spelling of a type of this specification, as an entry's `type:` writes it (`UiChild` is
+  /// `ui-child`). The tool's sentences name types this way.
+  fn documentTypeOf(type: string) -> string {
+    return {'UiElement': 'ui-element', 'DataElement': 'data-element', 'Action': 'action', 'Function': 'function', 'Comment': 'comment', 'UiChild': 'ui-child', 'OwnsAction': 'owns-action', 'OwnsData': 'owns-data', 'OwnsFunction': 'owns-function', 'Shows': 'shows'}[type]
+  }
+
+  /// An element as a refusal names it: its name, or its id when the name is empty (`FdgConnectVerdict.NameOf`).
+  fn nameOf(e: dyn) -> string {
+    return e.name != '' ? e.name : e.id
+  }
+
+  /// A width or height as the property grid shows it: at most four decimals and none when whole, such as `140`, `12.5`
+  /// or `140.1235`, the same on every machine (`DslNumber.Format`, `0.####` in the invariant culture).
+  fn sizeText(a: double) -> string {
+    return string(math.round(a * 10000.0) / 10000.0)
+  }
+
+  /// `base` when no element carries it as its name yet, otherwise `base 2`, `base 3` and so on: the first number from 2
+  /// up that no element carries (`UniqueName.Of`).
+  ///
+  /// Every element's `name` is counted, a Comment's stray `name` and an entry of an unknown type included, because the
+  /// tool counts the name of every entry it read. The candidates 2 to N + 1, for N elements, are made from the
+  /// elements' positions; when all of them are taken, N + 2 is free.
+  fn uniqueName(base: string) -> string {
+    // uses: ['diagram']
+    return cel.bind(taken, diagram.nodes.map(n, n.name), !(base in taken) ? base : cel.bind(free, diagram.nodes.map(n, n.positionIn(diagram.nodes) + 2).filter(k, !((base + ' ' + string(k)) in taken)), base + ' ' + string(free.size() > 0 ? free[0] : diagram.nodes.size() + 2)))
+  }
+
+  /// The ownership links as the cycle check walks them: each element that owns something, in the order its first
+  /// ownership link is written, with the distinct elements it owns in the order first written. A link with an end that
+  /// names no element, and a link from an element to itself, are left out: the one is `fdg.dangling-reference`'s to
+  /// report and the other `fdg.self-link`'s, not a loop's.
+  fn ownershipEdges() -> list<dyn> {
+    var owners = []
+    var owned = []
+    for r in diagram.relationsOfType('Ownership') limit 100000 {
+      if has(r.source) && has(r.target) && r.source.id != r.target.id {
+        let at = owners.indexOf(r.source.id)
+        if at < 0 {
+          owners = owners + [r.source.id]
+          owned = owned + [[r.target.id]]
+        } else if !(r.target.id in owned[at]) {
+          owned = owned.slice(0, at) + [owned[at] + [r.target.id]] + owned.slice(at + 1, owned.size())
+        }
+      }
+    }
+    return owners.map(o, [o, owned[owners.indexOf(o)]])
+  }
+
+  /// The elements `id` owns directly, along `edges` as `ownershipEdges` gives them.
+  fn ownedBy(edges: list<dyn>, id: string) -> list<string> {
+    let entry = edges.filter(e, e[0] == id)
+    return entry.size() > 0 ? entry[0][1] : []
+  }
+
+  /// A loop's members turned so that the one with the least id, by ordinal comparison, comes first.
+  fn rotated(members: list<string>) -> list<string> {
+    let at = members.indexOf(members.filter(m, members.all(o, m <= o))[0])
+    return members.slice(at, members.size()) + members.slice(0, at)
+  }
+
+  /// Every ownership loop of the graph, each its members in loop order from the one with the least id, and each once
+  /// however many of its members it is met from (companion, gap 12). A depth-first walk from each owner in written
+  /// order, children in written order, that never enters an element twice: a loop is found where the walk reaches an
+  /// element still on its path.
+  fn ownershipLoops() -> list<list<string>> {
+    let edges = ownershipEdges()
+    var visited = []
+    var found = []
+    for entry in edges limit 100000 {
+      if !(entry[0] in visited) {
+        visited = visited + [entry[0]]
+        var path = [entry[0]]
+        var next = [0]
+        while path.size() > 0 limit 1000000 {
+          let depth = path.size() - 1
+          let children = ownedBy(edges, path[depth])
+          let i = next[depth]
+          if i >= children.size() {
+            path = path.slice(0, depth)
+            next = next.slice(0, depth)
+          } else {
+            next = next.slice(0, depth) + [i + 1]
+            let child = children[i]
+            if child in path {
+              let members = rotated(path.slice(path.indexOf(child), path.size()))
+              if !(members in found) {
+                found = found + [members]
+              }
+            } else if !(child in visited) {
+              visited = visited + [child]
+              path = path + [child]
+              next = next + [0]
+            }
+          }
+        }
+      }
+    }
+    return found
+  }
+
+  /// Whether an ownership link from `owner` to `owned` would close a loop: whether `owner` is already reachable from
+  /// `owned` along ownership links. A link from an element to itself closes none; it is the type check's to refuse.
+  fn closesOwnershipLoop(owner: string, owned: string) -> bool {
+    if owner == owned {
+      return false
+    }
+    let edges = ownershipEdges()
+    var seen = [owned]
+    var pending = [owned]
+    while pending.size() > 0 limit 100000 {
+      let id = pending[pending.size() - 1]
+      pending = pending.slice(0, pending.size() - 1)
+      if id == owner {
+        return true
+      }
+      for child in ownedBy(edges, id) limit 100000 {
+        if !(child in seen) {
+          seen = seen + [child]
+          pending = pending + [child]
+        }
+      }
+    }
+    return false
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// The rules are declared on the metamodel: the relations' endpoints and limits, no self-links, the cycle rule on
+  /// ownership, and the least width and Comment height. A document edited outside ADP that breaks them still opens, and
+  /// each breach is reported with the tool's code and sentence. A connect gesture is checked in DISL's order (8.4) -
+  /// type (`std.endpoints`), then cardinality (`std.multiplicity`), then cycle (`std.acyclic`) - and the first refusal
+  /// is shown, in the tool's words.
+  constraints {
+    blockSaveOn: never
+    order: [
+      "fdg.duplicate-id",
+      "fdg.unreadable-entry",
+      "fdg.dangling-reference",
+      "fdg.self-link",
+      "fdg.forbidden-link",
+      "fdg.second-parent",
+      "fdg.second-shows",
+      "fdg.ownership-cycle"
+    ]
+    builtin std.endpoints {
+      severity: error
+      code: (detail.?violation.orValue(self.source == self.target ? 'selfLoop' : 'target') == 'selfLoop' ? 'fdg.self-link' : 'fdg.forbidden-link')
+      message: (detail.?violation.orValue(self.source == self.target ? 'selfLoop' : 'target') == 'selfLoop' ? '`' + self.id + '` links `' + self.source.id + '` to itself; no relation allows that.' : '`' + self.documentType + '` does not admit a link from a ' + self.source.documentType + ' to a ' + self.target.documentType + '.')
+      refusal: (source == target ? 'Refused by the type check: no relation links an element to itself.' : 'Refused by the type check: `' + documentTypeOf(relationType) + '` does not link a ' + source.documentType + ' to a ' + target.documentType + '.')
+      doc: "Covers fdg.self-link and fdg.forbidden-link for a pair of ends the relation does not admit. A connection of a relation the notation does not have is fdg.forbidden-link by the rule unknownRelation."
+    }
+    builtin std.multiplicity {
+      severity: error
+      code: (detail.relationType == 'Shows' ? 'fdg.second-shows' : 'fdg.second-parent')
+      message: ('`' + self.id + '` has ' + string(detail.count) + ' `' + documentTypeOf(detail.relationType) + '` ' + (detail.relationType == 'Shows' ? 'links' : 'parents') + '; it may have ' + string(detail.max) + '.')
+      refusal: (violation.end == 'source' ? 'Refused by the cardinality check: `' + nameOf(source) + '` already has its `' + documentTypeOf(violation.relationType) + '` link, and may have ' + string(violation.max) + '.' : 'Refused by the cardinality check: `' + nameOf(target) + '` already has its `' + documentTypeOf(violation.relationType) + '` parent, and may have ' + string(violation.max) + '.')
+      doc: "Covers fdg.second-parent (a target end's `max` of the four ownership relations) and fdg.second-shows (the source end's `max` of Shows, the only source limit)."
+    }
+    builtin std.acyclic {
+      severity: error
+      code: "fdg.ownership-cycle"
+      message: (cel.bind(c, detail.?cycle.orValue([]), cel.bind(least, c.filter(e, c.all(o, o.id >= e.id)), least.size() == 0 ? 'Ownership loops.' : cel.bind(p, least[0].positionIn(c), 'Ownership loops: ' + c.map(e, c[(e.positionIn(c) + p) % c.size()].id).join(' -> ') + ' -> ' + least[0].id + '.'))))
+      refusal: ('Refused by the cycle check: `' + nameOf(target) + '` already owns `' + nameOf(source) + '`, so this link would make an ownership loop.')
+      enabled: false
+      doc: "Stated by the script instead (spec 035, T086): the constraints ownershipLoop and ownershipLoopConnect, over the functions ownershipLoops and closesOwnershipLoop, report and refuse with this code and these sentences. Over Ownership and all four of its subtypes; Shows is exempt. A loop is one finding, its members in loop order from the one with the least id: \"Ownership loops: a -> b -> a.\" 8.7 binds no `cycle` in this built-in's `detail`, so the message reads it optionally (see the companion, gap 12)."
+    }
+    builtin std.references {
+      severity: error
+      code: "fdg.dangling-reference"
+      message: ('`' + self.id + '` names `' + detail.missingId + '`, which is not an element in this document.')
+    }
+    builtin std.duplicateId {
+      severity: error
+      code: "fdg.duplicate-id"
+      message: ('`' + detail.id + '` is declared ' + string(detail.?count.orValue(2)) + ' times; an id names one entry.')
+      oncePerGroup: last
+      doc: "Ids are unique across elements and connections together. An id held several times is reported once, on its last holder, with the count; an edit and the canvas go to its first holder."
+    }
+    builtin std.facets {
+      severity: warning
+      code: "fdg.unreadable-entry"
+      message: (detail.attribute == 'height' ? '`' + self.id + '` is ' + string(self.height) + ' tall; a Comment\'s minimum is 48.' : '`' + self.id + '` is ' + string(self.width) + ' wide; the minimum is 80.')
+      doc: "A stored width below 80, or a Comment's height below 48, is kept, drawn and reported as a warning. The number is written as the document has it, the same on every machine."
+    }
+    builtin std.unreadableEntry {
+      code: "fdg.unreadable-entry"
+      message: (detail.reason)
+      doc: "The reader's own sentences: a key it does not read, a `name` on a Comment, an entry that is not a mapping, a number that does not read, and the header's."
+    }
+    builtin std.unparseable {
+      severity: warning
+      code: "fdg.unreadable-entry"
+      message: ('The document could not be read as YAML: ' + detail.reason)
+    }
+    builtin std.missingId {
+      enabled: false
+      doc: "An entry without an id is read with an empty one and reported by nothing, as today (held to today's findings by the standalone conversion's Q4)."
+    }
+
+    /// One finding per ownership loop, on its member with the least id, naming the members in loop order from it:
+    /// "Ownership loops: a -> b -> a." (companion, gap 12).
+    constraint ownershipLoop {
+      forEach: (ownershipLoops())
+      rule false
+      severity error
+      message ('Ownership loops: ' + item.join(' -> ') + ' -> ' + item[0] + '.')
+      code: "fdg.ownership-cycle"
+      target: (diagram.nodes.filter(n, n.id == item[0]))
+      cost: expensive
+    }
+
+    /// A connect of one of the four ownership relations that would close a loop is refused, after the type and the
+    /// cardinality checks (DISL 8.4).
+    constraint ownershipLoopConnect {
+      kind: connect
+      when (relationType in ['UiChild', 'OwnsAction', 'OwnsData', 'OwnsFunction'])
+      rule (!closesOwnershipLoop(source.id, target.id))
+      message ('Refused by the cycle check: `' + nameOf(target) + '` already owns `' + nameOf(source) + '`, so this link would make an ownership loop.')
+      code: "fdg.ownership-cycle"
+    }
+
+    constraint unknownElementType for UnknownElement {
+      rule false
+      severity warning
+      message ('`' + self.documentType + '` is not an element type this module knows.')
+      code: "fdg.unreadable-entry"
+    }
+
+    constraint unknownRelationType for UnknownConnection {
+      rule false
+      severity warning
+      message ('`' + self.documentType + '` is not a relation this module knows.')
+      code: "fdg.unreadable-entry"
+    }
+
+    constraint unknownRelation for UnknownConnection {
+      rule false
+      severity error
+      message ('`' + self.id + '` names the relation `' + self.documentType + '`, which this notation does not have.')
+      code: "fdg.forbidden-link"
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Adds at the point that was clicked, as a toolbox drop there would.
+  operation addUiElementHere "Add ui element here" for diagram {
+    icon: "mdi-plus"
+    create UiElement { name: uniqueName('New UI element'), x: double(position.x) - 80.0, y: double(position.y) - 24.0, width: 160.0 } at position
+  }
+
+  operation addDataElementHere "Add data element here" for diagram {
+    icon: "mdi-plus"
+    create DataElement { name: uniqueName('New data element'), x: double(position.x) - 80.0, y: double(position.y) - 24.0, width: 160.0 } at position
+  }
+
+  operation addActionHere "Add action here" for diagram {
+    icon: "mdi-plus"
+    create Action { name: uniqueName('New action'), x: double(position.x) - 80.0, y: double(position.y) - 24.0, width: 160.0 } at position
+  }
+
+  operation addFunctionHere "Add function here" for diagram {
+    icon: "mdi-plus"
+    create Function { name: uniqueName('New function'), x: double(position.x) - 80.0, y: double(position.y) - 24.0, width: 160.0 } at position
+  }
+
+  operation addCommentHere "Add comment here" for diagram {
+    icon: "mdi-plus"
+    create Comment { text: 'New comment', x: double(position.x) - 120.0, y: double(position.y) - 48.0, width: 240.0, height: 96.0 } at position
+  }
+
+  behavior {
+    doc: "Every change - add, remove, move, resize, connect, disconnect, rename, set a description - is one undoable step."
+    deletion: {
+      FdgElement: {
+        relations: delete
+        confirm: {
+          count: (self.incoming.size() + self.outgoing.filter(r, r.target != self).size())
+          threshold: 1
+          title: "Remove"
+          message: ('Removing this element also removes the ' + string(count) + (count == 1 ? ' connection' : ' connections') + ' to or from it.')
+          confirmLabel: "Remove"
+          danger: true
+          doc: "Removing an element also removes every connection to or from it, in the same undoable step. It asks first only when there is such a connection, naming how many; a Comment connects to nothing and never asks."
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// A functional decomposition graph is a `.fdg` file of ADP's own YAML: a version header, then its elements and
+  /// connections, registered by an `.adp` file whose origin is etalii/functional-decomposition-graph. The FBL binding's
+  /// element types and attributes are mapped onto this metamodel; a connection is read as an element with reference
+  /// attributes, so one whose end names nothing is kept and reported. A document ADP did not change is written back
+  /// byte-identical, and an edit splices only what it changes.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: uuid-v4
+      encoding: base36
+      stable: true
+      doc: "New entries get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `task-detail` are any token and are kept as written. Ids are unique across elements and connections together."
+    }
+    view: { store: [] }
+    typeMap: {
+      Graph: {
+        as: header
+        doc: "The `functional-decomposition-graph: 1` header, read as an element of its own."
+      }
+      UiElement: { as: UiElement, hostAttributes: [storedId, unknownKeys] }
+      DataElement: { as: DataElement, hostAttributes: [storedId, unknownKeys] }
+      Action: { as: Action, hostAttributes: [storedId, unknownKeys] }
+      Function: { as: Function, hostAttributes: [storedId, unknownKeys] }
+      Comment: { as: Comment, attributes: { strayName: name }, hostAttributes: [storedId, unknownKeys] }
+      UnknownElement: {
+        as: UnknownElement
+        hostAttributes: [storedId, unknownKeys]
+        doc: "The catch-all rule for an entry of `elements:` whose type the notation does not have. It stays in the model, so its id is counted and a connection to it is reported by the type check."
+      }
+      UiChild: {
+        as: UiChild
+        attributes: { from: source, to: target }
+        hostAttributes: [storedId, unknownKeys]
+      }
+      OwnsAction: {
+        as: OwnsAction
+        attributes: { from: source, to: target }
+        hostAttributes: [storedId, unknownKeys]
+      }
+      OwnsData: {
+        as: OwnsData
+        attributes: { from: source, to: target }
+        hostAttributes: [storedId, unknownKeys]
+      }
+      OwnsFunction: {
+        as: OwnsFunction
+        attributes: { from: source, to: target }
+        hostAttributes: [storedId, unknownKeys]
+      }
+      Shows: {
+        as: Shows
+        attributes: { from: source, to: target }
+        hostAttributes: [storedId, unknownKeys]
+      }
+      UnknownConnection: {
+        as: UnknownConnection
+        attributes: { from: source, to: target }
+        hostAttributes: [storedId, unknownKeys]
+        doc: "The catch-all rule for an entry of `connections:` whose relation the notation does not have. It stays in the model, so its id is counted."
+      }
+      Unreadable: { as: unreadable, doc: "An entry that is not a mapping." }
+    }
+    // DISL binding: https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/functional-decomposition-graph/backend/EtAlii.Adp.Diagram.FunctionalDecompositionGraph/functional-decomposition-graph.fbl#fdg
+  }
+
+  x-fdg: {
+    doc: "Today's wire ids, which the standalone client (client/fdgIds.ts) and backend share, mapped from this specification's names, as x-ghg does for the hype cycle. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type> or its subtypes, and a <name> in an id is replaced by the entry's argument of that name, mapped through types. A property is keyed by its form item's id, else its attribute. An element's wire id is the id written in the document, with no prefix."
+    tools: {
+      uiElement: { id: "fdg.toolbox.ui-element", drop: "fdg.add.ui-element" }
+      action: { id: "fdg.toolbox.action", drop: "fdg.add.action" }
+      dataElement: { id: "fdg.toolbox.data-element", drop: "fdg.add.data-element" }
+      function: { id: "fdg.toolbox.function", drop: "fdg.add.function" }
+      comment: { id: "fdg.toolbox.comment", drop: "fdg.add.comment" }
+    }
+    actions: {
+      editLabel: "fdg.rename"
+      delete: "fdg.remove"
+      "FdgRelation/editLabel": "fdg.rename-connection"
+      "FdgRelation/delete": "fdg.disconnect"
+      addUiElementHere: "fdg.add.ui-element"
+      addDataElementHere: "fdg.add.data-element"
+      addActionHere: "fdg.add.action"
+      addFunctionHere: "fdg.add.function"
+      addCommentHere: "fdg.add.comment"
+      connect: "fdg.connect.<relation>"
+    }
+    properties: {
+      name: "fdg.name"
+      text: "fdg.text"
+      description: "fdg.description"
+      width: "fdg.width"
+      height: "fdg.height"
+      connectionName: "fdg.connection-name"
+    }
+    types: {
+      UiElement: ui-element
+      DataElement: data-element
+      Action: action
+      Function: function
+      Comment: comment
+      UiChild: ui-child
+      OwnsAction: owns-action
+      OwnsData: owns-data
+      OwnsFunction: owns-function
+      Shows: shows
+    }
+  }
+  x-adp: {
+    origin: "etalii/functional-decomposition-graph"
+    kind: Diagram
+    state: Prototype
+    companion: "functional-decomposition-graph.md"
+  }
+}

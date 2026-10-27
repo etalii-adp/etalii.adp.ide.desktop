@@ -1,0 +1,314 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "etalii/agent-behavior-modelling",
+  "description": "agent-behavior-modelling.atd",
+  "companion": {
+    "file": "agent-behavior-modelling.md",
+    "sections": [
+      "What DISL 0.3 and FBL 0.2 cannot state yet",
+      "Where the `.dis` and the code may still differ",
+      "Known gaps"
+    ]
+  },
+  "items": [
+    {
+      "id": "what-disl-0-3-and-fbl-0-2-cannot-state-yet/1",
+      "text": "**Wire ids**",
+      "statedBy": "setting x abm"
+    },
+    {
+      "id": "what-disl-0-3-and-fbl-0-2-cannot-state-yet/2",
+      "text": "**What a retype keeps**",
+      "statedBy": "binding abm"
+    },
+    {
+      "id": "what-disl-0-3-and-fbl-0-2-cannot-state-yet/3",
+      "text": "**Menu groups**",
+      "statedBy": "toolbox context BehaviorNode"
+    },
+    {
+      "id": "what-disl-0-3-and-fbl-0-2-cannot-state-yet/4",
+      "text": "**Findings order**",
+      "statedBy": "constraints order"
+    },
+    {
+      "id": "where-the-dis-and-the-code-may-still-differ/1",
+      "text": "**Edge cases of text.**",
+      "statedBy": "fn shorten"
+    },
+    {
+      "id": "where-the-dis-and-the-code-may-still-differ/2",
+      "text": "**Refusing a line from a leaf.**",
+      "statedBy": "operation moveUnder"
+    },
+    {
+      "id": "where-the-dis-and-the-code-may-still-differ/3",
+      "text": "**The label's editing box**",
+      "hostConcern": "rendering",
+      "reason": "Where the inline editor's box stands and which icon the removal dialog shows are how a host draws the label editor and the confirmation the description asks for (`editable: inline` on each node's label, `behavior deletion` with its message)."
+    },
+    {
+      "id": "known-gaps/1",
+      "text": "**No browser pass recorded**",
+      "hostConcern": "rendering",
+      "reason": "A browser pass and a screenshot are records of how a host draws the tool, kept with that host's tests and documentation; the description states the drawing, not its evidence."
+    },
+    {
+      "id": "known-gaps/2",
+      "text": "**Delegate does not open the linked file**",
+      "hostConcern": "opening-links",
+      "reason": "A Delegate's label is text, as the description states it; following a link written in it to another file is the host's way of opening links."
+    },
+    {
+      "id": "known-gaps/3",
+      "text": "**The binding file**",
+      "statedBy": "binding abm"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/parser.rs",
+      "lines": "20-82",
+      "behaviour": "The tree is the first list under the first heading Behavior or Behaviour, in any case, ending at a heading of that level or above or at a line in the list's column that is not an item; a nested item is a child of the item it is nested in.",
+      "statedBy": "binding abm"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/parser.rs",
+      "lines": "204-230",
+      "behaviour": "An item's bold lead is its keyword, read without regard to case with the colon inside or after the bold, a Retry's count inside it; an item without a keyword is an implicit Do.",
+      "statedBy": "binding abm element Do"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/parser.rs",
+      "lines": "231-250",
+      "behaviour": "A node's notes are the lines under its item before its first child, with the item's indentation taken off.",
+      "statedBy": "binding abm element Sequence attribute notes"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/parser.rs",
+      "lines": "251-258",
+      "behaviour": "A label in a message is cut to 60 characters, the last three replaced by an ellipsis.",
+      "statedBy": "fn shorten"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/plugin.rs",
+      "lines": "370-399",
+      "behaviour": "A file with no Behavior heading is told so on line 1, and a section that holds no list on the heading's line, both at severity information.",
+      "statedBy": "constraint noBehavior"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/plugin.rs",
+      "lines": "370-382",
+      "behaviour": "A Behavior section that holds no list is told \"The Behavior section holds no list yet. Add a node to start the tree.\" on the heading's line.",
+      "divergesFrom": "constraint noBehavior"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/plugin.rs",
+      "lines": "68-99",
+      "behaviour": "Every change is planned as the lines it touches, handed back as one splice, or two for a move, and an edit the writer refuses comes back refused in its words.",
+      "statedBy": "binding abm"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/writer.rs",
+      "lines": "56-67",
+      "behaviour": "A rename rewrites the item's whole line in its canonical form, **Keyword:** label.",
+      "divergesFrom": "binding abm element Sequence attribute label"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/writer.rs",
+      "lines": "68-100",
+      "behaviour": "Changing a node's kind rewrites its keyword and keeps its label and notes; a Retry is written with its count, `time` for one.",
+      "statedBy": "binding abm element Retry"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/writer.rs",
+      "lines": "101-126",
+      "behaviour": "Notes are written as the lines under the item, indented to its content, and empty notes remove them.",
+      "statedBy": "binding abm element Sequence attribute notes"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/writer.rs",
+      "lines": "127-193",
+      "behaviour": "A new node is written as the last child of its parent, or at the place an add names, indented as its siblings are.",
+      "statedBy": "binding abm element Sequence insert"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/writer.rs",
+      "lines": "202-289",
+      "behaviour": "A move takes the node's subtree out and puts it in under its new parent, re-indented to its depth.",
+      "statedBy": "operation moveUnder"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/writer.rs",
+      "lines": "310-324",
+      "behaviour": "The first node of a file without a Behavior section appends a `## Behavior` heading at the end of the file.",
+      "statedBy": "binding abm element Sequence insert"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/writer.rs",
+      "lines": "21-55",
+      "behaviour": "A new file is a title, a line saying what it is for, the legend that tells the agent how to follow the tree, and the Behavior section with one Do in order.",
+      "statedBy": "binding abm template"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/kinds.rs",
+      "lines": "150-176",
+      "behaviour": "A kind's canonical keyword, with a Retry's count and the singular `time` for one attempt, and the keyword read back without regard to case.",
+      "statedBy": "fn keyword"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "78-98",
+      "behaviour": "A new node of a kind starts with that kind's label, empty for a Retry and an Ask approval before.",
+      "statedBy": "fn startingLabel"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "242-281",
+      "behaviour": "Add child creates the node of the chosen kind as the parent's last child and then asks for its label.",
+      "statedBy": "operation addChild"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "283-342",
+      "behaviour": "A node dropped on the canvas is placed under the nearest node above the drop that takes another child, among its children by how far left it landed, and its label is asked.",
+      "statedBy": "operation addHere"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/layout.rs",
+      "lines": "235-263",
+      "behaviour": "The parent of a drop is the nearest node above it with room for another child; a drop with none above is a new root.",
+      "statedBy": "behavior placements"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "355-375",
+      "behaviour": "Arrange diagram removes the registration's `layout:` block, and refuses with \"This behavior model is already arranged.\" when there is none.",
+      "statedBy": "operation arrange"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "355-363",
+      "behaviour": "Arrange diagram on a model opened without a registration is refused, as there are no dragged positions to forget.",
+      "hostConcern": "file-dialogs",
+      "reason": "A model opened without a registration has nowhere its dragged positions are kept; saying so is the host's handling of the files it opens and registers, since the description states what Arrange diagram does to the model's stored view."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "376-440",
+      "behaviour": "A drag moves a node's whole row to the height it was dropped at and, past a sibling's middle, reorders it among its siblings, writing the Markdown and the registration as one edit.",
+      "statedBy": "layout algorithm tree"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "441-463",
+      "behaviour": "A line drawn from a node to another moves the target, with everything under it, to be the node's last child.",
+      "statedBy": "operation moveUnder"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "508-534",
+      "behaviour": "Changing the Kind field retypes the node, refused when the new kind would lose a child.",
+      "statedBy": "fn canBecome"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/actions.rs",
+      "lines": "536-576",
+      "behaviour": "The findings are the specification's rules in its order, then `abm.no-behavior`.",
+      "statedBy": "constraints order"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/layout.rs",
+      "lines": "34-116",
+      "behaviour": "A tidy tree of 200 by 60 nodes, 28 across and 56 down, each parent centred over its first and last child, roots packed side by side and the leftmost node at x = 0; a stored row height wins for every node in the row and beneath it, never closer than 16.",
+      "statedBy": "layout algorithm tree"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/agent-behavior-modelling/src/registration.rs",
+      "lines": "26-95",
+      "behaviour": "Dragged positions are kept in the registration's `layout:` block, one entry per place id, numbers with at most three decimals, and an empty block is removed.",
+      "statedBy": "persistence view"
+    }
+  ]
+}

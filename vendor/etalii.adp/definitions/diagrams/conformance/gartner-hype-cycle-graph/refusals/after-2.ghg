@@ -1,0 +1,46 @@
+gartner-hypecycle-graph: 1
+unit: month
+trends:
+  - id: steam
+    name: Steam
+    start: 1800-01
+    stop: 1850-01
+    row: 1
+    phases: 4
+  - id: rail
+    name: Rail
+    start: 1820-01
+    stop: 1870-01
+    row: 2
+    phases: 1
+triggers:
+  - id: patent
+    name: Patent
+    date: 1795-06
+    row: 3
+notes:
+  - id: unplaced
+    text: A note without a place
+    row: 4
+  - id: placed
+    text: A placed note
+    at: 1830-01
+    row: 5
+    width: 120
+    height: 40
+influences:
+  - id: steam-rail
+    from: steam
+    from-phase: plateau
+    from-edge: bottom
+    from-at: 0.5
+    to: rail
+    to-phase: peak
+    to-edge: top
+    to-at: 0.5
+  - id: ID_case1
+    from: patent
+    to: rail
+    to-phase: peak
+    to-edge: top
+    to-at: 0.5

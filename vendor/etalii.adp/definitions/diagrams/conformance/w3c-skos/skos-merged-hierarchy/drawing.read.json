@@ -1,0 +1,229 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/drinks#cocoa",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 220,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Cocoa",
+          "font": "13 400",
+          "position": {
+            "x": 100,
+            "y": 250
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/drinks#coffee",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 240,
+        "y": 220,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Coffee",
+          "font": "13 400",
+          "position": {
+            "x": 340,
+            "y": 250
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/drinks#drinks",
+      "type": "w3c/skos+scheme",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 260,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Drinks (4)",
+          "font": "13 400",
+          "position": {
+            "x": 130,
+            "y": 25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          8,
+          6
+        ]
+      }
+    },
+    {
+      "id": "res:http://example.org/drinks#hot",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 240,
+        "y": 60,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Hot drinks",
+          "font": "13 400",
+          "position": {
+            "x": 340,
+            "y": 90
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/drinks#tea",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 480,
+        "y": 220,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Tea",
+          "font": "13 400",
+          "position": {
+            "x": 580,
+            "y": 250
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/drinks#cocoa|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/drinks#hot",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/drinks#hot",
+      "target": "res:http://example.org/drinks#cocoa",
+      "route": [
+        {
+          "x": 307,
+          "y": 104
+        },
+        {
+          "x": 133,
+          "y": 220
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/drinks#coffee|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/drinks#hot",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/drinks#hot",
+      "target": "res:http://example.org/drinks#coffee",
+      "route": [
+        {
+          "x": 340,
+          "y": 104
+        },
+        {
+          "x": 340,
+          "y": 220
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/drinks#hot",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/drinks#hot",
+      "target": "res:http://example.org/drinks#tea",
+      "route": [
+        {
+          "x": 373,
+          "y": 104
+        },
+        {
+          "x": 547,
+          "y": 220
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "res:http://example.org/drinks#drinks",
+    "edge:res:http://example.org/drinks#cocoa|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/drinks#hot",
+    "edge:res:http://example.org/drinks#coffee|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/drinks#hot",
+    "edge:res:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/drinks#hot",
+    "res:http://example.org/drinks#hot",
+    "res:http://example.org/drinks#cocoa",
+    "res:http://example.org/drinks#coffee",
+    "res:http://example.org/drinks#tea"
+  ]
+}

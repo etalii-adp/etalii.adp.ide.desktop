@@ -1,0 +1,683 @@
+atd 0.1
+
+/// Where things come from and where they go: sources, processors, producers, integrators, hubs, outlets and consumers
+/// in their regions, the flows between them with their volumes, and the whole chain up and down from whatever is
+/// selected.
+///
+/// A supply chain diagram follows goods - or energy, data or services - from where they start to where they are used.
+/// Every **node** is at one of seven **stages** - source, processor, producer, integrator, hub, outlet, consumer -
+/// which name roles rather than industries, and may state a **quantity** (a capacity, a stock, a demand) in a **unit**
+/// of its own. A **flow** carries a **product** from a supplying node to a consuming one, with a **volume** in a unit
+/// of its own; its band is as broad as its volume relative to the heaviest flow counted in the same unit. **Groups** -
+/// a region, a company, a tier - are frames drawn around the nodes that name them, joined by dragging a node inside
+/// one.
+///
+/// Selecting a node, a flow or a group traces the chain through it: everything that supplies it, directly or not, is
+/// marked upstream, everything it supplies downstream, and the rest is dimmed. A selected node's quantity or flow's
+/// volume steps up and down in place, by a step each element states, never below zero. Nodes the document does not
+/// place are arranged left to right along the flows.
+///
+/// Everything this specification cannot say (the layout, the reader's own sentences, the order of the findings, what a
+/// drag into a frame does, the band with its moving goods) is written down beside it in `supply-chain.md`. What the
+/// standalone tool calls each palette entry, menu entry and property row is in the `x-supply-chain` block.
+diagram etalii/supply-chain version "0.2.0" {
+  doc {
+    rationale: "A generic diagram shows that two plants are connected; a supply chain diagram shows how much moves between them and what else depends on it, which is the question a supply chain is read for."
+    tags: ["supply chain", "logistics", "flows", "value chain", "dependencies"]
+    audience: [user, author]
+    seeAlso: [
+      {
+        title: "What DISL cannot express about this diagram type"
+        href: "https://github.com/etalii-adp/etalii.adp/blob/develop/definitions/diagrams/supply-chain.md"
+      },
+      {
+        title: "The standalone implementation"
+        href: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/supply-chain"
+      },
+      {
+        title: "Inspiration: the yFiles supply chain showcase"
+        href: "https://www.yfiles.com/demos/showcase/supply-chain/"
+      }
+    ]
+  }
+  label "Supply chain diagram"
+  id: "net.etalii.adp.etalii.supply-chain"
+  defaultLocale: en
+  authors: [{ name: "Peter Vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://etalii.net/adp"
+  icon: "mdi-truck-delivery-outline"
+  fileExtension: "supply"
+  requires: { conformance: standard, features: ["persist.yaml"] }
+
+  import "supply-chain.notation.atd"
+  import "supply-chain.supply.atd"
+  requires capability layout.bandedLayers@^1
+
+  /// One node type, Stage, whose stage is an attribute; one node type for frames, Group, which a node names by its id
+  /// rather than contains; and one relation type, Flow. Groups do not nest and are never containers: a frame is drawn
+  /// around the nodes that name it.
+  model {
+    document {
+    }
+
+    /// One stage of the chain: a source, a processor, a producer, an integrator, a hub, an outlet, a consumer.
+    ///
+    /// Every stage carries the same attributes; only its header colour and title differ. The stage can be changed
+    /// afterwards, which changes the one `type` key and keeps every attribute and flow.
+    element Stage {
+      label "Node"
+      icon: "mdi-tray-arrow-up"
+      labelAttribute: name
+      /// Which of the seven stages the node is. Written in the document as `type`; a change writes the stage's current
+      /// word, also over an older one.
+      attribute stage: StageKind { label: "Stage", group: "Identity", order: 0 }
+      /// Drawn on the card under the stage's title, editable in place. When empty, the card shows the node's id. Kept
+      /// in the document also when empty.
+      attribute name: string default "" { label: "Name", group: "Identity", order: 1 }
+      /// The group the node is drawn inside, named by the group's id; at most one, and groups do not nest. A node whose
+      /// group names no group is drawn outside every group and reported. Removing the group unsets it (references:
+      /// unset), which removes the key and leaves the node where it is.
+      attribute group: Group { label: "Group", group: "Identity", order: 2 }
+      /// Prose about the node. Kept in the document and shown in the property grid, never drawn. An empty description
+      /// removes the key.
+      attribute description: text default "" { label: "Description", markup: plain, group: "Identity", order: 3 }
+      /// The node's own value - a capacity, a stock, a demand - or nothing.
+      ///
+      /// Shown large on the card with its unit, and as a bar for its share of the largest quantity in the same unit. A
+      /// node without one shows a dash. The + and - step it, never below zero; an edit refuses a negative value, and an
+      /// empty one removes the key.
+      attribute quantity: number { label: "Quantity", group: "Amount", order: 4 }
+      /// What the quantity counts, free text such as kt LCE or million vehicles. Bars compare only nodes with the same
+      /// unit.
+      attribute unit: string default "" { label: "Unit", group: "Amount", order: 5 }
+      /// How much one + or - changes the quantity. Unset means 1; zero and negative values are refused by an edit.
+      attribute step: number { label: "Step", group: "Amount", order: 6 }
+      /// The left of the card, in whole canvas units. The card is placed by the document only when both x and y are
+      /// written; otherwise the layout places it.
+      attribute x: number { label: "X", group: "Position", order: 7 }
+      /// The top of the card; see x.
+      attribute y: number { label: "Y", group: "Position", order: 8 }
+    }
+
+    /// A region, a company or a tier the nodes that name it belong to.
+    ///
+    /// Drawn as a frame around its members: it follows them, and moving it moves them all. A node joins a group by
+    /// being dragged inside its frame. A group with no members is drawn where its own x and y place it, as large as the
+    /// frame around one node; without them it draws nothing. Removing a group keeps its members where they are,
+    /// ungrouped.
+    element Group {
+      label "Group"
+      icon: "mdi-group"
+      labelAttribute: name
+      /// The frame's title, editable in place. When empty, the frame shows the group's id.
+      attribute name: string default "" { label: "Name", group: "Identity", order: 0 }
+      /// Prose about the group, shown in the property grid only.
+      attribute description: text default "" { label: "Description", markup: plain, group: "Identity", order: 1 }
+      /// The left of the frame while the group has no members, not shown in the property grid; written when a group is
+      /// dropped from the palette, when its last member leaves it and when an empty group is dragged. A group with
+      /// members is drawn around them and ignores it.
+      attribute x: number { label: "X", group: "Position", order: 2 }
+      /// The top of the frame while the group has no members; see x.
+      attribute y: number { label: "Y", group: "Position", order: 3 }
+    }
+
+    /// Goods moving from a supplying node to a consuming one.
+    ///
+    /// Any stage may supply any other; the stages name roles, not an order the flows must keep, and goods may come back
+    /// round. Two flows between the same pair in the same direction are never drawn by hand, while a flow each way is
+    /// allowed.
+    relation Flow from Stage to Stage {
+      label "Flow"
+      icon: "mdi-arrow-right-thin"
+      directed: true
+      allowSelfLoops: false
+      allowParallel: true
+      /// What flows - wafers, HBM stacks, cathodes - drawn above the band's middle and editable in place. An empty
+      /// product removes the key.
+      attribute product: string default "" { label: "Product", group: "Identity", order: 0 }
+      /// Prose about the flow, shown in the property grid only.
+      attribute description: text default "" { label: "Description", markup: plain, group: "Identity", order: 1 }
+      /// How much flows, shown in a pill under the band's middle and setting the band's width. A flow without one is
+      /// drawn at the thinnest width with no pill.
+      attribute volume: number { label: "Volume", group: "Amount", order: 2 }
+      /// What the volume counts. Band widths compare only flows with the same unit.
+      attribute unit: string default "" { label: "Unit", group: "Amount", order: 3 }
+      /// How much one + or - changes the volume. Unset means 1; zero and negative values are refused by an edit.
+      attribute step: number { label: "Step", group: "Amount", order: 4 }
+      source: { role: supplier }
+      target: { role: consumer }
+    }
+
+    /// The seven stages, in the order goods pass through them. Each carries its colour, which the card's header and
+    /// share bar take. The file also reads six older words as the stage each became (raw-material, supplier,
+    /// manufacturer, assembler, distributor, retailer), which the binding maps; a word that is none of these is kept as
+    /// written, reported by the reader and not drawn.
+    enum StageKind "Stage" {
+      /// Where something enters the chain: a mine, a well, a farm, a data feed.
+      source { label: "Source", color: $color.supply.source, icon: "mdi-tray-arrow-up" }
+      /// Turns what it receives into material others can use.
+      processor { label: "Processor", color: $color.supply.processor, icon: "mdi-cog-outline" }
+      /// Makes the parts or components something is built from.
+      producer { label: "Producer", color: $color.supply.producer, icon: "mdi-factory" }
+      /// Combines parts into the finished whole.
+      integrator { label: "Integrator", color: $color.supply.integrator, icon: "mdi-puzzle-outline" }
+      /// Holds and moves what is finished on to where it is wanted.
+      hub { label: "Hub", color: $color.supply.hub, icon: "mdi-hub-outline" }
+      /// Where the finished whole is offered to those who use it.
+      outlet { label: "Outlet", color: $color.supply.outlet, icon: "mdi-storefront-outline" }
+      /// Where the chain ends: whoever uses what it delivers.
+      consumer { label: "Consumer", color: $color.supply.consumer, icon: "mdi-account-outline" }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// The text the entry's `key` is written with in the file - `id`, `from`, `to`, `group` or `type` - read from the
+  /// model: the element's id, an end's or the group's id, the stage. The standalone module reads it from the entry as
+  /// written, so that an end or a group that names nothing is still named (the binding keeps that text as the host
+  /// attribute `written`, which a description cannot read yet; the trace marks it open).
+  fn written(element: dyn, key: string) -> string {
+    return key == 'id' ? element.id : (key == 'from' ? (has(element.source) ? element.source.id : '') : (key == 'to' ? (has(element.target) ? element.target.id : '') : (key == 'group' ? (has(element.group) ? element.group.id : '') : (key == 'type' ? element.stage : ''))))
+  }
+
+  /// Whether an entry earlier in the tool's order holds the id this entry is written with: groups first, then nodes,
+  /// then flows, each list in the order of the file. The binding gives a later holder an ephemeral id and keeps the id
+  /// as written as `storedId`, which a description cannot read yet, so here no holder is later and the identity rule of
+  /// DISL 11.5.4 applies; the trace marks it open.
+  fn laterHolder(element: dyn) -> bool {
+    return false
+  }
+
+  /// A stage's place in the chain, source 0 to consumer 6 and 0 for a stage this diagram does not know, the least layer the layout gives its node (supply-chain.md,
+  /// section 'Layout'). The binding reads an older stage word as the stage it stands for.
+  fn stageRank(n: Element) -> int {
+    let ranks = {'source': 0, 'processor': 1, 'producer': 2, 'integrator': 3, 'hub': 4, 'outlet': 5, 'consumer': 6}
+    return n.stage in ranks ? ranks[n.stage] : 0
+  }
+
+  /// The stage as a reader names it, and as the card's header shows it in capitals: the enumeration's label, or the
+  /// word as written for a stage this diagram does not know.
+  fn stageLabel(s: string) -> string {
+    return s in ['source', 'processor', 'producer', 'integrator', 'hub', 'outlet', 'consumer'] ? enumLabel('StageKind', s) : s
+  }
+
+  /// What a card or a frame shows as its name, and what the Group row offers: the name, or the id as written when it
+  /// states none.
+  fn nameOf(e: Element) -> string {
+    return e.name != '' ? e.name : written(e, 'id')
+  }
+
+  /// The name itself when no node carries it yet, otherwise the name followed by the lowest number from 2 up that makes
+  /// it unique among the nodes' names ("New processor", "New processor 2").
+  fn uniqueName(base: string) -> string {
+    // uses: ['diagram']
+    return !diagram.nodesOfType('Stage').exists(n, n.name == base) ? base : base + ' ' + string(lists.range(diagram.nodes.size() + 2).filter(i, i >= 2 && !diagram.nodesOfType('Stage').exists(n, n.name == base + ' ' + string(i)))[0])
+  }
+
+  /// As uniqueName, among the groups' names ("New group", "New group 2").
+  fn uniqueGroupName(base: string) -> string {
+    // uses: ['diagram']
+    return !diagram.nodesOfType('Group').exists(g, g.name == base) ? base : base + ' ' + string(lists.range(diagram.nodes.size() + 2).filter(i, i >= 2 && !diagram.nodesOfType('Group').exists(g, g.name == base + ' ' + string(i)))[0])
+  }
+
+  /// What the Group row offers: (none), then the names of the groups that have an id, each once, in the order of the
+  /// file.
+  fn groupChoices() -> list {
+    // uses: ['diagram']
+    return cel.bind(names, diagram.nodesOfType('Group').filter(g, written(g, 'id') != '').map(g, nameOf(g)), ['(none)'] + lists.range(names.size()).filter(i, !lists.range(i).exists(j, names[j] == names[i])).map(i, names[i]))
+  }
+
+  /// The groups a name chosen in the Group row picks: a person picks "Taiwan", the document keeps the id, so a renamed
+  /// group keeps its members.
+  fn groupNamed(name: string) -> dyn {
+    // uses: ['diagram']
+    return diagram.nodesOfType('Group').filter(g, written(g, 'id') != '' && !laterHolder(g) && nameOf(g) == name)
+  }
+
+  /// The nodes that name a group by its id.
+  fn members(g: Element) -> list {
+    // uses: ['diagram']
+    return diagram.nodesOfType('Stage').filter(n, written(g, 'id') != '' && written(n, 'group') == written(g, 'id'))
+  }
+
+  /// How much one increment adds: the element's own step, or 1 when it states none, or one that is not above zero.
+  fn stepOf(e: Element) -> double {
+    return has(e.step) && e.step > 0.0 ? e.step : 1.0
+  }
+
+  /// A number as a property row shows it and the document writes it: at most four decimals, none when whole, no
+  /// grouping, in the invariant culture.
+  fn rowNumber(v: double) -> string {
+    return formatNumber(v, '0.####')
+  }
+
+  /// Whether typed text reads as a finite number of zero or more in the invariant culture.
+  fn readsAsAmount(t: string) -> bool {
+    return t.trim().matches('^[+]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$')
+  }
+
+  /// A quantity or volume as the canvas shows it: grouped thousands, two decimals at most, three below one.
+  fn formatAmount(v: double) -> string {
+    return formatNumber(v, v != 0.0 && math.abs(v) < 1.0 ? '#,##0.###' : '#,##0.##')
+  }
+
+  /// A flow's band width in canvas units, from 3 for nothing to 18 for the heaviest flow counted in the same unit:
+  /// tonnes of ore are compared with tonnes, cars with cars.
+  fn bandWidth(f: Element) -> double {
+    // uses: ['diagram']
+    return cel.bind(heaviest, math.greatest([0.0] + diagram.relationsOfType('Flow').filter(o, o.unit == f.unit && has(o.volume)).map(o, o.volume)), 3.0 + math.round(clamp(heaviest > 0.0 && has(f.volume) ? f.volume / heaviest : 0.0, 0.0, 1.0) * 15.0))
+  }
+
+  /// A node's quantity as a share of the largest quantity among the nodes counting the same unit, for the bar along the
+  /// foot of its card.
+  fn quantityShare(n: Element) -> double {
+    // uses: ['diagram']
+    return !has(n.quantity) ? 0.0 : cel.bind(largest, math.greatest([0.0] + diagram.nodesOfType('Stage').filter(o, has(o.quantity) && o.unit == n.unit).map(o, o.quantity)), largest > 0.0 ? math.least(1.0, n.quantity / largest) : 0.0)
+  }
+
+  /// What the viewer has selected (view.selected, 12.2): at most one element for the trace, the first of these.
+  fn selection() -> list {
+    // uses: ['diagram']
+    return diagram.nodes.filter(e, e.view.selected) + diagram.relationsOfType('Flow').filter(e, e.view.selected)
+  }
+
+  /// What the upstream walk starts from: a node itself, a flow's supplier, a group's members.
+  fn upFrom(s: Element) -> list {
+    // uses: ['diagram']
+    return s.isA('Flow') ? (has(s.source) ? [s.source] : []) : (s.isA('Group') ? members(s) : [s])
+  }
+
+  /// What the downstream walk starts from: a node itself, a flow's consumer, a group's members.
+  fn downFrom(s: Element) -> list {
+    // uses: ['diagram']
+    return s.isA('Flow') ? (has(s.target) ? [s.target] : []) : (s.isA('Group') ? members(s) : [s])
+  }
+
+  /// A node's mark while `s` is selected: selected when it is what the walks start from (a selected node, a selected
+  /// group's members); a selected flow's consumer downstream and its supplier upstream, whatever the walks find, so
+  /// that on a cycle the consumer is downstream though it also supplies the supplier; otherwise upstream when it
+  /// supplies a start, directly or not, downstream when a start supplies it, and dimmed when neither. A node reached
+  /// both ways keeps upstream, the walk that runs first.
+  fn nodeTrace(n: Element, s: Element) -> string {
+    // uses: ['diagram']
+    return n == s || (!s.isA('Flow') && n in upFrom(s)) ? 'selected' : (s.isA('Flow') && n in downFrom(s) ? 'downstream' : (s.isA('Flow') && n in upFrom(s) ? 'upstream' : (upFrom(s).exists(u, u in n.reachable('Flow')) ? 'upstream' : (downFrom(s).exists(d, n in d.reachable('Flow')) ? 'downstream' : 'dimmed'))))
+  }
+
+  /// The element's marking while something in this diagram is selected: 'selected', 'upstream' (it supplies the
+  /// selection, directly or not), 'downstream' (the selection supplies it), 'related' (a group with a member on the
+  /// chain) or 'dimmed' (off the chain); '' when nothing is selected. Per viewer, never stored. A flow is upstream when
+  /// it runs into what the upstream walk reached and downstream when it runs out of what the downstream walk reached.
+  /// Rules in supply-chain.md, section 'The trace'.
+  fn traceOf(e: Element) -> string {
+    // uses: ['diagram']
+    return cel.bind(sel, selection(), sel.size() == 0 ? '' : cel.bind(s, sel[0], e == s ? 'selected' : (e.isA('Stage') ? nodeTrace(e, s) : (e.isA('Flow') ? (has(e.target) && (e.target in upFrom(s) || upFrom(s).exists(u, u in e.target.reachable('Flow'))) ? 'upstream' : (has(e.source) && (e.source in downFrom(s) || downFrom(s).exists(d, e.source in d.reachable('Flow'))) ? 'downstream' : 'dimmed')) : (members(e).exists(m, nodeTrace(m, s) != 'dimmed') ? 'related' : 'dimmed')))))
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// What is lost is an error, what is merely untidy a warning: an error names something that is not drawn, a warning
+  /// something that still draws everything the author meant. Every finding compares what is written, as the tool does,
+  /// and is located at the first line of its entry. The findings are listed in the order of their lines across every
+  /// code, which constraints.order cannot state (supply-chain.md); among the findings of one line, the reader's come
+  /// first, then the rules' in the order they are declared.
+  constraints {
+    defaults: { severity: warning, timing: [live] }
+    blockSaveOn: never
+    builtin std.unparseable {
+      severity: warning
+      code: "supply-chain.unreadable"
+      message: ('The document could not be read as YAML: ' + detail.reason)
+      doc: "At the parser's line. Nothing else is reported for a body that does not parse, and it opens empty and refuses every edit."
+    }
+    builtin std.unreadableEntry {
+      severity: warning
+      code: "supply-chain.unreadable"
+      message: (detail.reason)
+      doc: "The reader's own sentences: the three about the header, an unknown key (\"the line is kept\"), a stage this diagram does not know, a number that will not read (\"was ignored\") and an entry that is not a mapping (\"was passed over\"). All but the last are about an entry that is still read, which std.unreadableEntry does not mean (supply-chain.md, gap 9)."
+    }
+    builtin std.duplicateId {
+      enabled: false
+      doc: "Reported by the rule duplicateId instead, which takes groups, then nodes, then flows, whatever order the sections have in the file."
+    }
+    builtin std.references {
+      enabled: false
+      doc: "Reported by danglingSource, danglingTarget and unknownGroup instead, which read the id an end or a group is written with, and leave unreported what the tool does not report."
+    }
+    builtin std.endpoints {
+      enabled: false
+      doc: "A flow to itself is reported by selfFlow instead, which judges the ids as written, also when no node holds them."
+    }
+    builtin std.facets {
+      enabled: false
+      doc: "A stage this diagram does not know is reported by the reader, with its own sentence, and kept as written."
+    }
+
+    /// A group, node or flow with no id, or an empty one. It is kept, given an ephemeral id and not drawn.
+    constraint missingId for Group, Stage, Flow {
+      rule written(self, 'id') != ''
+      severity error
+      message ('A ' + (self.isA('Group') ? 'group' : (self.isA('Flow') ? 'flow' : 'node')) + ' has no id and is not drawn.')
+      code: "supply-chain.missing-id"
+    }
+
+    /// Groups, nodes and flows share one id space, read groups first, then nodes, then flows. Every holder after the
+    /// first is reported and is not drawn; the first is the one an edit finds.
+    constraint duplicateId for Group, Stage, Flow {
+      when written(self, 'id') != ''
+      rule !laterHolder(self)
+      severity error
+      message ('The id `' + written(self, 'id') + '` is used more than once; only its first entry is drawn.')
+      code: "supply-chain.duplicate-id"
+    }
+
+    /// A flow whose two ends name the same id, whether or not a node holds it. It is reported as this and nothing else.
+    constraint selfFlow for Flow {
+      when written(self, 'from') != ''
+      rule written(self, 'from') != written(self, 'to')
+      severity error
+      message ('The flow `' + written(self, 'id') + '` runs from `' + written(self, 'from') + '` to itself and is not drawn.')
+      code: "supply-chain.self-flow"
+    }
+
+    /// Once per end that names no node, or is missing, on the flow. An end is judged against the ids the nodes are
+    /// written with, every node counted, so a missing end is not reported while some node has no id.
+    constraint danglingSource for Flow {
+      when written(self, 'from') == '' || written(self, 'from') != written(self, 'to')
+      rule diagram.nodesOfType('Stage').exists(n, written(n, 'id') == written(self, 'from'))
+      severity error
+      message (written(self, 'from') == '' ? 'The flow `' + written(self, 'id') + '` is missing an end and is not drawn.' : 'The flow `' + written(self, 'id') + '` names `' + written(self, 'from') + '`, which is not a node here; it is not drawn.')
+      code: "supply-chain.dangling-flow"
+    }
+
+    constraint danglingTarget for Flow {
+      when written(self, 'from') == '' || written(self, 'from') != written(self, 'to')
+      rule diagram.nodesOfType('Stage').exists(n, written(n, 'id') == written(self, 'to'))
+      severity error
+      message (written(self, 'to') == '' ? 'The flow `' + written(self, 'id') + '` is missing an end and is not drawn.' : 'The flow `' + written(self, 'id') + '` names `' + written(self, 'to') + '`, which is not a node here; it is not drawn.')
+      code: "supply-chain.dangling-flow"
+    }
+
+    /// A node that names a group no group entry holds. It is drawn, outside every group, and its Group row shows
+    /// (none).
+    constraint unknownGroup for Stage {
+      when written(self, 'group') != ''
+      rule diagram.nodesOfType('Group').exists(g, written(g, 'id') == written(self, 'group'))
+      severity warning
+      message ('The node `' + written(self, 'id') + '` is in `' + written(self, 'group') + '`, which is not a group here; it is drawn outside every group.')
+      code: "supply-chain.unknown-group"
+    }
+
+    /// A group is a frame around its members, or at its own x and y when it has none; with neither it has nothing to
+    /// draw.
+    constraint emptyGroup for Group {
+      when written(self, 'id') != ''
+      rule (has(self.x) && has(self.y)) || diagram.nodesOfType('Stage').exists(n, written(n, 'group') == written(self, 'id'))
+      severity warning
+      message ('The group `' + written(self, 'id') + '` has no nodes and no `x` and `y`, so it is not drawn.')
+      code: "supply-chain.empty-group"
+    }
+
+    constraint connectBetweenNodes {
+      label "A flow runs between nodes"
+      when relationType == 'Flow'
+      rule source != null && target != null && source.isA('Stage') && target.isA('Stage')
+      message "A flow runs from one node to another."
+      kind: connect
+      enforcement: prevent
+    }
+
+    constraint noSelfFlowWhileDrawing {
+      label "No flow to itself"
+      when relationType == 'Flow'
+      rule source.id != target.id
+      message "A node does not supply itself."
+      kind: connect
+      enforcement: prevent
+    }
+
+    /// Drawing refuses a second flow between the same pair in the same direction, judged by the ids every flow is
+    /// written with; a flow back the other way is allowed. A file holding two is drawn as it is and not reported.
+    constraint noSecondFlowWhileDrawing {
+      label "One flow per direction"
+      when relationType == 'Flow'
+      rule !diagram.relationsOfType('Flow').exists(f, written(f, 'from') == written(source, 'id') && written(f, 'to') == written(target, 'id'))
+      message "These two are already connected by a flow in this direction."
+      kind: connect
+      enforcement: prevent
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Adds the node's step to its quantity; a node with no quantity starts from zero. Rounded to four decimals, so ten
+  /// steps of 0.1 come back to a whole number. The keys + with or without Shift, and =, run it.
+  operation increaseQuantity "Increase quantity" for Stage {
+    icon: "mdi-plus-circle-outline"
+    shortcut: "+"
+    set quantity = math.greatest(0.0, math.round(((has(self.quantity) ? self.quantity : 0.0) + stepOf(self)) * 10000.0) / 10000.0)
+  }
+
+  /// Takes the node's step from its quantity, never below zero: a decrease that would pass zero lands on zero. The keys
+  /// - and Shift+_ run it. The menu shows the reason beside the entry also while it is available.
+  operation decreaseQuantity "Decrease quantity" for Stage {
+    unavailable [
+      {
+        when: (!has(self.quantity) || self.quantity <= 0.0)
+        message: "The quantity is already zero."
+      }
+    ]
+    icon: "mdi-minus-circle-outline"
+    shortcut: "-"
+    set quantity = math.greatest(0.0, math.round((self.quantity - stepOf(self)) * 10000.0) / 10000.0)
+  }
+
+  /// Adds the flow's step to its volume; a flow with no volume starts from zero.
+  operation increaseVolume "Increase volume" for Flow {
+    icon: "mdi-plus-circle-outline"
+    shortcut: "+"
+    set volume = math.greatest(0.0, math.round(((has(self.volume) ? self.volume : 0.0) + stepOf(self)) * 10000.0) / 10000.0)
+  }
+
+  /// Takes the flow's step from its volume, never below zero. The menu shows the reason beside the entry also while it
+  /// is available.
+  operation decreaseVolume "Decrease volume" for Flow {
+    unavailable [{ when: (!has(self.volume) || self.volume <= 0.0), message: "The volume is already zero." }]
+    icon: "mdi-minus-circle-outline"
+    shortcut: "-"
+    set volume = math.greatest(0.0, math.round((self.volume - stepOf(self)) * 10000.0) / 10000.0)
+  }
+
+  /// Asks for the name in a prompt titled "Put in a new group", its field "Group name" empty and its button "Create
+  /// group", refuses a blank one, creates the group and puts the node in it, in one step. A group can also be dropped
+  /// from the palette, and is then drawn empty until nodes are dragged into it.
+  operation putInNewGroup "Put in a new group…" for Stage {
+    param groupName: string required { label: "Group name" }
+    icon: "mdi-group"
+    if p.groupName.trim() == '' {
+      fail 'A group needs a name.'
+    }
+    create Group { name: p.groupName.trim() } as made
+    set group = made
+  }
+
+  /// Lays the whole diagram out left to right and writes every node's position, whatever the document stated before, as
+  /// one undoable step. Invoked; the automatic layout places only what the document does not. The menu shows the reason
+  /// beside the entry also while it is available.
+  operation arrange "Arrange diagram" for diagram {
+    unavailable [
+      {
+        when: (diagram.nodesOfType('Stage').size() == 0)
+        message: "There is nothing to arrange until this diagram has a node."
+      }
+    ]
+    icon: "mdi-sitemap-outline"
+    layout chain
+  }
+
+  /// A source centred on the point, as the toolbox's Source drops it.
+  operation addSourceHere "Add source here" for diagram {
+    icon: "mdi-tray-arrow-up"
+    create Stage { stage: 'source', name: uniqueName('New source'), quantity: 0.0, x: position.x - 96.0, y: position.y - 48.0 }
+  }
+
+  operation addProcessorHere "Add processor here" for diagram {
+    icon: "mdi-cog-outline"
+    create Stage { stage: 'processor', name: uniqueName('New processor'), quantity: 0.0, x: position.x - 96.0, y: position.y - 48.0 }
+  }
+
+  operation addProducerHere "Add producer here" for diagram {
+    icon: "mdi-factory"
+    create Stage { stage: 'producer', name: uniqueName('New producer'), quantity: 0.0, x: position.x - 96.0, y: position.y - 48.0 }
+  }
+
+  operation addIntegratorHere "Add integrator here" for diagram {
+    icon: "mdi-puzzle-outline"
+    create Stage { stage: 'integrator', name: uniqueName('New integrator'), quantity: 0.0, x: position.x - 96.0, y: position.y - 48.0 }
+  }
+
+  operation addHubHere "Add hub here" for diagram {
+    icon: "mdi-hub-outline"
+    create Stage { stage: 'hub', name: uniqueName('New hub'), quantity: 0.0, x: position.x - 96.0, y: position.y - 48.0 }
+  }
+
+  operation addOutletHere "Add outlet here" for diagram {
+    icon: "mdi-storefront-outline"
+    create Stage { stage: 'outlet', name: uniqueName('New outlet'), quantity: 0.0, x: position.x - 96.0, y: position.y - 48.0 }
+  }
+
+  operation addConsumerHere "Add consumer here" for diagram {
+    icon: "mdi-account-outline"
+    create Stage { stage: 'consumer', name: uniqueName('New consumer'), quantity: 0.0, x: position.x - 96.0, y: position.y - 48.0 }
+  }
+
+  /// A group named "New group", numbered from 2 when the name is taken among the groups, its empty frame centred on the
+  /// point.
+  operation addGroupHere "Add group here" for diagram {
+    icon: "mdi-group"
+    create Group { name: uniqueGroupName('New group'), x: position.x - 116.0, y: position.y - 78.0 }
+  }
+
+  behavior {
+    doc: "Every change - add, remove, move, connect, rename, step, set a property, group, arrange - is one undoable step that restores the document's whole text. Dragging a node whose centre lands inside another group's frame moves it into that group in the same step (supply-chain.md, section 'Interaction'). A new entry gets a new id; one that is already used is refused with \"That id is already used in this diagram.\""
+    deletion: {
+      Stage: {
+        relations: delete
+        confirm: {
+          count: (diagram.relationsOfType('Flow').filter(f, written(f, 'from') == written(self, 'id') || written(f, 'to') == written(self, 'id')).size())
+          threshold: 1
+          title: "Remove"
+          message: ('Removing this node also removes the ' + string(count) + (count == 1 ? ' flow' : ' flows') + ' to or from it.')
+          confirmLabel: "Remove"
+          danger: true
+          doc: "Every flow the file writes to or from the node's id, drawn or not, is removed with it in the same undoable step; a node written without an id counts the flows written without that end. With none it happens at once."
+        }
+      }
+      Group: {
+        references: unset
+        doc: "Removing a group unsets the `group` of every node that names it, which removes the key, and leaves the nodes where they are. Nothing is lost, so nothing is asked."
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// A .supply file: YAML with a version header 'supply-chain: 1' and 'groups', 'nodes' and 'flows' lists, registered
+  /// by an .adp file whose origin is etalii/supply-chain. It is read and written through the supply chain module's own
+  /// FBL binding, whose types and attributes the typeMap maps onto this metamodel. The binding reads a flow as an
+  /// element with reference attributes, so one whose end names nothing is kept and reported, reads a node's group as a
+  /// reference rather than as nesting, reads the six older stage words through its map, and declares no header: the
+  /// version is read as an attribute of the document and its three sentences are the reader's. The file layout is in
+  /// supply-chain.md.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: uuid-v4
+      encoding: base36
+      stable: true
+      missing: ephemeral
+      doc: "New groups, nodes and flows get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `kolwezi-cobalt` are kept as written. Groups, nodes and flows share one id space, groups first, then nodes, then flows; an entry without an id and a later holder of an id are kept, reported, given an ephemeral id and not drawn, and nothing ever writes an id for them."
+    }
+    view: { store: [] }
+    collaboration: { mode: none }
+    typeMap: {
+      Document: {
+        as: diagram
+        doc: "The root mapping. Its version header is read by the binding as written, for the reader's three sentences."
+      }
+      Group: {
+        as: Group
+        hostAttributes: [storedId, written, unknownKeys]
+        doc: "An entry of `groups`. `storedId` is the id as written, kept beside the model, so that an id written more than once is reported and an entry is found by what is written."
+      }
+      Node: {
+        as: Stage
+        attributes: { type: stage }
+        hostAttributes: [storedId, written, unknownKeys]
+        doc: "An entry of `nodes`, whatever its stage: `type` is the attribute `stage`, and `group` a reference to a group by its id."
+      }
+      Flow: {
+        as: Flow
+        attributes: { from: source, to: target }
+        hostAttributes: [storedId, written, unknownKeys]
+        doc: "An entry of `flows`, read as an element with reference attributes, so one whose end names no node is kept, with that end unset, and reported by danglingSource and danglingTarget."
+      }
+      Unreadable: { as: unreadable, doc: "An entry of `groups`, `nodes` or `flows` that is not a mapping." }
+    }
+    // DISL binding: https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/supply-chain/backend/EtAlii.Adp.Diagram.SupplyChain/supply-chain.fbl#supply
+  }
+
+
+  x-supply-chain: {
+    doc: "Today's wire ids, which the standalone client (client/supplyChainIds.ts) and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind. A property is keyed by its form item's row id: its id, else its attribute. One action id serves three element types: supply-chain.rename edits a node's or a group's name and a flow's product; and supply-chain.group is both an action id and a property id."
+    tools: {
+      source: { id: "supply-chain.toolbox.source", drop: "supply-chain.add.source" }
+      processor: { id: "supply-chain.toolbox.processor", drop: "supply-chain.add.processor" }
+      producer: { id: "supply-chain.toolbox.producer", drop: "supply-chain.add.producer" }
+      integrator: { id: "supply-chain.toolbox.integrator", drop: "supply-chain.add.integrator" }
+      hub: { id: "supply-chain.toolbox.hub", drop: "supply-chain.add.hub" }
+      outlet: { id: "supply-chain.toolbox.outlet", drop: "supply-chain.add.outlet" }
+      consumer: { id: "supply-chain.toolbox.consumer", drop: "supply-chain.add.consumer" }
+      group: { id: "supply-chain.toolbox.group", drop: "supply-chain.add-group" }
+    }
+    actions: {
+      editLabel: "supply-chain.rename"
+      delete: "supply-chain.remove"
+      increaseQuantity: "supply-chain.increase"
+      increaseVolume: "supply-chain.increase"
+      decreaseQuantity: "supply-chain.decrease"
+      decreaseVolume: "supply-chain.decrease"
+      putInNewGroup: "supply-chain.group"
+      arrange: "supply-chain.arrange"
+      connect: "supply-chain.connect"
+      addGroupHere: "supply-chain.add-group"
+      addSourceHere: "supply-chain.add.source"
+      addProcessorHere: "supply-chain.add.processor"
+      addProducerHere: "supply-chain.add.producer"
+      addIntegratorHere: "supply-chain.add.integrator"
+      addHubHere: "supply-chain.add.hub"
+      addOutletHere: "supply-chain.add.outlet"
+      addConsumerHere: "supply-chain.add.consumer"
+    }
+    properties: {
+      name: "supply-chain.name"
+      stage: "supply-chain.stage"
+      group: "supply-chain.group"
+      quantity: "supply-chain.quantity"
+      product: "supply-chain.product"
+      volume: "supply-chain.volume"
+      unit: "supply-chain.unit"
+      step: "supply-chain.step"
+      description: "supply-chain.description"
+    }
+  }
+  x-adp: {
+    origin: "etalii/supply-chain"
+    kind: Diagram
+    state: Prototype
+    companion: "supply-chain.md"
+    implementations: {
+      standalone: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/supply-chain"
+    }
+  }
+}

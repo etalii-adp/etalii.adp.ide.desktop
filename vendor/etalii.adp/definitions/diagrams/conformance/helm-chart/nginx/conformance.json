@@ -1,0 +1,2140 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record helm/chart` from parity/scripts/helm/chart/nginx.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "helm/chart",
+  "description": "../../../helm-chart.atd",
+  "inputs": {
+    "body": ".adp",
+    "registration": ".adp",
+    ".helmignore": ".helmignore",
+    "CHANGELOG.md": "CHANGELOG.md",
+    "Chart.lock": "Chart.lock",
+    "Chart.yaml": "Chart.yaml",
+    "LICENSE.md": "LICENSE.md",
+    "README.md": "README.md",
+    "charts/common/.helmignore": "charts/common/.helmignore",
+    "charts/common/CHANGELOG.md": "charts/common/CHANGELOG.md",
+    "charts/common/Chart.yaml": "charts/common/Chart.yaml",
+    "charts/common/LICENSE.md": "charts/common/LICENSE.md",
+    "charts/common/README.md": "charts/common/README.md",
+    "charts/common/templates/_affinities.tpl": "charts/common/templates/_affinities.tpl",
+    "charts/common/templates/_capabilities.tpl": "charts/common/templates/_capabilities.tpl",
+    "charts/common/templates/_compatibility.tpl": "charts/common/templates/_compatibility.tpl",
+    "charts/common/templates/_errors.tpl": "charts/common/templates/_errors.tpl",
+    "charts/common/templates/_images.tpl": "charts/common/templates/_images.tpl",
+    "charts/common/templates/_ingress.tpl": "charts/common/templates/_ingress.tpl",
+    "charts/common/templates/_labels.tpl": "charts/common/templates/_labels.tpl",
+    "charts/common/templates/_names.tpl": "charts/common/templates/_names.tpl",
+    "charts/common/templates/_resources.tpl": "charts/common/templates/_resources.tpl",
+    "charts/common/templates/_secrets.tpl": "charts/common/templates/_secrets.tpl",
+    "charts/common/templates/_storage.tpl": "charts/common/templates/_storage.tpl",
+    "charts/common/templates/_tplvalues.tpl": "charts/common/templates/_tplvalues.tpl",
+    "charts/common/templates/_utils.tpl": "charts/common/templates/_utils.tpl",
+    "charts/common/templates/_warnings.tpl": "charts/common/templates/_warnings.tpl",
+    "charts/common/templates/validations/_cassandra.tpl": "charts/common/templates/validations/_cassandra.tpl",
+    "charts/common/templates/validations/_mariadb.tpl": "charts/common/templates/validations/_mariadb.tpl",
+    "charts/common/templates/validations/_mongodb.tpl": "charts/common/templates/validations/_mongodb.tpl",
+    "charts/common/templates/validations/_mysql.tpl": "charts/common/templates/validations/_mysql.tpl",
+    "charts/common/templates/validations/_postgresql.tpl": "charts/common/templates/validations/_postgresql.tpl",
+    "charts/common/templates/validations/_redis.tpl": "charts/common/templates/validations/_redis.tpl",
+    "charts/common/templates/validations/_validations.tpl": "charts/common/templates/validations/_validations.tpl",
+    "charts/common/values.yaml": "charts/common/values.yaml",
+    "provenance.md": "provenance.md",
+    "templates/NOTES.txt": "templates/NOTES.txt",
+    "templates/_helpers.tpl": "templates/_helpers.tpl",
+    "templates/context-includes-configmap.yaml": "templates/context-includes-configmap.yaml",
+    "templates/deployment.yaml": "templates/deployment.yaml",
+    "templates/extra-list.yaml": "templates/extra-list.yaml",
+    "templates/health-ingress.yaml": "templates/health-ingress.yaml",
+    "templates/hpa.yaml": "templates/hpa.yaml",
+    "templates/ingress-tls-secret.yaml": "templates/ingress-tls-secret.yaml",
+    "templates/ingress.yaml": "templates/ingress.yaml",
+    "templates/networkpolicy.yaml": "templates/networkpolicy.yaml",
+    "templates/pdb.yaml": "templates/pdb.yaml",
+    "templates/prometheusrules.yaml": "templates/prometheusrules.yaml",
+    "templates/server-block-configmap.yaml": "templates/server-block-configmap.yaml",
+    "templates/serviceaccount.yaml": "templates/serviceaccount.yaml",
+    "templates/servicemonitor.yaml": "templates/servicemonitor.yaml",
+    "templates/stream-server-block-configmap.yaml": "templates/stream-server-block-configmap.yaml",
+    "templates/svc.yaml": "templates/svc.yaml",
+    "templates/tls-secret.yaml": "templates/tls-secret.yaml",
+    "values-dev.yaml": "values-dev.yaml",
+    "values-prod.yaml": "values-prod.yaml",
+    "values.schema.json": "values.schema.json",
+    "values.yaml": "values.yaml"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "chart",
+        "type": "helm/chart+chart",
+        "parent": null,
+        "attributes": {
+          "name": "nginx",
+          "kind": "CHART",
+          "chartRelativePath": "Chart.yaml",
+          "width": "220",
+          "height": "110",
+          "chart.version": "22.1.1",
+          "chart.appVersion": "1.29.1",
+          "chart.apiVersion": "v2",
+          "chart.chartType": "application",
+          "chart.description": "NGINX Open Source is a web server that can be also used as a reverse proxy, load balancer, and HTTP cache. Recommended for high-demanding sites due to its ability to provide faster content.",
+          "chart.deprecated": "false",
+          "chart.legacy": "false"
+        }
+      },
+      {
+        "id": "values:values.yaml",
+        "type": "helm/chart+values",
+        "parent": null,
+        "attributes": {
+          "name": "values.yaml",
+          "kind": "VALUES",
+          "chartRelativePath": "values.yaml",
+          "width": "200",
+          "height": "72",
+          "values.isDefault": "true",
+          "values.hasGlobal": "true",
+          "values.keyCount": "76"
+        }
+      },
+      {
+        "id": "values:values-dev.yaml",
+        "type": "helm/chart+values",
+        "parent": null,
+        "attributes": {
+          "name": "values-dev.yaml",
+          "kind": "VALUES",
+          "chartRelativePath": "values-dev.yaml",
+          "width": "200",
+          "height": "72",
+          "values.isDefault": "false",
+          "values.hasGlobal": "false",
+          "values.keyCount": "4"
+        }
+      },
+      {
+        "id": "values:values-prod.yaml",
+        "type": "helm/chart+values",
+        "parent": null,
+        "attributes": {
+          "name": "values-prod.yaml",
+          "kind": "VALUES",
+          "chartRelativePath": "values-prod.yaml",
+          "width": "200",
+          "height": "72",
+          "values.isDefault": "false",
+          "values.hasGlobal": "false",
+          "values.keyCount": "5"
+        }
+      },
+      {
+        "id": "schema:values.schema.json",
+        "type": "helm/chart+schema",
+        "parent": null,
+        "attributes": {
+          "name": "values.schema.json",
+          "kind": "SCHEMA",
+          "chartRelativePath": "values.schema.json",
+          "width": "200",
+          "height": "48"
+        }
+      },
+      {
+        "id": "tpl:templates/NOTES.txt",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "NOTES.txt",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/NOTES.txt",
+          "width": "240",
+          "height": "60",
+          "template.role": "NOTES",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/_helpers.tpl",
+        "type": "helm/chart+partial",
+        "parent": null,
+        "attributes": {
+          "name": "_helpers.tpl",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/_helpers.tpl",
+          "width": "240",
+          "height": "60",
+          "template.role": "PARTIAL",
+          "template.kindsUndetermined": "false",
+          "template.defines": "nginx.cloneStaticSiteFromGit.image\nnginx.image\nnginx.imagePullSecrets\nnginx.metrics.image\nnginx.serverBlockConfigmapName\nnginx.serviceAccountName\nnginx.staticSiteVolume\nnginx.streamServerBlockConfigmapName\nnginx.useStaticSite\nnginx.validateValues\nnginx.validateValues.cloneStaticSiteFromGit\nnginx.validateValues.extraVolumes"
+        }
+      },
+      {
+        "id": "tpl:templates/context-includes-configmap.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "context-includes-configmap.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/context-includes-configmap.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "ConfigMap",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/deployment.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "deployment.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/deployment.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "Deployment",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/extra-list.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "extra-list.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/extra-list.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kindsUndetermined": "true"
+        }
+      },
+      {
+        "id": "tpl:templates/health-ingress.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "health-ingress.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/health-ingress.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "Ingress",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/hpa.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "hpa.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/hpa.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "HorizontalPodAutoscaler",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/ingress-tls-secret.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "ingress-tls-secret.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/ingress-tls-secret.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "Secret",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/ingress.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "ingress.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/ingress.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "Ingress",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/networkpolicy.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "networkpolicy.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/networkpolicy.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "NetworkPolicy",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/pdb.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "pdb.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/pdb.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "PodDisruptionBudget",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/prometheusrules.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "prometheusrules.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/prometheusrules.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "PrometheusRule",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/server-block-configmap.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "server-block-configmap.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/server-block-configmap.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "ConfigMap",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/serviceaccount.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "serviceaccount.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/serviceaccount.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "ServiceAccount",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/servicemonitor.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "servicemonitor.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/servicemonitor.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "ServiceMonitor",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/stream-server-block-configmap.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "stream-server-block-configmap.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/stream-server-block-configmap.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "ConfigMap",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/svc.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "svc.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/svc.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "Service",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "tpl:templates/tls-secret.yaml",
+        "type": "helm/chart+template",
+        "parent": null,
+        "attributes": {
+          "name": "tls-secret.yaml",
+          "kind": "TEMPLATE",
+          "chartRelativePath": "templates/tls-secret.yaml",
+          "width": "240",
+          "height": "60",
+          "template.role": "MANIFEST",
+          "template.kinds": "Secret",
+          "template.kindsUndetermined": "false"
+        }
+      },
+      {
+        "id": "sub:charts/common",
+        "type": "helm/chart+subchart",
+        "parent": null,
+        "attributes": {
+          "name": "common",
+          "kind": "SUBCHART",
+          "chartRelativePath": "charts/common",
+          "width": "210",
+          "height": "84",
+          "vendored.sealed": "false",
+          "vendored.declared": "true",
+          "vendored.chartType": "library",
+          "vendored.chartVersion": "2.31.4",
+          "vendored.templateCount": "21",
+          "vendored.deeperCount": "0"
+        }
+      },
+      {
+        "id": "dep:common",
+        "type": "helm/chart+dependency",
+        "parent": null,
+        "attributes": {
+          "name": "common",
+          "kind": "DEPENDENCY",
+          "width": "210",
+          "height": "96",
+          "dependency.chartName": "common",
+          "dependency.constraint": "2.x.x",
+          "dependency.repository": "oci://registry-1.docker.io/bitnamicharts",
+          "dependency.conditionState": "CONDITION_NONE",
+          "dependency.pinnedVersion": "2.31.4",
+          "dependency.resolved": "true"
+        }
+      },
+      {
+        "id": "lock:Chart.lock",
+        "type": "helm/chart+lock",
+        "parent": null,
+        "attributes": {
+          "name": "Chart.lock",
+          "kind": "LOCK",
+          "chartRelativePath": "Chart.lock",
+          "width": "200",
+          "height": "56",
+          "lockEntryCount": "1"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:values:values-dev.yaml|Overrides|values:values.yaml|",
+        "type": "helm/chart+edge",
+        "source": "values:values-dev.yaml",
+        "target": "values:values.yaml",
+        "attributes": {
+          "kind": "EDGE",
+          "edge.sourceId": "values:values-dev.yaml",
+          "edge.targetId": "values:values.yaml",
+          "edge.kind": "OVERRIDES",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:values:values-prod.yaml|Overrides|values:values.yaml|",
+        "type": "helm/chart+edge",
+        "source": "values:values-prod.yaml",
+        "target": "values:values.yaml",
+        "attributes": {
+          "kind": "EDGE",
+          "edge.sourceId": "values:values-prod.yaml",
+          "edge.targetId": "values:values.yaml",
+          "edge.kind": "OVERRIDES",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/NOTES.txt|Includes||common.errors.insecureImages",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/NOTES.txt",
+        "target": "",
+        "attributes": {
+          "name": "common.errors.insecureImages",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/NOTES.txt",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.errors.insecureImages",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/NOTES.txt|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/NOTES.txt",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/NOTES.txt",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/NOTES.txt|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/NOTES.txt",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/NOTES.txt",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/NOTES.txt|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/NOTES.txt",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/NOTES.txt",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/NOTES.txt|Includes||common.warnings.modifiedImages",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/NOTES.txt",
+        "target": "",
+        "attributes": {
+          "name": "common.warnings.modifiedImages",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/NOTES.txt",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.warnings.modifiedImages",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/NOTES.txt|Includes||common.warnings.resources",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/NOTES.txt",
+        "target": "",
+        "attributes": {
+          "name": "common.warnings.resources",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/NOTES.txt",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.warnings.resources",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/NOTES.txt|Includes||common.warnings.rollingTag",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/NOTES.txt",
+        "target": "",
+        "attributes": {
+          "name": "common.warnings.rollingTag",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/NOTES.txt",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.warnings.rollingTag",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/NOTES.txt|Includes|tpl:templates/_helpers.tpl|nginx.validateValues",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/NOTES.txt",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.validateValues",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/NOTES.txt",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.validateValues",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/_helpers.tpl|Includes||common.images.image",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/_helpers.tpl",
+        "target": "",
+        "attributes": {
+          "name": "common.images.image",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.images.image",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/_helpers.tpl|Includes||common.images.renderPullSecrets",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/_helpers.tpl",
+        "target": "",
+        "attributes": {
+          "name": "common.images.renderPullSecrets",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.images.renderPullSecrets",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/context-includes-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/context-includes-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/context-includes-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/context-includes-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/context-includes-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/context-includes-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/context-includes-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/context-includes-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.affinities.nodes",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.affinities.nodes",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.affinities.nodes",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.affinities.pods",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.affinities.pods",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.affinities.pods",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.capabilities.deployment.apiVersion",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.capabilities.deployment.apiVersion",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.capabilities.deployment.apiVersion",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.compatibility.renderSecurityContext",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.compatibility.renderSecurityContext",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.compatibility.renderSecurityContext",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.labels.matchLabels",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.matchLabels",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.matchLabels",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.resources.preset",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.resources.preset",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.resources.preset",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.cloneStaticSiteFromGit.image",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.cloneStaticSiteFromGit.image",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.cloneStaticSiteFromGit.image",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.image",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.image",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.image",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.imagePullSecrets",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.imagePullSecrets",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.imagePullSecrets",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.metrics.image",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.metrics.image",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.metrics.image",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serverBlockConfigmapName",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.serverBlockConfigmapName",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.serverBlockConfigmapName",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serviceAccountName",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.serviceAccountName",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.serviceAccountName",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.staticSiteVolume",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.staticSiteVolume",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.staticSiteVolume",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.streamServerBlockConfigmapName",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/deployment.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.streamServerBlockConfigmapName",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/deployment.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.streamServerBlockConfigmapName",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/extra-list.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/extra-list.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/extra-list.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.capabilities.ingress.apiVersion",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/health-ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.capabilities.ingress.apiVersion",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/health-ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.capabilities.ingress.apiVersion",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.ingress.backend",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/health-ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.ingress.backend",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/health-ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.ingress.backend",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/health-ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/health-ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/health-ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/health-ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/health-ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/health-ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/health-ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/health-ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/hpa.yaml|Includes||common.capabilities.deployment.apiVersion",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/hpa.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.capabilities.deployment.apiVersion",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/hpa.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.capabilities.deployment.apiVersion",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/hpa.yaml|Includes||common.capabilities.hpa.apiVersion",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/hpa.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.capabilities.hpa.apiVersion",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/hpa.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.capabilities.hpa.apiVersion",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/hpa.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/hpa.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/hpa.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/hpa.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/hpa.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/hpa.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/hpa.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/hpa.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/hpa.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/hpa.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/hpa.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/hpa.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress-tls-secret.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress-tls-secret.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress-tls-secret.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress-tls-secret.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.secrets.lookup",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress-tls-secret.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.secrets.lookup",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress-tls-secret.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.secrets.lookup",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress-tls-secret.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress-tls-secret.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress.yaml|Includes||common.capabilities.ingress.apiVersion",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.capabilities.ingress.apiVersion",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.capabilities.ingress.apiVersion",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress.yaml|Includes||common.ingress.backend",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.ingress.backend",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.ingress.backend",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/ingress.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/ingress.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/ingress.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.capabilities.networkPolicy.apiVersion",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/networkpolicy.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.capabilities.networkPolicy.apiVersion",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/networkpolicy.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.capabilities.networkPolicy.apiVersion",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.labels.matchLabels",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/networkpolicy.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.matchLabels",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/networkpolicy.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.matchLabels",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/networkpolicy.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/networkpolicy.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/networkpolicy.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/networkpolicy.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/networkpolicy.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/networkpolicy.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/networkpolicy.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/networkpolicy.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/pdb.yaml|Includes||common.capabilities.policy.apiVersion",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/pdb.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.capabilities.policy.apiVersion",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/pdb.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.capabilities.policy.apiVersion",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/pdb.yaml|Includes||common.labels.matchLabels",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/pdb.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.matchLabels",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/pdb.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.matchLabels",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/pdb.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/pdb.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/pdb.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/pdb.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/pdb.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/pdb.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/pdb.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/pdb.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/pdb.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/pdb.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/pdb.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/pdb.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/prometheusrules.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/prometheusrules.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/prometheusrules.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/prometheusrules.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/prometheusrules.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/prometheusrules.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/prometheusrules.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/prometheusrules.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/prometheusrules.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/server-block-configmap.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/server-block-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/server-block-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/server-block-configmap.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/server-block-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/server-block-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/server-block-configmap.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/server-block-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/server-block-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/server-block-configmap.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/server-block-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/server-block-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/serviceaccount.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/serviceaccount.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/serviceaccount.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/serviceaccount.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/serviceaccount.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/serviceaccount.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/serviceaccount.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/serviceaccount.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/serviceaccount.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/serviceaccount.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serviceAccountName",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/serviceaccount.yaml",
+        "target": "tpl:templates/_helpers.tpl",
+        "attributes": {
+          "name": "nginx.serviceAccountName",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/serviceaccount.yaml",
+          "edge.targetId": "tpl:templates/_helpers.tpl",
+          "edge.kind": "INCLUDES",
+          "edge.label": "nginx.serviceAccountName",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/servicemonitor.yaml|Includes||common.labels.matchLabels",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/servicemonitor.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.matchLabels",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/servicemonitor.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.matchLabels",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/servicemonitor.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/servicemonitor.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/servicemonitor.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/servicemonitor.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/servicemonitor.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/servicemonitor.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/servicemonitor.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/servicemonitor.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/servicemonitor.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/stream-server-block-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/stream-server-block-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/stream-server-block-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/stream-server-block-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/stream-server-block-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/stream-server-block-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/stream-server-block-configmap.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/stream-server-block-configmap.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/svc.yaml|Includes||common.labels.matchLabels",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/svc.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.matchLabels",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/svc.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.matchLabels",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/svc.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/svc.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/svc.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/svc.yaml|Includes||common.names.fullname",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/svc.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.fullname",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/svc.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.fullname",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/svc.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/svc.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/svc.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/svc.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/svc.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/svc.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/tls-secret.yaml|Includes||common.labels.standard",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/tls-secret.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.labels.standard",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/tls-secret.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.labels.standard",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/tls-secret.yaml|Includes||common.names.namespace",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/tls-secret.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.names.namespace",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/tls-secret.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.names.namespace",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/tls-secret.yaml|Includes||common.secrets.lookup",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/tls-secret.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.secrets.lookup",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/tls-secret.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.secrets.lookup",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:tpl:templates/tls-secret.yaml|Includes||common.tplvalues.render",
+        "type": "helm/chart+edge",
+        "source": "tpl:templates/tls-secret.yaml",
+        "target": "",
+        "attributes": {
+          "name": "common.tplvalues.render",
+          "kind": "EDGE",
+          "edge.sourceId": "tpl:templates/tls-secret.yaml",
+          "edge.kind": "INCLUDES",
+          "edge.label": "common.tplvalues.render",
+          "edge.openEnd": "true"
+        }
+      },
+      {
+        "id": "edge:chart|Declares|dep:common|2.x.x",
+        "type": "helm/chart+edge",
+        "source": "chart",
+        "target": "dep:common",
+        "attributes": {
+          "name": "2.x.x",
+          "kind": "EDGE",
+          "edge.sourceId": "chart",
+          "edge.targetId": "dep:common",
+          "edge.kind": "DECLARES",
+          "edge.label": "2.x.x",
+          "edge.openEnd": "false"
+        }
+      },
+      {
+        "id": "edge:dep:common|Resolves|sub:charts/common|",
+        "type": "helm/chart+edge",
+        "source": "dep:common",
+        "target": "sub:charts/common",
+        "attributes": {
+          "kind": "EDGE",
+          "edge.sourceId": "dep:common",
+          "edge.targetId": "sub:charts/common",
+          "edge.kind": "RESOLVES",
+          "edge.openEnd": "false"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "move": {
+        "element": "values:values.yaml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"values:values.yaml\"],\"to\":{\"x\":100,\"y\":700}}",
+      "expectFile": "after-1.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "move": {
+        "element": "chart"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"chart\"],\"dx\":50,\"dy\":-25}",
+      "expectFile": "after-2.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "move": {
+        "element": "tpl:templates/hpa.yaml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"tpl:templates/hpa.yaml\"],\"dx\":12.3456,\"dy\":-7.8912}",
+      "expectFile": "after-3.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-2.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-3.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "move": {
+        "element": "dep:common"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"dep:common\"],\"to\":{\"x\":1700.5,\"y\":600.25}}",
+      "select": [
+        "dep:common"
+      ],
+      "expectFile": "after-4.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "move": {
+        "element": "sub:charts/common"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"sub:charts/common\"],\"dx\":-30,\"dy\":30}",
+      "expectFile": "after-5.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-3.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-4.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "move": {
+        "element": "edge:values:values-dev.yaml|Overrides|values:values.yaml|"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"edge:values:values-dev.yaml|Overrides|values:values.yaml|\"],\"to\":{\"x\":10,\"y\":10}}",
+      "refused": {
+        "reason": "That element is not something this diagram can move."
+      },
+      "expectFile": "after-4.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "move": {
+        "element": "values:values-prod.yaml",
+        "parent": "chart"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"values:values-prod.yaml\"],\"parent\":\"chart\"}",
+      "refused": {
+        "reason": "A chart element has no parent to move it under; dragging changes where it sits on the canvas."
+      },
+      "expectFile": "after-4.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "property": {
+        "element": "chart",
+        "attribute": "helm.name",
+        "value": "renamed"
+      },
+      "refused": {
+        "reason": "A helm chart diagram shows the folder as it is and changes nothing in it. Edit the file this value comes from in a text editor."
+      },
+      "expectFile": "after-4.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "move": {
+        "element": "lock:Chart.lock"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"lock:Chart.lock\"],\"to\":{\"x\":0.0001,\"y\":3.33333}}",
+      "expectFile": "after-6.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "move": {
+        "element": "tpl:templates/NOTES.txt"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"tpl:templates/NOTES.txt\"],\"to\":{\"x\":-120.5,\"y\":-60.0625}}",
+      "expectFile": "after-7.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-6.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "move": {
+        "element": "tpl:templates/_helpers.tpl"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"tpl:templates/_helpers.tpl\"],\"dx\":5,\"dy\":5}",
+      "expectFile": "after-8.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "move": {
+        "element": "values:values-dev.yaml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"values:values-dev.yaml\"],\"to\":{\"x\":0,\"y\":0}}",
+      "expectFile": "after-9.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "move": {
+        "element": "tpl:templates/svc.yaml"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"tpl:templates/svc.yaml\"],\"dx\":0,\"dy\":300}",
+      "expectFile": "after-10.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "move": {
+        "element": "schema:values.schema.json"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"schema:values.schema.json\"],\"dx\":181.6,\"dy\":0}",
+      "expectFile": "after-11.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-8.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "redo": true
+    },
+    {
+      "redo": true,
+      "expectFile": "after-10.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "move": {
+        "element": "dep:common"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"dep:common\"],\"dx\":-0.0005,\"dy\":0.0005}",
+      "expectFile": "after-12.adp",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/helm/chart/nginx/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

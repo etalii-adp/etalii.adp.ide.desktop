@@ -1,0 +1,102 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bands` from what the desktop host's module shows when parity/cases/databricks/bundle/findings.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "adrift",
+          "kind": "bundle",
+          "label": "adrift",
+          "badges": ""
+        }
+      },
+      {
+        "id": "resource:jobs/declared",
+        "type": "databricks/bundle+resource",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "jobs",
+          "key": "declared",
+          "kind": "jobs",
+          "label": "declared",
+          "badges": "jobs"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "width": 220.0,
+        "height": 120.0,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "false",
+          "overrideCount": "0",
+          "label": "dev"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "width": 220.0,
+        "height": 120.0,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "1",
+          "label": "prod"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "override:prod/jobs/phantom",
+        "source": "target:prod",
+        "target": "resource:jobs/phantom"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 260,
+    "bands": [
+      {
+        "members": "self.id == 'bundle'",
+        "y": 0
+      },
+      {
+        "members": "self.id.startsWith('resource:') || self.id.startsWith('unknown:')",
+        "y": 180
+      },
+      {
+        "members": "self.id.startsWith('target:')",
+        "y": 400
+      }
+    ]
+  },
+  "output": {
+    "positions": {
+      "bundle": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "resource:jobs/declared": {
+        "x": 0.0,
+        "y": 180.0
+      },
+      "target:dev": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "target:prod": {
+        "x": 260.0,
+        "y": 400.0
+      }
+    }
+  }
+}

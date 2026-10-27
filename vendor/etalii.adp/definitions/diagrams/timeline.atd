@@ -35,6 +35,7 @@ diagram generic/timeline version "1.1.0" {
   }
   import "timeline.notation.atd"
   import "timeline.tml.atd"
+  requires capability layout.rowPacking@^1
 
   x-timeline: {
     doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type>. A property is keyed by its form item's row id: its id, else its attribute."
@@ -74,6 +75,94 @@ diagram generic/timeline version "1.1.0" {
   /// What the canvas writes on an element: its label, or its id when the label is empty.
   fn shownLabel(e: dyn) -> string {
     return e.label != '' ? e.label : e.id
+  }
+
+  // ---------------------------------------------------------------- Arrange diagram
+
+  /// The elements Arrange diagram gives rows, in the order they are written: those with an id and a readable begin,
+  /// the first of each id. The others keep their row.
+  fn arrangeable() -> list {
+    var ids = []
+    var items = []
+    for e in diagram.nodes limit 100000 {
+      if e.id != '' && readableTime(e.begin) && !(e.id in ids) {
+        ids = ids + [e.id]
+        items = items + [e]
+      }
+    }
+    return items
+  }
+
+  /// Whether an element ends at a time it reads: a period whose end is readable. Any other element is drawn as a
+  /// moment, at its begin.
+  fn hasEnd(e: dyn) -> bool {
+    return e.isA('Period') && readableTime(e.end)
+  }
+
+  /// The ticks an element begins at.
+  fn beginTicks(e: dyn) -> int {
+    return readTime(e.begin)
+  }
+
+  /// The ticks an element ends at: its end when it has one and that is not before its begin, else its begin.
+  fn endTicks(e: dyn) -> int {
+    let begin = beginTicks(e)
+    if hasEnd(e) {
+      let end = readTime(e.end)
+      return end > begin ? end : begin
+    }
+    return begin
+  }
+
+  /// The canvas's first fit, which Arrange diagram measures extents at: the span of the arrangeable elements, at least
+  /// a day, over 1000 units (the 1200 of the canvas without its margin), as the tick it starts at and units per tick.
+  fn fitFrame() -> map {
+    let items = arrangeable()
+    var first = 0
+    var last = 0
+    for i in range(size(items)) limit 100000 {
+      let begin = beginTicks(items[i])
+      let end = endTicks(items[i])
+      if i == 0 || begin < first {
+        first = begin
+      }
+      if i == 0 || end > last {
+        last = end
+      }
+    }
+    let span = last - first
+    return {"origin": first, "scale": 1000.0 / double(span > 864000000000 ? span : 864000000000)}
+  }
+
+  /// Where an element starts across at the first fit: a period at its begin, a moment at its diamond's left, 9 units
+  /// before its time.
+  fn arrangedLeft(e: dyn) -> double {
+    let frame = fitFrame()
+    let at = double(beginTicks(e) - frame.origin) * frame.scale
+    return hasEnd(e) ? at : at - 9.0
+  }
+
+  /// Where an element ends across at the first fit: a period at its end, at least 2 units after its begin; a moment
+  /// after its label, which follows its diamond 6 units on, measured at the canvas's 12-unit label size.
+  fn arrangedRight(e: dyn) -> double {
+    let frame = fitFrame()
+    let at = double(beginTicks(e) - frame.origin) * frame.scale
+    if hasEnd(e) {
+      let to = double(endTicks(e) - frame.origin) * frame.scale
+      return to > at + 2.0 ? to : at + 2.0
+    }
+    return at + 15.0 + textWidth(shownLabel(e), 12.0)
+  }
+
+  /// Whether a relation's two ends are kept on different rows: a moment and a later element it is linked to, whose
+  /// link would otherwise run level through the moment's label.
+  fn keptApart(r: dyn) -> bool {
+    let s = r.source
+    let t = r.target
+    if s == null || t == null || !readableTime(s.begin) || !readableTime(t.begin) {
+      return false
+    }
+    return (!hasEnd(s) && beginTicks(t) > beginTicks(s)) || (!hasEnd(t) && beginTicks(s) > beginTicks(t))
   }
 
   // ---------------------------------------------------------------- Times
@@ -664,7 +753,7 @@ diagram generic/timeline version "1.1.0" {
   operation arrange "Arrange diagram" for document {
     unavailable [{ when: (diagram.nodes.size() == 0), message: "There is nothing to arrange until this timeline has an element." }]
     icon: mdi-sitemap-outline
-    layout rowArrange
+    layout rowArrange on arrangeable()
   }
 
   behavior {
@@ -716,11 +805,4 @@ diagram generic/timeline version "1.1.0" {
     }
   }
 
-  /// The row arrangement behind Arrange diagram (`TimelineArrangement.cs` in the standalone module). Extents are taken
-  /// at the client's first fit (the timeline's span over 1000 of its 1200 units, at least one day): a period from its
-  /// begin to its end, at least 2 units wide; a moment from 9 units before its time to 15 units after it plus its shown
-  /// label's width at 12 units. Elements without an id, a readable begin, or with an id an earlier element has, keep
-  /// their row. Clearance 12; relations draw linked elements to nearby rows; a moment and a later element it is linked
-  /// to are kept apart. Only `row` is written, in one undo step. A host without the plugin offers no arrangement.
-  plugin net.etalii.adp.generic.timelineRowArrange { version: "^1.0.0", provides: [layout], required: false }
 }

@@ -1,0 +1,199 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "patent",
+      "type": "Trigger",
+      "shape": "ellipse",
+      "bounds": {
+        "x": -5020,
+        "y": 184,
+        "w": 16,
+        "h": 16
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Patent · Jun 1795",
+          "font": "12 400",
+          "position": {
+            "x": -5028,
+            "y": 196
+          }
+        }
+      ],
+      "style": {
+        "fill": "#7c3aed",
+        "stroke": "#7c3aed",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "ghg.trigger",
+          "stroke": "ghg.trigger"
+        }
+      }
+    },
+    {
+      "id": "placed",
+      "type": "Note",
+      "shape": "path",
+      "bounds": {
+        "x": -3360,
+        "y": 280,
+        "w": 160,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "A placed note",
+          "font": "12 400",
+          "position": {
+            "x": -3280,
+            "y": 316.25
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fef9c3",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "ghg.note",
+          "stroke": "ghg.border"
+        }
+      }
+    },
+    {
+      "id": "rail",
+      "type": "Trend",
+      "shape": "path",
+      "bounds": {
+        "x": -3840,
+        "y": 112,
+        "w": 48,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Rail",
+          "font": "12 400",
+          "position": {
+            "x": -3848,
+            "y": 132
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#5F5E5A",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "steam",
+      "type": "Trend",
+      "shape": "path",
+      "bounds": {
+        "x": -4800,
+        "y": 56,
+        "w": 48,
+        "h": 32
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Steam",
+          "font": "12 400",
+          "position": {
+            "x": -4808,
+            "y": 76
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#5F5E5A",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "unplaced",
+      "type": "Note",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 224,
+        "w": 160,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "A note without a place",
+          "font": "12 400",
+          "position": {
+            "x": 80,
+            "y": 260.25
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fef9c3",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "ghg.note",
+          "stroke": "ghg.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "steam-rail",
+      "type": "Influence",
+      "source": "steam",
+      "target": "rail",
+      "route": [
+        {
+          "x": -4752,
+          "y": 73.4
+        },
+        {
+          "x": -3840,
+          "y": 126.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "ghg.influence"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "steam-rail",
+    "steam",
+    "rail",
+    "patent",
+    "unplaced",
+    "placed"
+  ]
+}

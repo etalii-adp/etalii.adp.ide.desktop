@@ -1,0 +1,164 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.structurizr` from what the desktop host's module shows when parity/cases/c4/component/unidentified-elements.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "workspace \"Unidentified elements\" {\n    model {\n        person \"User\" \"Declared without an identifier.\"\n        softwareSystem \"System\" \"Also without one.\" {\n            container \"Web\" \"Serves.\" \"React\"\n        }\n        named = softwareSystem \"Named\" \"Has an identifier.\"\n        softwareSystem \"System\" \"A second of the same name.\"\n        person \"\" \"No name either.\"\n    }\n    views {\n        systemLandscape \"landscape\" {\n            include *\n        }\n    }\n}\n",
+    "files": {
+      "unidentified-elements.adp": "c4/component\nbody: unidentified-elements.dsl\n"
+    }
+  },
+  "args": {
+    "view": "component"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "person_User_1",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "User",
+          "description": "Declared without an identifier.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "240",
+          "height": "98.4",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "softwaresystem_System_2",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "System",
+          "description": "Also without one.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "named",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Named",
+          "description": "Has an identifier.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "162.6",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "softwaresystem_System_4",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "System",
+          "description": "A second of the same name.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "224.2",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "person_unnamed_5",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "description": "No name either.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "System Landscape diagram for Unidentified elements",
+          "viewKind": "SystemLandscape",
+          "viewKey": "landscape",
+          "legend.0.label": "Person",
+          "legend.0.background": "#08427b",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "Person",
+          "legend.1.label": "Software System",
+          "legend.1.background": "#1168bd",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "person_User_1",
+        "message": "'User' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "softwaresystem_System_2",
+        "message": "'System' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "container_Web_3",
+        "message": "'Web' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "named",
+        "message": "'Named' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "softwaresystem_System_4",
+        "message": "'System' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "person_unnamed_5",
+        "message": "'person_unnamed_5' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.element-not-on-any-view",
+        "severity": "warning",
+        "element": "container_Web_3",
+        "message": "'Web' is on no view. An element the model declares but nothing draws is invisible to every reader of the diagrams."
+      }
+    ]
+  }
+}

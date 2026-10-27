@@ -1,0 +1,980 @@
+atd 0.1
+part of gartner/hypecycle-graph
+
+// The Gartner hype cycle graph's coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+coordinates {
+  system hypeCycle {
+    kind: cartesian
+    x: time
+    y: rows
+    orientation: y-down
+    infinite: true
+    grid: { visible: false }
+    snapping: {
+      x: { calendar: { unit: @unit }, direction: nearest, ties: away-from-zero }
+      y: { grid: { spacing: 1 }, direction: nearest, ties: away-from-zero }
+      reference: anchor
+      byGesture: { drop: { x: { calendar: { unit: @unit }, direction: floor } } }
+      doc: "A move or resize snaps the placement anchor to the nearest step start and row, halves away from zero on both sides of the origin (`GhgScale.NearestMonthAt`, `RowAtTop`); a drop lands in the step that contains it (`MonthContaining`). The row a drop lands in differs per type and is set on each node notation."
+    }
+  }
+  system compact { kind: cartesian, x: track, y: rows, orientation: y-down, infinite: true, grid: { visible: false } }
+  axis time {
+    kind: time
+    valueType: yearMonth
+    label: Time
+    origin: "1900-01"
+    scale: { unit: @unit, size: 4 }
+    ruler: {
+      visible: true
+      position: bottom
+      attach: view
+      levels: [
+        { unit: month, format: "MMM uuuu", minSpacingPx: 64 },
+        { unit: quarter, format: "MMM uuuu", minSpacingPx: 64 },
+        { unit: year, format: uuuu, minSpacingPx: 64 },
+        { unit: decade, format: uuuu, minSpacingPx: 64 },
+        { unit: century, format: uuuu, minSpacingPx: 64 },
+        { unit: millennium, format: uuuu, minSpacingPx: 64 }
+      ]
+      minUnit: @unit
+    }
+    doc: "A month-index axis counted from 1900-01, four canvas units per step of the diagram's `unit`, linear and never logarithmic. Dates are signed astronomical years (`0000` is 1 BCE, `-3200-01` is 3201 BCE). The ruler is pinned to the bottom of the view; a level finer than one step of the unit is never shown (`minUnit`)."
+  }
+  axis rows {
+    kind: linear
+    label: Rows
+    unit: row
+    scale: 56
+    origin: 0
+    doc: "Rows 56 canvas units apart: a 32-unit trend plus a 24-unit gutter."
+  }
+  axis track {
+    kind: linear
+    label: Order
+    unit: "canvas units"
+    scale: 1
+    origin: 0
+    doc: "The compact view's horizontal axis: canvas units placed by the row-packed layout, with no ruler, because a compact x is no date."
+  }
+  default hypeCycle
+}
+
+notation {
+  theme {
+    tokens: {
+      ghg.peak: "#f7e7a1"
+      ghg.trough: "#dfe3e8"
+      ghg.slope: "#f6c99a"
+      ghg.plateau: "#cde8a8"
+      ghg.chevron: "#475569"
+      ghg.trigger: "#7c3aed"
+      ghg.note: "#fef9c3"
+      ghg.noteText: "#0f172a"
+      ghg.border: "#e2e8f0"
+      ghg.influence: "#64748b"
+    }
+    modes: {
+      light: {}
+      dark: {
+        ghg.peak: "#6b5a17"
+        ghg.trough: "#475569"
+        ghg.slope: "#7c4a1c"
+        ghg.plateau: "#3f6212"
+        ghg.chevron: "#e2e8f0"
+        ghg.trigger: "#c4b5fd"
+        ghg.note: "#423a10"
+        ghg.noteText: "#f1f5f9"
+        ghg.border: "#334155"
+        ghg.influence: "#94a3b8"
+      }
+    }
+    followSystem: true
+    doc: "Peak yellow, Trough light grey, Slope orange, Plateau lime green, as ruled by the owner; the dark values are the same hues darkened. `ghg.border` and `ghg.influence` are the host's border and muted-text colours, which the note outline and the influence line use."
+  }
+  textMetric: { kind: average, advance: 0.55, count: utf16 }
+  style segment { stroke: { width: 0 } }
+  style chevron { fill: none, stroke: { color: $ghg.chevron, width: 1.5 } }
+  style attachment { fill: none, stroke: { width: 0 } }
+  /// The outline `(0,0) (w-d,0) (w,h/2) (w-d,h) (0,h)` with `d = min(h/2, w/2)`, cut into up to four coloured
+  /// segments by right-pointing chevrons. A chevron's tip lies on its boundary; its tails reach back by `d`, or less
+  /// where the previous boundary is nearer, and never past the shoulder `w - d`. The parts `peak` to `plateau` are
+  /// each segment's stretch of the top and bottom edges, from its left tails to its right tails (the last to the
+  /// shoulder), which influence ends attach to. Mirrors `segmentLayoutOf` in the standalone client.
+  shape phasedBanner {
+    label: "Phased banner"
+    params: {
+      count: { type: int, default: 4, min: 1, max: 4, unit: count, persist: none }
+      b1: { type: number, default: 0.25, min: 0, max: 1, unit: fraction, persist: none }
+      b2: { type: number, default: 0.5, min: 0, max: 1, unit: fraction, persist: none }
+      b3: { type: number, default: 0.75, min: 0, max: 1, unit: fraction, persist: none }
+    }
+    outline: {
+      segments: [
+        { op: M, x: 0, y: 0 },
+        { op: L, x: "w - min(h / 2.0, w / 2.0)", y: 0 },
+        { op: L, x: "w", y: "h / 2.0" },
+        { op: L, x: "w - min(h / 2.0, w / 2.0)", y: "h" },
+        { op: L, x: 0, y: "h" },
+        { op: Z }
+      ]
+    }
+    parts: [
+      {
+        id: peakFill
+        style: { extends: segment, fill: $ghg.peak }
+        box: { x: 0, y: 0, w: (w), h: (h) }
+        shape: {
+          path: {
+            segments: [
+              { op: M, x: 0, y: 0 },
+              {
+                op: L
+                x: "p.count == 1 ? w - min(h / 2.0, w / 2.0) : min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0))"
+                y: 0
+              },
+              { op: L, x: "p.count == 1 ? w : w * p.b1", y: "h / 2.0" },
+              {
+                op: L
+                x: "p.count == 1 ? w - min(h / 2.0, w / 2.0) : min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0))"
+                y: "h"
+              },
+              { op: L, x: 0, y: "h" },
+              { op: Z }
+            ]
+          }
+        }
+        tooltip: "Peak of Inflated Expectations"
+      },
+      {
+        id: troughFill
+        when: (p.count >= 2)
+        style: { extends: segment, fill: $ghg.trough }
+        box: { x: 0, y: 0, w: (w), h: (h) }
+        shape: {
+          path: {
+            segments: [
+              { op: M, x: "min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0))", y: 0 },
+              {
+                op: L
+                x: "p.count == 2 ? w - min(h / 2.0, w / 2.0) : min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0))"
+                y: 0
+              },
+              { op: L, x: "p.count == 2 ? w : w * p.b2", y: "h / 2.0" },
+              {
+                op: L
+                x: "p.count == 2 ? w - min(h / 2.0, w / 2.0) : min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0))"
+                y: "h"
+              },
+              { op: L, x: "min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0))", y: "h" },
+              { op: L, x: "w * p.b1", y: "h / 2.0" },
+              { op: Z }
+            ]
+          }
+        }
+        tooltip: "Trough of Disillusionment"
+      },
+      {
+        id: slopeFill
+        when: (p.count >= 3)
+        style: { extends: segment, fill: $ghg.slope }
+        box: { x: 0, y: 0, w: (w), h: (h) }
+        shape: {
+          path: {
+            segments: [
+              {
+                op: M
+                x: "min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0))"
+                y: 0
+              },
+              {
+                op: L
+                x: "p.count == 3 ? w - min(h / 2.0, w / 2.0) : min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0))"
+                y: 0
+              },
+              { op: L, x: "p.count == 3 ? w : w * p.b3", y: "h / 2.0" },
+              {
+                op: L
+                x: "p.count == 3 ? w - min(h / 2.0, w / 2.0) : min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0))"
+                y: "h"
+              },
+              {
+                op: L
+                x: "min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0))"
+                y: "h"
+              },
+              { op: L, x: "w * p.b2", y: "h / 2.0" },
+              { op: Z }
+            ]
+          }
+        }
+        tooltip: "Slope of Enlightenment"
+      },
+      {
+        id: plateauFill
+        when: (p.count >= 4)
+        style: { extends: segment, fill: $ghg.plateau }
+        box: { x: 0, y: 0, w: (w), h: (h) }
+        shape: {
+          path: {
+            segments: [
+              {
+                op: M
+                x: "min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0))"
+                y: 0
+              },
+              { op: L, x: "w - min(h / 2.0, w / 2.0)", y: 0 },
+              { op: L, x: "w", y: "h / 2.0" },
+              { op: L, x: "w - min(h / 2.0, w / 2.0)", y: "h" },
+              {
+                op: L
+                x: "min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0))"
+                y: "h"
+              },
+              { op: L, x: "w * p.b3", y: "h / 2.0" },
+              { op: Z }
+            ]
+          }
+        }
+        tooltip: "Plateau of Productivity"
+      },
+      {
+        id: chevron1
+        when: (p.count >= 2)
+        hit: false
+        style: chevron
+        box: { x: 0, y: 0, w: (w), h: (h) }
+        shape: {
+          path: {
+            segments: [
+              { op: M, x: "min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0))", y: 0 },
+              { op: L, x: "w * p.b1", y: "h / 2.0" },
+              { op: L, x: "min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0))", y: "h" }
+            ]
+          }
+        }
+      },
+      {
+        id: chevron2
+        when: (p.count >= 3)
+        hit: false
+        style: chevron
+        box: { x: 0, y: 0, w: (w), h: (h) }
+        shape: {
+          path: {
+            segments: [
+              {
+                op: M
+                x: "min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0))"
+                y: 0
+              },
+              { op: L, x: "w * p.b2", y: "h / 2.0" },
+              {
+                op: L
+                x: "min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0))"
+                y: "h"
+              }
+            ]
+          }
+        }
+      },
+      {
+        id: chevron3
+        when: (p.count >= 4)
+        hit: false
+        style: chevron
+        box: { x: 0, y: 0, w: (w), h: (h) }
+        shape: {
+          path: {
+            segments: [
+              {
+                op: M
+                x: "min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0))"
+                y: 0
+              },
+              { op: L, x: "w * p.b3", y: "h / 2.0" },
+              {
+                op: L
+                x: "min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0))"
+                y: "h"
+              }
+            ]
+          }
+        }
+      },
+      {
+        id: peak
+        shape: rect
+        hit: false
+        style: attachment
+        box: {
+          x: 0
+          y: 0
+          w: (p.count == 1 ? w - min(h / 2.0, w / 2.0) : min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0)))
+          h: (h)
+        }
+      },
+      {
+        id: trough
+        when: (p.count >= 2)
+        shape: rect
+        hit: false
+        style: attachment
+        box: {
+          x: (min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0)))
+          y: 0
+          w: ((p.count == 2 ? w - min(h / 2.0, w / 2.0) : min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0))) - min(w * p.b1 - min(min(h / 2.0, w / 2.0), w * p.b1), w - min(h / 2.0, w / 2.0)))
+          h: (h)
+        }
+      },
+      {
+        id: slope
+        when: (p.count >= 3)
+        shape: rect
+        hit: false
+        style: attachment
+        box: {
+          x: (min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0)))
+          y: 0
+          w: ((p.count == 3 ? w - min(h / 2.0, w / 2.0) : min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0))) - min(w * p.b2 - min(min(h / 2.0, w / 2.0), w * (p.b2 - p.b1)), w - min(h / 2.0, w / 2.0)))
+          h: (h)
+        }
+      },
+      {
+        id: plateau
+        when: (p.count >= 4)
+        shape: rect
+        hit: false
+        style: attachment
+        box: {
+          x: (min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0)))
+          y: 0
+          w: ((w - min(h / 2.0, w / 2.0)) - min(w * p.b3 - min(min(h / 2.0, w / 2.0), w * (p.b3 - p.b2)), w - min(h / 2.0, w / 2.0)))
+          h: (h)
+        }
+      }
+    ]
+    handles: [
+      {
+        param: b1
+        x: (w * p.b1)
+        y: (h / 2.0)
+        axis: x
+        visible: (env.viewpoint == 'trueTime' && visiblePhases(self) >= 2)
+        snap: (boundaryLanding(self, 1, value))
+        write: [{ set: { peakEnd: (boundaryMonth(self, value)) } }]
+        refusals: { move: "Only a boundary between two visible phases can be moved." }
+      },
+      {
+        param: b2
+        x: (w * p.b2)
+        y: (h / 2.0)
+        axis: x
+        visible: (env.viewpoint == 'trueTime' && visiblePhases(self) >= 3)
+        snap: (boundaryLanding(self, 2, value))
+        write: [{ set: { troughEnd: (boundaryMonth(self, value)) } }]
+        refusals: { move: "Only a boundary between two visible phases can be moved." }
+      },
+      {
+        param: b3
+        x: (w * p.b3)
+        y: (h / 2.0)
+        axis: x
+        visible: (env.viewpoint == 'trueTime' && visiblePhases(self) >= 4)
+        snap: (boundaryLanding(self, 3, value))
+        write: [{ set: { slopeEnd: (boundaryMonth(self, value)) } }]
+        refusals: { move: "Only a boundary between two visible phases can be moved." }
+      }
+    ]
+  }
+  canvas {
+    filters: {
+      tags: {
+        label: "Filter by tags"
+        control: chips
+        appliesTo: [Trend, Trigger]
+        options: ((diagram.nodesOfType('Trend').map(n, n.tags).flatten() + diagram.nodesOfType('Trigger').map(n, n.tags).flatten()).distinct())
+        default: []
+        match: { default: any, userToggle: true }
+        keep: (value.size() == 0 || (match == 'any' ? value.exists(t, self.tags.exists(s, lower(s) == lower(t))) : value.all(t, self.tags.exists(s, lower(s) == lower(t)))))
+        effect: hide
+        position: outside-top-left
+        doc: "Hides trends and triggers without the chosen tags, and every influence to or from them. Notes always stay. View state only, never saved."
+      }
+    }
+    legend: { visible: true, position: outside-top-left, entries: [Phase] }
+    doc: "The phase legend sits under the filter box, one swatch per phase painted with the phase's theme token (its `color`), so it follows dark mode; the Compact toggle sits under the legend."
+  }
+
+  node Trend {
+    shape: {
+      type: phasedBanner
+      params: {
+        count: (visiblePhases(self))
+        b1: (boundaryFraction(self, 1))
+        b2: (boundaryFraction(self, 2))
+        b3: (boundaryFraction(self, 3))
+      }
+    }
+    label @name as name { position: outside-left, distance: 8, editable: inline, wrap: none }
+    size: { default: [48, 32], min: [null, 32], max: [null, 32], resizable: horizontal }
+    placement: {
+      system: hypeCycle
+      x: @start
+      x2: @stop
+      y: @row
+      anchor: top-left
+      movable: { x: true, y: true }
+      resizable: { x: true, y: false }
+    }
+    snapping: {
+      byGesture: { drop: { y: (math.round(value - 2.0 / 7.0)) } }
+      doc: "A dropped trend takes the row its middle is nearest to: `round((y - 16) / 56)`, halves away from zero (`GhgScale.RowAtMiddle`)."
+    }
+  }
+
+  node Trigger {
+    shape ellipse
+    label (self.name + ' · ' + formatWhen(self.date, diagram.unit, false)) as name {
+      position: outside-left
+      distance: 8
+      editable: inline
+      wrap: none
+      parse: {
+        write: [{ set: { name: (value.trim()) } }]
+        doc: "Only the name is edited; the date part is shown, not written."
+      }
+      editText: @name
+    }
+    style: { fill: $ghg.trigger, stroke: { color: $ghg.trigger, width: 1.5 } }
+    size: { fixed: [16, 16] }
+    placement: {
+      system: hypeCycle
+      x: @date
+      y: {
+        attribute: row
+        offset: 0.2857142857142857
+        doc: "Centred on the middle of its row: 16 of the row's 56 units down."
+      }
+      anchor: center
+      movable: true
+      resizable: false
+    }
+    snapping: {
+      y: { grid: { spacing: 1, offset: 0.2857142857142857 }, direction: nearest, ties: away-from-zero }
+      byGesture: { drop: { y: (math.round(value - 2.0 / 7.0) + 2.0 / 7.0) } }
+      doc: "A trigger's centre snaps to a row's middle; a dropped trigger takes the row its centre is nearest to (`GhgScale.RowAtMiddle`)."
+    }
+    tooltip: ('Trigger: ' + self.name + ', ' + formatWhen(self.date, diagram.unit, true))
+    anchors: {
+      mode: fixed
+      points: [{ id: n, x: 0.5, y: 0 }, { id: e, x: 1, y: 0.5 }, { id: s, x: 0.5, y: 1 }]
+      drawnFrom: outline
+      doc: "An influence leaves a trigger from its top, right or bottom handle; the line is drawn from the outline facing its target. The anchors are never drawn."
+    }
+  }
+
+  node Note {
+    shape rect
+    label @text as text { position: center, editable: multiline, wrap: word, maxWidth: parent, overflow: ellipsis }
+    style: {
+      fill: $ghg.note
+      stroke: { color: $ghg.border, width: 1.5 }
+      font: { color: $ghg.noteText, size: 12 }
+      padding: [6, 6]
+    }
+    size: { default: [160, 64], width: @width, height: @height, resizable: true }
+    placement: { system: hypeCycle, x: @at, y: @row, anchor: top-left, movable: true, resizable: true }
+    snapping: {
+      byGesture: { drop: { y: { grid: { spacing: 1 }, direction: floor } } }
+      doc: "A dropped note's top takes the row that contains the drop point (`AddGhgNoteCommandHandler`)."
+    }
+    connectable: false
+  }
+
+  /// An end is a phase, an edge and a fraction along that phase's stretch of the edge, bound to the relation's
+  /// attributes: a resize or a boundary drag moves it proportionally, dragging it writes the attributes, and an end
+  /// on a phase the trend does not draw hides the influence without removing it. A connect gesture that carries no
+  /// end takes the defaults: the source's last visible phase at the bottom, halfway, and the target's Peak at the
+  /// top, halfway.
+  edge Influence {
+    line {
+      stroke: { color: $ghg.influence, width: 1.5 }
+      routing: bezier
+      startDirection: normal
+      endDirection: normal
+      bendpoints: { editable: false }
+    }
+    marker source none
+    marker target arrowFilled
+    anchoring: {
+      source: {
+        mode: part
+        part: @fromPhase
+        side: @fromEdge
+        at: @fromAt
+        movable: true
+        default: { part: (phaseName(visiblePhases(self.source) - 1)), side: bottom, at: 0.5 }
+      }
+      target: {
+        mode: part
+        part: @toPhase
+        side: @toEdge
+        at: @toAt
+        movable: true
+        default: { part: peak, side: top, at: 0.5 }
+      }
+    }
+    variant variant when self.source.isA('Trigger') {
+      anchoring: { source: { mode: fixed, points: [{ id: n, x: 0.5, y: 0 }, { id: e, x: 1, y: 0.5 }, { id: s, x: 0.5, y: 1 }] } }
+    }
+  }
+}
+
+toolbox {
+  group hypeCycle {
+    /// A trend through the hype cycle. Drop it where it starts; it is a year long with all four phases.
+    tool trend "Trend" {
+      creates: Trend
+      icon: mdi-arrow-right-bold-box-outline
+      mode: drop
+      initial: {
+        name: (uniqueName('New trend', diagram.nodesOfType('Trend').map(t, t.name)))
+        start: (dropMonth(double(position.x)))
+        stop: (dropMonth(double(position.x)) + 12 * unitMonths(diagram.unit))
+        row: (int(math.round(double(position.y) - 2.0 / 7.0)))
+        phases: 4
+      }
+      after: none
+    }
+    /// A moment in time that set trends off - an invention, a political moment, a disaster. Drop it where it
+    /// happened; draw influences from it.
+    tool trigger "Trigger" {
+      creates: Trigger
+      icon: mdi-circle-slice-8
+      mode: drop
+      initial: {
+        name: (uniqueName('Trigger', diagram.nodesOfType('Trigger').map(t, t.name)))
+        date: (dropMonth(double(position.x)))
+        row: (int(math.round(double(position.y) - 2.0 / 7.0)))
+      }
+      after: none
+    }
+    /// A remark of your own, placed where it applies. Drop it and start typing.
+    tool note "Note" {
+      creates: Note
+      icon: mdi-note-text-outline
+      mode: drop
+      initial: {
+        text: ""
+        at: (dropMonth(double(position.x)))
+        row: (int(math.floor(double(position.y))))
+        width: 160
+        height: 64
+      }
+      size: [160, 64]
+      after: editLabel
+    }
+  }
+  context for Trend {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2, visible: (!env.readOnly) }
+    tool "Even phases" {
+      kind: operation
+      operation: evenPhases
+      group: edit
+      icon: mdi-arrow-split-vertical
+      visible: (!env.readOnly && (has(self.peakEnd) || has(self.troughEnd) || has(self.slopeEnd)))
+    }
+    tool "Remove" { kind: delete, group: edit, icon: mdi-delete-outline, shortcut: Delete, visible: (!env.readOnly) }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: arrange, icon: mdi-sitemap-outline, visible: (!env.readOnly) }
+  }
+  context for Trigger {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2, visible: (!env.readOnly) }
+    tool "Remove" { kind: delete, group: edit, icon: mdi-delete-outline, shortcut: Delete, visible: (!env.readOnly) }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: arrange, icon: mdi-sitemap-outline, visible: (!env.readOnly) }
+  }
+  context for Note {
+    placement: menu
+    standardEntries: false
+    tool "Edit text…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2, visible: (!env.readOnly) }
+    tool "Remove" { kind: delete, group: edit, icon: mdi-delete-outline, shortcut: Delete, visible: (!env.readOnly) }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: arrange, icon: mdi-sitemap-outline, visible: (!env.readOnly) }
+  }
+  context for Influence {
+    placement: menu
+    standardEntries: false
+    tool "Remove influence" { kind: delete, group: edit, icon: mdi-vector-polyline-remove, shortcut: Delete, visible: (!env.readOnly) }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: arrange, icon: mdi-sitemap-outline, visible: (!env.readOnly) }
+  }
+  /// Empty canvas in true time only: a compact x is no date, so compact has no background menu.
+  context for diagram when env.viewpoint == 'trueTime' {
+    placement: menu
+    standardEntries: false
+    tool "Add trend here" { kind: operation, operation: addTrendHere, group: add, icon: mdi-plus, visible: (!env.readOnly) }
+    tool "Add trigger here" { kind: operation, operation: addTriggerHere, group: add, icon: mdi-circle-slice-8, visible: (!env.readOnly) }
+    tool "Add note here" { kind: operation, operation: addNoteHere, group: add, icon: mdi-note-text-outline, visible: (!env.readOnly) }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: arrange, icon: mdi-sitemap-outline, visible: (!env.readOnly) }
+  }
+  /// A finished connect gesture from a phase's edge, or a trigger's handle, to a phase of another trend.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    runSingle: true
+    tool "Influence" { kind: connect, via: Influence, icon: mdi-ray-start-arrow, visible: (!env.readOnly) }
+  }
+}
+
+form trend for Trend {
+  usage: [inspector]
+  section {
+    label: Identity
+    field name "Name"
+    field description "Description" { widget: textarea }
+    field tags "Tags" {
+      widget: tags
+      options: ((diagram.nodesOfType('Trend').map(e, e.tags).flatten() + diagram.nodesOfType('Trigger').map(e, e.tags).flatten()).distinct())
+    }
+  }
+  section {
+    label: Time
+    field start "Start" {
+      widget: text
+      validate: [
+        {
+          rule: (parseYearMonth(string(value)).hasValue())
+          message: ('\'' + string(value) + '\' is not a date; write it as YYYY-MM, such as 2007-06.')
+          timing: commit
+        }
+      ]
+    }
+    field stop "Stop" {
+      widget: text
+      validate: [
+        {
+          rule: (parseYearMonth(string(value)).hasValue())
+          message: ('\'' + string(value) + '\' is not a date; write it as YYYY-MM, such as 2007-06.')
+          timing: commit
+        }
+      ]
+    }
+  }
+  section {
+    label: Phases
+    field phases "Phases" {
+      widget: slider
+      widgetOptions: {
+        min: 1
+        max: 4
+        step: 1
+        marks: [
+          { value: 1, label: Peak },
+          { value: 2, label: "Peak and Trough" },
+          { value: 3, label: "Peak, Trough and Slope" },
+          { value: 4, label: "All four" }
+        ]
+      }
+      display: (['Peak', 'Peak and Trough', 'Peak, Trough and Slope', 'All four'][visiblePhases(self) - 1])
+      parse: {
+        accepts: (value.trim() in ['Peak', 'Peak and Trough', 'Peak, Trough and Slope', 'All four'])
+        write: [
+          {
+            set: { phases: (['Peak', 'Peak and Trough', 'Peak, Trough and Slope', 'All four'].indexOf(value.trim()) + 1) }
+          }
+        ]
+        refusal: ('\'' + value + '\' is not one of Peak, Peak and Trough, Peak, Trough and Slope, All four.')
+      }
+    }
+    field peakEnd "Peak ends" {
+      widget: text
+      visible: (has(self.start) && has(self.stop) && self.stop > self.start && visiblePhases(self) >= 2)
+      display: (monthText(phaseBoundaries(self)[0]))
+      validate: [
+        {
+          rule: (parseYearMonth(string(value)).hasValue())
+          message: ('\'' + string(value) + '\' is not a date; write it as YYYY-MM, such as 2007-06.')
+          timing: commit
+        }
+      ]
+    }
+    field troughEnd "Trough ends" {
+      widget: text
+      visible: (has(self.start) && has(self.stop) && self.stop > self.start && visiblePhases(self) >= 3)
+      display: (monthText(phaseBoundaries(self)[1]))
+      validate: [
+        {
+          rule: (parseYearMonth(string(value)).hasValue())
+          message: ('\'' + string(value) + '\' is not a date; write it as YYYY-MM, such as 2007-06.')
+          timing: commit
+        }
+      ]
+    }
+    field slopeEnd "Slope ends" {
+      widget: text
+      visible: (has(self.start) && has(self.stop) && self.stop > self.start && visiblePhases(self) >= 4)
+      display: (monthText(phaseBoundaries(self)[2]))
+      validate: [
+        {
+          rule: (parseYearMonth(string(value)).hasValue())
+          message: ('\'' + string(value) + '\' is not a date; write it as YYYY-MM, such as 2007-06.')
+          timing: commit
+        }
+      ]
+    }
+  }
+  section {
+    label: Peak
+    item peakInfluences "Influence" {
+      kind: computed
+      widget: textarea
+      readOnlyReasons: ["Draw, reattach or delete an influence on the canvas."]
+      value: (listOrNone(self.outgoingOf('Influence').filter(r, r.?fromPhase.orValue('') == 'peak').map(r, endText(r.target, r.?toPhase.orValue('')))))
+    }
+    item peakInfluencedBy "Influenced by" {
+      kind: computed
+      widget: textarea
+      readOnlyReasons: ["Draw, reattach or delete an influence on the canvas."]
+      value: (listOrNone(self.incomingOf('Influence').filter(r, r.?toPhase.orValue('') == 'peak').map(r, endText(r.source, r.?fromPhase.orValue('')))))
+    }
+  }
+  section {
+    label: (visiblePhases(self) >= 2 ? 'Trough' : 'Trough (hidden)')
+    visible: (visiblePhases(self) >= 2 || self.outgoingOf('Influence').exists(r, r.?fromPhase.orValue('') == 'trough') || self.incomingOf('Influence').exists(r, r.?toPhase.orValue('') == 'trough'))
+    item troughInfluences "Influence" {
+      kind: computed
+      widget: textarea
+      readOnlyReasons: ["Draw, reattach or delete an influence on the canvas."]
+      value: (listOrNone(self.outgoingOf('Influence').filter(r, r.?fromPhase.orValue('') == 'trough').map(r, endText(r.target, r.?toPhase.orValue('')))))
+    }
+    item troughInfluencedBy "Influenced by" {
+      kind: computed
+      widget: textarea
+      readOnlyReasons: ["Draw, reattach or delete an influence on the canvas."]
+      value: (listOrNone(self.incomingOf('Influence').filter(r, r.?toPhase.orValue('') == 'trough').map(r, endText(r.source, r.?fromPhase.orValue('')))))
+    }
+  }
+  section {
+    label: (visiblePhases(self) >= 3 ? 'Slope' : 'Slope (hidden)')
+    visible: (visiblePhases(self) >= 3 || self.outgoingOf('Influence').exists(r, r.?fromPhase.orValue('') == 'slope') || self.incomingOf('Influence').exists(r, r.?toPhase.orValue('') == 'slope'))
+    item slopeInfluences "Influence" {
+      kind: computed
+      widget: textarea
+      readOnlyReasons: ["Draw, reattach or delete an influence on the canvas."]
+      value: (listOrNone(self.outgoingOf('Influence').filter(r, r.?fromPhase.orValue('') == 'slope').map(r, endText(r.target, r.?toPhase.orValue('')))))
+    }
+    item slopeInfluencedBy "Influenced by" {
+      kind: computed
+      widget: textarea
+      readOnlyReasons: ["Draw, reattach or delete an influence on the canvas."]
+      value: (listOrNone(self.incomingOf('Influence').filter(r, r.?toPhase.orValue('') == 'slope').map(r, endText(r.source, r.?fromPhase.orValue('')))))
+    }
+  }
+  section {
+    label: (visiblePhases(self) >= 4 ? 'Plateau' : 'Plateau (hidden)')
+    visible: (visiblePhases(self) >= 4 || self.outgoingOf('Influence').exists(r, r.?fromPhase.orValue('') == 'plateau') || self.incomingOf('Influence').exists(r, r.?toPhase.orValue('') == 'plateau'))
+    item plateauInfluences "Influence" {
+      kind: computed
+      widget: textarea
+      readOnlyReasons: ["Draw, reattach or delete an influence on the canvas."]
+      value: (listOrNone(self.outgoingOf('Influence').filter(r, r.?fromPhase.orValue('') == 'plateau').map(r, endText(r.target, r.?toPhase.orValue('')))))
+    }
+    item plateauInfluencedBy "Influenced by" {
+      kind: computed
+      widget: textarea
+      readOnlyReasons: ["Draw, reattach or delete an influence on the canvas."]
+      value: (listOrNone(self.incomingOf('Influence').filter(r, r.?toPhase.orValue('') == 'plateau').map(r, endText(r.source, r.?fromPhase.orValue('')))))
+    }
+  }
+}
+
+form trigger for Trigger {
+  usage: [inspector]
+  section {
+    label: Identity
+    field name "Name"
+    field description "Description" { widget: textarea }
+    field tags "Tags" {
+      widget: tags
+      options: ((diagram.nodesOfType('Trend').map(e, e.tags).flatten() + diagram.nodesOfType('Trigger').map(e, e.tags).flatten()).distinct())
+    }
+  }
+  section {
+    label: Time
+    field date "Date" {
+      widget: text
+      validate: [
+        {
+          rule: (parseYearMonth(string(value)).hasValue())
+          message: ('\'' + string(value) + '\' is not a date; write it as YYYY-MM, such as 1947-12.')
+          timing: commit
+        }
+      ]
+    }
+  }
+}
+
+form note for Note {
+  usage: [inspector]
+  section {
+    label: Identity
+    field text "Text" { widget: textarea }
+    item "Size" {
+      kind: computed
+      value: (has(self.width) && has(self.height) ? sizeText(self.width) + ' x ' + sizeText(self.height) : '')
+      parse: {
+        accepts: (value.matches('^\\s*[0-9.]+\\s*x\\s*[0-9.]+\\s*(at\\s+\\S+)?\\s*(row\\s+-?[0-9]+)?\\s*$'))
+        write: [
+          {
+            set: {
+              width: (double(value.trim().split('x')[0].trim()))
+              height: (double(value.trim().split('x')[1].trim().split(' ')[0]))
+            }
+          }
+        ]
+        refusal: ('\'' + value + '\' is not a size; write it as width x height, such as 160 x 64.')
+        doc: "The same text a resize sends, `W x H at YYYY-MM row N`, so size and position change in one undo step; the grid sends `W x H`."
+      }
+    }
+  }
+}
+
+form influence for Influence {
+  usage: [inspector]
+  section {
+    label: Identity
+    field description "Description" { widget: textarea }
+  }
+  section {
+    label: Ends
+    item "From" {
+      kind: computed
+      readOnlyReasons: ["Where it is attached; drag the end on the canvas to move it."]
+      value: (endText(self.source, self.?fromPhase.orValue('')))
+    }
+    item "To" {
+      kind: computed
+      readOnlyReasons: ["Where it is attached; drag the end on the canvas to move it."]
+      value: (endText(self.target, self.?toPhase.orValue('')))
+    }
+    item "From attachment" {
+      kind: computed
+      value: (endSpec(self.?fromPhase, self.?fromEdge, self.?fromAt))
+      parse: {
+        accepts: (value.trim().split('/').size() == 3 && value.trim().split('/')[0].trim() in ['peak', 'trough', 'slope', 'plateau'] && value.trim().split('/')[1].trim() in ['top', 'bottom'] && value.trim().split('/')[2].trim().matches('^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$') && double(value.trim().split('/')[2].trim()) >= 0.0 && double(value.trim().split('/')[2].trim()) <= 1.0)
+        write: [
+          {
+            set: {
+              fromPhase: (value.trim().split('/')[0].trim())
+              fromEdge: (value.trim().split('/')[1].trim())
+              fromAt: (math.round(double(value.trim().split('/')[2].trim()) * 100.0) / 100.0)
+            }
+          }
+        ]
+        refusal: ('\'' + value + '\' is not an attachment; write it as phase/edge/at, such as plateau/bottom/0.3.')
+      }
+    }
+    item "To attachment" {
+      kind: computed
+      value: (endSpec(self.?toPhase, self.?toEdge, self.?toAt))
+      parse: {
+        accepts: (value.trim().split('/').size() == 3 && value.trim().split('/')[0].trim() in ['peak', 'trough', 'slope', 'plateau'] && value.trim().split('/')[1].trim() in ['top', 'bottom'] && value.trim().split('/')[2].trim().matches('^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$') && double(value.trim().split('/')[2].trim()) >= 0.0 && double(value.trim().split('/')[2].trim()) <= 1.0)
+        write: [
+          {
+            set: {
+              toPhase: (value.trim().split('/')[0].trim())
+              toEdge: (value.trim().split('/')[1].trim())
+              toAt: (math.round(double(value.trim().split('/')[2].trim()) * 100.0) / 100.0)
+            }
+          }
+        ]
+        refusal: ('\'' + value + '\' is not an attachment; write it as phase/edge/at, such as plateau/bottom/0.3.')
+      }
+    }
+  }
+}
+
+layout {
+  algorithm rowPacked {
+    algorithm: rowPacked
+    scope: all
+    rowPacked: {
+      keepRows: true
+      order: start
+      gap: 4
+      followConnections: Influence
+      targetAfter: sourceMiddle
+      rowsCovered: (int(math.ceil(self.height / 56.0)))
+      doc: "Every element keeps its stored row; within a row, elements keep the order of their start dates and are placed as far left as they fit, 4 canvas units apart. An influence's target starts after the middle of its source, so causes read to the left of their effects. A note covers every row its height reaches. The whole model is laid out, not only what is on screen (`scope`)."
+    }
+    doc: "The compact viewpoint's layout."
+  }
+  algorithm rowArrange {
+    algorithm: rows
+    rows: {
+      writes: [row]
+      extent: {
+        Trend: { from: (x - 8.0 - textWidth(self.name, 12.0)), to: (x2) }
+        Trigger: {
+          from: (x - 8.0 - textWidth(self.name + ' · ' + formatWhen(self.date, diagram.unit, false), 12.0))
+          to: (x2)
+        }
+        Note: { from: (x), to: (x + width), rows: (int(math.ceil(height / 56.0))) }
+      }
+      clearance: 16
+      affinity: Influence
+      ties: lower
+      swapPasses: 64
+      doc: "Interval partitioning, into the fewest rows while no note is taller than a row, each element on the free row nearest the average row of its already-placed linked elements (the lower on a tie, the first free row with none), then whole rows swapped with their neighbour while that shortens the links in total, for at most 64 passes, a row a tall note spans never swapped. A trend's extent starts at its name, 8 units before its banner; a trigger's at its label, the name and date, 8 units before its circle; text is measured by the notation's `textMetric`. Only changed rows are written, in one undo step; the refusals are on the `ghg.arrange` operation's `layout` action."
+    }
+    doc: "Arrange diagram (`ghg.arrange`): rows only, because across is the data."
+  }
+  trigger: manual
+  respect: all
+}
+
+/// Every element at its dates on a linear time axis.
+viewpoint trueTime "True time" { default: true, coordinateSystem: hypeCycle }
+/// Trends shortened to 24 canvas units per visible phase with even phases, packed left in their rows with causes
+/// before effects, on an axis with no ruler. Nothing moves or resizes and no boundary is dragged; influences,
+/// renaming, the property grid, undo and the filter still work. A toggle under the legend, never saved: every diagram
+/// opens in true time.
+viewpoint compact "Compact" {
+  variantOf: trueTime
+  toggle: { label: Compact, position: outside-top-left }
+  coordinateSystem: compact
+  layout: rowPacked
+  notation: {
+    nodes: {
+      Trend: {
+        shape: {
+          type: phasedBanner
+          params: {
+            count: (visiblePhases(self))
+            b1: (1.0 / double(visiblePhases(self)))
+            b2: (2.0 / double(visiblePhases(self)))
+            b3: (3.0 / double(visiblePhases(self)))
+          }
+        }
+        size: { width: (24.0 * double(visiblePhases(self))), height: 32, resizable: false }
+        placement: { system: compact, x: { layout: true }, y: @row, anchor: top-left, movable: false, resizable: false }
+      }
+      Trigger: {
+        placement: {
+          system: compact
+          x: { layout: true }
+          y: { attribute: row, offset: 0.2857142857142857 }
+          anchor: center
+          movable: false
+          resizable: false
+        }
+      }
+      Note: {
+        placement: { system: compact, x: { layout: true }, y: @row, anchor: top-left, movable: false, resizable: false }
+      }
+    }
+  }
+}

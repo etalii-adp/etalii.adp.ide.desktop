@@ -1,0 +1,495 @@
+atd 0.1
+
+/// Which agents work on which specification of which project, where (a branch and a folder) and on what system, in one
+/// picture that agents keep current.
+///
+/// An agent activity diagram is one plain YAML file that agents write as they work and a person reads as a picture.
+/// Projects sit in the middle, their specifications around them with their tasks listed inside, then the agents working
+/// on them, the locations (a branch and a folder) where that work is, and the environments those locations are on,
+/// outermost. A relation is a key on the element at its 'one' end. The person's own part is where elements are locked,
+/// which groups are folded and whether archived specifications are shown, kept in the same file. What DISL cannot
+/// state, the file format for agents and the reference layout are in agent-activity-diagram.md.
+diagram etalii/agent-activity-diagram version "0.1.0" {
+  label "Agent activity diagram"
+  id: "net.etalii.adp.etalii.agent-activity-diagram"
+  fileExtension: "aad"
+  license: "Apache-2.0"
+  authors: [{ name: "Peter Vrenken" }]
+  icon: "mdi-account-hard-hat-outline"
+
+  import "agent-activity-diagram.notation.atd"
+  import "agent-activity-diagram.aad.atd"
+
+  /// Five element types, each stored as an entry of its own list; tasks are children of a specification and pull
+  /// requests children of a location. A relation is a key on the element at its 'one' end, a reference attribute, and
+  /// is drawn as a derived relation, one per reference that names an element.
+  model {
+
+    /// One body of work, such as a repository or a product.
+    element Project {
+      label "Project"
+      icon: "mdi-folder-outline"
+      labelAttribute: name
+      attribute name: string required { group: "Identity", order: 1 }
+      /// Where the project is: a web address or a path.
+      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+    }
+
+    /// One piece of specified work in a project, with a status and its tasks.
+    element Specification {
+      label "Specification"
+      icon: "mdi-file-document-outline"
+      labelAttribute: name
+      attribute name: string required { group: "Identity", order: 1 }
+      attribute status: SpecificationStatus required default pending { group: "Identity", order: 2 }
+      /// The project the specification belongs to: at most one (R1). Drawn as the relation `ProjectSpecification`.
+      attribute project: Project { group: "Relations", order: 1 }
+      /// Where the specification is written: a web address or a path, typically its requirements document.
+      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+      contains Task
+      contains Task as tasks
+    }
+
+    /// A task of a specification, listed inside it. Not drawn as an element: it has no position, no relation and no
+    /// toolbox entry.
+    element Task {
+      label "Task"
+      icon: "mdi-checkbox-blank-outline"
+      labelAttribute: title
+      attribute title: string required { group: "Identity", order: 1 }
+      attribute status: TaskStatus required default pending { group: "Identity", order: 2 }
+      /// When the task was last changed, with its offset. Tasks are listed most recent first within their group; one
+      /// without it comes after those that have one, in file order.
+      attribute updated: datetime default (env.now) {
+        timezone: preserve
+        writtenPrecision: preserve
+        newPrecision: second
+        group: "Identity"
+        order: 3
+      }
+      /// Where the task's work can be seen: a web address or a path.
+      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+    }
+
+    /// One worker on a specification. A thread of a project chat is an agent.
+    element Agent {
+      label "Agent"
+      icon: "mdi-robot-outline"
+      labelAttribute: name
+      attribute name: string required { group: "Identity", order: 1 }
+      /// The specification the agent works on: at most one. Drawn as the relation `SpecificationAgent`.
+      attribute specification: Specification { group: "Relations", order: 1 }
+      /// Where the agent can be reached: a web address or a path.
+      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+    }
+
+    /// Where an agent's work is: a branch, and a folder, the worktree's or `Default` for the repository's main
+    /// checkout.
+    element Location {
+      label "Location"
+      icon: "mdi-source-branch"
+      labelAttribute: branch
+      attribute branch: string required { group: "Identity", order: 1 }
+      /// The worktree's folder; `Default` when the work is in the main checkout, which is also what an absent key reads
+      /// as.
+      attribute folder: string default Default { group: "Identity", order: 2 }
+      /// The agent whose work this is: at most one. Drawn as the relation `AgentLocation`.
+      attribute agent: Agent { group: "Relations", order: 1 }
+      /// The system the location is on: at most one. Drawn as the relation `LocationEnvironment`.
+      attribute environment: Environment { group: "Relations", order: 2 }
+      /// Where the branch can be seen, such as its page on a forge.
+      attribute branchLink: uri { schemes: [http, https], paths: true, group: "Link", order: 10 }
+      /// Where the folder is: a path, absolute or relative to the activity file.
+      attribute folderLink: uri { schemes: [http, https], paths: true, group: "Link", order: 11 }
+      contains PullRequest
+      contains PullRequest as pullRequests
+    }
+
+    /// A pull request opened from a location, listed inside it. Not drawn as an element.
+    element PullRequest {
+      label "Pull request"
+      icon: "mdi-source-pull"
+      labelAttribute: title
+      attribute title: string required { group: "Identity", order: 1 }
+      /// When the pull request was last changed, with its offset. Pull requests are listed most recent first.
+      attribute updated: datetime default (env.now) {
+        timezone: preserve
+        writtenPrecision: preserve
+        newPrecision: second
+        group: "Identity"
+        order: 2
+      }
+      /// The pull request's page.
+      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+    }
+
+    /// A system the work happens on: a local machine, a cloud environment, a container, a WSL system or another kind.
+    element Environment {
+      label "Environment"
+      icon: "mdi-server-outline"
+      labelAttribute: name
+      attribute name: string required { group: "Identity", order: 1 }
+      /// What kind of system the environment is. Stored as the entry's `kind` key; the attribute is named otherwise
+      /// because `kind` is reserved (DISL 2.2).
+      attribute environmentKind: EnvironmentKind required default other { group: "Identity", order: 2 }
+      /// Where the environment can be reached or read about.
+      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+    }
+
+    /// Drawn from Specification's `project` key: one line per specification whose `project` names a project. Drawing a
+    /// line sets the key and removing a line clears it (operations `setProject` and `clearProject`).
+    relation ProjectSpecification from Project to Specification {
+      label "Project to specification"
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      derived: {
+        from: (diagram.nodesOfType('Specification').filter(e, e.project != null))
+        id: ('project:' + item.id)
+        source: (item.project)
+        target: (item)
+        sources: ([item])
+        edits: { connect: setProject, delete: clearProject }
+      }
+    }
+
+    /// Drawn from Agent's `specification` key: one line per agent whose `specification` names a specification. Drawing
+    /// a line sets the key and removing a line clears it (operations `setSpecification` and `clearSpecification`).
+    relation SpecificationAgent from Specification to Agent {
+      label "Specification to agent"
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      derived: {
+        from: (diagram.nodesOfType('Agent').filter(e, e.specification != null))
+        id: ('specification:' + item.id)
+        source: (item.specification)
+        target: (item)
+        sources: ([item])
+        edits: { connect: setSpecification, delete: clearSpecification }
+      }
+    }
+
+    /// Drawn from Location's `agent` key: one line per location whose `agent` names an agent. Drawing a line sets the
+    /// key and removing a line clears it (operations `setAgent` and `clearAgent`).
+    relation AgentLocation from Agent to Location {
+      label "Agent to location"
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      derived: {
+        from: (diagram.nodesOfType('Location').filter(e, e.agent != null))
+        id: ('agent:' + item.id)
+        source: (item.agent)
+        target: (item)
+        sources: ([item])
+        edits: { connect: setAgent, delete: clearAgent }
+      }
+    }
+
+    /// Drawn from Location's `environment` key: one line per location whose `environment` names an environment. Drawing
+    /// a line sets the key and removing a line clears it (operations `setEnvironment` and `clearEnvironment`).
+    relation LocationEnvironment from Location to Environment {
+      label "Location to environment"
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      derived: {
+        from: (diagram.nodesOfType('Location').filter(e, e.environment != null))
+        id: ('environment:' + item.id)
+        source: (item)
+        target: (item.environment)
+        sources: ([item])
+        edits: { connect: setEnvironment, delete: clearEnvironment }
+      }
+    }
+
+    /// Where a specification stands. The order is the order of the property grid's choices.
+    enum SpecificationStatus {
+      /// Specified, and nobody is working on it yet.
+      pending { label: "Pending", color: $aad.pending }
+      /// An agent is working on it.
+      progressing { label: "Progressing", color: $aad.progressing }
+      /// The work waits on a person.
+      inputRequired { label: "Input Required", value: input-required, color: $aad.inputRequired }
+      /// The work is done.
+      finished { label: "Finished", color: $aad.finished }
+      /// Kept for the record and hidden unless the canvas switch shows archived specifications.
+      archived { label: "Archived", color: $aad.archived }
+    }
+
+    /// Where a task stands. The declared order is the order of a specification's task groups: Progressing, Pending,
+    /// Input Required, Finished.
+    enum TaskStatus {
+      ordered: true
+      /// An agent is working on it.
+      progressing { label: "Progressing", color: $aad.progressing }
+      /// Specified, and nobody is working on it yet.
+      pending { label: "Pending", color: $aad.pending }
+      /// The work waits on a person.
+      inputRequired { label: "Input Required", value: input-required, color: $aad.inputRequired }
+      /// The work is done.
+      finished { label: "Finished", color: $aad.finished }
+    }
+
+    /// What kind of system an environment is.
+    enum EnvironmentKind {
+      localMachine { label: "Local machine", value: local-machine }
+      cloud { label: "Cloud" }
+      container { label: "Container" }
+      wsl { label: "WSL" }
+      other { label: "Other" }
+    }
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// A file an agent wrote that breaks a rule still opens and draws; each breach is a finding where it is, and nothing
+  /// is removed (Requirement 3.8). Each relation type joins exactly one pair of types, and std.endpoints refuses every
+  /// other pair (Requirement 3.1).
+  constraints {
+    blockSaveOn: never
+
+    /// Requirement 3.2 (Q6): a second specification is refused, with the reason.
+    constraint secondSpecification {
+      label "Agent already on a specification"
+      when relationType == 'SpecificationAgent'
+      rule target.specification == null
+      message ('"' + target.name + '" already works on "' + target.specification.name + '". Remove that line first: an agent works on one specification at a time.')
+      code: "aad.second-specification"
+      kind: connect
+    }
+
+    /// Requirement 3.3, 3.7 (R2).
+    /// A rename to nothing is refused: every element and row has a name or a title.
+    constraint needsAName {
+      kind: change
+      when (attribute in ['name', 'title', 'branch'])
+      rule (string(newValue).trim() != '')
+      message "It needs a name."
+    }
+
+    constraint idleAgent for Agent {
+      label "Agent without a specification"
+      rule self.specification != null
+      severity info
+      message ('"' + self.name + '" works on no specification.')
+      code: "aad.agent-without-specification"
+    }
+
+    /// Requirement 3.3 (R2).
+    constraint agentWithoutLocation for Agent {
+      label "Agent without a location"
+      rule diagram.nodesOfType('Location').exists(l, l.agent == self)
+      severity info
+      message ('"' + self.name + '" has no location.')
+      code: "aad.agent-without-location"
+    }
+
+    /// Requirement 3.7.
+    constraint projectWithoutSpecification for Project {
+      label "Project without a specification"
+      rule diagram.nodesOfType('Specification').exists(s, s.project == self)
+      severity info
+      message ('"' + self.name + '" has no specification.')
+      code: "aad.project-without-specification"
+    }
+
+    /// Requirement 3.7.
+    constraint specificationWithoutProject for Specification {
+      label "Specification without a project"
+      rule self.project != null
+      severity info
+      message ('"' + self.name + '" belongs to no project.')
+      code: "aad.specification-without-project"
+    }
+
+    /// Requirement 3.7.
+    constraint locationWithoutAgent for Location {
+      label "Location without an agent"
+      rule self.agent != null
+      severity info
+      message ('"' + self.branch + '" belongs to no agent.')
+      code: "aad.location-without-agent"
+    }
+
+    /// Requirement 3.7 (R2).
+    constraint locationWithoutEnvironment for Location {
+      label "Location without an environment"
+      rule self.environment != null
+      severity info
+      message ('"' + self.branch + '" is on no environment.')
+      code: "aad.location-without-environment"
+    }
+
+    /// Requirement 5.6. A Windows path such as C:/git is a path.
+    constraint linkNotOpenable for Project, Specification, Task, Agent, PullRequest, Environment {
+      label "Link that cannot be opened"
+      rule self.link == '' || self.link.matches('^(https?://|[^:]*$|[A-Za-z]:[/\\\\])')
+      severity warning
+      message ('The link "' + self.link + '" is neither an http or https address nor a path, so it is kept and not opened.')
+      code: "aad.link-not-openable"
+      attribute: link
+    }
+
+    /// Requirement 5.6, for a location's two links.
+    constraint locationLinkNotOpenable for Location {
+      label "Link that cannot be opened"
+      severity warning
+      message ('The link "' + item + '" is neither an http or https address nor a path, so it is kept and not opened.')
+      code: "aad.link-not-openable"
+      forEach: ([self.branchLink, self.folderLink].filter(l, l != '' && !l.matches('^(https?://|[^:]*$|[A-Za-z]:[/\\\\])')))
+    }
+  }
+
+  // ---------------------------------------------------------------- Hooks
+
+  /// A change to a task or a pull request - its title, its status, its link - sets its updated moment, unless the
+  /// change is to that moment itself (standalone Requirement 9.3; agent-activity-diagram.md, "`updated` on every edit").
+  hook touchUpdated on change for Task, PullRequest {
+    when attribute != 'updated'
+    phase: after
+    set updated = env.now
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// An http or https address opens in the browser without access to ADP; a path is revealed by the host; anything else
+  /// is refused, and the link is reported (Requirement 5.3 to 5.6).
+  operation openLink "Open link" for Project, Specification, Task, Agent, PullRequest, Environment {
+    enabled self.link != ''
+    unavailable [{ when: (self.link == ''), message: "It has no link. Add one in the property grid." }]
+    open self.link
+  }
+
+  operation openBranchLink "Open the branch's link" for Location {
+    enabled self.branchLink != ''
+    open self.branchLink
+  }
+
+  operation openFolderLink "Open the folder's link" for Location {
+    enabled self.folderLink != ''
+    open self.folderLink
+  }
+
+  /// Sets the task's status and its updated moment; the task moves to its new group, which does not expand (Requirement
+  /// 4.9, 9.3).
+  operation setTaskStatus "Set status" for Task {
+    param status: TaskStatus required { label: "Status" }
+    set status = p.status
+    set updated = env.now
+  }
+
+  /// Drawing the line sets the `project` key of its target, so the line is the key.
+  operation setProject "Connect" for ProjectSpecification {
+    set self.target.project = self.source
+  }
+
+  /// Removing the line clears the `project` key, which is removed from the file.
+  operation clearProject "Disconnect" for ProjectSpecification {
+    unset self.target.project
+  }
+
+  /// Drawing the line sets the `specification` key of its target, so the line is the key.
+  operation setSpecification "Connect" for SpecificationAgent {
+    set self.target.specification = self.source
+  }
+
+  /// Removing the line clears the `specification` key, which is removed from the file.
+  operation clearSpecification "Disconnect" for SpecificationAgent {
+    unset self.target.specification
+  }
+
+  /// Drawing the line sets the `agent` key of its target, so the line is the key.
+  operation setAgent "Connect" for AgentLocation {
+    set self.target.agent = self.source
+  }
+
+  /// Removing the line clears the `agent` key, which is removed from the file.
+  operation clearAgent "Disconnect" for AgentLocation {
+    unset self.target.agent
+  }
+
+  /// Drawing the line sets the `environment` key of its source, so the line is the key.
+  operation setEnvironment "Connect" for LocationEnvironment {
+    set self.source.environment = self.target
+  }
+
+  /// Removing the line clears the `environment` key, which is removed from the file.
+  operation clearEnvironment "Disconnect" for LocationEnvironment {
+    unset self.source.environment
+  }
+
+  behavior {
+    doc: "Every edit is one undoable step. A relation is a key on the element at its 'one' end: drawing it sets the key and removing it clears it. Removing an element clears every key that names it, which removes its relations with it (Requirement 3.9), and removes its locked position and group states (the binding's cascade)."
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// One YAML file, `.aad`, read and written through the FBL binding `agent-activity-diagram.fbl#aad` with
+  /// byte-preserving splices; its `.adp` registration beside it identifies it. The file's format, written for agents,
+  /// is in agent-activity-diagram.md, and its JSON Schema is agent-activity-diagram.schema.json.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: uuid-v4
+      encoding: base36
+      stable: true
+      doc: "ADP gives a new element, task or pull request a ShortGuid: a version 4 GUID written as 25 characters of base 36. Ids written by hand, such as `s-knowledge`, are kept as written, and are encouraged in the file an agent writes, since the agent finds its entries again by them (Requirement 2.6)."
+    }
+    typeMap: {
+      Diagram: {
+        as: diagram
+        attributes: { version: null, showArchived: null }
+        hostAttributes: [unknownKeys]
+        doc: "The file's root: the header is the binding's, and view.showArchived is the kept filter's value (view.bind)."
+      }
+      Project: { as: Project, hostAttributes: [unknownKeys] }
+      Specification: { as: Specification, hostAttributes: [unknownKeys] }
+      Task: { as: Task, hostAttributes: [unknownKeys] }
+      Agent: { as: Agent, hostAttributes: [unknownKeys] }
+      Location: { as: Location, hostAttributes: [unknownKeys] }
+      PullRequest: { as: PullRequest, hostAttributes: [unknownKeys] }
+      Environment: { as: Environment, hostAttributes: [unknownKeys] }
+      Unreadable: { as: unreadable }
+    }
+    view: {
+      store: [pinned, groups, filters]
+      viewer: [selection, viewport]
+      bind: {
+        pinned: {
+          type: Placement
+          element: element
+          x: x
+          y: y
+          doc: "A locked position is an entry of `view.placements`."
+        }
+        groups: {
+          type: GroupState
+          element: element
+          group: "group"
+          collapsed: collapsed
+          doc: "A group whose state differs from its default is an entry of `view.groups`."
+        }
+        filters: {
+          type: Diagram
+          values: { archived: showArchived }
+          doc: "The switch is the key `view.showArchived`."
+        }
+      }
+      doc: "The user's part of the file, the top-level `view` mapping: locked positions, folded groups and the switch, kept in the activity file itself so that one file tells everything (standalone Q3). Agents leave it alone."
+    }
+    // DISL binding: agent-activity-diagram.fbl#aad
+  }
+
+  x-aad: {
+    tools: {
+      project: { drop: add-project }
+      specification: { drop: add-specification }
+      agent: { drop: add-agent }
+      location: { drop: add-location }
+      environment: { drop: add-environment }
+    }
+  }
+  x-adp: { kind: Diagram, companion: "agent-activity-diagram.md" }
+}

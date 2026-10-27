@@ -1,0 +1,368 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "compute",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 800,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "cluster",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 824
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 600,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "other\nother",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 648
+          }
+        },
+        {
+          "id": "name",
+          "text": "\n",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 624
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:${workspace.file_path}/{braces}.py",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 360,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "file",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 408
+          }
+        },
+        {
+          "id": "name",
+          "text": "${workspace.file_path}/{b…",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 384
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:shared/x",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 120,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "file\nnotebook",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 168
+          }
+        },
+        {
+          "id": "name",
+          "text": "shared/x\nshared/x",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 144
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:transformations/gold/**",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 240,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "glob",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 288
+          }
+        },
+        {
+          "id": "name",
+          "text": "transformations/gold/**",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 264
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "pipeline",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 300,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "library_ids",
+          "font": "13 400",
+          "position": {
+            "x": 328,
+            "y": 324
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "target",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 640,
+        "y": 300,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "main.gold",
+          "font": "13 400",
+          "position": {
+            "x": 648,
+            "y": 324
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "flow:${workspace.file_path}/{braces}.py->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:${workspace.file_path}/{braces}.py",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 388
+        },
+        {
+          "x": 320,
+          "y": 328
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 628
+        },
+        {
+          "x": 320,
+          "y": 328
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:pipeline->target",
+      "type": "databricks/pipeline+edge",
+      "source": "pipeline",
+      "target": "target",
+      "route": [
+        {
+          "x": 520,
+          "y": 328
+        },
+        {
+          "x": 640,
+          "y": 328
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:shared/x->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:shared/x",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 148
+        },
+        {
+          "x": 320,
+          "y": 328
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:transformations/gold/**->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:transformations/gold/**",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 268
+        },
+        {
+          "x": 320,
+          "y": 328
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "library:shared/x",
+    "library:transformations/gold/**",
+    "library:${workspace.file_path}/{braces}.py",
+    "library:",
+    "pipeline",
+    "target",
+    "compute",
+    "flow:shared/x->pipeline",
+    "flow:transformations/gold/**->pipeline",
+    "flow:${workspace.file_path}/{braces}.py->pipeline",
+    "flow:->pipeline",
+    "flow:pipeline->target"
+  ]
+}

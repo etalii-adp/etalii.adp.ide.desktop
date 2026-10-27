@@ -1,0 +1,386 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/pipeline` from parity/scripts/databricks/pipeline/lakehouse.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/pipeline",
+  "description": "../../../databricks-pipeline.atd",
+  "inputs": {
+    "body": "databricks.yml",
+    "registration": "databricks.pipeline.adp",
+    "databricks.adp": "databricks.adp",
+    "readme.md": "readme.md",
+    "resources/nightly-ingest.adp": "resources/nightly-ingest.adp",
+    "resources/nightly-ingest.yml": "resources/nightly-ingest.yml"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "library:transformations/bronze",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/bronze",
+          "badges": "notebook",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "library:transformations/silver",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/silver",
+          "badges": "notebook",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "library:transformations/gold/**",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/gold/**",
+          "badges": "glob",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "pipeline",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "pipeline",
+          "kind": "pipeline",
+          "label": "Bronze to gold",
+          "badges": "serverless\nCURRENT",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "target",
+          "kind": "target",
+          "label": "${var.catalog}.gold",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "compute",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "notifications",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "notifications",
+          "kind": "notifications",
+          "label": "data-eng@vrenken.eu",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "flow:transformations/bronze->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:transformations/bronze",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:transformations/silver->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:transformations/silver",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:transformations/gold/**->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:transformations/gold/**",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:pipeline->target",
+        "type": "databricks/pipeline+edge",
+        "source": "pipeline",
+        "target": "target",
+        "attributes": {
+          "kind": "flow"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "databricks.add-library:notebook",
+      "args": {
+        "value": "transformations/platinum"
+      },
+      "select": [
+        "pipeline"
+      ],
+      "ids": [
+        "library:transformations/platinum",
+        "flow:transformations/platinum->pipeline"
+      ],
+      "expectFile": "after-1.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "databricks.add-library:file",
+      "args": {
+        "target": "pipeline",
+        "value": "  transformations/udfs.py "
+      },
+      "ids": [
+        "library:transformations/udfs.py",
+        "flow:transformations/udfs.py->pipeline"
+      ],
+      "expectFile": "after-2.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "databricks.add-library:notebook",
+      "args": {
+        "target": "pipeline",
+        "value": "transformations/bronze"
+      },
+      "refused": {
+        "reason": "The notebook library 'transformations/bronze' is already there."
+      },
+      "expectFile": "after-2.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "databricks.remove-library",
+      "args": {
+        "target": "library:transformations/silver"
+      },
+      "expectFile": "after-3.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "element": "pipeline",
+        "attribute": "Catalog",
+        "value": "main"
+      },
+      "expectFile": "after-4.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "property": {
+        "element": "pipeline",
+        "attribute": "Channel",
+        "value": "PREVIEW"
+      },
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "property": {
+        "element": "pipeline",
+        "attribute": "Schema",
+        "value": "gold #2"
+      },
+      "expectFile": "after-6.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "property": {
+        "element": "pipeline",
+        "attribute": "Name",
+        "value": ""
+      },
+      "refused": {
+        "reason": "A pipeline needs a name."
+      },
+      "expectFile": "after-6.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-4.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "action": "databricks.remove-library",
+      "args": {
+        "target": "library:transformations/gold/**"
+      },
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "databricks.simulated.pipeline-update",
+      "args": {
+        "target": "pipeline"
+      },
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "move": {
+        "element": "pipeline"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"pipeline\"],\"to\":{\"x\":300,\"y\":100}}",
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "move": {
+        "element": "library:transformations/bronze"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"library:transformations/bronze\"],\"to\":{\"x\":-20,\"y\":0}}",
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "move": {
+        "element": "notifications"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"notifications\"],\"dx\":40,\"dy\":0}",
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "move": {
+        "element": "flow:pipeline->target"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"flow:pipeline->target\"],\"to\":{\"x\":0,\"y\":0}}",
+      "refused": {
+        "reason": "That element is not something this diagram can move."
+      },
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/databricks/pipeline/lakehouse/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

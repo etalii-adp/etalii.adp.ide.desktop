@@ -92,7 +92,7 @@ notation {
 
   /// A curve from the dependent to its dependency, with the arrowhead at the dependency.
   edge DependsOn {
-    line { routing: { plugin: "net.etalii.adp.generic.dependencyCurve" }, startDirection: right, endDirection: auto }
+    line { routing: { plugin: "routing.forwardBezier" }, startDirection: right, endDirection: auto }
     marker source none
     marker target arrowFilled
     label @label as label { at: middle, side: above, distance: 6, editable: inline }

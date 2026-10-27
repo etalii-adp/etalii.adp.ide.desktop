@@ -1,0 +1,6 @@
+# B4: a statement ending in . with a trailing comment on its line.
+@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:a ex:p ex:b . # the trailing comment
+ex:b rdfs:label "B" .

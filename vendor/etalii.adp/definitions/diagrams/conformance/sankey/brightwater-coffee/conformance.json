@@ -1,0 +1,988 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/sankey` from parity/scripts/etalii/sankey/brightwater-coffee.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "etalii/sankey",
+  "description": "../../../sankey.atd",
+  "inputs": {
+    "body": "brightwater-coffee.skv",
+    "registration": "brightwater-coffee.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "cafes",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Cafés",
+          "value": "1840",
+          "displayValue": "€1,840M",
+          "note": "+9% Y/Y",
+          "color": "blue",
+          "width": "24",
+          "height": "294.4",
+          "column": "0",
+          "side": "left"
+        }
+      },
+      {
+        "id": "packaged",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Packaged coffee",
+          "value": "960",
+          "displayValue": "€960M",
+          "note": "+4% Y/Y",
+          "color": "blue",
+          "width": "24",
+          "height": "153.6",
+          "column": "0",
+          "side": "left"
+        }
+      },
+      {
+        "id": "wholesale",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Wholesale & roasting",
+          "value": "520",
+          "displayValue": "€520M",
+          "note": "-2% Y/Y",
+          "color": "blue",
+          "width": "24",
+          "height": "83.2",
+          "column": "0",
+          "side": "left"
+        }
+      },
+      {
+        "id": "licensing",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Licensing",
+          "value": "180",
+          "displayValue": "€180M",
+          "note": "+21% Y/Y",
+          "color": "blue",
+          "width": "24",
+          "height": "28.8",
+          "column": "0",
+          "side": "left"
+        }
+      },
+      {
+        "id": "revenue",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Revenue",
+          "value": "3500",
+          "displayValue": "€3,500M",
+          "note": "+6% Y/Y",
+          "color": "grey",
+          "width": "24",
+          "height": "560",
+          "column": "1",
+          "side": "right"
+        }
+      },
+      {
+        "id": "gross-profit",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Gross profit",
+          "value": "1610",
+          "displayValue": "€1,610M",
+          "note": "46% margin",
+          "color": "green",
+          "width": "24",
+          "height": "257.6",
+          "column": "2",
+          "side": "right"
+        }
+      },
+      {
+        "id": "cost-of-revenue",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Cost of revenue",
+          "value": "1890",
+          "displayValue": "(€1,890M)",
+          "color": "red",
+          "width": "24",
+          "height": "302.4",
+          "column": "2",
+          "side": "right"
+        }
+      },
+      {
+        "id": "operating-profit",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Operating profit",
+          "value": "560",
+          "displayValue": "€560M",
+          "note": "16% margin",
+          "color": "green",
+          "width": "24",
+          "height": "89.6",
+          "column": "3",
+          "side": "right"
+        }
+      },
+      {
+        "id": "operating-expenses",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Operating expenses",
+          "value": "1050",
+          "displayValue": "(€1,050M)",
+          "color": "red",
+          "width": "24",
+          "height": "168",
+          "column": "3",
+          "side": "right"
+        }
+      },
+      {
+        "id": "net-profit",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Net profit",
+          "value": "420",
+          "displayValue": "€420M",
+          "note": "12% margin",
+          "color": "green",
+          "width": "24",
+          "height": "67.2",
+          "column": "4",
+          "side": "right"
+        }
+      },
+      {
+        "id": "tax",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Tax",
+          "value": "140",
+          "displayValue": "(€140M)",
+          "color": "red",
+          "width": "24",
+          "height": "22.4",
+          "column": "4",
+          "side": "right"
+        }
+      },
+      {
+        "id": "marketing",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Marketing",
+          "value": "420",
+          "displayValue": "(€420M)",
+          "color": "red",
+          "width": "24",
+          "height": "67.2",
+          "column": "4",
+          "side": "right"
+        }
+      },
+      {
+        "id": "research",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "Research & development",
+          "value": "210",
+          "displayValue": "(€210M)",
+          "color": "red",
+          "width": "24",
+          "height": "33.6",
+          "column": "4",
+          "side": "right"
+        }
+      },
+      {
+        "id": "general",
+        "type": "etalii/sankey+node",
+        "parent": null,
+        "attributes": {
+          "name": "General & administrative",
+          "value": "420",
+          "displayValue": "(€420M)",
+          "color": "red",
+          "width": "24",
+          "height": "67.2",
+          "column": "4",
+          "side": "right"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "cafes->revenue",
+        "type": "etalii/sankey+flow",
+        "source": "cafes",
+        "target": "revenue",
+        "attributes": {
+          "value": "1840",
+          "displayValue": "€1,840M",
+          "thickness": "294.4",
+          "sourceAt": "0.5",
+          "targetAt": "0.262857",
+          "color": "grey",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "packaged->revenue",
+        "type": "etalii/sankey+flow",
+        "source": "packaged",
+        "target": "revenue",
+        "attributes": {
+          "value": "960",
+          "displayValue": "€960M",
+          "thickness": "153.6",
+          "sourceAt": "0.5",
+          "targetAt": "0.662857",
+          "color": "grey",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "wholesale->revenue",
+        "type": "etalii/sankey+flow",
+        "source": "wholesale",
+        "target": "revenue",
+        "attributes": {
+          "value": "520",
+          "displayValue": "€520M",
+          "thickness": "83.2",
+          "sourceAt": "0.5",
+          "targetAt": "0.874286",
+          "color": "grey",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "licensing->revenue",
+        "type": "etalii/sankey+flow",
+        "source": "licensing",
+        "target": "revenue",
+        "attributes": {
+          "value": "180",
+          "displayValue": "€180M",
+          "thickness": "28.8",
+          "sourceAt": "0.5",
+          "targetAt": "0.974286",
+          "color": "grey",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "revenue->gross-profit",
+        "type": "etalii/sankey+flow",
+        "source": "revenue",
+        "target": "gross-profit",
+        "attributes": {
+          "value": "1610",
+          "displayValue": "€1,610M",
+          "thickness": "257.6",
+          "sourceAt": "0.23",
+          "targetAt": "0.5",
+          "color": "green",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "revenue->cost-of-revenue",
+        "type": "etalii/sankey+flow",
+        "source": "revenue",
+        "target": "cost-of-revenue",
+        "attributes": {
+          "value": "1890",
+          "displayValue": "€1,890M",
+          "thickness": "302.4",
+          "sourceAt": "0.73",
+          "targetAt": "0.5",
+          "color": "red",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "gross-profit->operating-profit",
+        "type": "etalii/sankey+flow",
+        "source": "gross-profit",
+        "target": "operating-profit",
+        "attributes": {
+          "value": "560",
+          "displayValue": "€560M",
+          "thickness": "89.6",
+          "sourceAt": "0.173913",
+          "targetAt": "0.5",
+          "color": "green",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "gross-profit->operating-expenses",
+        "type": "etalii/sankey+flow",
+        "source": "gross-profit",
+        "target": "operating-expenses",
+        "attributes": {
+          "value": "1050",
+          "displayValue": "€1,050M",
+          "thickness": "168",
+          "sourceAt": "0.673913",
+          "targetAt": "0.5",
+          "color": "red",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "operating-profit->net-profit",
+        "type": "etalii/sankey+flow",
+        "source": "operating-profit",
+        "target": "net-profit",
+        "attributes": {
+          "value": "420",
+          "displayValue": "€420M",
+          "thickness": "67.2",
+          "sourceAt": "0.375",
+          "targetAt": "0.5",
+          "color": "green",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "operating-profit->tax",
+        "type": "etalii/sankey+flow",
+        "source": "operating-profit",
+        "target": "tax",
+        "attributes": {
+          "value": "140",
+          "displayValue": "€140M",
+          "thickness": "22.4",
+          "sourceAt": "0.875",
+          "targetAt": "0.5",
+          "color": "red",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "operating-expenses->marketing",
+        "type": "etalii/sankey+flow",
+        "source": "operating-expenses",
+        "target": "marketing",
+        "attributes": {
+          "value": "420",
+          "displayValue": "€420M",
+          "thickness": "67.2",
+          "sourceAt": "0.2",
+          "targetAt": "0.5",
+          "color": "red",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "operating-expenses->research",
+        "type": "etalii/sankey+flow",
+        "source": "operating-expenses",
+        "target": "research",
+        "attributes": {
+          "value": "210",
+          "displayValue": "€210M",
+          "thickness": "33.6",
+          "sourceAt": "0.5",
+          "targetAt": "0.5",
+          "color": "red",
+          "backward": "false"
+        }
+      },
+      {
+        "id": "operating-expenses->general",
+        "type": "etalii/sankey+flow",
+        "source": "operating-expenses",
+        "target": "general",
+        "attributes": {
+          "value": "420",
+          "displayValue": "€420M",
+          "thickness": "67.2",
+          "sourceAt": "0.8",
+          "targetAt": "0.5",
+          "color": "red",
+          "backward": "false"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "property": {
+        "attribute": "Note",
+        "value": "+10% Y/Y"
+      },
+      "select": [
+        "cafes"
+      ],
+      "expectFile": "after-1.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Colour",
+        "value": "teal"
+      },
+      "expectFile": "after-2.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "element": "packaged",
+        "attribute": "sankey.custom-color",
+        "value": "#AA5500"
+      },
+      "expectFile": "after-3.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "element": "revenue",
+        "attribute": "Format",
+        "value": "€{value}M total"
+      },
+      "expectFile": "after-4.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "element": "licensing",
+        "attribute": "Column",
+        "value": "1"
+      },
+      "expectFile": "after-5.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "property": {
+        "element": "tax",
+        "attribute": "Description",
+        "value": "Corporate income tax: 25%"
+      },
+      "expectFile": "after-6.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "property": {
+        "element": "cafes->revenue",
+        "attribute": "Value",
+        "value": "lots"
+      },
+      "refused": {
+        "reason": "'lots' is not an amount this diagram can hold: a number of zero or more."
+      },
+      "expectFile": "after-6.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "sankey.increase",
+      "args": {
+        "target": "cafes->revenue"
+      },
+      "expectFile": "after-7.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "sankey.decrease",
+      "args": {
+        "target": "packaged->revenue"
+      },
+      "expectFile": "after-8.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "property": {
+        "element": "wholesale->revenue",
+        "attribute": "Step",
+        "value": "5"
+      },
+      "expectFile": "after-9.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "sankey.increase",
+      "args": {
+        "target": "wholesale->revenue"
+      },
+      "expectFile": "after-10.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "property": {
+        "element": "licensing->revenue",
+        "attribute": "Value",
+        "value": "200"
+      },
+      "expectFile": "after-11.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "property": {
+        "element": "revenue->gross-profit",
+        "attribute": "Colour",
+        "value": "green"
+      },
+      "expectFile": "after-12.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "sankey.thicker",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "after-13.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "action": "sankey.thicker",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "after-14.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "sankey.thinner",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "after-13.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "action": "sankey.add",
+      "args": {
+        "target": "new:1300,100"
+      },
+      "ids": [
+        "4qy5135gxh6e47yl06j4itbqi"
+      ],
+      "expectFile": "after-15.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "action": "sankey.rename",
+      "args": {
+        "target": "4qy5135gxh6e47yl06j4itbqi",
+        "value": "Dividends"
+      },
+      "expectFile": "after-16.skv",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "sankey.connect",
+      "args": {
+        "target": "rel:net-profit->4qy5135gxh6e47yl06j4itbqi"
+      },
+      "ids": [
+        "net-profit->4qy5135gxh6e47yl06j4itbqi"
+      ],
+      "expectFile": "after-17.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 113,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "action": "sankey.connect",
+      "args": {
+        "target": "rel:cafes->revenue"
+      },
+      "refused": {
+        "reason": "These two are already joined by a flow in this direction; change its value instead."
+      },
+      "expectFile": "after-17.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 113,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "action": "sankey.decrease",
+      "args": {
+        "target": "net-profit->4qy5135gxh6e47yl06j4itbqi"
+      },
+      "expectFile": "after-18.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 113,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "move": {
+        "element": "tax"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"tax\"],\"to\":{\"x\":1292,\"y\":-100}}",
+      "expectFile": "after-19.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 113,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "move": {
+        "element": "marketing"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"marketing\"],\"dx\":0,\"dy\":-400}",
+      "expectFile": "after-20.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 113,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "action": "sankey.remove",
+      "args": {
+        "target": "general",
+        "confirm": true
+      },
+      "expectFile": "after-21.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 106,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-20.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 113,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-21.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 106,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "action": "sankey.remove",
+      "args": {
+        "target": "operating-expenses->research"
+      },
+      "expectFile": "after-22.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 103,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "action": "sankey.arrange",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "after-23.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 103,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-22.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 103,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-23.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 103,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.30.json"
+      }
+    },
+    {
+      "property": {
+        "element": "marketing",
+        "attribute": "Name",
+        "value": "Marketing & sales"
+      },
+      "expectFile": "after-24.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 103,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.31.json"
+      }
+    },
+    {
+      "action": "sankey.rename",
+      "args": {
+        "target": "research",
+        "value": "R&D"
+      },
+      "expectFile": "after-25.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 103,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.32.json"
+      }
+    },
+    {
+      "action": "sankey.rename",
+      "args": {
+        "target": "cost-of-revenue",
+        "value": "  "
+      },
+      "refused": {
+        "reason": "A node needs a name."
+      },
+      "expectFile": "after-25.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 103,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.33.json"
+      }
+    },
+    {
+      "property": {
+        "element": "licensing",
+        "attribute": "Column",
+        "value": "auto"
+      },
+      "expectFile": "after-26.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 102,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.34.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Colour",
+        "value": "(default)"
+      },
+      "expectFile": "after-27.skv",
+      "findings": [
+        {
+          "rule": "sankey.backward-flow",
+          "severity": "warning",
+          "line": 101,
+          "message": "The flow from `net-profit` to `4qy5135gxh6e47yl06j4itbqi` runs back to a column at or before its own, so it loops round instead of reading left to right."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.35.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/etalii/sankey/brightwater-coffee/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

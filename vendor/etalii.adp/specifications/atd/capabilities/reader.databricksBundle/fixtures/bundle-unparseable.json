@@ -1,0 +1,38 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/cases/databricks/bundle/unparseable.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "bundle: [unclosed\n  name: broken\n",
+    "files": {
+      "databricks.adp": "databricks/bundle\nbody: databricks.yml\n"
+    }
+  },
+  "args": {
+    "reading": "bundle"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "bundle",
+          "kind": "bundle",
+          "label": "bundle",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "databricks.unparseable",
+        "severity": "error",
+        "line": 2,
+        "message": "This is not configuration that can be read: illegal placement of ':' indicator"
+      }
+    ]
+  }
+}

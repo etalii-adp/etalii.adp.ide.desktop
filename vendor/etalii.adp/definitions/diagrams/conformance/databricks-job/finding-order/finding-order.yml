@@ -1,0 +1,38 @@
+resources:
+  jobs:
+    ordered:
+      name: Every job finding, interleaved
+      job_clusters:
+        - job_cluster_key: real_cluster
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            num_workers: 1
+      tasks:
+        - notebook_task:
+            notebook_path: notebooks/keyless
+        - task_key: both
+          job_cluster_key: imaginary_cluster
+          depends_on:
+            - task_key: first_missing
+            - task_key: second_missing
+          notebook_task:
+            notebook_path: notebooks/both
+        - task_key: plain_missing
+          depends_on:
+            - task_key: third_missing
+          notebook_task:
+            notebook_path: notebooks/plain
+        - task_key: both
+          notebook_task:
+            notebook_path: notebooks/both_again
+        - task_key: ring_a
+          depends_on:
+            - task_key: ring_b
+          notebook_task:
+            notebook_path: notebooks/ring_a
+        - task_key: ring_b
+          job_cluster_key: other_imaginary
+          depends_on:
+            - task_key: ring_a
+          notebook_task:
+            notebook_path: notebooks/ring_b

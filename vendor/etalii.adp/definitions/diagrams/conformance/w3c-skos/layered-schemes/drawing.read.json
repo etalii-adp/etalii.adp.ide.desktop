@@ -1,0 +1,1678 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/kinds#animal",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 210,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "animal",
+          "font": "13 400",
+          "position": {
+            "x": 100,
+            "y": 240
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#bat",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 790,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "bat",
+          "font": "13 400",
+          "position": {
+            "x": 100,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#bird",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 720,
+        "y": 630,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "bird",
+          "font": "13 400",
+          "position": {
+            "x": 820,
+            "y": 660
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#cow",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1500,
+        "y": 20,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "cow",
+          "font": "13 400",
+          "position": {
+            "x": 1600,
+            "y": 50
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#empty",
+      "type": "w3c/skos+scheme",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 260,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Empty (0)",
+          "font": "13 400",
+          "position": {
+            "x": 130,
+            "y": 25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          8,
+          6
+        ]
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#farm",
+      "type": "w3c/skos+scheme",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 150,
+        "w": 260,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Farm (4)",
+          "font": "13 400",
+          "position": {
+            "x": 130,
+            "y": 175
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          8,
+          6
+        ]
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#herd",
+      "type": "w3c/skos+collection",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 1570,
+        "w": 260,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "herd",
+          "font": "13 400",
+          "position": {
+            "x": 130,
+            "y": 1595
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          8,
+          6
+        ]
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#left",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 240,
+        "y": 370,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "left",
+          "font": "13 400",
+          "position": {
+            "x": 340,
+            "y": 400
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#lost",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 1370,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "lost",
+          "font": "13 400",
+          "position": {
+            "x": 100,
+            "y": 1400
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 960,
+        "y": 630,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "mammal",
+          "font": "13 400",
+          "position": {
+            "x": 1060,
+            "y": 660
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#pets",
+      "type": "w3c/skos+collection",
+      "shape": "rect",
+      "bounds": {
+        "x": 240,
+        "y": 1570,
+        "w": 260,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "pets",
+          "font": "13 400",
+          "position": {
+            "x": 370,
+            "y": 1595
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          8,
+          6
+        ]
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#right",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 240,
+        "y": 210,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "right",
+          "font": "13 400",
+          "position": {
+            "x": 340,
+            "y": 240
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species01",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 240,
+        "y": 790,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 1",
+          "font": "13 400",
+          "position": {
+            "x": 340,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species02",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 480,
+        "y": 790,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 2",
+          "font": "13 400",
+          "position": {
+            "x": 580,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species03",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 720,
+        "y": 790,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 3",
+          "font": "13 400",
+          "position": {
+            "x": 820,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species04",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 960,
+        "y": 790,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 4",
+          "font": "13 400",
+          "position": {
+            "x": 1060,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species05",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1200,
+        "y": 790,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 5",
+          "font": "13 400",
+          "position": {
+            "x": 1300,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species06",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1440,
+        "y": 790,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 6",
+          "font": "13 400",
+          "position": {
+            "x": 1540,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species07",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1680,
+        "y": 790,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 7",
+          "font": "13 400",
+          "position": {
+            "x": 1780,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species08",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 900,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 8",
+          "font": "13 400",
+          "position": {
+            "x": 100,
+            "y": 930
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species09",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 240,
+        "y": 900,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 9",
+          "font": "13 400",
+          "position": {
+            "x": 340,
+            "y": 930
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species10",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 480,
+        "y": 900,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 10",
+          "font": "13 400",
+          "position": {
+            "x": 580,
+            "y": 930
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species11",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 720,
+        "y": 900,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 11",
+          "font": "13 400",
+          "position": {
+            "x": 820,
+            "y": 930
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species12",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 960,
+        "y": 900,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 12",
+          "font": "13 400",
+          "position": {
+            "x": 1060,
+            "y": 930
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species13",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1200,
+        "y": 900,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 13",
+          "font": "13 400",
+          "position": {
+            "x": 1300,
+            "y": 930
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species14",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1440,
+        "y": 900,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 14",
+          "font": "13 400",
+          "position": {
+            "x": 1540,
+            "y": 930
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species15",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1680,
+        "y": 900,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 15",
+          "font": "13 400",
+          "position": {
+            "x": 1780,
+            "y": 930
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species16",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 360,
+        "y": 1010,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 16",
+          "font": "13 400",
+          "position": {
+            "x": 460,
+            "y": 1040
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species17",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 600,
+        "y": 1010,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 17",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 1040
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species18",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 840,
+        "y": 1010,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 18",
+          "font": "13 400",
+          "position": {
+            "x": 940,
+            "y": 1040
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species19",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1080,
+        "y": 1010,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 19",
+          "font": "13 400",
+          "position": {
+            "x": 1180,
+            "y": 1040
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#species20",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 1320,
+        "y": 1010,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "species 20",
+          "font": "13 400",
+          "position": {
+            "x": 1420,
+            "y": 1040
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#stray",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 1210,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "stray",
+          "font": "13 400",
+          "position": {
+            "x": 100,
+            "y": 1240
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/kinds#zoo",
+      "type": "w3c/skos+scheme",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 570,
+        "w": 260,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Zoo (24)",
+          "font": "13 400",
+          "position": {
+            "x": 130,
+            "y": 595
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          8,
+          6
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/kinds#bat|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#bird",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#bird",
+      "target": "res:http://example.org/kinds#bat",
+      "route": [
+        {
+          "x": 721,
+          "y": 674
+        },
+        {
+          "x": 199,
+          "y": 790
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#bat|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#bat",
+      "route": [
+        {
+          "x": 960,
+          "y": 668.67
+        },
+        {
+          "x": 200,
+          "y": 795.33
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#bird|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#animal",
+      "target": "res:http://example.org/kinds#bird",
+      "route": [
+        {
+          "x": 137.71,
+          "y": 254
+        },
+        {
+          "x": 782.29,
+          "y": 630
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#cow|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#animal",
+      "target": "res:http://example.org/kinds#cow",
+      "route": [
+        {
+          "x": 200,
+          "y": 219.33
+        },
+        {
+          "x": 1500,
+          "y": 54.67
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#left|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#right",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#right",
+      "target": "res:http://example.org/kinds#left",
+      "route": [
+        {
+          "x": 340,
+          "y": 254
+        },
+        {
+          "x": 340,
+          "y": 370
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#lost|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#stray",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#stray",
+      "target": "res:http://example.org/kinds#lost",
+      "route": [
+        {
+          "x": 100,
+          "y": 1254
+        },
+        {
+          "x": 100,
+          "y": 1370
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#mammal|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#animal",
+      "target": "res:http://example.org/kinds#mammal",
+      "route": [
+        {
+          "x": 150.29,
+          "y": 254
+        },
+        {
+          "x": 1009.71,
+          "y": 630
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#right|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#left",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#left",
+      "target": "res:http://example.org/kinds#right",
+      "route": [
+        {
+          "x": 340,
+          "y": 370
+        },
+        {
+          "x": 340,
+          "y": 254
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species01|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species01",
+      "route": [
+        {
+          "x": 961,
+          "y": 674
+        },
+        {
+          "x": 439,
+          "y": 790
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species02|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species02",
+      "route": [
+        {
+          "x": 994,
+          "y": 674
+        },
+        {
+          "x": 646,
+          "y": 790
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species03|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species03",
+      "route": [
+        {
+          "x": 1027,
+          "y": 674
+        },
+        {
+          "x": 853,
+          "y": 790
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species04|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species04",
+      "route": [
+        {
+          "x": 1060,
+          "y": 674
+        },
+        {
+          "x": 1060,
+          "y": 790
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species05|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species05",
+      "route": [
+        {
+          "x": 1093,
+          "y": 674
+        },
+        {
+          "x": 1267,
+          "y": 790
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species06|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species06",
+      "route": [
+        {
+          "x": 1126,
+          "y": 674
+        },
+        {
+          "x": 1474,
+          "y": 790
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species07|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species07",
+      "route": [
+        {
+          "x": 1159,
+          "y": 674
+        },
+        {
+          "x": 1681,
+          "y": 790
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species08|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species08",
+      "route": [
+        {
+          "x": 981.78,
+          "y": 674
+        },
+        {
+          "x": 178.22,
+          "y": 900
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species09|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species09",
+      "route": [
+        {
+          "x": 1001.33,
+          "y": 674
+        },
+        {
+          "x": 398.67,
+          "y": 900
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species10|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species10",
+      "route": [
+        {
+          "x": 1020.89,
+          "y": 674
+        },
+        {
+          "x": 619.11,
+          "y": 900
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species11|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species11",
+      "route": [
+        {
+          "x": 1040.44,
+          "y": 674
+        },
+        {
+          "x": 839.56,
+          "y": 900
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species12|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species12",
+      "route": [
+        {
+          "x": 1060,
+          "y": 674
+        },
+        {
+          "x": 1060,
+          "y": 900
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species13|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species13",
+      "route": [
+        {
+          "x": 1079.56,
+          "y": 674
+        },
+        {
+          "x": 1280.44,
+          "y": 900
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species14|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species14",
+      "route": [
+        {
+          "x": 1099.11,
+          "y": 674
+        },
+        {
+          "x": 1500.89,
+          "y": 900
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species15|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species15",
+      "route": [
+        {
+          "x": 1118.67,
+          "y": 674
+        },
+        {
+          "x": 1721.33,
+          "y": 900
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species16|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species16",
+      "route": [
+        {
+          "x": 1025.26,
+          "y": 674
+        },
+        {
+          "x": 494.74,
+          "y": 1010
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species17|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species17",
+      "route": [
+        {
+          "x": 1039.16,
+          "y": 674
+        },
+        {
+          "x": 720.84,
+          "y": 1010
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species18|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species18",
+      "route": [
+        {
+          "x": 1053.05,
+          "y": 674
+        },
+        {
+          "x": 946.95,
+          "y": 1010
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species19|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species19",
+      "route": [
+        {
+          "x": 1066.95,
+          "y": 674
+        },
+        {
+          "x": 1173.05,
+          "y": 1010
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/kinds#species20|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/kinds#mammal",
+      "target": "res:http://example.org/kinds#species20",
+      "route": [
+        {
+          "x": 1080.84,
+          "y": 674
+        },
+        {
+          "x": 1399.16,
+          "y": 1010
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "res:http://example.org/kinds#empty",
+    "res:http://example.org/kinds#farm",
+    "res:http://example.org/kinds#zoo",
+    "res:http://example.org/kinds#herd",
+    "res:http://example.org/kinds#pets",
+    "edge:res:http://example.org/kinds#bat|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#bird",
+    "edge:res:http://example.org/kinds#bat|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#bird|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+    "edge:res:http://example.org/kinds#cow|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+    "edge:res:http://example.org/kinds#left|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#right",
+    "edge:res:http://example.org/kinds#lost|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#stray",
+    "edge:res:http://example.org/kinds#mammal|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+    "edge:res:http://example.org/kinds#right|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#left",
+    "edge:res:http://example.org/kinds#species01|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species02|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species03|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species04|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species05|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species06|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species07|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species08|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species09|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species10|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species11|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species12|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species13|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species14|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species15|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species16|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species17|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species18|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species19|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "edge:res:http://example.org/kinds#species20|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+    "res:http://example.org/kinds#animal",
+    "res:http://example.org/kinds#cow",
+    "res:http://example.org/kinds#left",
+    "res:http://example.org/kinds#right",
+    "res:http://example.org/kinds#bird",
+    "res:http://example.org/kinds#mammal",
+    "res:http://example.org/kinds#bat",
+    "res:http://example.org/kinds#species01",
+    "res:http://example.org/kinds#species02",
+    "res:http://example.org/kinds#species03",
+    "res:http://example.org/kinds#species04",
+    "res:http://example.org/kinds#species05",
+    "res:http://example.org/kinds#species06",
+    "res:http://example.org/kinds#species07",
+    "res:http://example.org/kinds#species08",
+    "res:http://example.org/kinds#species09",
+    "res:http://example.org/kinds#species10",
+    "res:http://example.org/kinds#species11",
+    "res:http://example.org/kinds#species12",
+    "res:http://example.org/kinds#species13",
+    "res:http://example.org/kinds#species14",
+    "res:http://example.org/kinds#species15",
+    "res:http://example.org/kinds#species16",
+    "res:http://example.org/kinds#species17",
+    "res:http://example.org/kinds#species18",
+    "res:http://example.org/kinds#species19",
+    "res:http://example.org/kinds#species20",
+    "res:http://example.org/kinds#lost",
+    "res:http://example.org/kinds#stray"
+  ]
+}

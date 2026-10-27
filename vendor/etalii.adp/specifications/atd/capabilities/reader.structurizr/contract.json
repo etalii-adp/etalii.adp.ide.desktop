@@ -1,0 +1,35 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.structurizr",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads and writes a Structurizr DSL workspace (`.dsl`) under the persistence plugin contract of FBL §11, as one of six readings of the same body, one per kind of view: `systemLandscape`, `systemContext`, `container`, `component`, `dynamic` and `deployment`. Every reading reads the whole model whichever view it shows: each `person`, `softwareSystem`, `container`, `component`, `deploymentNode`, `infrastructureNode`, `containerInstance` and `softwareSystemInstance` with its identifier, name, description, technology and tags, its parent the element it is declared in, and each relationship `a -> b` with its description and technology, and both its ends as written, also an end that names no element; identifiers are compared without regard to case, and an element declared without one is named `<kind>_<name>_<n>` for the session, n counting such elements in document order. The registration's `view:` header names the view a reading shows, else the workspace's first view; that view's own statements (`include`, `exclude`, `title`, `autoLayout` with its direction and separations, its scope, a deployment view's environment, a dynamic view's interactions with their order) are read as the diagram's, and its members are what its `include` statements name, in their order, then what `include *` adds within the kinds the view permits, then on a dynamic view what its interactions name, less what it excludes and the element it is inside of. A comment after a brace or a statement (`//`, `#`) and a comment spanning lines (`/* … */`) are skipped, `\\\"` inside a quoted argument is a quote and is written back escaped, `tags` lines inside an element's block add to its tags, `!identifiers hierarchical` is carried and not honoured, and a body whose braces do not balance is read as far as it balances. Positions are kept in `<base>.layout.json`, keyed by view and then by element compared without regard to case, each number written as .NET writes a double; a view that declares `autoLayout` ignores them. An edit is a minimal line splice: setting a positional argument writes `\"\"` for each absent argument before it, a new element's declaration is written into the block of the element it goes in (`identifier = keyword \"Name\" \"Describe Name.\"`, with a technology for a container or component), and a new view block is written with the registration that opens it. An edit that cannot be written is refused with \"This document has no model block to add an element to.\" or \"That element's block is not closed, so nothing can be added to it.\". A byte order mark is kept, and an edit keeps the body's dominant line ending. A new body is a workspace named after its file, with a placeholder software system of that name (for a component view holding a container `application`, for a deployment view beside an environment `Production` with a node `Server`) and one view of the reading's kind that includes everything and lays out left to right. The findings are the reading's and the model's, element by element: the includes, then for each element its description, technology, connection and placement findings, then each relationship's, then each view's (a view whose scope names nothing, and an empty view, at the view's line), then the coverage findings. Its fixtures are recorded with the C4 tool types' cases (spec 035, T074): each output is the reading and the findings a conformance case of the tool type records.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderInput"
+  },
+  "args": {
+    "view": {
+      "type": "enum",
+      "values": [
+        "systemLandscape",
+        "systemContext",
+        "container",
+        "component",
+        "dynamic",
+        "deployment"
+      ],
+      "required": true,
+      "doc": "Which kind of view this tool type's readings show."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderResult"
+  },
+  "laws": [
+    "deterministic",
+    "readingNeverFails",
+    "minimalSplices"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

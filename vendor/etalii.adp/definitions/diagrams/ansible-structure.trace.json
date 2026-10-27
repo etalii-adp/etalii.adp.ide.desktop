@@ -1,0 +1,210 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "ansible/structure",
+  "description": "ansible-structure.atd",
+  "companion": {
+    "file": "ansible-structure.md",
+    "sections": [
+      "Language gaps",
+      "The stand-ins the module holds",
+      "What remains in the module, and why",
+      "Differences the definition cannot bring in line"
+    ]
+  },
+  "items": [
+    {
+      "id": "language-gaps/1",
+      "text": "The eight file rules the binding cannot carry",
+      "statedBy": "capability reader.ansibleProject"
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/1",
+      "text": "**`AnsibleFolderListing`** (gaps 1 and 2)",
+      "statedBy": "capability reader.ansibleProject"
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/2",
+      "text": "**`AnsibleFindings`** (gaps 6 and 8)",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "The reader capability words `ansible.unreadable-yaml` with its file, but the order of the findings - unreadable files, then missing targets in derivation order across two codes, then unmatched hosts, then empty roles - is the gap 8 construct, which `constraints.order` cannot state."
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/3",
+      "text": "**`AnsibleInventoryRows`** (gap 7)",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/576",
+      "reason": "A form item has no `forEach`, so one row per inventory group and per variable folder, with its id, label and value from the item, cannot be stated."
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/4",
+      "text": "**The reveal handler in `client/AnsibleCanvas.tsx`** (gap 9)",
+      "hostConcern": "gestures",
+      "reason": "Revealing is the operation revealFile, an `open` of the node's path with Enter; double-click and Space as further keys of it are the host's key conventions, which it maps onto the operation's one shortcut."
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/5",
+      "text": "**`AnsibleLayout`, `AnsibleMetrics`** (gap 10)",
+      "statedBy": "algorithm ranks"
+    },
+    {
+      "id": "differences-the-definition-cannot-bring-in-line/1",
+      "text": "**Two relations with one id**",
+      "statedBy": "builtin std.duplicateId"
+    },
+    {
+      "id": "differences-the-definition-cannot-bring-in-line/2",
+      "text": "**The order of findings**, gap 8.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "The order of findings across files and codes is the gap 8 construct."
+    },
+    {
+      "id": "differences-the-definition-cannot-bring-in-line/3",
+      "text": "**A play's position is `ordinal`, not `index`.**",
+      "statedBy": "element Play"
+    },
+    {
+      "id": "differences-the-definition-cannot-bring-in-line/4",
+      "text": "**`ansible.unreadable-yaml` has one code.**",
+      "statedBy": "builtin std.unparseable"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/reader.rs",
+      "lines": "150-181",
+      "behaviour": "A registered folder is read by Ansible's own conventions, playbooks, roles, inventories and variable folders, and everything else is ignored without complaint; a YAML file that does not parse is a finding, never a failure.",
+      "statedBy": "capability reader.ansibleProject"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/listing.rs",
+      "lines": "42-112",
+      "behaviour": "Whether a folder or a file is there, the folders under one, how many files a folder holds without reading them, and the files that are links, from the folder itself.",
+      "statedBy": "capability reader.ansibleProject"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/graph.rs",
+      "lines": "32-211",
+      "behaviour": "The relations are resolved against what the folder holds: a role used, a playbook imported, a task file included, an inventory targeted, each with or without a target.",
+      "statedBy": "capability reader.ansibleProject"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/graph.rs",
+      "lines": "236-266",
+      "behaviour": "A play's hosts pattern is matched against an inventory's groups by its tokens, ignoring case.",
+      "statedBy": "fn hostTokens"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/layout.rs",
+      "lines": "106-148",
+      "behaviour": "A playbook's rank is its longest chain of imports from a playbook nothing imports, a play one rank right of its playbook, every role in the rank after the deepest playbook or play, every task file after that.",
+      "statedBy": "fn ansibleRank"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/layout.rs",
+      "lines": "60-105",
+      "behaviour": "Ranks left to right 96 apart, every node of a rank at its widest node's width and stacked 24 apart, inventories and variable folders in one row 96 below the tallest rank.",
+      "statedBy": "algorithm ranks"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/layout.rs",
+      "lines": "38-58",
+      "behaviour": "A node's width is the larger of 72 and its name's width plus 24, measured at font size 14.",
+      "hostConcern": "text-measurement",
+      "reason": "A name's width is the host's text measurement; the notation states the size `fitWidth` with its minimum."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/findings.rs",
+      "lines": "20-77",
+      "behaviour": "The findings in the tool's order and words: unreadable files first, then missing targets in derivation order, unmatched hosts, empty roles.",
+      "divergesFrom": "constraints"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/definition.rs",
+      "lines": "86-107",
+      "behaviour": "A property write is refused with the binding's read-only sentence, and a move under another node with the containment rule's message.",
+      "statedBy": "constraint noReparent"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/definition.rs",
+      "lines": "134-162",
+      "behaviour": "The property rows of each node and relation, an inventory's groups and variable folders among them.",
+      "statedBy": "form inventoryInspector"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/registration_layout.rs",
+      "lines": "72-181",
+      "behaviour": "A dragged node's position is written into the registration's `layout:` block, numbers as .NET writes `0.###`, a first one adding the block after the headers.",
+      "statedBy": "binding ansible registration"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/commands.rs",
+      "lines": "39-87",
+      "behaviour": "A reposition is one command on the project's history whose undo restores the registration's text.",
+      "hostConcern": "undo-stack",
+      "reason": "The history and how an exact undo is kept are the host's; the description says the reposition is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/mapper.rs",
+      "lines": "32-44",
+      "behaviour": "A node with a stored position is drawn there, every other at its computed one, recomputed on every change.",
+      "statedBy": "layout"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/store.rs",
+      "lines": "131-162",
+      "behaviour": "A change on disk to a file under the registered folder reads the folder again.",
+      "hostConcern": "file-dialogs",
+      "reason": "Watching the folder for changes is the host's file system work; the reader capability is handed the files as they are."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/ansible-structure/src/theme.rs",
+      "lines": "1-48",
+      "behaviour": "The colours, light and dark, as the definition's theme tokens, with six hues to tell a play's tasks apart.",
+      "statedBy": "notation theme"
+    }
+  ]
+}

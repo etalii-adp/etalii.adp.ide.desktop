@@ -1,0 +1,65 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.bandedLayers",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "A layered layout, left to right, whose layers are at least a node's `minLayer` and at least one past every node that flows into it, after every cycle is broken at the edge that closes it in a depth-first walk in the order of the input. An edge forward over more than one layer takes a slot in every layer it crosses, which is ordered and placed as a node is and draws nothing, and is routed through the middle of its slots. Nodes are kept in bands, one per value of `band` and one for the nodes without one, each first where its first member is in the input; within a layer the bands are ordered by barycentre over `passes` passes, ties by the order of the input, and dropped in that order onto a per-layer skyline. Positions are the top left corners of the nodes, routes the slots' centres, in the canvas's domain units. Its fixtures are recorded with the cases of the descriptions that require it (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "minLayer": {
+      "type": "query",
+      "doc": "The least layer of a node, an integer; absent, 0."
+    },
+    "band": {
+      "type": "query",
+      "doc": "The band a node belongs to, by its id; null for the band of the nodes outside every band."
+    },
+    "layerGap": {
+      "type": "number",
+      "default": 128,
+      "doc": "The gap between two layers, edge to edge."
+    },
+    "rowGap": {
+      "type": "number",
+      "default": 28,
+      "doc": "The gap between two nodes of one band in a layer."
+    },
+    "bandTitle": {
+      "type": "number",
+      "default": 40,
+      "doc": "The room a band with an id reserves above its nodes."
+    },
+    "bandBottom": {
+      "type": "number",
+      "default": 20,
+      "doc": "The room a band with an id reserves below its nodes."
+    },
+    "bandGap": {
+      "type": "number",
+      "default": 32,
+      "doc": "The gap between two bands that share a layer."
+    },
+    "passes": {
+      "type": "integer",
+      "default": 8,
+      "doc": "The barycentre passes."
+    },
+    "lanes": {
+      "type": "boolean",
+      "default": true,
+      "doc": "Whether a long edge takes slots in the layers it crosses."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "pinnedStay",
+    "stable"
+  ],
+  "fallback": "layout.layered",
+  "status": "provisional"
+}

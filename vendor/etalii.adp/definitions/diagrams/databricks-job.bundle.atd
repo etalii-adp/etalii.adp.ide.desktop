@@ -1,0 +1,24 @@
+atd 0.1
+part of databricks/job
+
+// The Databricks job's body, in a part of its own (ATD §5.2, §9).
+
+/// One job of a Databricks Asset Bundle configuration, read and written by the capability `reader.databricksBundle` as
+/// its `job` reading (databricks-job.md, gaps 1 to 9): the persistence plugin's contract (FBL §11) as a binding's
+/// family, since one FBL binding cannot give three readings of one body different metamodels (gap 1) nor select a
+/// resource per reading (gap 2). The YAML stays Databricks' own: every scalar is kept as written (gap 3), every byte no
+/// element maps is kept, and every edit is a minimal line splice. An edit into a list written on one line is refused
+/// before any splice with "This list is written on one line, which this diagram cannot change yet; edit it in the text
+/// editor." (gap 4), and the reader refuses in its own words where FBL's planner would build a sentence from type names
+/// (gap 5). A dropped task's skeleton follows its type (gap 6).
+///
+/// The `.adp` registration names the job: `resource: <key>` selects `resources.jobs.<key>`, else the first job is read.
+/// Positions are kept in the registration's `layout:` block, never in the YAML. A placeholder task stands for a key a
+/// `depends_on` entry names and no task declares (gap 8). The findings are the whole file's, every job's, then the
+/// bundle's, then every pipeline's, and within a job task by task, whichever reading asked (gap 9).
+binding bundle family capability reader.databricksBundle {
+  label "Databricks job"
+  claims { extensions: [".yml", ".yaml", ".json"], origins: ["databricks/job"] }
+  body { kind: file }
+  args: { reading: job }
+}

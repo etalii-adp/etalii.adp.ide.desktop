@@ -1,0 +1,676 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "loop:R1",
+      "type": "Loop",
+      "shape": "path",
+      "bounds": {
+        "x": 27.01,
+        "y": -8,
+        "w": 25.98,
+        "h": 25.99
+      },
+      "labels": [
+        {
+          "id": "caption",
+          "text": "R1 · Tired hands make more work",
+          "font": "12 600 system-ui, sans-serif",
+          "position": {
+            "x": 40,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "loop:R2",
+      "type": "Loop",
+      "shape": "path",
+      "bounds": {
+        "x": 27.01,
+        "y": -8,
+        "w": 25.98,
+        "h": 25.99
+      },
+      "labels": [
+        {
+          "id": "caption",
+          "text": "R2 · Fewer hands, heavier rota",
+          "font": "12 600 system-ui, sans-serif",
+          "position": {
+            "x": 40,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "loop:R3",
+      "type": "Loop",
+      "shape": "path",
+      "bounds": {
+        "x": 27.01,
+        "y": -8,
+        "w": 25.98,
+        "h": 25.99
+      },
+      "labels": [
+        {
+          "id": "caption",
+          "text": "R3 · Too busy to stop being busy",
+          "font": "12 600 system-ui, sans-serif",
+          "position": {
+            "x": 40,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "variable:attrition",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": -211,
+        "y": -242.93,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Attrition",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": -166,
+            "y": -219.13
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:automation",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 143.7,
+        "y": 268.27,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Automation work",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 188.7,
+            "y": 292.07
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:fatigue",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 29.45,
+        "y": -241.23,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Fatigue",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 74.45,
+            "y": -217.43
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:incidents",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 310.6,
+        "y": -96.62,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Incidents",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 355.6,
+            "y": -72.82
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:mistakes",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 270.66,
+        "y": -285.95,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Mistakes",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 315.66,
+            "y": -262.15
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:onCallLoad",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 117.2,
+        "y": 50.36,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "On-call load",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 162.2,
+            "y": 74.16
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:teamSize",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": -180.78,
+        "y": 15.43,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Team size",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": -135.78,
+            "y": 39.23
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:toil",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 312.8,
+        "y": 238.32,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Manual toil",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 357.8,
+            "y": 262.12
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:variable1",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": -211.82,
+        "y": 256.93,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Variable 1",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": -166.82,
+            "y": 280.73
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "link:attrition|teamSize",
+      "type": "CausalLink",
+      "source": "variable:attrition",
+      "target": "variable:teamSize",
+      "route": [
+        {
+          "x": -155.26,
+          "y": -203.33
+        },
+        {
+          "x": -130.42,
+          "y": 15.43
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:automation|toil",
+      "type": "CausalLink",
+      "source": "variable:automation",
+      "target": "variable:toil",
+      "route": [
+        {
+          "x": 220.57,
+          "y": 268.27
+        },
+        {
+          "x": 312.8,
+          "y": 248.75
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:fatigue|attrition",
+      "type": "CausalLink",
+      "source": "variable:fatigue",
+      "target": "variable:attrition",
+      "route": [
+        {
+          "x": 29.45,
+          "y": -203.79
+        },
+        {
+          "x": -121,
+          "y": -204.76
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:fatigue|mistakes",
+      "type": "CausalLink",
+      "source": "variable:fatigue",
+      "target": "variable:mistakes",
+      "route": [
+        {
+          "x": 105.76,
+          "y": -241.23
+        },
+        {
+          "x": 270.66,
+          "y": -275.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:incidents|onCallLoad",
+      "type": "CausalLink",
+      "source": "variable:incidents",
+      "target": "variable:onCallLoad",
+      "route": [
+        {
+          "x": 343.72,
+          "y": -57.02
+        },
+        {
+          "x": 207.2,
+          "y": 57.74
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:mistakes|incidents",
+      "type": "CausalLink",
+      "source": "variable:mistakes",
+      "target": "variable:incidents",
+      "route": [
+        {
+          "x": 328.87,
+          "y": -246.34
+        },
+        {
+          "x": 359.05,
+          "y": -96.62
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:onCallLoad|automation",
+      "type": "CausalLink",
+      "source": "variable:onCallLoad",
+      "target": "variable:automation",
+      "route": [
+        {
+          "x": 173.05,
+          "y": 89.96
+        },
+        {
+          "x": 193.95,
+          "y": 268.27
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:onCallLoad|fatigue",
+      "type": "CausalLink",
+      "source": "variable:onCallLoad",
+      "target": "variable:fatigue",
+      "route": [
+        {
+          "x": 146.42,
+          "y": 50.36
+        },
+        {
+          "x": 72.7,
+          "y": -201.63
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:teamSize|onCallLoad",
+      "type": "CausalLink",
+      "source": "variable:teamSize",
+      "target": "variable:onCallLoad",
+      "route": [
+        {
+          "x": -90.78,
+          "y": 23.07
+        },
+        {
+          "x": 125.71,
+          "y": 50.36
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:toil|onCallLoad",
+      "type": "CausalLink",
+      "source": "variable:toil",
+      "target": "variable:onCallLoad",
+      "route": [
+        {
+          "x": 312.8,
+          "y": 239.88
+        },
+        {
+          "x": 171.15,
+          "y": 89.96
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:variable1|teamSize",
+      "type": "CausalLink",
+      "source": "variable:variable1",
+      "target": "variable:teamSize",
+      "route": [
+        {
+          "x": -171.93,
+          "y": 256.93
+        },
+        {
+          "x": -146.81,
+          "y": 55.03
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "link:incidents|onCallLoad",
+    "link:onCallLoad|fatigue",
+    "link:fatigue|mistakes",
+    "link:mistakes|incidents",
+    "link:fatigue|attrition",
+    "link:attrition|teamSize",
+    "link:teamSize|onCallLoad",
+    "link:toil|onCallLoad",
+    "link:automation|toil",
+    "link:onCallLoad|automation",
+    "link:variable1|teamSize",
+    "variable:incidents",
+    "variable:onCallLoad",
+    "variable:fatigue",
+    "variable:mistakes",
+    "variable:attrition",
+    "variable:teamSize",
+    "variable:automation",
+    "variable:toil",
+    "variable:variable1",
+    "loop:R1",
+    "loop:R2",
+    "loop:R3"
+  ]
+}

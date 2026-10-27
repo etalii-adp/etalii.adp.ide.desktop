@@ -1,0 +1,9 @@
+# B1: one statement shared by several pairs through ; and , lists, and a resource many statements name.
+@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:alice ex:knows ex:bob , ex:carol ;
+    rdfs:label "Alice" ;
+    ex:worksWith ex:bob .
+ex:bob ex:knows ex:alice ; rdfs:label "Bob" .
+ex:carol ex:knows ex:bob .

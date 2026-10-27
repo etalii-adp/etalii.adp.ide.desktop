@@ -1,0 +1,1257 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/scripts/w3c/rdf/nobel-1903.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\r\n@prefix nobel: <https://data.nobelprize.org/terms/> .\r\n@prefix laureate: <https://data.nobelprize.org/resource/laureate/> .\r\n@prefix prize: <https://data.nobelprize.org/resource/nobelprize/> .\r\n@prefix category: <https://data.nobelprize.org/resource/category/> .\r\n\r\ncategory:chemistry a nobel:Category ;\r\n    rdfs:label \"Chemistry\" .\r\n\r\ncategory:literature a nobel:Category ;\r\n    rdfs:label \"Literature\" .\r\n\r\ncategory:peace a nobel:Category ;\r\n    rdfs:label \"Peace\" .\r\n\r\ncategory:physics a nobel:Category ;\r\n    rdfs:label \"Physics\" .\r\n\r\ncategory:physiology-or-medicine a nobel:Category ;\r\n    rdfs:label \"Physiology or Medicine\" .\r\n\r\nprize:chemistry-1903 a nobel:NobelPrize ;\r\n    rdfs:label \"Nobel Prize in Chemistry 1903\" ;\r\n    nobel:year \"1903\"^^xsd:gYear ;\r\n    nobel:category category:chemistry .\r\n\r\nprize:literature-1903 a nobel:NobelPrize ;\r\n    rdfs:label \"Nobel Prize in Literature 1903\" ;\r\n    nobel:year \"1903\"^^xsd:gYear ;\r\n    nobel:category category:literature .\r\n\r\nprize:peace-1903 a nobel:NobelPrize ;\r\n    rdfs:label \"Nobel Prize in Peace 1903\" ;\r\n    nobel:year \"1903\"^^xsd:gYear ;\r\n    nobel:category category:peace .\r\n\r\nprize:physics-1903 a nobel:NobelPrize ;\r\n    rdfs:label \"Nobel Prize in Physics 1903\" ;\r\n    nobel:year \"1903\"^^xsd:gYear ;\r\n    nobel:category category:physics .\r\n\r\nprize:physiology-or-medicine-1903 a nobel:NobelPrize ;\r\n    rdfs:label \"Nobel Prize in Physiology or Medicine 1903\" ;\r\n    nobel:year \"1903\"^^xsd:gYear ;\r\n    nobel:category category:physiology-or-medicine .\r\n\r\nlaureate:4 a nobel:Laureate ;\r\n    rdfs:label \"Henri Becquerel\" ;\r\n    nobel:birthDate \"1852-12-15\"^^xsd:date ;\r\n    nobel:nobelPrize prize:physics-1903 ;\r\n    nobel:motivation \"in recognition of the extraordinary services he has rendered by his discovery of spontaneous radioactivity\"@en .\r\n\r\nlaureate:5 a nobel:Laureate ;\r\n    rdfs:label \"Pierre Curie\" ;\r\n    nobel:birthDate \"1859-05-15\"^^xsd:date ;\r\n    nobel:nobelPrize prize:physics-1903 ;\r\n    nobel:motivation \"in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel\"@en .\r\n\r\nlaureate:6 a nobel:Laureate ;\r\n    rdfs:label \"Marie Curie\" ;\r\n    nobel:birthDate \"1867-11-07\"^^xsd:date ;\r\n    nobel:nobelPrize prize:physics-1903 ;\r\n    nobel:motivation \"in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel\"@en .\r\n\r\nlaureate:162 a nobel:Laureate ;\r\n    rdfs:label \"Svante Arrhenius\" ;\r\n    nobel:birthDate \"1859-02-19\"^^xsd:date ;\r\n    nobel:nobelPrize prize:chemistry-1903 ;\r\n    nobel:motivation \"in recognition of the extraordinary services he has rendered to the advancement of chemistry by his electrolytic theory of dissociation\"@en .\r\n\r\nlaureate:295 a nobel:Laureate ;\r\n    rdfs:label \"Niels Ryberg Finsen\" ;\r\n    nobel:birthDate \"1860-12-15\"^^xsd:date ;\r\n    nobel:nobelPrize prize:physiology-or-medicine-1903 ;\r\n    nobel:motivation \"in recognition of his contribution to the treatment of diseases, especially lupus vulgaris, with concentrated light radiation, whereby he has opened a new avenue for medical science\"@en .\r\n\r\nlaureate:466 a nobel:Laureate ;\r\n    rdfs:label \"Randal Cremer\" ;\r\n    nobel:birthDate \"1828-03-18\"^^xsd:date ;\r\n    nobel:nobelPrize prize:peace-1903 ;\r\n    nobel:motivation \"for his longstanding and devoted effort in favour of the ideas of peace and arbitration\"@en .\r\n\r\nlaureate:572 a nobel:Laureate ;\r\n    rdfs:label \"Bjørnstjerne Bjørnson\" ;\r\n    nobel:birthDate \"1832-12-08\"^^xsd:date ;\r\n    nobel:nobelPrize prize:literature-1903 ;\r\n    nobel:motivation \"as a tribute to his noble, magnificent and versatile poetry, which has always been distinguished by both the freshness of its inspiration and the rare purity of its spirit\"@en .\r\n\r\n",
+    "files": {
+      "nobel-1903.adp": "w3c/rdf\nbody: nobel-1903.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 1
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:nobel",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "nobel",
+          "iri": "https://data.nobelprize.org/terms/",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:laureate",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "laureate",
+          "iri": "https://data.nobelprize.org/resource/laureate/",
+          "line": 4
+        }
+      },
+      {
+        "id": "prefix:prize",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "prize",
+          "iri": "https://data.nobelprize.org/resource/nobelprize/",
+          "line": 5
+        }
+      },
+      {
+        "id": "prefix:category",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "category",
+          "iri": "https://data.nobelprize.org/resource/category/",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/chemistry|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Category",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/chemistry",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:chemistry",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Category",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/chemistry|http://www.w3.org/2000/01/rdf-schema#label|Chemistry",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/chemistry",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:chemistry",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Chemistry",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/literature|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Category",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/literature",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:literature",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Category",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/literature|http://www.w3.org/2000/01/rdf-schema#label|Literature",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/literature",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:literature",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Literature",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 12
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/peace|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Category",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/peace",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:peace",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Category",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/peace|http://www.w3.org/2000/01/rdf-schema#label|Peace",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/peace",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:peace",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Peace",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 15
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/physics|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Category",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/physics",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:physics",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Category",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 17
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/physics|http://www.w3.org/2000/01/rdf-schema#label|Physics",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/physics",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:physics",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Physics",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 18
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/physiology-or-medicine|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Category",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/physiology-or-medicine",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:physiology-or-medicine",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Category",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 20
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/category/physiology-or-medicine|http://www.w3.org/2000/01/rdf-schema#label|Physiology or Medicine",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/category/physiology-or-medicine",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "category:physiology-or-medicine",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Physiology or Medicine",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 21
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/chemistry-1903|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/NobelPrize",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:chemistry-1903",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/NobelPrize",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/chemistry-1903|http://www.w3.org/2000/01/rdf-schema#label|Nobel Prize in Chemistry 1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:chemistry-1903",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Nobel Prize in Chemistry 1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 24
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/chemistry-1903|https://data.nobelprize.org/terms/year|1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:chemistry-1903",
+          "p": "https://data.nobelprize.org/terms/year",
+          "o": "1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "line": 25
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/chemistry-1903|https://data.nobelprize.org/terms/category|https://data.nobelprize.org/resource/category/chemistry",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:chemistry-1903",
+          "p": "https://data.nobelprize.org/terms/category",
+          "o": "https://data.nobelprize.org/resource/category/chemistry",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/literature-1903|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/NobelPrize",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/literature-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:literature-1903",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/NobelPrize",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 28
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/literature-1903|http://www.w3.org/2000/01/rdf-schema#label|Nobel Prize in Literature 1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/literature-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:literature-1903",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Nobel Prize in Literature 1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 29
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/literature-1903|https://data.nobelprize.org/terms/year|1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/literature-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:literature-1903",
+          "p": "https://data.nobelprize.org/terms/year",
+          "o": "1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/literature-1903|https://data.nobelprize.org/terms/category|https://data.nobelprize.org/resource/category/literature",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/literature-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:literature-1903",
+          "p": "https://data.nobelprize.org/terms/category",
+          "o": "https://data.nobelprize.org/resource/category/literature",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 31
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/peace-1903|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/NobelPrize",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/peace-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:peace-1903",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/NobelPrize",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/peace-1903|http://www.w3.org/2000/01/rdf-schema#label|Nobel Prize in Peace 1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/peace-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:peace-1903",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Nobel Prize in Peace 1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 34
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/peace-1903|https://data.nobelprize.org/terms/year|1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/peace-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:peace-1903",
+          "p": "https://data.nobelprize.org/terms/year",
+          "o": "1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "line": 35
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/peace-1903|https://data.nobelprize.org/terms/category|https://data.nobelprize.org/resource/category/peace",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/peace-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:peace-1903",
+          "p": "https://data.nobelprize.org/terms/category",
+          "o": "https://data.nobelprize.org/resource/category/peace",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/physics-1903|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/NobelPrize",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:physics-1903",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/NobelPrize",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 38
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/physics-1903|http://www.w3.org/2000/01/rdf-schema#label|Nobel Prize in Physics 1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:physics-1903",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Nobel Prize in Physics 1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 39
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/physics-1903|https://data.nobelprize.org/terms/year|1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:physics-1903",
+          "p": "https://data.nobelprize.org/terms/year",
+          "o": "1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "line": 40
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/physics-1903|https://data.nobelprize.org/terms/category|https://data.nobelprize.org/resource/category/physics",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:physics-1903",
+          "p": "https://data.nobelprize.org/terms/category",
+          "o": "https://data.nobelprize.org/resource/category/physics",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 41
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/NobelPrize",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:physiology-or-medicine-1903",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/NobelPrize",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 43
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903|http://www.w3.org/2000/01/rdf-schema#label|Nobel Prize in Physiology or Medicine 1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:physiology-or-medicine-1903",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Nobel Prize in Physiology or Medicine 1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 44
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903|https://data.nobelprize.org/terms/year|1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:physiology-or-medicine-1903",
+          "p": "https://data.nobelprize.org/terms/year",
+          "o": "1903",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "line": 45
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903|https://data.nobelprize.org/terms/category|https://data.nobelprize.org/resource/category/physiology-or-medicine",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "prize:physiology-or-medicine-1903",
+          "p": "https://data.nobelprize.org/terms/category",
+          "o": "https://data.nobelprize.org/resource/category/physiology-or-medicine",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 46
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/4|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Laureate",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/4",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:4",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Laureate",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 48
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/4|http://www.w3.org/2000/01/rdf-schema#label|Henri Becquerel",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/4",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:4",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Henri Becquerel",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 49
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/4|https://data.nobelprize.org/terms/birthDate|1852-12-15",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/4",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:4",
+          "p": "https://data.nobelprize.org/terms/birthDate",
+          "o": "1852-12-15",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#date",
+          "line": 50
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/4|https://data.nobelprize.org/terms/nobelPrize|https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/4",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:4",
+          "p": "https://data.nobelprize.org/terms/nobelPrize",
+          "o": "https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 51
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/4|https://data.nobelprize.org/terms/motivation|in recognition of the extraordinary services he has rendered by his discovery of spontaneous radioactivity",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/4",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:4",
+          "p": "https://data.nobelprize.org/terms/motivation",
+          "o": "in recognition of the extraordinary services he has rendered by his discovery of spontaneous radioactivity",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 52
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/5|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Laureate",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/5",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:5",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Laureate",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 54
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/5|http://www.w3.org/2000/01/rdf-schema#label|Pierre Curie",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/5",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:5",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Pierre Curie",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 55
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/5|https://data.nobelprize.org/terms/birthDate|1859-05-15",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/5",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:5",
+          "p": "https://data.nobelprize.org/terms/birthDate",
+          "o": "1859-05-15",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#date",
+          "line": 56
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/5|https://data.nobelprize.org/terms/nobelPrize|https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/5",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:5",
+          "p": "https://data.nobelprize.org/terms/nobelPrize",
+          "o": "https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 57
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/5|https://data.nobelprize.org/terms/motivation|in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/5",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:5",
+          "p": "https://data.nobelprize.org/terms/motivation",
+          "o": "in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 58
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/6|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Laureate",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/6",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:6",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Laureate",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 60
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/6|http://www.w3.org/2000/01/rdf-schema#label|Marie Curie",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/6",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:6",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Marie Curie",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 61
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/6|https://data.nobelprize.org/terms/birthDate|1867-11-07",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/6",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:6",
+          "p": "https://data.nobelprize.org/terms/birthDate",
+          "o": "1867-11-07",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#date",
+          "line": 62
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/6|https://data.nobelprize.org/terms/nobelPrize|https://data.nobelprize.org/resource/nobelprize/physics-1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/6",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:6",
+          "p": "https://data.nobelprize.org/terms/nobelPrize",
+          "o": "https://data.nobelprize.org/resource/nobelprize/physics-1903",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 63
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/6|https://data.nobelprize.org/terms/motivation|in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/6",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:6",
+          "p": "https://data.nobelprize.org/terms/motivation",
+          "o": "in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 64
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/162|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Laureate",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/162",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:162",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Laureate",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 66
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/162|http://www.w3.org/2000/01/rdf-schema#label|Svante Arrhenius",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/162",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:162",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Svante Arrhenius",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 67
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/162|https://data.nobelprize.org/terms/birthDate|1859-02-19",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/162",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:162",
+          "p": "https://data.nobelprize.org/terms/birthDate",
+          "o": "1859-02-19",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#date",
+          "line": 68
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/162|https://data.nobelprize.org/terms/nobelPrize|https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/162",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:162",
+          "p": "https://data.nobelprize.org/terms/nobelPrize",
+          "o": "https://data.nobelprize.org/resource/nobelprize/chemistry-1903",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 69
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/162|https://data.nobelprize.org/terms/motivation|in recognition of the extraordinary services he has rendered to the advancement of chemistry by his electrolytic theory of dissociation",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/162",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:162",
+          "p": "https://data.nobelprize.org/terms/motivation",
+          "o": "in recognition of the extraordinary services he has rendered to the advancement of chemistry by his electrolytic theory of dissociation",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 70
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/295|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Laureate",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/295",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:295",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Laureate",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 72
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/295|http://www.w3.org/2000/01/rdf-schema#label|Niels Ryberg Finsen",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/295",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:295",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Niels Ryberg Finsen",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 73
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/295|https://data.nobelprize.org/terms/birthDate|1860-12-15",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/295",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:295",
+          "p": "https://data.nobelprize.org/terms/birthDate",
+          "o": "1860-12-15",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#date",
+          "line": 74
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/295|https://data.nobelprize.org/terms/nobelPrize|https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/295",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:295",
+          "p": "https://data.nobelprize.org/terms/nobelPrize",
+          "o": "https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 75
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/295|https://data.nobelprize.org/terms/motivation|in recognition of his contribution to the treatment of diseases, especially lupus vulgaris, with concentrated light radiation, whereby he has opened a new avenue for medical science",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/295",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:295",
+          "p": "https://data.nobelprize.org/terms/motivation",
+          "o": "in recognition of his contribution to the treatment of diseases, especially lupus vulgaris, with concentrated light radiation, whereby he has opened a new avenue for medical science",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 76
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/466|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Laureate",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/466",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:466",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Laureate",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 78
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/466|http://www.w3.org/2000/01/rdf-schema#label|Randal Cremer",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/466",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:466",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Randal Cremer",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 79
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/466|https://data.nobelprize.org/terms/birthDate|1828-03-18",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/466",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:466",
+          "p": "https://data.nobelprize.org/terms/birthDate",
+          "o": "1828-03-18",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#date",
+          "line": 80
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/466|https://data.nobelprize.org/terms/nobelPrize|https://data.nobelprize.org/resource/nobelprize/peace-1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/466",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:466",
+          "p": "https://data.nobelprize.org/terms/nobelPrize",
+          "o": "https://data.nobelprize.org/resource/nobelprize/peace-1903",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 81
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/466|https://data.nobelprize.org/terms/motivation|for his longstanding and devoted effort in favour of the ideas of peace and arbitration",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/466",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:466",
+          "p": "https://data.nobelprize.org/terms/motivation",
+          "o": "for his longstanding and devoted effort in favour of the ideas of peace and arbitration",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 82
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/572|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|https://data.nobelprize.org/terms/Laureate",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/572",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:572",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "https://data.nobelprize.org/terms/Laureate",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 84
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/572|http://www.w3.org/2000/01/rdf-schema#label|Bjørnstjerne Bjørnson",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/572",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:572",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Bjørnstjerne Bjørnson",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 85
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/572|https://data.nobelprize.org/terms/birthDate|1832-12-08",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/572",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:572",
+          "p": "https://data.nobelprize.org/terms/birthDate",
+          "o": "1832-12-08",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#date",
+          "line": 86
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/572|https://data.nobelprize.org/terms/nobelPrize|https://data.nobelprize.org/resource/nobelprize/literature-1903",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/572",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:572",
+          "p": "https://data.nobelprize.org/terms/nobelPrize",
+          "o": "https://data.nobelprize.org/resource/nobelprize/literature-1903",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 87
+        }
+      },
+      {
+        "id": "triple:https://data.nobelprize.org/resource/laureate/572|https://data.nobelprize.org/terms/motivation|as a tribute to his noble, magnificent and versatile poetry, which has always been distinguished by both the freshness of its inspiration and the rare purity of its spirit",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "https://data.nobelprize.org/resource/laureate/572",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "laureate:572",
+          "p": "https://data.nobelprize.org/terms/motivation",
+          "o": "as a tribute to his noble, magnificent and versatile poetry, which has always been distinguished by both the freshness of its inspiration and the rare purity of its spirit",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 88
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

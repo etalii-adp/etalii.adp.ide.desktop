@@ -1,0 +1,291 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/pipeline` from parity/cases/databricks/pipeline/job-commands.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/pipeline",
+  "description": "../../../databricks-pipeline.atd",
+  "inputs": {
+    "body": "two-jobs-two-pipelines.yml",
+    "registration": "two-jobs-two-pipelines.pipeline.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "library:transformations/b",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/b",
+          "badges": "notebook",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "pipeline",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "pipeline",
+          "kind": "pipeline",
+          "label": "Pipe B",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "target",
+          "kind": "target",
+          "label": "silver",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "compute",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "cluster",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "flow:transformations/b->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:transformations/b",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:pipeline->target",
+        "type": "databricks/pipeline+edge",
+        "source": "pipeline",
+        "target": "target",
+        "attributes": {
+          "kind": "flow"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.dangling-cluster",
+        "severity": "error",
+        "line": 10,
+        "message": "'ingest' runs on cluster 'missing_cluster', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless."
+      },
+      {
+        "rule": "databricks.missing-task",
+        "severity": "error",
+        "line": 27,
+        "message": "'report' depends on 'absent', which is not a task in this job. Fix the key or remove the dependency."
+      },
+      {
+        "rule": "databricks.no-default-target",
+        "severity": "warning",
+        "line": 46,
+        "message": "No target says default: true, so every deploy must name one. Mark one target as the default."
+      },
+      {
+        "rule": "databricks.schema-without-catalog",
+        "severity": "warning",
+        "line": 38,
+        "message": "The pipeline 'Pipe B' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "databricks.add-task:notebook",
+      "args": {
+        "target": "new:600,400"
+      },
+      "expectFile": "after-1.yml",
+      "findings": [
+        {
+          "rule": "databricks.dangling-cluster",
+          "severity": "error",
+          "line": 10,
+          "message": "'ingest' runs on cluster 'missing_cluster', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless."
+        },
+        {
+          "rule": "databricks.missing-task",
+          "severity": "error",
+          "line": 30,
+          "message": "'report' depends on 'absent', which is not a task in this job. Fix the key or remove the dependency."
+        },
+        {
+          "rule": "databricks.no-default-target",
+          "severity": "warning",
+          "line": 49,
+          "message": "No target says default: true, so every deploy must name one. Mark one target as the default."
+        },
+        {
+          "rule": "databricks.schema-without-catalog",
+          "severity": "warning",
+          "line": 41,
+          "message": "The pipeline 'Pipe B' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "databricks.add-task:python",
+      "args": {
+        "target": "new:860,400"
+      },
+      "expectFile": "after-2.yml",
+      "findings": [
+        {
+          "rule": "databricks.dangling-cluster",
+          "severity": "error",
+          "line": 10,
+          "message": "'ingest' runs on cluster 'missing_cluster', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless."
+        },
+        {
+          "rule": "databricks.missing-task",
+          "severity": "error",
+          "line": 33,
+          "message": "'report' depends on 'absent', which is not a task in this job. Fix the key or remove the dependency."
+        },
+        {
+          "rule": "databricks.no-default-target",
+          "severity": "warning",
+          "line": 52,
+          "message": "No target says default: true, so every deploy must name one. Mark one target as the default."
+        },
+        {
+          "rule": "databricks.schema-without-catalog",
+          "severity": "warning",
+          "line": 44,
+          "message": "The pipeline 'Pipe B' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "databricks.add-task:condition",
+      "args": {
+        "target": "new:1120,400"
+      },
+      "expectFile": "after-3.yml",
+      "findings": [
+        {
+          "rule": "databricks.dangling-cluster",
+          "severity": "error",
+          "line": 10,
+          "message": "'ingest' runs on cluster 'missing_cluster', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless."
+        },
+        {
+          "rule": "databricks.missing-task",
+          "severity": "error",
+          "line": 38,
+          "message": "'report' depends on 'absent', which is not a task in this job. Fix the key or remove the dependency."
+        },
+        {
+          "rule": "databricks.no-default-target",
+          "severity": "warning",
+          "line": 57,
+          "message": "No target says default: true, so every deploy must name one. Mark one target as the default."
+        },
+        {
+          "rule": "databricks.schema-without-catalog",
+          "severity": "warning",
+          "line": 49,
+          "message": "The pipeline 'Pipe B' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:ingest->task:shape"
+      },
+      "refused": {
+        "reason": "'shape' already depends on 'ingest'."
+      },
+      "expectFile": "after-3.yml",
+      "findings": [
+        {
+          "rule": "databricks.dangling-cluster",
+          "severity": "error",
+          "line": 10,
+          "message": "'ingest' runs on cluster 'missing_cluster', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless."
+        },
+        {
+          "rule": "databricks.missing-task",
+          "severity": "error",
+          "line": 38,
+          "message": "'report' depends on 'absent', which is not a task in this job. Fix the key or remove the dependency."
+        },
+        {
+          "rule": "databricks.no-default-target",
+          "severity": "warning",
+          "line": 57,
+          "message": "No target says default: true, so every deploy must name one. Mark one target as the default."
+        },
+        {
+          "rule": "databricks.schema-without-catalog",
+          "severity": "warning",
+          "line": 49,
+          "message": "The pipeline 'Pipe B' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

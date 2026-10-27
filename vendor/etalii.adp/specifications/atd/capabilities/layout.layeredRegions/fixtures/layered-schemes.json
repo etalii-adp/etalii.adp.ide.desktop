@@ -1,0 +1,666 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredRegions` from the RDF module's layout of the reading that parity/cases/w3c/skos/layered-schemes.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/kinds#empty",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "region",
+          "key": "http://example.org/kinds#empty"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#farm",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "region",
+          "key": "http://example.org/kinds#farm"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#zoo",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "region",
+          "key": "http://example.org/kinds#zoo"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#animal",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo",
+            "http://example.org/kinds#farm"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#cow",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#farm"
+          ]
+        },
+        "pinned": {
+          "x": 1500.0,
+          "y": 20.0
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#left",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#farm"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#right",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#farm"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#bird",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#mammal",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#bat",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species01",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species02",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species03",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species04",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species05",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species06",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species07",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species08",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species09",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species10",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species11",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species12",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species13",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species14",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species15",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species16",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species17",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species18",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species19",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#species20",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/kinds#zoo"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#lost",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": []
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#stray",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": []
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#herd",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "trailing",
+          "key": "http://example.org/kinds#herd"
+        }
+      },
+      {
+        "id": "res:http://example.org/kinds#pets",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "trailing",
+          "key": "http://example.org/kinds#pets"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:res:http://example.org/kinds#bat|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#bird",
+        "source": "res:http://example.org/kinds#bird",
+        "target": "res:http://example.org/kinds#bat"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#bat|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#bat"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#bird|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+        "source": "res:http://example.org/kinds#animal",
+        "target": "res:http://example.org/kinds#bird"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#cow|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+        "source": "res:http://example.org/kinds#animal",
+        "target": "res:http://example.org/kinds#cow"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#left|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#right",
+        "source": "res:http://example.org/kinds#right",
+        "target": "res:http://example.org/kinds#left"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#lost|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#stray",
+        "source": "res:http://example.org/kinds#stray",
+        "target": "res:http://example.org/kinds#lost"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#mammal|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#animal",
+        "source": "res:http://example.org/kinds#animal",
+        "target": "res:http://example.org/kinds#mammal"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#right|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#left",
+        "source": "res:http://example.org/kinds#left",
+        "target": "res:http://example.org/kinds#right"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species01|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species01"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species02|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species02"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species03|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species03"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species04|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species04"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species05|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species05"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species06|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species06"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species07|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species07"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species08|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species08"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species09|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species09"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species10|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species10"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species11|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species11"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species12|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species12"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species13|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species13"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species14|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species14"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species15|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species15"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species16|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species16"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species17|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species17"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species18|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species18"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species19|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species19"
+      },
+      {
+        "id": "edge:res:http://example.org/kinds#species20|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/kinds#mammal",
+        "source": "res:http://example.org/kinds#mammal",
+        "target": "res:http://example.org/kinds#species20"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 240,
+    "rowHeight": 110,
+    "regionGap": 90,
+    "regionHeader": 60,
+    "layerGap": 50,
+    "minimumColumns": 8,
+    "role": "self.role",
+    "key": "self.key",
+    "regions": "self.regions"
+  },
+  "output": {
+    "positions": {
+      "res:http://example.org/kinds#animal": {
+        "x": 0.0,
+        "y": 210.0
+      },
+      "res:http://example.org/kinds#bat": {
+        "x": 0.0,
+        "y": 790.0
+      },
+      "res:http://example.org/kinds#bird": {
+        "x": 720.0,
+        "y": 630.0
+      },
+      "res:http://example.org/kinds#cow": {
+        "x": 1500.0,
+        "y": 20.0
+      },
+      "res:http://example.org/kinds#empty": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/kinds#farm": {
+        "x": 0.0,
+        "y": 150.0
+      },
+      "res:http://example.org/kinds#herd": {
+        "x": 0.0,
+        "y": 1570.0
+      },
+      "res:http://example.org/kinds#left": {
+        "x": 240.0,
+        "y": 370.0
+      },
+      "res:http://example.org/kinds#lost": {
+        "x": 0.0,
+        "y": 1370.0
+      },
+      "res:http://example.org/kinds#mammal": {
+        "x": 960.0,
+        "y": 630.0
+      },
+      "res:http://example.org/kinds#pets": {
+        "x": 240.0,
+        "y": 1570.0
+      },
+      "res:http://example.org/kinds#right": {
+        "x": 240.0,
+        "y": 210.0
+      },
+      "res:http://example.org/kinds#species01": {
+        "x": 240.0,
+        "y": 790.0
+      },
+      "res:http://example.org/kinds#species02": {
+        "x": 480.0,
+        "y": 790.0
+      },
+      "res:http://example.org/kinds#species03": {
+        "x": 720.0,
+        "y": 790.0
+      },
+      "res:http://example.org/kinds#species04": {
+        "x": 960.0,
+        "y": 790.0
+      },
+      "res:http://example.org/kinds#species05": {
+        "x": 1200.0,
+        "y": 790.0
+      },
+      "res:http://example.org/kinds#species06": {
+        "x": 1440.0,
+        "y": 790.0
+      },
+      "res:http://example.org/kinds#species07": {
+        "x": 1680.0,
+        "y": 790.0
+      },
+      "res:http://example.org/kinds#species08": {
+        "x": 0.0,
+        "y": 900.0
+      },
+      "res:http://example.org/kinds#species09": {
+        "x": 240.0,
+        "y": 900.0
+      },
+      "res:http://example.org/kinds#species10": {
+        "x": 480.0,
+        "y": 900.0
+      },
+      "res:http://example.org/kinds#species11": {
+        "x": 720.0,
+        "y": 900.0
+      },
+      "res:http://example.org/kinds#species12": {
+        "x": 960.0,
+        "y": 900.0
+      },
+      "res:http://example.org/kinds#species13": {
+        "x": 1200.0,
+        "y": 900.0
+      },
+      "res:http://example.org/kinds#species14": {
+        "x": 1440.0,
+        "y": 900.0
+      },
+      "res:http://example.org/kinds#species15": {
+        "x": 1680.0,
+        "y": 900.0
+      },
+      "res:http://example.org/kinds#species16": {
+        "x": 360.0,
+        "y": 1010.0
+      },
+      "res:http://example.org/kinds#species17": {
+        "x": 600.0,
+        "y": 1010.0
+      },
+      "res:http://example.org/kinds#species18": {
+        "x": 840.0,
+        "y": 1010.0
+      },
+      "res:http://example.org/kinds#species19": {
+        "x": 1080.0,
+        "y": 1010.0
+      },
+      "res:http://example.org/kinds#species20": {
+        "x": 1320.0,
+        "y": 1010.0
+      },
+      "res:http://example.org/kinds#stray": {
+        "x": 0.0,
+        "y": 1210.0
+      },
+      "res:http://example.org/kinds#zoo": {
+        "x": 0.0,
+        "y": 570.0
+      }
+    }
+  }
+}

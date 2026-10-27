@@ -1,0 +1,955 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record systems/causal-loop-diagram` from parity/scripts/systems/causal-loop-diagram/reference.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "systems/causal-loop-diagram",
+  "description": "../../../causal-loop-diagram.atd",
+  "inputs": {
+    "body": "reference.cld",
+    "registration": "reference.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "variable:population",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "population",
+          "label": "Population"
+        }
+      },
+      {
+        "id": "variable:births",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "births",
+          "label": "Births"
+        }
+      },
+      {
+        "id": "variable:deaths",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "deaths",
+          "label": "Deaths"
+        }
+      },
+      {
+        "id": "variable:crowding",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "crowding",
+          "label": "Crowding"
+        }
+      },
+      {
+        "id": "variable:sanitation",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "sanitation",
+          "label": "Sanitation"
+        }
+      },
+      {
+        "id": "variable:foodPerCapita",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "foodPerCapita",
+          "label": "Food per capita"
+        }
+      },
+      {
+        "id": "loop:R1",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "R1",
+          "title": "Births beget births",
+          "members": "variable:population, variable:births"
+        }
+      },
+      {
+        "id": "loop:B2",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "B2",
+          "title": "Deaths check the population",
+          "members": "variable:population, variable:deaths"
+        }
+      },
+      {
+        "id": "loop:R3",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "R3",
+          "title": "Crowding, sanitation and mortality",
+          "members": "variable:population, variable:crowding, variable:sanitation, variable:deaths"
+        }
+      },
+      {
+        "id": "loop:B4",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "B4",
+          "title": "Food limits births",
+          "members": "variable:population, variable:foodPerCapita, variable:births"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "link:population|births",
+        "type": "CausalLink",
+        "source": "variable:population",
+        "target": "variable:births",
+        "attributes": {
+          "causeName": "population",
+          "effectName": "births",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false",
+          "weight": "1.4",
+          "note": "more people, more births"
+        }
+      },
+      {
+        "id": "link:births|population",
+        "type": "CausalLink",
+        "source": "variable:births",
+        "target": "variable:population",
+        "attributes": {
+          "causeName": "births",
+          "effectName": "population",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:population|deaths",
+        "type": "CausalLink",
+        "source": "variable:population",
+        "target": "variable:deaths",
+        "attributes": {
+          "causeName": "population",
+          "effectName": "deaths",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:deaths|population",
+        "type": "CausalLink",
+        "source": "variable:deaths",
+        "target": "variable:population",
+        "attributes": {
+          "causeName": "deaths",
+          "effectName": "population",
+          "polarity": "negative",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:population|crowding",
+        "type": "CausalLink",
+        "source": "variable:population",
+        "target": "variable:crowding",
+        "attributes": {
+          "causeName": "population",
+          "effectName": "crowding",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false",
+          "weight": "0.8"
+        }
+      },
+      {
+        "id": "link:crowding|sanitation",
+        "type": "CausalLink",
+        "source": "variable:crowding",
+        "target": "variable:sanitation",
+        "attributes": {
+          "causeName": "crowding",
+          "effectName": "sanitation",
+          "polarity": "negative",
+          "delayed": "true",
+          "flipped": "false",
+          "note": "infrastructure lags the crowd"
+        }
+      },
+      {
+        "id": "link:sanitation|deaths",
+        "type": "CausalLink",
+        "source": "variable:sanitation",
+        "target": "variable:deaths",
+        "attributes": {
+          "causeName": "sanitation",
+          "effectName": "deaths",
+          "polarity": "negative",
+          "delayed": "false",
+          "flipped": "true"
+        }
+      },
+      {
+        "id": "link:population|foodPerCapita",
+        "type": "CausalLink",
+        "source": "variable:population",
+        "target": "variable:foodPerCapita",
+        "attributes": {
+          "causeName": "population",
+          "effectName": "foodPerCapita",
+          "polarity": "negative",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:foodPerCapita|births",
+        "type": "CausalLink",
+        "source": "variable:foodPerCapita",
+        "target": "variable:births",
+        "attributes": {
+          "causeName": "foodPerCapita",
+          "effectName": "births",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "causal-loop.label-disagrees",
+        "severity": "warning",
+        "element": "loop:R3",
+        "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+      },
+      {
+        "rule": "causal-loop.undecidable-loop",
+        "severity": "warning",
+        "element": "loop:B4",
+        "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "causal-loop.rename-variable",
+      "args": {
+        "value": "People"
+      },
+      "select": [
+        "variable:population"
+      ],
+      "expectFile": "after-1.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "element": "variable:births",
+        "attribute": "causal-loop.variable-label",
+        "value": "Births per year"
+      },
+      "expectFile": "after-2.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "causal-loop.make-negative",
+      "select": [
+        "link:population|births"
+      ],
+      "expectFile": "after-3.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "causal-loop.toggle-delay",
+      "expectFile": "after-4.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "causal-loop.flip-curvature",
+      "expectFile": "after-5.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "causal-loop.link-weight",
+        "value": "2.5"
+      },
+      "expectFile": "after-6.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "causal-loop.link-label",
+        "value": "fewer births"
+      },
+      "expectFile": "after-7.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-6.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-7.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-variable",
+      "args": {
+        "target": "new:300,-200"
+      },
+      "ids": [
+        "variable:variable1"
+      ],
+      "expectFile": "after-8.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "property": {
+        "element": "variable:variable1",
+        "attribute": "causal-loop.variable-label",
+        "value": "Migration"
+      },
+      "expectFile": "after-9.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "move": {
+        "element": "variable:crowding"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"variable:crowding\"],\"to\":{\"x\":120,\"y\":-60}}",
+      "expectFile": "after-9.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-link",
+      "args": {
+        "value": "population"
+      },
+      "select": [
+        "variable:variable1"
+      ],
+      "ids": [
+        "link:variable1|population"
+      ],
+      "expectFile": "after-10.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-link",
+      "args": {
+        "value": "variable1"
+      },
+      "select": [
+        "variable:population"
+      ],
+      "ids": [
+        "link:population|variable1",
+        "loop:R4"
+      ],
+      "expectFile": "after-11.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "action": "causal-loop.rename-loop",
+      "args": {
+        "value": "Mortality loop"
+      },
+      "select": [
+        "loop:R3"
+      ],
+      "expectFile": "after-12.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R3",
+          "message": "Loop R3 is labelled reinforcing but its links make it balancing: it runs through 3 negative links, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "causal-loop.loop-identifier",
+        "value": "B3"
+      },
+      "ids": [
+        "loop:B3"
+      ],
+      "expectFile": "after-13.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "action": "causal-loop.remove-link",
+      "select": [
+        "link:sanitation|deaths"
+      ],
+      "expectFile": "after-14.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B3",
+          "message": "Loop B3 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        },
+        {
+          "rule": "causal-loop.undecidable-loop",
+          "severity": "warning",
+          "element": "loop:B4",
+          "message": "Loop B4 runs through a link with no stated polarity, so whether it reinforces or balances cannot be counted. Mark every link in it with + or - to decide it."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "property": {
+        "element": "link:foodPerCapita|births",
+        "attribute": "causal-loop.link-polarity",
+        "value": "+"
+      },
+      "expectFile": "after-15.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B3",
+          "message": "Loop B3 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "causal-loop.remove-variable",
+      "args": {
+        "target": "variable:deaths",
+        "confirm": true
+      },
+      "expectFile": "after-16.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-15.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B3",
+          "message": "Loop B3 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "action": "causal-loop.remove-loop",
+      "args": {
+        "target": "loop:B2"
+      },
+      "expectFile": "after-17.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B3",
+          "message": "Loop B3 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        },
+        {
+          "rule": "causal-loop.unlabelled-loop",
+          "severity": "information",
+          "message": "The links form a feedback loop through population → deaths that no loop statement names. It is balancing."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-loop",
+      "args": {
+        "value": "B9"
+      },
+      "select": [
+        "variable:sanitation"
+      ],
+      "ids": [
+        "loop:B9"
+      ],
+      "expectFile": "after-18.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B3",
+          "message": "Loop B3 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        },
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B9",
+          "message": "Loop B9 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        },
+        {
+          "rule": "causal-loop.unlabelled-loop",
+          "severity": "information",
+          "message": "The links form a feedback loop through population → deaths that no loop statement names. It is balancing."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "move": {
+        "element": "variable:variable1"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"variable:variable1\"],\"to\":{\"x\":320,\"y\":-180}}",
+      "expectFile": "after-18.cld",
+      "findings": [
+        {
+          "rule": "causal-loop.label-disagrees",
+          "severity": "warning",
+          "element": "loop:R1",
+          "message": "Loop R1 is labelled reinforcing but its links make it balancing: it runs through 1 negative link, and a loop reinforces on an even count and balances on an odd one. Either the label or one of the arrows is wrong, and this reading does not assume which."
+        },
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B3",
+          "message": "Loop B3 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        },
+        {
+          "rule": "causal-loop.loop-is-not-a-cycle",
+          "severity": "warning",
+          "element": "loop:B9",
+          "message": "Loop B9 names a path the links do not close into a cycle, so nothing can be said about whether it reinforces or balances."
+        },
+        {
+          "rule": "causal-loop.unlabelled-loop",
+          "severity": "information",
+          "message": "The links form a feedback loop through population → deaths that no loop statement names. It is balancing."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/systems/causal-loop-diagram/reference/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

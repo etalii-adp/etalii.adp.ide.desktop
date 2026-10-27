@@ -1,0 +1,29 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.msbuildSolution",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads an MSBuild solution, a `.sln` or `.slnx`, into the projects it names and the references between them: each project file the solution names, and the package descriptions of the local NuGet cache. A package reference's version, where MSBuild states it centrally or through a property, is the one `analysis.msbuildImports` evaluates, which a description that requires this reader requires too. It never writes the solution or a project file, and plans no change. Its fixtures are recorded with the .NET dependency graph's cases (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderInput"
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderResult"
+  },
+  "laws": [
+    "deterministic",
+    "readingNeverFails"
+  ],
+  "exceptions": [
+    {
+      "reads": "the project files the solution names",
+      "reason": "A solution is a list of project files; what a project references is in the project file, which a case lists among its inputs from the working copy."
+    },
+    {
+      "reads": "the local NuGet package cache, at `NUGET_PACKAGES` or its default",
+      "reason": "A package's description is in its `.nuspec` in the cache; a case lists the `.nuspec` files it reads among its inputs, and a package missing from the cache reads without one."
+    }
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

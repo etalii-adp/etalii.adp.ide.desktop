@@ -1,0 +1,645 @@
+atd 0.1
+
+/// A chat agent's instructions drawn as a behavior tree - what it checks, does, tries, repeats and asks - stored as the
+/// Markdown the agent reads.
+///
+/// Agent Behavior Modelling borrows the behavior tree from game development and tunes it to agent engineering. A tree
+/// of nodes says how an agent works through a task: composites (Do in order, Try in order, Do together) arrange their
+/// children, wrappers (Retry up to N times, Repeat until, Only while, Ask approval before) govern exactly one child,
+/// and leaves (Check, Do, Ask the user, Delegate) are the work itself.
+///
+/// The tree is not stored in a model file of its own. It is a keyword-marked bullet list under the `Behavior` heading
+/// of an ordinary Markdown file, and that Markdown file is the instruction file the agent reads (a system prompt, an
+/// `AGENTS.md`, a skill). The `.adp` registration beside it keeps only what the drawing needs: the heights the author
+/// dragged rows to.
+///
+/// What this specification states through `x-abm-` keys, each shaped as the construct proposed for it - a drop placed
+/// under the nearest node above with room, the Kind field filtered by children, the right-button line, the tidy-tree
+/// layout, and the plugin changes FBL lacks - and the Markdown format itself are described in
+/// `agent-behavior-modelling.md` beside this file.
+diagram etalii/agent-behavior-modelling version "0.3.0" {
+  label "Agent Behavior Modelling"
+  id: "net.etalii.adp.etalii.agent-behavior-modelling"
+  defaultLocale: en
+  authors: [{ name: "Peter Vrenken" }]
+  license: "Apache-2.0"
+  icon: mdi-robot-outline
+  fileExtension: md
+  requires: { conformance: standard, features: ["anchor.sides"] }
+  doc {
+    rationale: "An instruction file written as prose hides its control flow: which steps are ordered, which are alternatives, where the agent must stop and ask. Drawn as a behavior tree, the flow is visible and checkable, while the file the agent reads stays plain Markdown."
+    tags: [agent, "behavior tree", prompt, instructions, "agent engineering", "humans and agents together"]
+    audience: [user, author]
+    seeAlso: [
+      {
+        title: "Behavior tree (artificial intelligence, robotics and control)"
+        href: "https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)"
+      }
+    ]
+  }
+  x-abm: {
+    doc: "Today's wire ids, which the standalone client (client/abmIds.ts) and backend share, mapped from this specification's names. An element's wire type is the prefix followed by its kind."
+    typePrefix: "etalii/agent-behavior-modelling+"
+    types: {
+      Sequence: sequence
+      Fallback: fallback
+      Parallel: parallel
+      Retry: retry
+      RepeatUntil: repeat
+      Guard: guard
+      Approval: approval
+      Check: check
+      Do: action
+      AskUser: ask
+      Delegate: delegate
+      Child: child
+    }
+    tools: {
+      sequence: { id: "abm.toolbox.sequence", drop: "abm.add.sequence" }
+      fallback: { id: "abm.toolbox.fallback", drop: "abm.add.fallback" }
+      parallel: { id: "abm.toolbox.parallel", drop: "abm.add.parallel" }
+      retry: { id: "abm.toolbox.retry", drop: "abm.add.retry" }
+      repeat: { id: "abm.toolbox.repeat", drop: "abm.add.repeat" }
+      guard: { id: "abm.toolbox.guard", drop: "abm.add.guard" }
+      approval: { id: "abm.toolbox.approval", drop: "abm.add.approval" }
+      check: { id: "abm.toolbox.check", drop: "abm.add.check" }
+      action: { id: "abm.toolbox.action", drop: "abm.add.action" }
+      ask: { id: "abm.toolbox.ask", drop: "abm.add.ask" }
+      delegate: { id: "abm.toolbox.delegate", drop: "abm.add.delegate" }
+    }
+    actions: {
+      editLabel: "abm.rename"
+      delete: "abm.remove"
+      moveUp: "abm.move-earlier"
+      moveDown: "abm.move-later"
+      editNotes: "abm.edit-notes"
+      addChild: "abm.add.<kind>"
+      addHere: "abm.add.<kind>"
+      moveUnder: "abm.connect.child"
+      arrange: "abm.arrange"
+      arrangeFromNode: "abm.arrange"
+    }
+    properties: { Kind: "abm.kind", label: "abm.label", attempts: "abm.attempts", notes: "abm.notes", Place: "abm.place" }
+  }
+  x-adp: { kind: Diagram, state: Prototype, companion: "agent-behavior-modelling.md" }
+
+  import "agent-behavior-modelling.notation.atd"
+  import "agent-behavior-modelling.abm.atd"
+
+  /// The keyword a node is drawn and named with: the canonical one of its kind, with a Retry's count and the singular
+  /// `time` for one attempt (AbmNodeKinds.KeywordOf).
+  fn keyword(n: Element) -> string {
+    return n.type == 'Retry' ? 'Retry up to ' + string(n.attempts) + (n.attempts == 1 ? ' time' : ' times') : {'Sequence': 'Do in order', 'Fallback': 'Try in order', 'Parallel': 'Do together', 'RepeatUntil': 'Repeat until', 'Guard': 'Only while', 'Approval': 'Ask approval before', 'Check': 'Check', 'Do': 'Do', 'AskUser': 'Ask the user', 'Delegate': 'Delegate'}[n.type]
+  }
+
+  /// The eleven kinds, in the order the toolbox and the menus list them (AbmNodeKinds.All).
+  fn kinds() -> list<string> {
+    return ['Sequence', 'Fallback', 'Parallel', 'Retry', 'RepeatUntil', 'Guard', 'Approval', 'Check', 'Do', 'AskUser', 'Delegate']
+  }
+
+  /// A kind as menus and the Kind choice name it: its keyword, and `Retry` for a Retry.
+  fn kindChoice(t: string) -> string {
+    return {'Sequence': 'Do in order', 'Fallback': 'Try in order', 'Parallel': 'Do together', 'Retry': 'Retry', 'RepeatUntil': 'Repeat until', 'Guard': 'Only while', 'Approval': 'Ask approval before', 'Check': 'Check', 'Do': 'Do', 'AskUser': 'Ask the user', 'Delegate': 'Delegate'}[t]
+  }
+
+  /// A kind's family: `composite`, `decorator` or `leaf` (AbmNodeCategory).
+  fn familyOf(t: string) -> string {
+    return {'Sequence': 'composite', 'Fallback': 'composite', 'Parallel': 'composite', 'Retry': 'decorator', 'RepeatUntil': 'decorator', 'Guard': 'decorator', 'Approval': 'decorator', 'Check': 'leaf', 'Do': 'leaf', 'AskUser': 'leaf', 'Delegate': 'leaf'}[t]
+  }
+
+  /// The label a new node of a kind starts with, before the author types their own
+  /// (AddAbmNodeCommandHandler.StartingLabel); empty for a Retry and an Ask approval before.
+  fn startingLabel(t: string) -> string {
+    return {'Sequence': 'New steps', 'Fallback': 'New alternatives', 'Parallel': 'New independent work', 'Retry': '', 'RepeatUntil': 'New condition', 'Guard': 'New condition', 'Approval': '', 'Check': 'New question', 'Do': 'New action', 'AskUser': 'New question for the user', 'Delegate': 'New task'}[t]
+  }
+
+  /// Whether another child may be added beneath a node (AbmNode.TakesAnotherChild).
+  fn takesAnotherChild(n: Element) -> bool {
+    return n.isA('Composite') || (n.isA('Decorator') && n.children.size() == 0)
+  }
+
+  /// Whether a node can become kind `t` without losing a child (AbmContextPropertyProvider.KindsFor).
+  fn canBecome(t: string, n: Element) -> bool {
+    return familyOf(t) == 'leaf' ? n.children.size() == 0 : (familyOf(t) == 'decorator' ? n.children.size() <= 1 : true)
+  }
+
+  /// A label cut to 60 characters for a message (AbmParser.Shorten).
+  fn shorten(s: string) -> string {
+    return size(s) <= 60 ? s : s.substring(0, 57) + '...'
+  }
+
+  /// Eleven node types in three families, nested to any depth. The tree is containment: every node but a root has
+  /// exactly one parent, the order of a node's children is meaningful and stored, and the family decides how many
+  /// children a node may hold.
+  model {
+
+    /// Everything that can be placed in a behavior tree.
+    element BehaviorNode {
+      abstract: true
+      labelAttribute: label
+      /// What this node does, or the condition it names.
+      ///
+      /// The text after the keyword on the node's list item, kept on one line. For Repeat until and Only while it is
+      /// the condition; for Delegate it names the sub-agent or links another behavior file.
+      attribute label: string default "" { label: Label, order: 1 }
+      /// Further instructions for this node, kept as written.
+      ///
+      /// The lines indented under the node's list item that are not list items themselves. The agent reads them with
+      /// the node; the diagram never draws them.
+      attribute notes: text default "" { label: Notes, markup: markdown, order: 3 }
+    }
+
+    /// A node that arranges one or more children.
+    element Composite extends BehaviorNode {
+      abstract: true
+      contains BehaviorNode ordered { min: 1 }
+    }
+
+    /// A node that governs exactly one child: when it runs, how often, or whether the user agrees first.
+    element Decorator extends BehaviorNode {
+      abstract: true
+      contains BehaviorNode ordered { min: 1, max: 1 }
+    }
+
+    /// A node that does the work and holds no children.
+    element Leaf extends BehaviorNode {
+      abstract: true
+    }
+
+    /// Runs its children one after another, and fails as soon as one fails.
+    element Sequence extends Composite {
+      label "Do in order"
+      icon: mdi-arrow-right-bold-outline
+      x-abm: { keyword: "Do in order", kind: sequence }
+    }
+
+    /// Tries its children one after another, and succeeds as soon as one succeeds.
+    element Fallback extends Composite {
+      label "Try in order"
+      icon: mdi-help-rhombus-outline
+      x-abm: { keyword: "Try in order", kind: fallback }
+    }
+
+    /// Runs its children independently, at the same time where you can, and succeeds when all of them succeed.
+    element Parallel extends Composite {
+      label "Do together"
+      icon: mdi-call-split
+      x-abm: { keyword: "Do together", kind: parallel }
+    }
+
+    /// Runs its child again when it fails, at most N times in all.
+    element Retry extends Decorator {
+      label Retry
+      icon: mdi-replay
+      x-abm: { keyword: "Retry up to N times", kind: retry }
+      /// The N of `Retry up to N times`: the most attempts in all, the first included. A new Retry, and a node changed
+      /// into one, allows 3. `std.facets` is switched off, so a Retry read with 0 is reported once, by
+      /// `abm.no-attempts`.
+      attribute attempts: int default 3 { label: Attempts, min: 1, order: 2 }
+    }
+
+    /// Runs its child again and again until its condition holds.
+    element RepeatUntil extends Decorator {
+      label "Repeat until"
+      icon: mdi-repeat
+      x-abm: { keyword: "Repeat until", kind: repeat }
+    }
+
+    /// Runs its child only while its condition holds, and abandons it when the condition stops holding.
+    element Guard extends Decorator {
+      label "Only while"
+      icon: mdi-shield-outline
+      x-abm: { keyword: "Only while", kind: guard }
+    }
+
+    /// Says what its child is about to do and waits for the user's explicit approval; without it, the node fails.
+    element Approval extends Decorator {
+      label "Ask approval before"
+      icon: mdi-account-check-outline
+      x-abm: { keyword: "Ask approval before", kind: approval }
+    }
+
+    /// Answers its question from the conversation, your memory or a tool result; it succeeds when the answer is yes,
+    /// and never acts.
+    element Check extends Leaf {
+      label Check
+      icon: mdi-help-circle-outline
+      x-abm: { keyword: Check, kind: check }
+    }
+
+    /// Carries out one piece of work: a tool call, an answer, an edit.
+    element Do extends Leaf {
+      label Do
+      icon: mdi-play-outline
+      x-abm: { keyword: Do, kind: action }
+      /// True for a list item the Markdown gave no keyword (or a bold lead that is none of the eleven): it is read as a
+      /// Do labelled with the whole item, drawn dashed and reported by `abm.no-keyword`. Set by the reader only, never
+      /// written.
+      attribute implicit: bool readonly default false {
+        label: Implicit
+        readOnlyReasons: ["Whether an item carries a keyword is read from the Markdown; give it one by changing its Kind."]
+      }
+    }
+
+    /// Asks its question and waits for the answer.
+    element AskUser extends Leaf {
+      label "Ask the user"
+      icon: mdi-account-question-outline
+      x-abm: { keyword: "Ask the user", kind: ask }
+    }
+
+    /// Hands its task to a sub-agent, or follows the behavior file it links to.
+    element Delegate extends Leaf {
+      label Delegate
+      icon: mdi-account-arrow-right-outline
+      x-abm: { keyword: Delegate, kind: delegate }
+    }
+
+    /// The line from a node to each of its children, in order.
+    ///
+    /// Not a stored relation: a line is derived from containment, one per node that has a parent, named `child:` and
+    /// the child's place. A line is drawn even under a leaf, so a file that breaks a rule is drawn as the agent will
+    /// read it. Drawing a new line from a node to another moves the second, with everything under it, to be the first's
+    /// last child (the `moveUnder` operation); removing or reconnecting one is not offered.
+    relation Child from BehaviorNode to BehaviorNode {
+      label Child
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      acyclic: true
+      derived: {
+        from: (diagram.nodes.filter(n, n.parent != null))
+        id: ('child:' + item.id)
+        source: (item.parent)
+        target: (item)
+        sources: ([item])
+        edits: { connect: moveUnder }
+        doc: "One line per node with a parent. The source end is any node rather than Composite or Decorator, so a leaf's children keep their lines; which nodes may start a new line is said by `moveUnder`'s aborts."
+      }
+    }
+  }
+
+  /// A Markdown file edited by hand that breaks a rule still opens and draws; each finding is reported on its node's
+  /// line. Three built-ins are switched off because a declared rule reports the same breach once, in today's words:
+  /// `std.containment` (a leaf with children), `std.multiplicity` (a wrapper without exactly one child, a composite
+  /// without children) and `std.facets` (a Retry with no attempt). The rule `noBehavior` gives `abm.no-behavior`
+  /// (information) when the file has no Behavior heading or the section holds no list.
+  constraints {
+    blockSaveOn: never
+    order: ["abm.no-keyword", "abm.several-roots"]
+
+    builtin std.containment {
+      enabled: false
+      doc: "Reported once per leaf by abm.leaf-with-children, with its count, rather than once per child."
+    }
+
+    builtin std.multiplicity { enabled: false, doc: "Reported by abm.decorator-children (error) and abm.empty-composite (warning)." }
+
+    builtin std.facets { enabled: false, doc: "Reported by abm.no-attempts; the Attempts field refuses a value below 1 itself." }
+
+    constraint noKeyword for Do {
+      label "Item without a keyword"
+      rule !self.implicit
+      severity warning
+      message ('"' + shorten(self.label) + '" has no keyword, so it is read as a Do. Start it with one, such as **Do:** or **Check:**.')
+      code: "abm.no-keyword"
+      suppressible: false
+    }
+
+    /// Reported on the second root.
+    constraint severalRoots for diagram {
+      label "More than one root"
+      rule diagram.nodes.filter(n, n.parent == null).size() <= 1
+      severity warning
+      message ('The tree has ' + string(diagram.nodes.filter(n, n.parent == null).size()) + ' roots, and an agent starts at one. Put them under a Do in order or a Try in order to say how they relate.')
+      code: "abm.several-roots"
+      suppressible: false
+      target: (diagram.nodes.filter(n, n.parent == null)[1])
+    }
+
+    constraint leafWithChildren for Leaf {
+      label "Leaf with children"
+      rule self.children.size() == 0
+      severity error
+      message ('"' + keyword(self) + ': ' + self.label + '" holds no children, but has ' + string(self.children.size()) + '. Make it a Do in order, or move them out.')
+      code: "abm.leaf-with-children"
+    }
+
+    constraint decoratorChildren for Decorator {
+      label "Wrapper without exactly one child"
+      rule self.children.size() == 1
+      severity error
+      message ('"' + keyword(self) + '" wraps exactly one child, but has ' + string(self.children.size()) + '.' + (self.children.size() > 1 ? ' Put them under a Do in order first.' : ' Add the node it applies to beneath it.'))
+      code: "abm.decorator-children"
+    }
+
+    /// A warning, because it is the natural state while a tree is being written.
+    constraint emptyComposite for Composite {
+      label "Composite without children"
+      rule self.children.size() > 0
+      severity warning
+      message ('"' + keyword(self) + ': ' + self.label + '" has no children, so it has nothing to run.')
+      code: "abm.empty-composite"
+      suppressible: false
+    }
+
+    constraint noAttempts for Retry {
+      label "Retry without attempts"
+      rule self.attempts >= 1
+      severity error
+      message "A Retry that allows no attempt never runs its child."
+      code: "abm.no-attempts"
+    }
+
+    /// What the specification's reader plugin reported, now that a declared binding reads the file: a file in which no
+    /// node reads. The plugin told a file with no Behavior heading (line 1) from a section that holds no list yet (the
+    /// heading's line); a rule sees the model, not the headings, so the first sentence is the one given.
+    constraint noBehavior for diagram {
+      label "No behavior tree"
+      rule diagram.nodes.size() > 0
+      severity info
+      message "This file has no Behavior heading, so there is no behavior tree to draw. Add a node to start one."
+      code: "abm.no-behavior"
+      suppressible: false
+    }
+  }
+
+  message std.atStart "It is already the first of its siblings."
+  message std.atEnd "It is already the last of its siblings."
+
+  /// Adds a node of the chosen kind as the last child, then edits its label in place.
+  operation addChild "Add child" for BehaviorNode {
+    unavailable [
+      {
+        when: (self.isA('Leaf'))
+        message: ('"' + keyword(self) + '" holds no children. Add the node under a Do in order, Try in order or Do together.')
+      },
+      {
+        when: (self.isA('Decorator') && self.children.size() > 0)
+        message: ('"' + keyword(self) + '" holds exactly one child, and already has it.')
+      }
+    ]
+    param kind: string { label: Kind }
+    icon: mdi-plus
+    if p.kind == 'Sequence' {
+      create Sequence { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Fallback' {
+      create Fallback { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Parallel' {
+      create Parallel { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Retry' {
+      create Retry { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'RepeatUntil' {
+      create RepeatUntil { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Guard' {
+      create Guard { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Approval' {
+      create Approval { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Check' {
+      create Check { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Do' {
+      create Do { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'AskUser' {
+      create AskUser { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Delegate' {
+      create Delegate { label: startingLabel(p.kind) } in self as added
+      select added
+      editLabel added { label: label }
+    } else {
+      fail 'A behavior model has no `' + p.kind + '` node.'
+    }
+  }
+
+  /// Adds a node of the chosen kind where the empty-canvas menu was opened, placed as a toolbox drop is, then edits its
+  /// label in place.
+  operation addHere "Add here" for document {
+    param kind: string { label: Kind }
+    icon: mdi-plus
+    if p.kind == 'Sequence' {
+      create Sequence { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Fallback' {
+      create Fallback { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Parallel' {
+      create Parallel { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Retry' {
+      create Retry { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'RepeatUntil' {
+      create RepeatUntil { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Guard' {
+      create Guard { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Approval' {
+      create Approval { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Check' {
+      create Check { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Do' {
+      create Do { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'AskUser' {
+      create AskUser { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else if p.kind == 'Delegate' {
+      create Delegate { label: startingLabel(p.kind) } place underNearestAbove as added
+      select added
+      editLabel added { label: label }
+    } else {
+      fail 'A behavior model has no `' + p.kind + '` node.'
+    }
+  }
+
+  /// Replaces the node's notes from a dialog pre-filled with them; empty notes remove the lines.
+  operation editNotes "Edit notes…" for BehaviorNode {
+    param notes: text { label: Notes, markup: markdown }
+    icon: mdi-note-text-outline
+    paramsForm: notesDialog
+    set notes = p.notes
+  }
+
+  /// Run by a new line drawn from a node (the source) to another (the target), mapped from the derived Child's
+  /// `connect` gesture: the target moves, with everything under it, to be the source's last child. The menu always
+  /// offers it, as the module does; a line that cannot move the target is refused when it is run, with the writer's
+  /// sentence, so the refusals are aborts rather than `unavailable` reasons.
+  operation moveUnder "Move under this node" for Child {
+    icon: mdi-file-tree-outline
+    if self.source.id == self.target.id || self.target.descendants().exists(d, d.id == self.source.id) {
+      fail 'A node cannot move beneath itself.'
+    }
+    if self.source.isA('Leaf') {
+      fail '"' + keyword(self.source) + '" holds no children.'
+    }
+    if self.source.isA('Decorator') && self.source.children.size() > 0 && !(self.target.parent != null && self.target.parent.id == self.source.id) {
+      fail '"' + keyword(self.source) + '" holds exactly one child, and already has it.'
+    }
+    if self.target.parent != null && self.target.parent.id == self.source.id && self.target.positionIn(self.source.children) == self.source.children.size() - 1 {
+      fail 'That node is already there.'
+    }
+    reparent self.target to self.source
+  }
+
+  /// Forgets every position a node was dragged to, so the whole tree is drawn by the computed layout again: the stored
+  /// view of every pinned node is cleared, which empties the registration's `layout:` block and never touches the
+  /// Markdown, and one undo puts the registration back byte for byte. With nothing dragged it refuses with "This
+  /// behavior model is already arranged." A model opened without a registration has no dragged positions to forget,
+  /// which the host says (the trace marks it as the host's).
+  operation arrange "Arrange diagram" for document {
+    unavailable [
+      {
+        when: (diagram.nodes.size() == 0)
+        message: "There is nothing to arrange until this behavior model has a node."
+      }
+    ]
+    icon: mdi-sitemap-outline
+    if !diagram.nodes.exists(n, n.view.pinned) {
+      fail 'This behavior model is already arranged.'
+    }
+    for n in diagram.nodes.filter(n, n.view.pinned) limit 100000 {
+      view n { pinned: false, bounds: null }
+    }
+  }
+
+  /// Arrange diagram offered on a node, because it is about the whole tree; an operation's `for` cannot name both the
+  /// diagram and a type.
+  operation arrangeFromNode "Arrange diagram" for BehaviorNode {
+    unavailable [
+      {
+        when: (diagram.nodes.size() == 0)
+        message: "There is nothing to arrange until this behavior model has a node."
+      }
+    ]
+    icon: mdi-sitemap-outline
+    if !diagram.nodes.exists(n, n.view.pinned) {
+      fail 'This behavior model is already arranged.'
+    }
+    for n in diagram.nodes.filter(n, n.view.pinned) limit 100000 {
+      view n { pinned: false, bounds: null }
+    }
+  }
+
+  /// Every change - add, remove, rename, change the kind, edit notes, reorder, re-parent, drag - is one undoable step
+  /// that restores the whole Markdown text.
+  behavior {
+    placements: {
+      underNearestAbove: {
+        candidates: (diagram.nodes.filter(n, takesAnotherChild(n) && n.view.bounds.center()[1] < position.y))
+        as: candidate
+        rank: (math.abs(position.x - candidate.view.bounds.center()[0]) + 2.0 * (position.y - candidate.view.bounds.center()[1]))
+        index: (parent.children.filter(c, c.view.bounds.center()[0] < position.x).size())
+        whenEmpty: root
+        refusal: "Drop the node below the node it belongs under: a Do in order, a Try in order, a Do together, or a Retry, Repeat until, Only while or Ask approval before that has no child yet."
+        doc: "The parent is the candidate of lowest rank, the first in model order on a tie; the new node goes before its first child whose centre lies right of the drop. An empty tree takes the node as its root."
+      }
+    }
+    deletion: {
+      BehaviorNode: {
+        children: delete
+        relations: delete
+        confirm: {
+          count: (self.descendants().size())
+          threshold: 1
+          title: Remove
+          message: (count == 1 ? 'Removing this node also removes the 1 node beneath it.' : 'Removing this node also removes the ' + string(count) + ' nodes beneath it.')
+          confirmLabel: Remove
+          danger: true
+        }
+        doc: "Removing a node removes everything under it, as one splice of its lines. A leaf, or a node with nothing beneath it, goes without asking."
+      }
+    }
+    retype: {
+      Sequence: {
+        to: [Fallback, Parallel, Retry, RepeatUntil, Guard, Approval, Check, Do, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      Fallback: {
+        to: [Sequence, Parallel, Retry, RepeatUntil, Guard, Approval, Check, Do, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      Parallel: {
+        to: [Sequence, Fallback, Retry, RepeatUntil, Guard, Approval, Check, Do, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      Retry: {
+        to: [Sequence, Fallback, Parallel, RepeatUntil, Guard, Approval, Check, Do, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      RepeatUntil: {
+        to: [Sequence, Fallback, Parallel, Retry, Guard, Approval, Check, Do, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      Guard: {
+        to: [Sequence, Fallback, Parallel, Retry, RepeatUntil, Approval, Check, Do, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      Approval: {
+        to: [Sequence, Fallback, Parallel, Retry, RepeatUntil, Guard, Check, Do, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      Check: {
+        to: [Sequence, Fallback, Parallel, Retry, RepeatUntil, Guard, Approval, Do, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      Do: {
+        to: [Sequence, Fallback, Parallel, Retry, RepeatUntil, Guard, Approval, Check, AskUser, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      AskUser: {
+        to: [Sequence, Fallback, Parallel, Retry, RepeatUntil, Guard, Approval, Check, Do, Delegate]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+      Delegate: {
+        to: [Sequence, Fallback, Parallel, Retry, RepeatUntil, Guard, Approval, Check, Do, AskUser]
+        attributeMapping: { attempts: (has(old.attempts) ? max(old.attempts, 3) : 3) }
+      }
+    }
+  }
+
+  /// The tree is the first bullet list under the first Behavior heading of a Markdown file; everything else in the file
+  /// is the author's and is kept byte for byte. The binding `abm` reads it with declared rules of the bullets family
+  /// (FBL §4.8), where the specification's binding named the persistence plugin `net.etalii.adp.etalii.abmMarkdown`.
+  /// Positions the author dragged live in the .adp registration's layout block, never in the Markdown.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: derived
+      expression: (self.parent == null ? string(self.positionIn(diagram.nodes.filter(n, n.parent == null)) + 1) : self.parent.id + '.' + string(self.positionIn(self.parent.children) + 1))
+      doc: "A node's id is its place in the tree: 1, 1.2, 1.2.1 - its parent's place, a dot, and its position among its siblings counted from 1. Nothing is written into the Markdown to name it. A rename keeps the place; a reorder or a move changes it, and a drag renames the stored positions with it."
+    }
+    view: { store: [pinned, bounds] }
+  }
+}

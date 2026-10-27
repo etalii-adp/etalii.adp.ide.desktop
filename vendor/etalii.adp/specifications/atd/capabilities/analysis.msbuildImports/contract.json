@@ -1,0 +1,41 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "analysis.msbuildImports",
+  "version": "1.0.0",
+  "extensionPoint": "analysis",
+  "doc": "Evaluates the imports of MSBuild project files as far as a dependency graph needs them: for each project, the `Directory.Build.props`, `Directory.Packages.props` and `Directory.Build.targets` files MSBuild imports implicitly from the project's folder upwards, and the files they and the project import explicitly, with the properties they set, so that a package's version stated centrally (`PackageVersion`) and a reference whose version is a property resolve to the version MSBuild would use. It derives no element; its result is the version of each package reference, and a finding for an import it cannot read. Its fixtures are recorded with the .NET dependency graph's cases (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/AnalysisInput"
+  },
+  "args": {
+    "importsFrom": {
+      "type": "enum",
+      "values": [
+        "implicit",
+        "explicit",
+        "both"
+      ],
+      "default": "both",
+      "doc": "Which imports are followed."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/AnalysisResult"
+  },
+  "laws": [
+    "deterministic",
+    "pure"
+  ],
+  "exceptions": [
+    {
+      "reads": "the `Directory.Build.props`, `Directory.Packages.props` and `Directory.Build.targets` files from each project's folder up to the working copy's root",
+      "reason": "MSBuild imports them by where they are, not by a reference in the project; a case lists each among its inputs from the working copy."
+    },
+    {
+      "reads": "the `.props` and `.targets` files a project or an imported file names in an `Import`",
+      "reason": "An explicit import is a path relative to the importing file; a case lists each file it reads among its inputs, and one outside the working copy is not read and is reported."
+    }
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

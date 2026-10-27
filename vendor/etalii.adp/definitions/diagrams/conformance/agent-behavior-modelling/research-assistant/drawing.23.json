@@ -1,0 +1,1076 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "1",
+      "type": "Sequence",
+      "shape": "path",
+      "bounds": {
+        "x": 955,
+        "y": 30,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do in order",
+          "font": "10 600",
+          "position": {
+            "x": 1055,
+            "y": 50
+          }
+        },
+        {
+          "id": "label",
+          "text": "Answer the research question",
+          "font": "12 400",
+          "position": {
+            "x": 1055,
+            "y": 70
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.composite",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "1.1",
+        "1.2",
+        "1.3"
+      ]
+    },
+    {
+      "id": "1.1",
+      "type": "Fallback",
+      "shape": "path",
+      "bounds": {
+        "x": 442,
+        "y": 146,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Try in order",
+          "font": "10 600",
+          "position": {
+            "x": 542,
+            "y": 166
+          }
+        },
+        {
+          "id": "label",
+          "text": "Settle the question",
+          "font": "12 400",
+          "position": {
+            "x": 542,
+            "y": 186
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.composite",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "1.1.1",
+        "1.1.2",
+        "1.1.3",
+        "1.1.4"
+      ]
+    },
+    {
+      "id": "1.1.1",
+      "type": "Do",
+      "shape": "path",
+      "bounds": {
+        "x": 100,
+        "y": 262,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do",
+          "font": "10 600",
+          "position": {
+            "x": 200,
+            "y": 282
+          }
+        },
+        {
+          "id": "label",
+          "text": "What is the answer for, and …",
+          "font": "12 400",
+          "position": {
+            "x": 200,
+            "y": 302
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.action",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.1.2",
+      "type": "Check",
+      "shape": "path",
+      "bounds": {
+        "x": 328,
+        "y": 262,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Check",
+          "font": "10 600",
+          "position": {
+            "x": 428,
+            "y": 282
+          }
+        },
+        {
+          "id": "label",
+          "text": "The question names its topic…",
+          "font": "12 400",
+          "position": {
+            "x": 428,
+            "y": 302
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.check",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.1.3",
+      "type": "Check",
+      "shape": "path",
+      "bounds": {
+        "x": 556,
+        "y": 262,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Check",
+          "font": "10 600",
+          "position": {
+            "x": 656,
+            "y": 282
+          }
+        },
+        {
+          "id": "label",
+          "text": "The user has said which sour…",
+          "font": "12 400",
+          "position": {
+            "x": 656,
+            "y": 302
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.check",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.1.4",
+      "type": "Do",
+      "shape": "path",
+      "bounds": {
+        "x": 784,
+        "y": 262,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do",
+          "font": "10 600",
+          "position": {
+            "x": 884,
+            "y": 282
+          }
+        },
+        {
+          "id": "label",
+          "text": "Answer with the draft and it…",
+          "font": "12 400",
+          "position": {
+            "x": 884,
+            "y": 302
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.action",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.2",
+      "type": "Parallel",
+      "shape": "path",
+      "bounds": {
+        "x": 1126,
+        "y": 146,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do together",
+          "font": "10 600",
+          "position": {
+            "x": 1226,
+            "y": 166
+          }
+        },
+        {
+          "id": "label",
+          "text": "Search every source",
+          "font": "12 400",
+          "position": {
+            "x": 1226,
+            "y": 186
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.composite",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "1.2.1",
+        "1.2.2"
+      ]
+    },
+    {
+      "id": "1.2.1",
+      "type": "Delegate",
+      "shape": "path",
+      "bounds": {
+        "x": 1012,
+        "y": 262,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Delegate",
+          "font": "10 600",
+          "position": {
+            "x": 1112,
+            "y": 282
+          }
+        },
+        {
+          "id": "label",
+          "text": "Search the user's own docume…",
+          "font": "12 400",
+          "position": {
+            "x": 1112,
+            "y": 302
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.other",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.2.2",
+      "type": "Delegate",
+      "shape": "path",
+      "bounds": {
+        "x": 1240,
+        "y": 262,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Delegate",
+          "font": "10 600",
+          "position": {
+            "x": 1340,
+            "y": 282
+          }
+        },
+        {
+          "id": "label",
+          "text": "Search news and official pub…",
+          "font": "12 400",
+          "position": {
+            "x": 1340,
+            "y": 302
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.other",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.3",
+      "type": "Retry",
+      "shape": "path",
+      "bounds": {
+        "x": 1468,
+        "y": 146,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Retry up to 4 times",
+          "font": "10 600",
+          "position": {
+            "x": 1568,
+            "y": 166
+          }
+        },
+        {
+          "id": "label",
+          "text": "Every claim in the draft has…",
+          "font": "12 400",
+          "position": {
+            "x": 1568,
+            "y": 186
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fcf281",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.decorator",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "1.3.1"
+      ]
+    },
+    {
+      "id": "1.3.1",
+      "type": "Sequence",
+      "shape": "path",
+      "bounds": {
+        "x": 1468,
+        "y": 262,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do in order",
+          "font": "10 600",
+          "position": {
+            "x": 1568,
+            "y": 282
+          }
+        },
+        {
+          "id": "label",
+          "text": "Draft and check",
+          "font": "12 400",
+          "position": {
+            "x": 1568,
+            "y": 302
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.composite",
+          "stroke": "color.border"
+        }
+      },
+      "children": [
+        "1.3.1.1",
+        "1.3.1.2",
+        "1.3.1.3"
+      ]
+    },
+    {
+      "id": "1.3.1.1",
+      "type": "Do",
+      "shape": "path",
+      "bounds": {
+        "x": 1240,
+        "y": 378,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do",
+          "font": "10 600",
+          "position": {
+            "x": 1340,
+            "y": 398
+          }
+        },
+        {
+          "id": "label",
+          "text": "Write or revise the draft",
+          "font": "12 400",
+          "position": {
+            "x": 1340,
+            "y": 418
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.action",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.3.1.2",
+      "type": "Do",
+      "shape": "path",
+      "bounds": {
+        "x": 1468,
+        "y": 378,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do",
+          "font": "10 600",
+          "position": {
+            "x": 1568,
+            "y": 398
+          }
+        },
+        {
+          "id": "label",
+          "text": "Mark every claim that has no…",
+          "font": "12 400",
+          "position": {
+            "x": 1568,
+            "y": 418
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.action",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "1.3.1.3",
+      "type": "Do",
+      "shape": "path",
+      "bounds": {
+        "x": 1696,
+        "y": 378,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Do",
+          "font": "10 600",
+          "position": {
+            "x": 1796,
+            "y": 398
+          }
+        },
+        {
+          "id": "label",
+          "text": "Cite every source",
+          "font": "12 400",
+          "position": {
+            "x": 1796,
+            "y": 418
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.action",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "child:1.1",
+      "type": "Child",
+      "source": "1",
+      "target": "1.1",
+      "route": [
+        {
+          "x": 1055,
+          "y": 90
+        },
+        {
+          "x": 1055,
+          "y": 118
+        },
+        {
+          "x": 542,
+          "y": 118
+        },
+        {
+          "x": 542,
+          "y": 146
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.1.1",
+      "type": "Child",
+      "source": "1.1",
+      "target": "1.1.1",
+      "route": [
+        {
+          "x": 542,
+          "y": 206
+        },
+        {
+          "x": 542,
+          "y": 234
+        },
+        {
+          "x": 200,
+          "y": 234
+        },
+        {
+          "x": 200,
+          "y": 262
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.1.2",
+      "type": "Child",
+      "source": "1.1",
+      "target": "1.1.2",
+      "route": [
+        {
+          "x": 542,
+          "y": 206
+        },
+        {
+          "x": 542,
+          "y": 234
+        },
+        {
+          "x": 428,
+          "y": 234
+        },
+        {
+          "x": 428,
+          "y": 262
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.1.3",
+      "type": "Child",
+      "source": "1.1",
+      "target": "1.1.3",
+      "route": [
+        {
+          "x": 542,
+          "y": 206
+        },
+        {
+          "x": 542,
+          "y": 234
+        },
+        {
+          "x": 656,
+          "y": 234
+        },
+        {
+          "x": 656,
+          "y": 262
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.1.4",
+      "type": "Child",
+      "source": "1.1",
+      "target": "1.1.4",
+      "route": [
+        {
+          "x": 542,
+          "y": 206
+        },
+        {
+          "x": 542,
+          "y": 234
+        },
+        {
+          "x": 884,
+          "y": 234
+        },
+        {
+          "x": 884,
+          "y": 262
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.2",
+      "type": "Child",
+      "source": "1",
+      "target": "1.2",
+      "route": [
+        {
+          "x": 1055,
+          "y": 90
+        },
+        {
+          "x": 1055,
+          "y": 118
+        },
+        {
+          "x": 1226,
+          "y": 118
+        },
+        {
+          "x": 1226,
+          "y": 146
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.2.1",
+      "type": "Child",
+      "source": "1.2",
+      "target": "1.2.1",
+      "route": [
+        {
+          "x": 1226,
+          "y": 206
+        },
+        {
+          "x": 1226,
+          "y": 234
+        },
+        {
+          "x": 1112,
+          "y": 234
+        },
+        {
+          "x": 1112,
+          "y": 262
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.2.2",
+      "type": "Child",
+      "source": "1.2",
+      "target": "1.2.2",
+      "route": [
+        {
+          "x": 1226,
+          "y": 206
+        },
+        {
+          "x": 1226,
+          "y": 234
+        },
+        {
+          "x": 1340,
+          "y": 234
+        },
+        {
+          "x": 1340,
+          "y": 262
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.3",
+      "type": "Child",
+      "source": "1",
+      "target": "1.3",
+      "route": [
+        {
+          "x": 1055,
+          "y": 90
+        },
+        {
+          "x": 1055,
+          "y": 118
+        },
+        {
+          "x": 1568,
+          "y": 118
+        },
+        {
+          "x": 1568,
+          "y": 146
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.3.1",
+      "type": "Child",
+      "source": "1.3",
+      "target": "1.3.1",
+      "route": [
+        {
+          "x": 1568,
+          "y": 206
+        },
+        {
+          "x": 1568,
+          "y": 234
+        },
+        {
+          "x": 1568,
+          "y": 234
+        },
+        {
+          "x": 1568,
+          "y": 262
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.3.1.1",
+      "type": "Child",
+      "source": "1.3.1",
+      "target": "1.3.1.1",
+      "route": [
+        {
+          "x": 1568,
+          "y": 322
+        },
+        {
+          "x": 1568,
+          "y": 350
+        },
+        {
+          "x": 1340,
+          "y": 350
+        },
+        {
+          "x": 1340,
+          "y": 378
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.3.1.2",
+      "type": "Child",
+      "source": "1.3.1",
+      "target": "1.3.1.2",
+      "route": [
+        {
+          "x": 1568,
+          "y": 322
+        },
+        {
+          "x": 1568,
+          "y": 350
+        },
+        {
+          "x": 1568,
+          "y": 350
+        },
+        {
+          "x": 1568,
+          "y": 378
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    },
+    {
+      "id": "child:1.3.1.3",
+      "type": "Child",
+      "source": "1.3.1",
+      "target": "1.3.1.3",
+      "route": [
+        {
+          "x": 1568,
+          "y": 322
+        },
+        {
+          "x": 1568,
+          "y": 350
+        },
+        {
+          "x": 1796,
+          "y": 350
+        },
+        {
+          "x": 1796,
+          "y": 378
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text.muted"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "child:1.1",
+    "child:1.1.1",
+    "child:1.1.2",
+    "child:1.1.3",
+    "child:1.1.4",
+    "child:1.2",
+    "child:1.2.1",
+    "child:1.2.2",
+    "child:1.3",
+    "child:1.3.1",
+    "child:1.3.1.1",
+    "child:1.3.1.2",
+    "child:1.3.1.3",
+    "1",
+    "1.1",
+    "1.1.1",
+    "1.1.2",
+    "1.1.3",
+    "1.1.4",
+    "1.2",
+    "1.2.1",
+    "1.2.2",
+    "1.3",
+    "1.3.1",
+    "1.3.1.1",
+    "1.3.1.2",
+    "1.3.1.3"
+  ]
+}

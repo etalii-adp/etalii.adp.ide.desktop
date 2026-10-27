@@ -1,0 +1,237 @@
+atd 0.1
+part of databricks/pipeline
+
+// The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+notation {
+  style box { fill: $color.surface, stroke: { color: $color.border, width: 1 }, cornerRadius: 4, font: { size: 13 } }
+  style badges { font: { size: 10, color: "#5a6376" } }
+  style simPending { opacity: 0.5 }
+  style simRunning { stroke: { color: "limegreen", width: 2.5 } }
+  style simSucceeded { stroke: { color: "#15803d", width: 2 } }
+
+  node Library {
+    shape rect
+    label @path as path {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: false,
+      overflow: ellipsis
+    }
+    label (self.libraryKind) as kind { position: { anchor: [0, 1], offset: [8, -8], align: start }, style: "badges" }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    conditions: [{ when: (has(self.simulated) && self.simulated == 'pending'), style: "simPending" }, {
+      when: (has(self.simulated) && self.simulated == 'running'),
+      style: "simRunning"
+    }
+    , { when: (has(self.simulated) && self.simulated == 'succeeded'), style: "simSucceeded" }]
+  }
+
+  node Pipeline {
+    shape rect
+    label @name as name {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: false,
+      overflow: ellipsis
+    }
+    label ([self.serverless ? 'serverless' : '', self.continuous ? 'continuous' : '', self.development ? 'development' : '', has(self.channel) ? self.channel : ''].filter(b, b != '').join(' · ')) as badges {
+      position: { anchor: [0, 1], offset: [8, -8], align: start },
+      style: "badges"
+    }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    deletable: false
+    conditions: [{ when: (has(self.simulated) && self.simulated == 'pending'), style: "simPending" }, {
+      when: (has(self.simulated) && self.simulated == 'running'),
+      style: "simRunning"
+    }
+    , { when: (has(self.simulated) && self.simulated == 'succeeded'), style: "simSucceeded" }]
+  }
+
+  node Destination {
+    shape rect
+    label (diagram.nodesOfType('Pipeline').map(p, has(p.catalog) && p.catalog != '' && has(p.schema) && p.schema != '' ? p.catalog + '.' + p.schema : (has(p.catalog) && p.catalog != '' ? p.catalog : (has(p.schema) ? p.schema : '')))[0]) as name {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: false,
+      overflow: ellipsis
+    }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    deletable: false
+    conditions: [{ when: (has(self.simulated) && self.simulated == 'pending'), style: "simPending" }, {
+      when: (has(self.simulated) && self.simulated == 'running'),
+      style: "simRunning"
+    }
+    , { when: (has(self.simulated) && self.simulated == 'succeeded'), style: "simSucceeded" }]
+  }
+
+  node Compute {
+    shape rect
+    label (diagram.nodesOfType('Pipeline').exists(p, p.serverless) ? 'serverless' : 'cluster') as name {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: false
+    }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    deletable: false
+  }
+
+  node Notifications {
+    shape rect
+    label (self.entries.map(e, e.recipients.join(', ')).filter(r, r != '').join(', ')) as recipients {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: false,
+      overflow: ellipsis
+    }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    deletable: false
+  }
+
+  edge Flow {
+    line { stroke: { color: $color.border, width: 1.5 }, routing: bezier, startDirection: right, endDirection: left }
+    marker target arrowFilled
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "right", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "left", x: 0, y: 0.5 }] }
+    }
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true }
+  group libraries "Libraries" {
+    /// A notebook the pipeline's transformations come from.
+    tool notebookLibrary "Notebook library" {
+      kind: operation,
+      operation: "addNotebookLibrary",
+      icon: "mdi-notebook-outline"
+    }
+    /// A source file the pipeline's transformations come from.
+    tool fileLibrary "File library" { kind: operation, operation: "addFileLibrary", icon: "mdi-file-code-outline" }
+  }
+  context for Pipeline {
+    placement: menu
+    standardEntries: false
+    tool "Add notebook library…" {
+      kind: operation,
+      operation: "addNotebookLibrary",
+      group: "add",
+      icon: "mdi-notebook-outline"
+    }
+    tool "Add file library…" {
+      kind: operation,
+      operation: "addFileLibrary",
+      group: "add",
+      icon: "mdi-file-code-outline"
+    }
+    tool "Start update (simulated)" {
+      kind: operation,
+      operation: "simulateUpdate",
+      group: "simulate",
+      icon: "mdi-play-outline"
+    }
+  }
+  context for Library {
+    placement: menu
+    standardEntries: false
+    tool "Remove library" { kind: delete, icon: "mdi-delete-outline", shortcut: "Delete" }
+  }
+  /// The tool offers the job reading's canvas entries under this reading too (see databricks-pipeline.md).
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add notebook task here" {
+      kind: operation,
+      operation: "addNotebookTaskHere",
+      group: "add",
+      icon: "mdi-notebook-outline"
+    }
+    tool "Add Python task here" {
+      kind: operation,
+      operation: "addPythonTaskHere",
+      group: "add",
+      icon: "mdi-language-python"
+    }
+    tool "Add condition task here" {
+      kind: operation,
+      operation: "addConditionTaskHere",
+      group: "add",
+      icon: "mdi-call-split"
+    }
+  }
+  /// The tool offers the job reading's connection entry under this reading too (see databricks-pipeline.md).
+  context for connection {
+    placement: menu
+    standardEntries: false
+    tool "Depend on" {
+      kind: operation,
+      operation: "connectTasks",
+      icon: "mdi-ray-start-arrow",
+      args: { from: (source), to: (target) }
+    }
+  }
+}
+
+form pipeline for Pipeline {
+  usage: [inspector]
+  section "Identity" {
+    field name "Name" {
+      widget: text,
+      validate: [{ timing: commit, rule: (value != ''), message: "A pipeline needs a name." }]
+    }
+    field catalog "Catalog" { widget: text }
+    field schema "Schema" { widget: text }
+  }
+  section "Execution" {
+    field channel "Channel" { widget: text }
+  }
+  section "Workspace" {
+    item "Workspace connection" {
+      kind: computed
+      value: "Not connected"
+      readOnlyReasons: ["Not connected — a placeholder for the real workspace connection."]
+    }
+    item "Last simulated run" {
+      kind: computed,
+      value: "",
+      readOnlyReasons: ["Simulated runs play on the canvas and never touch the file."]
+    }
+  }
+}
+
+form addLibrary "Add library" {
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field path "Path" {
+    widget: text
+    initial: ('')
+    validate: [{ timing: commit, rule: (value != ''), message: "A library needs a path." }]
+  }
+}
+
+layout {
+  default flow
+  /// Sources stacked on the left, the pipeline and its target level with their middle, compute and notifications in a
+  /// band beneath.
+  /// Three columns 320 apart (`modules/diagrams/databricks/src/layout.rs`, `pipeline`): the libraries in the first, a
+  /// row 120 high each, the pipeline and the target in the second and third, centred on the libraries; compute and
+  /// the notifications in a band 80 beneath them.
+  algorithm flow capability layout.layeredColumns {
+    columnWidth: 320,
+    rowHeight: 120,
+    bandGap: 80,
+    align: middle
+    column: (self.id.startsWith('library:') ? 0 : self.id == 'pipeline' ? 1 : 2)
+    band: (self.id == 'compute' || self.id == 'notifications')
+  }
+  /// The declarative approximation of flow, for a runtime without the capability.
+  algorithm layered { algorithm: "layered", direction: right }
+  trigger: always
+  respect: all
+}

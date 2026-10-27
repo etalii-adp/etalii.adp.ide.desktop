@@ -1,0 +1,117 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/owl` from parity/cases/w3c/owl/owl-malformed.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/owl",
+  "description": "../../../w3c-owl.atd",
+  "inputs": {
+    "body": "owl-malformed.ttl",
+    "registration": "owl-malformed.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/bad#A",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/bad#A",
+          "display": ":A",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "∃ ?.:B",
+          "elided": "false",
+          "malformed": "true",
+          "ownerElementId": "res:http://example.org/bad#A",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "res:http://example.org/bad#B",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/bad#B",
+          "display": ":B",
+          "deprecated": "false",
+          "external": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0||res:http://example.org/bad#B",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "target": "res:http://example.org/bad#B",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+          "toElementId": "res:http://example.org/bad#B"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/bad#A",
+        "target": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/bad#A",
+          "toElementId": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "owl.malformed-expression",
+        "severity": "error",
+        "line": 6,
+        "message": "This class expression is not well-formed: it renders as '∃ ?.:B', with ? standing for what the structure is missing."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

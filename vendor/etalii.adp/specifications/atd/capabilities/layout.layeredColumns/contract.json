@@ -1,0 +1,21 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.layeredColumns",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Columns left to right, one row per node within a column, and a band of nodes beneath. A node in the band is in no column. A placeholder node is in the column before the column of its first successor in input order, and never left of column 0. Every other node is in the column `column` gives it or, without `column`, in its longest-path layer over the edges between such nodes: the walk takes the nodes in input order and each node's predecessors in edge order, and an edge into a node still being walked counts as layer -1, so an edge closing a cycle moves nothing. Within a column the rows are in input order, placeholders after every other node. A node's top-left corner is (column × `columnWidth`, row × `rowHeight`), moved down by half the rows its column has fewer than the tallest column when `align` is `middle`. The band's nodes stand in input order at x = index × `columnWidth`, at y = max(1, rows of the tallest column) × `rowHeight` + `bandGap`. A pinned node keeps its pin and moves no other node. Positions are top-left corners in the canvas's domain units.",
+  "input": { "$ref": "../../atd.schema.json#/$defs/LayoutInput" },
+  "args": {
+    "columnWidth": { "type": "number", "default": 260, "doc": "The distance from one column's left edge to the next's." },
+    "rowHeight": { "type": "number", "default": 120, "doc": "The distance from one row's top edge to the next's." },
+    "bandGap": { "type": "number", "default": 80, "doc": "The gap between the bottom of the tallest column's rows and the band beneath." },
+    "align": { "type": "enum", "values": ["top", "middle"], "default": "top", "doc": "Whether a column's rows start at the top, or are centred on the tallest column." },
+    "column": { "type": "query", "doc": "A node's column (an integer) when the tool type fixes it; absent, the longest-path layer decides." },
+    "band": { "type": "query", "doc": "Whether a node stands in the band beneath the columns; absent, none does." },
+    "placeholder": { "type": "query", "doc": "Whether a node is a placeholder, placed one column before its first successor; absent, none is." }
+  },
+  "output": { "$ref": "../../atd.schema.json#/$defs/LayoutResult" },
+  "laws": ["deterministic", "pinnedStay", "stable"],
+  "fallback": null,
+  "status": "provisional"
+}

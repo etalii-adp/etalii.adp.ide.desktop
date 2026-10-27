@@ -1,0 +1,38 @@
+atd 0.1
+part of ansible/structure
+
+// An Ansible project folder (definitions/diagrams/ansible-structure.dis, ansible-structure.md): a folder subject
+// (section 10) read by a persistence plugin and never written. Every folder qualifies, because a registration and
+// never the content says a folder is an Ansible project. The file rules select the files the plugin parses: playbooks
+// at the root and under playbooks/, a role's task files and its meta/main, and the inventory files. The plugin passes
+// over a selected file it does not read, such as a note under inventories/. What the plugin also needs and no file
+// rule can say, that a folder exists and how many files a folder holds, is not here: the plugin learns it from the
+// folder itself (ansible-structure.md, gaps 1 and 2). No rule names a family, so the plugin parses every file, and an
+// inventory that is not YAML is read as INI.
+
+binding ansible family capability reader.ansibleProject {
+  label "Ansible project folder"
+  // reader: {"version": "^0.1.0"}
+  claims { origins: ["ansible/structure"], registrationOnly: true }
+  body {
+    kind: folder
+    recognise: {}
+    files: [
+      { name: "rootInventory", glob: inventory },
+      { name: "rootHosts", glob: hosts },
+      { name: "rootYml", glob: "*.yml" },
+      { name: "rootYaml", glob: "*.yaml" },
+      { name: "playbooksYml", glob: "playbooks/*.yml" },
+      { name: "playbooksYaml", glob: "playbooks/*.yaml" },
+      { name: "roleTasksYml", glob: "roles/*/tasks/*.yml" },
+      { name: "roleTasksYaml", glob: "roles/*/tasks/*.yaml" },
+      { name: "roleMetaYml", glob: "roles/*/meta/main.yml" },
+      { name: "roleMetaYaml", glob: "roles/*/meta/main.yaml" },
+      { name: "inventories", glob: "inventories/*/*" }
+    ]
+    ignore: [".git/**"]
+    settle: 400
+  }
+  registration { createOnFirstPlacement: false }
+  readOnly: "An Ansible structure diagram shows the folder as it is and changes nothing in it. Edit the file this value comes from in a text editor."
+}

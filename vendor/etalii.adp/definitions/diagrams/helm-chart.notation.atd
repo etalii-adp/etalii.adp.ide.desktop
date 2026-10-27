@@ -1,0 +1,779 @@
+atd 0.1
+part of helm/chart
+
+// The helm chart's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+// ---------------------------------------------------------------- Notation
+
+/// One hue per kind: whole for the outline, mixed into a muted fill so labels stay readable. Relations leave the
+/// source's right side and enter the target's left, because the bands run left to right.
+notation {
+  theme {
+    tokens: {
+      color.surface: "#FFFFFF"
+      color.text: "#0F172A"
+      color.text.muted: "#64748B"
+      color.border: "#E2E8F0"
+      color.danger: "#DC2626"
+      color.helm.chart: "#3D7BD9"
+      color.helm.chart.fill: "#3D7BD924"
+      color.helm.values: "#2EA064"
+      color.helm.values.fill: "#2EA06424"
+      color.helm.template: "#C48220"
+      color.helm.template.fill: "#C4822024"
+      color.helm.dependency: "#8E54C4"
+      color.helm.dependency.fill: "#8E54C424"
+      color.helm.subchart: "#3498A0"
+      color.helm.subchart.fill: "#3498A024"
+      color.helm.plain.fill: "#64748B1F"
+      font.body: "system-ui, sans-serif"
+    }
+    modes: {
+      dark: {
+        color.surface: "#1E293B"
+        color.text: "#F1F5F9"
+        color.text.muted: "#94A3B8"
+        color.border: "#334155"
+        color.danger: "#F87171"
+        color.helm.chart: "#7DB4F0"
+        color.helm.chart.fill: "#7DB4F024"
+        color.helm.values: "#6ECD96"
+        color.helm.values.fill: "#6ECD9624"
+        color.helm.template: "#E8B05A"
+        color.helm.template.fill: "#E8B05A24"
+        color.helm.dependency: "#B88CE4"
+        color.helm.dependency.fill: "#B88CE424"
+        color.helm.subchart: "#6ECDD4"
+        color.helm.subchart.fill: "#6ECDD424"
+        color.helm.plain.fill: "#94A3B81F"
+      }
+    }
+    defaultMode: light
+    followSystem: true
+  }
+
+  style node {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1.5 }
+    font: { family: $font.body, size: 13, color: $color.text }
+    cursor: pointer
+  }
+
+  style chart extends node {
+    fill: $color.helm.chart.fill
+    stroke: { color: $color.helm.chart, width: 1.5 }
+  }
+
+  style values extends node {
+    fill: $color.helm.values.fill
+    stroke: { color: $color.helm.values, width: 1.5 }
+  }
+
+  style template extends node {
+    fill: $color.helm.template.fill
+    stroke: { color: $color.helm.template, width: 1.5 }
+  }
+
+  style dependency extends node {
+    fill: $color.helm.dependency.fill
+    stroke: { color: $color.helm.dependency, width: 1.5 }
+  }
+
+  style vendored extends node {
+    fill: $color.helm.subchart.fill
+    stroke: { color: $color.helm.subchart, width: 1.5 }
+  }
+
+  style plain extends node {
+    fill: $color.helm.plain.fill
+    stroke: { color: $color.text.muted, width: 1.5 }
+  }
+
+  style unreadable {
+    stroke: { color: $color.danger, dash: [4, 3], dashScale: absolute }
+  }
+
+  style edge {
+    stroke: { color: $color.text.muted, width: 1.5 }
+    font: { family: $font.body, size: 11, color: $color.text.muted }
+  }
+
+  style unvendored {
+    fill: none
+    stroke: { color: $color.helm.subchart, width: 1.5, dash: [3, 3], dashScale: absolute, opacity: 0.7 }
+    font: { family: $font.body, size: 11, color: $color.text.muted }
+  }
+
+  style notDefinedHere {
+    fill: none
+    stroke: { color: $color.helm.template, width: 1.5, dash: [3, 3], dashScale: absolute, opacity: 0.7 }
+    font: { family: $font.body, size: 11, color: $color.text.muted }
+  }
+
+  node Chart {
+    shape rect
+    style: chart
+    size: { fixed: [220, 110] }
+    conditions: [
+      {
+        when: (has(self.failure))
+        style: unreadable
+        doc: "`Chart.yaml` did not parse: marked, never hidden."
+      }
+    ]
+    tooltip: ('Chart ' + (has(self.name) ? self.name : '(chart)'))
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (has(self.name) ? self.name : '(chart)') as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  node Values {
+    shape rect
+    style: values
+    size: { fixed: [200, 72] }
+    conditions: [{ when: (has(self.failure)), style: unreadable }]
+    tooltip: ('Values ' + self.path)
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (self.path) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  node Schema {
+    shape rect
+    style: plain
+    size: { fixed: [200, 48] }
+    tooltip: ('Values schema ' + self.path)
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (self.path) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  node Template {
+    shape rect
+    style: template
+    size: { fixed: [240, 60] }
+    tooltip: ('Template ' + fileName(self.path))
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (fileName(self.path)) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  /// Drawn as any template.
+  node Partial {
+    shape rect
+    style: template
+    size: { fixed: [240, 60] }
+    tooltip: ('Template ' + fileName(self.path))
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (fileName(self.path)) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  node Crds {
+    shape rect
+    style: plain
+    size: { fixed: [200, 48] }
+    tooltip: ('CRDs ' + self.path)
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (self.path) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  /// A declaration has no file of its own, so activating it does nothing.
+  node Dependency {
+    shape rect
+    style: dependency
+    size: { fixed: [210, 96] }
+    tooltip: ('Dependency ' + effectiveName(self))
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    label (effectiveName(self)) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  node Subchart {
+    shape rect
+    style: vendored
+    size: { fixed: [210, 84] }
+    conditions: [{ when: (has(self.failure)), style: unreadable }]
+    tooltip: ('Subchart ' + self.entryName)
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (self.entryName) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  /// Dashed outline: sealed, so its difference from an unpacked subchart shows.
+  node Archive {
+    shape rect
+    style: {
+      extends: vendored
+      stroke: { color: $color.helm.subchart, width: 1.5, dash: [6, 3], dashScale: absolute }
+    }
+    size: { fixed: [210, 52] }
+    tooltip: ('Archive ' + self.entryName)
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (self.entryName) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  node Lock {
+    shape rect
+    style: plain
+    size: { fixed: [200, 56] }
+    conditions: [{ when: (has(self.failure)), style: unreadable }]
+    tooltip: ('Lock ' + self.path)
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: openArtifact
+    label (self.path) as name { position: center, maxLines: 1, overflow: ellipsis, editable: false }
+  }
+
+  edge Declares {
+    refusals: { move: ["That element is not something this diagram can move."] }
+    line { routing: bezier, startDirection: right, endDirection: left }
+    marker target arrowFilled
+    style: { extends: edge, stroke: { color: $color.helm.dependency, width: 1.5 } }
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "out", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "in", x: 0, y: 0.5 }] }
+    }
+    deletable: false
+    reconnectable: false
+    label (self.label) as label { visible: (self.label != ''), at: middle, side: above, distance: 6, draggable: false }
+  }
+
+  edge Resolves {
+    refusals: { move: ["That element is not something this diagram can move."] }
+    line { routing: bezier, startDirection: right, endDirection: left }
+    marker target arrowFilled
+    style: { extends: edge, stroke: { color: $color.helm.subchart, width: 1.5 } }
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "out", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "in", x: 0, y: 0.5 }] }
+    }
+    stub: {
+      length: 48
+      side: right
+      style: unvendored
+      label: { id: "unvendored", text: (self.label + ' (unvendored)'), side: above }
+      doc: "An Unvendored dependency: nothing in charts/ answers it."
+    }
+    deletable: false
+    reconnectable: false
+    label (self.label) as label { visible: (self.label != ''), at: middle, side: above, distance: 6, draggable: false }
+  }
+
+  /// Dashed: layering rather than use.
+  edge Overrides {
+    refusals: { move: ["That element is not something this diagram can move."] }
+    line { routing: bezier, startDirection: right, endDirection: left }
+    marker target arrowFilled
+    style: {
+      extends: edge
+      stroke: { color: $color.helm.values, width: 1.5, dash: [5, 4], dashScale: absolute }
+    }
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "out", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "in", x: 0, y: 0.5 }] }
+    }
+    deletable: false
+    reconnectable: false
+  }
+
+  edge Configures {
+    refusals: { move: ["That element is not something this diagram can move."] }
+    line { routing: bezier, startDirection: right, endDirection: left }
+    marker target arrowFilled
+    style: {
+      extends: edge
+      stroke: { color: $color.helm.values, width: 1.5, dash: [5, 4], dashScale: absolute }
+    }
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "out", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "in", x: 0, y: 0.5 }] }
+    }
+    deletable: false
+    reconnectable: false
+    label (self.label) as label { at: middle, side: above, distance: 6, draggable: false }
+  }
+
+  edge Includes {
+    refusals: { move: ["That element is not something this diagram can move."] }
+    line { routing: bezier, startDirection: right, endDirection: left }
+    marker target arrowFilled
+    style: {
+      extends: edge
+      stroke: { color: $color.helm.template, width: 1.5, dash: [2, 3], dashScale: absolute }
+    }
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "out", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "in", x: 0, y: 0.5 }] }
+    }
+    stub: {
+      length: 48
+      side: right
+      style: notDefinedHere
+      label: { id: "notDefinedHere", text: (self.label + ' (not defined here)'), side: above }
+      doc: "An included name no local partial defines."
+    }
+    deletable: false
+    reconnectable: false
+    label (self.label) as label { at: middle, side: above, distance: 6, draggable: false }
+  }
+
+  canvas {
+    background: $color.surface
+    empty: {
+      text: "This folder is not a Helm chart: it has no Chart.yaml, so there is nothing to draw."
+      when: (diagram.nodesOfType('Chart').size() == 0)
+    }
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+/// This diagram offers no creation tools.
+toolbox {
+  doc {
+    rationale: "Elements mirror what exists on disk, and chart content is created by Helm tooling and text editors, not by dropping shapes. The one edit is dragging a box to a new place."
+  }
+  generic: { select: true, pan: true, lasso: false, text: false, note: false, image: false, freehand: false }
+}
+
+// ---------------------------------------------------------------- Forms
+
+/// The chart's own facts, then the counts for the whole chart. A row with nothing to say is not shown.
+form chartInspector for Chart {
+  usage: [inspector]
+  section "Identity" {
+    field name {
+      id: "name"
+      widget: readonly
+      display: (has(self.name) ? self.name : '(chart)')
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+    field version {
+      id: "version"
+      widget: readonly
+      visible: (self.version != '')
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+    field appVersion {
+      id: "appVersion"
+      widget: readonly
+      visible: (self.appVersion != '')
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+    field apiVersion {
+      id: "apiVersion"
+      widget: readonly
+      visible: (self.apiVersion != '')
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+    field chartType {
+      id: "type"
+      widget: readonly
+      visible: (has(self.chartType))
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+    field description {
+      id: "description"
+      widget: readonly
+      visible: (self.description != '')
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+    item deprecated "Deprecated" {
+      kind: computed
+      widget: readonly
+      value: "yes - the upstream marked it so"
+      visible: (self.deprecated)
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+    item legacy "Legacy" {
+      kind: computed
+      widget: readonly
+      value: "yes - a Helm 2 chart (apiVersion v1)"
+      visible: (self.legacy)
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+    item unreadable "Unreadable" {
+      kind: computed
+      widget: readonly
+      value: (self.failure.message + ' (line ' + string(self.failure.line) + ')')
+      visible: (has(self.failure))
+      readOnlyReasons: [{ reason: "chartYaml" }]
+    }
+  }
+  section "Summary" {
+    field templateCount { id: "templates", widget: readonly, readOnlyReasons: [{ reason: "templatesFolder" }] }
+    field dependencyCount { id: "dependencies", widget: readonly, readOnlyReasons: [{ reason: "declaringFile" }] }
+    field valuesLayerCount { id: "valuesLayers", widget: readonly, readOnlyReasons: [{ reason: "valuesYaml" }] }
+  }
+}
+
+form valuesInspector for Values {
+  usage: [inspector]
+  section "Identity" {
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownFile" }] }
+    item role "Role" {
+      kind: computed
+      widget: readonly
+      value: (self.isDefault ? 'default values' : 'override layer, stacked on values.yaml')
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+  }
+  section "Contents" {
+    item keys "Top-level keys" {
+      kind: computed
+      widget: readonly
+      value: (string(self.keys.size()))
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+    item global "Global" {
+      kind: computed
+      widget: readonly
+      value: "yes - visible to every subchart"
+      visible: (self.hasGlobal)
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+  }
+  section "Identity" {
+    item unreadable "Unreadable" {
+      kind: computed
+      widget: readonly
+      value: (self.failure.message + ' (line ' + string(self.failure.line) + ')')
+      visible: (has(self.failure))
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+  }
+}
+
+form schemaInspector for Schema {
+  usage: [inspector]
+  section "Identity" {
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownFile" }] }
+  }
+}
+
+/// Also the form of a partial, through inheritance.
+form templateInspector for Template {
+  usage: [inspector]
+  section "Identity" {
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownFile" }] }
+    field role {
+      id: "role"
+      widget: readonly
+      display: (enumLabel('TemplateRole', self.role))
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+  }
+  section "Contents" {
+    field kinds {
+      id: "kinds"
+      widget: readonly
+      visible: (self.kinds.size() > 0 || self.undetermined)
+      display: (self.kinds.size() > 0 ? self.kinds.join(', ') : 'undetermined - the kind is templated, and templates are never rendered here')
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+    field defines {
+      id: "defines"
+      widget: readonly
+      visible: (self.defines.size() > 0)
+      display: (self.defines.join(', '))
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+    field references {
+      id: "includes"
+      widget: readonly
+      visible: (self.references.size() > 0)
+      display: (self.references.join(', '))
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+  }
+}
+
+form crdsInspector for Crds {
+  usage: [inspector]
+  section "Identity" {
+    field path {
+      id: "path"
+      widget: readonly
+      display: (self.path + '/')
+      readOnlyReasons: [{ reason: "crdsFolder" }]
+    }
+  }
+  section "Contents" {
+    field files { id: "files", widget: readonly, readOnlyReasons: [{ reason: "crdsFolder" }] }
+  }
+}
+
+/// Every row is defined in the declaring file, except the pinned version, which the lock defines.
+form dependencyInspector for Dependency {
+  usage: [inspector]
+  section "Identity" {
+    field name { id: "name", widget: readonly, readOnlyReasons: [{ reason: "declaringFile" }] }
+    field alias {
+      id: "alias"
+      widget: readonly
+      visible: (self.alias != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field constraint {
+      id: "constraint"
+      widget: readonly
+      visible: (self.constraint != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field repository {
+      id: "repository"
+      widget: readonly
+      visible: (self.repository != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+  section "Wiring" {
+    field condition {
+      id: "condition"
+      widget: readonly
+      visible: (self.condition != '')
+      display: (self.condition + ' (' + enumLabel('ConditionState', self.conditionState) + ')')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field pinnedVersion {
+      id: "pinned"
+      widget: readonly
+      visible: (self.pinnedVersion != '')
+      readOnlyReasons: [{ reason: "lockFile" }]
+    }
+    item resolution "Resolution" {
+      kind: computed
+      widget: readonly
+      value: (self.resolved ? 'resolved - vendored at ' + self.outgoingOf('Resolves').filter(r, r.target != null)[0].target.path : 'unvendored - nothing in charts/ answers it; helm dependency build fetches it at deploy time')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+form subchartInspector for Subchart {
+  usage: [inspector]
+  section "Identity" {
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "subchartFile" }] }
+    field chartName {
+      id: "name"
+      widget: readonly
+      visible: (self.chartName != '')
+      readOnlyReasons: [{ reason: "subchartFile" }]
+    }
+    field chartVersion {
+      id: "version"
+      widget: readonly
+      visible: (self.chartVersion != '')
+      readOnlyReasons: [{ reason: "subchartFile" }]
+    }
+    field chartType { id: "type", widget: readonly, readOnlyReasons: [{ reason: "subchartFile" }] }
+  }
+  section "Contents" {
+    field templates { id: "templates", widget: readonly, readOnlyReasons: [{ reason: "subchartFile" }] }
+    field deeper {
+      id: "deeper"
+      widget: readonly
+      visible: (self.deeper > 0)
+      display: (string(self.deeper) + ' entries - summarized, never recursed')
+      readOnlyReasons: [{ reason: "subchartFile" }]
+    }
+  }
+  section "Wiring" {
+    field declared {
+      id: "declared"
+      widget: readonly
+      display: (self.declared ? 'yes' : 'no - nothing declares this; validation warns about it')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+form archiveInspector for Archive {
+  usage: [inspector]
+  section "Identity" {
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownFile" }] }
+    item sealed "Sealed" {
+      kind: computed
+      widget: readonly
+      value: "yes - an archive is labeled by its file name and never unpacked; there is no file to open"
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+  }
+  section "Wiring" {
+    field declared {
+      id: "declared"
+      widget: readonly
+      display: (self.declared ? 'yes' : 'no - nothing declares this; validation warns about it')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+form lockInspector for Lock {
+  usage: [inspector]
+  section "Identity" {
+    field path { id: "path", widget: readonly, readOnlyReasons: [{ reason: "ownFile" }] }
+  }
+  section "Contents" {
+    item entries "Pinned dependencies" {
+      kind: computed
+      widget: readonly
+      value: (string(self.entries.size()))
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+  }
+  section "Identity" {
+    item unreadable "Unreadable" {
+      kind: computed
+      widget: readonly
+      value: (self.failure.message + ' (line ' + string(self.failure.line) + ')')
+      visible: (has(self.failure))
+      readOnlyReasons: [{ reason: "ownFile" }]
+    }
+  }
+}
+
+form declaresInspector for Declares {
+  usage: [inspector]
+  section "Identity" {
+    item kind "Relationship" {
+      kind: computed
+      widget: readonly
+      value: declares
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field label {
+      id: "label"
+      widget: readonly
+      visible: (self.label != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+form resolvesInspector for Resolves {
+  usage: [inspector]
+  section "Identity" {
+    item kind "Relationship" {
+      kind: computed
+      widget: readonly
+      value: "resolves to"
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field label {
+      id: "label"
+      widget: readonly
+      visible: (self.label != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    item openEnd "Open end" {
+      kind: computed
+      widget: readonly
+      value: "nothing vendored answers this dependency; there is nothing to open"
+      visible: (self.target == null)
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+form overridesInspector for Overrides {
+  usage: [inspector]
+  section "Identity" {
+    item kind "Relationship" {
+      kind: computed
+      widget: readonly
+      value: overrides
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field label {
+      id: "label"
+      widget: readonly
+      visible: (self.label != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+form configuresInspector for Configures {
+  usage: [inspector]
+  section "Identity" {
+    item kind "Relationship" {
+      kind: computed
+      widget: readonly
+      value: configures
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field label {
+      id: "label"
+      widget: readonly
+      visible: (self.label != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+form includesInspector for Includes {
+  usage: [inspector]
+  section "Identity" {
+    item kind "Relationship" {
+      kind: computed
+      widget: readonly
+      value: includes
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    field label {
+      id: "label"
+      widget: readonly
+      visible: (self.label != '')
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+    item openEnd "Open end" {
+      kind: computed
+      widget: readonly
+      value: "no local partial defines this name - a library chart provides it at render time"
+      visible: (self.target == null)
+      readOnlyReasons: [{ reason: "declaringFile" }]
+    }
+  }
+}
+
+/// Five bands left to right: metadata (chart, lock, schema, crds), the values stack (default first), templates
+/// (manifests, partials, notes, test hooks), dependencies, and what charts/ holds. A stored position wins over the
+/// computed one element by element.
+layout {
+  default anatomy
+  /// Deterministic banded columns; see helm-chart.md for the order within each band.
+  algorithm anatomy capability layout.rankedColumns {
+    rank: (anatomyColumn(self))
+    order: (anatomyOrder(self))
+    origin: [40, 40]
+    columnGap: 60
+    rowGap: 24
+  }
+  trigger: always
+  respect: all
+  incremental: true
+  animate: false
+}

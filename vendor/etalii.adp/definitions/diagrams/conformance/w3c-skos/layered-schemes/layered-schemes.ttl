@@ -1,0 +1,38 @@
+@prefix : <http://example.org/kinds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+:zoo a skos:ConceptScheme ; skos:prefLabel "Zoo"@en .
+:farm a skos:ConceptScheme ; skos:prefLabel "Farm"@en .
+:empty a skos:ConceptScheme ; skos:prefLabel "Empty"@en .
+
+:animal a skos:Concept ; skos:prefLabel "animal"@en ; skos:inScheme :zoo , :farm ; skos:topConceptOf :zoo .
+:bird a skos:Concept ; skos:prefLabel "bird"@en ; skos:inScheme :zoo ; skos:broader :animal .
+:mammal a skos:Concept ; skos:prefLabel "mammal"@en ; skos:inScheme :zoo ; skos:broader :animal .
+:bat a skos:Concept ; skos:prefLabel "bat"@en ; skos:inScheme :zoo ; skos:broader :mammal , :bird .
+:species01 a skos:Concept ; skos:prefLabel "species 1"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species02 a skos:Concept ; skos:prefLabel "species 2"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species03 a skos:Concept ; skos:prefLabel "species 3"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species04 a skos:Concept ; skos:prefLabel "species 4"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species05 a skos:Concept ; skos:prefLabel "species 5"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species06 a skos:Concept ; skos:prefLabel "species 6"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species07 a skos:Concept ; skos:prefLabel "species 7"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species08 a skos:Concept ; skos:prefLabel "species 8"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species09 a skos:Concept ; skos:prefLabel "species 9"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species10 a skos:Concept ; skos:prefLabel "species 10"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species11 a skos:Concept ; skos:prefLabel "species 11"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species12 a skos:Concept ; skos:prefLabel "species 12"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species13 a skos:Concept ; skos:prefLabel "species 13"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species14 a skos:Concept ; skos:prefLabel "species 14"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species15 a skos:Concept ; skos:prefLabel "species 15"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species16 a skos:Concept ; skos:prefLabel "species 16"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species17 a skos:Concept ; skos:prefLabel "species 17"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species18 a skos:Concept ; skos:prefLabel "species 18"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species19 a skos:Concept ; skos:prefLabel "species 19"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:species20 a skos:Concept ; skos:prefLabel "species 20"@en ; skos:inScheme :zoo ; skos:broader :mammal .
+:cow a skos:Concept ; skos:prefLabel "cow"@en ; skos:inScheme :farm ; skos:broader :animal .
+:left a skos:Concept ; skos:prefLabel "left"@en ; skos:inScheme :farm ; skos:broader :right .
+:right a skos:Concept ; skos:prefLabel "right"@en ; skos:inScheme :farm ; skos:broader :left .
+:stray a skos:Concept ; skos:prefLabel "stray"@en .
+:lost a skos:Concept ; skos:prefLabel "lost"@en ; skos:broader :stray .
+:pets a skos:Collection ; skos:prefLabel "pets"@en ; skos:member :bat , :cow .
+:herd a skos:Collection ; skos:prefLabel "herd"@en ; skos:member :cow .

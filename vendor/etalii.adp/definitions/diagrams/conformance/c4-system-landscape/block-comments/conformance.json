@@ -1,0 +1,156 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record c4/system-landscape` from parity/cases/c4/system-landscape/block-comments.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "c4/system-landscape",
+  "description": "../../../c4-system-landscape.atd",
+  "inputs": {
+    "body": "block-comments.dsl",
+    "registration": "block-comments.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "t",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Other",
+          "description": "Another system.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "u",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "User",
+          "description": "A user.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "s",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "System",
+          "description": "A system.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "System Landscape diagram for Block comments",
+          "viewKind": "SystemLandscape",
+          "viewKey": "landscape",
+          "legend.0.label": "Software System",
+          "legend.0.background": "#1168bd",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "RoundedBox",
+          "legend.1.label": "Person",
+          "legend.1.background": "#08427b",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "Person"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "s->t@10",
+        "type": "c4/model+relationship",
+        "source": "s",
+        "target": "t",
+        "attributes": {
+          "description": "Calls",
+          "technology": "HTTPS",
+          "sourceX": "0",
+          "sourceY": "238.20000000000002",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "437",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      },
+      {
+        "id": "u->s@11",
+        "type": "c4/model+relationship",
+        "source": "u",
+        "target": "s",
+        "attributes": {
+          "description": "Uses",
+          "technology": "HTTPS",
+          "sourceX": "0",
+          "sourceY": "39.4",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "238.20000000000002",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (drawing)"
+    }
+  }
+}

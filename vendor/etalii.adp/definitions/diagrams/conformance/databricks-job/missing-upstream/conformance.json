@@ -1,0 +1,160 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/job` from parity/cases/databricks/job/missing-upstream.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/job",
+  "description": "../../../databricks-job.atd",
+  "inputs": {
+    "body": "missing-upstream.yml",
+    "registration": "missing-upstream.job.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "task:first_waiter",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "first_waiter",
+          "taskType": "notebook",
+          "source": "notebooks/first",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "first_waiter",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:second_waiter",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "second_waiter",
+          "taskType": "notebook",
+          "source": "notebooks/second",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "second_waiter",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:ghost",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "ghost",
+          "taskType": "other",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "ghost",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:phantom",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "phantom",
+          "taskType": "other",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "phantom",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:ghost->first_waiter",
+        "type": "databricks/job+edge",
+        "source": "task:ghost",
+        "target": "task:first_waiter",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:ghost->second_waiter",
+        "type": "databricks/job+edge",
+        "source": "task:ghost",
+        "target": "task:second_waiter",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:phantom->second_waiter",
+        "type": "databricks/job+edge",
+        "source": "task:phantom",
+        "target": "task:second_waiter",
+        "attributes": {
+          "outcome": "true",
+          "kind": "depends"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.missing-task",
+        "severity": "error",
+        "line": 8,
+        "message": "'first_waiter' depends on 'ghost', which is not a task in this job. Fix the key or remove the dependency."
+      },
+      {
+        "rule": "databricks.missing-task",
+        "severity": "error",
+        "line": 13,
+        "message": "'second_waiter' depends on 'ghost', which is not a task in this job. Fix the key or remove the dependency."
+      },
+      {
+        "rule": "databricks.missing-task",
+        "severity": "error",
+        "line": 14,
+        "message": "'second_waiter' depends on 'phantom', which is not a task in this job. Fix the key or remove the dependency."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

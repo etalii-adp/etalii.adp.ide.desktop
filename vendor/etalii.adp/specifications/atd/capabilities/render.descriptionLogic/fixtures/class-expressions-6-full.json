@@ -1,0 +1,55 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.descriptionLogic` from the RDF module's rendering of a class expression of the ontology that parity/cases/w3c/owl/class-expressions.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "value": {
+      "root": "_:b7",
+      "triples": [
+        {
+          "s": "_:b7",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b7",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasArea",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b7",
+          "p": "http://www.w3.org/2002/07/owl#maxQualifiedCardinality",
+          "o": "1",
+          "oKind": "literal"
+        },
+        {
+          "s": "_:b7",
+          "p": "http://www.w3.org/2002/07/owl#onDataRange",
+          "o": "http://www.w3.org/2001/XMLSchema#decimal",
+          "oKind": "iri"
+        }
+      ],
+      "names": {
+        "http://example.org/shapes#hasArea": ":hasArea",
+        "http://www.w3.org/2001/XMLSchema#decimal": "xsd:decimal",
+        "http://www.w3.org/2002/07/owl#Restriction": "owl:Restriction"
+      }
+    },
+    "format": "rdf"
+  },
+  "args": {
+    "maxDepth": 0
+  },
+  "output": {
+    "runs": [
+      {
+        "text": "≤ 1 :hasArea.xsd:decimal",
+        "style": {
+          "elided": false,
+          "cyclic": false
+        }
+      }
+    ]
+  }
+}

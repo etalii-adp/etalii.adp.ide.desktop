@@ -1,0 +1,139 @@
+atd 0.1
+part of etalii/supply-chain
+
+// The supply chain diagram's .supply body (definitions/diagrams/supply-chain.dis, supply-chain.md): ADP's own YAML,
+// read through FBL by the supply chain module (supply-chain-disl-fbl). This is the binding of the requirements'
+// appendix with its "as": "text" spelled as FBL 0.5 spells the construct, "read": "text" (gap 1), so every slot is
+// read as the text it was written with and the module's reader turns a number's text into its value as .NET reads it,
+// reporting one that will not read without losing its entry (B1, B2). A flow is an element with reference attributes,
+// so a flow whose end names no node is kept and reported (B3). Every entry carries the id it is written with as
+// storedId (B4) and the keys the module does not read as unknownKeys (A11). Every rule reads only a mapping
+// (type(entry) == map, where the appendix's entry.all(k, true) also holds for a list), and every entry carries the
+// written text of every member as written, from which the module reads an entry written as a flow mapping, whose
+// members no key slot binds (B13). One rule reads all seven stages and the six older words through map (Q2), and group
+// is a reference rather than a parent (Q5). An entry that is not a mapping is taken by the Unreadable rule behind its
+// list's rule. No header is declared, so the three header cases keep the module's own sentences.
+
+binding supply family yaml {
+  label "Supply chain diagram"
+  claims { extensions: [".supply"], origins: ["etalii/supply-chain"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  registration { createOnFirstPlacement: false }
+
+  element Document as document at "/" {
+    when type(entry) == map
+    readOnly: "The document's version is changed in the file itself."
+    attribute version from key "supply-chain" { read: text }
+  }
+
+  element Group as group at "/groups/*" {
+    when type(entry) == map
+    id from key "id"
+    attribute storedId from key "id" { read: text, readOnly: true }
+    attribute written from value (text)
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'description', 'x', 'y'])))
+    attribute name from key "name" { read: text, empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute x from key "x" { read: text, number: { decimals: 0 }, empty: remove }
+    attribute y from key "y" { read: text, number: { decimals: 0 }, empty: remove }
+    insert {
+      place: after-last
+      container: "/groups"
+      create: { at: end-of-document }
+      keys: [id, name, description, x, y]
+    }
+    remove {}
+  }
+
+  element Node as node at "/nodes/*" {
+    when type(entry) == map
+    id from key "id"
+    attribute storedId from key "id" { read: text, readOnly: true }
+    attribute written from value (text)
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'name', 'description', 'group', 'quantity', 'unit', 'step', 'x', 'y'])))
+    attribute type from key "type" {
+      read: text
+      map: {
+        source: source
+        processor: processor
+        producer: producer
+        integrator: integrator
+        hub: hub
+        outlet: outlet
+        consumer: consumer
+        raw-material: source
+        supplier: processor
+        manufacturer: producer
+        assembler: integrator
+        distributor: hub
+        retailer: outlet
+      }
+    }
+    attribute name from key "name" { read: text, empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute group from key "group" {
+      references group by storedId
+      read: text
+      empty: remove
+    }
+    attribute quantity from key "quantity" { read: text, number: { decimals: 4 }, empty: remove }
+    attribute unit from key "unit" { read: text, empty: remove }
+    attribute step from key "step" { read: text, number: { decimals: 4 }, empty: remove }
+    attribute x from key "x" { read: text, number: { decimals: 0 }, empty: remove }
+    attribute y from key "y" { read: text, number: { decimals: 0 }, empty: remove }
+    insert {
+      place: after-last
+      container: "/nodes"
+      create: { at: end-of-document }
+      keys: [id, type, name, description, group, quantity, unit, step, x, y]
+    }
+    remove { cascade: [flow] }
+  }
+
+  element Flow as flow at "/flows/*" {
+    when type(entry) == map
+    id from key "id"
+    attribute storedId from key "id" { read: text, readOnly: true }
+    attribute written from value (text)
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'from', 'to', 'product', 'description', 'volume', 'unit', 'step'])))
+    attribute from from key "from" {
+      references node by storedId
+      read: text
+    }
+    attribute to from key "to" {
+      references node by storedId
+      read: text
+    }
+    attribute product from key "product" { read: text, empty: remove }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute volume from key "volume" { read: text, number: { decimals: 4 }, empty: remove }
+    attribute unit from key "unit" { read: text, empty: remove }
+    attribute step from key "step" { read: text, number: { decimals: 4 }, empty: remove }
+    insert {
+      place: after-last
+      container: "/flows"
+      create: { at: end-of-document }
+      keys: [id, from, to, product, description, volume, unit, step]
+    }
+    remove {}
+  }
+
+  element Unreadable as group-not-a-mapping at "/groups/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as node-not-a-mapping at "/nodes/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as flow-not-a-mapping at "/flows/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+  template {
+    text: """supply-chain: 1
+groups: []
+nodes: []
+flows: []
+"""
+  }
+}

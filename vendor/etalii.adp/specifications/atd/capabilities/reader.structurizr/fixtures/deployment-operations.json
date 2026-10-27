@@ -1,0 +1,419 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.structurizr` from what the desktop host's module shows when parity/cases/c4/deployment/operations.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "/*\n * Courier Tracking - the reference model for ADP's C4 support.\n *\n * One document, several registrations. Every construct ADP's parser understands appears here at\n * least once, so this file doubles as a worked example and as a legible statement of what is and\n * is not supported. Comments in every position are deliberate: the writer preserves them.\n */\n\nworkspace \"Courier Tracking\" \"Parcel tracking for senders, couriers and support staff.\" {\n\n    model {\n        # Both comment styles are legal on a line of their own, and both survive an edit.\n\n        // `flat` is the default; stated so the choice is visible. ADP resolves identifiers\n        // flat, so `hierarchical` would change what a view scope names and is deliberately\n        // not used here.\n        !identifiers flat\n\n        // ---- people ----------------------------------------------------------------------\n        sender = person \"Sender\" \"Books a delivery and follows where the parcel is.\"\n        courier = person \"Courier\" \"Collects and delivers parcels, and scans them on the way.\"\n        agent = person \"Support Agent\" \"Answers questions about deliveries that went wrong.\" \"Staff\"\n\n        // ---- the system in scope ---------------------------------------------------------\n        tracking = softwareSystem \"Courier Tracking\" \"Books deliveries, tracks parcels and tells everyone where they are.\" {\n\n            // Prose and decisions, in folders beside this file. ADP does not read either - it\n            // has no documentation model yet - but it round-trips both untouched, and\n            // Structurizr renders them alongside the diagrams.\n            !docs docs\n            !adrs decisions\n\n            // A group is a label over elements rather than a container. It survives the round\n            // trip and is drawn as a boundary by tools that support it.\n            group \"Customer facing\" {\n                web = container \"Web Application\" \"Serves the single-page application to a browser.\" \"Java and Spring Boot\"\n                spa = container \"Single-Page Application\" \"Books deliveries and shows the progress of a parcel.\" \"TypeScript and React\"\n                mobile = container \"Courier App\" \"Scans parcels at pickup, handover and delivery.\" \"Kotlin and Jetpack Compose\"\n            }\n\n            group \"Behind the API\" {\n                api = container \"API Application\" \"The booking and tracking API.\" \"Java and Spring Boot\" {\n                    // Components live inside a container, never beside one.\n                    bookingController = component \"Booking Controller\" \"Takes a booking and turns it into a delivery.\" \"Spring MVC Controller\"\n                    trackingController = component \"Tracking Controller\" \"Answers where a parcel has got to.\" \"Spring MVC Controller\"\n                    scanIngest = component \"Scan Ingest\" \"Accepts scans from couriers and orders them by time.\" \"Spring Component\"\n                    notifier = component \"Notification Sender\" \"Tells a sender when their parcel moves.\" \"Spring Component\"\n                    routingFacade = component \"Routing Facade\" \"Talks to the routing optimiser.\" \"Spring Component\"\n\n                    // In-process calls. ADP does not require a technology here - C4 itself\n                    // leaves such calls bare - but Structurizr inspects for one on every\n                    // relationship, and this model is written to pass that too.\n                    bookingController -> routingFacade \"Asks for a route\" \"Method call\"\n                    scanIngest -> notifier \"Raises a parcel moved event\" \"Method call\"\n                }\n\n                broker = container \"Event Broker\" \"Carries scan events so ingest and notification are not one step.\" \"Apache Kafka\" \"Queue\"\n                database = container \"Delivery Database\" \"Stores deliveries, parcels and every scan against them.\" \"PostgreSQL 16\" \"Database\"\n            }\n        }\n\n        // ---- systems this one depends on -------------------------------------------------\n        // \"Existing System\" is what C4 calls something already there; ADP draws it muted.\n        routing = softwareSystem \"Routing Optimiser\" \"Works out the cheapest route for a set of parcels.\" \"Existing System\"\n        email = softwareSystem \"E-mail System\" \"The corporate mail relay.\" \"Existing System\"\n        maps = softwareSystem \"Mapping Provider\" \"Turns addresses into coordinates and draws maps.\" \"Existing System\"\n\n        // ---- relationships ---------------------------------------------------------------\n        // Person to system, at context level.\n        sender -> tracking \"Books deliveries and tracks parcels using\" \"HTTPS\"\n        courier -> tracking \"Scans parcels using\" \"HTTPS\"\n        agent -> tracking \"Looks up deliveries using\" \"HTTPS\"\n\n        // System to system, with the protocol named.\n        tracking -> routing \"Requests routes from\" \"JSON/HTTPS\"\n        tracking -> email \"Sends mail through\" \"SMTP\"\n        tracking -> maps \"Geocodes addresses using\" \"JSON/HTTPS\"\n        email -> sender \"Delivers mail to\" \"SMTP\"\n\n        // Person to container, which is what a container view draws.\n        sender -> spa \"Books and tracks using\" \"HTTPS\"\n        courier -> mobile \"Scans parcels using\" \"Touch\"\n        agent -> spa \"Looks up deliveries using\" \"HTTPS\"\n\n        // Container to container. Every one names its protocol - this is the level where that\n        // matters, and where ADP warns when it is missing.\n        web -> spa \"Delivers to the web browser of the customer\" \"HTTPS\"\n        spa -> api \"Calls\" \"JSON/HTTPS\"\n        mobile -> api \"Calls\" \"JSON/HTTPS\"\n        api -> database \"Reads from and writes to\" \"JDBC/SSL\"\n        api -> broker \"Publishes scan events to\" \"Kafka protocol\"\n        broker -> api \"Delivers scan events to\" \"Kafka protocol\"\n        api -> routing \"Requests routes from\" \"JSON/HTTPS\"\n        api -> email \"Sends mail through\" \"SMTP\"\n        api -> maps \"Geocodes addresses using\" \"JSON/HTTPS\"\n\n        // Component level, including calls that leave the container.\n        spa -> bookingController \"Books a delivery through\" \"JSON/HTTPS\"\n        spa -> trackingController \"Asks where a parcel is through\" \"JSON/HTTPS\"\n        mobile -> scanIngest \"Posts scans to\" \"JSON/HTTPS\"\n        bookingController -> database \"Writes the delivery to\" \"JDBC/SSL\"\n        trackingController -> database \"Reads scans from\" \"JDBC/SSL\"\n        scanIngest -> broker \"Publishes to\" \"Kafka protocol\"\n        notifier -> email \"Sends through\" \"SMTP\"\n        routingFacade -> routing \"Calls\" \"JSON/HTTPS\"\n\n        // ---- where it runs ---------------------------------------------------------------\n        production = deploymentEnvironment \"Production\" {\n\n            deploymentNode \"Sender device\" \"A laptop or a phone.\" \"Browser\" {\n                deploymentNode \"Web Browser\" \"Whatever the sender already has.\" \"Chrome, Safari or Firefox\" {\n                    containerInstance spa\n                }\n            }\n\n            deploymentNode \"Courier handset\" \"Issued with the round.\" \"Android 14\" {\n                containerInstance mobile\n            }\n\n            deploymentNode \"Regional data centre\" \"The racks of the operator.\" \"Ubuntu 24.04 LTS\" {\n\n                // An instance count sits *after* the tags, which is the argument order a\n                // line-based parser most often gets backwards.\n                deploymentNode \"web-*\" \"Web tier\" \"Ubuntu 24.04 LTS\" \"\" 3 {\n                    deploymentNode \"Apache Tomcat\" \"Servlet container.\" \"Tomcat 10\" {\n                        containerInstance web\n                        containerInstance api\n                    }\n                }\n\n                loadBalancer = infrastructureNode \"Load Balancer\" \"Terminates TLS and spreads traffic across the web tier.\" \"nginx\"\n\n                deploymentNode \"kafka-*\" \"Event brokers.\" \"Ubuntu 24.04 LTS\" \"\" 3 {\n                    containerInstance broker\n                }\n\n                // Named so they can be related below. Replication is a property of the servers,\n                // not of the two container instances on them - a relationship between instances\n                // is refused, because instances inherit the relationships of what they deploy.\n                dbPrimary = deploymentNode \"db-primary\" \"Primary database server.\" \"Ubuntu 24.04 LTS\" {\n                    containerInstance database\n                }\n\n                dbStandby = deploymentNode \"db-standby\" \"Hot standby.\" \"Ubuntu 24.04 LTS\" {\n                    containerInstance database\n                }\n\n                dbPrimary -> dbStandby \"Replicates to\" \"Streaming replication\"\n            }\n\n            // Relationships between deployment elements are declared in the environment.\n            loadBalancer -> web \"Forwards requests to\" \"HTTPS\"\n        }\n    }\n\n    views {\n        systemLandscape \"Landscape\" \"Every system in the delivery estate.\" {\n            include *\n            autoLayout tb\n        }\n\n        systemContext tracking \"SystemContext\" \"Courier Tracking in its world.\" {\n            include *\n            autoLayout\n        }\n\n        container tracking \"Containers\" \"What Courier Tracking is made of.\" {\n            include *\n            autoLayout lr\n        }\n\n        component api \"ApiComponents\" \"Inside the API application.\" {\n            include *\n            // An exclude after an include is how one element is taken back out.\n            exclude maps\n            autoLayout lr\n        }\n\n        dynamic tracking \"ParcelScanned\" \"What happens when a courier scans a parcel.\" {\n            mobile -> api \"Posts the scan\"\n            api -> database \"Records the scan against the parcel\"\n            api -> broker \"Publishes a parcel moved event\"\n            broker -> api \"Delivers the event to the notifier\"\n            api -> email \"Sends the sender an update\"\n            email -> sender \"Arrives as mail\"\n            autoLayout lr\n        }\n\n        deployment tracking \"Production\" \"ProductionDeployment\" \"Where Production runs.\" {\n            include *\n            autoLayout tb\n        }\n\n        styles {\n            element \"Element\" {\n                shape roundedbox\n                background #1168bd\n                color #ffffff\n            }\n            element \"Person\" {\n                shape person\n                background #08427b\n                color #ffffff\n            }\n            element \"Staff\" {\n                background #6b6b6b\n            }\n            element \"Container\" {\n                background #438dd5\n            }\n            element \"Component\" {\n                background #85bbf0\n                color #000000\n            }\n            element \"Database\" {\n                shape cylinder\n            }\n            element \"Queue\" {\n                shape pipe\n            }\n            element \"Existing System\" {\n                background #999999\n                color #ffffff\n            }\n            element \"Infrastructure Node\" {\n                background #ffffff\n                color #000000\n            }\n        }\n    }\n\n    // Not read by ADP either, and kept verbatim like everything else it does not model.\n    configuration {\n        scope softwaresystem\n    }\n\n}\n",
+    "files": {
+      "courier.production.adp": "c4/deployment\nbody: courier.dsl\nview: ProductionDeployment\n"
+    }
+  },
+  "args": {
+    "view": "deployment"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "containerinstance_spa_3",
+        "type": "c4/model+node",
+        "parent": "deploymentnode_WebBrowser_2",
+        "attributes": {
+          "kind": "ContainerInstance",
+          "name": "Single-Page Application",
+          "description": "Books deliveries and shows the progress of a parcel.",
+          "technology": "TypeScript and React",
+          "typeLine": "[Container: TypeScript and React]",
+          "external": "false",
+          "parentId": "deploymentnode_WebBrowser_2",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "containerinstance_mobile_5",
+        "type": "c4/model+node",
+        "parent": "deploymentnode_Courierhandset_4",
+        "attributes": {
+          "kind": "ContainerInstance",
+          "name": "Courier App",
+          "description": "Scans parcels at pickup, handover and delivery.",
+          "technology": "Kotlin and Jetpack Compose",
+          "typeLine": "[Container: Kotlin and Jetpack Compose]",
+          "external": "false",
+          "parentId": "deploymentnode_Courierhandset_4",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "containerinstance_web_9",
+        "type": "c4/model+node",
+        "parent": "deploymentnode_ApacheTomcat_8",
+        "attributes": {
+          "kind": "ContainerInstance",
+          "name": "Web Application",
+          "description": "Serves the single-page application to a browser.",
+          "technology": "Java and Spring Boot",
+          "typeLine": "[Container: Java and Spring Boot]",
+          "external": "false",
+          "parentId": "deploymentnode_ApacheTomcat_8",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "containerinstance_api_10",
+        "type": "c4/model+node",
+        "parent": "deploymentnode_ApacheTomcat_8",
+        "attributes": {
+          "kind": "ContainerInstance",
+          "name": "API Application",
+          "description": "The booking and tracking API.",
+          "technology": "Java and Spring Boot",
+          "typeLine": "[Container: Java and Spring Boot]",
+          "external": "false",
+          "parentId": "deploymentnode_ApacheTomcat_8",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "loadBalancer",
+        "type": "c4/model+node",
+        "parent": "deploymentnode_Regionaldatacentre_6",
+        "attributes": {
+          "kind": "InfrastructureNode",
+          "name": "Load Balancer",
+          "description": "Terminates TLS and spreads traffic across the web tier.",
+          "technology": "nginx",
+          "typeLine": "[Infrastructure Node: nginx]",
+          "external": "false",
+          "parentId": "deploymentnode_Regionaldatacentre_6",
+          "width": "240",
+          "height": "98.4",
+          "background": "#ffffff",
+          "color": "#000000",
+          "shape": "Box"
+        }
+      },
+      {
+        "id": "containerinstance_broker_12",
+        "type": "c4/model+node",
+        "parent": "deploymentnode_kafka_11",
+        "attributes": {
+          "kind": "ContainerInstance",
+          "name": "Event Broker",
+          "description": "Carries scan events so ingest and notification are not one step.",
+          "technology": "Apache Kafka",
+          "typeLine": "[Container: Apache Kafka]",
+          "external": "false",
+          "parentId": "deploymentnode_kafka_11",
+          "width": "240",
+          "height": "118",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "containerinstance_database_13",
+        "type": "c4/model+node",
+        "parent": "dbPrimary",
+        "attributes": {
+          "kind": "ContainerInstance",
+          "name": "Delivery Database",
+          "description": "Stores deliveries, parcels and every scan against them.",
+          "technology": "PostgreSQL 16",
+          "typeLine": "[Container: PostgreSQL 16]",
+          "external": "false",
+          "parentId": "dbPrimary",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "containerinstance_database_14",
+        "type": "c4/model+node",
+        "parent": "dbStandby",
+        "attributes": {
+          "kind": "ContainerInstance",
+          "name": "Delivery Database",
+          "description": "Stores deliveries, parcels and every scan against them.",
+          "technology": "PostgreSQL 16",
+          "typeLine": "[Container: PostgreSQL 16]",
+          "external": "false",
+          "parentId": "dbStandby",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_Senderdevice_1",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "Sender device",
+          "kind": "Deployment Node: Browser",
+          "width": "519.2",
+          "height": "265.6"
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_WebBrowser_2",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "Web Browser",
+          "kind": "Deployment Node: Chrome, Safari or Firefox",
+          "width": "455.2",
+          "height": "182"
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_Courierhandset_4",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "Courier handset",
+          "kind": "Deployment Node: Android 14",
+          "width": "370.5",
+          "height": "182"
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_Regionaldatacentre_6",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "Regional data centre",
+          "kind": "Deployment Node: Ubuntu 24.04 LTS",
+          "width": "1170.2",
+          "height": "889.2"
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_web_7",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "web-*",
+          "kind": "Deployment Node: Ubuntu 24.04 LTS",
+          "width": "668",
+          "height": "265.6"
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_ApacheTomcat_8",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "Apache Tomcat",
+          "kind": "Deployment Node: Tomcat 10",
+          "width": "604",
+          "height": "182"
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_kafka_11",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "kafka-*",
+          "kind": "Deployment Node: Ubuntu 24.04 LTS",
+          "width": "355.1",
+          "height": "201.6"
+        }
+      },
+      {
+        "id": "boundary:dbPrimary",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "db-primary",
+          "kind": "Deployment Node: Ubuntu 24.04 LTS",
+          "width": "378.2",
+          "height": "182"
+        }
+      },
+      {
+        "id": "boundary:dbStandby",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "db-standby",
+          "kind": "Deployment Node: Ubuntu 24.04 LTS",
+          "width": "378.2",
+          "height": "182"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "Deployment diagram for Courier Tracking - Production",
+          "viewKind": "Deployment",
+          "viewKey": "ProductionDeployment",
+          "legend.0.label": "Deployment Node",
+          "legend.0.background": "#ffffff",
+          "legend.0.color": "#000000",
+          "legend.0.shape": "Box",
+          "legend.1.label": "Container",
+          "legend.1.background": "#438dd5",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "RoundedBox",
+          "legend.2.label": "Infrastructure Node",
+          "legend.2.background": "#ffffff",
+          "legend.2.color": "#000000",
+          "legend.2.shape": "Box"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "containerinstance_web_9->containerinstance_spa_3@87",
+        "type": "c4/model+relationship",
+        "source": "containerinstance_web_9",
+        "target": "containerinstance_spa_3",
+        "attributes": {
+          "description": "Delivers to the web browser of the customer",
+          "technology": "HTTPS",
+          "sourceX": "216",
+          "sourceY": "987.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "509.5",
+          "destinationY": "1424.4",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "containerinstance_spa_3->containerinstance_api_10@88",
+        "type": "c4/model+relationship",
+        "source": "containerinstance_spa_3",
+        "target": "containerinstance_api_10",
+        "attributes": {
+          "description": "Calls",
+          "technology": "JSON/HTTPS",
+          "sourceX": "509.5",
+          "sourceY": "1424.4",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "516",
+          "destinationY": "987.2",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "containerinstance_mobile_5->containerinstance_api_10@89",
+        "type": "c4/model+relationship",
+        "source": "containerinstance_mobile_5",
+        "target": "containerinstance_api_10",
+        "attributes": {
+          "description": "Calls",
+          "technology": "JSON/HTTPS",
+          "sourceX": "551.85",
+          "sourceY": "81.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "516",
+          "destinationY": "987.2",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "containerinstance_api_10->containerinstance_database_13@90",
+        "type": "c4/model+relationship",
+        "source": "containerinstance_api_10",
+        "target": "containerinstance_database_13",
+        "attributes": {
+          "description": "Reads from and writes to",
+          "technology": "JDBC/SSL",
+          "sourceX": "516",
+          "sourceY": "987.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "755.55",
+          "destinationY": "643.4000000000001",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "containerinstance_api_10->containerinstance_database_14@90",
+        "type": "c4/model+relationship",
+        "source": "containerinstance_api_10",
+        "target": "containerinstance_database_14",
+        "attributes": {
+          "description": "Reads from and writes to",
+          "technology": "JDBC/SSL",
+          "sourceX": "516",
+          "sourceY": "987.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "912",
+          "destinationY": "997",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "containerinstance_api_10->containerinstance_broker_12@91",
+        "type": "c4/model+relationship",
+        "source": "containerinstance_api_10",
+        "target": "containerinstance_broker_12",
+        "attributes": {
+          "description": "Publishes scan events to",
+          "technology": "Kafka protocol",
+          "sourceX": "516",
+          "sourceY": "987.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "340.45",
+          "destinationY": "643.4",
+          "destinationWidth": "240",
+          "destinationHeight": "118"
+        }
+      },
+      {
+        "id": "containerinstance_broker_12->containerinstance_api_10@92",
+        "type": "c4/model+relationship",
+        "source": "containerinstance_broker_12",
+        "target": "containerinstance_api_10",
+        "attributes": {
+          "description": "Delivers scan events to",
+          "technology": "Kafka protocol",
+          "sourceX": "340.45",
+          "sourceY": "643.4",
+          "sourceWidth": "240",
+          "sourceHeight": "118",
+          "destinationX": "516",
+          "destinationY": "987.2",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      }
+    ],
+    "findings": []
+  }
+}

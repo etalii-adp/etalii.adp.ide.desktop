@@ -1,0 +1,405 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "compute",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 560,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "serverless",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 584
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:transformations/bronze",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "notebook",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 48
+          }
+        },
+        {
+          "id": "name",
+          "text": "transformations/bronze",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:transformations/gold/**",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 240,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "glob",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 288
+          }
+        },
+        {
+          "id": "name",
+          "text": "transformations/gold/**",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 264
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:transformations/platinum",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 360,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "notebook",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 408
+          }
+        },
+        {
+          "id": "name",
+          "text": "transformations/platinum",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 384
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:transformations/silver.py",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 120,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "file",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 168
+          }
+        },
+        {
+          "id": "name",
+          "text": "transformations/silver.py",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 144
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "notifications",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 560,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "data-eng@example.com",
+          "font": "13 400",
+          "position": {
+            "x": 328,
+            "y": 584
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "pipeline",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 180,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "serverless · development · CURRENT",
+          "font": "10 400",
+          "position": {
+            "x": 328,
+            "y": 228
+          }
+        },
+        {
+          "id": "name",
+          "text": "bronze \"to\" gold",
+          "font": "13 400",
+          "position": {
+            "x": 328,
+            "y": 204
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "target",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 640,
+        "y": 180,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "lakehouse_dev.gold",
+          "font": "13 400",
+          "position": {
+            "x": 648,
+            "y": 204
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "flow:pipeline->target",
+      "type": "databricks/pipeline+edge",
+      "source": "pipeline",
+      "target": "target",
+      "route": [
+        {
+          "x": 520,
+          "y": 208
+        },
+        {
+          "x": 640,
+          "y": 208
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:transformations/bronze->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:transformations/bronze",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 28
+        },
+        {
+          "x": 320,
+          "y": 208
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:transformations/gold/**->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:transformations/gold/**",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 268
+        },
+        {
+          "x": 320,
+          "y": 208
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:transformations/platinum->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:transformations/platinum",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 388
+        },
+        {
+          "x": 320,
+          "y": 208
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:transformations/silver.py->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:transformations/silver.py",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 148
+        },
+        {
+          "x": 320,
+          "y": 208
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "library:transformations/bronze",
+    "library:transformations/silver.py",
+    "library:transformations/gold/**",
+    "library:transformations/platinum",
+    "pipeline",
+    "target",
+    "compute",
+    "notifications",
+    "flow:transformations/bronze->pipeline",
+    "flow:transformations/silver.py->pipeline",
+    "flow:transformations/gold/**->pipeline",
+    "flow:transformations/platinum->pipeline",
+    "flow:pipeline->target"
+  ]
+}

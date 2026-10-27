@@ -1,0 +1,4743 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "chart",
+      "type": "helm/chart+chart",
+      "shape": "path",
+      "bounds": {
+        "x": 1377.67,
+        "y": 541.46,
+        "w": 220,
+        "h": 110
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "nginx",
+          "font": "13 400",
+          "position": {
+            "x": 1487.67,
+            "y": 600.96
+          }
+        }
+      ],
+      "style": {
+        "fill": "#3D7BD924",
+        "stroke": "#3D7BD9",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "dep:common",
+      "type": "helm/chart+dependency",
+      "shape": "path",
+      "bounds": {
+        "x": 1700.5,
+        "y": 600.25,
+        "w": 210,
+        "h": 96
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "common",
+          "font": "13 400",
+          "position": {
+            "x": 1805.5,
+            "y": 652.75
+          }
+        }
+      ],
+      "style": {
+        "fill": "#8E54C424",
+        "stroke": "#8E54C4",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "lock:Chart.lock",
+      "type": "helm/chart+lock",
+      "shape": "path",
+      "bounds": {
+        "x": -273.11,
+        "y": 53.58,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Chart.lock",
+          "font": "13 400",
+          "position": {
+            "x": -173.11,
+            "y": 86.08
+          }
+        }
+      ],
+      "style": {
+        "fill": "#64748B1F",
+        "stroke": "#64748B",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "schema:values.schema.json",
+      "type": "helm/chart+schema",
+      "shape": "path",
+      "bounds": {
+        "x": -335.49,
+        "y": 154.64,
+        "w": 200,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "values.schema.json",
+          "font": "13 400",
+          "position": {
+            "x": -235.49,
+            "y": 183.14
+          }
+        }
+      ],
+      "style": {
+        "fill": "#64748B1F",
+        "stroke": "#64748B",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "sub:charts/common",
+      "type": "helm/chart+subchart",
+      "shape": "path",
+      "bounds": {
+        "x": 2026.84,
+        "y": 605.22,
+        "w": 210,
+        "h": 84
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "common",
+          "font": "13 400",
+          "position": {
+            "x": 2131.84,
+            "y": 651.72
+          }
+        }
+      ],
+      "style": {
+        "fill": "#3498A024",
+        "stroke": "#3498A0",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/NOTES.txt",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": -50.62,
+        "y": 1366.88,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "NOTES.txt",
+          "font": "13 400",
+          "position": {
+            "x": 69.38,
+            "y": 1401.38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/_helpers.tpl",
+      "type": "helm/chart+partial",
+      "shape": "path",
+      "bounds": {
+        "x": 585.62,
+        "y": 1594.68,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "_helpers.tpl",
+          "font": "13 400",
+          "position": {
+            "x": 705.62,
+            "y": 1629.18
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/context-includes-configmap.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 40,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "context-includes-configmap.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 74.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/deployment.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": -23.94,
+        "y": 1569.24,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "deployment.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 96.06,
+            "y": 1603.74
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/extra-list.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 208,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "extra-list.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 242.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/health-ingress.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 292,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "health-ingress.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 326.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/hpa.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 592.35,
+        "y": 368.11,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "hpa.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 712.35,
+            "y": 402.61
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/ingress-tls-secret.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 460,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "ingress-tls-secret.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 494.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/ingress.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 544,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "ingress.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 578.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/networkpolicy.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 628,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "networkpolicy.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 662.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/pdb.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 712,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "pdb.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 746.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/prometheusrules.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 796,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "prometheusrules.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 830.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/server-block-configmap.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 880,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "server-block-configmap.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 914.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/serviceaccount.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": -8.49,
+        "y": 1773,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "serviceaccount.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 111.51,
+            "y": 1807.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/servicemonitor.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 549.1,
+        "y": 1003.06,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "servicemonitor.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 669.1,
+            "y": 1037.56
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/stream-server-block-configmap.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 1132,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "stream-server-block-configmap.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 1166.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/svc.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 1216,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "svc.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 1250.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "tpl:templates/tls-secret.yaml",
+      "type": "helm/chart+template",
+      "shape": "path",
+      "bounds": {
+        "x": 580,
+        "y": 1300,
+        "w": 240,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "tls-secret.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 700,
+            "y": 1334.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#C4822024",
+        "stroke": "#C48220",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "values:values-dev.yaml",
+      "type": "helm/chart+values",
+      "shape": "path",
+      "bounds": {
+        "x": 3.12,
+        "y": 19.9,
+        "w": 200,
+        "h": 72
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "values-dev.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 103.12,
+            "y": 60.4
+          }
+        }
+      ],
+      "style": {
+        "fill": "#2EA06424",
+        "stroke": "#2EA064",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "values:values-prod.yaml",
+      "type": "helm/chart+values",
+      "shape": "path",
+      "bounds": {
+        "x": 37.27,
+        "y": 128.2,
+        "w": 200,
+        "h": 72
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "values-prod.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 137.27,
+            "y": 168.7
+          }
+        }
+      ],
+      "style": {
+        "fill": "#2EA06424",
+        "stroke": "#2EA064",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "values:values.yaml",
+      "type": "helm/chart+values",
+      "shape": "path",
+      "bounds": {
+        "x": 100,
+        "y": 700,
+        "w": 200,
+        "h": 72
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "values.yaml",
+          "font": "13 400",
+          "position": {
+            "x": 200,
+            "y": 740.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#2EA06424",
+        "stroke": "#2EA064",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:chart|Declares|dep:common|2.x.x",
+      "type": "helm/chart+edge",
+      "source": "chart",
+      "target": "dep:common",
+      "route": [
+        {
+          "x": 1597.67,
+          "y": 596.46
+        },
+        {
+          "x": 1700.5,
+          "y": 648.25
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "2.x.x",
+          "font": "11 400",
+          "position": {
+            "x": 1649.08,
+            "y": 616.36
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8E54C4",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:dep:common|Resolves|sub:charts/common|",
+      "type": "helm/chart+edge",
+      "source": "dep:common",
+      "target": "sub:charts/common",
+      "route": [
+        {
+          "x": 1910.5,
+          "y": 648.25
+        },
+        {
+          "x": 2026.84,
+          "y": 647.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#3498A0",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:tpl:templates/NOTES.txt|Includes|tpl:templates/_helpers.tpl|nginx.validateValues",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/NOTES.txt",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 189.38,
+          "y": 1396.88
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.validateValues",
+          "font": "11 400",
+          "position": {
+            "x": 387.5,
+            "y": 1504.78
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/NOTES.txt|Includes||common.errors.insecureImages",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/NOTES.txt",
+      "target": "",
+      "route": [
+        {
+          "x": 189.38,
+          "y": 1396.88
+        },
+        {
+          "x": 237.38,
+          "y": 1396.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.errors.insecureImages (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 197.38,
+            "y": 1390.88
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/NOTES.txt|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/NOTES.txt",
+      "target": "",
+      "route": [
+        {
+          "x": 189.38,
+          "y": 1396.88
+        },
+        {
+          "x": 237.38,
+          "y": 1396.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 197.38,
+            "y": 1390.88
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/NOTES.txt|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/NOTES.txt",
+      "target": "",
+      "route": [
+        {
+          "x": 189.38,
+          "y": 1396.88
+        },
+        {
+          "x": 237.38,
+          "y": 1396.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 197.38,
+            "y": 1390.88
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/NOTES.txt|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/NOTES.txt",
+      "target": "",
+      "route": [
+        {
+          "x": 189.38,
+          "y": 1396.88
+        },
+        {
+          "x": 237.38,
+          "y": 1396.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 197.38,
+            "y": 1390.88
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/NOTES.txt|Includes||common.warnings.modifiedImages",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/NOTES.txt",
+      "target": "",
+      "route": [
+        {
+          "x": 189.38,
+          "y": 1396.88
+        },
+        {
+          "x": 237.38,
+          "y": 1396.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.warnings.modifiedImages (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 197.38,
+            "y": 1390.88
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/NOTES.txt|Includes||common.warnings.resources",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/NOTES.txt",
+      "target": "",
+      "route": [
+        {
+          "x": 189.38,
+          "y": 1396.88
+        },
+        {
+          "x": 237.38,
+          "y": 1396.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.warnings.resources (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 197.38,
+            "y": 1390.88
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/NOTES.txt|Includes||common.warnings.rollingTag",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/NOTES.txt",
+      "target": "",
+      "route": [
+        {
+          "x": 189.38,
+          "y": 1396.88
+        },
+        {
+          "x": 237.38,
+          "y": 1396.88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.warnings.rollingTag (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 197.38,
+            "y": 1390.88
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/_helpers.tpl|Includes||common.images.image",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/_helpers.tpl",
+      "target": "",
+      "route": [
+        {
+          "x": 825.62,
+          "y": 1624.68
+        },
+        {
+          "x": 873.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.images.image (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 833.62,
+            "y": 1618.68
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/_helpers.tpl|Includes||common.images.renderPullSecrets",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/_helpers.tpl",
+      "target": "",
+      "route": [
+        {
+          "x": 825.62,
+          "y": 1624.68
+        },
+        {
+          "x": 873.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.images.renderPullSecrets (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 833.62,
+            "y": 1618.68
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/context-includes-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 70
+        },
+        {
+          "x": 868,
+          "y": 70
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 64
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/context-includes-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 70
+        },
+        {
+          "x": 868,
+          "y": 70
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 64
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/context-includes-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 70
+        },
+        {
+          "x": 868,
+          "y": 70
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 64
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/context-includes-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 70
+        },
+        {
+          "x": 868,
+          "y": 70
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 64
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.cloneStaticSiteFromGit.image",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.cloneStaticSiteFromGit.image",
+          "font": "11 400",
+          "position": {
+            "x": 400.84,
+            "y": 1605.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.image",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.image",
+          "font": "11 400",
+          "position": {
+            "x": 400.84,
+            "y": 1605.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.imagePullSecrets",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.imagePullSecrets",
+          "font": "11 400",
+          "position": {
+            "x": 400.84,
+            "y": 1605.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.metrics.image",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.metrics.image",
+          "font": "11 400",
+          "position": {
+            "x": 400.84,
+            "y": 1605.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serverBlockConfigmapName",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.serverBlockConfigmapName",
+          "font": "11 400",
+          "position": {
+            "x": 400.84,
+            "y": 1605.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serviceAccountName",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.serviceAccountName",
+          "font": "11 400",
+          "position": {
+            "x": 400.84,
+            "y": 1605.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.staticSiteVolume",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.staticSiteVolume",
+          "font": "11 400",
+          "position": {
+            "x": 400.84,
+            "y": 1605.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.streamServerBlockConfigmapName",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.streamServerBlockConfigmapName",
+          "font": "11 400",
+          "position": {
+            "x": 400.84,
+            "y": 1605.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.affinities.nodes",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.affinities.nodes (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.affinities.pods",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.affinities.pods (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.capabilities.deployment.apiVersion",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.capabilities.deployment.apiVersion (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.compatibility.renderSecurityContext",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.compatibility.renderSecurityContext (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.labels.matchLabels",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.matchLabels (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.resources.preset",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.resources.preset (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/deployment.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/deployment.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 216.06,
+          "y": 1599.24
+        },
+        {
+          "x": 264.06,
+          "y": 1599.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 224.06,
+            "y": 1593.24
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/extra-list.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/extra-list.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 238
+        },
+        {
+          "x": 868,
+          "y": 238
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 232
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.capabilities.ingress.apiVersion",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/health-ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 322
+        },
+        {
+          "x": 868,
+          "y": 322
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.capabilities.ingress.apiVersion (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 316
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.ingress.backend",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/health-ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 322
+        },
+        {
+          "x": 868,
+          "y": 322
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.ingress.backend (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 316
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/health-ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 322
+        },
+        {
+          "x": 868,
+          "y": 322
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 316
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/health-ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 322
+        },
+        {
+          "x": 868,
+          "y": 322
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 316
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/health-ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 322
+        },
+        {
+          "x": 868,
+          "y": 322
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 316
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/health-ingress.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/health-ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 322
+        },
+        {
+          "x": 868,
+          "y": 322
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 316
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/hpa.yaml|Includes||common.capabilities.deployment.apiVersion",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/hpa.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 832.35,
+          "y": 398.11
+        },
+        {
+          "x": 880.35,
+          "y": 398.11
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.capabilities.deployment.apiVersion (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 840.35,
+            "y": 392.11
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/hpa.yaml|Includes||common.capabilities.hpa.apiVersion",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/hpa.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 832.35,
+          "y": 398.11
+        },
+        {
+          "x": 880.35,
+          "y": 398.11
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.capabilities.hpa.apiVersion (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 840.35,
+            "y": 392.11
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/hpa.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/hpa.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 832.35,
+          "y": 398.11
+        },
+        {
+          "x": 880.35,
+          "y": 398.11
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 840.35,
+            "y": 392.11
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/hpa.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/hpa.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 832.35,
+          "y": 398.11
+        },
+        {
+          "x": 880.35,
+          "y": 398.11
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 840.35,
+            "y": 392.11
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/hpa.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/hpa.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 832.35,
+          "y": 398.11
+        },
+        {
+          "x": 880.35,
+          "y": 398.11
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 840.35,
+            "y": 392.11
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/hpa.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/hpa.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 832.35,
+          "y": 398.11
+        },
+        {
+          "x": 880.35,
+          "y": 398.11
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 840.35,
+            "y": 392.11
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress-tls-secret.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 490
+        },
+        {
+          "x": 868,
+          "y": 490
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 484
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress-tls-secret.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 490
+        },
+        {
+          "x": 868,
+          "y": 490
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 484
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.secrets.lookup",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress-tls-secret.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 490
+        },
+        {
+          "x": 868,
+          "y": 490
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.secrets.lookup (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 484
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress-tls-secret.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 490
+        },
+        {
+          "x": 868,
+          "y": 490
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 484
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress.yaml|Includes||common.capabilities.ingress.apiVersion",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 574
+        },
+        {
+          "x": 868,
+          "y": 574
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.capabilities.ingress.apiVersion (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 568
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress.yaml|Includes||common.ingress.backend",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 574
+        },
+        {
+          "x": 868,
+          "y": 574
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.ingress.backend (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 568
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 574
+        },
+        {
+          "x": 868,
+          "y": 574
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 568
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 574
+        },
+        {
+          "x": 868,
+          "y": 574
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 568
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 574
+        },
+        {
+          "x": 868,
+          "y": 574
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 568
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/ingress.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/ingress.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 574
+        },
+        {
+          "x": 868,
+          "y": 574
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 568
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.capabilities.networkPolicy.apiVersion",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/networkpolicy.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 658
+        },
+        {
+          "x": 868,
+          "y": 658
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.capabilities.networkPolicy.apiVersion (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 652
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.labels.matchLabels",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/networkpolicy.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 658
+        },
+        {
+          "x": 868,
+          "y": 658
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.matchLabels (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 652
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/networkpolicy.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 658
+        },
+        {
+          "x": 868,
+          "y": 658
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 652
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/networkpolicy.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 658
+        },
+        {
+          "x": 868,
+          "y": 658
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 652
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/networkpolicy.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 658
+        },
+        {
+          "x": 868,
+          "y": 658
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 652
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/networkpolicy.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/networkpolicy.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 658
+        },
+        {
+          "x": 868,
+          "y": 658
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 652
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/pdb.yaml|Includes||common.capabilities.policy.apiVersion",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/pdb.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 742
+        },
+        {
+          "x": 868,
+          "y": 742
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.capabilities.policy.apiVersion (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 736
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/pdb.yaml|Includes||common.labels.matchLabels",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/pdb.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 742
+        },
+        {
+          "x": 868,
+          "y": 742
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.matchLabels (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 736
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/pdb.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/pdb.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 742
+        },
+        {
+          "x": 868,
+          "y": 742
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 736
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/pdb.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/pdb.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 742
+        },
+        {
+          "x": 868,
+          "y": 742
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 736
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/pdb.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/pdb.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 742
+        },
+        {
+          "x": 868,
+          "y": 742
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 736
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/pdb.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/pdb.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 742
+        },
+        {
+          "x": 868,
+          "y": 742
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 736
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/prometheusrules.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/prometheusrules.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 826
+        },
+        {
+          "x": 868,
+          "y": 826
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/prometheusrules.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/prometheusrules.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 826
+        },
+        {
+          "x": 868,
+          "y": 826
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/prometheusrules.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/prometheusrules.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 826
+        },
+        {
+          "x": 868,
+          "y": 826
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 820
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/server-block-configmap.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/server-block-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 910
+        },
+        {
+          "x": 868,
+          "y": 910
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 904
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/server-block-configmap.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/server-block-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 910
+        },
+        {
+          "x": 868,
+          "y": 910
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 904
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/server-block-configmap.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/server-block-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 910
+        },
+        {
+          "x": 868,
+          "y": 910
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 904
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/server-block-configmap.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/server-block-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 910
+        },
+        {
+          "x": 868,
+          "y": 910
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 904
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/serviceaccount.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serviceAccountName",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/serviceaccount.yaml",
+      "target": "tpl:templates/_helpers.tpl",
+      "route": [
+        {
+          "x": 231.51,
+          "y": 1803
+        },
+        {
+          "x": 585.62,
+          "y": 1624.68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "nginx.serviceAccountName",
+          "font": "11 400",
+          "position": {
+            "x": 408.56,
+            "y": 1707.84
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "edge:tpl:templates/serviceaccount.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/serviceaccount.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 231.51,
+          "y": 1803
+        },
+        {
+          "x": 279.51,
+          "y": 1803
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 239.51,
+            "y": 1797
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/serviceaccount.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/serviceaccount.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 231.51,
+          "y": 1803
+        },
+        {
+          "x": 279.51,
+          "y": 1803
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 239.51,
+            "y": 1797
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/serviceaccount.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/serviceaccount.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 231.51,
+          "y": 1803
+        },
+        {
+          "x": 279.51,
+          "y": 1803
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 239.51,
+            "y": 1797
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/servicemonitor.yaml|Includes||common.labels.matchLabels",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/servicemonitor.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 789.1,
+          "y": 1033.06
+        },
+        {
+          "x": 837.1,
+          "y": 1033.06
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.matchLabels (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 797.1,
+            "y": 1027.06
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/servicemonitor.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/servicemonitor.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 789.1,
+          "y": 1033.06
+        },
+        {
+          "x": 837.1,
+          "y": 1033.06
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 797.1,
+            "y": 1027.06
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/servicemonitor.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/servicemonitor.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 789.1,
+          "y": 1033.06
+        },
+        {
+          "x": 837.1,
+          "y": 1033.06
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 797.1,
+            "y": 1027.06
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/servicemonitor.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/servicemonitor.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 789.1,
+          "y": 1033.06
+        },
+        {
+          "x": 837.1,
+          "y": 1033.06
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 797.1,
+            "y": 1027.06
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/stream-server-block-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1162
+        },
+        {
+          "x": 868,
+          "y": 1162
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1156
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/stream-server-block-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1162
+        },
+        {
+          "x": 868,
+          "y": 1162
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1156
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/stream-server-block-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1162
+        },
+        {
+          "x": 868,
+          "y": 1162
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1156
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/stream-server-block-configmap.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1162
+        },
+        {
+          "x": 868,
+          "y": 1162
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1156
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/svc.yaml|Includes||common.labels.matchLabels",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/svc.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1246
+        },
+        {
+          "x": 868,
+          "y": 1246
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.matchLabels (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1240
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/svc.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/svc.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1246
+        },
+        {
+          "x": 868,
+          "y": 1246
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1240
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/svc.yaml|Includes||common.names.fullname",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/svc.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1246
+        },
+        {
+          "x": 868,
+          "y": 1246
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.fullname (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1240
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/svc.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/svc.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1246
+        },
+        {
+          "x": 868,
+          "y": 1246
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1240
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/svc.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/svc.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1246
+        },
+        {
+          "x": 868,
+          "y": 1246
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1240
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/tls-secret.yaml|Includes||common.labels.standard",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/tls-secret.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1330
+        },
+        {
+          "x": 868,
+          "y": 1330
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.labels.standard (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1324
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/tls-secret.yaml|Includes||common.names.namespace",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/tls-secret.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1330
+        },
+        {
+          "x": 868,
+          "y": 1330
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.names.namespace (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1324
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/tls-secret.yaml|Includes||common.secrets.lookup",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/tls-secret.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1330
+        },
+        {
+          "x": 868,
+          "y": 1330
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.secrets.lookup (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1324
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:tpl:templates/tls-secret.yaml|Includes||common.tplvalues.render",
+      "type": "helm/chart+edge",
+      "source": "tpl:templates/tls-secret.yaml",
+      "target": "",
+      "route": [
+        {
+          "x": 820,
+          "y": 1330
+        },
+        {
+          "x": 868,
+          "y": 1330
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "common.tplvalues.render (not defined here)",
+          "font": "11 400",
+          "position": {
+            "x": 828,
+            "y": 1324
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#C48220",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:values:values-dev.yaml|Overrides|values:values.yaml|",
+      "type": "helm/chart+edge",
+      "source": "values:values-dev.yaml",
+      "target": "values:values.yaml",
+      "route": [
+        {
+          "x": 203.12,
+          "y": 55.9
+        },
+        {
+          "x": 100,
+          "y": 736
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#2EA064",
+        "strokeWidth": 1.5,
+        "dash": [
+          5,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:values:values-prod.yaml|Overrides|values:values.yaml|",
+      "type": "helm/chart+edge",
+      "source": "values:values-prod.yaml",
+      "target": "values:values.yaml",
+      "route": [
+        {
+          "x": 237.27,
+          "y": 164.2
+        },
+        {
+          "x": 100,
+          "y": 736
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#2EA064",
+        "strokeWidth": 1.5,
+        "dash": [
+          5,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:values:values-dev.yaml|Overrides|values:values.yaml|",
+    "edge:values:values-prod.yaml|Overrides|values:values.yaml|",
+    "edge:tpl:templates/NOTES.txt|Includes||common.errors.insecureImages",
+    "edge:tpl:templates/NOTES.txt|Includes||common.names.fullname",
+    "edge:tpl:templates/NOTES.txt|Includes||common.names.namespace",
+    "edge:tpl:templates/NOTES.txt|Includes||common.tplvalues.render",
+    "edge:tpl:templates/NOTES.txt|Includes||common.warnings.modifiedImages",
+    "edge:tpl:templates/NOTES.txt|Includes||common.warnings.resources",
+    "edge:tpl:templates/NOTES.txt|Includes||common.warnings.rollingTag",
+    "edge:tpl:templates/NOTES.txt|Includes|tpl:templates/_helpers.tpl|nginx.validateValues",
+    "edge:tpl:templates/_helpers.tpl|Includes||common.images.image",
+    "edge:tpl:templates/_helpers.tpl|Includes||common.images.renderPullSecrets",
+    "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/context-includes-configmap.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/deployment.yaml|Includes||common.affinities.nodes",
+    "edge:tpl:templates/deployment.yaml|Includes||common.affinities.pods",
+    "edge:tpl:templates/deployment.yaml|Includes||common.capabilities.deployment.apiVersion",
+    "edge:tpl:templates/deployment.yaml|Includes||common.compatibility.renderSecurityContext",
+    "edge:tpl:templates/deployment.yaml|Includes||common.labels.matchLabels",
+    "edge:tpl:templates/deployment.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/deployment.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/deployment.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/deployment.yaml|Includes||common.resources.preset",
+    "edge:tpl:templates/deployment.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.cloneStaticSiteFromGit.image",
+    "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.image",
+    "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.imagePullSecrets",
+    "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.metrics.image",
+    "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serverBlockConfigmapName",
+    "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serviceAccountName",
+    "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.staticSiteVolume",
+    "edge:tpl:templates/deployment.yaml|Includes|tpl:templates/_helpers.tpl|nginx.streamServerBlockConfigmapName",
+    "edge:tpl:templates/extra-list.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/health-ingress.yaml|Includes||common.capabilities.ingress.apiVersion",
+    "edge:tpl:templates/health-ingress.yaml|Includes||common.ingress.backend",
+    "edge:tpl:templates/health-ingress.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/health-ingress.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/health-ingress.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/health-ingress.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/hpa.yaml|Includes||common.capabilities.deployment.apiVersion",
+    "edge:tpl:templates/hpa.yaml|Includes||common.capabilities.hpa.apiVersion",
+    "edge:tpl:templates/hpa.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/hpa.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/hpa.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/hpa.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.secrets.lookup",
+    "edge:tpl:templates/ingress-tls-secret.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/ingress.yaml|Includes||common.capabilities.ingress.apiVersion",
+    "edge:tpl:templates/ingress.yaml|Includes||common.ingress.backend",
+    "edge:tpl:templates/ingress.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/ingress.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/ingress.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/ingress.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/networkpolicy.yaml|Includes||common.capabilities.networkPolicy.apiVersion",
+    "edge:tpl:templates/networkpolicy.yaml|Includes||common.labels.matchLabels",
+    "edge:tpl:templates/networkpolicy.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/networkpolicy.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/networkpolicy.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/networkpolicy.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/pdb.yaml|Includes||common.capabilities.policy.apiVersion",
+    "edge:tpl:templates/pdb.yaml|Includes||common.labels.matchLabels",
+    "edge:tpl:templates/pdb.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/pdb.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/pdb.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/pdb.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/prometheusrules.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/prometheusrules.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/prometheusrules.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/server-block-configmap.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/server-block-configmap.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/server-block-configmap.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/server-block-configmap.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/serviceaccount.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/serviceaccount.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/serviceaccount.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/serviceaccount.yaml|Includes|tpl:templates/_helpers.tpl|nginx.serviceAccountName",
+    "edge:tpl:templates/servicemonitor.yaml|Includes||common.labels.matchLabels",
+    "edge:tpl:templates/servicemonitor.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/servicemonitor.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/servicemonitor.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/stream-server-block-configmap.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/svc.yaml|Includes||common.labels.matchLabels",
+    "edge:tpl:templates/svc.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/svc.yaml|Includes||common.names.fullname",
+    "edge:tpl:templates/svc.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/svc.yaml|Includes||common.tplvalues.render",
+    "edge:tpl:templates/tls-secret.yaml|Includes||common.labels.standard",
+    "edge:tpl:templates/tls-secret.yaml|Includes||common.names.namespace",
+    "edge:tpl:templates/tls-secret.yaml|Includes||common.secrets.lookup",
+    "edge:tpl:templates/tls-secret.yaml|Includes||common.tplvalues.render",
+    "edge:chart|Declares|dep:common|2.x.x",
+    "edge:dep:common|Resolves|sub:charts/common|",
+    "chart",
+    "values:values.yaml",
+    "values:values-dev.yaml",
+    "values:values-prod.yaml",
+    "schema:values.schema.json",
+    "tpl:templates/NOTES.txt",
+    "tpl:templates/_helpers.tpl",
+    "tpl:templates/context-includes-configmap.yaml",
+    "tpl:templates/deployment.yaml",
+    "tpl:templates/extra-list.yaml",
+    "tpl:templates/health-ingress.yaml",
+    "tpl:templates/hpa.yaml",
+    "tpl:templates/ingress-tls-secret.yaml",
+    "tpl:templates/ingress.yaml",
+    "tpl:templates/networkpolicy.yaml",
+    "tpl:templates/pdb.yaml",
+    "tpl:templates/prometheusrules.yaml",
+    "tpl:templates/server-block-configmap.yaml",
+    "tpl:templates/serviceaccount.yaml",
+    "tpl:templates/servicemonitor.yaml",
+    "tpl:templates/stream-server-block-configmap.yaml",
+    "tpl:templates/svc.yaml",
+    "tpl:templates/tls-secret.yaml",
+    "sub:charts/common",
+    "dep:common",
+    "lock:Chart.lock"
+  ]
+}

@@ -1,0 +1,22 @@
+atd 0.1
+part of databricks/bundle
+
+// The Databricks bundle's body, in a part of its own (ATD §5.2, §9).
+
+/// A Databricks Asset Bundle's `databricks.yml`, read and written by the capability `reader.databricksBundle` as its
+/// `bundle` reading (databricks-bundle.md): the persistence plugin's contract (FBL §11) as a binding's family, since
+/// one FBL binding cannot give three readings of one body different metamodels. The YAML stays Databricks' own: every
+/// scalar is kept as written, every byte no element maps is kept, and every edit is a minimal line splice; a resource
+/// added to a file without `resources:` creates both levels in one edit. Configuration the reader does not model is
+/// read as an `Unknown` node and never rewritten. The bundle node exists under the id `bundle` whether or not the file
+/// declares `bundle:`, and a body that is not YAML reads as the empty reading with the reader's sentence as its finding.
+///
+/// Positions are kept in the `.adp` registration's `layout:` block, never in the YAML. The findings are the whole
+/// file's, every job's, then the bundle's, then every pipeline's, whichever reading asked. The job reading's task and
+/// connect commands, which this reading offers too, are planned by the same capability as under the job reading.
+binding bundle family capability reader.databricksBundle {
+  label "Databricks bundle"
+  claims { extensions: [".yml", ".yaml"], origins: ["databricks/bundle"] }
+  body { kind: file }
+  args: { reading: bundle }
+}

@@ -39,6 +39,7 @@ diagram generic/dependencies version "1.1.0" {
 
   import "dependency-graph.notation.atd"
   import "dependency-graph.dgr.atd"
+  requires capability routing.forwardBezier@^1
 
   /// One node type and one relation type. The diagram root carries no attributes of its own: a new graph is the version
   /// marker and an empty element list, and nothing else.
@@ -244,13 +245,6 @@ diagram generic/dependencies version "1.1.0" {
     }
   }
 
-  plugin net.etalii.adp.generic.dependencyCurve {
-    version: "^1.0.0"
-    provides: [routing]
-    required: false
-    fallback: { routing: bezier }
-    doc: "The dependency curve: a horizontal bezier between the facing side anchors while the dependency sits clear to the right of its dependent, and a forward loop out of the dependent's right side into the dependency's left side when it sits behind or overlaps (dependency-graph.md §7). How a route is drawn is the host's rendering."
-  }
 
   /// Today's wire ids, which the standalone client and backend share, mapped from this description's names. A tool is
   /// keyed by its id. An action is keyed by its entry's operation, else its kind; a key "<Type>/<kind>" overrides that

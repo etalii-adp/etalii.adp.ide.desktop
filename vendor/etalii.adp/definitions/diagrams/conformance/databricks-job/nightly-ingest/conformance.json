@@ -1,0 +1,585 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/job` from parity/scripts/databricks/job/nightly-ingest.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/job",
+  "description": "../../../databricks-job.atd",
+  "inputs": {
+    "body": "nightly-ingest.yml",
+    "registration": "nightly-ingest.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "task:land_raw",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "land_raw",
+          "taskType": "notebook",
+          "source": "notebooks/land_raw",
+          "clusterKey": "ingest_cluster",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "land_raw",
+          "badges": "ingest_cluster",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:quality_gate",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "quality_gate",
+          "taskType": "condition",
+          "source": "GREATER_THAN",
+          "unresolved": "false",
+          "kind": "condition",
+          "label": "quality_gate",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:publish",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "publish",
+          "taskType": "notebook",
+          "source": "notebooks/publish",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "publish",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:alert_on_empty",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "alert_on_empty",
+          "taskType": "python",
+          "source": "scripts/alert_on_empty.py",
+          "runIf": "AT_LEAST_ONE_FAILED",
+          "unresolved": "false",
+          "kind": "python",
+          "label": "alert_on_empty",
+          "badges": "AT_LEAST_ONE_FAILED\nserverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:refresh_dashboard",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "refresh_dashboard",
+          "taskType": "sql",
+          "source": "9d3f2b1a",
+          "unresolved": "false",
+          "kind": "sql",
+          "label": "refresh_dashboard",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "cluster:ingest_cluster",
+        "type": "databricks/job+cluster",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "ingest_cluster",
+          "badges": "15.4.x-scala2.12\nStandard_DS3_v2\n2 workers",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:land_raw->quality_gate",
+        "type": "databricks/job+edge",
+        "source": "task:land_raw",
+        "target": "task:quality_gate",
+        "attributes": {
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:quality_gate->publish",
+        "type": "databricks/job+edge",
+        "source": "task:quality_gate",
+        "target": "task:publish",
+        "attributes": {
+          "outcome": "true",
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:quality_gate->alert_on_empty",
+        "type": "databricks/job+edge",
+        "source": "task:quality_gate",
+        "target": "task:alert_on_empty",
+        "attributes": {
+          "outcome": "false",
+          "kind": "depends"
+        }
+      },
+      {
+        "id": "edge:publish->refresh_dashboard",
+        "type": "databricks/job+edge",
+        "source": "task:publish",
+        "target": "task:refresh_dashboard",
+        "attributes": {
+          "kind": "depends"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "databricks.rename-task",
+      "args": {
+        "value": "gate"
+      },
+      "select": [
+        "task:quality_gate"
+      ],
+      "ids": [
+        "task:gate",
+        "edge:land_raw->gate",
+        "edge:gate->publish",
+        "edge:gate->alert_on_empty"
+      ],
+      "expectFile": "after-1.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "databricks.set-run-if",
+      "args": {
+        "target": "task:publish",
+        "value": "ALL_DONE"
+      },
+      "expectFile": "after-2.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "element": "task:alert_on_empty",
+        "attribute": "Run if",
+        "value": ""
+      },
+      "expectFile": "after-3.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "databricks.assign-cluster",
+      "args": {
+        "target": "task:publish",
+        "value": "ingest_cluster"
+      },
+      "expectFile": "after-4.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "element": "task:land_raw",
+        "attribute": "Cluster",
+        "value": ""
+      },
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "property": {
+        "element": "task:publish",
+        "attribute": "Cluster",
+        "value": "warp_core"
+      },
+      "refused": {
+        "reason": "There is no cluster named 'warp_core' in this job."
+      },
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "property": {
+        "element": "task:land_raw",
+        "attribute": "Key",
+        "value": "landing"
+      },
+      "refused": {
+        "reason": "Rename through the context menu, so every depends_on reference follows the key."
+      },
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:land_raw->task:refresh_dashboard"
+      },
+      "ids": [
+        "edge:land_raw->refresh_dashboard"
+      ],
+      "expectFile": "after-6.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:land_raw->task:refresh_dashboard"
+      },
+      "refused": {
+        "reason": "'refresh_dashboard' already depends on 'land_raw'."
+      },
+      "expectFile": "after-6.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "databricks.add-task:notebook",
+      "args": {
+        "target": "new:600,400"
+      },
+      "ids": [
+        "task:notebook_1"
+      ],
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:refresh_dashboard->task:notebook_1"
+      },
+      "ids": [
+        "edge:refresh_dashboard->notebook_1"
+      ],
+      "expectFile": "after-8.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "action": "databricks.add-task:condition",
+      "args": {
+        "target": "new:860,400"
+      },
+      "ids": [
+        "task:condition_1"
+      ],
+      "expectFile": "after-9.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "databricks.add-task:python",
+      "args": {
+        "target": "new:860,520"
+      },
+      "ids": [
+        "task:python_1"
+      ],
+      "expectFile": "after-10.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "databricks.add-task:notebook",
+      "args": {
+        "target": "new:600,520"
+      },
+      "ids": [
+        "task:notebook_2"
+      ],
+      "expectFile": "after-11.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "action": "databricks.disconnect:publish",
+      "args": {
+        "target": "task:refresh_dashboard"
+      },
+      "expectFile": "after-12.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "databricks.remove-edge",
+      "args": {
+        "target": "edge:refresh_dashboard->notebook_1"
+      },
+      "expectFile": "after-13.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-12.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-13.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "databricks.rename-task",
+      "args": {
+        "target": "task:publish",
+        "value": "land_raw"
+      },
+      "refused": {
+        "reason": "A task named 'land_raw' is already there."
+      },
+      "expectFile": "after-13.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "action": "databricks.remove-task",
+      "args": {
+        "target": "task:gate"
+      },
+      "expectFile": "after-13.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "action": "databricks.remove-task",
+      "args": {
+        "target": "task:gate",
+        "confirm": true
+      },
+      "expectFile": "after-14.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-13.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "action": "databricks.remove-task",
+      "args": {
+        "target": "task:python_1"
+      },
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "action": "databricks.simulated.run-job",
+      "args": {
+        "target": "task:publish"
+      },
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "move": {
+        "element": "task:land_raw"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"task:land_raw\"],\"to\":{\"x\":40,\"y\":20}}",
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "move": {
+        "element": "cluster:ingest_cluster"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"cluster:ingest_cluster\"],\"to\":{\"x\":12.5,\"y\":-30}}",
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "move": {
+        "element": "task:publish"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"task:publish\"],\"to\":{\"x\":520,\"y\":260.25}}",
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "move": {
+        "element": "task:notebook_1"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"task:notebook_1\"],\"dx\":30,\"dy\":-15}",
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.30.json"
+      }
+    },
+    {
+      "action": "databricks.rename-task",
+      "args": {
+        "target": "task:notebook_2",
+        "value": "  report  "
+      },
+      "ids": [
+        "task:report"
+      ],
+      "expectFile": "after-16.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.31.json"
+      }
+    },
+    {
+      "action": "databricks.set-run-if",
+      "args": {
+        "target": "task:report",
+        "value": "AT_LEAST_ONE_SUCCESS"
+      },
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.32.json"
+      }
+    },
+    {
+      "property": {
+        "element": "task:report",
+        "attribute": "Run if",
+        "value": "ALL_DONE"
+      },
+      "expectFile": "after-18.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.33.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/databricks/job/nightly-ingest/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

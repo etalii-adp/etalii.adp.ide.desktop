@@ -1,0 +1,841 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "blank:0",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 240,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:c",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 260
+          }
+        },
+        {
+          "id": "rows",
+          "text": "foaf:name: Carol",
+          "font": "11 400",
+          "position": {
+            "x": 568,
+            "y": 282
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "blank:4",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 400,
+        "w": 220,
+        "h": 72
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:b4",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 420
+          }
+        },
+        {
+          "id": "rows",
+          "text": "foaf:name: Dave\nfoaf:age: 23 <http://www.w3.org/2001/XMLSchema#integer>",
+          "font": "11 400",
+          "position": {
+            "x": 568,
+            "y": 442
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "blank:5",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 560,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:b5",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 580
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "res:http://example.org/alice",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 120
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "foaf:Person",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:alice",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "foaf:name: Alice\nfoaf:age: 42 <http://www.w3.org/2001/XMLSchema#integer>\nfoaf:score: 1.2e3 <http://www.w3.org/2001/XMLSchema#double>\ndc:description: A description\nwith a break @en",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/art",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 400,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:art",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 420
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/base/",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 840,
+        "y": 560,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "http://example.org/base/",
+          "font": "13 400",
+          "position": {
+            "x": 950,
+            "y": 580
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/base/relative",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 560,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "relative",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 580
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/bob",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 240,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:bob",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 260
+          }
+        },
+        {
+          "id": "rows",
+          "text": "foaf:name: Bob",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 282
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/carol",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 240,
+        "w": 220,
+        "h": 72
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:carol",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 260
+          }
+        },
+        {
+          "id": "rows",
+          "text": "foaf:interests [3]: 4.5 <http://www.w3.org/2001/XMLSchema#decimal>\nex:verified: true <http://www.w3.org/2001/XMLSchema#boolean>",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 282
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/doc",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 720,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:doc",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 740
+          }
+        },
+        {
+          "id": "rows",
+          "text": "dc:title: A long\r\nstring with \"quotes\" inside",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 762
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/empty",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 560,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:empty",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 580
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/group",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 840,
+        "y": 400,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:group",
+          "font": "13 400",
+          "position": {
+            "x": 950,
+            "y": 420
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/music",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 400,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:music",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 420
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:mailto:carol@example.org",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 840,
+        "y": 240,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "mailto:carol@example.org",
+          "font": "13 400",
+          "position": {
+            "x": 950,
+            "y": 260
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:blank:0|http://xmlns.com/foaf/0.1/mbox|res:mailto:carol@example.org",
+      "type": "w3c/rdf+edge",
+      "source": "blank:0",
+      "target": "res:mailto:carol@example.org",
+      "route": [
+        {
+          "x": 780,
+          "y": 264.86
+        },
+        {
+          "x": 840,
+          "y": 263.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "foaf:mbox",
+          "font": "11 400",
+          "position": {
+            "x": 810,
+            "y": 258
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|res:http://example.org/bob",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/alice",
+      "target": "res:http://example.org/bob",
+      "route": [
+        {
+          "x": 110,
+          "y": 120
+        },
+        {
+          "x": 110,
+          "y": 240
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "foaf:knows",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 174
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|res:http://example.org/carol",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/alice",
+      "target": "res:http://example.org/carol",
+      "route": [
+        {
+          "x": 187.78,
+          "y": 120
+        },
+        {
+          "x": 343.33,
+          "y": 240
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "foaf:knows",
+          "font": "11 400",
+          "position": {
+            "x": 265.56,
+            "y": 174
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/base/relative|http://example.org/sameAs|res:http://example.org/base/",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/base/relative",
+      "target": "res:http://example.org/base/",
+      "route": [
+        {
+          "x": 780,
+          "y": 580
+        },
+        {
+          "x": 840,
+          "y": 580
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:sameAs",
+          "font": "11 400",
+          "position": {
+            "x": 810,
+            "y": 574
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/bob|http://xmlns.com/foaf/0.1/knows|blank:0",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/bob",
+      "target": "blank:0",
+      "route": [
+        {
+          "x": 220,
+          "y": 268
+        },
+        {
+          "x": 560,
+          "y": 268
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "foaf:knows",
+          "font": "11 400",
+          "position": {
+            "x": 390,
+            "y": 262
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/carol|http://xmlns.com/foaf/0.1/interests|res:http://example.org/art",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/carol",
+      "target": "res:http://example.org/art",
+      "route": [
+        {
+          "x": 390,
+          "y": 312
+        },
+        {
+          "x": 390,
+          "y": 400
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "foaf:interests [2]",
+          "font": "11 400",
+          "position": {
+            "x": 390,
+            "y": 350
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/carol|http://xmlns.com/foaf/0.1/interests|res:http://example.org/music",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/carol",
+      "target": "res:http://example.org/music",
+      "route": [
+        {
+          "x": 320,
+          "y": 312
+        },
+        {
+          "x": 148.89,
+          "y": 400
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "foaf:interests [1]",
+          "font": "11 400",
+          "position": {
+            "x": 234.44,
+            "y": 350
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/empty|http://example.org/member|blank:5",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/empty",
+      "target": "blank:5",
+      "route": [
+        {
+          "x": 220,
+          "y": 580
+        },
+        {
+          "x": 280,
+          "y": 580
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:member",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 574
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/group|http://example.org/member|blank:4",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/group",
+      "target": "blank:4",
+      "route": [
+        {
+          "x": 840,
+          "y": 426.29
+        },
+        {
+          "x": 780,
+          "y": 429.71
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:member",
+          "font": "11 400",
+          "position": {
+            "x": 810,
+            "y": 422
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/group|http://example.org/member|res:http://example.org/carol",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/group",
+      "target": "res:http://example.org/carol",
+      "route": [
+        {
+          "x": 872.22,
+          "y": 400
+        },
+        {
+          "x": 500,
+          "y": 304.29
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:member",
+          "font": "11 400",
+          "position": {
+            "x": 686.11,
+            "y": 346.14
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|res:http://example.org/bob",
+    "edge:res:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|res:http://example.org/carol",
+    "edge:res:http://example.org/bob|http://xmlns.com/foaf/0.1/knows|blank:0",
+    "edge:blank:0|http://xmlns.com/foaf/0.1/mbox|res:mailto:carol@example.org",
+    "edge:res:http://example.org/carol|http://xmlns.com/foaf/0.1/interests|res:http://example.org/music",
+    "edge:res:http://example.org/carol|http://xmlns.com/foaf/0.1/interests|res:http://example.org/art",
+    "edge:res:http://example.org/group|http://example.org/member|blank:4",
+    "edge:res:http://example.org/group|http://example.org/member|res:http://example.org/carol",
+    "edge:res:http://example.org/empty|http://example.org/member|blank:5",
+    "edge:res:http://example.org/base/relative|http://example.org/sameAs|res:http://example.org/base/",
+    "res:http://example.org/alice",
+    "res:http://example.org/bob",
+    "res:http://example.org/carol",
+    "blank:0",
+    "res:mailto:carol@example.org",
+    "res:http://example.org/music",
+    "res:http://example.org/art",
+    "blank:4",
+    "res:http://example.org/group",
+    "res:http://example.org/empty",
+    "blank:5",
+    "res:http://example.org/base/relative",
+    "res:http://example.org/base/",
+    "res:http://example.org/doc"
+  ]
+}

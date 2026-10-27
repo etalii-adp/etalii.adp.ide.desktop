@@ -103,7 +103,7 @@
       "path": "crates/adp-scene/src/scene/builder.rs",
       "lines": "94-119",
       "behaviour": "The route `net.etalii.adp.generic.dependencyCurve` is a horizontal bezier between the facing side anchors while the dependency sits clear to the right of its dependent, and a forward loop from the dependent's right side into the dependency's left side otherwise.",
-      "statedBy": "plugin net.etalii.adp.generic.dependencyCurve"
+      "statedBy": "capability routing.forwardBezier"
     },
     {
       "host": "desktop",
@@ -112,7 +112,7 @@
       "path": "crates/adp-scene/src/connectors.rs",
       "lines": "96-144",
       "behaviour": "The facing anchors of two boxes, the horizontal bezier between them, and the forward bezier that always leaves rightward and arrives from the left, reaching at least 40 or 0.6 of the span behind.",
-      "statedBy": "plugin net.etalii.adp.generic.dependencyCurve"
+      "statedBy": "capability routing.forwardBezier"
     }
   ]
 }

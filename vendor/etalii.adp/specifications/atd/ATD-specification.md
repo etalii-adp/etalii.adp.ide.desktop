@@ -102,6 +102,7 @@ A **conformance fixture** is one case of one tool type: input files, the gesture
 - `read` is what reading the inputs yields: the elements with their type, parent and the attributes compared; the relations with their ends; the findings (each with its rule or code and its line); and the parts the reader could not read.
 - `drawing` is the scene after reading (section 2.4), inline or as `{"$ref": "<file>"}` beside the case.
 - `steps` are the gestures, in order. A step has exactly one of `action` (with `args`, after `select`), `property`, `move`, `create`, `connect`, `delete`, `outside`, `undo` and `redo`, and states what it produces: `splices` (FBL `$defs/Splice`, UTF-8 byte offsets into the body before the step), the body's bytes after it (`expect` inline, or `expectFile`), `findings`, `drawing`, or `refused` with the reason the gesture was refused with. `ids` lists the ids the reference host generated in the step, in order; a runtime **MUST** be given them, in that order, in place of ids of its own, so that bytes can be equal.
+- A `move` step moves `element` to a place, `x` and `y`, or into `parent`: before the child at `index` there, counted among the parent's children as they are before the move, the element itself included, or after the last when `index` is -1 or absent, as the reference host's gesture placed it.
 - An `outside` step writes a file of the case as another program or an agent would, replacing the first occurrence of `from` in `file` by `to`, and tells the host the file changed, as its watcher does; the history starts afresh with it, so no step before it can be undone, and a refused step leaves the bytes as they were. A designer's gesture on its page is an `action` naming the operation, with the entry it is made on in `select` and the operation's parameters in `args`.
 - An `undo` **MUST** give back the bytes before the step it undoes exactly, and a `redo` the bytes after it.
 - `provenance` names, for each part (`bytes`, `reading`, `findings`, `drawing`), the host and repository that produced it, `commit`, the reference commit whose behaviour it records, `recordedWith`, for a recorded part the commit of the recorder, and `source`, a standalone host's golden or `atd record`. The reference host differs by part: the standalone host for bytes, as the desktop host's parity goldens record them, and the desktop host at its reference commit for readings, findings and drawings (spec 035, Q5). A tool type the desktop host did not have at its reference commit (the Hierarchical Requirement Designer, added by spec 036) takes its readings and findings from the desktop host at the commit that records them, which `commit` and `recordedWith` then both name. A designer's page has no recording painter, so a designer's case states no drawing.
@@ -124,9 +125,9 @@ Positions and sizes are in the canvas's domain units, rounded to 0.01. Two drawi
 
 A **trace** is the file `<name>.trace.json` beside a tool description (`atd.schema.json#/$defs/Trace`). It shows that the description is complete (FR-021 to FR-023):
 
-- `companion` names the type's companion file and the sections of it whose items the description must state. An **item** is each `###` heading and each top-level list item under a named section, numbered from 1 in each section; its id is `<section-slug>/<n>`, the slug being the section's heading in lowercase with every run of other characters than letters and digits made one `-`.
-- `items` lists every item exactly once, with its `text` (the item's heading or the start of its line), and either `statedBy`, the part of the description that states it, or `hostConcern`, one of section 17's concerns, with its `reason`.
-- `hostCode` lists every behaviour read in a host's code at its reference commit: `host`, `repository`, `commit`, `path`, `lines` and a one-sentence `behaviour`, and either `statedBy` (the reference host's behaviour, which the description states), or `divergesFrom` (another host's behaviour that differs from the reference host's and is not stated; it names the `statedBy` of the reference behaviour the description states instead), or `hostConcern` with its `reason`.
+- `companion` names the type's companion file and the sections of it whose items the description must state, and, in `reports`, any further companion file beside it, such as a conversion's report, that is read with it. An **item** is each `###` heading and each top-level list item under a named section, numbered from 1 in each section; its id is `<section-slug>/<n>`, the slug being the section's heading in lowercase with every run of other characters than letters and digits made one `-`.
+- `items` lists every item exactly once, with its `text` (the item's heading or the start of its line), and one of `statedBy`, the part of the description that states it; `hostConcern`, one of section 17's concerns, with its `reason`; or `open`, the address of the etalii.adp issue that adds to ATD the construct the item needs, with its `reason`, for an item no construct of this version can state. An `open` item is not stated: it records a gap of the language rather than of the description, and it is closed by the change that adds the construct, which states the item and drops `open`.
+- `hostCode` lists every behaviour read in a host's code at its reference commit: `host`, `repository`, `commit`, `path`, `lines` and a one-sentence `behaviour`, and either `statedBy` (the reference host's behaviour, which the description states), or `divergesFrom` (another host's behaviour that differs from the reference host's and is not stated; it names the `statedBy` of the reference behaviour the description states instead), or `hostConcern` with its `reason`, or `open` with its `reason`, the address of the etalii.adp issue that adds the construct the reference host's behaviour needs, for a behaviour no construct of this version can state.
 
 A `statedBy` names a construct as `<keyword> <name>`, with the names of its enclosing constructs where one name is not enough (`fn siblingName`, `operation addSibling`, `binding freeplane element node`, `notation node Node label text`, `capability layout.twoSidedTree`, `algorithm mindmap`). Every `statedBy` and `divergesFrom` **MUST** resolve in the description (`atd check --trace`), and every item of the named sections **MUST** be traced exactly once (`validate-examples.py`). `mindmap.trace.json` with its companion `mindmap.md` is a worked example.
 
@@ -519,7 +520,7 @@ A node's placement (DISL §5.8) is its setting `placement: { … }` (DISL's `Pla
 
 ### 8.5 Edge notation
 
-`edge <Types> { … }` is the notation of relation types (DISL §6.10): `line { … }` (DISL's `LineSpec`), `marker source|target|mid <value> [{ … }]` (DISL §6.11), `label`, `variant`, `state`, and settings of DISL's `EdgeNotation` (`selectable`, `deletable`, `reconnectable`, `layer`, `anchoring`, `stub`, …) and, as for a node, of its inline `Style`.
+`edge <Types> { … }` is the notation of relation types (DISL §6.10), and of reference attributes: a name `<Type>.<attribute>` draws the edge DISL §6.10 draws for the reference attribute `attribute` of `Type`, whose type **MUST** be an element type, and `self` in it is the element that holds the attribute. Its members are `line { … }` (DISL's `LineSpec`), `marker source|target|mid <value> [{ … }]` (DISL §6.11), `label`, `variant`, `state`, and settings of DISL's `EdgeNotation` (`selectable`, `deletable`, `reconnectable`, `layer`, `anchoring`, `stub`, …) and, as for a node, of its inline `Style`.
 
 ### 8.6 Toolbox and context tools
 
@@ -527,11 +528,11 @@ A node's placement (DISL §5.8) is its setting `placement: { … }` (DISL's `Pla
 
 ### 8.7 Forms
 
-`form <id> ["<label>"] [for <Types>] { … }` is a form (DISL §7.5): `field <attribute> ["<label>"] { … }`, `section [<id>] ["<label>"] { … }` holding fields, sections and items, and `item [<id>] ["<label>"] { … }` for every other kind of form item, each with DISL's `FormItem` as settings; and settings of DISL's `Form`. Forms are admitted in diagrams and designers (section 14.4). An embedded form is a node's setting `form` (DISL §7.6).
+`form <id> ["<label>"] [for <Types>] { … }` is a form (DISL §7.5): `field <attribute> ["<label>"] { … }`, `section [<id>] ["<label>"] { … }` holding fields, sections and items, and `item [<id>] ["<label>"] { … }` for every other kind of form item, each with DISL's `FormItem` as settings; and settings of DISL's `Form`. A field of a form that an operation names as its `paramsForm` edits that operation's parameter of the same name, not an attribute. Forms are admitted in diagrams and designers (section 14.4). An embedded form is a node's setting `form` (DISL §7.6).
 
 ### 8.8 Layout
 
-`layout { … }` (DISL §10) holds `default <name>`, `algorithm <name> [capability <name>] { … }`, and settings of DISL's `Layout` (`animate`, `incremental`, `respect`, `trigger`, `containers`). An algorithm is either one of DISL's (its setting `algorithm: tidyTree`, `layered`, `force`, `rowPacked`, `rows`, with DISL's `LayoutConfig`), or a capability of the `layout` extension point, named after `capability` and given its arguments as settings (section 13.3).
+`layout { … }` (DISL §10) holds `default <name>`, `algorithm <name> [capability <name>] { … }`, and settings of DISL's `Layout` (`animate`, `incremental`, `respect`, `trigger`, `containers`). An algorithm is either one of DISL's (its setting `algorithm: tidyTree`, `layered`, `force`, `rowPacked`, `rows`, with DISL's `LayoutConfig`), or a capability of the `layout` extension point, named after `capability` and given its arguments as settings (section 13.3). A `query` argument is evaluated with `self` the node, or the edge, it is asked of. A layout capability's result may carry `values`, numbers its contract names for each node or edge it places, which the notation's CEL reads as `layout.value(e, name)`: the number the default algorithm gave `e` under `name`, or null where it gave none, so that a drawing can follow numbers its layout computes (`layout.flowRelaxation`'s `top`, `sourceAt` and `targetAt`).
 
 ### 8.9 Viewpoints
 
@@ -796,7 +797,7 @@ A capability is called only where its extension point allows:
 | Point | Called from | Input | Output |
 |---|---|---|---|
 | `layout` | `algorithm <name> capability <name> { … }` | nodes with sizes and pins, edges (`$defs/LayoutInput`) | positions (`$defs/LayoutResult`) |
-| `routing` | an edge's `line { routing: … }` | edge ends and obstacles | route points |
+| `routing` | an edge's `line { routing: … }` | edge ends and obstacles (`$defs/RoutingInput`) | route points (`$defs/RoutingResult`) |
 | `reader` | `binding … family capability <name>` | a body (`$defs/ReaderInput`) | a reading and splices (`$defs/ReaderResult`) |
 | `analysis` | a derived element's or relation's `from`, a constraint | a model (`$defs/AnalysisInput`) | derived elements, relations, findings (`$defs/AnalysisResult`) |
 | `arrange` | an operation, as `call plugin <name>(…)` | the selection and the model | actions |
@@ -816,10 +817,37 @@ The catalogue is the capabilities with a contract in `capabilities/` beside this
 
 | Capability | Point | Status |
 |---|---|---|
+| `analysis.msbuildImports` | analysis | provisional |
+| `arrange.selfOrganising` | arrange | provisional |
+| `layout.bandedGrid` | layout | provisional |
+| `layout.bandedLayers` | layout | provisional |
+| `layout.bands` | layout | provisional |
+| `layout.crossingOrder` | layout | provisional |
+| `layout.depthColumns` | layout | provisional |
+| `layout.flowRelaxation` | layout | provisional |
+| `layout.grid` | layout | provisional |
+| `layout.layeredColumns` | layout | provisional |
+| `layout.layeredRegions` | layout | provisional |
+| `layout.nestedGrid` | layout | provisional |
+| `layout.rankedBoundaries` | layout | provisional |
+| `layout.rankedColumns` | layout | provisional |
+| `layout.rowPacked` | layout | provisional |
+| `layout.rowPacking` | layout | provisional |
+| `layout.tidyTree` | layout | provisional |
 | `layout.twoSidedTree` | layout | provisional |
+| `reader.ansibleProject` | reader | provisional |
+| `reader.azurePipelinesYaml` | reader | provisional |
+| `reader.databricksBundle` | reader | provisional |
+| `reader.helmChart` | reader | provisional |
 | `reader.markdown` | reader | provisional |
+| `reader.msbuildSolution` | reader | provisional |
+| `reader.onlineWardleyMaps` | reader | provisional |
+| `reader.sparql` | reader | provisional |
+| `reader.structurizr` | reader | provisional |
 | `reader.turtle` | reader | provisional |
+| `render.descriptionLogic` | render | provisional |
 | `render.markdown` | render | provisional |
+| `routing.forwardBezier` | routing | provisional |
 
 ---
 
@@ -874,7 +902,7 @@ Every expression is type-checked in the CEL environment of its position (DISL §
 
 An expression whose type does not fit the position is a finding (`ATD4001`); an unknown variable (`ATD4004`) and a CEL reserved word used as an identifier (`ATD4003`) are findings too.
 
-A variable that holds an element is read as the type a test `<variable>.isA('<Type>')` names where that test holds: on the right of `&&` when the test is its left operand or the first test of a conjunction there, and in the first branch of `?:` when it is the condition or the first test of one. An attribute of that type is then no `ATD2001` (`timeline.atd`'s `self.isA('Period') && readableTime(self.end)`).
+A variable that holds an element is read as the type a test `<variable>.isA('<Type>')` names where that test holds: on the right of `&&` when the test is one of its left operand's `&&` conjuncts, and in the first branch of `?:` when it is one of the condition's. An attribute of that type is then no `ATD2001` (`timeline.atd`'s `self.isA('Period') && readableTime(self.end)`).
 
 ### 14.6 Settings
 
@@ -1048,6 +1076,8 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 - **0.1** (2026-10-23, spec 035): the first version.
 - **0.1, amendment of 2026-10-25** (spec 035, batch 3, for the Hierarchical Requirement Designer): `widths <Type> { … }` in `surface hierarchy`, carrying DESL 0.2's `widths` (§9.3, C.2); `move` takes `slot`, and `after` or `before`, so that it carries DESL §8.2's `move` (§12.3, C.2); a binding's, rule's, block's, section's and file rule's name may hold hyphens and dots, as FBL's names do (§3.6, §11.3); a binding rule's type may be a key of `persistence`'s `typeMap` (§7.13, §14.7); and DESL 0.2's checks of a hierarchy, a counter's mark and a registration's settings are `ATD6002`, `ATD6003` and `ATD6004` (§14.7, §15.1). ATD 0.1 had no released grammar, so the amendment changes it in place; every example and tool description in this repository that checked before still checks, with the same meaning. With it, a conformance case of a designer: a step `outside`, a file written outside the host (§2.3, `$defs/ConformanceStep`), and the reference for the readings and findings of a tool type the desktop host did not have at its reference commit (§2.3).
 - **0.1, amendment of 2026-10-25, FBL 0.9** (spec 035, story 7): the `grammar` family of FBL 0.9 (§11.9, FBL §4.9): `family grammar` with `grammar { … }`, read under `grammar/notation.lark`, which the root module now imports, or `grammar from "<file>.lark"`; the keyword `grammar` (Appendix B); the settings `start` and `recover` of `body` and the slot `node` with its setting `match` (C.3); where `ATD8001`, for a grammar that is not LALR(1), stands (§11.9, §15.1); and the tables of every binding example's grammar under `grammar/tables/` (§11.9). Every description that checked before still checks, with the same meaning.
+- **0.1, amendment of 2026-10-26** (spec 035): a conformance case's `move` step carries `index`, the place among the new parent's children the reference host's gesture put the element in (§2.3, `$defs/ConformanceStep`); without it a case replayed every move into a parent as a move to its end. The mind map's case `example-1` is recorded again with it. Every description and case that was valid before is valid, with the same meaning.
+- **0.1, second amendment of 2026-10-26** (spec 035, batch 5b, for nine diagrams): a trace's item and host behaviour may be `open`, the address of the etalii.adp issue that adds the construct it needs, with its reason, and its companion may name further `reports` (§2.5); an edge notation may draw a reference attribute as `<Type>.<attribute>` (§8.5), and a field of a parameters form names a parameter (§8.7); a layout capability's result may carry `values`, read in CEL as `layout.value(e, name)` (§8.8); and the catalogue gains the capabilities those descriptions require (§13.6). Every example and tool description that checked before still checks, with the same meaning.
 
 
 ---
@@ -1121,7 +1151,9 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 | `Capability` | The contract of a capability (ATD §2.6, §13, data-model.md §7). |
 | `CapabilityFixture` | One fixture of a capability: an input, the arguments and the expected output (ATD §2.6). |
 | `LayoutInput` | The input of a `layout` capability: the nodes with their sizes and pins, the edges and the containment, in the canvas's domain units. |
-| `LayoutResult` | The output of a `layout` capability: a position for every node it places, in the canvas's domain units, rounded to 0.01, and optionally route points. |
+| `LayoutResult` | The output of a `layout` capability: a position for every node it places, in the canvas's domain units, rounded to 0.01, optionally the size it gives a node it resizes, and optionally route points. |
+| `RoutingInput` | The input of a `routing` capability: each edge with the boxes of its two ends, and the boxes it must keep clear of, in the canvas's domain units. |
+| `RoutingResult` | The output of a `routing` capability: the route of every edge it routes, by edge id, as path commands from the edge's first point to its last. |
 | `ReaderInput` | The input of a `reader` capability: the body's bytes as text, and the edit to plan when one is asked (FBL §11.2). |
 | `ReaderResult` | The output of a `reader` capability: what FBL §11.2's read returns, or the splices of a planned edit. |
 | `RenderInput` | The input of a `render` capability: a value to render. |

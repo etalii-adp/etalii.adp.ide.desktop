@@ -1,0 +1,1037 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "containerinstance_api_10",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 396,
+        "y": 938,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books deliveries and answers where a\nparcel is.",
+          "font": "10 400",
+          "position": {
+            "x": 516,
+            "y": 996
+          }
+        },
+        {
+          "id": "name",
+          "text": "Tracking API",
+          "font": "13 600",
+          "position": {
+            "x": 516,
+            "y": 960
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Java and Spring Boot]",
+          "font": "10 400",
+          "position": {
+            "x": 516,
+            "y": 976
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "containerinstance_broker_12",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 220.45,
+        "y": 584.4,
+        "w": 240,
+        "h": 118
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Carries scan events so ingest and\nnotification are not one step.",
+          "font": "10 400",
+          "position": {
+            "x": 340.45,
+            "y": 642.4
+          }
+        },
+        {
+          "id": "name",
+          "text": "Event Broker",
+          "font": "13 600",
+          "position": {
+            "x": 340.45,
+            "y": 606.4
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Apache Kafka]",
+          "font": "10 400",
+          "position": {
+            "x": 340.45,
+            "y": 622.4
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "containerinstance_database_13",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 635.55,
+        "y": 594.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Stores deliveries, parcels and every\nscan against them.",
+          "font": "10 400",
+          "position": {
+            "x": 755.55,
+            "y": 652.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Delivery Database",
+          "font": "13 600",
+          "position": {
+            "x": 755.55,
+            "y": 616.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: PostgreSQL 16]",
+          "font": "10 400",
+          "position": {
+            "x": 755.55,
+            "y": 632.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "containerinstance_database_14",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 792,
+        "y": 947.8,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Stores deliveries, parcels and every\nscan against them.",
+          "font": "10 400",
+          "position": {
+            "x": 912,
+            "y": 1005.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Delivery Database",
+          "font": "13 600",
+          "position": {
+            "x": 912,
+            "y": 969.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: PostgreSQL 16]",
+          "font": "10 400",
+          "position": {
+            "x": 912,
+            "y": 985.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "containerinstance_mobile_5",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 431.85,
+        "y": 32,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Scans parcels at pickup, handover and\ndelivery.",
+          "font": "10 400",
+          "position": {
+            "x": 551.85,
+            "y": 90
+          }
+        },
+        {
+          "id": "name",
+          "text": "Courier App",
+          "font": "13 600",
+          "position": {
+            "x": 551.85,
+            "y": 54
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Kotlin and Jetpack Compose]",
+          "font": "10 400",
+          "position": {
+            "x": 551.85,
+            "y": 70
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "containerinstance_spa_3",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 389.5,
+        "y": 1375.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books deliveries and shows the progress\nof a parcel.",
+          "font": "10 400",
+          "position": {
+            "x": 509.5,
+            "y": 1433.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Single-Page Application",
+          "font": "13 600",
+          "position": {
+            "x": 509.5,
+            "y": 1397.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: TypeScript and React]",
+          "font": "10 400",
+          "position": {
+            "x": 509.5,
+            "y": 1413.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "containerinstance_web_9",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 96,
+        "y": 938,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Serves the single-page application to a\nbrowser.",
+          "font": "10 400",
+          "position": {
+            "x": 216,
+            "y": 996
+          }
+        },
+        {
+          "id": "name",
+          "text": "Web Application",
+          "font": "13 600",
+          "position": {
+            "x": 216,
+            "y": 960
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Java and Spring Boot]",
+          "font": "10 400",
+          "position": {
+            "x": 216,
+            "y": 976
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "loadBalancer",
+      "type": "c4/model+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 465.1,
+        "y": 334,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Terminates TLS and spreads traffic\nacross the web tier.",
+          "font": "10 400",
+          "position": {
+            "x": 585.1,
+            "y": 392
+          }
+        },
+        {
+          "id": "name",
+          "text": "Load Balancer",
+          "font": "13 600",
+          "position": {
+            "x": 585.1,
+            "y": 356
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Infrastructure Node: nginx]",
+          "font": "10 400",
+          "position": {
+            "x": 585.1,
+            "y": 372
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#ffffff",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "containerinstance_api_10->containerinstance_broker_12@91",
+      "type": "c4/model+relationship",
+      "source": "containerinstance_api_10",
+      "target": "containerinstance_broker_12",
+      "route": [
+        {
+          "x": 490.88,
+          "y": 938
+        },
+        {
+          "x": 370.58,
+          "y": 702.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Publishes scan events to [Kafka protocol]",
+          "font": "10 400",
+          "position": {
+            "x": 430.73,
+            "y": 814.2
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "containerinstance_api_10->containerinstance_database_13@90",
+      "type": "c4/model+relationship",
+      "source": "containerinstance_api_10",
+      "target": "containerinstance_database_13",
+      "route": [
+        {
+          "x": 550.28,
+          "y": 938
+        },
+        {
+          "x": 721.27,
+          "y": 692.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Reads from and writes to [JDBC/SSL]",
+          "font": "10 400",
+          "position": {
+            "x": 635.78,
+            "y": 809.3
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "containerinstance_api_10->containerinstance_database_14@90",
+      "type": "c4/model+relationship",
+      "source": "containerinstance_api_10",
+      "target": "containerinstance_database_14",
+      "route": [
+        {
+          "x": 636,
+          "y": 990.17
+        },
+        {
+          "x": 792,
+          "y": 994.03
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Reads from and writes to [JDBC/SSL]",
+          "font": "10 400",
+          "position": {
+            "x": 714,
+            "y": 986.1
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "containerinstance_broker_12->containerinstance_api_10@92",
+      "type": "c4/model+relationship",
+      "source": "containerinstance_broker_12",
+      "target": "containerinstance_api_10",
+      "route": [
+        {
+          "x": 370.58,
+          "y": 702.4
+        },
+        {
+          "x": 490.88,
+          "y": 938
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Delivers scan events to [Kafka protocol]",
+          "font": "10 400",
+          "position": {
+            "x": 430.73,
+            "y": 814.2
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "containerinstance_mobile_5->containerinstance_api_10@89",
+      "type": "c4/model+relationship",
+      "source": "containerinstance_mobile_5",
+      "target": "containerinstance_api_10",
+      "route": [
+        {
+          "x": 549.9,
+          "y": 130.4
+        },
+        {
+          "x": 517.95,
+          "y": 938
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 533.92,
+            "y": 528.2
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "containerinstance_spa_3->containerinstance_api_10@88",
+      "type": "c4/model+relationship",
+      "source": "containerinstance_spa_3",
+      "target": "containerinstance_api_10",
+      "route": [
+        {
+          "x": 510.23,
+          "y": 1375.2
+        },
+        {
+          "x": 515.27,
+          "y": 1036.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 512.75,
+            "y": 1199.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "containerinstance_web_9->containerinstance_spa_3@87",
+      "type": "c4/model+relationship",
+      "source": "containerinstance_web_9",
+      "target": "containerinstance_spa_3",
+      "route": [
+        {
+          "x": 249.03,
+          "y": 1036.4
+        },
+        {
+          "x": 476.47,
+          "y": 1375.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Delivers to the web browser of the customer [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 362.75,
+            "y": 1199.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "band",
+      "bounds": {
+        "x": 325.5,
+        "y": 1311.2,
+        "w": 519.2,
+        "h": 265.6
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "Sender device [Deployment Node: Browser]",
+      "bounds": {
+        "x": 325.5,
+        "y": 1305.2,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "band",
+      "bounds": {
+        "x": 357.5,
+        "y": 1343.2,
+        "w": 455.2,
+        "h": 182
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Web Browser [Deployment Node: Chrome, Safari or Firefox]",
+      "bounds": {
+        "x": 357.5,
+        "y": 1337.2,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": 399.85,
+        "y": 0,
+        "w": 370.5,
+        "h": 182
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Courier handset [Deployment Node: Android 14]",
+      "bounds": {
+        "x": 399.85,
+        "y": -6,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:7",
+      "kind": "band",
+      "bounds": {
+        "x": 0,
+        "y": 302,
+        "w": 1170.2,
+        "h": 889.2
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:8",
+      "kind": "legend",
+      "text": "Regional data centre [Deployment Node: Ubuntu 24.04 LTS]",
+      "bounds": {
+        "x": 0,
+        "y": 296,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:9",
+      "kind": "band",
+      "bounds": {
+        "x": 32,
+        "y": 874,
+        "w": 668,
+        "h": 265.6
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:10",
+      "kind": "legend",
+      "text": "web-* [Deployment Node: Ubuntu 24.04 LTS]",
+      "bounds": {
+        "x": 32,
+        "y": 868,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:11",
+      "kind": "band",
+      "bounds": {
+        "x": 64,
+        "y": 906,
+        "w": 604,
+        "h": 182
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:12",
+      "kind": "legend",
+      "text": "Apache Tomcat [Deployment Node: Tomcat 10]",
+      "bounds": {
+        "x": 64,
+        "y": 900,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:13",
+      "kind": "band",
+      "bounds": {
+        "x": 188.45,
+        "y": 552.4,
+        "w": 355.1,
+        "h": 201.6
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:14",
+      "kind": "legend",
+      "text": "kafka-* [Deployment Node: Ubuntu 24.04 LTS]",
+      "bounds": {
+        "x": 188.45,
+        "y": 546.4,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:15",
+      "kind": "band",
+      "bounds": {
+        "x": 603.55,
+        "y": 562.2,
+        "w": 378.2,
+        "h": 182
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:16",
+      "kind": "legend",
+      "text": "db-primary [Deployment Node: Ubuntu 24.04 LTS]",
+      "bounds": {
+        "x": 603.55,
+        "y": 556.2,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:17",
+      "kind": "band",
+      "bounds": {
+        "x": 760,
+        "y": 915.8,
+        "w": 378.2,
+        "h": 182
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:18",
+      "kind": "legend",
+      "text": "db-standby [Deployment Node: Ubuntu 24.04 LTS]",
+      "bounds": {
+        "x": 760,
+        "y": 909.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:19",
+      "kind": "legend",
+      "text": "Deployment diagram for Courier Tracking - Production",
+      "bounds": {
+        "x": 0,
+        "y": -30,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:20",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": 0,
+        "y": 1606.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:21",
+      "kind": "band",
+      "bounds": {
+        "x": 36,
+        "y": 1596.8,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#ffffff",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:22",
+      "kind": "legend",
+      "text": "Deployment Node",
+      "bounds": {
+        "x": 53,
+        "y": 1606.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:23",
+      "kind": "band",
+      "bounds": {
+        "x": 155.75,
+        "y": 1596.8,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:24",
+      "kind": "legend",
+      "text": "Container",
+      "bounds": {
+        "x": 172.75,
+        "y": 1606.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:25",
+      "kind": "band",
+      "bounds": {
+        "x": 239.2,
+        "y": 1596.8,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#ffffff",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:26",
+      "kind": "legend",
+      "text": "Infrastructure Node",
+      "bounds": {
+        "x": 256.2,
+        "y": 1606.8,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "chrome:1",
+    "chrome:2",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6",
+    "chrome:7",
+    "chrome:8",
+    "chrome:9",
+    "chrome:10",
+    "chrome:11",
+    "chrome:12",
+    "chrome:13",
+    "chrome:14",
+    "chrome:15",
+    "chrome:16",
+    "chrome:17",
+    "chrome:18",
+    "containerinstance_web_9->containerinstance_spa_3@87",
+    "containerinstance_spa_3->containerinstance_api_10@88",
+    "containerinstance_mobile_5->containerinstance_api_10@89",
+    "containerinstance_api_10->containerinstance_database_13@90",
+    "containerinstance_api_10->containerinstance_database_14@90",
+    "containerinstance_api_10->containerinstance_broker_12@91",
+    "containerinstance_broker_12->containerinstance_api_10@92",
+    "containerinstance_spa_3",
+    "containerinstance_mobile_5",
+    "containerinstance_web_9",
+    "containerinstance_api_10",
+    "loadBalancer",
+    "containerinstance_broker_12",
+    "containerinstance_database_13",
+    "containerinstance_database_14",
+    "chrome:19",
+    "chrome:20",
+    "chrome:21",
+    "chrome:22",
+    "chrome:23",
+    "chrome:24",
+    "chrome:25",
+    "chrome:26"
+  ]
+}

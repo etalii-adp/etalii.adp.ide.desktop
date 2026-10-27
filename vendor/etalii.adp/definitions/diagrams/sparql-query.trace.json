@@ -1,0 +1,199 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "w3c/sparql",
+  "description": "sparql-query.atd",
+  "companion": {
+    "file": "sparql-query.md",
+    "sections": [
+      "2. What stays outside, and why",
+      "4. Language gaps",
+      "5. What stays in the standalone module, and why",
+      "6. What the standalone host does differently, and what the conversion repaired"
+    ]
+  },
+  "items": [
+    {
+      "id": "6-what-the-standalone-host-does-differently-and-what-the-conversion-repaired/1",
+      "text": "**Evaluating the definition costs more than the hand-written projection did.** After the",
+      "statedBy": "tool"
+    },
+    {
+      "id": "6-what-the-standalone-host-does-differently-and-what-the-conversion-repaired/2",
+      "text": "**A move of an id the model does not hold is no longer refused by its prefix.** The",
+      "statedBy": "notation node AnonymousVariable refusals"
+    },
+    {
+      "id": "6-what-the-standalone-host-does-differently-and-what-the-conversion-repaired/3",
+      "text": "**An annotation's place is the standalone canvas's.** The definition states no placement",
+      "hostConcern": "rendering",
+      "reason": "Where an annotation is drawn beside what it constrains is the canvas's; the scope grid places nodes and regions, and the description states no placement for an annotation."
+    },
+    {
+      "id": "6-what-the-standalone-host-does-differently-and-what-the-conversion-repaired/4",
+      "text": "**Repaired: a record's span counted characters, not bytes.** `SparqlRecords` gave each",
+      "statedBy": "capability reader.sparql"
+    },
+    {
+      "id": "6-what-the-standalone-host-does-differently-and-what-the-conversion-repaired/5",
+      "text": "**Repaired: an annotation could not be pressed.** An annotation is DISL's `text` shape, a",
+      "hostConcern": "gestures",
+      "reason": "What a press on a node that is only its label reaches is the canvas library's, for every tool."
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/tokenizer.rs",
+      "lines": "1-294",
+      "behaviour": "Tokenizes a query as SPARQL 1.1 writes it, with its terminals.",
+      "statedBy": "capability reader.sparql"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/terminals.rs",
+      "lines": "1-363",
+      "behaviour": "The terminals of SPARQL 1.1: names, strings, numbers and their datatypes, and the trivia between them.",
+      "statedBy": "capability reader.sparql"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/parser.rs",
+      "lines": "42-1317",
+      "behaviour": "Parses the prologue, the form, the scopes, the patterns, the constraints and the subqueries, with each entry's span and line, and refuses a SPARQL Update document by name.",
+      "statedBy": "capability reader.sparql"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/projection.rs",
+      "lines": "122-147",
+      "behaviour": "One node per variable name, per anonymous variable and per distinct concrete term, each at the shallowest scope that mentions it, and the pattern edges between them.",
+      "statedBy": "element Variable"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/projection.rs",
+      "lines": "148-216",
+      "behaviour": "Region ids and labels, short datatypes and a literal's id escaped as .NET escapes data.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/projection.rs",
+      "lines": "464-530",
+      "behaviour": "The header's form and rows, and the cut at 500 drawn elements in the tool's order.",
+      "statedBy": "fn drawOrder"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/layout.rs",
+      "lines": "18-204",
+      "behaviour": "Each scope's nodes and then its child regions in rows of three from (40, 90), 60 by 48 apart, 36 padding and a 30 label band, a stored region position moving its contents.",
+      "statedBy": "algorithm scopeGrid"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/findings.rs",
+      "lines": "21-95",
+      "behaviour": "The unparseable, unbound-projection and unused-prefix findings, a prefix used when its name occurs in the text.",
+      "statedBy": "constraint unusedPrefix"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/rows.rs",
+      "lines": "34-193",
+      "behaviour": "The inspector's rows per kind, read-only with the definition's reason.",
+      "statedBy": "form variableInspector"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/view.rs",
+      "lines": "26-29",
+      "behaviour": "The sentence that refuses a move into a different group.",
+      "statedBy": "notation node Variable refusals"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/view.rs",
+      "lines": "32-55",
+      "behaviour": "Refuses a move of an anonymous variable, an edge or an annotation by its id's prefix, and of the header and the truncation banner.",
+      "statedBy": "notation node AnonymousVariable refusals"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/view.rs",
+      "lines": "145-175",
+      "behaviour": "Stores a dragged element's position in the registration, refused without one.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/registration_layout.rs",
+      "lines": "1-287",
+      "behaviour": "Reads and writes the registration's layout block.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/commands.rs",
+      "lines": "1-86",
+      "behaviour": "A position write and its removal as commands on the history.",
+      "hostConcern": "undo-stack",
+      "reason": "The history is the host's; the description says a drag is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/store.rs",
+      "lines": "57-190",
+      "behaviour": "Opens the query, keeps the last readable model while a text does not parse, and re-reads it on a change.",
+      "statedBy": "binding query"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/mapper.rs",
+      "lines": "1-231",
+      "behaviour": "Maps the drawing to the wire's element kinds, with the header band and the truncation banner as elements.",
+      "statedBy": "tool"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/sparql/src/theme.rs",
+      "lines": "1-42",
+      "behaviour": "The light and dark palettes.",
+      "statedBy": "notation theme"
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bandedGrid` from the RDF module's layout of the reading that parity/cases/w3c/rdf/constructs.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/alice",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "foaf:Person"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/bob",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/carol",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "blank:0",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:mailto:carol@example.org",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/music",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/art",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "blank:4",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/group",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/empty",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "blank:5",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/base/relative",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/base/",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/doc",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columns": 4,
+    "columnWidth": 280.0,
+    "rowHeight": 160.0,
+    "bandGap": 80,
+    "band": "size(self.types) > 0 ? self.types[0] : ''"
+  },
+  "output": {
+    "positions": {
+      "blank:0": {
+        "x": 560.0,
+        "y": 240.0
+      },
+      "blank:4": {
+        "x": 560.0,
+        "y": 400.0
+      },
+      "blank:5": {
+        "x": 280.0,
+        "y": 560.0
+      },
+      "res:http://example.org/alice": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/art": {
+        "x": 280.0,
+        "y": 400.0
+      },
+      "res:http://example.org/base/": {
+        "x": 840.0,
+        "y": 560.0
+      },
+      "res:http://example.org/base/relative": {
+        "x": 560.0,
+        "y": 560.0
+      },
+      "res:http://example.org/bob": {
+        "x": 0.0,
+        "y": 240.0
+      },
+      "res:http://example.org/carol": {
+        "x": 280.0,
+        "y": 240.0
+      },
+      "res:http://example.org/doc": {
+        "x": 0.0,
+        "y": 720.0
+      },
+      "res:http://example.org/empty": {
+        "x": 0.0,
+        "y": 560.0
+      },
+      "res:http://example.org/group": {
+        "x": 840.0,
+        "y": 400.0
+      },
+      "res:http://example.org/music": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "res:mailto:carol@example.org": {
+        "x": 840.0,
+        "y": 240.0
+      }
+    }
+  }
+}

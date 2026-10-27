@@ -1,0 +1,112 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.depthColumns` from the RDF module's layout of the reading that parity/cases/w3c/owl/owl-with-file-findings.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/again#Thing",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/again#Old",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/again#New",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://example.org/again#Old"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#notAType",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://example.org/again#size|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:thing:http://example.org/again#size|domain|http://example.org/again#size|res:http://www.w3.org/2001/XMLSchema#notAType",
+        "source": "thing:http://example.org/again#size|domain",
+        "target": "res:http://www.w3.org/2001/XMLSchema#notAType"
+      },
+      {
+        "id": "edge:res:http://example.org/again#New|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/again#Old",
+        "source": "res:http://example.org/again#New",
+        "target": "res:http://example.org/again#Old"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 530,
+    "laneOffset": 250,
+    "slotHeight": 130,
+    "satelliteHeight": 110,
+    "satelliteOffset": 10,
+    "headerGap": 80,
+    "bandGap": 140,
+    "bandColumns": 5,
+    "bandColumnGap": 60,
+    "bandRowGap": 50,
+    "role": "self.role",
+    "supers": "self.supers",
+    "owner": "self.owner",
+    "pinnable": "self.id.startsWith('res:') || self.id.startsWith('ind:')"
+  },
+  "output": {
+    "positions": {
+      "res:http://example.org/again#New": {
+        "x": 530.0,
+        "y": 0.0
+      },
+      "res:http://example.org/again#Old": {
+        "x": 0.0,
+        "y": 130.0
+      },
+      "res:http://example.org/again#Thing": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://www.w3.org/2001/XMLSchema#notAType": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "thing:http://example.org/again#size|domain": {
+        "x": 250.0,
+        "y": 400.0
+      }
+    }
+  }
+}

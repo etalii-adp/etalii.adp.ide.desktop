@@ -1,0 +1,12 @@
+# A4: a shape by declaration and one by use, property rows that are list items, and three path forms.
+@prefix ex: <http://example.org/shapes#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:PersonShape a sh:NodeShape ;
+    sh:targetClass ex:Person ;
+    sh:targetNode ex:alice ;
+    sh:property [ sh:path ex:name ; sh:datatype xsd:string ; sh:minCount 1 ] ;
+    sh:property [ sh:path ( ex:address ex:city ) ; sh:node ex:CityShape ] ;
+    sh:property [ sh:path [ sh:inversePath ex:knows ] ; sh:maxCount 5 ] .
+ex:CityShape sh:property [ sh:path ex:postcode ; sh:pattern "^[0-9]{4}" ] .

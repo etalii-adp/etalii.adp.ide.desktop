@@ -1,0 +1,16 @@
+# A4: OWL punning, properties with no domain or no range, and a class expression.
+@prefix ex: <http://example.org/zoo#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:Bird a owl:Class .
+ex:Species a owl:Class .
+ex:Eagle a owl:Class ; rdfs:subClassOf ex:Bird .
+ex:Eagle a ex:Species .
+ex:Hawk a owl:Class ; rdfs:subClassOf ex:Bird .
+ex:Raptor a owl:Class ;
+    owl:equivalentClass [ a owl:Class ; owl:unionOf ( ex:Eagle ex:Hawk ) ] .
+ex:eats a owl:ObjectProperty .
+ex:wingspan a owl:DatatypeProperty ; rdfs:domain ex:Bird .
+ex:ringed a owl:DatatypeProperty ; rdfs:range xsd:boolean .

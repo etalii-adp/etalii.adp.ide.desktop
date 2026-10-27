@@ -1,0 +1,24 @@
+supply-chain: 1
+# What a supply chain diagram reads is what its author wrote.
+groups:
+  - id: 01
+    name: Upstream
+nodes:
+  - id: 007
+    type: raw-material
+    name: on
+    group: 01
+  - id: "12"
+    type: retailer
+    name: 2050   # a year, not a number
+    region: north
+  - just text
+  - {id: x, type: hub, name: X}
+flows:
+  - id: f1
+    from: 007
+    to: 12
+    product: ore
+  - from: 12
+    to: 007
+    product: scrap
