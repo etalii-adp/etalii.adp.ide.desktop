@@ -1,0 +1,259 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "wardley/map",
+  "description": "wardley-map.atd",
+  "companion": {
+    "file": "wardley-map.md",
+    "sections": [
+      "What DISL cannot express",
+      "Language gaps",
+      "Other differences a runtime will meet",
+      "What remains in the module, and why"
+    ]
+  },
+  "items": [
+    {
+      "id": "what-disl-cannot-express/1",
+      "text": "**A submap that is not in the project** (gap 9). `wardley.submap-missing`, a warning,",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/559",
+      "reason": "No function asks whether an address resolved against the project root names a file of the project; fs.exists resolves against the subject's folder (wardley-map.md, gap 9)."
+    },
+    {
+      "id": "what-disl-cannot-express/2",
+      "text": "**A number written by the format's own invariant pattern** (gap 10).",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/560",
+      "reason": "ATD does not say that formatNumber formats in the invariant culture whatever the user's locale, which the tool's rows and sentences need (wardley-map.md, gap 10)."
+    },
+    {
+      "id": "what-disl-cannot-express/3",
+      "text": "**The label of a picker's confirm button, and a picker of one** (gap 11). Link to… and",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/561",
+      "reason": "A connect picker has no label for its confirm button, and always asks, where the tool removes a single link without asking (wardley-map.md, gap 11)."
+    },
+    {
+      "id": "what-disl-cannot-express/4",
+      "text": "**Findings of one code in the order of their kinds** (gap 12).",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "Findings of one code are listed by location; no construct orders them by the kind of what they concern (wardley-map.md, gap 12)."
+    },
+    {
+      "id": "what-disl-cannot-express/5",
+      "text": "**The wire ids** are under `x-wardley`, as ruled for every converted tool (Peter,",
+      "statedBy": "tool"
+    },
+    {
+      "id": "language-gaps/1",
+      "text": "1 to 4. FBL: what the `.owm` grammar needs",
+      "statedBy": "capability reader.onlineWardleyMaps"
+    },
+    {
+      "id": "language-gaps/2",
+      "text": "5 and 6. FBL: decorators and annotation positions",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/562",
+      "reason": "The model's five decorator booleans have no order, so the order a statement writes its decorators in is not readable and writtenDecorators lists them in the notation's order (wardley-map.md, gap 5)."
+    },
+    {
+      "id": "language-gaps/3",
+      "text": "7 and 8. FBL: the identity file",
+      "statedBy": "capability reader.onlineWardleyMaps"
+    },
+    {
+      "id": "language-gaps/4",
+      "text": "9. DISL: the project root",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/559",
+      "reason": "No function asks whether an address resolved against the project root names a file of the project; fs.exists resolves against the subject's folder (wardley-map.md, gap 9)."
+    },
+    {
+      "id": "language-gaps/5",
+      "text": "10. DISL: the invariant number",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/560",
+      "reason": "ATD does not say that formatNumber formats in the invariant culture whatever the user's locale, which the tool's rows and sentences need (wardley-map.md, gap 10)."
+    },
+    {
+      "id": "language-gaps/6",
+      "text": "11. DISL: the picker's button and a picker of one",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/561",
+      "reason": "A connect picker has no label for its confirm button, and always asks, where the tool removes a single link without asking (wardley-map.md, gap 11)."
+    },
+    {
+      "id": "language-gaps/7",
+      "text": "12. DISL: the order within one code",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "Findings of one code are listed by location; no construct orders them by the kind of what they concern (wardley-map.md, gap 12)."
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/1",
+      "text": "**Decorator order.** The row `wardley.decorators` lists the decorators in the order the",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/562",
+      "reason": "The model's five decorator booleans have no order, so the order a statement writes its decorators in is not readable and writtenDecorators lists them in the notation's order (wardley-map.md, gap 5)."
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/2",
+      "text": "**Sorting names.** The pickers sort their candidates by `upper(name)`; the tool sorts",
+      "statedBy": "toolbox"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/3",
+      "text": "**Annotation positions.** The plugin function `positions` reads the occurrences as the",
+      "statedBy": "fn positions"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/4",
+      "text": "**The evolution axis is no longer an element.** The tool sent the stages to its canvas as",
+      "statedBy": "coordinates"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/5",
+      "text": "**New elements land at 0.5, 0.5**, and a new pipeline component at maturity 0.5, because",
+      "statedBy": "operation addComponent"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/parser.rs",
+      "lines": "80-530",
+      "behaviour": "Reads every statement of the format leniently, a pipeline's block with its brace below, decorators, inertia, label and url anywhere after the coordinates, and reports each line it passes over.",
+      "statedBy": "capability reader.onlineWardleyMaps"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/writer.rs",
+      "lines": "52-259",
+      "behaviour": "Rewrites only the lines an edit changes and appends a new statement at the end.",
+      "statedBy": "capability reader.onlineWardleyMaps"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/identities.rs",
+      "lines": "119-350",
+      "behaviour": "Keeps every element's id beside the body, keyed by kind and natural key with a later holder's ordinal, and reconciles it on reading.",
+      "statedBy": "capability reader.onlineWardleyMaps"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/rules.rs",
+      "lines": "44-249",
+      "behaviour": "Duplicate names at the first holder, dangling links, evolutions and pipelines, coordinates out of range collection by collection, a missing anchor and undefined urls.",
+      "statedBy": "constraints"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/rules.rs",
+      "lines": "250-309",
+      "behaviour": "A submap address that is not a file of the project, resolved against the project root.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/559",
+      "reason": "No function asks whether an address resolved against the project root names a file of the project; fs.exists resolves against the subject's folder (wardley-map.md, gap 9)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/axis.rs",
+      "lines": "13-85",
+      "behaviour": "Maps a coordinate to the canvas, maturity across and visibility up, and names the four stages.",
+      "statedBy": "coordinates"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/mapper.rs",
+      "lines": "198-212",
+      "behaviour": "Sends the evolution stages as a synthetic element of their own.",
+      "divergesFrom": "coordinates"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/mapper.rs",
+      "lines": "54-197",
+      "behaviour": "Maps the map to the wire's element kinds.",
+      "statedBy": "tool"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/actions.rs",
+      "lines": "245-484",
+      "behaviour": "The diagram's and an element's actions, with their prompts and refusals.",
+      "statedBy": "operation addComponent"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/actions.rs",
+      "lines": "142-202",
+      "behaviour": "Offers the links to remove and the elements to link to, sorted by name ignoring case.",
+      "statedBy": "toolbox"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/properties.rs",
+      "lines": "75-384",
+      "behaviour": "The rows of an element, a pipeline component, a link and a pipeline, read-only with their reasons.",
+      "statedBy": "form positioned"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/toolbox.rs",
+      "lines": "12-89",
+      "behaviour": "The toolbox, and a new map's body.",
+      "statedBy": "toolbox"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/view.rs",
+      "lines": "29-30",
+      "behaviour": "The sentence that refuses a reparent.",
+      "statedBy": "constraints"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/commands.rs",
+      "lines": "55-746",
+      "behaviour": "Each edit as one command that rewrites the body and keeps the ids.",
+      "hostConcern": "undo-stack",
+      "reason": "The history is the host's; the description says each gesture is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/store.rs",
+      "lines": "195-301",
+      "behaviour": "Opens a body with its identity file, saves both and reloads them.",
+      "statedBy": "binding owm"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/wardley-map/src/theme.rs",
+      "lines": "1-45",
+      "behaviour": "The light and dark palettes.",
+      "statedBy": "notation theme"
+    }
+  ]
+}

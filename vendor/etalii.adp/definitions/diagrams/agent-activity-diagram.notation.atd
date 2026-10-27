@@ -1,0 +1,486 @@
+atd 0.1
+part of etalii/agent-activity-diagram
+
+// The agent activity diagram's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+// ---------------------------------------------------------------- Notation
+
+/// Each element type has its own shape and its own fill in both themes, so a type is recognisable without its label and
+/// without colour (Requirement 7.2): a project is a folder, a specification a rounded rectangle, an agent a pill, a
+/// location a rectangle split by a line, an environment a hexagon. Relations are plain lines without a label.
+notation {
+  theme {
+    tokens: {
+      color.text: "#0f172a"
+      color.text.muted: "#475569"
+      color.border: "#94a3b8"
+      color.relation: "#64748b"
+      aad.project: "#dbeafe"
+      aad.specification: "#ffffff"
+      aad.agent: "#ede9fe"
+      aad.location: "#fef3c7"
+      aad.environment: "#dcfce7"
+      aad.pending: "#64748b"
+      aad.progressing: "#2563eb"
+      aad.inputRequired: "#c2410c"
+      aad.finished: "#15803d"
+      aad.archived: "#94a3b8"
+    }
+    modes: {
+      dark: {
+        color.text: "#f1f5f9"
+        color.text.muted: "#cbd5e1"
+        color.border: "#64748b"
+        color.relation: "#94a3b8"
+        aad.project: "#1e3a8a"
+        aad.specification: "#1e293b"
+        aad.agent: "#4c1d95"
+        aad.location: "#78350f"
+        aad.environment: "#14532d"
+        aad.pending: "#94a3b8"
+        aad.progressing: "#60a5fa"
+        aad.inputRequired: "#fb923c"
+        aad.finished: "#4ade80"
+        aad.archived: "#64748b"
+      }
+    }
+    defaultMode: light
+    followSystem: true
+    doc: "The status colours are the enums' (`aad.pending` and so on); a status is always written in words beside its colour (Requirement 4.10)."
+  }
+
+  style node {
+    stroke: { color: $color.border, width: 1.5 }
+    font: { size: 12, color: $color.text }
+    textAlign: center
+    verticalAlign: middle
+  }
+
+  style project extends node {
+    fill: $aad.project
+  }
+
+  style specification extends node {
+    fill: $aad.specification
+    stroke: { color: $aad.pending, width: 2 }
+  }
+
+  style agent extends node {
+    fill: $aad.agent
+  }
+
+  style location extends node {
+    fill: $aad.location
+  }
+
+  style environment extends node {
+    fill: $aad.environment
+  }
+
+  style label {
+    font: { size: 12, weight: 600, color: $color.text }
+  }
+
+  style muted {
+    font: { size: 11, color: $color.text.muted }
+  }
+
+  style status {
+    font: { size: 11, weight: 600, color: $aad.pending }
+  }
+
+  style statusProgressing {
+    stroke: { color: $aad.progressing }
+    font: { color: $aad.progressing }
+  }
+
+  style statusInputRequired {
+    stroke: { color: $aad.inputRequired }
+    font: { color: $aad.inputRequired }
+  }
+
+  style statusFinished {
+    stroke: { color: $aad.finished }
+    font: { color: $aad.finished }
+  }
+
+  style statusArchived {
+    stroke: { color: $aad.archived, dash: [4, 3] }
+    font: { color: $aad.archived }
+  }
+
+  style relation {
+    stroke: { color: $color.relation, width: 1.5 }
+  }
+
+  node Project {
+    refusals: { reparent: ["An element of this diagram has no parent to move it under; it is locked where it is dropped."] }
+    shape folder
+    style: project
+    size: { default: [180, 56], min: [120, 48], max: [320, 56] }
+    label @name as name {
+      position: center
+      editable: inline
+      overflow: ellipsis
+      maxLines: 1
+      style: label
+      tooltip: (self.name)
+    }
+    badge link {
+      icon: "mdi-link-variant"
+      position: top-right
+      visible: (self.link != '')
+      tooltip: (self.link)
+      onClick: openLink
+      doc: "Drawn where the element has a link; hovering or focusing it shows the link, activating it opens it (Requirement 5.2, 5.7)."
+    }
+    badge pinned {
+      icon: "mdi-lock-outline"
+      position: top-left
+      visible: (self.view.pinned)
+      tooltip: "Its position is locked. Unlock it from its menu to let the layout place it."
+      doc: "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+    }
+  }
+
+  node Specification {
+    refusals: { reparent: ["An element of this diagram has no parent to move it under; it is locked where it is dropped."] }
+    shape { type: roundedRect, params: { radius: 8 } }
+    style: specification
+    size: { default: [240, 64], min: [180, 64], max: [320, 640], autoSize: fitHeight }
+    conditions: [
+      { when: (self.status == 'progressing'), style: statusProgressing },
+      { when: (self.status == 'inputRequired'), style: statusInputRequired },
+      { when: (self.status == 'finished'), style: statusFinished },
+      { when: (self.status == 'archived'), style: statusArchived }
+    ]
+    label @name as name {
+      position: top
+      editable: inline
+      overflow: ellipsis
+      maxLines: 1
+      style: label
+      tooltip: (self.name)
+    }
+    /// The status in words, in the status colour (Requirement 4.10): the enum value's label (DISL 12.4's `enumLabel`).
+    label (enumLabel('SpecificationStatus', self.status)) as status { position: { anchor: [0.5, 0], offset: [0, 36] }, editable: false, style: status }
+    compartment tasks {
+      items: { children: [Task], slot: tasks }
+      itemText: (item.title)
+      itemLink: (item.link)
+      itemOrder: { by: (item.updated), direction: descending }
+      groupBy: {
+        attribute: status
+        collapsed: { pending: true, finished: true }
+        doc: "Progressing, Pending, Input Required and Finished, in TaskStatus's order, each heading with its count; a group with no task has no heading. Progressing and Input Required start expanded, Pending and Finished collapsed (Requirement 4.2, 4.4)."
+      }
+      separator: { color: $color.border, width: 1 }
+      overflow: ellipsis
+      doc: "The specification's tasks, most recently updated first within their group (Requirement 4.2)."
+    }
+    badge link {
+      icon: "mdi-link-variant"
+      position: top-right
+      visible: (self.link != '')
+      tooltip: (self.link)
+      onClick: openLink
+      doc: "Drawn where the element has a link; hovering or focusing it shows the link, activating it opens it (Requirement 5.2, 5.7)."
+    }
+    badge pinned {
+      icon: "mdi-lock-outline"
+      position: top-left
+      visible: (self.view.pinned)
+      tooltip: "Its position is locked. Unlock it from its menu to let the layout place it."
+      doc: "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+    }
+  }
+
+  node Agent {
+    refusals: { reparent: ["An element of this diagram has no parent to move it under; it is locked where it is dropped."] }
+    shape pill
+    style: agent
+    size: { default: [160, 44], min: [100, 44], max: [280, 44] }
+    label @name as name {
+      position: center
+      editable: inline
+      overflow: ellipsis
+      maxLines: 1
+      style: label
+      tooltip: (self.name)
+    }
+    badge link {
+      icon: "mdi-link-variant"
+      position: top-right
+      visible: (self.link != '')
+      tooltip: (self.link)
+      onClick: openLink
+      doc: "Drawn where the element has a link; hovering or focusing it shows the link, activating it opens it (Requirement 5.2, 5.7)."
+    }
+    badge pinned {
+      icon: "mdi-lock-outline"
+      position: top-left
+      visible: (self.view.pinned)
+      tooltip: "Its position is locked. Unlock it from its menu to let the layout place it."
+      doc: "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+    }
+  }
+
+  node Location {
+    refusals: { reparent: ["An element of this diagram has no parent to move it under; it is locked where it is dropped."] }
+    shape rect
+    style: location
+    size: { default: [240, 64], min: [180, 64], max: [360, 480], autoSize: fitHeight }
+    /// The branch, above the line.
+    label @branch as branch {
+      position: top
+      editable: inline
+      overflow: ellipsis
+      maxLines: 1
+      style: label
+      tooltip: (self.branch)
+      link: (self.branchLink)
+    }
+    compartment folder {
+      items: ([self.folder])
+      itemText: (item)
+      itemLink: (self.folderLink)
+      separator: { color: $color.border, width: 1 }
+      overflow: ellipsis
+      doc: "The folder, below the line that splits the location's two fields (Requirement 7.1); `Default` when the work is in the main checkout. Its link symbol opens `folderLink`."
+    }
+    compartment pullRequests {
+      title: "Pull requests"
+      items: { children: [PullRequest], slot: pullRequests }
+      itemText: (item.title)
+      itemLink: (item.link)
+      itemOrder: { by: (item.updated), direction: descending }
+      collapsible: true
+      collapsed: true
+      separator: { color: $color.border, width: 1 }
+      overflow: ellipsis
+      doc: "One collapsible group, collapsed by default, whose group key is `pullRequests`; most recently updated first (Requirement 4.5)."
+    }
+    badge link {
+      icon: "mdi-link-variant"
+      position: top-right
+      visible: (self.branchLink != '')
+      tooltip: (self.branchLink)
+      onClick: openBranchLink
+      doc: "The branch's link (Requirement 5.1)."
+    }
+    badge pinned {
+      icon: "mdi-lock-outline"
+      position: top-left
+      visible: (self.view.pinned)
+      tooltip: "Its position is locked. Unlock it from its menu to let the layout place it."
+      doc: "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+    }
+  }
+
+  node Environment {
+    refusals: { reparent: ["An element of this diagram has no parent to move it under; it is locked where it is dropped."] }
+    shape { type: hexagon, params: { orientation: flat } }
+    style: environment
+    size: { default: [170, 56], min: [120, 56], max: [300, 56] }
+    label @name as name {
+      position: center
+      editable: inline
+      overflow: ellipsis
+      maxLines: 1
+      style: label
+      tooltip: (self.name)
+    }
+    label (self.environmentKind == 'localMachine' ? 'Local machine' : self.environmentKind == 'wsl' ? 'WSL' : self.environmentKind == 'cloud' ? 'Cloud' : self.environmentKind == 'container' ? 'Container' : 'Other') as environmentKind { position: bottom, editable: false, style: muted }
+    badge link {
+      icon: "mdi-link-variant"
+      position: top-right
+      visible: (self.link != '')
+      tooltip: (self.link)
+      onClick: openLink
+      doc: "Drawn where the element has a link; hovering or focusing it shows the link, activating it opens it (Requirement 5.2, 5.7)."
+    }
+    badge pinned {
+      icon: "mdi-lock-outline"
+      position: top-left
+      visible: (self.view.pinned)
+      tooltip: "Its position is locked. Unlock it from its menu to let the layout place it."
+      doc: "Shown on an element whose position is locked, so the user can tell which elements the layout will not move (Requirement 6.2)."
+    }
+  }
+
+  /// A plain line without a label: its ends say what it means (Requirement 7.4).
+  edge ProjectSpecification {
+    line { routing: straight }
+    marker source none
+    marker target none
+    style: relation
+  }
+
+  /// A plain line without a label: its ends say what it means (Requirement 7.4).
+  edge SpecificationAgent {
+    line { routing: straight }
+    marker source none
+    marker target none
+    style: relation
+  }
+
+  /// A plain line without a label: its ends say what it means (Requirement 7.4).
+  edge AgentLocation {
+    line { routing: straight }
+    marker source none
+    marker target none
+    style: relation
+  }
+
+  /// A plain line without a label: its ends say what it means (Requirement 7.4).
+  edge LocationEnvironment {
+    line { routing: straight }
+    marker source none
+    marker target none
+    style: relation
+  }
+
+  canvas {
+    filters: {
+      archived: {
+        label: "Show archived"
+        control: switch
+        persist: true
+        default: false
+        appliesTo: [Specification]
+        keep: (value || self.status != 'archived')
+        doc: "Shows or hides specifications whose status is Archived, with their relations; nothing else is hidden and the model does not change (Requirement 4.6, 4.7). Kept in the file as `view.showArchived` (persistence.view.bind)."
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+/// One tool per element type and none for a task or a pull request (Requirement 9.1). An element dropped from the
+/// toolbox is locked where it was dropped (Requirement 6.11). A relation is drawn between two elements and is the one
+/// the pair allows (Requirement 9.2).
+toolbox {
+  generic: { select: true, pan: true }
+  group elements {
+    /// A body of work, such as a repository.
+    tool project "Project" {
+      creates: Project
+      mode: drop
+      icon: "mdi-folder-outline"
+      initial: { name: "New project" }
+      after: editLabel
+    }
+    /// A piece of specified work, with its status and tasks.
+    tool specification "Specification" {
+      creates: Specification
+      mode: drop
+      icon: "mdi-file-document-outline"
+      initial: { name: "New specification", status: pending }
+      after: editLabel
+    }
+    /// A worker on a specification.
+    tool agent "Agent" {
+      creates: Agent
+      mode: drop
+      icon: "mdi-robot-outline"
+      initial: { name: "New agent" }
+      after: editLabel
+    }
+    /// Where an agent's work is: a branch and a folder.
+    tool location "Location" {
+      creates: Location
+      mode: drop
+      icon: "mdi-source-branch"
+      initial: { branch: main, folder: Default }
+      after: editLabel
+    }
+    /// A system the work happens on.
+    tool environment "Environment" {
+      creates: Environment
+      mode: drop
+      icon: "mdi-server-outline"
+      initial: { name: "New environment", environmentKind: other }
+      after: editLabel
+    }
+  }
+  context for Project, Specification, Agent, Location, Environment {
+    placement: menu
+    tool "Rename" { kind: editLabel, icon: "mdi-rename-outline", shortcut: F2, group: "edit" }
+    tool "Add task" {
+      kind: create-child
+      creates: Task
+      slot: tasks
+      icon: "mdi-checkbox-blank-outline"
+      visible: (self.isA('Specification'))
+      group: "edit"
+    }
+    tool "Add pull request" {
+      kind: create-child
+      creates: PullRequest
+      slot: pullRequests
+      icon: "mdi-source-pull"
+      visible: (self.isA('Location'))
+      group: "edit"
+    }
+    tool "Open link" {
+      kind: operation
+      operation: openLink
+      icon: "mdi-open-in-new"
+      visible: (!self.isA('Location'))
+      group: "edit"
+    }
+    tool "Open the branch's link" {
+      kind: operation
+      operation: openBranchLink
+      icon: "mdi-open-in-new"
+      visible: (self.isA('Location'))
+      group: "edit"
+    }
+    tool "Open the folder's link" {
+      kind: operation
+      operation: openFolderLink
+      icon: "mdi-folder-open-outline"
+      visible: (self.isA('Location'))
+      group: "edit"
+    }
+    tool "Lock position" { kind: pin, icon: "mdi-lock-outline", group: "position" }
+    tool "Unlock position" { kind: unpin, icon: "mdi-lock-open-variant-outline", group: "position" }
+    tool "Delete" { kind: delete, icon: "mdi-delete-outline", shortcut: Delete, group: "remove" }
+  }
+  context for Task {
+    placement: menu
+    tool "Rename" { kind: editLabel, icon: "mdi-rename-outline", shortcut: F2, group: "edit" }
+    tool "Set status" { kind: operation, operation: setTaskStatus, icon: "mdi-list-status", group: "edit" }
+    tool "Open link" { kind: operation, operation: openLink, icon: "mdi-open-in-new", group: "edit" }
+    tool "Delete" { kind: delete, icon: "mdi-delete-outline", shortcut: Delete, group: "remove" }
+  }
+  context for PullRequest {
+    placement: menu
+    tool "Rename" { kind: editLabel, icon: "mdi-rename-outline", shortcut: F2, group: "edit" }
+    tool "Open link" { kind: operation, operation: openLink, icon: "mdi-open-in-new", group: "edit" }
+    tool "Delete" { kind: delete, icon: "mdi-delete-outline", shortcut: Delete, group: "remove" }
+  }
+  context for diagram {
+    placement: menu
+    /// Offered only while something is locked (Requirement 6.4).
+    tool "Unlock all positions" { kind: unpinAll, icon: "mdi-lock-open-variant-outline" }
+  }
+}
+
+/// Locked elements stay where they are and act as fixed points; a drag locks the element (DISL 10.4, Requirement 6.1).
+/// Computed positions are never written (Requirement 6.6). The animation is left out when the user asked for reduced
+/// motion.
+layout {
+  default rings
+  /// Projects in the middle, then specifications, agents and locations, environments outermost; relations pull, all
+  /// elements push apart, no two overlap, the same file gives the same picture, and a live change moves little (DISL
+  /// 10.4; Requirement 6.5 to 6.10). agent-activity-diagram.md gives the reference algorithm and its numbers.
+  algorithm rings {
+    algorithm: force
+    force: { tiers: [Project, Specification, Agent, Location, Environment], gap: 24 }
+  }
+  trigger: onChange
+  respect: pinned
+  animate: { durationMs: 250 }
+}

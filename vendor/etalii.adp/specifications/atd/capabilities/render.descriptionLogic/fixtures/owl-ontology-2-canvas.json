@@ -1,0 +1,125 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.descriptionLogic` from the RDF module's rendering of a class expression of the ontology that parity/cases/w3c/owl/owl-ontology.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "value": {
+      "root": "_:b1",
+      "triples": [
+        {
+          "s": "_:b1",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b1",
+          "p": "http://www.w3.org/2002/07/owl#unionOf",
+          "o": "_:b2",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b2",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/pizza#Vegetarian",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b2",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "_:b3",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b3",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "_:b4",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b3",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b4",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b4",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/pizza#hasTopping",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b4",
+          "p": "http://www.w3.org/2002/07/owl#someValuesFrom",
+          "o": "_:b5",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b5",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b5",
+          "p": "http://www.w3.org/2002/07/owl#intersectionOf",
+          "o": "_:b6",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b6",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/pizza#MeatTopping",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b6",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "_:b7",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b7",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/external#Smoked",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b7",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri"
+        }
+      ],
+      "names": {
+        "http://example.org/external#Smoked": "ext:Smoked",
+        "http://example.org/pizza#MeatTopping": ":MeatTopping",
+        "http://example.org/pizza#Vegetarian": ":Vegetarian",
+        "http://example.org/pizza#hasTopping": ":hasTopping",
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil": "nil",
+        "http://www.w3.org/2002/07/owl#Class": "owl:Class",
+        "http://www.w3.org/2002/07/owl#Restriction": "owl:Restriction"
+      }
+    },
+    "format": "rdf"
+  },
+  "args": {
+    "maxDepth": 2
+  },
+  "output": {
+    "runs": [
+      {
+        "text": "(:Vegetarian ∪ ∃ :hasTopping.…)",
+        "style": {
+          "elided": true,
+          "cyclic": false
+        }
+      }
+    ]
+  }
+}

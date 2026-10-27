@@ -1,0 +1,92 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.grid` from the RDF module's layout of the reading that parity/cases/w3c/shacl/shape-grid.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/shapes#PersonShape",
+        "width": 320.0,
+        "height": 152.0,
+        "attributes": {}
+      },
+      {
+        "id": "res:http://example.org/shapes#AddressShape",
+        "width": 320.0,
+        "height": 86.0,
+        "attributes": {}
+      },
+      {
+        "id": "res:http://example.org/shapes#CityShape",
+        "width": 320.0,
+        "height": 130.0,
+        "attributes": {},
+        "pinned": {
+          "x": 1000.0,
+          "y": 600.0
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#EmptyShape",
+        "width": 320.0,
+        "height": 64.0,
+        "attributes": {}
+      },
+      {
+        "id": "res:http://example.org/shapes#TagShape",
+        "width": 320.0,
+        "height": 130.0,
+        "attributes": {}
+      },
+      {
+        "id": "res:http://example.org/shapes#NameShape",
+        "width": 320.0,
+        "height": 64.0,
+        "attributes": {}
+      },
+      {
+        "id": "res:http://example.org/shapes#OrderShape",
+        "width": 320.0,
+        "height": 174.0,
+        "attributes": {}
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columns": 3,
+    "columnGap": 0,
+    "rowGap": 48
+  },
+  "output": {
+    "positions": {
+      "res:http://example.org/shapes#AddressShape": {
+        "x": 320.0,
+        "y": 0.0
+      },
+      "res:http://example.org/shapes#CityShape": {
+        "x": 1000.0,
+        "y": 600.0
+      },
+      "res:http://example.org/shapes#EmptyShape": {
+        "x": 0.0,
+        "y": 200.0
+      },
+      "res:http://example.org/shapes#NameShape": {
+        "x": 640.0,
+        "y": 200.0
+      },
+      "res:http://example.org/shapes#OrderShape": {
+        "x": 0.0,
+        "y": 378.0
+      },
+      "res:http://example.org/shapes#PersonShape": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/shapes#TagShape": {
+        "x": 320.0,
+        "y": 200.0
+      }
+    }
+  }
+}

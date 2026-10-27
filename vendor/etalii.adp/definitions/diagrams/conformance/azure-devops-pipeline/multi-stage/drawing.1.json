@@ -1,0 +1,339 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "Build",
+      "type": "azure-devops/pipeline+stage",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "count",
+          "text": "1 job",
+          "font": "12 400",
+          "position": {
+            "x": 12,
+            "y": 44
+          }
+        },
+        {
+          "id": "name",
+          "text": "Build and package",
+          "font": "14 600",
+          "position": {
+            "x": 12,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#f8fafc",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "DeployProduction",
+      "type": "azure-devops/pipeline+stage",
+      "shape": "path",
+      "bounds": {
+        "x": 600,
+        "y": 120,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "count",
+          "text": "1 job",
+          "font": "12 400",
+          "position": {
+            "x": 612,
+            "y": 164
+          }
+        },
+        {
+          "id": "name",
+          "text": "DeployProduction",
+          "font": "14 600",
+          "position": {
+            "x": 612,
+            "y": 144
+          }
+        }
+      ],
+      "style": {
+        "fill": "#f8fafc",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "DeployStaging",
+      "type": "azure-devops/pipeline+stage",
+      "shape": "path",
+      "bounds": {
+        "x": 600,
+        "y": 0,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "count",
+          "text": "1 job",
+          "font": "12 400",
+          "position": {
+            "x": 612,
+            "y": 44
+          }
+        },
+        {
+          "id": "indicator-0",
+          "text": "?",
+          "font": "11 400",
+          "position": {
+            "x": 808,
+            "y": 20
+          }
+        },
+        {
+          "id": "name",
+          "text": "DeployStaging",
+          "font": "14 600",
+          "position": {
+            "x": 612,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#f8fafc",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "Notify",
+      "type": "azure-devops/pipeline+stage",
+      "shape": "path",
+      "bounds": {
+        "x": 900,
+        "y": 0,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "count",
+          "text": "1 job",
+          "font": "12 400",
+          "position": {
+            "x": 912,
+            "y": 44
+          }
+        },
+        {
+          "id": "indicator-0",
+          "text": "?",
+          "font": "11 400",
+          "position": {
+            "x": 1108,
+            "y": 20
+          }
+        },
+        {
+          "id": "name",
+          "text": "Notify the team",
+          "font": "14 600",
+          "position": {
+            "x": 912,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#f8fafc",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "Test",
+      "type": "azure-devops/pipeline+stage",
+      "shape": "path",
+      "bounds": {
+        "x": 300,
+        "y": 0,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "count",
+          "text": "2 jobs",
+          "font": "12 400",
+          "position": {
+            "x": 312,
+            "y": 44
+          }
+        },
+        {
+          "id": "name",
+          "text": "Test",
+          "font": "14 600",
+          "position": {
+            "x": 312,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#f8fafc",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:Build->Test",
+      "type": "azure-devops/pipeline+edge",
+      "source": "Build",
+      "target": "Test",
+      "route": [
+        {
+          "x": 220,
+          "y": 44
+        },
+        {
+          "x": 300,
+          "y": 44
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:DeployProduction->Notify",
+      "type": "azure-devops/pipeline+edge",
+      "source": "DeployProduction",
+      "target": "Notify",
+      "route": [
+        {
+          "x": 820,
+          "y": 164
+        },
+        {
+          "x": 900,
+          "y": 44
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:DeployStaging->Notify",
+      "type": "azure-devops/pipeline+edge",
+      "source": "DeployStaging",
+      "target": "Notify",
+      "route": [
+        {
+          "x": 820,
+          "y": 44
+        },
+        {
+          "x": 900,
+          "y": 44
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:Test->DeployProduction",
+      "type": "azure-devops/pipeline+edge",
+      "source": "Test",
+      "target": "DeployProduction",
+      "route": [
+        {
+          "x": 520,
+          "y": 44
+        },
+        {
+          "x": 600,
+          "y": 164
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:Test->DeployStaging",
+      "type": "azure-devops/pipeline+edge",
+      "source": "Test",
+      "target": "DeployStaging",
+      "route": [
+        {
+          "x": 520,
+          "y": 44
+        },
+        {
+          "x": 600,
+          "y": 44
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "Build",
+    "Test",
+    "DeployStaging",
+    "DeployProduction",
+    "Notify",
+    "edge:Build->Test",
+    "edge:Test->DeployStaging",
+    "edge:Test->DeployProduction",
+    "edge:DeployStaging->Notify",
+    "edge:DeployProduction->Notify"
+  ]
+}

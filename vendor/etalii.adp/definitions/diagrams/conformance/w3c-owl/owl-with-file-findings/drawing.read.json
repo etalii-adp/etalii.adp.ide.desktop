@@ -1,0 +1,221 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/again#New",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 0,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:New",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 39.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/again#Old",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 130,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:Old",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 169.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "opacity": 0.55
+      }
+    },
+    {
+      "id": "res:http://example.org/again#Thing",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 39.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/2001/XMLSchema#notAType",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 400,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "xsd:notAType",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 439.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "thing:http://example.org/again#size|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 400,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 302.25,
+            "y": 423.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/again#New|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/again#Old",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/again#New",
+      "target": "res:http://example.org/again#Old",
+      "route": [
+        {
+          "x": 545.92,
+          "y": 54.4
+        },
+        {
+          "x": 174.08,
+          "y": 145.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:thing:http://example.org/again#size|domain|http://example.org/again#size|res:http://www.w3.org/2001/XMLSchema#notAType",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://example.org/again#size|domain",
+      "target": "res:http://www.w3.org/2001/XMLSchema#notAType",
+      "route": [
+        {
+          "x": 251.08,
+          "y": 423.14
+        },
+        {
+          "x": 190,
+          "y": 427.78
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:size",
+          "font": "11 400",
+          "position": {
+            "x": 220.54,
+            "y": 419.46
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:thing:http://example.org/again#size|domain|http://example.org/again#size|res:http://www.w3.org/2001/XMLSchema#notAType",
+    "edge:res:http://example.org/again#New|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/again#Old",
+    "res:http://example.org/again#Thing",
+    "res:http://example.org/again#Old",
+    "res:http://example.org/again#New",
+    "res:http://www.w3.org/2001/XMLSchema#notAType",
+    "thing:http://example.org/again#size|domain"
+  ]
+}

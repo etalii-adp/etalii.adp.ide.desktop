@@ -1,0 +1,81 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.rankedColumns",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Nodes in columns by a rank, left to right, and an optional band of the nodes that have no rank. The columns are the distinct ranks in ascending order, so a rank no node has takes no room; a column is as wide as its widest node and stands `columnGap` after the one before it. Within a column the nodes stack from the top in `order`, `rowGap` apart, and a column of more than `wrapAfter` nodes wraps into further columns `wrapGap` apart. The band holds the nodes whose `band` is true, in `order`: in one row `bandGap` below the tallest column (`below`), or in one column `bandGap` after the last (`after`). Positions are the top left corners of the nodes, in the canvas's domain units. How a node's rank is found is the description's, a script function or an attribute. Its fixtures are recorded with the cases of the descriptions that require it (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "rank": {
+      "type": "query",
+      "required": true,
+      "doc": "A node's rank, an integer; a node whose rank is null, and every node in the band, has no column."
+    },
+    "order": {
+      "type": "query",
+      "doc": "The key a column, and the band, orders its nodes by, ascending; absent, the nodes keep the order of the input. Ties keep the order of the input."
+    },
+    "band": {
+      "type": "query",
+      "doc": "Whether a node goes in the band rather than in a column; absent, no node does."
+    },
+    "bandPlacement": {
+      "type": "enum",
+      "values": [
+        "below",
+        "after"
+      ],
+      "default": "below",
+      "doc": "Where the band is: one row below the columns, or one column after them."
+    },
+    "origin": {
+      "type": "list",
+      "default": [
+        0,
+        0
+      ],
+      "doc": "The top left corner of the first column."
+    },
+    "columnGap": {
+      "type": "number",
+      "default": 60,
+      "doc": "The gap between two columns, edge to edge."
+    },
+    "rowGap": {
+      "type": "number",
+      "default": 24,
+      "doc": "The gap between two nodes of a column, or of a band laid out as a column, edge to edge."
+    },
+    "uniformWidth": {
+      "type": "boolean",
+      "default": false,
+      "doc": "Whether every node of a column takes the column's width."
+    },
+    "wrapAfter": {
+      "type": "integer",
+      "doc": "The most nodes a column holds before it wraps into a further column; absent, it never wraps."
+    },
+    "wrapGap": {
+      "type": "number",
+      "default": 40,
+      "doc": "The gap between the columns one rank wraps into."
+    },
+    "bandGap": {
+      "type": "number",
+      "default": 96,
+      "doc": "The gap between the columns and the band; in a band laid out as a row, the nodes are `columnGap` apart."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "pinnedStay",
+    "stable"
+  ],
+  "fallback": "layout.layered",
+  "status": "provisional"
+}

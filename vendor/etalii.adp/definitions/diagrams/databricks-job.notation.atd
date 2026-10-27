@@ -1,0 +1,306 @@
+atd 0.1
+part of databricks/job
+
+// The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+notation {
+  style box { fill: $color.surface, stroke: { color: $color.border, width: 1 }, cornerRadius: 4, font: { size: 13 } }
+  style badges { font: { size: 10, color: "#5a6376" } }
+  style simPending { opacity: 0.5 }
+  style simRunning { stroke: { color: "limegreen", width: 2.5 } }
+  style simSucceeded { stroke: { color: "#15803d", width: 2 } }
+  style simFailed { stroke: { color: "#dc2626", width: 2.5 } }
+  style simSkipped { opacity: 0.35, stroke: { dash: [3, 3] } }
+
+  node Task {
+    shape rect
+    label @key as key {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: inline,
+      overflow: ellipsis
+    }
+    label ((has(self.runIf) && self.runIf != '' ? self.runIf + ' · ' : '') + (has(self.clusterKey) && self.clusterKey != '' ? self.clusterKey : 'serverless')) as badges {
+      position: { anchor: [0, 1], offset: [8, -8], align: start },
+      editable: false,
+      style: "badges"
+    }
+    /// Condition tasks read differently at a glance: their outcomes branch.
+    variant v0 when self.taskType == 'condition' {
+      style: { cornerRadius: 16 }
+    }
+    style: "box"
+    size: { fixed: [200, 56] }
+    anchors: { mode: fixed, points: [{ id: "left", x: 0, y: 0.5 }, { id: "right", x: 1, y: 0.5 }] }
+    conditions: [{ when: (has(self.simulated) && self.simulated == 'pending'), style: "simPending" }, {
+      when: (has(self.simulated) && self.simulated == 'running'),
+      style: "simRunning"
+    }
+    , { when: (has(self.simulated) && self.simulated == 'succeeded'), style: "simSucceeded" }, {
+      when: (has(self.simulated) && self.simulated == 'failed'),
+      style: "simFailed"
+    }
+    , { when: (has(self.simulated) && self.simulated == 'skipped'), style: "simSkipped" }]
+  }
+
+  node JobCluster {
+    shape rect
+    label @key as key {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: false,
+      overflow: ellipsis
+    }
+    label ([has(self.sparkVersion) ? self.sparkVersion : '', has(self.nodeType) ? self.nodeType : '', self.workers > 0 ? string(self.workers) + ' workers' : ''].filter(b, b != '').join(' · ')) as badges {
+      position: { anchor: [0, 1], offset: [8, -8], align: start },
+      style: "badges"
+    }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+  }
+
+  edge Dependency {
+    line { stroke: { color: $color.border, width: 1.5 }, routing: bezier, startDirection: right, endDirection: left }
+    marker target arrowFilled
+    label (has(self.outcome) ? self.outcome : '') as outcome { at: middle, offset: -6, editable: false }
+    anchoring: {
+      source: { mode: fixed, points: [{ id: "right", x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: "left", x: 0, y: 0.5 }] }
+    }
+    conditions: [{
+      when: (has(self.outcome) && self.outcome == 'true')
+      style: { stroke: { color: "#15803d" } }
+      doc: "Outcome edges wear their answer."
+    }
+    , { when: (has(self.outcome) && self.outcome == 'false'), style: { stroke: { color: "#dc2626" } } }]
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true }
+  group tasks "Tasks" {
+    /// Runs a notebook. Drop on the canvas where it should sit.
+    tool notebookTask "Notebook task" {
+      kind: operation
+      operation: "addNotebookTask"
+      mode: drop
+      icon: "mdi-notebook-outline"
+      drop: {
+        targets: [{
+          on: [canvas]
+          kind: operation
+          operation: "addNotebookTask"
+          args: { key: (freeTaskKey(diagram.nodesOfType('Task').map(t, t.key), 'notebook')) }
+        }
+        ]
+      }
+    }
+    /// Runs a Python file. Drop on the canvas where it should sit.
+    tool pythonTask "Python task" {
+      kind: operation
+      operation: "addPythonTask"
+      mode: drop
+      icon: "mdi-language-python"
+      drop: {
+        targets: [{
+          on: [canvas]
+          kind: operation
+          operation: "addPythonTask"
+          args: { key: (freeTaskKey(diagram.nodesOfType('Task').map(t, t.key), 'python')) }
+        }
+        ]
+      }
+    }
+    /// Branches on a condition; downstream edges follow its true or false outcome.
+    tool conditionTask "Condition task" {
+      kind: operation
+      operation: "addConditionTask"
+      mode: drop
+      icon: "mdi-call-split"
+      drop: {
+        targets: [{
+          on: [canvas]
+          kind: operation
+          operation: "addConditionTask"
+          args: { key: (freeTaskKey(diagram.nodesOfType('Task').map(t, t.key), 'condition')) }
+        }
+        ]
+      }
+    }
+  }
+  context for Task {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" {
+      kind: operation,
+      operation: "renameTask",
+      group: "edit",
+      icon: "mdi-pencil-outline",
+      shortcut: "F2"
+    }
+    tool "Set run if…" { kind: operation, operation: "setRunIf", group: "edit", icon: "mdi-filter-outline" }
+    tool "Assign cluster…" { kind: operation, operation: "assignCluster", group: "edit", icon: "mdi-server" }
+    /// One entry per `depends_on` entry of the task, in the file's order, a dependency on a task the job does not
+    /// declare included.
+    tool {
+      label: ('Disconnect from \'' + dep.upstreamKey + '\'')
+      kind: operation
+      operation: "removeDependency"
+      group: "edit"
+      forEach: (self.incomingOf('Dependency'))
+      as: "dep"
+      icon: "mdi-vector-polyline-remove"
+      args: { dependency: (dep), from: (dep.upstreamKey) }
+    }
+    tool "Remove" { kind: delete, group: "edit", icon: "mdi-delete-outline", shortcut: "Delete" }
+    tool "Run job (simulated)" {
+      kind: operation,
+      operation: "simulateRun",
+      group: "simulate",
+      icon: "mdi-play-outline"
+    }
+  }
+  context for Dependency {
+    placement: menu
+    standardEntries: false
+    tool "Remove dependency" { kind: delete, icon: "mdi-vector-polyline-remove", shortcut: "Delete" }
+  }
+  /// The menu of the empty canvas, where a drop would land.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add notebook task here" {
+      kind: operation
+      operation: "addNotebookTask"
+      group: "add"
+      icon: "mdi-notebook-outline"
+      args: { key: (freeTaskKey(diagram.nodesOfType('Task').map(t, t.key), 'notebook')) }
+    }
+    tool "Add Python task here" {
+      kind: operation
+      operation: "addPythonTask"
+      group: "add"
+      icon: "mdi-language-python"
+      args: { key: (freeTaskKey(diagram.nodesOfType('Task').map(t, t.key), 'python')) }
+    }
+    tool "Add condition task here" {
+      kind: operation
+      operation: "addConditionTask"
+      group: "add"
+      icon: "mdi-call-split"
+      args: { key: (freeTaskKey(diagram.nodesOfType('Task').map(t, t.key), 'condition')) }
+    }
+  }
+  /// A finished connect gesture: the task it ends on comes to depend on the one it started from.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    tool "Depend on" {
+      kind: operation,
+      operation: "connectTasks",
+      icon: "mdi-ray-start-arrow",
+      args: { from: (source), to: (target) }
+    }
+  }
+}
+
+form task for Task {
+  usage: [inspector]
+  section "Identity" {
+    field key "Key" {
+      widget: readonly
+      readOnlyReasons: ["Rename through the context menu, so every depends_on reference follows the key."]
+    }
+    field taskType "Type" {
+      widget: readonly
+      display: (self.taskType == 'run_job' ? 'run-job' : (self.taskType == 'for_each' ? 'for-each' : self.taskType))
+      readOnlyReasons: ["The type is which *_task mapping the file carries; change it in the file."]
+    }
+    field taskSource "Source" {
+      widget: readonly
+      readOnlyReasons: ["The type is which *_task mapping the file carries; change it in the file."]
+    }
+  }
+  section "Execution" {
+    field runIf "Run if" { widget: text }
+    field clusterKey "Cluster" {
+      widget: text
+      validate: [{
+        timing: commit
+        rule: (value == '' || diagram.nodesOfType('JobCluster').exists(c, c.key == value))
+        message: ('There is no cluster named \'' + value + '\' in this job.')
+      }
+      ]
+    }
+  }
+  section "Workspace" {
+    item "Workspace connection" {
+      kind: computed
+      value: "Not connected"
+      readOnlyReasons: ["Not connected — a placeholder for the real workspace connection."]
+    }
+    item "Last simulated run" {
+      kind: computed,
+      value: "",
+      readOnlyReasons: ["Simulated runs play on the canvas and never touch the file."]
+    }
+  }
+}
+
+form renameTask "Rename task" for Task {
+  icon: "mdi-pencil-outline"
+  submitLabel: "Rename"
+  field newKey "Key" {
+    widget: text
+    initial: (self.key)
+    validate: [{ timing: commit, rule: (value.trim() != ''), message: "A task needs a key." }, {
+      timing: commit
+      rule: (!diagram.nodesOfType('Task').exists(t, t.key == value))
+      message: ('A task named \'' + value + '\' is already there.')
+    }
+    ]
+  }
+}
+
+form setRunIf "Set run if" for Task {
+  icon: "mdi-filter-outline"
+  submitLabel: "Set"
+  field runIf "Run if (empty = ALL_SUCCESS)" { widget: text, initial: (has(self.runIf) ? self.runIf : '') }
+}
+
+form assignCluster "Assign cluster" for Task {
+  icon: "mdi-server"
+  submitLabel: "Assign"
+  field clusterKey "Cluster key (empty = serverless)" {
+    widget: text,
+    initial: (has(self.clusterKey) ? self.clusterKey : '')
+  }
+}
+
+form addTask "Add task" {
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field key "Task key" {
+    widget: text
+    initial: ('')
+    validate: [{ timing: commit, rule: (value.trim() != ''), message: "A task needs a key." }]
+  }
+}
+
+layout {
+  default jobColumns
+  /// Longest-path layering left to right, an edge closing a circle left out, a column 260 wide and a row 120 high; the
+  /// placeholder of a missing upstream task one column left of the first task naming it; the job clusters in a band 80
+  /// beneath the deepest task row (`modules/diagrams/databricks/src/layout.rs`, `job`).
+  algorithm jobColumns capability layout.layeredColumns {
+    columnWidth: 260,
+    rowHeight: 120,
+    bandGap: 80,
+    align: top
+    band: (self.id.startsWith('cluster:'))
+    placeholder: (self.unresolved)
+  }
+  /// The declarative approximation of jobColumns, for a runtime without the capability.
+  algorithm layered { algorithm: "layered", direction: right }
+  trigger: always
+  respect: all
+}

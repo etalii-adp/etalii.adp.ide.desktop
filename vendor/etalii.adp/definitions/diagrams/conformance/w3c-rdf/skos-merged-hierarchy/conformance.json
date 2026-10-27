@@ -1,0 +1,241 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/skos-merged-hierarchy.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "skos-merged-hierarchy.ttl",
+    "registration": "skos-merged-hierarchy.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/drinks#drinks",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#drinks",
+          "display": "ex:drinks",
+          "typeBadges.0": "skos:ConceptScheme",
+          "rows.0.predicate": "skos:prefLabel",
+          "rows.0.value": "Drinks",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "skos:prefLabel",
+          "rows.1.value": "Dranken",
+          "rows.1.annotation": "@nl",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/drinks#hot",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#hot",
+          "display": "ex:hot",
+          "typeBadges.0": "skos:Concept",
+          "rows.0.predicate": "skos:prefLabel",
+          "rows.0.value": "Hot drinks",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "skos:prefLabel",
+          "rows.1.value": "Warme dranken",
+          "rows.1.annotation": "@nl",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/drinks#tea",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#tea",
+          "display": "ex:tea",
+          "typeBadges.0": "skos:Concept",
+          "rows.0.predicate": "skos:prefLabel",
+          "rows.0.value": "Tea",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "skos:prefLabel",
+          "rows.1.value": "Thee",
+          "rows.1.annotation": "@nl",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/drinks#coffee",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#coffee",
+          "display": "ex:coffee",
+          "typeBadges.0": "skos:Concept",
+          "rows.0.predicate": "skos:prefLabel",
+          "rows.0.value": "Coffee",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "skos:prefLabel",
+          "rows.1.value": "Koffie",
+          "rows.1.annotation": "@nl",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/drinks#cocoa",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#cocoa",
+          "display": "ex:cocoa",
+          "typeBadges.0": "skos:Concept",
+          "rows.0.predicate": "skos:prefLabel",
+          "rows.0.value": "Cocoa",
+          "rows.0.annotation": "@en",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/drinks#drinks|http://www.w3.org/2004/02/skos/core#hasTopConcept|res:http://example.org/drinks#hot",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#drinks",
+        "target": "res:http://example.org/drinks#hot",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#drinks",
+          "toElementId": "res:http://example.org/drinks#hot",
+          "predicate": "skos:hasTopConcept",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#hasTopConcept"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#hot|http://www.w3.org/2004/02/skos/core#topConceptOf|res:http://example.org/drinks#drinks",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#hot",
+        "target": "res:http://example.org/drinks#drinks",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#hot",
+          "toElementId": "res:http://example.org/drinks#drinks",
+          "predicate": "skos:topConceptOf",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#topConceptOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#inScheme|res:http://example.org/drinks#drinks",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#tea",
+        "target": "res:http://example.org/drinks#drinks",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#tea",
+          "toElementId": "res:http://example.org/drinks#drinks",
+          "predicate": "skos:inScheme",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#inScheme"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/drinks#hot",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#tea",
+        "target": "res:http://example.org/drinks#hot",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#tea",
+          "toElementId": "res:http://example.org/drinks#hot",
+          "predicate": "skos:broader",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#broader"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#hot|http://www.w3.org/2004/02/skos/core#narrower|res:http://example.org/drinks#coffee",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#hot",
+        "target": "res:http://example.org/drinks#coffee",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#hot",
+          "toElementId": "res:http://example.org/drinks#coffee",
+          "predicate": "skos:narrower",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#narrower"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#coffee|http://www.w3.org/2004/02/skos/core#inScheme|res:http://example.org/drinks#drinks",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#coffee",
+        "target": "res:http://example.org/drinks#drinks",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#coffee",
+          "toElementId": "res:http://example.org/drinks#drinks",
+          "predicate": "skos:inScheme",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#inScheme"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#cocoa|http://www.w3.org/2004/02/skos/core#inScheme|res:http://example.org/drinks#drinks",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#cocoa",
+        "target": "res:http://example.org/drinks#drinks",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#cocoa",
+          "toElementId": "res:http://example.org/drinks#drinks",
+          "predicate": "skos:inScheme",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#inScheme"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#cocoa|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/drinks#hot",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#cocoa",
+        "target": "res:http://example.org/drinks#hot",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#cocoa",
+          "toElementId": "res:http://example.org/drinks#hot",
+          "predicate": "skos:broader",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#broader"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#hot|http://www.w3.org/2004/02/skos/core#narrower|res:http://example.org/drinks#cocoa",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#hot",
+        "target": "res:http://example.org/drinks#cocoa",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#hot",
+          "toElementId": "res:http://example.org/drinks#cocoa",
+          "predicate": "skos:narrower",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#narrower"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

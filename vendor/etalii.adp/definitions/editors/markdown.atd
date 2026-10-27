@@ -1,0 +1,79 @@
+atd 0.1
+
+/// The Markdown editor: a Markdown file as text, with an outline of its headings above the text and a preview of the
+/// rendered document beside it.
+///
+/// Its model is the outline: the ATX headings outside fenced code, read from the text by the capability
+/// `reader.markdown`. The preview is the capability `render.markdown`. The editor checks nothing, so it shows no
+/// findings, and the text is never written from the model: every edit is an edit of the text.
+///
+/// No host loads this description: hosts open these files with their own editor, and run no editor from `.atd` (ATD
+/// §1.2). It is written from what the desktop host's editor does at its reference commit `fe5feec` (ATD §10.1), its
+/// trace lists where, and its conformance cases under `conformance/` record it.
+editor editor/markdown version "1.0.0" {
+  label "Markdown editor"
+  requires capability reader.markdown@^1
+  requires capability render.markdown@^1
+
+  model {
+    /// An ATX heading outside fenced code: one to six `#`, whitespace and a title.
+    element Heading {
+      label "Heading"
+      labelAttribute: title
+      /// The number of `#`, from 1 to 6.
+      attribute level: int required
+      /// The heading's text without its closing `#` and the whitespace around them.
+      attribute title: string required
+      /// The heading's line, from 1: choosing the heading in the outline scrolls the text to it.
+      attribute line: int required
+    }
+  }
+
+  surface text {
+    files "*.md", "*.markdown"
+    /// Colours by the token classes of the Markdown syntax. Above 20,000 lines the text is shown without colour.
+    tokens markdown { largestColouredLines: 20000 }
+    /// The headings above the text, in the order of the text, each by its level; choosing one scrolls the text to its
+    /// line. They are read again whenever the text changes.
+    outline Heading by level
+    /// The rendered document beside the text: CommonMark with tables, strikethrough and task lists, made again
+    /// whenever the text changes.
+    preview capability render.markdown { side: right }
+    /// How the file is opened and saved, as every editor of the desktop host opens one: UTF-8 with or without a
+    /// byte-order mark, or ASCII; refused, with the reason, above 5 MB (before a byte is read), when it looks binary or
+    /// when it is not UTF-8. Every line keeps its own line ending, a new line takes the dominant one, a last line keeps
+    /// whether it had an ending, and the byte-order mark is written back exactly when the file had one, so an
+    /// unchanged file saves back byte for byte.
+    open: {
+      encodings: ["UTF-8", "ASCII"]
+      byteOrderMark: keep
+      largestBytes: 5242880
+      binary: refuse
+      otherEncodings: refuse
+      lineEndings: keep
+      newLineEnding: dominant
+    }
+    /// The buffer: one cursor and one selection; Tab writes four spaces; pasted text has its CRLF made LF; no soft
+    /// wrap; a gutter with the line numbers and the current line marked. Typing, the movements by character, word, line
+    /// and document, copy, cut and paste are the host's gestures, and grouping undo word by word is the host's undo
+    /// stack (ATD §17).
+    buffer: {
+      cursors: 1
+      tab: "    "
+      paste: { newline: lf }
+      softWrap: false
+      gutter: lineNumbers
+      currentLine: marked
+    }
+    /// Where a finding is said: drawn under its range by severity, and listed in the problems panel at its line and
+    /// column, both from 1, columns counted in characters.
+    findings: { line: 1, column: 1, columns: characters }
+  }
+
+  /// The text read as its headings: the binding of the outline. It plans no edit, since the editor writes the text.
+  binding outline family capability reader.markdown {
+    label "Markdown"
+    claims files "*.md", "*.markdown"
+    body { kind: file }
+  }
+}

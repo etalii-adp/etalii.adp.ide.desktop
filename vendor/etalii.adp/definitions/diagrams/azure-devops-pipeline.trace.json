@@ -1,0 +1,537 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "azure-devops/pipeline",
+  "description": "azure-devops-pipeline.atd",
+  "companion": {
+    "file": "azure-devops-pipeline.md",
+    "sections": [
+      "The gaps",
+      "The stand-ins the module holds",
+      "What remains in the module, and why",
+      "Outside the definition, and not a gap"
+    ],
+    "reports": [
+      "azure-devops-pipeline-report.md"
+    ]
+  },
+  "items": [
+    {
+      "id": "the-gaps/1",
+      "text": "1. FBL: a reader that is declared for the file and a plugin for part of it (B2)",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/2",
+      "text": "**Construct.** `Binding.reader` is `\"declared\"` or one `PluginReader`. Nothing states a",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/3",
+      "text": "**Determinism, found by the implementation.** FBL 11.4 requires `read` to give the same",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/4",
+      "text": "**Shown by.** `templates.yml`, `extends.yml`, `extends-other-repository.yml`,",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/5",
+      "text": "**Would resolve it.** A plugin that expands named rules of a declared binding (the",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/6",
+      "text": "**Meanwhile.** The binding names the persistence plugin",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/7",
+      "text": "2. FBL: a slot that reads a YAML scalar as written (B1), closed by FBL 0.5",
+      "statedBy": "binding pipeline"
+    },
+    {
+      "id": "the-gaps/8",
+      "text": "**Construct.** Under FBL 0.2 a plain scalar was typed by the YAML 1.2 core schema, so a",
+      "statedBy": "binding pipeline"
+    },
+    {
+      "id": "the-gaps/9",
+      "text": "**Shown by.** `findings/scalars-as-text.yml`: the stage `1.0` with the job `null`, read",
+      "statedBy": "binding pipeline"
+    },
+    {
+      "id": "the-gaps/10",
+      "text": "**Resolved by.** FBL 0.5's written text (section 4.1.5), which a text attribute, an id",
+      "statedBy": "binding pipeline"
+    },
+    {
+      "id": "the-gaps/11",
+      "text": "3. FBL: one entry, several elements, and a parent that is not an entry (B3)",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/12",
+      "text": "**Construct.** \"An entry becomes at most one element or relation\" (FBL 5.1), and `parent`",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/13",
+      "text": "**Shown by.** `jobs-only.yml`, `steps-only.yml`.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/14",
+      "text": "**Would resolve it.** Further elements an entry stands for, each with its condition (the",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/15",
+      "text": "**Meanwhile.** `PipelineParser` emits `ImplicitStage` and `ImplicitJob`, which the",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/16",
+      "text": "4. FBL: selecting through a key that contains braces, at any depth, with the keys on the",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/17",
+      "text": "**Construct.** A key containing `{` or `}` cannot be selected (FBL 4.2); a `{gate}`",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/18",
+      "text": "**Shown by.** `findings/gates-nested.yml`, `edge-expressions.yml`.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/19",
+      "text": "**Would resolve it.** A selector that passes through keys matching a pattern and binds",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/20",
+      "text": "**Meanwhile.** `PipelineParser` unwraps a stage or job item that is one `${{` key over a",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/21",
+      "text": "5. FBL: a value that is one scalar or a sequence of scalars (B5)",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/22",
+      "text": "**Construct.** A relation rule at `dependsOn/*` finds list items only, and nothing in",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/23",
+      "text": "**Shown by.** `findings/depends-on-forms.yml`.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/24",
+      "text": "**Would resolve it.** A list read from a scalar or a sequence, with its written forms",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/25",
+      "text": "**Meanwhile.** `PipelineParser` reads both forms, and `PipelinePlanner` writes one name",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/26",
+      "text": "6. FBL: unsetting a slot as distinct from emptying it (B5)",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/27",
+      "text": "**Construct.** \"(nothing)\" writes `dependsOn: []` and \"(the default order)\" removes the",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/28",
+      "text": "**Shown by.** `findings/depends-on-forms.yml` (`Lint` waits for nothing, `Build` follows",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/29",
+      "text": "**Would resolve it.** An unset model change and a slot's `unset` (the draft's `\"unset\":",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/30",
+      "text": "**Meanwhile.** `PipelinePlanner` plans a set to null as `remove-key` and a set to an",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/31",
+      "text": "7. FBL: a reference by a name compared without case and resolved in a scope (B6)",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/32",
+      "text": "**Construct.** `dependsOn` is matched without regard to case, the first element of that",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/33",
+      "text": "**Shown by.** `findings/depends-on-case.yml`.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/34",
+      "text": "**Would resolve it.** `reference.compare` and `reference.scope` (the draft's `\"compare\":",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/35",
+      "text": "**Meanwhile.** `PipelineYamlPlugin.Read` emits one `DependsOn` per written name with its",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/36",
+      "text": "8. FBL: the order of an entry's keys in CEL (B16)",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/37",
+      "text": "**Construct.** A step's kind is its first recognised key in written order; an entry",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/38",
+      "text": "**Shown by.** `findings/step-two-kinds.yml`.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/39",
+      "text": "**Would resolve it.** The entry's keys in written order, available to a slot or a `when`.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/40",
+      "text": "**Meanwhile.** `PipelineParser` takes the kind from the first recognised key.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-gaps/41",
+      "text": "9. DISL: a relation whose source names nothing, drawn (A6)",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/555",
+      "reason": "A relation read with a source that names nothing is kept with that end unset and is not drawn (DISL 11.2); a stub drawn into its target, labelled with the name the end was written with, is not stated in DISL or ATD."
+    },
+    {
+      "id": "the-gaps/42",
+      "text": "**Construct.** Under `typeMap`, a relation read with an end that names nothing is kept",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/555",
+      "reason": "A relation read with a source that names nothing is kept with that end unset and is not drawn (DISL 11.2); a stub drawn into its target, labelled with the name the end was written with, is not stated in DISL or ATD."
+    },
+    {
+      "id": "the-gaps/43",
+      "text": "**Shown by.** `findings/dangling-dependency.yml` (`edge:?Pacakge->Deploy`),",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/555",
+      "reason": "A relation read with a source that names nothing is kept with that end unset and is not drawn (DISL 11.2); a stub drawn into its target, labelled with the name the end was written with, is not stated in DISL or ATD."
+    },
+    {
+      "id": "the-gaps/44",
+      "text": "**Would resolve it.** A stub for a relation whose source is absent, drawn into its target",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/555",
+      "reason": "A relation read with a source that names nothing is kept with that end unset and is not drawn (DISL 11.2); a stub drawn into its target, labelled with the name the end was written with, is not stated in DISL or ATD."
+    },
+    {
+      "id": "the-gaps/45",
+      "text": "**Meanwhile.** `PipelineGraphBuilder` keeps the broken edge and `PipelineElementMapper`",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/555",
+      "reason": "A relation read with a source that names nothing is kept with that end unset and is not drawn (DISL 11.2); a stub drawn into its target, labelled with the name the end was written with, is not stated in DISL or ATD."
+    },
+    {
+      "id": "the-gaps/46",
+      "text": "10. DISL: the standard `layered` algorithm (A10)",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/556",
+      "reason": "DISL names `layered` but does not define it, so the columns, rows and gaps the companion gives in numbers are not stated by the description's `algorithm … { algorithm: layered }`."
+    },
+    {
+      "id": "the-gaps/47",
+      "text": "**Construct.** DISL defines `rowPacked`, `rows` and `tidyTree` (0.3) and the properties",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/556",
+      "reason": "DISL names `layered` but does not define it, so the columns, rows and gaps the companion gives in numbers are not stated by the description's `algorithm … { algorithm: layered }`."
+    },
+    {
+      "id": "the-gaps/48",
+      "text": "**Shown by.** Every document of the corpus; the payloads of the transcript hold every",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/556",
+      "reason": "DISL names `layered` but does not define it, so the columns, rows and gaps the companion gives in numbers are not stated by the description's `algorithm … { algorithm: layered }`."
+    },
+    {
+      "id": "the-gaps/49",
+      "text": "**The rules, in numbers.** A stage's column is the length of the longest chain of",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/556",
+      "reason": "DISL names `layered` but does not define it, so the columns, rows and gaps the companion gives in numbers are not stated by the description's `algorithm … { algorithm: layered }`."
+    },
+    {
+      "id": "the-gaps/50",
+      "text": "**Would resolve it.** A definition of `layered`.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/556",
+      "reason": "DISL names `layered` but does not define it, so the columns, rows and gaps the companion gives in numbers are not stated by the description's `algorithm … { algorithm: layered }`."
+    },
+    {
+      "id": "the-gaps/51",
+      "text": "**Meanwhile.** `PipelineLayout`, with `PipelineMetrics` and the records it arranges into.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/556",
+      "reason": "DISL names `layered` but does not define it, so the columns, rows and gaps the companion gives in numbers are not stated by the description's `algorithm … { algorithm: layered }`."
+    },
+    {
+      "id": "the-gaps/52",
+      "text": "11. DISL: findings of several rules ordered by the element's container (found by the",
+      "statedBy": "constraints"
+    },
+    {
+      "id": "the-gaps/53",
+      "text": "**Construct.** The tool judged each stage's jobs in turn: a dangling dependency and then",
+      "statedBy": "constraints"
+    },
+    {
+      "id": "the-gaps/54",
+      "text": "**Shown by.** No document of the corpus has job findings of both kinds in two stages; the",
+      "statedBy": "constraints"
+    },
+    {
+      "id": "the-gaps/55",
+      "text": "**Would resolve it.** An order of findings by an expression, such as the element's parent.",
+      "statedBy": "constraints"
+    },
+    {
+      "id": "the-gaps/56",
+      "text": "**Meanwhile.** Nothing: the tool now reports job findings grouped by kind, as the",
+      "statedBy": "constraints"
+    },
+    {
+      "id": "the-gaps/57",
+      "text": "12. FBL and DISL: the id a model change names when the specification derives ids (found",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/554",
+      "reason": "Which id a model change names when the specification derives ids, and two elements derive one, is not stated in FBL or DISL; the host pairs derived ids with the reader's by place."
+    },
+    {
+      "id": "the-gaps/58",
+      "text": "**Construct.** The definition derives its ids (a stage's name, `stage/job`, `job/step-n`,",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/554",
+      "reason": "Which id a model change names when the specification derives ids, and two elements derive one, is not stated in FBL or DISL; the host pairs derived ids with the reader's by place."
+    },
+    {
+      "id": "the-gaps/59",
+      "text": "**Shown by.** `findings/two-stages-one-name.yml`: both stages are drawn as `Build`, and",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/554",
+      "reason": "Which id a model change names when the specification derives ids, and two elements derive one, is not stated in FBL or DISL; the host pairs derived ids with the reader's by place."
+    },
+    {
+      "id": "the-gaps/60",
+      "text": "**Would resolve it.** A statement that a change to an element whose id is derived names",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/554",
+      "reason": "Which id a model change names when the specification derives ids, and two elements derive one, is not stated in FBL or DISL; the host pairs derived ids with the reader's by place."
+    },
+    {
+      "id": "the-gaps/61",
+      "text": "**Meanwhile.** `PipelineBody.ReadIdOf` pairs each derived id with the plugin's id by",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/554",
+      "reason": "Which id a model change names when the specification derives ids, and two elements derive one, is not stated in FBL or DISL; the host pairs derived ids with the reader's by place."
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/1",
+      "text": "**`PipelineReadContext`** (gap 1): the body's path and the workspace's template resolver,",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/2",
+      "text": "**`PipelineYamlPlugin`, with `PipelineParser` and `PipelinePlanner`** (gaps 1, 3 to 8):",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/3",
+      "text": "**The `dependsOn` forms in `PipelinePlanner`** (gaps 5 and 6): a scalar, a block list,",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/4",
+      "text": "**The broken edge in `PipelineGraphBuilder`, and the indeterminate mark in",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/555",
+      "reason": "A relation read with a source that names nothing is kept with that end unset and is not drawn (DISL 11.2); a stub drawn into its target, labelled with the name the end was written with, is not stated in DISL or ATD."
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/5",
+      "text": "**`PipelineLayout`** (gap 10, finding A10).",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/556",
+      "reason": "DISL names `layered` but does not define it, so the columns, rows and gaps the companion gives in numbers are not stated by the description's `algorithm … { algorithm: layered }`."
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/6",
+      "text": "**`PipelineBody.ReadIdOf`** (gap 12).",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/554",
+      "reason": "Which id a model change names when the specification derives ids, and two elements derive one, is not stated in FBL or DISL; the host pairs derived ids with the reader's by place."
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/1",
+      "text": "**The client's payloads**, `PipelineElementPayload` in `api/azure-pipeline.proto`, and",
+      "hostConcern": "rendering",
+      "reason": "The payloads and deltas the client is sent are the host's wire; the notation states what is drawn."
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/2",
+      "text": "**Undo** is the host's history, which carries the library's inverse splices and refuses",
+      "hostConcern": "undo-stack",
+      "reason": "The history, its inverse splices and its refusal when the file changed since the edit are the host's; the description says each gesture is one command (ATD 12.4)."
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/3",
+      "text": "**Security**: a template outside the workspace is never read, a repository resource never",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/parser.rs",
+      "lines": "49-112",
+      "behaviour": "A pipeline's lines are read into stages, jobs and steps at whichever level the file starts, with the lines that declare each; a file that is not YAML is a finding with its line, and nothing is edited until it reads.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/templates.rs",
+      "lines": "18-115",
+      "behaviour": "A template the pipeline names is followed inside the working copy and expanded in place; one outside it, or a repository resource, is not followed and is reported.",
+      "statedBy": "constraint templateNotFollowed"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/graph.rs",
+      "lines": "93-177",
+      "behaviour": "What waits for what at one level, the stages of the pipeline or the jobs of a stage: `dependsOn` by name without regard to case, the first of a name winning, the default order where it is absent, and a dependency that names nothing kept as a broken edge.",
+      "statedBy": "fn waitsFor"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/graph.rs",
+      "lines": "178-210",
+      "behaviour": "An edge's condition is classified as always, on success, on failure or an expression.",
+      "statedBy": "fn edgeOutcome"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/edits.rs",
+      "lines": "46-53",
+      "behaviour": "An element that comes from a template, or that a template governs, cannot be edited, with its reason.",
+      "statedBy": "constraint readOnlyElements"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/edits.rs",
+      "lines": "56-82",
+      "behaviour": "A change of what an element waits for that would close a loop is refused.",
+      "statedBy": "constraint noCycleByEdit"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/edits.rs",
+      "lines": "84-94",
+      "behaviour": "A change that would leave no stage waiting for nothing is refused.",
+      "statedBy": "constraint keepAStart"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/blocks.rs",
+      "lines": "17-66",
+      "behaviour": "A new stage, job, deployment job or step is written as its block with a name no sibling has, a deployment job with an environment of its name in lower case and a runOnce strategy.",
+      "statedBy": "operation addDeploymentJob"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/actions.rs",
+      "lines": "72-163",
+      "behaviour": "A stage's, job's or step's menu: add a stage, job, deployment job or step, enable or disable, use the default order, open or close its jobs or steps, remove; each only where the element may be edited.",
+      "statedBy": "toolbox context for Stage"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/properties.rs",
+      "lines": "52-123",
+      "behaviour": "The property rows of a stage, job or step, editable where the file states them plainly, each read-only one with its reason; a dependsOn row chooses among the names at its level.",
+      "statedBy": "form stage"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/commands.rs",
+      "lines": "199-330",
+      "behaviour": "Each edit is a splice of the file's lines; dependsOn is written as one name as a scalar, several as a block list, none as `[]`, or the key removed for the default order.",
+      "statedBy": "capability reader.azurePipelinesYaml"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/commands.rs",
+      "lines": "84-121",
+      "behaviour": "Every edit is one command on the project's history whose undo restores the file's text, refused when the file changed since.",
+      "hostConcern": "undo-stack",
+      "reason": "The history and its refusal are the host's; the description says each gesture is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/layout.rs",
+      "lines": "94-210",
+      "behaviour": "Stages in columns by the longest chain of dependencies before them and jobs likewise inside an open stage, rows in written order, at the metrics' sizes and gaps.",
+      "statedBy": "algorithm dependencies"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/mapper.rs",
+      "lines": "92-160",
+      "behaviour": "The stages, the jobs of the open stages and the steps of the open jobs are drawn, with the arrows of what waits for what and an indeterminate mark on an element waiting for a name that is not there.",
+      "divergesFrom": "algorithm dependencies"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/rules.rs",
+      "lines": "46-226",
+      "behaviour": "The findings: a dependency that names nothing, a loop, no starting stage, an unreachable stage, an unnamed stage or job, a template not followed, a step with nothing to wait for.",
+      "statedBy": "constraints"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/azure-devops-pipeline/src/theme.rs",
+      "lines": "14-62",
+      "behaviour": "The colours, light and dark, as the definition's theme tokens.",
+      "statedBy": "notation theme"
+    }
+  ]
+}

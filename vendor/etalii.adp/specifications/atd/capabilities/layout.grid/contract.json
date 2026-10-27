@@ -1,0 +1,37 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.grid",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "A grid filled row by row in input order, each node beside the one before it and each row below the tallest node of the row above: the node at index i starts a new row when i is a multiple of `columns` (i > 0), at x = 0 and y = the row before's y + its tallest height + `rowGap`; otherwise it stands at the previous node's x + its width + `columnGap`. The first row is at y = 0. A pinned node keeps its pin and moves no other node. Positions are top-left corners in the canvas's domain units.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "columns": {
+      "type": "integer",
+      "default": 3,
+      "doc": "How many nodes a row holds."
+    },
+    "columnGap": {
+      "type": "number",
+      "default": 0,
+      "doc": "The clear space between two nodes on a row."
+    },
+    "rowGap": {
+      "type": "number",
+      "default": 48,
+      "doc": "The clear space between two rows."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "pinnedStay",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

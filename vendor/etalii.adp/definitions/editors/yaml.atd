@@ -1,0 +1,80 @@
+atd 0.1
+
+/// The YAML editor: a YAML file as text, each document of its stream read on its own, checked for the mistakes of
+/// YAML and against the JSON Schema a `yaml-language-server` comment names for it.
+///
+/// A file may hold several documents, separated by `---` and ended by `...`. Plain values are typed as YAML 1.2's core
+/// schema reads them, merge keys (`<<`) are applied, and an application tag constructs nothing. The status line says
+/// each document's schema, joined by " · ", or "No schema", or "Too large to check" above 1,000,000 characters,
+/// followed by the count of errors and warnings. The checks are sources the editor names (ATD §10.2): the YAML parser
+/// and the JSON Schema validator are the platform's.
+///
+/// No host loads this description: hosts open these files with their own editor, and run no editor from `.atd` (ATD
+/// §1.2). It is written from what the desktop host's editor does at its reference commit `fe5feec` (ATD §10.1), its
+/// trace lists where, and its conformance cases under `conformance/` record it.
+editor editor/yaml version "1.0.0" {
+  label "YAML editor"
+
+  surface text {
+    files "*.yaml", "*.yml"
+    /// Colours by the token classes of the YAML syntax. Above 20,000 lines the text is shown without colour.
+    tokens yaml { largestColouredLines: 20000 }
+    /// The mistakes of YAML, per document: a parser error, a tab used for indentation, a repeated key and an alias
+    /// that names no anchor set before it are errors; aliases that expand past 100 nodes are an error, and that
+    /// document is not checked against its schema.
+    check with "yaml" {
+      documents: stream
+      tabIndentation: error
+      duplicateKey: error
+      unknownAlias: error
+      maxAliasCount: 100
+      values: core
+      mergeKeys: true
+      largestCheckedCharacters: 1000000
+    }
+    /// The breaks of the JSON Schema that `# yaml-language-server: $schema=<reference>`, before a document's first
+    /// content, names for that document only, read from the project by the JSON editor's rules; each an error on the
+    /// key it is about, else on the map's key its message names, else on the value.
+    check with "schema" {
+      reference: "# yaml-language-server: $schema="
+      perDocument: true
+      /// The schema is read from the project only: relative to the document's folder, never above the project's
+      /// root, never from the network or by an absolute path; a `$ref` inside it by the same rules. A reference that
+      /// cannot be followed, a schema that cannot be read, is not JSON or cannot be compiled, and a JSON Schema
+      /// dialect ADP does not carry are each one information finding, on the reference, saying why.
+      read: project
+      refused: information
+      breaks: error
+      status: { schema: title, else: reference, none: "No schema", joined: " · ", tooLarge: "Too large to check" }
+    }
+    /// How the file is opened and saved, as every editor of the desktop host opens one: UTF-8 with or without a
+    /// byte-order mark, or ASCII; refused, with the reason, above 5 MB (before a byte is read), when it looks binary or
+    /// when it is not UTF-8. Every line keeps its own line ending, a new line takes the dominant one, a last line keeps
+    /// whether it had an ending, and the byte-order mark is written back exactly when the file had one, so an
+    /// unchanged file saves back byte for byte.
+    open: {
+      encodings: ["UTF-8", "ASCII"]
+      byteOrderMark: keep
+      largestBytes: 5242880
+      binary: refuse
+      otherEncodings: refuse
+      lineEndings: keep
+      newLineEnding: dominant
+    }
+    /// The buffer: one cursor and one selection; Tab writes four spaces; pasted text has its CRLF made LF; no soft
+    /// wrap; a gutter with the line numbers and the current line marked. Typing, the movements by character, word, line
+    /// and document, copy, cut and paste are the host's gestures, and grouping undo word by word is the host's undo
+    /// stack (ATD §17).
+    buffer: {
+      cursors: 1
+      tab: "    "
+      paste: { newline: lf }
+      softWrap: false
+      gutter: lineNumbers
+      currentLine: marked
+    }
+    /// Where a finding is said: drawn under its range by severity, and listed in the problems panel at its line and
+    /// column, both from 1, columns counted in characters.
+    findings: { line: 1, column: 1, columns: characters }
+  }
+}

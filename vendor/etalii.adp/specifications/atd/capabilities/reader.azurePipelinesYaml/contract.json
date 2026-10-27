@@ -1,0 +1,26 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.azurePipelinesYaml",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads and writes an Azure Pipelines YAML file under the persistence plugin contract of FBL §11: its trigger, pool and variables, its stages, jobs and steps at whichever level the file starts, the `dependsOn` between stages and between jobs, and the templates it names, with every byte no entry maps kept and every edit a minimal splice. It never reads a template outside the working copy, never fetches a repository resource, and never holds a parameter's value in the model (FBL §16). Its fixtures are recorded with the Azure DevOps pipeline's cases (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderInput"
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderResult"
+  },
+  "laws": [
+    "deterministic",
+    "readingNeverFails",
+    "minimalSplices"
+  ],
+  "fallback": null,
+  "status": "provisional",
+  "exceptions": [
+    {
+      "reads": "the template files the pipeline names, by their path inside the working copy",
+      "reason": "A stage, job or step template is another file of the working copy that the pipeline expands; a case lists each template it reads among its inputs, and one outside the working copy is not read and is reported."
+    }
+  ]
+}

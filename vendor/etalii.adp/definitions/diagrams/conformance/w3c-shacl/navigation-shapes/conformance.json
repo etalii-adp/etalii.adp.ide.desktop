@@ -1,0 +1,532 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/shacl` from parity/scripts/w3c/shacl/navigation-shapes.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/shacl",
+  "description": "../../../w3c-shacl.atd",
+  "inputs": {
+    "body": "navigation-shapes.ttl",
+    "registration": "navigation-shapes.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://fairdatapoint.org/repoNavShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://fairdatapoint.org/repoNavShape",
+          "display": ":repoNavShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false",
+          "targets.0.kind": "SHACL_TARGET_KIND_PROTO_CLASS",
+          "targets.0.termDisplay": "r3d:Repository",
+          "targets.0.termIri": "http://www.re3data.org/schema/3-0#Repository",
+          "targets.0.describedInFile": "false",
+          "targets.0.shapeIri": "http://fairdatapoint.org/repoNavShape",
+          "targets.0.predicateIri": "http://www.w3.org/ns/shacl#targetClass",
+          "rows.0.path": "r3d:dataCatalog",
+          "rows.0.cardinality": "[0..*]",
+          "rows.0.sparql": "false",
+          "rows.0.blank": "true"
+        }
+      },
+      {
+        "id": "res:http://fairdatapoint.org/catNavShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://fairdatapoint.org/catNavShape",
+          "display": ":catNavShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false",
+          "targets.0.kind": "SHACL_TARGET_KIND_PROTO_CLASS",
+          "targets.0.termDisplay": "dcat:Catalog",
+          "targets.0.termIri": "http://www.w3.org/ns/dcat#Catalog",
+          "targets.0.describedInFile": "false",
+          "targets.0.shapeIri": "http://fairdatapoint.org/catNavShape",
+          "targets.0.predicateIri": "http://www.w3.org/ns/shacl#targetClass",
+          "rows.0.path": "dcat:dataset",
+          "rows.0.cardinality": "[0..*]",
+          "rows.0.sparql": "false",
+          "rows.0.blank": "true",
+          "rows.1.path": "dct:isPartOf",
+          "rows.1.cardinality": "[0..*]",
+          "rows.1.sparql": "false",
+          "rows.1.blank": "true"
+        }
+      },
+      {
+        "id": "res:http://fairdatapoint.org/fdpNavShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://fairdatapoint.org/fdpNavShape",
+          "display": ":fdpNavShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false",
+          "targets.0.kind": "SHACL_TARGET_KIND_PROTO_CLASS",
+          "targets.0.termDisplay": "fdp:FAIRDataPoint",
+          "targets.0.termIri": "https://w3id.org/fdp/fdp-o#FAIRDataPoint",
+          "targets.0.describedInFile": "false",
+          "targets.0.shapeIri": "http://fairdatapoint.org/fdpNavShape",
+          "targets.0.predicateIri": "http://www.w3.org/ns/shacl#targetClass",
+          "rows.0.path": "fdp:metadataCatalog",
+          "rows.0.cardinality": "[0..*]",
+          "rows.0.sparql": "false",
+          "rows.0.blank": "true"
+        }
+      },
+      {
+        "id": "res:http://fairdatapoint.org/datasetNavShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://fairdatapoint.org/datasetNavShape",
+          "display": ":datasetNavShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false",
+          "targets.0.kind": "SHACL_TARGET_KIND_PROTO_CLASS",
+          "targets.0.termDisplay": "dcat:Dataset",
+          "targets.0.termIri": "http://www.w3.org/ns/dcat#Dataset",
+          "targets.0.describedInFile": "false",
+          "targets.0.shapeIri": "http://fairdatapoint.org/datasetNavShape",
+          "targets.0.predicateIri": "http://www.w3.org/ns/shacl#targetClass",
+          "rows.0.path": "dcat:distribution",
+          "rows.0.cardinality": "[0..*]",
+          "rows.0.sparql": "false",
+          "rows.0.blank": "true",
+          "rows.1.path": "dct:isPartOf",
+          "rows.1.cardinality": "[0..*]",
+          "rows.1.sparql": "false",
+          "rows.1.blank": "true"
+        }
+      },
+      {
+        "id": "res:http://fairdatapoint.org/distNavShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://fairdatapoint.org/distNavShape",
+          "display": ":distNavShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "shacl-edge:res:http://fairdatapoint.org/repoNavShape|node|res:http://fairdatapoint.org/catNavShape",
+        "type": "w3c/shacl+edge",
+        "source": "res:http://fairdatapoint.org/repoNavShape",
+        "target": "res:http://fairdatapoint.org/catNavShape",
+        "attributes": {
+          "fromElementId": "res:http://fairdatapoint.org/repoNavShape",
+          "toElementId": "res:http://fairdatapoint.org/catNavShape",
+          "kind": "node",
+          "label": "r3d:dataCatalog"
+        }
+      },
+      {
+        "id": "shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/datasetNavShape",
+        "type": "w3c/shacl+edge",
+        "source": "res:http://fairdatapoint.org/catNavShape",
+        "target": "res:http://fairdatapoint.org/datasetNavShape",
+        "attributes": {
+          "fromElementId": "res:http://fairdatapoint.org/catNavShape",
+          "toElementId": "res:http://fairdatapoint.org/datasetNavShape",
+          "kind": "node",
+          "label": "dcat:dataset"
+        }
+      },
+      {
+        "id": "shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/repoNavShape",
+        "type": "w3c/shacl+edge",
+        "source": "res:http://fairdatapoint.org/catNavShape",
+        "target": "res:http://fairdatapoint.org/repoNavShape",
+        "attributes": {
+          "fromElementId": "res:http://fairdatapoint.org/catNavShape",
+          "toElementId": "res:http://fairdatapoint.org/repoNavShape",
+          "kind": "node",
+          "label": "dct:isPartOf"
+        }
+      },
+      {
+        "id": "shacl-edge:res:http://fairdatapoint.org/fdpNavShape|node|res:http://fairdatapoint.org/catNavShape",
+        "type": "w3c/shacl+edge",
+        "source": "res:http://fairdatapoint.org/fdpNavShape",
+        "target": "res:http://fairdatapoint.org/catNavShape",
+        "attributes": {
+          "fromElementId": "res:http://fairdatapoint.org/fdpNavShape",
+          "toElementId": "res:http://fairdatapoint.org/catNavShape",
+          "kind": "node",
+          "label": "fdp:metadataCatalog"
+        }
+      },
+      {
+        "id": "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/distNavShape",
+        "type": "w3c/shacl+edge",
+        "source": "res:http://fairdatapoint.org/datasetNavShape",
+        "target": "res:http://fairdatapoint.org/distNavShape",
+        "attributes": {
+          "fromElementId": "res:http://fairdatapoint.org/datasetNavShape",
+          "toElementId": "res:http://fairdatapoint.org/distNavShape",
+          "kind": "node",
+          "label": "dcat:distribution"
+        }
+      },
+      {
+        "id": "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/catNavShape",
+        "type": "w3c/shacl+edge",
+        "source": "res:http://fairdatapoint.org/datasetNavShape",
+        "target": "res:http://fairdatapoint.org/catNavShape",
+        "attributes": {
+          "fromElementId": "res:http://fairdatapoint.org/datasetNavShape",
+          "toElementId": "res:http://fairdatapoint.org/catNavShape",
+          "kind": "node",
+          "label": "dct:isPartOf"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "shacl.reference-leaves-file",
+        "severity": "information",
+        "line": 37,
+        "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "property": {
+        "attribute": "shacl.name",
+        "value": "Catalog navigation"
+      },
+      "select": [
+        "res:http://fairdatapoint.org/catNavShape"
+      ],
+      "expectFile": "after-1.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 38,
+          "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "element": "res:http://fairdatapoint.org/catNavShape",
+        "attribute": "shacl.description",
+        "value": "How a catalog links to its datasets\nand its repository."
+      },
+      "expectFile": "after-2.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "shacl.name",
+        "value": "Catalog"
+      },
+      "expectFile": "after-3.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Deactivated",
+        "value": "true"
+      },
+      "refused": {
+        "reason": "'shacl.deactivated' cannot be edited on this selection."
+      },
+      "expectFile": "after-3.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "shacl.add-node-shape",
+      "args": {
+        "target": "new:960,0",
+        "value": ":personNavShape"
+      },
+      "ids": [
+        "res:http://fairdatapoint.org/personNavShape"
+      ],
+      "expectFile": "after-4.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "shacl.add-node-shape",
+      "args": {
+        "target": "new:960,0",
+        "value": "foaf:Person"
+      },
+      "refused": {
+        "reason": "'shacl.add-node-shape' does not apply to this selection."
+      },
+      "expectFile": "after-4.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "target": "res:http://fairdatapoint.org/distNavShape",
+        "value": ":distributionNavShape"
+      },
+      "ids": [
+        "res:http://fairdatapoint.org/distributionNavShape",
+        "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/distributionNavShape"
+      ],
+      "expectFile": "after-5.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distributionNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:http://fairdatapoint.org/repoNavShape",
+        "confirm": true
+      },
+      "refused": {
+        "reason": "That element is rooted in a blank node, which has no identity that survives a reparse, so this edit cannot land in the file. Name the node with an IRI to edit it."
+      },
+      "expectFile": "after-5.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distributionNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-4.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-5.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distributionNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "move": {
+        "element": "res:http://fairdatapoint.org/fdpNavShape"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"res:http://fairdatapoint.org/fdpNavShape\"],\"to\":{\"x\":960,\"y\":178}}",
+      "expectFile": "after-5.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distributionNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "move": {
+        "element": "res:http://fairdatapoint.org/catNavShape"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"res:http://fairdatapoint.org/catNavShape\"],\"dx\":-20,\"dy\":15}",
+      "expectFile": "after-5.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distributionNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "move": {
+        "element": "shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/datasetNavShape"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/datasetNavShape\"],\"to\":{\"x\":0,\"y\":0}}",
+      "refused": {
+        "reason": "That element is not something this diagram can move."
+      },
+      "expectFile": "after-5.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distributionNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-4.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "redo": true
+    },
+    {
+      "redo": true,
+      "expectFile": "after-5.ttl",
+      "findings": [
+        {
+          "rule": "shacl.reference-leaves-file",
+          "severity": "information",
+          "line": 39,
+          "message": ":distributionNavShape is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/w3c/shacl/navigation-shapes/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

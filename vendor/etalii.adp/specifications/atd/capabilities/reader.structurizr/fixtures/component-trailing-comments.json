@@ -1,0 +1,189 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.structurizr` from what the desktop host's module shows when parity/cases/c4/component/trailing-comments.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "workspace \"Trailing comments\" { // after the workspace brace\n    model { # after the model brace\n        u = person \"User\" \"A user.\" // after a whole declaration\n        s = softwareSystem \"System\" \"A system.\" { // after an element's brace\n            web = container \"Web\" { # a container with a block and nothing else\n            }\n            api = container \"API\" \"Serves.\" // no technology yet\n        }\n        t = softwareSystem \"Partner\" // no description yet\n        h = softwareSystem \"Hash # inside\" \"See http://example.com//path\" # marks inside quotes\n        u -> s \"Uses\" // no technology yet\n        s -> t \"Calls\" \"HTTPS\" # after a whole relationship\n    }\n    views { // after the views brace\n        systemLandscape \"landscape\" { // after a view's brace\n            include * // after include\n        }\n        container s \"containers\" {\n            include * # after include\n            autoLayout lr // after autoLayout\n        }\n    }\n} // after the closing brace\n",
+    "files": {
+      "trailing-comments.adp": "c4/component\nbody: trailing-comments.dsl\n"
+    }
+  },
+  "args": {
+    "view": "component"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "User",
+          "description": "A user.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "s",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "System",
+          "description": "A system.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "t",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Partner",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "59.2",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "h",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Hash # inside",
+          "description": "See http://example.com//path",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "239.6",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "System Landscape diagram for Trailing comments",
+          "viewKind": "SystemLandscape",
+          "viewKey": "landscape",
+          "legend.0.label": "Person",
+          "legend.0.background": "#08427b",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "Person",
+          "legend.1.label": "Software System",
+          "legend.1.background": "#1168bd",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "u->s@11",
+        "type": "c4/model+relationship",
+        "source": "u",
+        "target": "s",
+        "attributes": {
+          "description": "Uses",
+          "sourceX": "-149.8",
+          "sourceY": "39.4",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "238.20000000000002",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      },
+      {
+        "id": "s->t@12",
+        "type": "c4/model+relationship",
+        "source": "s",
+        "target": "t",
+        "attributes": {
+          "description": "Calls",
+          "technology": "HTTPS",
+          "sourceX": "0",
+          "sourceY": "238.20000000000002",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "427.20000000000005",
+          "destinationWidth": "160",
+          "destinationHeight": "59.2"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "c4.missing-description",
+        "severity": "warning",
+        "element": "web",
+        "message": "'Web' has no description. C4 asks for a short description on every element, so a reader can tell at a glance what it is responsible for."
+      },
+      {
+        "rule": "c4.missing-technology",
+        "severity": "warning",
+        "element": "web",
+        "message": "'Web' has no technology. C4 asks for one explicitly on every container."
+      },
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "web",
+        "message": "'Web' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.missing-technology",
+        "severity": "warning",
+        "element": "api",
+        "message": "'API' has no technology. C4 asks for one explicitly on every container."
+      },
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "api",
+        "message": "'API' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.missing-description",
+        "severity": "warning",
+        "element": "t",
+        "message": "'Partner' has no description. C4 asks for a short description on every element, so a reader can tell at a glance what it is responsible for."
+      },
+      {
+        "rule": "c4.disconnected-element",
+        "severity": "warning",
+        "element": "h",
+        "message": "'Hash # inside' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over."
+      },
+      {
+        "rule": "c4.missing-protocol",
+        "severity": "warning",
+        "line": 11,
+        "message": "The relationship from 'User' to 'System' names no technology. How two elements communicate - a protocol, a library, a call - is what tells a reader where a boundary really is."
+      }
+    ]
+  }
+}

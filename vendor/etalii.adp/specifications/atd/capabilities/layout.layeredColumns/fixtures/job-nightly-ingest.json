@@ -1,0 +1,171 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/scripts/databricks/job/nightly-ingest.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "task:land_raw",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "land_raw",
+          "taskType": "notebook",
+          "source": "notebooks/land_raw",
+          "clusterKey": "ingest_cluster",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "land_raw",
+          "badges": "ingest_cluster"
+        },
+        "pinned": {
+          "x": -24.54,
+          "y": 93.15
+        }
+      },
+      {
+        "id": "task:quality_gate",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "quality_gate",
+          "taskType": "condition",
+          "source": "GREATER_THAN",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "condition",
+          "label": "quality_gate",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:publish",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "publish",
+          "taskType": "notebook",
+          "source": "notebooks/publish",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "publish",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:alert_on_empty",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "alert_on_empty",
+          "taskType": "python",
+          "source": "scripts/alert_on_empty.py",
+          "clusterKey": "",
+          "runIf": "AT_LEAST_ONE_FAILED",
+          "unresolved": "false",
+          "kind": "python",
+          "label": "alert_on_empty",
+          "badges": "AT_LEAST_ONE_FAILED\nserverless"
+        }
+      },
+      {
+        "id": "task:refresh_dashboard",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "refresh_dashboard",
+          "taskType": "sql",
+          "source": "9d3f2b1a",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "sql",
+          "label": "refresh_dashboard",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "cluster:ingest_cluster",
+        "type": "databricks/job+cluster",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "ingest_cluster",
+          "badges": "15.4.x-scala2.12\nStandard_DS3_v2\n2 workers"
+        },
+        "pinned": {
+          "x": -20.53,
+          "y": 261.91
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:land_raw->quality_gate",
+        "source": "task:land_raw",
+        "target": "task:quality_gate"
+      },
+      {
+        "id": "edge:quality_gate->publish",
+        "source": "task:quality_gate",
+        "target": "task:publish"
+      },
+      {
+        "id": "edge:quality_gate->alert_on_empty",
+        "source": "task:quality_gate",
+        "target": "task:alert_on_empty"
+      },
+      {
+        "id": "edge:publish->refresh_dashboard",
+        "source": "task:publish",
+        "target": "task:refresh_dashboard"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 260,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "top",
+    "band": "self.id.startsWith('cluster:')",
+    "placeholder": "self.unresolved"
+  },
+  "output": {
+    "positions": {
+      "task:land_raw": {
+        "x": -24.54,
+        "y": 93.15
+      },
+      "task:quality_gate": {
+        "x": 260.0,
+        "y": 0.0
+      },
+      "task:publish": {
+        "x": 520.0,
+        "y": 0.0
+      },
+      "task:alert_on_empty": {
+        "x": 520.0,
+        "y": 120.0
+      },
+      "task:refresh_dashboard": {
+        "x": 780.0,
+        "y": 0.0
+      },
+      "cluster:ingest_cluster": {
+        "x": -20.53,
+        "y": 261.91
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/pipeline` from parity/cases/databricks/pipeline/unreadable.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/pipeline",
+  "description": "../../../databricks-pipeline.atd",
+  "inputs": {
+    "body": "unreadable.json",
+    "registration": "unreadable.pipeline.adp"
+  },
+  "read": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "databricks.unparseable",
+        "severity": "error",
+        "line": 5,
+        "message": "This is not configuration that can be read: while parsing a flow sequence, expected ',' or ']'"
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

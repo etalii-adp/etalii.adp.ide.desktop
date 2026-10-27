@@ -1,0 +1,476 @@
+atd 0.1
+
+/// A job's tasks and what each waits for - conditions, outcomes and the compute they run on.
+///
+/// The diagram of one Databricks job, read from the job's own resource YAML (`resources.jobs.<key>`) in a Databricks
+/// Asset Bundle. Each task is a node, each `depends_on` entry an edge from the task waited for to the waiting task, and
+/// each `job_clusters` entry a compute node in a band beneath the tasks. The YAML stays Databricks' own file: ADP never
+/// writes positions into it. The `x-databricks` block maps this specification's names to the wire ids the standalone
+/// tool uses today. See `databricks-job.md` beside this file for what DISL 0.3 cannot say.
+diagram databricks/job version "0.2.0" {
+  label "Databricks job"
+  id: "net.etalii.adp.databricks.job"
+  icon: "mdi-transit-connection-horizontal"
+  fileExtension: ".yml"
+  license: "Apache-2.0"
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/databricks"
+  requires: { conformance: standard }
+  doc {
+    seeAlso: [{
+      title: "Databricks: configure task dependencies",
+      href: "https://docs.databricks.com/aws/en/jobs/run-if"
+    }
+    , {
+      title: "Databricks: job resource in a bundle"
+      href: "https://docs.databricks.com/aws/en/dev-tools/bundles/resources#job"
+    }
+    ]
+  }
+
+  import "databricks-job.notation.atd"
+  import "databricks-job.bundle.atd"
+  requires capability reader.databricksBundle@^1
+  requires capability layout.layeredColumns@^1
+
+  model {
+    /// The job itself: the one `resources.jobs.<key>` mapping the diagram reads. Its own scalars are kept but not
+    /// drawn.
+    document {
+      /// The key under `resources.jobs`; chosen by the `.adp` registration's `resource:` header when a file declares
+      /// several jobs.
+      attribute jobKey: string required readonly
+      /// The job's `name`.
+      attribute name: string
+      /// `schedule.quartz_cron_expression`, when the job is scheduled.
+      attribute schedule: string
+      /// True when the job has a `continuous:` block.
+      attribute continuous: bool default false
+    }
+
+    /// Which `*_task` mapping a task carries. The value is fixed by the file; it cannot be changed from the diagram.
+    /// CEL uses the keys; the stored form is `value` where it differs.
+    enum TaskType {
+      /// `notebook_task`; source is `notebook_path`.
+      notebook { label: "Notebook" }
+      /// `spark_python_task`; source is `python_file`.
+      python { label: "Python" }
+      /// `python_wheel_task`; source is `entry_point`.
+      wheel { label: "Python wheel" }
+      /// `sql_task`; source is the query, dashboard, alert or file it names.
+      sql { label: "SQL" }
+      /// `dbt_task`; source is `project_directory`.
+      dbt { label: "dbt" }
+      /// `pipeline_task`; source is `pipeline_id`.
+      pipeline { label: "Pipeline" }
+      /// `run_job_task`; source is `job_id`. Stored as `run-job`, the tool's wire value.
+      run_job { value: "run-job", label: "Run job" }
+      /// `condition_task`; source is its `op`. Downstream edges carry its true or false outcome.
+      condition { label: "Condition" }
+      /// `for_each_task`; source is `inputs`. Stored as `for-each`, the tool's wire value.
+      for_each { value: "for-each", label: "For each" }
+      /// `spark_jar_task`; source is `main_class_name`.
+      jar { label: "JAR" }
+      /// Any task mapping the reader does not know.
+      other { label: "Other" }
+    }
+
+    /// A task's `run_if`. An absent value means Databricks' default, ALL_SUCCESS. Extensible because the dialog and the
+    /// row accept any text.
+    enum RunIf {
+      ALL_SUCCESS { label: "All succeeded" }
+      AT_LEAST_ONE_SUCCESS { label: "At least one succeeded" }
+      NONE_FAILED { label: "None failed" }
+      ALL_DONE { label: "All done" }
+      AT_LEAST_ONE_FAILED { label: "At least one failed" }
+      ALL_FAILED { label: "All failed" }
+      extensible: true
+    }
+
+    /// The `outcome` of a `depends_on` entry on a condition task.
+    enum Outcome {
+      "true" { label: "true", color: "#15803d" }
+      "false" { label: "false", color: "#dc2626" }
+    }
+
+    /// Where a task stands in a simulated run. Never stored.
+    enum SimulatedState {
+      pending
+      running
+      succeeded
+      failed
+      skipped
+    }
+
+    /// One entry of the job's `tasks` list. An entry without `task_key` is not drawn; the reader reports it
+    /// (`std.unreadableEntry`).
+    element Task {
+      label "Task"
+      /// `task_key`. Renaming it rewrites every `depends_on` reference to it.
+      attribute key: string required { key: true, minLength: 1 }
+      attribute taskType: TaskType required readonly
+      /// The principal source field of the task's type, in display form.
+      attribute taskSource: string readonly
+      /// `job_cluster_key`; absent means serverless.
+      attribute clusterKey: string
+      /// `run_if`; absent means ALL_SUCCESS. Setting it to empty removes the key from the file.
+      attribute runIf: RunIf
+      /// Set only by a simulated run; never written.
+      attribute simulated: SimulatedState readonly { transient: viewer }
+      /// True for the placeholder the reader `reader.databricksBundle` draws for a key a `depends_on` entry names and
+      /// no task declares (databricks-job.md, A9): one movable node per missing key, with a stored position under
+      /// `task:<key>`, and never written to the file.
+      attribute unresolved: bool readonly default false
+      labelAttribute: "key"
+    }
+
+    /// One entry of the job's `job_clusters` list, drawn in a band beneath the tasks.
+    element JobCluster {
+      label "Job cluster"
+      /// `job_cluster_key`.
+      attribute key: string required readonly { key: true }
+      /// `new_cluster.spark_version`.
+      attribute sparkVersion: string readonly
+      /// `new_cluster.node_type_id`.
+      attribute nodeType: string readonly
+      /// `new_cluster.num_workers`.
+      attribute workers: int readonly default 0 { min: 0 }
+      labelAttribute: "key"
+    }
+
+    /// One `depends_on` entry, stored on the target task: the target waits for the source. A self-dependency, a second
+    /// entry naming the same task and a circle can all be written in the file; they are kept and the circle is
+    /// reported, not prevented. An entry naming a key no task has is a relation without a source, reported by
+    /// `std.references`.
+    relation Dependency from Task to Task {
+      label "Depends on"
+      /// The `task_key` the entry names, as written; kept when no task has that key.
+      attribute upstreamKey: string required readonly
+      /// The condition outcome this dependency follows; only meaningful when the source is a condition task.
+      attribute outcome: Outcome
+      directed: true
+      allowSelfLoops: true
+      allowParallel: true
+      acyclic: false
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// Whether every task this one waits for has finished in the previous step. A dependency on a task the job does not
+  /// declare never finishes, and neither does one on the task itself, so either holds the task back for the whole run.
+  fn upstreamSettled(t: Element, state: map<string, string>) -> bool {
+    return t.incomingOf('Dependency').all(d, d.source != null && d.source.id in state && state[d.source.id] in ['succeeded', 'failed', 'skipped'])
+  }
+
+  /// Whether a task whose upstream tasks have settled runs or is skipped. Every condition task answers true, so a
+  /// dependency whose outcome is anything else excludes its branch. ALL_DONE always runs; AT_LEAST_ONE_FAILED runs when
+  /// an upstream task did not succeed; AT_LEAST_ONE_SUCCESS runs when one succeeded or there is none; ALL_SUCCESS, an
+  /// absent run_if and any other value run when every upstream task succeeded and no branch is excluded. Called only
+  /// once `upstreamSettled` holds.
+  fn mayRun(t: Element, state: map<string, string>) -> bool {
+    return cel.bind(ups, t.incomingOf('Dependency'), cel.bind(failures, ups.filter(d, state[d.source.id] != 'succeeded').size(), cel.bind(successes, ups.filter(d, state[d.source.id] == 'succeeded').size(), cel.bind(excluded, ups.exists(d, has(d.outcome) && d.outcome != '' && d.outcome != 'true'), cel.bind(runIf, has(t.runIf) && t.runIf != '' ? t.runIf : 'ALL_SUCCESS', runIf == 'ALL_DONE' ? true : (runIf == 'AT_LEAST_ONE_FAILED' ? failures > 0 : (runIf == 'AT_LEAST_ONE_SUCCESS' ? successes > 0 || ups.size() == 0 : failures == 0 && !excluded)))))))
+  }
+
+  /// The first `<kind>_<n>`, counting `n` from 1, that is not in `keys` (databricks-job.md, A11):
+  /// `freeTaskKey(['notebook_2'], 'notebook')` is `notebook_1`. The key of a task dropped from the toolbox or added from
+  /// the canvas menu, where CEL alone has no range to search.
+  fn freeTaskKey(keys: list<string>, kind: string) -> string {
+    var n = 1
+    while (kind + '_' + string(n)) in keys limit 100000 {
+      n = n + 1
+    }
+    return kind + '_' + string(n)
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// Every finding is located at a line of the job's YAML: a rule on an element reports the element's `location()`,
+  /// which the reader records, so a task's findings stand on its `task_key` entry and a missing upstream on its
+  /// `depends_on` entry.
+  constraints {
+    builtin std.unreadableEntry {
+      code: "databricks.task-key-missing"
+      severity: "error"
+      message: "A task has no task_key. Give it one, or nothing can depend on it."
+      doc "A task written without task_key is not drawn at all, so the reader reports it at its line."
+    }
+    builtin std.references {
+      code: "databricks.missing-task"
+      severity: "error"
+      message: ('\'' + self.target.key + '\' depends on \'' + self.upstreamKey + '\', which is not a task in this job. Fix the key or remove the dependency.')
+      doc "A `depends_on` entry naming a key no task of this job has: the relation is kept without a source and reported at the entry's line."
+    }
+    builtin std.duplicateId {
+      enabled: false,
+      doc "A second task of one key is the rule `duplicateTaskKey`'s to report."
+    }
+    builtin std.unparseable {
+      code: "databricks.unparseable"
+      severity: "error"
+      message: ('This is not configuration that can be read: ' + detail.reason)
+    }
+
+    constraint danglingCluster for Task {
+      when has(self.clusterKey) && self.clusterKey != ''
+      rule diagram.nodesOfType('JobCluster').exists(c, c.key == self.clusterKey)
+      severity error
+      message ('\'' + self.key + '\' runs on cluster \'' + self.clusterKey + '\', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless.')
+      code: "databricks.dangling-cluster"
+    }
+
+    /// Reported on the second and later tasks with the key, not the first, each at its own line.
+    constraint duplicateTaskKey for Task {
+      rule self.positionIn(diagram.nodesOfType('Task').filter(t, t.key == self.key)) == 0
+      severity error
+      message ('The task key \'' + self.key + '\' is used more than once. Every task needs its own.')
+      code: "databricks.duplicate-task-key"
+    }
+
+    /// A task on a circle, and a task downstream of one, can never run: both are reported, the first holder of a key
+    /// only. A dependency on a task the job does not declare holds nothing back here.
+    constraint cycle for Task {
+      when self.positionIn(diagram.nodesOfType('Task').filter(t, t.key == self.key)) == 0
+      rule !(self.inCycle('Dependency') || diagram.nodesOfType('Task').exists(t, t.inCycle('Dependency') && self in t.reachable('Dependency')))
+      severity error
+      message ('\'' + self.key + '\' is part of a dependency circle, so it can never run. Break the circle.')
+      code: "databricks.cycle"
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Renames the task inline on its label; the file's own task_key and every depends_on reference to it are rewritten
+  /// in the same undoable step.
+  operation renameTask "Rename…" for Task {
+    param newKey: string required { label: "Key" }
+    icon: "mdi-pencil-outline"
+    paramsForm: "renameTask"
+    if p.newKey.trim() == '' {
+      fail 'A task needs a key.'
+    }
+    if diagram.nodesOfType('Task').exists(t, t.key == p.newKey) {
+      fail 'A task named \'' + p.newKey + '\' is already there.'
+    }
+    set key = p.newKey
+  }
+
+  operation setRunIf "Set run if…" for Task {
+    param runIf: string { label: "Run if (empty = ALL_SUCCESS)" }
+    icon: "mdi-filter-outline"
+    paramsForm: "setRunIf"
+    if !has(p.runIf) || p.runIf == '' {
+      unset runIf
+    }
+    if has(p.runIf) && p.runIf != '' {
+      set runIf = p.runIf
+    }
+  }
+
+  operation assignCluster "Assign cluster…" for Task {
+    param clusterKey: string { label: "Cluster key (empty = serverless)" }
+    icon: "mdi-server"
+    paramsForm: "assignCluster"
+    if has(p.clusterKey) && p.clusterKey != '' && !diagram.nodesOfType('JobCluster').exists(c, c.key == p.clusterKey) {
+      fail 'There is no cluster named \'' + p.clusterKey + '\' in this job.'
+    }
+    if !has(p.clusterKey) || p.clusterKey == '' {
+      unset clusterKey
+    }
+    if has(p.clusterKey) && p.clusterKey != '' {
+      set clusterKey = p.clusterKey
+    }
+  }
+
+  /// Invoked from a generated menu entry whose `args` supply the dependency and its upstream key, so no dialog opens.
+  operation removeDependency "Disconnect" for Task {
+    param dependency: Dependency required
+    /// The upstream key as written, which names the entry.
+    param from: string required
+    icon: "mdi-vector-polyline-remove"
+    if !self.incomingOf('Dependency').exists(d, d.upstreamKey == p.from) {
+      fail 'There is no dependency from \'' + p.from + '\' to \'' + self.key + '\' any more.'
+    }
+    delete p.dependency
+  }
+
+  /// Appends a depends_on entry naming the gesture's start to the task it ended on. A gesture whose end names a task
+  /// that is gone is refused by the host with 'One of those tasks is not there any more.'
+  operation connectTasks "Depend on" for diagram {
+    /// Where the gesture started: the task to depend on.
+    param from: Element
+    /// Where the gesture ended: the task that comes to depend.
+    param to: Element
+    icon: "mdi-ray-start-arrow"
+    if !has(p.from) || !has(p.to) || p.from == null || p.to == null || !p.from.isA('Task') || !p.to.isA('Task') {
+      fail 'Drop the dependency on a task; a dependency needs both of its ends.'
+    }
+    if p.from == p.to {
+      fail 'A task cannot depend on itself.'
+    }
+    if p.to.incomingOf('Dependency').exists(d, d.upstreamKey == p.from.key) {
+      fail '\'' + p.to.key + '\' already depends on \'' + p.from.key + '\'.'
+    }
+    connect Dependency from p.from to p.to { upstreamKey: p.from.key }
+  }
+
+  /// From a drop or the canvas menu the key is the first free `notebook_<n>` (`freeTaskKey`) and no dialog opens; from
+  /// a click on the toolbox entry the dialog asks for it.
+  operation addNotebookTask "Add notebook task here" for diagram {
+    param key: string required { label: "Task key" }
+    icon: "mdi-notebook-outline"
+    paramsForm: "addTask"
+    if p.key.trim() == '' {
+      fail 'A task needs a key.'
+    }
+    if diagram.nodesOfType('Task').exists(t, t.key == p.key) {
+      fail 'A task named \'' + p.key + '\' is already there.'
+    }
+    create Task { key: p.key, taskType: 'notebook', taskSource: 'notebooks/' + p.key } at position
+  }
+
+  /// From a drop or the canvas menu the key is the first free `python_<n>` (`freeTaskKey`) and no dialog opens; from a
+  /// click on the toolbox entry the dialog asks for it.
+  operation addPythonTask "Add Python task here" for diagram {
+    param key: string required { label: "Task key" }
+    icon: "mdi-language-python"
+    paramsForm: "addTask"
+    if p.key.trim() == '' {
+      fail 'A task needs a key.'
+    }
+    if diagram.nodesOfType('Task').exists(t, t.key == p.key) {
+      fail 'A task named \'' + p.key + '\' is already there.'
+    }
+    create Task { key: p.key, taskType: 'python', taskSource: 'scripts/' + p.key + '.py' } at position
+  }
+
+  /// From a drop or the canvas menu the key is the first free `condition_<n>` (`freeTaskKey`) and no dialog opens; from
+  /// a click on the toolbox entry the dialog asks for it.
+  operation addConditionTask "Add condition task here" for diagram {
+    param key: string required { label: "Task key" }
+    icon: "mdi-call-split"
+    paramsForm: "addTask"
+    if p.key.trim() == '' {
+      fail 'A task needs a key.'
+    }
+    if diagram.nodesOfType('Task').exists(t, t.key == p.key) {
+      fail 'A task named \'' + p.key + '\' is already there.'
+    }
+    create Task { key: p.key, taskType: 'condition', taskSource: 'EQUAL_TO' } at position
+  }
+
+  operation simulateRun "Run job (simulated)" for Task {
+    icon: "mdi-play-outline"
+    simulate: {
+      for: ["Task"]
+      state: "simulated"
+      initial: ('pending')
+      next: (state[self.id] == 'running' ? 'succeeded' : (state[self.id] == 'pending' && upstreamSettled(self, state) ? (mayRun(self, state) ? 'running' : 'skipped') : state[self.id]))
+      until: (diagram.nodesOfType('Task').all(t, state[t.id] != 'running' && !(state[t.id] == 'pending' && upstreamSettled(t, state))))
+      stepMs: 700
+      notice: { running: "Simulated: job run", finished: "Simulated: job run — finished" }
+      doc: "A mock run in waves, one step every 700 ms: each wave finishes what was running, every task succeeding, then starts or skips every task whose upstream tasks have all finished. The run ends when a wave would change nothing, so a task held back by a missing upstream stays pending. Nothing is written, nothing enters the undo history."
+    }
+  }
+
+  behavior {
+    deletion: {
+      Task: {
+        relations: delete
+        confirm: {
+          count: (self.incomingOf('Dependency').size() + self.outgoingOf('Dependency').size())
+          threshold: 1
+          title: "Remove task"
+          message: ('Removing this task also removes the ' + (count == 1 ? '1 dependency' : string(count) + ' dependencies') + ' touching it.')
+          confirmLabel: "Remove"
+          danger: true
+          doc: "Asked only when a dependency touches the task: its own depends_on entries and every entry naming it. The confirmation's icon is mdi-delete-outline, the menu entry's."
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  persistence {
+    format: fbl
+    files: {
+      mode: split
+      model: "{name}.yml"
+      view: "{name}.adp"
+      doc: "The model is the job's own resource YAML, which Databricks owns; the view is the ADP registration file's layout: block."
+    }
+    ids: {
+      strategy: natural
+      prefix: { Task: "task:", JobCluster: "cluster:" }
+      pattern: "^[^\\r\\n]{1,512}$"
+      types: {
+        Dependency: {
+          strategy: derived
+          expression: ('edge:' + self.upstreamKey + '->' + self.target.key)
+          doc: "From the key as written, so a dependency on a missing task keeps its id."
+        }
+      }
+      doc: "`task:<task_key>`, `cluster:<job_cluster_key>` and `edge:<from>-><to>`: renaming a task changes its id, which is intended."
+    }
+    view: { store: [bounds], styleOverrides: none }
+  }
+
+  plugin net.etalii.adp.databricks.files {
+    version: "^0.1.0"
+    provides: [persistenceFormat]
+    required: true
+    doc "Reads and writes the job inside Databricks' own resource YAML by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. This description states it as the binding `bundle` (databricks-job.bundle.atd), whose family is the capability `reader.databricksBundle`; the plugin stays declared for the hosts that run the JSON files."
+  }
+
+  plugin net.etalii.adp.databricks.taskKeys {
+    version: "^0.1.0"
+    provides: [celFunctions]
+    required: true
+    doc "The fresh key of a new task, which CEL cannot search for (see databricks-job.md). This description states its function `freeTaskKey` as the script function of that name; the plugin stays declared for the hosts that run the JSON files."
+  }
+
+  plugin net.etalii.adp.databricks.layout {
+    version: "^0.1.0"
+    provides: [layout]
+    required: false
+    fallback: { layout: "layered" }
+    args: {
+      reading: { type: "string", required: true }
+      columnWidth: { type: "number" }
+      rowHeight: { type: "number" }
+      clusterBandGap: { type: "number" }
+    }
+    doc "The family's computed layouts. This description requires the job's as the capability `layout.layeredColumns`; the plugin stays declared for the hosts that run the JSON files."
+  }
+
+  x-databricks: {
+    doc: "Today's wire ids, which the standalone backend and client share, mapped from this specification's names, as x-ghg does for the hype cycle. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type>, and `<from>` is replaced by the entry's `from` argument. A property is keyed by its form item's row id: its id, else its attribute, else a computed item's label."
+    tools: {
+      notebookTask: { id: "databricks.toolbox.notebook-task", drop: "databricks.add-task:notebook" }
+      pythonTask: { id: "databricks.toolbox.python-task", drop: "databricks.add-task:python" }
+      conditionTask: { id: "databricks.toolbox.condition-task", drop: "databricks.add-task:condition" }
+    }
+    actions: {
+      renameTask: "databricks.rename-task"
+      setRunIf: "databricks.set-run-if"
+      assignCluster: "databricks.assign-cluster"
+      removeDependency: "databricks.disconnect:<from>"
+      "Task/delete": "databricks.remove-task"
+      "Dependency/delete": "databricks.remove-edge"
+      simulateRun: "databricks.simulated.run-job"
+      addNotebookTask: "databricks.add-task:notebook"
+      addPythonTask: "databricks.add-task:python"
+      addConditionTask: "databricks.add-task:condition"
+      connectTasks: "databricks.connect"
+    }
+    properties: {
+      key: "databricks.task-key"
+      taskType: "databricks.task-type"
+      taskSource: "databricks.task-source"
+      runIf: "databricks.run-if"
+      clusterKey: "databricks.cluster"
+      "Workspace connection": "databricks.workspace"
+      "Last simulated run": "databricks.last-simulated-run"
+    }
+  }
+}

@@ -1,0 +1,1085 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.depthColumns` from the RDF module's layout of the reading that parity/scripts/w3c/owl/prov-o.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://www.w3.org/2002/07/owl#Thing",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#",
+        "width": 220.0,
+        "height": 40.0,
+        "attributes": {
+          "role": "header",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Activity",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Entity",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Influence",
+            "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1"
+          ]
+        }
+      },
+      {
+        "id": "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Influence",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Influence"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Agent",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Influence"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Association",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#AgentInfluence"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Attribution",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#AgentInfluence"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Bundle",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Entity"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Collection",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Entity"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Communication",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#ActivityInfluence"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Delegation",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#AgentInfluence"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Derivation",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#EntityInfluence"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#EmptyCollection",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Collection"
+          ]
+        }
+      },
+      {
+        "id": "ind:http://www.w3.org/ns/prov#EmptyCollection",
+        "width": 220.0,
+        "height": 40.0,
+        "attributes": {
+          "role": "individual",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#End",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#EntityInfluence",
+            "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Generation",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#ActivityInfluence",
+            "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Invalidation",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#ActivityInfluence",
+            "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Location",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Organization",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Agent"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Person",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Agent"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Plan",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Entity"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#PrimarySource",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Derivation"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Quotation",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Derivation"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Revision",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Derivation"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Role",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#SoftwareAgent",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#Agent"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Start",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#EntityInfluence",
+            "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/ns/prov#Usage",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://www.w3.org/ns/prov#EntityInfluence",
+            "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#atLocation|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#influenced|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#influenced|range",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "dt:http://www.w3.org/ns/prov#value",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/ns/prov#actedOnBehalfOf|res:http://www.w3.org/ns/prov#Agent",
+        "source": "res:http://www.w3.org/ns/prov#Agent",
+        "target": "res:http://www.w3.org/ns/prov#Agent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/ns/prov#activity|res:http://www.w3.org/ns/prov#Activity",
+        "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Activity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#AgentInfluence|http://www.w3.org/ns/prov#agent|res:http://www.w3.org/ns/prov#Agent",
+        "source": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Agent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#alternateOf|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:thing:http://www.w3.org/ns/prov#atLocation|domain|http://www.w3.org/ns/prov#atLocation|res:http://www.w3.org/ns/prov#Location",
+        "source": "thing:http://www.w3.org/ns/prov#atLocation|domain",
+        "target": "res:http://www.w3.org/ns/prov#Location"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#EntityInfluence|http://www.w3.org/ns/prov#entity|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#generated|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadActivity|res:http://www.w3.org/ns/prov#Activity",
+        "source": "res:http://www.w3.org/ns/prov#Influence",
+        "target": "res:http://www.w3.org/ns/prov#Activity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/ns/prov#hadGeneration|res:http://www.w3.org/ns/prov#Generation",
+        "source": "res:http://www.w3.org/ns/prov#Derivation",
+        "target": "res:http://www.w3.org/ns/prov#Generation"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Collection|http://www.w3.org/ns/prov#hadMember|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Collection",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Association|http://www.w3.org/ns/prov#hadPlan|res:http://www.w3.org/ns/prov#Plan",
+        "source": "res:http://www.w3.org/ns/prov#Association",
+        "target": "res:http://www.w3.org/ns/prov#Plan"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#hadPrimarySource|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadRole|res:http://www.w3.org/ns/prov#Role",
+        "source": "res:http://www.w3.org/ns/prov#Influence",
+        "target": "res:http://www.w3.org/ns/prov#Role"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/ns/prov#hadUsage|res:http://www.w3.org/ns/prov#Usage",
+        "source": "res:http://www.w3.org/ns/prov#Derivation",
+        "target": "res:http://www.w3.org/ns/prov#Usage"
+      },
+      {
+        "id": "edge:thing:http://www.w3.org/ns/prov#influenced|domain|http://www.w3.org/ns/prov#influenced|thing:http://www.w3.org/ns/prov#influenced|range",
+        "source": "thing:http://www.w3.org/ns/prov#influenced|domain",
+        "target": "thing:http://www.w3.org/ns/prov#influenced|range"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#influencer|res:http://www.w3.org/2002/07/owl#Thing",
+        "source": "res:http://www.w3.org/ns/prov#Influence",
+        "target": "res:http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#invalidated|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedAssociation|res:http://www.w3.org/ns/prov#Association",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Association"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedAttribution|res:http://www.w3.org/ns/prov#Attribution",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Attribution"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedCommunication|res:http://www.w3.org/ns/prov#Communication",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Communication"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/ns/prov#qualifiedDelegation|res:http://www.w3.org/ns/prov#Delegation",
+        "source": "res:http://www.w3.org/ns/prov#Agent",
+        "target": "res:http://www.w3.org/ns/prov#Delegation"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedDerivation|res:http://www.w3.org/ns/prov#Derivation",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Derivation"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedEnd|res:http://www.w3.org/ns/prov#End",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#End"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedGeneration|res:http://www.w3.org/ns/prov#Generation",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Generation"
+      },
+      {
+        "id": "edge:thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain|http://www.w3.org/ns/prov#qualifiedInfluence|res:http://www.w3.org/ns/prov#Influence",
+        "source": "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain",
+        "target": "res:http://www.w3.org/ns/prov#Influence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedInvalidation|res:http://www.w3.org/ns/prov#Invalidation",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Invalidation"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedPrimarySource|res:http://www.w3.org/ns/prov#PrimarySource",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#PrimarySource"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedQuotation|res:http://www.w3.org/ns/prov#Quotation",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Quotation"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#qualifiedRevision|res:http://www.w3.org/ns/prov#Revision",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Revision"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedStart|res:http://www.w3.org/ns/prov#Start",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Start"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#qualifiedUsage|res:http://www.w3.org/ns/prov#Usage",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Usage"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#specializationOf|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#used|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasAssociatedWith|res:http://www.w3.org/ns/prov#Agent",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Agent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasAttributedTo|res:http://www.w3.org/ns/prov#Agent",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Agent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasDerivedFrom|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasEndedBy|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasGeneratedBy|res:http://www.w3.org/ns/prov#Activity",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Activity"
+      },
+      {
+        "id": "edge:thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain|http://www.w3.org/ns/prov#wasInfluencedBy|thing:http://www.w3.org/ns/prov#wasInfluencedBy|range",
+        "source": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain",
+        "target": "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasInformedBy|res:http://www.w3.org/ns/prov#Activity",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Activity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasInvalidatedBy|res:http://www.w3.org/ns/prov#Activity",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Activity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasQuotedFrom|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#wasRevisionOf|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#wasStartedBy|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#InstantaneousEvent|http://www.w3.org/ns/prov#atTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "source": "res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#endedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#generatedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#invalidatedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/ns/prov#startedAtTime|res:http://www.w3.org/2001/XMLSchema#dateTime",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/2001/XMLSchema#dateTime"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/ns/prov#value|dt:http://www.w3.org/ns/prov#value",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "dt:http://www.w3.org/ns/prov#value"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Activity|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Activity",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+        "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Influence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Agent|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "source": "res:http://www.w3.org/ns/prov#Agent",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#AgentInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+        "source": "res:http://www.w3.org/ns/prov#AgentInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Influence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Association|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Association",
+        "target": "res:http://www.w3.org/ns/prov#AgentInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Attribution|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Attribution",
+        "target": "res:http://www.w3.org/ns/prov#AgentInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Bundle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Bundle",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Collection|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Collection",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Communication|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Communication",
+        "target": "res:http://www.w3.org/ns/prov#ActivityInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Delegation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#AgentInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Delegation",
+        "target": "res:http://www.w3.org/ns/prov#AgentInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Derivation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Derivation",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#EmptyCollection|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Collection",
+        "source": "res:http://www.w3.org/ns/prov#EmptyCollection",
+        "target": "res:http://www.w3.org/ns/prov#Collection"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#End|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "source": "res:http://www.w3.org/ns/prov#End",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#End|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "source": "res:http://www.w3.org/ns/prov#End",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Entity|http://www.w3.org/2002/07/owl#disjointWith|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "source": "res:http://www.w3.org/ns/prov#Entity",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#EntityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Influence",
+        "source": "res:http://www.w3.org/ns/prov#EntityInfluence",
+        "target": "res:http://www.w3.org/ns/prov#Influence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Generation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Generation",
+        "target": "res:http://www.w3.org/ns/prov#ActivityInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Generation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "source": "res:http://www.w3.org/ns/prov#Generation",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Invalidation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Invalidation",
+        "target": "res:http://www.w3.org/ns/prov#ActivityInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Invalidation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "source": "res:http://www.w3.org/ns/prov#Invalidation",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Organization|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+        "source": "res:http://www.w3.org/ns/prov#Organization",
+        "target": "res:http://www.w3.org/ns/prov#Agent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Person|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+        "source": "res:http://www.w3.org/ns/prov#Person",
+        "target": "res:http://www.w3.org/ns/prov#Agent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Entity",
+        "source": "res:http://www.w3.org/ns/prov#Plan",
+        "target": "res:http://www.w3.org/ns/prov#Entity"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#PrimarySource|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+        "source": "res:http://www.w3.org/ns/prov#PrimarySource",
+        "target": "res:http://www.w3.org/ns/prov#Derivation"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Quotation|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+        "source": "res:http://www.w3.org/ns/prov#Quotation",
+        "target": "res:http://www.w3.org/ns/prov#Derivation"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Revision|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Derivation",
+        "source": "res:http://www.w3.org/ns/prov#Revision",
+        "target": "res:http://www.w3.org/ns/prov#Derivation"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#SoftwareAgent|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Agent",
+        "source": "res:http://www.w3.org/ns/prov#SoftwareAgent",
+        "target": "res:http://www.w3.org/ns/prov#Agent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Start|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Start",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Start|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "source": "res:http://www.w3.org/ns/prov#Start",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Usage|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#EntityInfluence",
+        "source": "res:http://www.w3.org/ns/prov#Usage",
+        "target": "res:http://www.w3.org/ns/prov#EntityInfluence"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#Usage|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#InstantaneousEvent",
+        "source": "res:http://www.w3.org/ns/prov#Usage",
+        "target": "res:http://www.w3.org/ns/prov#InstantaneousEvent"
+      },
+      {
+        "id": "edge:res:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "source": "res:http://www.w3.org/ns/prov#ActivityInfluence",
+        "target": "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 530,
+    "laneOffset": 250,
+    "slotHeight": 130,
+    "satelliteHeight": 110,
+    "satelliteOffset": 10,
+    "headerGap": 80,
+    "bandGap": 140,
+    "bandColumns": 5,
+    "bandColumnGap": 60,
+    "bandRowGap": 50,
+    "role": "self.role",
+    "supers": "self.supers",
+    "owner": "self.owner",
+    "pinnable": "self.id.startsWith('res:') || self.id.startsWith('ind:')"
+  },
+  "output": {
+    "positions": {
+      "dt:http://www.w3.org/ns/prov#value": {
+        "x": 250.0,
+        "y": 390.0
+      },
+      "expr:http://www.w3.org/ns/prov#ActivityInfluence|http://www.w3.org/2000/01/rdf-schema#subClassOf|1": {
+        "x": 780.0,
+        "y": 520.0
+      },
+      "ind:http://www.w3.org/ns/prov#EmptyCollection": {
+        "x": 0.0,
+        "y": 1690.0
+      },
+      "res:http://www.w3.org/2001/XMLSchema#dateTime": {
+        "x": 250.0,
+        "y": 870.0
+      },
+      "res:http://www.w3.org/2002/07/owl#Thing": {
+        "x": 0.0,
+        "y": 120.0
+      },
+      "res:http://www.w3.org/ns/prov#": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://www.w3.org/ns/prov#Activity": {
+        "x": 0.0,
+        "y": 250.0
+      },
+      "res:http://www.w3.org/ns/prov#ActivityInfluence": {
+        "x": 530.0,
+        "y": 510.0
+      },
+      "res:http://www.w3.org/ns/prov#Agent": {
+        "x": 0.0,
+        "y": 730.0
+      },
+      "res:http://www.w3.org/ns/prov#AgentInfluence": {
+        "x": 530.0,
+        "y": 815.0
+      },
+      "res:http://www.w3.org/ns/prov#Association": {
+        "x": 1060.0,
+        "y": 1160.0
+      },
+      "res:http://www.w3.org/ns/prov#Attribution": {
+        "x": 1060.0,
+        "y": 1290.0
+      },
+      "res:http://www.w3.org/ns/prov#Bundle": {
+        "x": 530.0,
+        "y": 120.0
+      },
+      "res:http://www.w3.org/ns/prov#Collection": {
+        "x": 530.0,
+        "y": 250.0
+      },
+      "res:http://www.w3.org/ns/prov#Communication": {
+        "x": 1060.0,
+        "y": 250.0
+      },
+      "res:http://www.w3.org/ns/prov#Delegation": {
+        "x": 1060.0,
+        "y": 1420.0
+      },
+      "res:http://www.w3.org/ns/prov#Derivation": {
+        "x": 1060.0,
+        "y": 380.0
+      },
+      "res:http://www.w3.org/ns/prov#EmptyCollection": {
+        "x": 1060.0,
+        "y": 120.0
+      },
+      "res:http://www.w3.org/ns/prov#End": {
+        "x": 1060.0,
+        "y": 770.0
+      },
+      "res:http://www.w3.org/ns/prov#Entity": {
+        "x": 0.0,
+        "y": 380.0
+      },
+      "res:http://www.w3.org/ns/prov#EntityInfluence": {
+        "x": 530.0,
+        "y": 685.0
+      },
+      "res:http://www.w3.org/ns/prov#Generation": {
+        "x": 1060.0,
+        "y": 510.0
+      },
+      "res:http://www.w3.org/ns/prov#Influence": {
+        "x": 0.0,
+        "y": 555.0
+      },
+      "res:http://www.w3.org/ns/prov#InstantaneousEvent": {
+        "x": 0.0,
+        "y": 860.0
+      },
+      "res:http://www.w3.org/ns/prov#Invalidation": {
+        "x": 1060.0,
+        "y": 640.0
+      },
+      "res:http://www.w3.org/ns/prov#Location": {
+        "x": 0.0,
+        "y": 1035.0
+      },
+      "res:http://www.w3.org/ns/prov#Organization": {
+        "x": 530.0,
+        "y": 945.0
+      },
+      "res:http://www.w3.org/ns/prov#Person": {
+        "x": 530.0,
+        "y": 1075.0
+      },
+      "res:http://www.w3.org/ns/prov#Plan": {
+        "x": 530.0,
+        "y": 380.0
+      },
+      "res:http://www.w3.org/ns/prov#PrimarySource": {
+        "x": 1590.0,
+        "y": 120.0
+      },
+      "res:http://www.w3.org/ns/prov#Quotation": {
+        "x": 1590.0,
+        "y": 250.0
+      },
+      "res:http://www.w3.org/ns/prov#Revision": {
+        "x": 1590.0,
+        "y": 380.0
+      },
+      "res:http://www.w3.org/ns/prov#Role": {
+        "x": 0.0,
+        "y": 1210.0
+      },
+      "res:http://www.w3.org/ns/prov#SoftwareAgent": {
+        "x": 530.0,
+        "y": 1205.0
+      },
+      "res:http://www.w3.org/ns/prov#Start": {
+        "x": 1060.0,
+        "y": 900.0
+      },
+      "res:http://www.w3.org/ns/prov#Usage": {
+        "x": 1060.0,
+        "y": 1030.0
+      },
+      "thing:http://www.w3.org/ns/prov#atLocation|domain": {
+        "x": 250.0,
+        "y": 1045.0
+      },
+      "thing:http://www.w3.org/ns/prov#influenced|domain": {
+        "x": 0.0,
+        "y": 1920.0
+      },
+      "thing:http://www.w3.org/ns/prov#influenced|range": {
+        "x": 164.5,
+        "y": 1920.0
+      },
+      "thing:http://www.w3.org/ns/prov#qualifiedInfluence|domain": {
+        "x": 250.0,
+        "y": 565.0
+      },
+      "thing:http://www.w3.org/ns/prov#wasInfluencedBy|domain": {
+        "x": 329.0,
+        "y": 1920.0
+      },
+      "thing:http://www.w3.org/ns/prov#wasInfluencedBy|range": {
+        "x": 493.5,
+        "y": 1920.0
+      }
+    }
+  }
+}

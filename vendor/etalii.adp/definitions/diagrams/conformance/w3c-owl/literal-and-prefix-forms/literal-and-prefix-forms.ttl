@@ -1,0 +1,10 @@
+# B6: the literal forms and the prefix forms an edit rewrites, and comment lines above a statement.
+@prefix ex: <http://example.org/> .
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# The comment above the statement.
+ex:text rdfs:label '''A long
+literal''' ;
+    rdfs:comment "typed"^^xsd:string ;
+    ex:note "plain"@en .

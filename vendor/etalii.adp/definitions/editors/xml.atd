@@ -1,0 +1,76 @@
+atd 0.1
+
+/// The XML editor: an XML file as text, checked for well-formedness, for the encoding it declares, and against the XSD
+/// or the DTD the document names.
+///
+/// The status line says what was checked: "No schema", the schemas checked, or "Not well-formed: the rest was not
+/// checked.", followed by the count of errors and warnings. The checks are sources the editor names (ATD §10.2): the
+/// XML reader and the validator (libxml2) are the platform's.
+///
+/// No host loads this description: hosts open these files with their own editor, and run no editor from `.atd` (ATD
+/// §1.2). It is written from what the desktop host's editor does at its reference commit `fe5feec` (ATD §10.1), its
+/// trace lists where, and its conformance cases under `conformance/` record it.
+editor editor/xml version "1.0.0" {
+  label "XML editor"
+
+  surface text {
+    files "*.xml", "*.xsd"
+    /// Colours by the token classes of the XML syntax. Above 20,000 lines the text is shown without colour.
+    tokens xml { largestColouredLines: 20000 }
+    /// Well-formedness: the text is read to its end or to its first error, which is one error where the reader
+    /// stopped; nothing after it is checked. A DTD or an external entity the reader would have to follow and may not
+    /// (outside the project, on the web, missing) stops the reading too, said as information.
+    check with "xml" {
+      stopsAt: firstError
+      notChecked: "Not well-formed: the rest was not checked."
+      externalEntities: project
+    }
+    /// The encoding the declaration names: one other than the one the file is stored in is a warning, unless every
+    /// character is ASCII and so reads the same either way.
+    check with "encoding" { other: warning, asciiReadsAlike: true }
+    /// Validity against the schemas the document names in its prolog and its root's start tag:
+    /// `xsi:noNamespaceSchemaLocation`, the pairs of `xsi:schemaLocation` and the `DOCTYPE`'s system identifier, each
+    /// read from the project by the JSON editor's rules. Every XSD named is checked together, else the DTD; each finding
+    /// is said in the sentence and at the place the standalone host's validator gives it (on the element's name, on the
+    /// value that does not fit, or on the child that is not allowed). A root `xs:schema` makes the document a schema,
+    /// compiled; an `xml-model` instruction is named and not supported; XSD 1.1 is said as not supported.
+    check with "xsd" {
+      names: ["xsi:noNamespaceSchemaLocation", "xsi:schemaLocation"]
+      together: true
+      read: project
+      schemaAsDocument: compiled
+      unsupported: ["xml-model", "XSD 1.1"]
+    }
+    /// The DTD the `DOCTYPE` names, when no XSD is named.
+    check with "dtd" { names: ["DOCTYPE"], read: project, when: noXsd }
+    /// How the file is opened and saved, as every editor of the desktop host opens one: UTF-8 with or without a
+    /// byte-order mark, or ASCII; refused, with the reason, above 5 MB (before a byte is read), when it looks binary or
+    /// when it is not UTF-8. Every line keeps its own line ending, a new line takes the dominant one, a last line keeps
+    /// whether it had an ending, and the byte-order mark is written back exactly when the file had one, so an
+    /// unchanged file saves back byte for byte.
+    open: {
+      encodings: ["UTF-8", "ASCII"]
+      byteOrderMark: keep
+      largestBytes: 5242880
+      binary: refuse
+      otherEncodings: refuse
+      lineEndings: keep
+      newLineEnding: dominant
+    }
+    /// The buffer: one cursor and one selection; Tab writes four spaces; pasted text has its CRLF made LF; no soft
+    /// wrap; a gutter with the line numbers and the current line marked. Typing, the movements by character, word, line
+    /// and document, copy, cut and paste are the host's gestures, and grouping undo word by word is the host's undo
+    /// stack (ATD §17).
+    buffer: {
+      cursors: 1
+      tab: "    "
+      paste: { newline: lf }
+      softWrap: false
+      gutter: lineNumbers
+      currentLine: marked
+    }
+    /// Where a finding is said: drawn under its range by severity, and listed in the problems panel at its line and
+    /// column, both from 1, columns counted in characters.
+    findings: { line: 1, column: 1, columns: characters }
+  }
+}

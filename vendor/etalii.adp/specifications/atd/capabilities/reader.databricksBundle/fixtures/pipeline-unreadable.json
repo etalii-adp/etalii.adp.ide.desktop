@@ -1,0 +1,25 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/cases/databricks/pipeline/unreadable.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "{\n  \"name\": \"unreadable\",\n  \"libraries\": [\n    { \"notebook\": { \"path\": \"transformations/a\" } }\n  }\n}\n",
+    "files": {
+      "unreadable.pipeline.adp": "databricks/pipeline\nbody: unreadable.json\n"
+    }
+  },
+  "args": {
+    "reading": "pipeline"
+  },
+  "output": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "databricks.unparseable",
+        "severity": "error",
+        "line": 5,
+        "message": "This is not configuration that can be read: while parsing a flow sequence, expected ',' or ']'"
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.tidyTree",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "A tidy tree growing downward: children left to right in their `order`, each subtree placed as close to its left sibling as their outlines allow at every depth they share with `nodeGap` between them (the Reingold-Tilford rule), each parent centred over its first and last child, the trees of the `roots` side by side in their order with `componentGap` between them, and the leftmost node at x = 0. A node's top is at its depth × (height + `layerGap`). It is defined for nodes of one size, which is all it is recorded on; nodes of different sizes are not yet in its contract. Positions are the nodes' top-left corners; every node is placed.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "nodeGap": {
+      "type": "number",
+      "default": 28,
+      "doc": "The least space across between two neighbouring subtrees."
+    },
+    "layerGap": {
+      "type": "number",
+      "default": 56,
+      "doc": "The space between a parent's bottom and its children's top."
+    },
+    "componentGap": {
+      "type": "number",
+      "default": 56,
+      "doc": "The least space across between two whole trees."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

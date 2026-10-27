@@ -1,0 +1,54 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.9",
+  "doc": "FBL 0.9's grammar family (section 4.9): Turtle read by the grammar w3c-turtle.lark beside this document instead of by a persistence plugin, for the prefixes and the labelled resources of a W3C RDF graph (definitions/diagrams/w3c-rdf.dis). A statement whose subject is a resource, an IRI or a prefixed name, is a Resource, its id the subject as written and its label the first rdfs:label written in it; a prefix directive is a Prefix. Every other statement, and every other triple, is kept and binds nothing. A statement that does not parse is skipped to its '.' and reported at its line, and the rest is read (recover). w3c-turtle.fbl, the plugin binding the four W3C tool types run, stays as it is; spec 035 binds the W3C RDF type's Turtle with this family in its tool description.",
+  "bindings": {
+    "turtle": {
+      "title": "RDF in Turtle, read by its grammar",
+      "claims": {
+        "extensions": [".ttl"],
+        "origins": ["w3c/rdf"]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": { "file": "w3c-turtle.lark" },
+        "start": "turtle_doc",
+        "recover": { "unit": "statement", "sync": ["."] }
+      },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 4, "finalNewline": true },
+      "elements": [
+        {
+          "name": "prefix",
+          "type": "Prefix",
+          "doc": "`@prefix ex: <http://example.org/> .`: the name without its colon, the IRI without its angle brackets. Prefixes are read, and written only by a set.",
+          "at": "/statement/prefix_id",
+          "id": { "from": { "node": "PNAME_NS" } },
+          "attributes": {
+            "name": { "node": "PNAME_NS", "match": "(?<value>[^:]*):" },
+            "iri": { "node": "IRIREF", "match": "<(?<value>[^>]*)>" }
+          }
+        },
+        {
+          "name": "resource",
+          "type": "Resource",
+          "at": "/triples_statement",
+          "when": "entry.children[0].children[0].children[0].type == 'iri'",
+          "id": { "from": { "node": "triples/subject" } },
+          "attributes": {
+            "label": {
+              "node": "triples/predicate_object_list/predicate_object[verb='rdfs:label']/object_list/object/rdf_literal/string",
+              "match": "\"(?<value>(?:[^\"\\\\]|\\\\.)*)\""
+            }
+          },
+          "insert": { "place": "after-last", "emit": "{id} rdfs:label \"{label}\" ." },
+          "remove": {}
+        }
+      ],
+      "template": {
+        "text": "@prefix ex: <http://example.org/> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n\r\nex:{key} rdfs:label \"{base}\" .\r\n"
+      }
+    }
+  }
+}

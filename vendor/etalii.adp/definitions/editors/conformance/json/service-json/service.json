@@ -1,0 +1,12 @@
+{
+  "$schema": "./service.schema.json",
+  "name": "orders",
+  "port": 8080,
+  "logLevel": "information",
+  "secure": true,
+  "dependsOn": ["inventory", "payments"],
+  "limits": {
+    "timeoutSeconds": 2.5,
+    "maxBodyKilobytes": 512
+  }
+}

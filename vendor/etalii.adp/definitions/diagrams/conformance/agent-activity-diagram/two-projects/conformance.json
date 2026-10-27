@@ -1,0 +1,769 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/agent-activity-diagram` from parity/scripts/etalii/agent-activity-diagram/two-projects.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "etalii/agent-activity-diagram",
+  "description": "../../../agent-activity-diagram.atd",
+  "inputs": {
+    "body": "two-projects.aad",
+    "registration": "two-projects.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "diagram view",
+        "type": "etalii/agent-activity-diagram+view",
+        "parent": null,
+        "attributes": {
+          "showArchived": "false"
+        }
+      },
+      {
+        "id": "p-languages",
+        "type": "etalii/agent-activity-diagram+project",
+        "parent": null,
+        "attributes": {
+          "name": "etalii.adp",
+          "link": "https://github.com/etalii-adp/etalii.adp",
+          "pinned": "false",
+          "width": "180",
+          "height": "56"
+        }
+      },
+      {
+        "id": "p-ide",
+        "type": "etalii/agent-activity-diagram+project",
+        "parent": null,
+        "attributes": {
+          "name": "etalii.adp.ide.standalone",
+          "link": "https://github.com/etalii-adp/etalii.adp.ide.standalone",
+          "pinned": "false",
+          "width": "180",
+          "height": "56"
+        }
+      },
+      {
+        "id": "s-definitions",
+        "type": "etalii/agent-activity-diagram+specification",
+        "parent": null,
+        "attributes": {
+          "name": "Agent activity diagram definitions",
+          "status": "finished",
+          "statusLabel": "Finished",
+          "pinned": "false",
+          "width": "240",
+          "height": "86",
+          "collapsed": "finished,pending",
+          "rows": "finished\tt-binding\tThe binding and its fixtures\t2026-10-09T16:16:00+02:00\t"
+        }
+      },
+      {
+        "id": "s-fbl",
+        "type": "etalii/agent-activity-diagram+specification",
+        "parent": null,
+        "attributes": {
+          "name": "FBL 0.4",
+          "status": "progressing",
+          "statusLabel": "Progressing",
+          "pinned": "false",
+          "width": "240",
+          "height": "104",
+          "collapsed": "finished,pending",
+          "rows": "progressing\tt-levels\tCreate and remove missing levels\t2026-10-09T16:54:00+02:00\t"
+        }
+      },
+      {
+        "id": "s-module",
+        "type": "etalii/agent-activity-diagram+specification",
+        "parent": null,
+        "attributes": {
+          "name": "Agent activity diagram",
+          "status": "progressing",
+          "statusLabel": "Progressing",
+          "pinned": "false",
+          "width": "240",
+          "height": "126",
+          "collapsed": "finished,pending",
+          "rows": "progressing\tt-runtime\tFBL 0.4 in the host's runtime\t2026-10-09T17:30:00+02:00\t\npending\tt-commands\tThe commands that write the file\t\t"
+        }
+      },
+      {
+        "id": "s-conversion",
+        "type": "etalii/agent-activity-diagram+specification",
+        "parent": null,
+        "attributes": {
+          "name": "Causal loop diagram on DISL and FBL",
+          "status": "pending",
+          "statusLabel": "Pending",
+          "pinned": "false",
+          "width": "240",
+          "height": "64",
+          "collapsed": "finished,pending"
+        }
+      },
+      {
+        "id": "a-definitions",
+        "type": "etalii/agent-activity-diagram+agent",
+        "parent": null,
+        "attributes": {
+          "name": "Definitions thread",
+          "pinned": "false",
+          "width": "160",
+          "height": "44"
+        }
+      },
+      {
+        "id": "a-module",
+        "type": "etalii/agent-activity-diagram+agent",
+        "parent": null,
+        "attributes": {
+          "name": "Module thread",
+          "pinned": "false",
+          "width": "160",
+          "height": "44"
+        }
+      },
+      {
+        "id": "l-definitions",
+        "type": "etalii/agent-activity-diagram+location",
+        "parent": null,
+        "attributes": {
+          "name": "claude/project-thread-cqez7b",
+          "folder": "Default",
+          "pinned": "false",
+          "width": "240",
+          "height": "104",
+          "collapsed": "pullRequests",
+          "rows": "pullRequests\tpr-109\t109: FBL 0.4\t2026-10-09T16:54:00+02:00\thttps://github.com/etalii-adp/etalii.adp/pull/109"
+        }
+      },
+      {
+        "id": "l-module",
+        "type": "etalii/agent-activity-diagram+location",
+        "parent": null,
+        "attributes": {
+          "name": "claude/project-thread-j58hge",
+          "folder": ".claude/worktrees/activity",
+          "pinned": "false",
+          "width": "240",
+          "height": "82",
+          "collapsed": "pullRequests"
+        }
+      },
+      {
+        "id": "l-module-languages",
+        "type": "etalii/agent-activity-diagram+location",
+        "parent": null,
+        "attributes": {
+          "name": "develop",
+          "folder": "scratch/etalii.adp",
+          "pinned": "false",
+          "width": "240",
+          "height": "82",
+          "collapsed": "pullRequests"
+        }
+      },
+      {
+        "id": "e-fractal",
+        "type": "etalii/agent-activity-diagram+environment",
+        "parent": null,
+        "attributes": {
+          "name": "Fractal",
+          "kindLabel": "Local machine",
+          "pinned": "false",
+          "width": "170",
+          "height": "56"
+        }
+      },
+      {
+        "id": "e-cloud",
+        "type": "etalii/agent-activity-diagram+environment",
+        "parent": null,
+        "attributes": {
+          "name": "Claude Code cloud environment",
+          "kindLabel": "Cloud",
+          "pinned": "false",
+          "width": "170",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "project:s-definitions",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "p-languages",
+        "target": "s-definitions",
+        "attributes": {
+          "type": "ProjectSpecification",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "project:s-fbl",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "p-languages",
+        "target": "s-fbl",
+        "attributes": {
+          "type": "ProjectSpecification",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "project:s-module",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "p-ide",
+        "target": "s-module",
+        "attributes": {
+          "type": "ProjectSpecification",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "project:s-conversion",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "p-ide",
+        "target": "s-conversion",
+        "attributes": {
+          "type": "ProjectSpecification",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "specification:a-definitions",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "s-fbl",
+        "target": "a-definitions",
+        "attributes": {
+          "type": "SpecificationAgent",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "specification:a-module",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "s-module",
+        "target": "a-module",
+        "attributes": {
+          "type": "SpecificationAgent",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "agent:l-definitions",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "a-definitions",
+        "target": "l-definitions",
+        "attributes": {
+          "type": "AgentLocation",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "agent:l-module",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "a-module",
+        "target": "l-module",
+        "attributes": {
+          "type": "AgentLocation",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "agent:l-module-languages",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "a-module",
+        "target": "l-module-languages",
+        "attributes": {
+          "type": "AgentLocation",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "environment:l-definitions",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "l-definitions",
+        "target": "e-cloud",
+        "attributes": {
+          "type": "LocationEnvironment",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "environment:l-module",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "l-module",
+        "target": "e-fractal",
+        "attributes": {
+          "type": "LocationEnvironment",
+          "breach": "false"
+        }
+      },
+      {
+        "id": "environment:l-module-languages",
+        "type": "etalii/agent-activity-diagram+relation",
+        "source": "l-module-languages",
+        "target": "e-fractal",
+        "attributes": {
+          "type": "LocationEnvironment",
+          "breach": "false"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "editLabel",
+      "args": {
+        "value": "Causal loop diagram, on DISL and FBL"
+      },
+      "select": [
+        "s-conversion"
+      ],
+      "expectFile": "after-1.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Status",
+        "value": "Progressing"
+      },
+      "expectFile": "after-2.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Status",
+        "value": "Paused"
+      },
+      "refused": {
+        "reason": "'Paused' is not one of the values this can have."
+      },
+      "expectFile": "after-2.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Link",
+        "value": "https://github.com/etalii-adp/etalii.adp/tree/develop/specs/cld"
+      },
+      "expectFile": "after-3.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "add-agent",
+      "args": {
+        "target": "new:400,-120"
+      },
+      "ids": [
+        "6xe90awwiog7f15dpcecgsrmo"
+      ],
+      "expectFile": "after-4.aad",
+      "findings": [
+        {
+          "rule": "aad.agent-without-specification",
+          "severity": "information",
+          "line": 53,
+          "message": "\"New agent\" works on no specification."
+        },
+        {
+          "rule": "aad.agent-without-location",
+          "severity": "information",
+          "line": 53,
+          "message": "\"New agent\" has no location."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "connect",
+      "args": {
+        "target": "rel:s-conversion->6xe90awwiog7f15dpcecgsrmo"
+      },
+      "ids": [
+        "specification:6xe90awwiog7f15dpcecgsrmo"
+      ],
+      "expectFile": "after-5.aad",
+      "findings": [
+        {
+          "rule": "aad.agent-without-location",
+          "severity": "information",
+          "line": 53,
+          "message": "\"New agent\" has no location."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "editLabel",
+      "args": {
+        "target": "6xe90awwiog7f15dpcecgsrmo",
+        "value": "Conversion thread"
+      },
+      "expectFile": "after-6.aad",
+      "findings": [
+        {
+          "rule": "aad.agent-without-location",
+          "severity": "information",
+          "line": 53,
+          "message": "\"Conversion thread\" has no location."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "add-location",
+      "args": {
+        "target": "new:620.4,-200.6"
+      },
+      "ids": [
+        "a7zb4lrkzfnnnyn9zi9e7i7vi"
+      ],
+      "expectFile": "after-7.aad",
+      "findings": [
+        {
+          "rule": "aad.agent-without-location",
+          "severity": "information",
+          "line": 53,
+          "message": "\"Conversion thread\" has no location."
+        },
+        {
+          "rule": "aad.location-without-agent",
+          "severity": "information",
+          "line": 76,
+          "message": "\"main\" belongs to no agent."
+        },
+        {
+          "rule": "aad.location-without-environment",
+          "severity": "information",
+          "line": 76,
+          "message": "\"main\" is on no environment."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "connect",
+      "args": {
+        "target": "rel:a7zb4lrkzfnnnyn9zi9e7i7vi->6xe90awwiog7f15dpcecgsrmo"
+      },
+      "ids": [
+        "agent:a7zb4lrkzfnnnyn9zi9e7i7vi"
+      ],
+      "expectFile": "after-8.aad",
+      "findings": [
+        {
+          "rule": "aad.location-without-environment",
+          "severity": "information",
+          "line": 76,
+          "message": "\"main\" is on no environment."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "property": {
+        "element": "a7zb4lrkzfnnnyn9zi9e7i7vi",
+        "attribute": "Branch",
+        "value": "features/cld-disl-fbl"
+      },
+      "expectFile": "after-9.aad",
+      "findings": [
+        {
+          "rule": "aad.location-without-environment",
+          "severity": "information",
+          "line": 76,
+          "message": "\"features/cld-disl-fbl\" is on no environment."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "connect",
+      "args": {
+        "target": "rel:a7zb4lrkzfnnnyn9zi9e7i7vi->e-cloud"
+      },
+      "ids": [
+        "environment:a7zb4lrkzfnnnyn9zi9e7i7vi"
+      ],
+      "expectFile": "after-10.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "action": "connect",
+      "args": {
+        "target": "rel:a-module->s-fbl"
+      },
+      "refused": {
+        "reason": "\"Module thread\" is already joined to \"Agent activity diagram\". Remove that line first: each agent has one specification."
+      },
+      "expectFile": "after-10.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "connect",
+      "args": {
+        "target": "rel:p-ide->e-fractal"
+      },
+      "refused": {
+        "reason": "A project cannot be joined to an environment. A project is joined to a specification."
+      },
+      "expectFile": "after-10.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "move": {
+        "element": "a-definitions"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"a-definitions\"],\"to\":{\"x\":-300,\"y\":250}}",
+      "expectFile": "after-11.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "move": {
+        "element": "a-definitions"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"a-definitions\"],\"to\":{\"x\":-320.2,\"y\":260.6}}",
+      "expectFile": "after-12.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "collapse-group",
+      "args": {
+        "target": "s-module#progressing"
+      },
+      "expectFile": "after-13.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "action": "expand-group",
+      "args": {
+        "target": "s-module#pending"
+      },
+      "expectFile": "after-14.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "action": "show-archived",
+      "args": {
+        "target": "diagram view"
+      },
+      "expectFile": "after-15.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "delete",
+      "select": [
+        "l-module"
+      ],
+      "expectFile": "after-16.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-15.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-16.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "property": {
+        "element": "a-definitions",
+        "attribute": "Name",
+        "value": "Definitions agent"
+      },
+      "expectFile": "after-17.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "action": "unpin",
+      "args": {
+        "target": "a-definitions"
+      },
+      "expectFile": "after-18.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-17.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "property": {
+        "element": "e-fractal",
+        "attribute": "Environment kind",
+        "value": "Container"
+      },
+      "expectFile": "after-19.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "property": {
+        "element": "l-module-languages",
+        "attribute": "Folder",
+        "value": ""
+      },
+      "expectFile": "after-20.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "action": "hide-archived",
+      "args": {
+        "target": "diagram view"
+      },
+      "expectFile": "after-21.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "action": "delete",
+      "args": {
+        "target": "s-definitions"
+      },
+      "expectFile": "after-22.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-21.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    },
+    {
+      "action": "unpinAll",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "after-23.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.30.json"
+      }
+    },
+    {
+      "action": "expand-group",
+      "args": {
+        "target": "s-module#progressing"
+      },
+      "expectFile": "after-24.aad",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.31.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/etalii/agent-activity-diagram/two-projects/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

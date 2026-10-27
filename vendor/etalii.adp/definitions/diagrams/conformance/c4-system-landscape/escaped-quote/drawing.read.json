@@ -1,0 +1,221 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "s",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -120,
+        "y": 198.8,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "A path C:\\temp and a \"quote\".",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 256.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "System",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 220.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 236.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "u",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -80,
+        "y": 0,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Says \"hello\".",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 58
+          }
+        },
+        {
+          "id": "name",
+          "text": "The \"user\"",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 22
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "u->s@5",
+      "type": "c4/model+relationship",
+      "source": "u",
+      "target": "s",
+      "route": [
+        {
+          "x": 0,
+          "y": 78.8
+        },
+        {
+          "x": 0,
+          "y": 198.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Says \"hi\" [HTTP \"S\"]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 132.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "legend",
+      "text": "System Context diagram for System",
+      "bounds": {
+        "x": -120,
+        "y": -30,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": -120,
+        "y": 327.2,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "band",
+      "bounds": {
+        "x": -84,
+        "y": 317.2,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Person",
+      "bounds": {
+        "x": -67,
+        "y": 327.2,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": -18.7,
+        "y": 317.2,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Software System",
+      "bounds": {
+        "x": -1.7,
+        "y": 327.2,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "u->s@5",
+    "u",
+    "s",
+    "chrome:1",
+    "chrome:2",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6"
+  ]
+}

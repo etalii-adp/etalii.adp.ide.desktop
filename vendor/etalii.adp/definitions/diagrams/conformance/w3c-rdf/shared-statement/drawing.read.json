@@ -1,0 +1,293 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/alice",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:alice",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Alice",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 42
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/bob",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:bob",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Bob",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 42
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/carol",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 0,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:carol",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/alice|http://example.org/knows|res:http://example.org/bob",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/alice",
+      "target": "res:http://example.org/bob",
+      "route": [
+        {
+          "x": 220,
+          "y": 28
+        },
+        {
+          "x": 280,
+          "y": 28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:knows",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 22
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/alice|http://example.org/knows|res:http://example.org/carol",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/alice",
+      "target": "res:http://example.org/carol",
+      "route": [
+        {
+          "x": 220,
+          "y": 26.43
+        },
+        {
+          "x": 560,
+          "y": 21.57
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:knows",
+          "font": "11 400",
+          "position": {
+            "x": 390,
+            "y": 18
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/alice|http://example.org/worksWith|res:http://example.org/bob",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/alice",
+      "target": "res:http://example.org/bob",
+      "route": [
+        {
+          "x": 220,
+          "y": 28
+        },
+        {
+          "x": 280,
+          "y": 28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:worksWith",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 22
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/bob|http://example.org/knows|res:http://example.org/alice",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/bob",
+      "target": "res:http://example.org/alice",
+      "route": [
+        {
+          "x": 280,
+          "y": 28
+        },
+        {
+          "x": 220,
+          "y": 28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:knows",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 22
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/carol|http://example.org/knows|res:http://example.org/bob",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/carol",
+      "target": "res:http://example.org/bob",
+      "route": [
+        {
+          "x": 560,
+          "y": 23.14
+        },
+        {
+          "x": 500,
+          "y": 24.86
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:knows",
+          "font": "11 400",
+          "position": {
+            "x": 530,
+            "y": 18
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/alice|http://example.org/knows|res:http://example.org/bob",
+    "edge:res:http://example.org/alice|http://example.org/knows|res:http://example.org/carol",
+    "edge:res:http://example.org/alice|http://example.org/worksWith|res:http://example.org/bob",
+    "edge:res:http://example.org/bob|http://example.org/knows|res:http://example.org/alice",
+    "edge:res:http://example.org/carol|http://example.org/knows|res:http://example.org/bob",
+    "res:http://example.org/alice",
+    "res:http://example.org/bob",
+    "res:http://example.org/carol"
+  ]
+}

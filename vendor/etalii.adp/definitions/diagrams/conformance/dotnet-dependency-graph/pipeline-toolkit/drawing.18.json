@@ -1,0 +1,523 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "package:Serilog",
+      "type": "dotnet/dependency-graph+package",
+      "shape": "path",
+      "bounds": {
+        "x": 1160,
+        "y": 350,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Serilog",
+          "font": "13 600",
+          "position": {
+            "x": 1270,
+            "y": 376
+          }
+        },
+        {
+          "id": "subtitle",
+          "text": "3.1.1, 4.4.0",
+          "font": "11 400",
+          "position": {
+            "x": 1270,
+            "y": 392
+          }
+        }
+      ],
+      "style": {
+        "fill": "#cbd5e1",
+        "stroke": "#b45309",
+        "strokeWidth": 2.5
+      }
+    },
+    {
+      "id": "package:System.Text.Json",
+      "type": "dotnet/dependency-graph+package",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "System.Text.Json",
+          "font": "13 600",
+          "position": {
+            "x": 110,
+            "y": 26
+          }
+        },
+        {
+          "id": "subtitle",
+          "text": "10.0.0",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 42
+          }
+        }
+      ],
+      "style": {
+        "fill": "#cbd5e1",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "package:xunit.v3",
+      "type": "dotnet/dependency-graph+package",
+      "shape": "path",
+      "bounds": {
+        "x": 1341.6,
+        "y": 180,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "xunit.v3",
+          "font": "13 600",
+          "position": {
+            "x": 1451.6,
+            "y": 206
+          }
+        },
+        {
+          "id": "subtitle",
+          "text": "4.1.0",
+          "font": "11 400",
+          "position": {
+            "x": 1451.6,
+            "y": 222
+          }
+        }
+      ],
+      "style": {
+        "fill": "#cbd5e1",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+      "type": "dotnet/dependency-graph+project",
+      "shape": "path",
+      "bounds": {
+        "x": 409.4,
+        "y": 168,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Pipeline.Cli",
+          "font": "13 600",
+          "position": {
+            "x": 519.4,
+            "y": 194
+          }
+        },
+        {
+          "id": "subtitle",
+          "text": "net10.0",
+          "font": "11 400",
+          "position": {
+            "x": 519.4,
+            "y": 210
+          }
+        }
+      ],
+      "style": {
+        "fill": "#3b6ea5",
+        "stroke": "#2b537c",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+      "type": "dotnet/dependency-graph+project",
+      "shape": "path",
+      "bounds": {
+        "x": 40,
+        "y": 20,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Pipeline.Core",
+          "font": "13 600",
+          "position": {
+            "x": 150,
+            "y": 46
+          }
+        },
+        {
+          "id": "subtitle",
+          "text": "net10.0",
+          "font": "11 400",
+          "position": {
+            "x": 150,
+            "y": 62
+          }
+        }
+      ],
+      "style": {
+        "fill": "#3b6ea5",
+        "stroke": "#2b537c",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+      "type": "dotnet/dependency-graph+project",
+      "shape": "path",
+      "bounds": {
+        "x": 270,
+        "y": 130,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Pipeline.Storage",
+          "font": "13 600",
+          "position": {
+            "x": 380,
+            "y": 156
+          }
+        },
+        {
+          "id": "subtitle",
+          "text": "net10.0, netstandard2.0",
+          "font": "11 400",
+          "position": {
+            "x": 380,
+            "y": 172
+          }
+        }
+      ],
+      "style": {
+        "fill": "#3b6ea5",
+        "stroke": "#2b537c",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+      "type": "dotnet/dependency-graph+project",
+      "shape": "path",
+      "bounds": {
+        "x": 800.5,
+        "y": -40.25,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Pipeline.Core.Tests",
+          "font": "13 600",
+          "position": {
+            "x": 910.5,
+            "y": -14.25
+          }
+        },
+        {
+          "id": "subtitle",
+          "text": "net10.0",
+          "font": "11 400",
+          "position": {
+            "x": 910.5,
+            "y": 1.75
+          }
+        }
+      ],
+      "style": {
+        "fill": "#3b6ea5",
+        "stroke": "#2b537c",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+      "target": "package:Serilog",
+      "route": [
+        {
+          "x": 629.4,
+          "y": 196
+        },
+        {
+          "x": 1160,
+          "y": 378
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5,
+        "dash": [
+          5,
+          4
+        ]
+      }
+    },
+    {
+      "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+      "target": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+      "route": [
+        {
+          "x": 629.4,
+          "y": 196
+        },
+        {
+          "x": 40,
+          "y": 48
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+      "target": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+      "route": [
+        {
+          "x": 629.4,
+          "y": 196
+        },
+        {
+          "x": 270,
+          "y": 158
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "depends:project:src/Pipeline.Core/Pipeline.Core.csproj->package:Serilog",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+      "target": "package:Serilog",
+      "route": [
+        {
+          "x": 260,
+          "y": 48
+        },
+        {
+          "x": 1160,
+          "y": 378
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5,
+        "dash": [
+          5,
+          4
+        ]
+      }
+    },
+    {
+      "id": "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->package:System.Text.Json",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+      "target": "package:System.Text.Json",
+      "route": [
+        {
+          "x": 490,
+          "y": 158
+        },
+        {
+          "x": 0,
+          "y": 28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5,
+        "dash": [
+          5,
+          4
+        ]
+      }
+    },
+    {
+      "id": "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+      "target": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+      "route": [
+        {
+          "x": 490,
+          "y": 158
+        },
+        {
+          "x": 40,
+          "y": 48
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:Serilog",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+      "target": "package:Serilog",
+      "route": [
+        {
+          "x": 1020.5,
+          "y": -12.25
+        },
+        {
+          "x": 1160,
+          "y": 378
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5,
+        "dash": [
+          5,
+          4
+        ]
+      }
+    },
+    {
+      "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:xunit.v3",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+      "target": "package:xunit.v3",
+      "route": [
+        {
+          "x": 1020.5,
+          "y": -12.25
+        },
+        {
+          "x": 1341.6,
+          "y": 208
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5,
+        "dash": [
+          5,
+          4
+        ]
+      }
+    },
+    {
+      "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+      "type": "dotnet/dependency-graph+edge",
+      "source": "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+      "target": "project:src/Pipeline.Core/Pipeline.Core.csproj",
+      "route": [
+        {
+          "x": 1020.5,
+          "y": -12.25
+        },
+        {
+          "x": 40,
+          "y": 48
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "depends:project:src/Pipeline.Core/Pipeline.Core.csproj->package:Serilog",
+    "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+    "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->package:System.Text.Json",
+    "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+    "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+    "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog",
+    "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+    "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:xunit.v3",
+    "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:Serilog",
+    "project:src/Pipeline.Core/Pipeline.Core.csproj",
+    "project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+    "project:src/Pipeline.Cli/Pipeline.Cli.csproj",
+    "project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+    "package:Serilog",
+    "package:System.Text.Json",
+    "package:xunit.v3"
+  ]
+}

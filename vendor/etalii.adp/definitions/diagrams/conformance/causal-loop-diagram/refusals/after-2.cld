@@ -1,0 +1,12 @@
+causal-loop 1
+
+variable population "Population"
+variable births "Births"
+variable deaths "Deaths"
+
+link population -> births +
+link births -> population +
+link population -> deaths +
+
+loop R1 "Births beget births" population births
+loop B2 "B2" deaths

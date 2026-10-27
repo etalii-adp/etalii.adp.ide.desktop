@@ -1,0 +1,230 @@
+atd 0.1
+part of generic/dependencies
+
+// The dependency graph's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+/// Both axes are authored and neither is derived. Nothing here is a time: this type is the timeline diagram with time
+/// taken out.
+coordinates {
+  system canvas {
+    kind: cartesian
+    x: x
+    y: rows
+    orientation: y-down
+    infinite: true
+    grid: { visible: false }
+    snapping: {
+      mode: always
+      userToggle: false
+      bypassModifier: none
+      x: none
+      y: { grid: { spacing: 1 }, direction: nearest }
+      doc: {
+        summary: "Nodes move freely left and right, and land on the nearest row when dropped."
+        rationale: "Rows keep related nodes lined up without giving the vertical axis a meaning."
+      }
+    }
+  }
+  axis x {
+    kind: linear
+    unit: px
+    label: X
+    doc: "A plain canvas coordinate the author owns. It has no ruler, because there is nothing to name along it."
+  }
+  axis rows {
+    kind: linear
+    unit: row
+    scale: 60
+    precision: 0
+    label: Row
+    doc: "Rows 60 canvas units apart. The spacing is a rendering constant, not data: changing it re-spaces every graph without touching a file."
+  }
+  default canvas
+}
+
+/// The look is the host's shared canvas theme in its light and dark values; this type adds only the arrowhead and the
+/// loop a dependency draws when it points backwards. The dark values are the standalone host's dark surface and text,
+/// and for a node's outline the dark border the other notations give one, since the dark theme's own border all but
+/// vanishes on the dark surface.
+notation {
+  theme {
+    tokens: { color.surface: "#FFFFFF", color.border: "#8892A6", color.text: "#1C2333", color.text.muted: "#5A6376" }
+    modes: { dark: { color.surface: "#1E293B", color.border: "#64748B", color.text: "#F1F5F9", color.text.muted: "#94A3B8" } }
+    defaultMode: light
+    followSystem: true
+  }
+  style node {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1.5 }
+    cornerRadius: 6
+    font: { size: 12, color: $color.text }
+    textAlign: center
+    verticalAlign: middle
+  }
+  style dependency { stroke: { color: $color.text.muted, width: 1.5 } }
+
+  node Node {
+    shape: { type: roundedRect, params: { radius: 6 } }
+    /// The node's label, or its id when it has none. Editing it renames the node.
+    label (self.label != '' ? self.label : self.id) as label {
+      parse: { write: [{ set: { label: (value) } }] }
+      editable: inline
+      position: center
+      wrap: none
+      maxLines: 1
+      overflow: ellipsis
+    }
+    style: node
+    size: { fixed: [160, 36] }
+    placement: {
+      system: canvas
+      x: @x
+      y: @row
+      anchor: top-left
+      movable: true
+      resizable: false
+      doc: "Drag anywhere along a row; the node lands on the nearest row when released."
+    }
+    anchors: { mode: fixed, points: [{ id: left, x: 0, y: 0.5 }, { id: right, x: 1, y: 0.5 }] }
+    copyable: false
+    doubleClick: editLabel
+  }
+
+  /// A curve from the dependent to its dependency, with the arrowhead at the dependency.
+  edge DependsOn {
+    line { routing: { plugin: "routing.forwardBezier" }, startDirection: right, endDirection: auto }
+    marker source none
+    marker target arrowFilled
+    label @label as label { at: middle, side: above, distance: 6, editable: inline }
+    style: dependency
+    anchoring: {
+      source: { mode: fixed, points: [{ id: left, x: 0, y: 0.5 }, { id: right, x: 1, y: 0.5 }] }
+      target: { mode: fixed, points: [{ id: left, x: 0, y: 0.5 }, { id: right, x: 1, y: 0.5 }] }
+    }
+    connect: { from: { right: source, left: target }, tool: dependsOn }
+    reconnectable: false
+  }
+}
+
+/// The palette offers one entry, a node. Dependencies are drawn from a node's side anchors rather than picked from
+/// the palette.
+toolbox {
+  tools: {
+    dependsOn: {
+      id: dependsOn
+      creates: DependsOn
+      label: "Depends on"
+      icon: mdi-ray-start-arrow
+      mode: drag
+      createSource: {
+        type: Node
+        initial: { label: "New node", x: (double(position.x)), row: (int(math.round(double(position.y)))) }
+      }
+      createTarget: {
+        type: Node
+        initial: { label: "New node", x: (double(position.x)), row: (int(math.round(double(position.y)))) }
+      }
+      doc: {
+        summary: "Drag from a node's side anchor to another node to make a dependency; release on empty canvas to create the other node there."
+        description: "Dragged out of the right anchor, the dragged node depends on the one it lands on. Dragged out of the left anchor, the direction reverses: the node it lands on depends on the dragged one. Released on empty canvas, a new node labelled \"New node\" is created at the release point and related, as one undo step."
+      }
+    }
+  }
+  group graph "Dependency graph" {
+    /// Something other things can depend on. Drop it on the canvas where it belongs.
+    tool node "Node" {
+      creates: Node
+      icon: mdi-rectangle-outline
+      mode: drop
+      after: none
+      initial: { label: "New node", x: (double(position.x)), row: (int(math.round(double(position.y)))) }
+    }
+  }
+  /// Changing the node, then adding the next one, as two groups. Offered on a graph that could not be read as well:
+  /// the edits refuse there instead.
+  context for Node {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2 }
+    tool "Remove" { kind: delete, group: edit, icon: mdi-delete-outline, shortcut: Delete }
+    tool "Add node to the right" { kind: operation, operation: addRight, group: add, icon: mdi-arrow-expand-right, shortcut: Tab }
+    tool "Add node below" { kind: operation, operation: addBelow, group: add, icon: mdi-arrow-expand-down, shortcut: Enter }
+  }
+  context for DependsOn {
+    placement: menu
+    standardEntries: false
+    tool "Relabel…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2 }
+    tool "Remove dependency" { kind: delete, group: edit, icon: mdi-vector-polyline-remove, shortcut: Delete }
+  }
+  /// Empty canvas, and a toolbox drop there, which runs the same action.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add node here" { kind: operation, operation: addNodeHere, group: add, icon: mdi-plus }
+  }
+  /// A finished connect gesture from a node's side anchor to another node or to empty canvas.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    runSingle: true
+    tool "Depends on" { kind: connect, via: DependsOn, icon: mdi-ray-start-arrow }
+  }
+}
+
+form node for Node {
+  usage: [inspector]
+  section {
+    label: Identity
+    field label "Label"
+  }
+  section {
+    label: Placement
+    field x "X" {
+      widget: number
+      validate: [
+        {
+          rule: (value.trim().matches('^[+-]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$'))
+          message: ('\'' + string(value) + '\' is not a number this graph can place a node at.')
+          timing: commit
+        }
+      ]
+    }
+    field row "Row" {
+      widget: number
+      validate: [
+        {
+          rule: (value.trim().matches('^[+-]?[0-9]+$'))
+          message: ('\'' + string(value) + '\' is not a number this graph can place a node at.')
+          timing: commit
+        }
+      ]
+    }
+  }
+}
+
+form dependency for DependsOn {
+  usage: [inspector]
+  section {
+    label: Identity
+    field label "Label"
+    /// The dependent, by the id the file names, whether or not a node holds it.
+    item from "Depends on (from)" {
+      kind: computed
+      value: (self.source.id)
+      readOnlyReasons: ["Reconnecting is done on the canvas, by dragging the dependency's end to another node."]
+    }
+    /// The dependency, by the id the file names, whether or not a node holds it.
+    item to "Depended on (to)" {
+      kind: computed
+      value: (self.target.id)
+      readOnlyReasons: ["Reconnecting is done on the canvas, by dragging the dependency's end to another node."]
+    }
+  }
+}
+
+/// No automatic layout: every position is the author's.
+layout {
+  default manual
+  algorithm manual { algorithm: none }
+  trigger: manual
+}

@@ -1,0 +1,275 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/cases/c4/deployment/operations.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "boundary:deploymentnode_Senderdevice_1",
+        "type": "deployment node",
+        "width": 332.0,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_WebBrowser_2",
+        "type": "deployment node",
+        "width": 455.20000000000005,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        },
+        "parent": "boundary:deploymentnode_Senderdevice_1"
+      },
+      {
+        "id": "containerinstance_spa_3",
+        "type": "container instance",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:deploymentnode_WebBrowser_2"
+      },
+      {
+        "id": "boundary:deploymentnode_Courierhandset_4",
+        "type": "deployment node",
+        "width": 370.5,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        }
+      },
+      {
+        "id": "containerinstance_mobile_5",
+        "type": "container instance",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:deploymentnode_Courierhandset_4"
+      },
+      {
+        "id": "boundary:deploymentnode_Regionaldatacentre_6",
+        "type": "deployment node",
+        "width": 455.20000000000005,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        }
+      },
+      {
+        "id": "boundary:deploymentnode_web_7",
+        "type": "deployment node",
+        "width": 339.70000000000005,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        },
+        "parent": "boundary:deploymentnode_Regionaldatacentre_6"
+      },
+      {
+        "id": "boundary:deploymentnode_ApacheTomcat_8",
+        "type": "deployment node",
+        "width": 347.40000000000003,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        },
+        "parent": "boundary:deploymentnode_web_7"
+      },
+      {
+        "id": "containerinstance_web_9",
+        "type": "container instance",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:deploymentnode_ApacheTomcat_8"
+      },
+      {
+        "id": "containerinstance_api_10",
+        "type": "container instance",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:deploymentnode_ApacheTomcat_8"
+      },
+      {
+        "id": "loadBalancer",
+        "type": "infrastructure node",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:deploymentnode_Regionaldatacentre_6"
+      },
+      {
+        "id": "boundary:deploymentnode_kafka_11",
+        "type": "deployment node",
+        "width": 355.1,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        },
+        "parent": "boundary:deploymentnode_Regionaldatacentre_6"
+      },
+      {
+        "id": "containerinstance_broker_12",
+        "type": "container instance",
+        "width": 240.0,
+        "height": 118.0,
+        "parent": "boundary:deploymentnode_kafka_11"
+      },
+      {
+        "id": "boundary:dbPrimary",
+        "type": "deployment node",
+        "width": 378.20000000000005,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        },
+        "parent": "boundary:deploymentnode_Regionaldatacentre_6"
+      },
+      {
+        "id": "containerinstance_database_13",
+        "type": "container instance",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:dbPrimary"
+      },
+      {
+        "id": "boundary:dbStandby",
+        "type": "deployment node",
+        "width": 378.20000000000005,
+        "height": 0.0,
+        "attributes": {
+          "boundary": true
+        },
+        "parent": "boundary:deploymentnode_Regionaldatacentre_6"
+      },
+      {
+        "id": "containerinstance_database_14",
+        "type": "container instance",
+        "width": 240.0,
+        "height": 98.4,
+        "parent": "boundary:dbStandby"
+      }
+    ],
+    "edges": [
+      {
+        "id": "containerinstance_web_9->containerinstance_spa_3#1",
+        "source": "containerinstance_web_9",
+        "target": "containerinstance_spa_3"
+      },
+      {
+        "id": "containerinstance_spa_3->containerinstance_api_10#2",
+        "source": "containerinstance_spa_3",
+        "target": "containerinstance_api_10"
+      },
+      {
+        "id": "containerinstance_mobile_5->containerinstance_api_10#3",
+        "source": "containerinstance_mobile_5",
+        "target": "containerinstance_api_10"
+      },
+      {
+        "id": "containerinstance_api_10->containerinstance_database_13#4",
+        "source": "containerinstance_api_10",
+        "target": "containerinstance_database_13"
+      },
+      {
+        "id": "containerinstance_api_10->containerinstance_database_14#5",
+        "source": "containerinstance_api_10",
+        "target": "containerinstance_database_14"
+      },
+      {
+        "id": "containerinstance_api_10->containerinstance_broker_12#6",
+        "source": "containerinstance_api_10",
+        "target": "containerinstance_broker_12"
+      },
+      {
+        "id": "containerinstance_broker_12->containerinstance_api_10#7",
+        "source": "containerinstance_broker_12",
+        "target": "containerinstance_api_10"
+      },
+      {
+        "id": "dbPrimary->dbStandby#8",
+        "source": "dbPrimary",
+        "target": "dbStandby"
+      }
+    ]
+  },
+  "args": {
+    "mode": "nest",
+    "direction": "'tb'",
+    "rankSeparation": "120",
+    "nodeSeparation": "60",
+    "pinsIgnored": "true",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "containerinstance_spa_3": {
+        "x": 389.5,
+        "y": 1375.2
+      },
+      "containerinstance_mobile_5": {
+        "x": 431.85,
+        "y": 32.0
+      },
+      "containerinstance_web_9": {
+        "x": 96.0,
+        "y": 938.0
+      },
+      "containerinstance_api_10": {
+        "x": 396.0,
+        "y": 938.0
+      },
+      "loadBalancer": {
+        "x": 465.1,
+        "y": 334.0
+      },
+      "containerinstance_broker_12": {
+        "x": 220.45,
+        "y": 584.4
+      },
+      "containerinstance_database_13": {
+        "x": 635.55,
+        "y": 594.2
+      },
+      "containerinstance_database_14": {
+        "x": 792.0,
+        "y": 947.8
+      },
+      "boundary:deploymentnode_Senderdevice_1": {
+        "x": 325.5,
+        "y": 1311.2
+      },
+      "boundary:deploymentnode_WebBrowser_2": {
+        "x": 357.5,
+        "y": 1343.2
+      },
+      "boundary:deploymentnode_Courierhandset_4": {
+        "x": 399.85,
+        "y": 0.0
+      },
+      "boundary:deploymentnode_Regionaldatacentre_6": {
+        "x": 0.0,
+        "y": 302.0
+      },
+      "boundary:deploymentnode_web_7": {
+        "x": 32.0,
+        "y": 874.0
+      },
+      "boundary:deploymentnode_ApacheTomcat_8": {
+        "x": 64.0,
+        "y": 906.0
+      },
+      "boundary:deploymentnode_kafka_11": {
+        "x": 188.45,
+        "y": 552.4
+      },
+      "boundary:dbPrimary": {
+        "x": 603.55,
+        "y": 562.2
+      },
+      "boundary:dbStandby": {
+        "x": 760.0,
+        "y": 915.8
+      }
+    }
+  }
+}

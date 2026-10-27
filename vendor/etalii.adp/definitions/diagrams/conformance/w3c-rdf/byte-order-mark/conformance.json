@@ -1,0 +1,89 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/byte-order-mark.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "byte-order-mark.ttl",
+    "registration": "byte-order-mark.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/moscow",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/moscow",
+          "display": "ex:moscow",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Москва",
+          "rows.0.annotation": "@ru",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/prague",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/prague",
+          "display": "ex:prague",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Praha",
+          "rows.0.annotation": "@cs",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/moscow|http://example.org/twin|res:http://example.org/prague",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/moscow",
+        "target": "res:http://example.org/prague",
+        "attributes": {
+          "fromElementId": "res:http://example.org/moscow",
+          "toElementId": "res:http://example.org/prague",
+          "predicate": "ex:twin",
+          "predicateIri": "http://example.org/twin"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

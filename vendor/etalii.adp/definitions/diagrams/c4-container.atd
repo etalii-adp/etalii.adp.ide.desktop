@@ -1,0 +1,949 @@
+atd 0.1
+
+/// The applications and data stores that make up a system, and how they talk to each other.
+///
+/// A C4 container diagram zooms into one software system and shows its containers - applications and data stores - with
+/// the technology choices in them and how they communicate, together with the people and systems around them. Its
+/// audience is technical people inside and outside the team. It is one view of a C4 model kept in a Structurizr DSL
+/// document.
+///
+/// In the ADP catalogue this diagram type is `c4/container`. Every sentence, label, code and id below is the standalone
+/// tool's, as its parity transcript (`Parity/c4.transcript.json`) records them. The six C4 definitions share one model
+/// of the workspace and differ only in their viewpoint, toolbox, labels and origin. What DISL 0.4 and FBL 0.7 cannot
+/// state is written down in `c4-container.md` beside this file, and the wire ids the standalone client and backend
+/// share are declared under `x-c4`.
+diagram c4/container version "0.2.0" {
+  label "C4 container diagram"
+  id: "net.etalii.adp.c4.container"
+  defaultLocale: "en"
+  authors: [{ name: "Peter Vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/c4"
+  icon: "mdi:package-variant"
+  fileExtension: "dsl"
+  limits: { celCost: 10000000 }
+  requires: { conformance: standard }
+  doc {
+    helpUrl: "https://c4model.com/diagrams/container"
+    tags: ["c4", "architecture", "software delivery", "systems and strategy"]
+    seeAlso: [{ title: "What DISL and FBL cannot express for this tool", href: "c4-container.md" }, {
+      title: "The C4 model",
+      href: "https://c4model.com"
+    }
+    , { title: "Structurizr DSL", href: "https://docs.structurizr.com/dsl" }, {
+      title: "Standalone implementation"
+      href: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/c4"
+    }
+    ]
+  }
+
+  import "c4-container.notation.atd"
+  import "c4-container.structurizr.atd"
+  requires capability reader.structurizr@^1
+  requires capability layout.rankedBoundaries@^1
+
+  /// The C4 model of one Structurizr DSL workspace, the same in all six C4 definitions: every element kind and every
+  /// relationship, whichever view a reading shows.
+  model {
+    /// One diagram is one view of a Structurizr DSL workspace; its attributes are the workspace's name and that view's
+    /// own statements. The view kind is the reading's viewpoint, so the six C4 definitions share this metamodel and
+    /// every one of them reads every view of the workspace.
+    document {
+      /// The workspace's name, as `workspace "…"` writes it.
+      attribute workspaceName: string readonly default "" { label: "Workspace" }
+      /// The key of the view this reading shows, which a registration's `view:` names.
+      attribute viewKey: string readonly default "" { label: "View key" }
+      /// The title the view declares with a `title` line.
+      attribute title: string readonly default "" { label: "Title" }
+      /// The title drawn above the diagram (`C4ElementMapper.TitleOf`): the declared title, else one made from the
+      /// view's kind and the name of what it is scoped to, a landscape naming the workspace and a deployment view its
+      /// environment.
+      attribute heading: string {
+        derived: (self.title != '' ? self.title : (env.viewpoint == 'systemLandscape' ? (self.workspaceName != '' ? 'System Landscape diagram for ' + self.workspaceName : 'System Landscape diagram') : cel.bind(scopeName, self.scope != null ? self.scope.name : '', env.viewpoint == 'deployment' && self.environment != '' ? (scopeName != '' ? 'Deployment diagram for ' + scopeName + ' - ' + self.environment : 'Deployment diagram - ' + self.environment) : (scopeName != '' ? viewTitle(env.viewpoint) + ' diagram for ' + scopeName : viewTitle(env.viewpoint) + ' diagram'))))
+      }
+      /// What the view is scoped to: a software system, or a container for a component or dynamic view. Null for a
+      /// landscape, and when the scope names nothing.
+      attribute scope: Element readonly { label: "Scope" }
+      /// A deployment view's environment.
+      attribute environment: string readonly default "" { label: "Environment" }
+      /// The view's `include` statements, each an identifier or `*`.
+      attribute includes: string many readonly { label: "Include" }
+      /// The view's `exclude` statements, each an identifier.
+      attribute excludes: string many readonly { label: "Exclude" }
+      /// The direction an `autoLayout` statement names. While the view declares one, every stored position is ignored
+      /// (companion, gap 9).
+      attribute autoLayout: RankDirection readonly { label: "Automatic layout" }
+      attribute rankSeparation: int readonly default 120 { label: "Rank separation" }
+      attribute nodeSeparation: int readonly default 60 { label: "Node separation" }
+    }
+
+    enum RankDirection {
+      tb { label: "Top to bottom" }
+      bt { label: "Bottom to top" }
+      lr { label: "Left to right" }
+      rl { label: "Right to left" }
+    }
+
+    /// What every C4 element has. Every element is a node; containment is the element's parent.
+    element Element {
+      /// The key of `natural` ids: the identifier the body declares the element under (`web = container …`), by which a
+      /// relationship names its ends; read by the binding, and made from the name by `identifierFor` when an element is
+      /// added (gap 11).
+      attribute identifier: string readonly default "" { key: true }
+      attribute name: string default "" { label: "Name" }
+      attribute description: text default "" { label: "Description" }
+      /// Read for every kind as the body writes it; only containers, components and the two node kinds have one in C4,
+      /// and only theirs is shown or written.
+      attribute technology: string default "" { label: "Technology" }
+      attribute tags: string many readonly {
+        label: "Tags",
+        readOnlyReasons: ["Tags are edited in the document until an action exists for them."]
+      }
+      /// Outside the scope being described, which mutes the card.
+      attribute external: bool {
+        derived: (self.tags.exists(t, lower(t) == 'external' || lower(t) == 'existing system'))
+      }
+      /// Tagged Database, which draws a cylinder.
+      attribute database: bool { derived: (self.tags.exists(t, lower(t) == 'database')) }
+      /// The legend entry the element counts toward.
+      attribute legendLabel: string { derived: (kindTag(self.type) + (self.external ? ' (external)' : '')) }
+      abstract: true
+      labelAttribute: "name"
+    }
+
+    /// A user of the software.
+    element Person extends Element {
+      label "Person"
+    }
+
+    element SoftwareSystem extends Element {
+      label "Software system"
+      contains Container
+    }
+
+    /// An application or a data store - not a Docker container.
+    element Container extends Element {
+      label "Container"
+      contains Component
+    }
+
+    element Component extends Element {
+      label "Component"
+    }
+
+    element DeploymentNode extends Element {
+      label "Deployment node"
+      contains DeploymentNode, InfrastructureNode, ContainerInstance, SoftwareSystemInstance
+    }
+
+    element InfrastructureNode extends Element {
+      label "Infrastructure node"
+    }
+
+    element ContainerInstance extends Element {
+      label "Container instance"
+      attribute container: Container readonly { label: "Container" }
+    }
+
+    element SoftwareSystemInstance extends Element {
+      label "Software system instance"
+      attribute softwareSystem: SoftwareSystem readonly { label: "Software system" }
+    }
+
+    /// An `!include` the body names. ADP does not follow it; no viewpoint draws it, and `includeNotFollowed` reports
+    /// it.
+    element IncludedFile {
+      label "Included file"
+      attribute path: string readonly default "" { label: "Path" }
+    }
+
+    /// A relationship as the body states it. An end that names nothing is kept unset (`typeMap`, DISL 11.2) and
+    /// reported by `danglingRelationship`. A view draws it as itself while both ends are shown and no earlier
+    /// relationship lands on the same pair (`drawsStored`); otherwise what is drawn is a derived line.
+    relation Relationship from Element to Element {
+      label "Relationship"
+      /// The identifier the body writes at the source end, as written, also when it names no element and `source` is
+      /// unset (c4-context.md, gap 14); read by the binding, never written.
+      attribute sourceWritten: string readonly default ""
+      /// The identifier the body writes at the target end, as written (gap 14).
+      attribute targetWritten: string readonly default ""
+      attribute description: string default "" { label: "Description" }
+      attribute technology: string default "" { label: "Technology" }
+      attribute tags: string many readonly { label: "Tags" }
+      directed: true
+      allowSelfLoops: true
+      allowParallel: true
+    }
+
+    /// A statement of the dynamic view this reading shows. No viewpoint draws it: `InteractionLine` does.
+    relation Interaction from Element to Element {
+      label "Interaction"
+      /// The identifier the body writes at the source end, as written, also when it names no element and `source` is
+      /// unset (c4-context.md, gap 14); read by the binding, never written.
+      attribute sourceWritten: string readonly default ""
+      /// The identifier the body writes at the target end, as written (gap 14).
+      attribute targetWritten: string readonly default ""
+      attribute description: string default "" { label: "Description" }
+      /// The interaction's number, as written or counted.
+      attribute order: string default "" { label: "Order" }
+      directed: true
+      allowSelfLoops: true
+      allowParallel: true
+    }
+
+    /// A line a view draws for relationships it does not draw as themselves.
+    relation LiftedRelationship from Element to Element {
+      label "Relationship"
+      attribute description: string
+      attribute technology: string
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      derived: {
+        from: (env.viewpoint in ['systemLandscape', 'systemContext', 'container', 'component'] ? cel.bind(pairs, diagram.relationsOfType('Relationship').map(r, [r, lifted(r, env.viewpoint)]).filter(p, p[1].size() == 2), pairs.filter(p, cel.bind(first, pairs.filter(q, q[1] == p[1])[0], first[1] != [first[0].source, first[0].target])).map(p, p[0])) : [])
+        key: ([lifted(item, env.viewpoint)[0].id, lifted(item, env.viewpoint)[1].id])
+        id: (lifted(item, env.viewpoint)[0].id + '->' + lifted(item, env.viewpoint)[1].id + '@' + string(item.location().orValue({
+          'line': 0
+        }
+        ).line))
+        source: (lifted(item, env.viewpoint)[0])
+        target: (lifted(item, env.viewpoint)[1])
+        attributes: { description: (item.description), technology: (item.technology) }
+        sources: (group)
+        reason: "That element is no longer in this model."
+        doc: "Relationships lifted to the nearest shown ancestor of each end, on a landscape, context, container or component view, and merged: the relationships that land on one pair draw one line, the first one's, with its description and technology and its line in the id. A pair whose first relationship is drawn as itself is not drawn again. No `edits`: the tool offers no menu and no rows on such a line (finding A10)."
+      }
+    }
+
+    /// A line a deployment view draws between two instances.
+    relation InstanceLine from Element to Element {
+      label "Relationship"
+      attribute description: string
+      attribute technology: string
+      directed: true
+      allowSelfLoops: false
+      allowParallel: false
+      derived: {
+        from: (env.viewpoint == 'deployment' ? cel.bind(entries, deploymentEntries(), entries.filter(x, !x[5] && entries.filter(y, y[3] == x[3] && y[4] == x[4])[0] == x)) : [])
+        id: (item[3] + '->' + item[4] + '@' + string(item[0].location().orValue({ 'line': 0 }).line))
+        source: (item[1])
+        target: (item[2])
+        attributes: { description: (item[0].description), technology: (item[0].technology) }
+        sources: ([item[0]])
+        reason: "That element is no longer in this model."
+        doc: "On a deployment view, a relationship between two elements the view does not show, drawn once between every two distinct instances of them, with the relationship's line in the id. No `edits` (finding A10)."
+      }
+    }
+
+    /// A numbered line of a dynamic view.
+    relation InteractionLine from Element to Element {
+      label "Interaction"
+      attribute description: string
+      attribute order: string
+      directed: true
+      allowSelfLoops: true
+      allowParallel: true
+      derived: {
+        from: (env.viewpoint == 'dynamic' ? diagram.relationsOfType('Interaction').filter(i, isMember(i.source, 'dynamic') && isMember(i.target, 'dynamic')) : [])
+        id: (writtenEnd(item, 'source') + '->' + writtenEnd(item, 'target') + '@' + string(item.location().orValue({
+          'line': 0
+        }
+        ).line))
+        source: (item.source)
+        target: (item.target)
+        attributes: { description: (item.description), order: (item.order) }
+        sources: ([item])
+        reason: "That element is no longer in this model."
+        doc: "A dynamic view's interactions, in their order, each between two shown elements, with its ends as written and its line in the id. No `edits` (finding A10)."
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// The identifier a relationship's or an interaction's `end` ('source' or 'target') is written with in the body,
+  /// as written, also when it names no element and the end is unset in the model (c4-context.md, gap 14; DISL 11.2).
+  /// The binding reads it into `sourceWritten` and `targetWritten`; a relation made by an operation has the resolved
+  /// end's id.
+  fn writtenEnd(relation: dyn, end: string) -> string {
+    let written = end == 'source' ? relation.sourceWritten : relation.targetWritten
+    if written != '' {
+      return written
+    }
+    return end == 'source' ? (relation.source != null ? relation.source.id : '') : (relation.target != null ? relation.target.id : '')
+  }
+
+  /// The identifier of a new element (`C4Placement.IdentifierFor`, gap 11): the letters and digits of its name, the
+  /// first lowered, `_` before a leading digit and `element` when nothing is left; then `web2`, `web3` against an
+  /// identifier the model already has, compared without regard to case. CEL lowers ASCII letters only, so a name whose
+  /// first letter is not ASCII keeps it as written.
+  fn identifierFor(name: string, taken: list<string>) -> string {
+    var candidate = ''
+    var i = 0
+    while i < size(name) limit 100000 {
+      let c = name.charAt(i)
+      if c.matches('^[\\pL\\pN]$') {
+        candidate = candidate == '' ? c.lowerAscii() : candidate + c
+      }
+      i = i + 1
+    }
+    if candidate == '' {
+      candidate = 'element'
+    }
+    if candidate.matches('^\\pN') {
+      candidate = '_' + candidate
+    }
+    let used = taken.map(t, t.upperAscii())
+    if !(candidate.upperAscii() in used) {
+      return candidate
+    }
+    var n = 2
+    while (candidate + string(n)).upperAscii() in used limit 100000 {
+      n = n + 1
+    }
+    return candidate + string(n)
+  }
+
+  /// What a sentence and the From and To rows call an element: its name, or its identifier when the name is empty
+  /// (`C4RuleSet.Label`).
+  fn shownName(e: dyn) -> string {
+    return e.name != '' ? e.name : e.id
+  }
+
+  /// Two identifiers compared as the DSL compares them, without regard to case, as `persistence.ids.compare` says for
+  /// every lookup the runtime makes itself.
+  fn sameId(a: string, b: string) -> bool {
+    return lower(a) == lower(b)
+  }
+
+  /// A kind as a finding or a refusal spells it inside a sentence.
+  fn spelled(typeName: string) -> string {
+    return {
+      'Person': 'person',
+      'SoftwareSystem': 'software system',
+      'Container': 'container',
+      'Component': 'component',
+      'DeploymentNode': 'deployment node',
+      'InfrastructureNode': 'infrastructure node',
+      'ContainerInstance': 'container instance',
+      'SoftwareSystemInstance': 'software system instance'
+    }
+    [typeName]
+  }
+
+  /// A kind as the Kind row shows it.
+  fn kindName(typeName: string) -> string {
+    return {
+      'Person': 'Person',
+      'SoftwareSystem': 'Software system',
+      'Container': 'Container',
+      'Component': 'Component',
+      'DeploymentNode': 'Deployment node',
+      'InfrastructureNode': 'Infrastructure node',
+      'ContainerInstance': 'Container instance',
+      'SoftwareSystemInstance': 'Software system instance'
+    }
+    [typeName]
+  }
+
+  /// A kind as the legend and the bracketed type line name it (`C4Theme.KindTag`, `C4LayoutEngine.TypeLineOf`): an
+  /// instance is named as what it instantiates.
+  fn kindTag(typeName: string) -> string {
+    return {
+      'Person': 'Person',
+      'SoftwareSystem': 'Software System',
+      'Container': 'Container',
+      'Component': 'Component',
+      'DeploymentNode': 'Deployment Node',
+      'InfrastructureNode': 'Infrastructure Node',
+      'ContainerInstance': 'Container',
+      'SoftwareSystemInstance': 'Software System'
+    }
+    [typeName]
+  }
+
+  /// The four kinds that have a technology in C4.
+  fn hasTechnology(e: dyn) -> bool {
+    return e.isA('Container') || e.isA('Component') || e.isA('DeploymentNode') || e.isA('InfrastructureNode')
+  }
+
+  /// What an instance instantiates, or null.
+  fn referenced(e: dyn) -> dyn {
+    return e.isA('ContainerInstance') ? e.container : (e.isA('SoftwareSystemInstance') ? e.softwareSystem : null)
+  }
+
+  /// The name drawn on a card: an instance without a name of its own shows the name of what it instantiates
+  /// (`C4LayoutEngine.Displayed`).
+  fn displayedName(e: dyn) -> string {
+    return e.name == '' && referenced(e) != null ? referenced(e).name : e.name
+  }
+
+  fn displayedDescription(e: dyn) -> string {
+    return e.description == '' && referenced(e) != null ? referenced(e).description : e.description
+  }
+
+  fn displayedTechnology(e: dyn) -> string {
+    return e.technology == '' && referenced(e) != null ? referenced(e).technology : e.technology
+  }
+
+  /// The bracketed line under a card's name: its kind, and its technology where it has one.
+  fn typeLine(e: dyn) -> string {
+    return displayedTechnology(e) != '' ? '[' + kindTag(e.type) + ': ' + displayedTechnology(e) + ']' : '[' + kindTag(e.type) + ']'
+  }
+
+  /// The kinds a view of each kind shows (`C4RuleSet.PermittedKinds`).
+  fn permitted(viewpoint: string) -> list<string> {
+    return {
+      'systemLandscape': ['Person', 'SoftwareSystem'],
+      'systemContext': ['Person', 'SoftwareSystem'],
+      'container': ['Person', 'SoftwareSystem', 'Container'],
+      'component': ['Person', 'SoftwareSystem', 'Container', 'Component'],
+      'dynamic': ['Person', 'SoftwareSystem', 'Container', 'Component'],
+      'deployment': ['DeploymentNode', 'InfrastructureNode', 'ContainerInstance', 'SoftwareSystemInstance']
+    }
+    [viewpoint]
+  }
+
+  /// A view's kind as a finding spells it.
+  fn viewSpelled(viewpoint: string) -> string {
+    return {
+      'systemLandscape': 'system landscape',
+      'systemContext': 'system context',
+      'container': 'container',
+      'component': 'component',
+      'dynamic': 'dynamic',
+      'deployment': 'deployment'
+    }
+    [viewpoint]
+  }
+
+  /// A view's kind as its default title names it.
+  fn viewTitle(viewpoint: string) -> string {
+    return {
+      'systemLandscape': 'System Landscape',
+      'systemContext': 'System Context',
+      'container': 'Container',
+      'component': 'Component',
+      'dynamic': 'Dynamic',
+      'deployment': 'Deployment'
+    }
+    [viewpoint]
+  }
+
+  /// Whether the view shows `e` (`C4RuleSet.MembersOf`): an element its `include` names, of any kind; with `include *`,
+  /// every element of a kind the view permits, in the whole model; on a dynamic view, everything an interaction names;
+  /// less what `exclude` names, and less the element a container or component view is scoped to, which is drawn as the
+  /// boundary instead. Identifiers are compared without regard to case. The tool reads no wildcard but a lone `*`: an
+  /// include such as `web*` names nothing, so an include is compared as an identifier, not matched with `matchesGlob`,
+  /// which would select `webApp`.
+  fn isMember(e: dyn, viewpoint: string) -> bool {
+    // uses: ["diagram"]
+    return e != null && e.kind == 'node' && (diagram.includes.exists(i, i != '*' && sameId(i, e.id)) || ('*' in diagram.includes && e.type in permitted(viewpoint)) || (viewpoint == 'dynamic' && diagram.relationsOfType('Interaction').exists(r, r.source == e || r.target == e))) && !diagram.excludes.exists(x, sameId(x, e.id)) && !(viewpoint in ['container', 'component'] && diagram.scope != null && diagram.scope == e)
+  }
+
+  /// The element `e` is drawn as: itself when the view shows it, else its nearest shown ancestor (`ancestors()` lists
+  /// the parent first), else null (`C4ElementMapper.NearestShown`).
+  fn liftTo(e: dyn, viewpoint: string) -> dyn {
+    // uses: ["diagram"]
+    return e == null ? null : ([e] + e.ancestors()).filter(a, isMember(a, viewpoint)).first().orValue(null)
+  }
+
+  /// The two elements a relationship is drawn between on the view, or nothing: when an end has no shown element, or
+  /// when both ends lift to one element, which is that element talking to itself.
+  fn lifted(r: dyn, viewpoint: string) -> list<dyn> {
+    // uses: ["diagram"]
+    return cel.bind(s, liftTo(r.source, viewpoint), cel.bind(t, liftTo(r.target, viewpoint), s != null && t != null && !sameId(s.id, t.id) ? [s, t] : []))
+  }
+
+  /// The first relationship, in the order the body declares them, that is drawn between the same two elements as `r`:
+  /// several relationships that collapse onto one pair draw one line, the first one's.
+  fn firstOnPair(r: dyn, viewpoint: string) -> dyn {
+    // uses: ["diagram"]
+    return diagram.relationsOfType('Relationship').filter(x, lifted(x, viewpoint).size() == 2 && lifted(x, viewpoint) == lifted(r, viewpoint))[0]
+  }
+
+  /// Whether a relationship is drawn between its own two ends, rather than lifted.
+  fn isDirect(r: dyn, viewpoint: string) -> bool {
+    // uses: ["diagram"]
+    return lifted(r, viewpoint) == [r.source, r.target]
+  }
+
+  /// The instances of `e` a deployment view shows.
+  fn instancesOf(e: dyn) -> list<dyn> {
+    // uses: ["diagram"]
+    return e == null ? [] : diagram.nodes.filter(n, referenced(n) != null && referenced(n) == e && isMember(n, 'deployment'))
+  }
+
+  /// What a deployment view draws, in the order the body declares the relationships
+  /// (`C4LayoutEngine.DeploymentRelationshipsOf`): a relationship between two shown elements as itself, keyed by its
+  /// ends as written; any other once between every two distinct instances of its ends, keyed by the instances. Each
+  /// entry is `[relationship, source, target, key, key, drawn as itself]`.
+  fn deploymentEntries() -> list<list<dyn>> {
+    // uses: ["diagram"]
+    return diagram.relationsOfType('Relationship').map(r, isMember(r.source, 'deployment') && isMember(r.target, 'deployment') ? [[r, r.source, r.target, writtenEnd(r, 'source'), writtenEnd(r, 'target'), true]] : instancesOf(r.source).map(a, instancesOf(r.target).filter(b, !sameId(a.id, b.id)).map(b, [r, a, b, a.id, b.id, false])).flatten()).flatten()
+  }
+
+  /// The first entry with the same key: one line is drawn per key, the first one's.
+  fn firstEntry(entry: list<dyn>) -> list<dyn> {
+    // uses: ["diagram"]
+    return deploymentEntries().filter(y, y[3] == entry[3] && y[4] == entry[4])[0]
+  }
+
+  /// Whether the view draws a stored relationship as itself, with its own id, menu and rows. A dynamic view draws its
+  /// interactions instead.
+  fn drawsStored(r: dyn, viewpoint: string) -> bool {
+    // uses: ["diagram"]
+    return viewpoint == 'dynamic' ? false : (viewpoint == 'deployment' ? deploymentEntries().exists(x, x[0] == r && x[5] && firstEntry(x) == x) : lifted(r, viewpoint).size() == 2 && isDirect(r, viewpoint) && firstOnPair(r, viewpoint) == r)
+  }
+
+  /// Whether a relationship crosses `e`: one end is `e` or inside it and the other is not, so a relationship between
+  /// two containers of one system does not connect the system (`C4RuleSet.ConnectedElements`). Compared by identifier,
+  /// as the tool compares them: of two elements of one identifier, a relationship that names the first connects the
+  /// second too.
+  fn reaches(r: dyn, e: dyn) -> bool {
+    return cel.bind(s, r.source == null ? [] : ([r.source] + r.source.ancestors()).map(a, a.id), cel.bind(t, r.target == null ? [] : ([r.target] + r.target.ancestors()).map(a, a.id), (e.id in s) != (e.id in t)))
+  }
+
+  /// What a line says: its description, and its technology in brackets.
+  fn lineLabel(description: string, technology: string) -> string {
+    return technology != '' ? description + ' [' + technology + ']' : description
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// Every rule is about the model, never about one reading of it, so every C4 definition reports the same findings for
+  /// a workspace whichever view is open. The tool reports them element by element, which DISL's order by rule cannot
+  /// state (companion, gap 10). Its finding `c4.unknown-view-scope` ("The '<key>' view is scoped to '<id>', which the
+  /// model does not declare.", at the view's line) is not a rule here: a View exposes neither the scope it was written
+  /// with nor its line (companion, gaps 13 and 14).
+  constraints {
+    defaults: { severity: warning, timing: [live, save] }
+    blockSaveOn: never
+    builtin std.duplicateId {
+      enabled: false
+      doc "Two elements of one identifier are both read and the first is the one a lookup finds, as today; reporting it is a change of its own (Q4)."
+    }
+    builtin std.references {
+      enabled: false
+      doc "A relationship whose end names nothing is reported once, by `danglingRelationship`, in the tool's sentence (Q4, finding A13)."
+    }
+    builtin std.missingId {
+      enabled: false
+      doc "An element declared without an identifier is read without a finding, as today (finding A8, Q7)."
+    }
+    builtin std.containment {
+      enabled: false
+      doc "An element is read wherever the body declares it, and one in the wrong place is reported by `misplacedElement`, in the tool's sentence."
+    }
+
+    /// Reported without a location, as today (finding B11, Q4).
+    constraint includeNotFollowed for IncludedFile {
+      label "Include not followed"
+      rule false
+      message ("This model includes '" + self.path + "', which ADP does not read. Anything declared there is missing from this diagram, and ADP will not edit it.")
+      code: "c4.include-not-followed"
+      target: ([])
+      location: (null)
+    }
+
+    constraint missingDescription for Person, SoftwareSystem, Container, Component {
+      label "Missing description"
+      rule self.description != ''
+      message ("'" + shownName(self) + "' has no description. C4 asks for a short description on every element, so a reader can tell at a glance what it is responsible for.")
+      code: "c4.missing-description"
+      attribute: "description"
+    }
+
+    constraint missingDeploymentDescription for DeploymentNode {
+      label "Missing description"
+      rule self.description != ''
+      message ("'" + shownName(self) + "' has no description. C4 asks for a short description on every element, so a reader can tell at a glance what it is responsible for.")
+      code: "c4.missing-deployment-description"
+      attribute: "description"
+    }
+
+    constraint missingInfrastructureDescription for InfrastructureNode {
+      label "Missing description"
+      rule self.description != ''
+      message ("'" + shownName(self) + "' has no description. C4 asks for a short description on every element, so a reader can tell at a glance what it is responsible for.")
+      code: "c4.missing-infrastructure-description"
+      attribute: "description"
+    }
+
+    constraint missingTechnology for Container, Component {
+      label "Missing technology"
+      rule self.technology != ''
+      message ("'" + shownName(self) + "' has no technology. C4 asks for one explicitly on every " + self.type.lowerAscii() + ".")
+      code: "c4.missing-technology"
+      attribute: "technology"
+    }
+
+    constraint missingDeploymentTechnology for DeploymentNode {
+      label "Missing technology"
+      rule self.technology != ''
+      message ("'" + shownName(self) + "' names no technology. A deployment diagram is read to find out what actually runs where, so say what this node is.")
+      code: "c4.missing-deployment-technology"
+      attribute: "technology"
+    }
+
+    constraint missingInfrastructureTechnology for InfrastructureNode {
+      label "Missing technology"
+      rule self.technology != ''
+      message ("'" + shownName(self) + "' names no technology. A deployment diagram is read to find out what actually runs where, so say what this node is.")
+      code: "c4.missing-infrastructure-technology"
+      attribute: "technology"
+    }
+
+    /// Silent while the model declares no view. A relationship connects the elements it crosses: its ends and their
+    /// ancestors, less the ancestors both ends share.
+    constraint disconnectedElement for Person, SoftwareSystem, Container, Component {
+      label "Disconnected element"
+      when diagram.views.size() > 0
+      rule diagram.relationsOfType('Relationship').exists(r, reaches(r, self))
+      message ("'" + shownName(self) + "' is in no relationship at all. An element nothing reaches and that reaches nothing is either unfinished or left over.")
+      code: "c4.disconnected-element"
+      over: model
+    }
+
+    constraint misplacedElement for Container, Component {
+      label "Misplaced element"
+      rule cel.bind(required, self.isA('Container') ? 'SoftwareSystem' : 'Container', self.parent != null && self.parent.type == required)
+      message (cel.bind(required, self.isA('Container') ? 'software system' : 'container', self.parent == null ? "'" + shownName(self) + "' is a " + spelled(self.type) + " declared outside any " + required + ". In C4 a " + spelled(self.type) + " is part of a " + required + "." : "'" + shownName(self) + "' is a " + spelled(self.type) + " inside a " + spelled(self.parent.type) + ". In C4 a " + spelled(self.type) + " is part of a " + required + "."))
+      code: "c4.misplaced-element"
+    }
+
+    /// Once per relationship, naming the source when both ends name nothing, at the relationship's line (finding A13).
+    constraint danglingRelationship for Relationship {
+      label "Dangling relationship"
+      rule self.source != null && self.target != null
+      message ("The relationship on line " + string(self.location().orValue({ 'line': 0 }).line) + " names '" + (self.source == null ? writtenEnd(self, 'source') : writtenEnd(self, 'target')) + "', which the model does not declare.")
+      code: "c4.dangling-relationship"
+    }
+
+    constraint unlabelledRelationship for Relationship {
+      label "Unlabelled relationship"
+      when self.source != null && self.target != null
+      rule self.description != ''
+      message ("The relationship from '" + shownName(self.source) + "' to '" + shownName(self.target) + "' has no label. C4 asks what the relationship is for, in the direction of the arrow.")
+      code: "c4.unlabelled-relationship"
+      attribute: "description"
+    }
+
+    constraint missingProtocol for Relationship {
+      label "Missing technology"
+      when self.source != null && self.target != null
+      rule self.technology != ''
+      message ("The relationship from '" + shownName(self.source) + "' to '" + shownName(self.target) + "' names no technology. How two elements communicate - a protocol, a library, a call - is what tells a reader where a boundary really is.")
+      code: "c4.missing-protocol"
+      attribute: "technology"
+    }
+
+    /// Only an element a view's `include` names can be of a kind the view does not permit; `include *` selects
+    /// permitted kinds only. The subject is the view's key: the tool reports a view's findings together (companion, gap
+    /// 10).
+    constraint kindNotPermitted for Element {
+      label "Kind not permitted on the view"
+      message ("The '" + item.id + "' view shows '" + shownName(self) + "', which is a " + spelled(self.type) + ". A " + viewSpelled(item.viewpoint) + " view shows " + permitted(item.viewpoint).map(t, spelled(t)).join(', ') + ".")
+      code: "c4.kind-not-permitted-on-view"
+      over: model
+      forEach: (diagram.views.filter(v, v.members.exists(m, m == self) && !(self.type in permitted(v.viewpoint))))
+      target: (self)
+      subject: (item.id)
+    }
+
+    /// The subject is the view's key, a finding having neither a target nor a location otherwise (8.6). The tool
+    /// locates the finding at the view's line, which a View does not expose (companion, gap 13).
+    constraint emptyView for diagram {
+      label "Empty view"
+      message ("The '" + item.id + "' view is empty.")
+      code: "c4.empty-view"
+      over: model
+      forEach: (diagram.views.filter(v, !v.members.exists(m, m.kind == 'node')))
+      subject: (item.id)
+    }
+
+    /// Silent while the model declares no view. An instance is drawn or not on account of its node and what it
+    /// instantiates, and is not reported.
+    constraint elementNotOnAnyView for Person, SoftwareSystem, Container, Component, DeploymentNode, InfrastructureNode {
+      label "Element not on any view"
+      when diagram.views.size() > 0
+      rule diagram.views.exists(v, v.members.exists(m, m == self))
+      message ("'" + shownName(self) + "' is on no view. An element the model declares but nothing draws is invisible to every reader of the diagrams.")
+      code: "c4.element-not-on-any-view"
+      over: model
+    }
+
+    constraint noTechnologyHere for Element {
+      rule attribute != 'technology' || hasTechnology(self)
+      message ('A ' + self.type.lowerAscii() + ' has no technology in C4; only containers, components and infrastructure do.')
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint dragDoesNotReparent {
+      label "Dragging does not change containment"
+      when gesture == 'move'
+      rule newParent == self.parent
+      severity error
+      message "Dragging changes where an element is drawn, not what contains it."
+      kind: placement
+      enforcement: prevent
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  message std.notApplicable "That element is no longer in this model."
+
+  /// The prompt may be drawn in place of the element's name.
+  operation rename "Rename…" for Element {
+    param name: string { label: "Name" }
+    icon: "mdi-pencil-outline"
+    shortcut: "F2"
+    paramsForm: "renameElement"
+    set name = p.name
+  }
+
+  operation editDescription for Element {
+    label (self.description != '' ? 'Edit description…' : 'Add description…')
+    param description: text { label: "Description" }
+    icon: "mdi-text-box-outline"
+    paramsForm: "describeElement"
+    set description = p.description
+  }
+
+  operation setTechnology for Element {
+    label (self.technology != '' ? 'Change technology…' : 'Set technology…')
+    unavailable [{
+      when: (!hasTechnology(self))
+      message: ('A ' + self.type.lowerAscii() + ' has no technology in C4; only containers, components and infrastructure do.')
+    }
+    ]
+    param technology: string { label: "Technology" }
+    icon: "mdi-tools"
+    paramsForm: "setTechnology"
+    set technology = p.technology
+  }
+
+  /// The prompt may be drawn in place of the line's label.
+  operation relabel "Relabel…" for Relationship {
+    param description: string { label: "Description" }
+    icon: "mdi-pencil-outline"
+    shortcut: "F2"
+    paramsForm: "relabelRelationship"
+    set description = p.description
+  }
+
+  operation setProtocol "Set technology…" for Relationship {
+    param technology: string { label: "Technology" }
+    icon: "mdi-transit-connection-variant"
+    paramsForm: "setProtocol"
+    set technology = p.technology
+  }
+
+  /// Added at the top of the model, from the empty canvas's menu or wherever the tool was dropped, so it names no
+  /// `for`.
+  operation addPerson "Add person…" {
+    param name: string { label: "Name" }
+    icon: "mdi-plus"
+    paramsForm: "addPerson"
+    if p.name.trim() == '' {
+      fail 'An element needs a name.'
+    }
+    create Person {
+      identifier: identifierFor(p.name, diagram.nodesOfType('Element').map(e, e.id)),
+      name: p.name,
+      description: 'Describe ' + p.name + '.'
+    }
+  }
+
+  /// Added at the top of the model, from the empty canvas's menu or wherever the tool was dropped, so it names no
+  /// `for`.
+  operation addSoftwareSystem "Add software system…" {
+    param name: string { label: "Name" }
+    icon: "mdi-plus"
+    paramsForm: "addSoftwareSystem"
+    if p.name.trim() == '' {
+      fail 'An element needs a name.'
+    }
+    create SoftwareSystem {
+      identifier: identifierFor(p.name, diagram.nodesOfType('Element').map(e, e.id)),
+      name: p.name,
+      description: 'Describe ' + p.name + '.'
+    }
+  }
+
+  /// Added inside the software system it was dropped on.
+  operation addContainer "Add container" for SoftwareSystem {
+    param name: string { label: "Name" }
+    icon: "mdi-plus"
+    paramsForm: "addContainer"
+    if p.name.trim() == '' {
+      fail 'An element needs a name.'
+    }
+    create Container {
+      identifier: identifierFor(p.name, diagram.nodesOfType('Element').map(e, e.id)),
+      name: p.name,
+      description: 'Describe ' + p.name + '.',
+      technology: 'Technology'
+    }
+    in self
+  }
+
+  /// Added inside the container it was dropped on.
+  operation addComponent "Add component" for Container {
+    param name: string { label: "Name" }
+    icon: "mdi-plus"
+    paramsForm: "addComponent"
+    if p.name.trim() == '' {
+      fail 'An element needs a name.'
+    }
+    create Component {
+      identifier: identifierFor(p.name, diagram.nodesOfType('Element').map(e, e.id)),
+      name: p.name,
+      description: 'Describe ' + p.name + '.',
+      technology: 'Technology'
+    }
+    in self
+  }
+
+  /// The toolbox offers this kind and the tool answers its drop with this refusal: no add action is implemented for it.
+  /// A commit of an answer to it is refused by the host with "'<action id>' does not apply to this selection."
+  /// (companion, *Outside the definition*).
+  operation addDeploymentNode {
+    unavailable ["Adding a deployment node from the toolbox is not supported yet."]
+  }
+
+  /// The toolbox offers this kind and the tool answers its drop with this refusal: no add action is implemented for it.
+  /// A commit of an answer to it is refused by the host with "'<action id>' does not apply to this selection."
+  /// (companion, *Outside the definition*).
+  operation addInfrastructureNode {
+    unavailable ["Adding an infrastructure node from the toolbox is not supported yet."]
+  }
+
+  /// The toolbox offers this kind and the tool answers its drop with this refusal: no add action is implemented for it.
+  /// A commit of an answer to it is refused by the host with "'<action id>' does not apply to this selection."
+  /// (companion, *Outside the definition*).
+  operation addContainerInstance {
+    unavailable ["Adding a container instance from the toolbox is not supported yet."]
+  }
+
+  /// The toolbox offers this kind and the tool answers its drop with this refusal: no add action is implemented for it.
+  /// A commit of an answer to it is refused by the host with "'<action id>' does not apply to this selection."
+  /// (companion, *Outside the definition*).
+  operation addSoftwareSystemInstance {
+    unavailable ["Adding a software system instance from the toolbox is not supported yet."]
+  }
+
+  /// Every edit is one undoable step. A new element is declared with a placeholder description, and a container or
+  /// component with the technology `Technology`; its identifier is made from its name by the host while gap 11 stands.
+  behavior {}
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// The body is an ordinary Structurizr DSL workspace, read and written through the module's own binding; one body is
+  /// one model and one history however many of its views are open. While gaps 1, 2 and 6 stand, the module reads the
+  /// body itself and builds this model from its reading (`C4Disl`). Positions are view data, stored as FBL's
+  /// registration says.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: natural
+      stable: true
+      pattern: "^[^\\s\"{}=\\-][^\\s\"{}=]*$"
+      suffix: "{n}"
+      compare: ignore-case
+      missing: ephemeral
+      types: {
+        Relationship: {
+          strategy: derived
+          pattern: "^.+$"
+          ephemeral: true
+          expression: (writtenEnd(self, 'source') + '->' + writtenEnd(self, 'target') + '@' + string(self.location().orValue({
+            'line': 0
+          }
+          ).line))
+          doc: "A relationship has no identifier in the DSL: its id is its ends as written and its line, which changes when a line is inserted above it (finding A7, Q7)."
+        }
+        Interaction: {
+          strategy: derived
+          pattern: "^.+$"
+          ephemeral: true
+          expression: ('interaction:' + writtenEnd(self, 'source') + '->' + writtenEnd(self, 'target') + '@' + string(self.location().orValue({
+            'line': 0
+          }
+          ).line))
+          doc: "An interaction is a statement of the dynamic view, never drawn itself: the line drawn for it (`InteractionLine`) has its ends as written and its line as its id, so the statement's id is told apart from it by a prefix, since a derived element is not drawn under an id the model already holds."
+        }
+        LiftedRelationship: { ephemeral: true }
+        InstanceLine: { ephemeral: true }
+        InteractionLine: { ephemeral: true }
+      }
+      doc: "Structurizr DSL identifiers, compared without regard to case as the DSL compares them. An element declared without one is ephemeral: the host names it `<kind>_<name>_<n>` for the session and stores nothing under that name (finding A8, Q7). The lines a view draws are ephemeral too, their ids carrying a line number."
+    }
+    view: { store: [bounds] }
+    typeMap: {
+      Workspace: { as: diagram, attributes: { name: "workspaceName" } }
+      ViewInclude: { as: diagram, attributes: { members: "includes" } }
+      IncludedFile: { as: IncludedFile }
+      Interaction: { as: Interaction, attributes: { from: "source", to: "target" } }
+      Relationship: {
+        as: Relationship
+        attributes: { from: "source", to: "target" }
+        doc: "Read as an entry with two reference attributes, so that a relationship whose end names nothing is kept with that end unset (finding B8)."
+      }
+    }
+  }
+
+  plugin net.etalii.adp.c4.writtenEnds {
+    version: "^1.0.0"
+    provides: [celFunctions]
+    required: false
+    celFunctions: [{
+      name: "writtenEnd"
+      params: [{ name: "relation", type: "dyn" }, { name: "end", type: "string" }]
+      returns: "string"
+      cost: 1
+      fallback: (end == 'source' ? (relation.source != null ? relation.source.id : '') : (relation.target != null ? relation.target.id : ''))
+      doc: "The identifier the relation's `source` or `target` end is written with in the body, as written (the DSL's `a -> b`), also when it names no element and the end is unset in the model (DISL 11.2)."
+    }
+    ]
+    doc "The text a relationship's or an interaction's end is written with, which the model does not hold for an end that names nothing (companion, gap 14). The standalone module supplies it from its reading (`C4Disl`); without the plugin the fallback gives the resolved end's id, so a dangling relationship's sentence names nothing and its id loses that end. This description states `writtenEnd` as the script function of that name, over the ends as written that the binding `structurizr` reads; the plugin stays declared for the hosts that run the JSON files."
+  }
+
+  x-c4: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-timeline and x-azure-pipeline do. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind. A property is keyed by its form item's row id: its id, else its attribute. Every finding code is its rule's `code`. The synthetic ids `c4:view` and `boundary:<id>` are the host's."
+    tools: {
+      person: { id: "c4.toolbox.person", drop: "c4.add-person" }
+      softwareSystem: { id: "c4.toolbox.softwaresystem", drop: "c4.add-softwaresystem" }
+      container: { id: "c4.toolbox.container", drop: "c4.add-container" }
+    }
+    actions: {
+      rename: "c4.rename"
+      editDescription: "c4.edit-description"
+      setTechnology: "c4.set-technology"
+      relabel: "c4.relabel"
+      setProtocol: "c4.set-protocol"
+      addPerson: "c4.add-person"
+      addSoftwareSystem: "c4.add-softwaresystem"
+      addContainer: "c4.add-container"
+      addComponent: "c4.add-component"
+      addDeploymentNode: "c4.add-deploymentnode"
+      addInfrastructureNode: "c4.add-infrastructurenode"
+      addContainerInstance: "c4.add-containerinstance"
+      addSoftwareSystemInstance: "c4.add-softwaresysteminstance"
+    }
+    properties: {
+      name: "c4.name"
+      description: "c4.description"
+      technology: "c4.technology"
+      tags: "c4.tags"
+      kind: "c4.kind"
+      identifier: "c4.identifier"
+      relationshipDescription: "c4.relationship.description"
+      relationshipTechnology: "c4.relationship.technology"
+      from: "c4.relationship.source"
+      to: "c4.relationship.destination"
+    }
+  }
+}

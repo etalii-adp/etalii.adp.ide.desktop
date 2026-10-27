@@ -1,0 +1,189 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record generic/dependencies` from parity/cases/generic/dependencies/findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "generic/dependencies",
+  "description": "../../../dependency-graph.atd",
+  "inputs": {
+    "body": "findings.dgr"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "api",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "API",
+          "x": "0",
+          "row": "0"
+        }
+      },
+      {
+        "id": "db",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Database",
+          "x": "240",
+          "row": "0"
+        }
+      },
+      {
+        "id": "node@11",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Second API",
+          "x": "0",
+          "row": "1"
+        }
+      },
+      {
+        "id": "node@15",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Nameless",
+          "x": "480",
+          "row": "0"
+        }
+      },
+      {
+        "id": "cache",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Cache"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "r-api-db",
+        "type": "DependsOn",
+        "source": "api",
+        "target": "db",
+        "attributes": {}
+      },
+      {
+        "id": "dependency@27",
+        "type": "DependsOn",
+        "source": "db",
+        "target": "api",
+        "attributes": {}
+      },
+      {
+        "id": "r-api-ghost",
+        "type": "DependsOn",
+        "source": "api",
+        "target": "ghost",
+        "attributes": {}
+      },
+      {
+        "id": "r-ghost-ghost",
+        "type": "DependsOn",
+        "source": "ghost",
+        "target": "ghost",
+        "attributes": {}
+      },
+      {
+        "id": "r-db-db",
+        "type": "DependsOn",
+        "source": "db",
+        "target": "db",
+        "attributes": {}
+      },
+      {
+        "id": "r-empty",
+        "type": "DependsOn",
+        "source": "api",
+        "target": "",
+        "attributes": {}
+      }
+    ],
+    "findings": [
+      {
+        "rule": "dependencies.duplicate-id",
+        "severity": "warning",
+        "line": 11,
+        "message": "The id 'api' is declared more than once, which makes every reference to it ambiguous."
+      },
+      {
+        "rule": "dependencies.missing-id",
+        "severity": "warning",
+        "line": 15,
+        "message": "'Nameless' has no id, so nothing can select, connect or edit it."
+      },
+      {
+        "rule": "dependencies.missing-id",
+        "severity": "warning",
+        "line": 27,
+        "message": "A dependency has no id, so nothing can select, connect or edit it."
+      },
+      {
+        "rule": "dependencies.dangling-relation",
+        "severity": "warning",
+        "element": "r-api-ghost",
+        "message": "A dependency names 'ghost', and no node with that id is in this graph."
+      },
+      {
+        "rule": "dependencies.dangling-relation",
+        "severity": "warning",
+        "element": "r-ghost-ghost",
+        "message": "A dependency names 'ghost', and no node with that id is in this graph."
+      },
+      {
+        "rule": "dependencies.dangling-relation",
+        "severity": "warning",
+        "element": "r-ghost-ghost",
+        "message": "A dependency names 'ghost', and no node with that id is in this graph."
+      },
+      {
+        "rule": "dependencies.self-dependency",
+        "severity": "warning",
+        "element": "r-ghost-ghost",
+        "message": "'ghost' is declared to depend on itself, which says nothing about what needs what."
+      },
+      {
+        "rule": "dependencies.self-dependency",
+        "severity": "warning",
+        "element": "r-db-db",
+        "message": "'db' is declared to depend on itself, which says nothing about what needs what."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (drawing)"
+    }
+  }
+}

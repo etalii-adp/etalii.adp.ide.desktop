@@ -1,0 +1,247 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/bundle` from parity/cases/databricks/bundle/job-commands.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/bundle",
+  "description": "../../../databricks-bundle.atd",
+  "inputs": {
+    "body": "databricks.yml",
+    "registration": "databricks.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "lakehouse-nightly",
+          "kind": "bundle",
+          "label": "lakehouse-nightly",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:jobs/nightly_ingest",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "jobs",
+          "key": "nightly_ingest",
+          "kind": "jobs",
+          "label": "nightly_ingest",
+          "badges": "jobs",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:pipelines/bronze_to_gold",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "bronze_to_gold",
+          "kind": "pipelines",
+          "label": "bronze_to_gold",
+          "badges": "pipelines",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "unknown:sync",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "sync",
+          "key": "sync",
+          "kind": "sync",
+          "label": "sync",
+          "badges": "sync",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "unknown:resources.experiments",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "resources.experiments",
+          "key": "experiments",
+          "kind": "resources.experiments",
+          "label": "experiments",
+          "badges": "resources.experiments",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "true",
+          "overrideCount": "0",
+          "label": "dev",
+          "width": "220",
+          "height": "120"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "1",
+          "label": "prod",
+          "width": "220",
+          "height": "120"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "override:prod/jobs/nightly_ingest",
+        "type": "databricks/bundle+edge",
+        "source": "target:prod",
+        "target": "resource:jobs/nightly_ingest",
+        "attributes": {
+          "kind": "override"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.no-libraries",
+        "severity": "error",
+        "line": 24,
+        "message": "The pipeline 'Bronze to gold' has no libraries, so it has nothing to run. Add at least one notebook, file or glob."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "databricks.add-task:notebook",
+      "args": {
+        "target": "new:600,400"
+      },
+      "refused": {
+        "reason": "The job has no tasks section to add into."
+      },
+      "expectFile": "databricks.yml",
+      "findings": [
+        {
+          "rule": "databricks.no-libraries",
+          "severity": "error",
+          "line": 24,
+          "message": "The pipeline 'Bronze to gold' has no libraries, so it has nothing to run. Add at least one notebook, file or glob."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "databricks.add-task:python",
+      "args": {
+        "target": "new:860,400"
+      },
+      "refused": {
+        "reason": "The job has no tasks section to add into."
+      },
+      "expectFile": "databricks.yml",
+      "findings": [
+        {
+          "rule": "databricks.no-libraries",
+          "severity": "error",
+          "line": 24,
+          "message": "The pipeline 'Bronze to gold' has no libraries, so it has nothing to run. Add at least one notebook, file or glob."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "databricks.add-task:condition",
+      "args": {
+        "target": "new:1120,400"
+      },
+      "refused": {
+        "reason": "The job has no tasks section to add into."
+      },
+      "expectFile": "databricks.yml",
+      "findings": [
+        {
+          "rule": "databricks.no-libraries",
+          "severity": "error",
+          "line": 24,
+          "message": "The pipeline 'Bronze to gold' has no libraries, so it has nothing to run. Add at least one notebook, file or glob."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:ingest->task:shape"
+      },
+      "refused": {
+        "reason": "One of those tasks is not there any more."
+      },
+      "expectFile": "databricks.yml",
+      "findings": [
+        {
+          "rule": "databricks.no-libraries",
+          "severity": "error",
+          "line": 24,
+          "message": "The pipeline 'Bronze to gold' has no libraries, so it has nothing to run. Add at least one notebook, file or glob."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

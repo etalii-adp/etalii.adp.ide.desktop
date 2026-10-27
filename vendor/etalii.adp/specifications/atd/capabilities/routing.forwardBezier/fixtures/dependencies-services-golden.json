@@ -1,0 +1,615 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability routing.forwardBezier` from crates/adp-scene/src/scene/builder.rs (StandardRoutePlugins) and crates/adp-scene/src/connectors.rs of etalii.adp.ide.desktop, on parity/goldens/generic/dependencies/services/, as the last step of parity/scripts/generic/dependencies/services.json leaves it; never edited by hand. The end boxes are the drawing's, as the canvas draws them.",
+  "input": {
+    "edges": [
+      {
+        "id": "11ct5q02gmtvd93otbevsfxt0",
+        "source": {
+          "x": 600.0,
+          "y": 180.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 840.0,
+          "y": 180.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "25efk23pn7c4dt00txzfxlhry",
+        "source": {
+          "x": 1091.85,
+          "y": -60.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 1400.0,
+          "y": 0.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "buv3ohi3mqebghrp0h0qfy972",
+        "source": {
+          "x": 600.0,
+          "y": 180.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 600.0,
+          "y": 240.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "f2l95kayzmapdgsrek57ftky9",
+        "source": {
+          "x": 40.0,
+          "y": 300.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 797.58,
+          "y": 240.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-gateway-identity",
+        "source": {
+          "x": 370.43,
+          "y": 300.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 797.58,
+          "y": 240.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-gateway-orders",
+        "source": {
+          "x": 370.43,
+          "y": 300.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 600.0,
+          "y": 180.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-inventory-db",
+        "source": {
+          "x": 811.18,
+          "y": 0.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 1080.0,
+          "y": 120.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-notify-broker",
+        "source": {
+          "x": 419.92,
+          "y": -180.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 807.87,
+          "y": -240.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-orders-broker",
+        "source": {
+          "x": 600.0,
+          "y": 180.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 807.87,
+          "y": -240.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-orders-identity",
+        "source": {
+          "x": 600.0,
+          "y": 180.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 797.58,
+          "y": 240.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-orders-inventory",
+        "source": {
+          "x": 600.0,
+          "y": 180.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 811.18,
+          "y": 0.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-orders-payment",
+        "source": {
+          "x": 600.0,
+          "y": 180.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 811.18,
+          "y": -120.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-payment-db",
+        "source": {
+          "x": 811.18,
+          "y": -120.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 1091.85,
+          "y": -60.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      },
+      {
+        "id": "r-web-gateway",
+        "source": {
+          "x": 40.0,
+          "y": 300.0,
+          "width": 160.0,
+          "height": 36.0
+        },
+        "target": {
+          "x": 370.43,
+          "y": 300.0,
+          "width": 160.0,
+          "height": 36.0
+        }
+      }
+    ]
+  },
+  "args": {},
+  "output": {
+    "routes": {
+      "11ct5q02gmtvd93otbevsfxt0": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 760.0,
+              "y": 198.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 800.0,
+              "y": 198.0
+            },
+            {
+              "x": 800.0,
+              "y": 198.0
+            },
+            {
+              "x": 840.0,
+              "y": 198.0
+            }
+          ]
+        }
+      ],
+      "25efk23pn7c4dt00txzfxlhry": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 1251.85,
+              "y": -42.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 1325.93,
+              "y": -42.0
+            },
+            {
+              "x": 1325.93,
+              "y": 18.0
+            },
+            {
+              "x": 1400.0,
+              "y": 18.0
+            }
+          ]
+        }
+      ],
+      "buv3ohi3mqebghrp0h0qfy972": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 760.0,
+              "y": 198.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 856.0,
+              "y": 198.0
+            },
+            {
+              "x": 504.0,
+              "y": 258.0
+            },
+            {
+              "x": 600.0,
+              "y": 258.0
+            }
+          ]
+        }
+      ],
+      "f2l95kayzmapdgsrek57ftky9": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 200.0,
+              "y": 318.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 498.79,
+              "y": 318.0
+            },
+            {
+              "x": 498.79,
+              "y": 258.0
+            },
+            {
+              "x": 797.58,
+              "y": 258.0
+            }
+          ]
+        }
+      ],
+      "r-gateway-identity": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 530.43,
+              "y": 318.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 664.01,
+              "y": 318.0
+            },
+            {
+              "x": 664.01,
+              "y": 258.0
+            },
+            {
+              "x": 797.58,
+              "y": 258.0
+            }
+          ]
+        }
+      ],
+      "r-gateway-orders": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 530.43,
+              "y": 318.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 565.22,
+              "y": 318.0
+            },
+            {
+              "x": 565.22,
+              "y": 198.0
+            },
+            {
+              "x": 600.0,
+              "y": 198.0
+            }
+          ]
+        }
+      ],
+      "r-inventory-db": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 971.18,
+              "y": 18.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 1025.59,
+              "y": 18.0
+            },
+            {
+              "x": 1025.59,
+              "y": 138.0
+            },
+            {
+              "x": 1080.0,
+              "y": 138.0
+            }
+          ]
+        }
+      ],
+      "r-notify-broker": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 579.92,
+              "y": -162.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 693.9,
+              "y": -162.0
+            },
+            {
+              "x": 693.9,
+              "y": -222.0
+            },
+            {
+              "x": 807.87,
+              "y": -222.0
+            }
+          ]
+        }
+      ],
+      "r-orders-broker": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 760.0,
+              "y": 198.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 783.94,
+              "y": 198.0
+            },
+            {
+              "x": 783.94,
+              "y": -222.0
+            },
+            {
+              "x": 807.87,
+              "y": -222.0
+            }
+          ]
+        }
+      ],
+      "r-orders-identity": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 760.0,
+              "y": 198.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 778.79,
+              "y": 198.0
+            },
+            {
+              "x": 778.79,
+              "y": 258.0
+            },
+            {
+              "x": 797.58,
+              "y": 258.0
+            }
+          ]
+        }
+      ],
+      "r-orders-inventory": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 760.0,
+              "y": 198.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 785.59,
+              "y": 198.0
+            },
+            {
+              "x": 785.59,
+              "y": 18.0
+            },
+            {
+              "x": 811.18,
+              "y": 18.0
+            }
+          ]
+        }
+      ],
+      "r-orders-payment": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 760.0,
+              "y": 198.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 785.59,
+              "y": 198.0
+            },
+            {
+              "x": 785.59,
+              "y": -102.0
+            },
+            {
+              "x": 811.18,
+              "y": -102.0
+            }
+          ]
+        }
+      ],
+      "r-payment-db": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 971.18,
+              "y": -102.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 1031.51,
+              "y": -102.0
+            },
+            {
+              "x": 1031.51,
+              "y": -42.0
+            },
+            {
+              "x": 1091.85,
+              "y": -42.0
+            }
+          ]
+        }
+      ],
+      "r-web-gateway": [
+        {
+          "op": "move",
+          "points": [
+            {
+              "x": 200.0,
+              "y": 318.0
+            }
+          ]
+        },
+        {
+          "op": "cubic",
+          "points": [
+            {
+              "x": 285.22,
+              "y": 318.0
+            },
+            {
+              "x": 285.22,
+              "y": 318.0
+            },
+            {
+              "x": 370.43,
+              "y": 318.0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

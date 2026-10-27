@@ -1,0 +1,15 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.databricksBundle",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads and writes a Databricks Asset Bundle configuration (`databricks.yml` and the resource files it includes, YAML or JSON) under the persistence plugin contract of FBL §11, as one of three readings of the same body: the bundle (the bundle, its resources and the target frames, with an override edge from a target to each resource it overrides), a job (its tasks, the clusters it declares and the dependencies between tasks) or a pipeline (its source libraries, the pipeline, its target, its compute and its notifications). The registration's `resource:` header names the job or pipeline a reading selects; without one the first is read. Every scalar is kept as written, every byte no element maps is kept, and every edit is a minimal line splice; an edit into a flow collection written on one line is refused before any splice. A dependency naming a task that no task declares is read as a placeholder task with `unresolved` true, and the bundle's `bundle` and the pipeline's `target` and `compute` exist under their fixed ids whether or not the body declares them. A body that is not YAML reads as the empty reading with the reader's sentence as an unparseable finding on the line it names. The findings are the whole file's, every job's, then the bundle's, then every pipeline's, and within a job task by task, whichever reading asked. Its fixtures are recorded with the Databricks tool types' cases (spec 035, T076): each output is the reading and the findings a conformance case of the tool type records.",
+  "input": { "$ref": "../../atd.schema.json#/$defs/ReaderInput" },
+  "args": {
+    "reading": { "type": "enum", "values": ["bundle", "job", "pipeline"], "required": true, "doc": "Which of the three readings of the body this tool type is." }
+  },
+  "output": { "$ref": "../../atd.schema.json#/$defs/ReaderResult" },
+  "laws": ["deterministic", "readingNeverFails", "minimalSplices"],
+  "fallback": null,
+  "status": "provisional"
+}

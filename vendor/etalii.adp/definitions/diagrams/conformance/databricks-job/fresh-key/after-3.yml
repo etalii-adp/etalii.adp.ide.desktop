@@ -1,0 +1,29 @@
+resources:
+  jobs:
+    numbered:
+      name: Keys already taken by a pattern
+      tasks:
+        - task_key: notebook_2
+          notebook_task:
+            notebook_path: notebooks/notebook_2
+        - task_key: python_1
+          spark_python_task:
+            python_file: scripts/python_1.py
+        - task_key: condition_1
+          depends_on:
+            - task_key: python_1
+          condition_task:
+            op: EQUAL_TO
+            left: "1"
+            right: "1"
+        - task_key: notebook_1
+          notebook_task:
+            notebook_path: notebooks/notebook_1
+        - task_key: python_2
+          spark_python_task:
+            python_file: scripts/python_2.py
+        - task_key: condition_2
+          condition_task:
+            op: EQUAL_TO
+            left: "condition_2"
+            right: "true"

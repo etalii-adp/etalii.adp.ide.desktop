@@ -1,0 +1,115 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bands` from what the desktop host's module shows when parity/scripts/databricks/bundle/lakehouse.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "lakehouse",
+          "kind": "bundle",
+          "label": "lakehouse",
+          "badges": ""
+        },
+        "pinned": {
+          "x": -68.67,
+          "y": 289.92
+        }
+      },
+      {
+        "id": "resource:pipelines/bronze_to_gold",
+        "type": "databricks/bundle+resource",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "bronze_to_gold",
+          "kind": "pipelines",
+          "label": "bronze_to_gold",
+          "badges": "pipelines"
+        },
+        "pinned": {
+          "x": 264.1,
+          "y": 283.29
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "width": 220.0,
+        "height": 120.0,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "true",
+          "overrideCount": "0",
+          "label": "dev"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "width": 220.0,
+        "height": 120.0,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "2",
+          "label": "prod"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "override:prod/pipelines/bronze_to_gold",
+        "source": "target:prod",
+        "target": "resource:pipelines/bronze_to_gold"
+      },
+      {
+        "id": "override:prod/jobs/nightly_ingest",
+        "source": "target:prod",
+        "target": "resource:jobs/nightly_ingest"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 260,
+    "bands": [
+      {
+        "members": "self.id == 'bundle'",
+        "y": 0
+      },
+      {
+        "members": "self.id.startsWith('resource:') || self.id.startsWith('unknown:')",
+        "y": 180
+      },
+      {
+        "members": "self.id.startsWith('target:')",
+        "y": 400
+      }
+    ]
+  },
+  "output": {
+    "positions": {
+      "bundle": {
+        "x": -68.67,
+        "y": 289.92
+      },
+      "resource:pipelines/bronze_to_gold": {
+        "x": 264.1,
+        "y": 283.29
+      },
+      "target:dev": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "target:prod": {
+        "x": 260.0,
+        "y": 400.0
+      }
+    }
+  }
+}

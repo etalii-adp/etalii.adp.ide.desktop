@@ -1,0 +1,21 @@
+{
+  "name": "bronze_to_gold",
+  "catalog": "lakehouse_dev",
+  "schema": "gold",
+  "serverless": true,
+  "continuous": false,
+  "development": true,
+  "channel": "CURRENT",
+  "libraries": [
+    { "notebook": { "path": "transformations/bronze" } },
+    { "file": { "path": "transformations/silver.py" } },
+    { "glob": { "include": "transformations/gold/**" } }
+  ],
+  "notifications": [
+    {
+      "email_recipients": ["data-eng@example.com"],
+      "alerts": ["on-update-failure"]
+    }
+  ],
+  "edition": "ADVANCED"
+}

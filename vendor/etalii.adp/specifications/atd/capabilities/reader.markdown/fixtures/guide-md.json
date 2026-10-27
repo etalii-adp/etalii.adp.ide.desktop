@@ -1,0 +1,59 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.markdown` from modules/editors/markdown/src/lib.rs of etalii.adp.ide.desktop, on crates/adp-conformance/tests/round_trip/editors/markdown/examples/guide.md; never edited by hand.",
+  "input": {
+    "body": "# Field guide\r\n\r\nA heading-rich document for the markdown editor: the outline above the text\r\nlists every heading here, and clicking one scrolls the editor to its line.\r\n\r\n## Reading the preview\r\n\r\nThe pane beside the text renders what you type, as you type it.\r\n\r\n### Emphasis\r\n\r\nText can be *emphasised*, **strong**, or `code`.\r\n\r\n## Code fences\r\n\r\n```bash\r\n# This line is a shell comment, not a heading - the outline must skip it.\r\necho \"fences are excluded from the outline\"\r\n```\r\n\r\n## Closing notes\r\n\r\nEverything the plain editor guarantees - encoding, line endings, honest\r\nconflict handling - holds here too; the preview and outline are extras.\r\n"
+  },
+  "args": {},
+  "output": {
+    "elements": [
+      {
+        "id": "heading-1",
+        "type": "heading",
+        "attributes": {
+          "level": 1,
+          "title": "Field guide",
+          "line": 1
+        }
+      },
+      {
+        "id": "heading-6",
+        "type": "heading",
+        "attributes": {
+          "level": 2,
+          "title": "Reading the preview",
+          "line": 6
+        }
+      },
+      {
+        "id": "heading-10",
+        "type": "heading",
+        "attributes": {
+          "level": 3,
+          "title": "Emphasis",
+          "line": 10
+        }
+      },
+      {
+        "id": "heading-14",
+        "type": "heading",
+        "attributes": {
+          "level": 2,
+          "title": "Code fences",
+          "line": 14
+        }
+      },
+      {
+        "id": "heading-21",
+        "type": "heading",
+        "attributes": {
+          "level": 2,
+          "title": "Closing notes",
+          "line": 21
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.bandedGrid",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Bands of nodes stacked top to bottom, each band a grid filled row by row. `band` gives each node its band's key; the bands are ordered by their keys' UTF-8 bytes, the empty key last, and within a band the nodes keep input order. The node at index i of a band stands at ((i mod `columns`) × `columnWidth`, top + ⌊i / `columns`⌋ × `rowHeight`), where the first band's top is 0 and each next band's top is the one before's plus its rows × `rowHeight` + `bandGap`. A pinned node keeps its pin and moves no other node. Positions are top-left corners in the canvas's domain units.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "columns": {
+      "type": "integer",
+      "default": 4,
+      "doc": "How many nodes a band's row holds."
+    },
+    "columnWidth": {
+      "type": "number",
+      "default": 280,
+      "doc": "The distance from one column's left edge to the next's."
+    },
+    "rowHeight": {
+      "type": "number",
+      "default": 160,
+      "doc": "The distance from one row's top edge to the next's."
+    },
+    "bandGap": {
+      "type": "number",
+      "default": 80,
+      "doc": "The space between one band's last row and the next band."
+    },
+    "band": {
+      "type": "query",
+      "doc": "A node's band key, a string; absent, every node is in one band."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "pinnedStay",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

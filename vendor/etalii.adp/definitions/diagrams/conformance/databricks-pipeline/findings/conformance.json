@@ -1,0 +1,109 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/pipeline` from parity/cases/databricks/pipeline/findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/pipeline",
+  "description": "../../../databricks-pipeline.atd",
+  "inputs": {
+    "body": "findings-pipeline.json",
+    "registration": "findings-pipeline.pipeline.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "pipeline",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "pipeline",
+          "kind": "pipeline",
+          "label": "hollow",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "target",
+          "kind": "target",
+          "label": "gold",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "compute",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "cluster",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "flow:pipeline->target",
+        "type": "databricks/pipeline+edge",
+        "source": "pipeline",
+        "target": "target",
+        "attributes": {
+          "kind": "flow"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.no-libraries",
+        "severity": "error",
+        "line": 1,
+        "message": "The pipeline 'hollow' has no libraries, so it has nothing to run. Add at least one notebook, file or glob."
+      },
+      {
+        "rule": "databricks.schema-without-catalog",
+        "severity": "warning",
+        "line": 1,
+        "message": "The pipeline 'hollow' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

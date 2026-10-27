@@ -1,0 +1,599 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/hierarchical-requirement` from parity/scripts/etalii/hierarchical-requirement/structure-lf.json of etalii.adp.ide.desktop; never edited by hand. A designer's page states no drawing, and the steps state the body's bytes, not the registration's.",
+  "tool": "etalii/hierarchical-requirement",
+  "description": "../../../hierarchical-requirement.atd",
+  "inputs": {
+    "body": "web-shop.md",
+    "registration": "web-shop.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "ITEM-0001",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Storefront",
+          "description": "What a customer sees and does in the shop.",
+          "tags": [
+            "customer"
+          ],
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0001",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "A customer finds a product by its name or its description.",
+          "tags": [
+            "search"
+          ],
+          "category": "functional",
+          "state": "accepted",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0002",
+        "type": "Requirement",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Every page loads within two seconds on a mobile connection.",
+          "description": "Measured at the 95th percentile, on a 4G connection.",
+          "tags": [
+            "performance"
+          ],
+          "category": "non-functional",
+          "state": "proposed",
+          "collapsed": true
+        }
+      },
+      {
+        "id": "ITEM-0002",
+        "type": "Item",
+        "parent": "ITEM-0001",
+        "attributes": {
+          "title": "Checkout",
+          "description": "From the basket to the confirmation of the order.",
+          "tags": [
+            "payment"
+          ],
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0003",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "A customer pays by card, iDEAL or PayPal.",
+          "description": "The payment provider's [hosted page](https://example.com/payments) takes the card details.",
+          "category": "functional",
+          "state": "accepted",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0004",
+        "type": "Requirement",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "An order is confirmed by e-mail once its payment succeeds.",
+          "description": "Sent when [REQ-0003] succeeds, through the service of [ITEM-0005].",
+          "tags": [
+            "mail"
+          ],
+          "category": "functional",
+          "state": "done",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0003",
+        "type": "Item",
+        "parent": "ITEM-0002",
+        "attributes": {
+          "title": "Guest checkout",
+          "collapsed": true
+        }
+      },
+      {
+        "id": "REQ-0005",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A customer can order without an account.",
+          "state": "rejected",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "line/44",
+        "type": "Requirement",
+        "parent": "ITEM-0003",
+        "attributes": {
+          "title": "A guest is offered an account after the order.",
+          "tags": [
+            "customer"
+          ],
+          "category": "functional",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0004",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Backend",
+          "description": "Everything behind the public interface.",
+          "tags": [
+            "core"
+          ],
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0006",
+        "type": "Requirement",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "A session ends after 30 minutes without activity.",
+          "description": "Activity is any request the customer makes. See [REQ-0007] for signing in.",
+          "tags": [
+            "security"
+          ],
+          "category": "functional",
+          "state": "accepted",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0007",
+        "type": "Requirement",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "Customers sign in with an e-mail address and a password.",
+          "tags": [
+            "security"
+          ],
+          "category": "functional",
+          "state": "accepted",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0005",
+        "type": "Item",
+        "parent": "ITEM-0004",
+        "attributes": {
+          "title": "Mail",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0008",
+        "type": "Requirement",
+        "parent": "ITEM-0005",
+        "attributes": {
+          "title": "Mail goes through one provider, and its outage does not stop an order.",
+          "category": "technical",
+          "state": "proposed",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "ITEM-0006",
+        "type": "Item",
+        "parent": null,
+        "attributes": {
+          "title": "Data",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0009",
+        "type": "Requirement",
+        "parent": "ITEM-0006",
+        "attributes": {
+          "title": "Order data is kept for seven years, as tax law requires.",
+          "tags": [
+            "legal"
+          ],
+          "category": "non-functional",
+          "state": "accepted",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "REQ-0010",
+        "type": "Requirement",
+        "parent": "ITEM-0006",
+        "attributes": {
+          "title": "Personal data is removed on request within 30 days.",
+          "tags": [
+            "legal",
+            "privacy"
+          ],
+          "category": "non-functional",
+          "collapsed": false
+        }
+      },
+      {
+        "id": "tag/customer",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "customer",
+          "colour": "blue"
+        }
+      },
+      {
+        "id": "tag/search",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "search",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "tag/performance",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "performance",
+          "colour": "orange"
+        }
+      },
+      {
+        "id": "tag/payment",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "payment",
+          "colour": "green"
+        }
+      },
+      {
+        "id": "tag/mail",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "mail",
+          "colour": "yellow"
+        }
+      },
+      {
+        "id": "tag/core",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "core",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "tag/security",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "security",
+          "colour": "red"
+        }
+      },
+      {
+        "id": "tag/legal",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "legal",
+          "colour": "purple"
+        }
+      },
+      {
+        "id": "tag/privacy",
+        "type": "Tag",
+        "parent": null,
+        "attributes": {
+          "name": "privacy",
+          "colour": "pink"
+        }
+      },
+      {
+        "id": "category/functional",
+        "type": "Category",
+        "parent": null,
+        "attributes": {
+          "name": "functional",
+          "colour": "blue"
+        }
+      },
+      {
+        "id": "category/non-functional",
+        "type": "Category",
+        "parent": null,
+        "attributes": {
+          "name": "non-functional",
+          "colour": "purple"
+        }
+      },
+      {
+        "id": "category/technical",
+        "type": "Category",
+        "parent": null,
+        "attributes": {
+          "name": "technical",
+          "colour": "brown"
+        }
+      },
+      {
+        "id": "state/proposed",
+        "type": "State",
+        "parent": null,
+        "attributes": {
+          "name": "proposed",
+          "colour": "gray"
+        }
+      },
+      {
+        "id": "state/accepted",
+        "type": "State",
+        "parent": null,
+        "attributes": {
+          "name": "accepted",
+          "colour": "green"
+        }
+      },
+      {
+        "id": "state/rejected",
+        "type": "State",
+        "parent": null,
+        "attributes": {
+          "name": "rejected",
+          "colour": "red"
+        }
+      },
+      {
+        "id": "state/done",
+        "type": "State",
+        "parent": null,
+        "attributes": {
+          "name": "done",
+          "colour": "blue"
+        }
+      },
+      {
+        "id": "assessment/0",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "Question",
+          "about": "REQ-0006",
+          "text": "Is 30 minutes right for the mobile app?",
+          "resolved": false
+        }
+      },
+      {
+        "id": "assessment/1",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "Warning",
+          "about": "ITEM-0002",
+          "text": "Overlaps with the payment provider's own session handling.",
+          "detail": "Resolved: the provider's session ends before ours.",
+          "resolved": true
+        }
+      },
+      {
+        "id": "assessment/2",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "Remark",
+          "about": "REQ-0003",
+          "text": "Two customers asked for Klarna.",
+          "resolved": false
+        }
+      },
+      {
+        "id": "assessment/3",
+        "type": "Assessment",
+        "parent": null,
+        "attributes": {
+          "kind": "Idea",
+          "about": "ITEM-0006",
+          "text": "Move orders older than a year to cheaper storage.",
+          "resolved": false
+        }
+      },
+      {
+        "id": "filter/Open security",
+        "type": "Filter",
+        "parent": null,
+        "attributes": {
+          "name": "Open security",
+          "query": "#security @proposed sort:state"
+        }
+      },
+      {
+        "id": "filter/Backend",
+        "type": "Filter",
+        "parent": null,
+        "attributes": {
+          "name": "Backend",
+          "query": "item:back* sort:number"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "code": "std.missingId",
+        "severity": "warning",
+        "element": "line/44",
+        "line": 44,
+        "message": "REQ-0013 is numbered when the document is next changed: the file holds REQ-NEW."
+      }
+    ]
+  },
+  "steps": [
+    {
+      "action": "addTopItem",
+      "expectFile": "after-1.md",
+      "findings": []
+    },
+    {
+      "action": "addItem",
+      "select": [
+        "ITEM-0004"
+      ],
+      "expectFile": "after-2.md",
+      "findings": []
+    },
+    {
+      "action": "addItemBelow",
+      "select": [
+        "ITEM-0005"
+      ],
+      "expectFile": "after-3.md",
+      "findings": []
+    },
+    {
+      "action": "addRequirement",
+      "select": [
+        "ITEM-0006"
+      ],
+      "expectFile": "after-4.md",
+      "findings": []
+    },
+    {
+      "action": "addRequirementBelow",
+      "select": [
+        "REQ-0001"
+      ],
+      "expectFile": "after-5.md",
+      "findings": []
+    },
+    {
+      "action": "moveItem",
+      "select": [
+        "ITEM-0003"
+      ],
+      "args": {
+        "item": "ITEM-0004",
+        "after": "ITEM-0005"
+      },
+      "expectFile": "after-6.md",
+      "findings": []
+    },
+    {
+      "action": "moveRequirement",
+      "select": [
+        "REQ-0002"
+      ],
+      "args": {
+        "item": "ITEM-0006",
+        "after": ""
+      },
+      "expectFile": "after-7.md",
+      "findings": []
+    },
+    {
+      "action": "moveRequirement",
+      "select": [
+        "REQ-0009"
+      ],
+      "args": {
+        "item": "ITEM-0006",
+        "after": "REQ-0010"
+      },
+      "expectFile": "after-8.md",
+      "findings": []
+    },
+    {
+      "action": "moveItem",
+      "select": [
+        "ITEM-0004"
+      ],
+      "args": {
+        "item": "ITEM-0005",
+        "after": ""
+      },
+      "refused": {
+        "reason": "could not be written: ITEM-0004 cannot be moved into itself or into anything it holds."
+      },
+      "expectFile": "after-8.md",
+      "findings": []
+    },
+    {
+      "action": "deleteEntry",
+      "select": [
+        "REQ-0008"
+      ],
+      "expectFile": "after-9.md",
+      "findings": []
+    },
+    {
+      "action": "deleteEntry",
+      "select": [
+        "ITEM-0006"
+      ],
+      "expectFile": "after-10.md",
+      "findings": [
+        {
+          "code": "std.mentions",
+          "severity": "warning",
+          "line": 60,
+          "message": "ITEM-0006 names no item or requirement of this document."
+        },
+        {
+          "code": "fbl.stale-view-data",
+          "severity": "error",
+          "line": 24,
+          "message": "The block 'collapsed' keeps an entry for 'REQ-0002', which the file no longer has; it is removed at the next save of the registration."
+        }
+      ]
+    },
+    {
+      "undo": true,
+      "expectFile": "after-9.md",
+      "findings": []
+    },
+    {
+      "undo": true,
+      "expectFile": "after-8.md",
+      "findings": []
+    },
+    {
+      "redo": true,
+      "expectFile": "after-9.md",
+      "findings": []
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "a7fdf03",
+      "source": "etalii.adp.ide.desktop/parity/goldens/etalii/hierarchical-requirement/structure-lf/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "297942c",
+      "recordedWith": "297942c",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "297942c",
+      "recordedWith": "297942c",
+      "source": "atd record (findings)"
+    }
+  }
+}

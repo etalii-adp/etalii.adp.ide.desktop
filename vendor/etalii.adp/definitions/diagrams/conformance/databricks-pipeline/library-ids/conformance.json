@@ -1,0 +1,226 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/pipeline` from parity/cases/databricks/pipeline/library-ids.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/pipeline",
+  "description": "../../../databricks-pipeline.atd",
+  "inputs": {
+    "body": "library-ids.json",
+    "registration": "library-ids.pipeline.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "library:shared/x",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "shared/x",
+          "badges": "notebook",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "library:shared/x",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "shared/x",
+          "badges": "file",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "library:transformations/gold/**",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/gold/**",
+          "badges": "glob",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "library:${workspace.file_path}/{braces}.py",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "${workspace.file_path}/{braces}.py",
+          "badges": "file",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "library:",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "badges": "other",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "library:",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "badges": "other",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "pipeline",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "pipeline",
+          "kind": "pipeline",
+          "label": "library_ids",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "target",
+          "kind": "target",
+          "label": "main.gold",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "compute",
+        "type": "databricks/pipeline+node",
+        "parent": null,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "cluster",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "flow:shared/x->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:shared/x",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:shared/x->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:shared/x",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:transformations/gold/**->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:transformations/gold/**",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:${workspace.file_path}/{braces}.py->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:${workspace.file_path}/{braces}.py",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:->pipeline",
+        "type": "databricks/pipeline+edge",
+        "source": "library:",
+        "target": "pipeline",
+        "attributes": {
+          "kind": "flow"
+        }
+      },
+      {
+        "id": "flow:pipeline->target",
+        "type": "databricks/pipeline+edge",
+        "source": "pipeline",
+        "target": "target",
+        "attributes": {
+          "kind": "flow"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

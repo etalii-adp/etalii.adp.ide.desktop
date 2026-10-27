@@ -1,0 +1,88 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.depthColumns",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Classes in columns by their depth in a subclass hierarchy, each with its satellites in a lane beside it, and two bands of grid beneath. `role` gives each node's role, `header`, `class`, `individual` or `satellite`; `supers` gives a class the ids of its asserted superclasses, and `owner` gives a satellite the id of the node it belongs to, or ''. The first `header` node stands at (0, 0) and the columns' top is its height + `headerGap`, or 0 without one. A class's depth is 0 when none of its supers is a class and otherwise one more than the deepest of its supers that are classes, the classes of a cycle of supers sharing one depth as one class. A class stands in column x = depth × `columnWidth`; the columns are taken shallowest first; column 0's classes are in input order, and a deeper column's are ordered by the mean y of their class supers already placed (a class with none placed last), then input order. Within a column the first class stands at the columns' top. Each satellite belongs to its owner when its owner is a class, or else to the class at the other end of the first edge, in input order, that joins it to a class; a class's satellites, in input order, stand at (x + `laneOffset`, y + `satelliteOffset` + k × `satelliteHeight`), and the next class of the column stands max(`slotHeight`, n × `satelliteHeight` + `slotHeight` / 2) lower, n being its satellite count. The individuals, then every node still unplaced, in input order, each fill a band whose top is `bandGap` below the bottom of what is above it (the lowest class slot, the columns' top when there is none, or the band before): `bandColumns` to a row, the columns `bandColumnGap` wider than the band's widest node and the rows `bandRowGap` taller than its tallest. A pinned node `pinnable` admits keeps its pin and moves no other node; any other pin is ignored. Positions are top-left corners in the canvas's domain units.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "columnWidth": {
+      "type": "number",
+      "default": 530,
+      "doc": "The distance from one depth's column to the next's."
+    },
+    "laneOffset": {
+      "type": "number",
+      "default": 250,
+      "doc": "How far right of its class a satellite's lane stands."
+    },
+    "slotHeight": {
+      "type": "number",
+      "default": 130,
+      "doc": "The least distance from one class to the next in a column."
+    },
+    "satelliteHeight": {
+      "type": "number",
+      "default": 110,
+      "doc": "The distance from one satellite to the next in a lane."
+    },
+    "satelliteOffset": {
+      "type": "number",
+      "default": 10,
+      "doc": "How far below its class's top a lane's first satellite stands."
+    },
+    "headerGap": {
+      "type": "number",
+      "default": 80,
+      "doc": "The space between the header and the columns."
+    },
+    "bandGap": {
+      "type": "number",
+      "default": 140,
+      "doc": "The space above each band."
+    },
+    "bandColumns": {
+      "type": "integer",
+      "default": 5,
+      "doc": "How many nodes a band's row holds."
+    },
+    "bandColumnGap": {
+      "type": "number",
+      "default": 60,
+      "doc": "What a band's column adds to its widest node."
+    },
+    "bandRowGap": {
+      "type": "number",
+      "default": 50,
+      "doc": "What a band's row adds to its tallest node."
+    },
+    "role": {
+      "type": "query",
+      "doc": "A node's role: `header`, `class`, `individual` or `satellite`."
+    },
+    "supers": {
+      "type": "query",
+      "doc": "A class's asserted superclasses, a list of node ids."
+    },
+    "owner": {
+      "type": "query",
+      "doc": "The id of the node a satellite belongs to, or ''."
+    },
+    "pinnable": {
+      "type": "query",
+      "doc": "Whether a node's pin is kept; absent, every pin is."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "pinnedStay",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

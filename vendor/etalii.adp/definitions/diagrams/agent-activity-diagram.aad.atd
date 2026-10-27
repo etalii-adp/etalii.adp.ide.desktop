@@ -1,0 +1,234 @@
+atd 0.1
+part of etalii/agent-activity-diagram
+
+// The activity file of the Agent activity diagram (agent-activity-diagram.dis, agent-activity-diagram.md): ADP's own
+// YAML, written by agents and by ADP. Five lists of elements; tasks are entries of a specification and pull requests
+// entries of a location. A relation is a key on the element at its 'one' end, bound as a reference by id, from which
+// the specification derives the drawn line. The user's part is the top-level mapping view, holding showArchived,
+// placements and groups; FBL 0.4 creates view with the first of them and removes it with the last (research R3 of
+// etalii.adp spec 014). Each list rule's when refuses an item that is not a mapping, which that list's not-a-mapping
+// rule then takes, and its computed unknownKeys lists the keys the diagram does not read, which it reports while FBL
+// keeps them.
+
+binding aad family yaml {
+  label "Agent activity diagram"
+  claims { extensions: [".aad"], origins: ["etalii/agent-activity-diagram"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  header { key: agent-activity-diagram, value: 1 }
+
+  /// The root mapping: the file's version, and the archived switch under view. Setting showArchived in a file without
+  /// view creates view at the end of the file with the switch as its only key; in a view without the switch, the switch
+  /// becomes its first key (FBL 0.4, section 5.2).
+  element Diagram as diagram at "/" {
+    attribute version from key "agent-activity-diagram" {
+      readOnly: "The file's version is written when the file is created and changed by nobody but a migration."
+    }
+    attribute showArchived from key "showArchived" { child: view, default: false, create: { at: end } }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['agent-activity-diagram', 'projects', 'specifications', 'agents', 'locations', 'environments', 'view'])) + (has(entry.view) && type(entry.view) == map ? entry.view.filter(k, !(k in ['showArchived', 'placements', 'groups'])).map(k, 'view.' + k) : []))
+  }
+
+  element Project as project at "/projects/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'link'])))
+    attribute name from key "name" { empty: refuse }
+    attribute link from key "link" { empty: remove }
+    insert {
+      place: after-last
+      container: "/projects"
+      create: { at: end-of-document }
+      keys: [id, name, link]
+    }
+    remove { cascade: [placement], container: remove-when-empty }
+  }
+
+  element Specification as specification at "/specifications/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'project', 'name', 'link', 'status', 'tasks'])))
+    attribute project from key "project" {
+      references project by id
+      empty: remove
+    }
+    attribute name from key "name" { empty: refuse }
+    attribute link from key "link" { empty: remove }
+    attribute status from key "status" { empty: refuse }
+    insert {
+      place: after-last
+      container: "/specifications"
+      create: { at: end-of-document }
+      keys: [id, project, name, link, status]
+    }
+    remove { cascade: [placement, group], container: remove-when-empty }
+  }
+
+  element Task as task at "/specifications/*/tasks/*" {
+    parent specification slot tasks
+    when entry.all(k, true)
+    id from key "id"
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'title', 'status', 'updated', 'link'])))
+    attribute title from key "title" { empty: refuse }
+    attribute status from key "status" { empty: refuse }
+    attribute updated from key "updated" { empty: remove }
+    attribute link from key "link" { empty: remove }
+    insert {
+      place: after-last
+      container: tasks
+      create: { at: { after: status } }
+      keys: [id, title, status, updated, link]
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element Agent as agent at "/agents/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'specification', 'link'])))
+    attribute name from key "name" { empty: refuse }
+    attribute specification from key "specification" {
+      references specification by id
+      empty: remove
+    }
+    attribute link from key "link" { empty: remove }
+    insert {
+      place: after-last
+      container: "/agents"
+      create: { at: end-of-document }
+      keys: [id, name, specification, link]
+    }
+    remove { cascade: [placement], container: remove-when-empty }
+  }
+
+  element Location as location at "/locations/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'agent', 'environment', 'folder', 'folderLink', 'branchLink', 'branch', 'pullRequests'])))
+    attribute agent from key "agent" {
+      references agent by id
+      empty: remove
+    }
+    attribute environment from key "environment" {
+      references environment by id
+      empty: remove
+    }
+    attribute folder from key "folder" { empty: remove, default: Default }
+    attribute folderLink from key "folderLink" { empty: remove }
+    attribute branchLink from key "branchLink" { empty: remove }
+    attribute branch from key "branch" { empty: refuse }
+    insert {
+      place: after-last
+      container: "/locations"
+      create: { at: end-of-document }
+      keys: [id, agent, environment, folder, folderLink, branchLink, branch]
+    }
+    remove { cascade: [placement, group], container: remove-when-empty }
+  }
+
+  element PullRequest as pullRequest at "/locations/*/pullRequests/*" {
+    parent location slot pullRequests
+    when entry.all(k, true)
+    id from key "id"
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'title', 'updated', 'link'])))
+    attribute title from key "title" { empty: refuse }
+    attribute updated from key "updated" { empty: remove }
+    attribute link from key "link" { empty: remove }
+    insert {
+      place: after-last
+      container: pullRequests
+      create: { at: { after: branch } }
+      keys: [id, title, updated, link]
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element Environment as environment at "/environments/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'kind', 'link'])))
+    attribute name from key "name" { empty: refuse }
+    attribute environmentKind from key "kind" { empty: refuse }
+    attribute link from key "link" { empty: remove }
+    insert {
+      place: after-last
+      container: "/environments"
+      create: { at: end-of-document }
+      keys: [id, name, kind, link]
+    }
+    remove { cascade: [placement], container: remove-when-empty }
+  }
+
+  /// A locked position: the element it names and where it is. It has no id of its own; the specification binds it as
+  /// view data of the element it names (DISL 0.4, persistence.view.bind), which identifies it.
+  element Placement as placement at "/view/placements/*" {
+    when entry.all(k, true)
+    attribute unknownKeys from value (entry.filter(k, !(k in ['element', 'x', 'y'])))
+    attribute element from key "element" {
+      references project, specification, agent, location, environment by id
+      empty: refuse
+    }
+    attribute x from key "x" { number: { decimals: 2 } }
+    attribute y from key "y" { number: { decimals: 2 } }
+    insert { place: after-last, container: "/view/placements", create: { at: end }, keys: [element, x, y] }
+    remove { container: remove-empty-levels }
+  }
+
+  /// The state of one group of one element, stored only while it differs from the group's default (DISL 0.4, section
+  /// 6.9). It has no id of its own; the element and the group identify it.
+  element GroupState as group at "/view/groups/*" {
+    when entry.all(k, true)
+    attribute unknownKeys from value (entry.filter(k, !(k in ['element', 'group', 'collapsed'])))
+    attribute element from key "element" {
+      references specification, location by id
+      empty: refuse
+    }
+    attribute group from key "group" { empty: refuse }
+    attribute collapsed from key "collapsed"
+    insert {
+      place: after-last
+      container: "/view/groups"
+      create: { at: end }
+      keys: [element, group, collapsed]
+    }
+    remove { container: remove-empty-levels }
+  }
+
+  element Unreadable as project-not-a-mapping at "/projects/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as specification-not-a-mapping at "/specifications/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as task-not-a-mapping at "/specifications/*/tasks/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as agent-not-a-mapping at "/agents/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as location-not-a-mapping at "/locations/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as pullRequest-not-a-mapping at "/locations/*/pullRequests/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as environment-not-a-mapping at "/environments/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as placement-not-a-mapping at "/view/placements/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as group-not-a-mapping at "/view/groups/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+  template {
+    text: """agent-activity-diagram: 1
+"""
+  }
+}

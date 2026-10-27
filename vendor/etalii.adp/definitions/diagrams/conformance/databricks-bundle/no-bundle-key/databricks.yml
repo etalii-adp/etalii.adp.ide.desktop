@@ -1,0 +1,12 @@
+# No bundle: key, and a pipeline with neither catalog, schema nor notifications.
+variables:
+  region:
+    default: westeurope
+
+resources:
+  pipelines:
+    bare:
+      name: Bare
+      libraries:
+        - notebook:
+            path: transformations/bare

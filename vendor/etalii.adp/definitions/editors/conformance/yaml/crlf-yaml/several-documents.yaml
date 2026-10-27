@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=service.schema.json
+# Two services in one file, each its own document.
+name: web
+image: example/web:2.0.0
+ports:
+  - port: 80
+---
+# yaml-language-server: $schema=service.schema.json
+name: worker
+image: example/worker:2.0.0
+ports: []
+---
+# A third document with no schema line: it has no schema.
+note: |
+  A marker inside a block scalar is text, not a marker:
+  ---
+done: true
+...

@@ -1,0 +1,27 @@
+atd 0.1
+part of c4/deployment
+
+// The body of a C4 view, in a part of its own (ATD §5.2, §9).
+
+/// A Structurizr DSL workspace, read and written by the capability `reader.structurizr` as its `deployment` reading
+/// (c4-deployment.md, gaps 1 to 8, 10, 12, 13 and 14): the persistence plugin's contract (FBL §11) as a binding's family, since
+/// FBL's `blocks` family cannot read the statements of the selected view (gap 1), a comment after a brace or a
+/// statement (gap 2), a comment that spans lines (gap 3), an escaped quote (gap 4) or a body whose braces do not balance
+/// (gap 6), nor write a positional optional argument (gap 5), add a view block or gather a value from two statements
+/// (gap 8), or make an id depend on a directive of the body (gap 12). The reader reads every element and relationship
+/// of the workspace whichever view a reading shows, the selected view's own statements as the diagram's attributes, and
+/// each relationship's and interaction's ends as written (`sourceWritten`, `targetWritten`, gap 14); it reports the
+/// findings element by element (gap 10), the view whose scope names nothing and the empty view at their view's line
+/// among them (gap 13). `!identifiers hierarchical` is carried and not honoured, as today (gap 12).
+///
+/// The registration's `view:` names the view; without one the workspace's first view is read. Positions are kept in
+/// the legacy `<base>.layout.json`, keyed by view and by element compared without regard to case, each number as .NET
+/// writes a double, and a view that declares `autoLayout` ignores them (gaps 7 and 9). The C4 module's own FBL binding,
+/// `structurizr.fbl` in the standalone host, states what FBL 0.2 can express of this and is on no reading path.
+binding structurizr family capability reader.structurizr {
+  label "Structurizr DSL workspace"
+  claims { extensions: [".dsl"], origins: ["c4/deployment"] }
+  body { kind: file }
+  registration { legacyLayout: "{base}.layout.json", createOnFirstPlacement: true }
+  args: { view: deployment }
+}

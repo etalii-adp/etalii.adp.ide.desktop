@@ -1,0 +1,79 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record editor/json` from crates/adp-conformance/tests/round_trip/editors/json/examples/service-broken.json of etalii.adp.ide.desktop, the standalone host's example; never edited by hand.",
+  "tool": "editor/json",
+  "description": "../../../json.atd",
+  "inputs": {
+    "body": "service-broken.json",
+    "crlf-settings.json": "crlf-settings.json",
+    "no-schema.json": "no-schema.json",
+    "readme.md": "readme.md",
+    "service.json": "service.json",
+    "service.schema.json": "service.schema.json",
+    "utf8-bom-settings.json": "utf8-bom-settings.json"
+  },
+  "read": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "severity": "error",
+        "line": 3,
+        "column": 3,
+        "message": "\"\" is shorter than 1 character"
+      },
+      {
+        "severity": "error",
+        "line": 4,
+        "column": 3,
+        "message": "\"8080\" is not of type \"integer\""
+      },
+      {
+        "severity": "error",
+        "line": 5,
+        "column": 3,
+        "message": "\"chatty\" is not one of \"error\", \"warning\" or 2 other candidates"
+      },
+      {
+        "severity": "error",
+        "line": 7,
+        "column": 16,
+        "message": "[\"inventory\",\"inventory\"] has non-unique elements"
+      },
+      {
+        "severity": "error",
+        "line": 9,
+        "column": 5,
+        "message": "-1 is less than the minimum of 0"
+      },
+      {
+        "severity": "error",
+        "line": 8,
+        "column": 13,
+        "message": "\"timeoutSeconds\" is a required property"
+      },
+      {
+        "severity": "error",
+        "line": 11,
+        "column": 3,
+        "message": "Additional properties are not allowed ('region' was unexpected)"
+      }
+    ]
+  },
+  "provenance": {
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "7d08352",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "7d08352",
+      "source": "atd record (findings)"
+    }
+  }
+}

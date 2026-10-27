@@ -31,15 +31,16 @@ mod hierarchical_requirement;
 
 /// The fixtures the standalone host vendored at 8b6ccfc under `Conformance/fixtures`, which its
 /// `ConformanceFixturesTests` runs, and those the standalone host runs from `a7fdf03` that this port has the features
-/// of: `sankey-written-text`, which etalii.adp added with the Sankey binding, and the bullets family's (FBL 0.7 section
-/// 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`, which etalii.adp holds and the standalone host does
-/// not vendor.
-const STANDALONE_FIXTURES: [&str; 21] = [
+/// of: `sankey-written-text` and `supply-chain-written-text`, which etalii.adp added with the Sankey and supply chain
+/// bindings, and the bullets family's (FBL 0.7 section 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`,
+/// which etalii.adp holds and the standalone host does not vendor.
+const STANDALONE_FIXTURES: [&str; 22] = [
     "behavior-tree-read/first-add",
     "bullets-edits",
     "bullets-edits/no-section",
     "bullets-read",
     "sankey-written-text",
+    "supply-chain-written-text",
     "agent-activity-edits",
     "agent-activity-new",
     "agent-activity-read",
@@ -57,6 +58,10 @@ const STANDALONE_FIXTURES: [&str; 21] = [
     "timeline-edits",
     "timeline-written-text",
 ];
+
+/// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
+/// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
+const GRAMMAR_FIXTURES: [&str; 2] = ["w3c-turtle-grammar", "w3c-turtle-grammar-partial"];
 
 /// The fixtures the library departs from, which [`the_yaml_family_departs_from_the_fixture_only_as_recorded`] and
 /// [`the_json_family_departs_from_the_fixture_only_as_recorded`] run with the departure written out, as the
@@ -817,6 +822,7 @@ fn every_vendored_fixture_is_run_or_named_as_not_supported() {
     let known: HashSet<&str> = STANDALONE_FIXTURES
         .iter()
         .chain(KNOWLEDGE_FIXTURES.iter())
+        .chain(GRAMMAR_FIXTURES.iter())
         .chain(NOT_SUPPORTED.iter())
         .copied()
         .chain(designer.iter().map(String::as_str))
@@ -873,6 +879,19 @@ fn every_fixture_the_standalone_host_passes_passes() {
         failures.join("\n\n")
     );
     assert!(steps > 100, "only {steps} steps were run");
+}
+
+#[test]
+fn the_grammar_family_fixtures_pass() {
+    let mut failures = Vec::new();
+    for name in GRAMMAR_FIXTURES {
+        let folder = fixture_folder(name);
+        let fixture = read_json(&folder.join("fixture.json"));
+        if let Err(problem) = run(name, &folder, &fixture) {
+            failures.push(problem);
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n\n"));
 }
 
 /// The runner fails on a fixture whose reading names a typed value where a text is read (Requirement 5.5).

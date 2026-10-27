@@ -1,0 +1,90 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/cases/databricks/job/fresh-key.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "task:notebook_2",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "notebook_2",
+          "taskType": "notebook",
+          "source": "notebooks/notebook_2",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "notebook_2",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:python_1",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "python_1",
+          "taskType": "python",
+          "source": "scripts/python_1.py",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "python",
+          "label": "python_1",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:condition_1",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "condition_1",
+          "taskType": "condition",
+          "source": "EQUAL_TO",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "condition",
+          "label": "condition_1",
+          "badges": "serverless"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:python_1->condition_1",
+        "source": "task:python_1",
+        "target": "task:condition_1"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 260,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "top",
+    "band": "self.id.startsWith('cluster:')",
+    "placeholder": "self.unresolved"
+  },
+  "output": {
+    "positions": {
+      "task:notebook_2": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "task:python_1": {
+        "x": 0.0,
+        "y": 120.0
+      },
+      "task:condition_1": {
+        "x": 260.0,
+        "y": 0.0
+      }
+    }
+  }
+}

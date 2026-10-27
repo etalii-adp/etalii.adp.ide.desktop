@@ -1,0 +1,121 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/alpha",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 120,
+        "y": 80,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:alpha",
+          "font": "13 400",
+          "position": {
+            "x": 230,
+            "y": 100
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Alpha",
+          "font": "11 400",
+          "position": {
+            "x": 128,
+            "y": 122
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/beta",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 360,
+        "y": 80,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:beta",
+          "font": "13 400",
+          "position": {
+            "x": 470,
+            "y": 100
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Beta",
+          "font": "11 400",
+          "position": {
+            "x": 368,
+            "y": 122
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/alpha|http://example.org/links|res:http://example.org/beta",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/alpha",
+      "target": "res:http://example.org/beta",
+      "route": [
+        {
+          "x": 340,
+          "y": 108
+        },
+        {
+          "x": 360,
+          "y": 108
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:links",
+          "font": "11 400",
+          "position": {
+            "x": 350,
+            "y": 102
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/alpha|http://example.org/links|res:http://example.org/beta",
+    "res:http://example.org/alpha",
+    "res:http://example.org/beta"
+  ]
+}

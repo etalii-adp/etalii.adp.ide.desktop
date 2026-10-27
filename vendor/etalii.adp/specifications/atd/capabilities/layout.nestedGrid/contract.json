@@ -1,0 +1,58 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.nestedGrid",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "A containment laid out as nested grids. Each container lays out its own nodes first and then its child containers, in `order`, in rows of `columns` cells; a row is as tall as its tallest member, and a cell as wide as its widest member's column. A child container is one cell the size of its own grid, plus `padding` on every side and `labelBand` above its contents for its label. The roots are laid out the same way from `origin`. Positions are the top left corners of the nodes and of the containers, in the canvas's domain units. Its fixtures are recorded with the cases of the descriptions that require it (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "columns": {
+      "type": "integer",
+      "default": 3,
+      "doc": "The cells of a row."
+    },
+    "order": {
+      "type": "query",
+      "doc": "The key a container orders its members by, ascending; absent, the order of the input."
+    },
+    "columnGap": {
+      "type": "number",
+      "default": 60,
+      "doc": "The gap between two cells of a row."
+    },
+    "rowGap": {
+      "type": "number",
+      "default": 48,
+      "doc": "The gap between two rows."
+    },
+    "padding": {
+      "type": "number",
+      "default": 36,
+      "doc": "The room inside a container's edge."
+    },
+    "labelBand": {
+      "type": "number",
+      "default": 30,
+      "doc": "The room above a container's contents for its label."
+    },
+    "origin": {
+      "type": "list",
+      "default": [
+        40,
+        90
+      ],
+      "doc": "The top left corner of the roots' grid."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "stable"
+  ],
+  "fallback": "layout.layered",
+  "status": "provisional"
+}

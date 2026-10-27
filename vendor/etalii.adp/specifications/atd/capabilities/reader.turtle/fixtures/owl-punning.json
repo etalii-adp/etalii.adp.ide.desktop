@@ -1,0 +1,427 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/owl-punning.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# A4: OWL punning, properties with no domain or no range, and a class expression.\r\n@prefix ex: <http://example.org/zoo#> .\r\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\r\n\r\nex:Bird a owl:Class .\r\nex:Species a owl:Class .\r\nex:Eagle a owl:Class ; rdfs:subClassOf ex:Bird .\r\nex:Eagle a ex:Species .\r\nex:Hawk a owl:Class ; rdfs:subClassOf ex:Bird .\r\nex:Raptor a owl:Class ;\r\n    owl:equivalentClass [ a owl:Class ; owl:unionOf ( ex:Eagle ex:Hawk ) ] .\r\nex:eats a owl:ObjectProperty .\r\nex:wingspan a owl:DatatypeProperty ; rdfs:domain ex:Bird .\r\nex:ringed a owl:DatatypeProperty ; rdfs:range xsd:boolean .\r\n",
+    "files": {
+      "owl-punning.adp": "w3c/rdf\nbody: owl-punning.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/zoo#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:owl",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "owl",
+          "iri": "http://www.w3.org/2002/07/owl#",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 4
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Bird|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Bird",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Bird",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Species|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Species",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Species",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Eagle|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Eagle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Eagle",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Eagle|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/zoo#Bird",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Eagle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Eagle",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/zoo#Bird",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Eagle|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://example.org/zoo#Species",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Eagle",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Eagle",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://example.org/zoo#Species",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Hawk|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Hawk",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Hawk",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Hawk|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/zoo#Bird",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Hawk",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Hawk",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/zoo#Bird",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Raptor|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Raptor",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Raptor",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 12
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/zoo#Eagle",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/zoo#Eagle",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|2",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "2",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/zoo#Hawk",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/zoo#Hawk",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/2002/07/owl#unionOf|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#unionOf",
+          "o": "1",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#Raptor",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Raptor",
+          "p": "http://www.w3.org/2002/07/owl#equivalentClass",
+          "o": "0",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#eats|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#ObjectProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#eats",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:eats",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#ObjectProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#wingspan|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#DatatypeProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#wingspan",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:wingspan",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#DatatypeProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 15
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#wingspan|http://www.w3.org/2000/01/rdf-schema#domain|http://example.org/zoo#Bird",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#wingspan",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:wingspan",
+          "p": "http://www.w3.org/2000/01/rdf-schema#domain",
+          "o": "http://example.org/zoo#Bird",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 15
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#ringed|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#DatatypeProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#ringed",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:ringed",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#DatatypeProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 16
+        }
+      },
+      {
+        "id": "triple:http://example.org/zoo#ringed|http://www.w3.org/2000/01/rdf-schema#range|http://www.w3.org/2001/XMLSchema#boolean",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/zoo#ringed",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:ringed",
+          "p": "http://www.w3.org/2000/01/rdf-schema#range",
+          "o": "http://www.w3.org/2001/XMLSchema#boolean",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 16
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

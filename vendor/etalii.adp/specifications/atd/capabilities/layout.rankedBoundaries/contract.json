@@ -1,0 +1,65 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.rankedBoundaries",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Ranks along the edges, each rank a row (a column when the flow is horizontal) centred on the axis, and boundary nodes drawn around the nodes whose `parent` they are. A boundary node is a node whose attribute `boundary` is true; its `width` is the least width its label needs, and it takes the size of what it encloses. Ids are compared without regard to case. Ranking a set of nodes: every node starts at rank 0; an edge counts only when both its ends are in the set; then, at most once per node of the set, every node in input order raises each target of its outgoing edges, in edge order, to its own rank + 1, stopping after a pass that raises nothing, so a cycle stops deepening. Placing a set of nodes: its ranks in ascending order, each rank's thickness its largest size across the flow (height for `tb` and `bt`, width for `lr` and `rl`), its nodes in input order along the flow, centred: the first starts at minus half the sum of their sizes along the flow and `nodeSeparation` between each two, each centred across the rank's thickness, and the next rank starts `rankSeparation` after the thickness; for `bt` and `rl` every node is then reflected across the extent of the ranks (the last rank's far edge). Every coordinate is rounded to 0.01, a midpoint to the even neighbour, as each is computed. Mode `enclose` (one boundary): the nodes that are not boundary nodes are ranked and placed together; unless `pinsIgnored`, each pinned node takes its pin; the boundary is the box around the nodes whose `parent` it is, grown by `padding` on each side and by `labelHeight` more at its foot; then each other node that overlaps it (touching edges do not) is moved out of it by the shortest of four moves, each clearing it by `clearance` (left, right, up, down, the first of equal ones within 0.000001 winning), the ones moved up or down then swept apart along the row and the ones moved left or right along the column (in order of their position and then of their id in UTF-16 order, each moved only forwards to `clearance` after the one before), then nudged apart pairwise, at most once per such node, a node moved up or down going left or right and one moved left or right going up or down by the smaller move that clears the other by `clearance`, the node of the ordinally smaller id going left or up on a tie; and the boundary is then computed again. Mode `nest` (boundaries to any depth): the nodes with no parent are arranged as one set: a node enclosing nothing keeps its size; a boundary node arranges its children first, and is as wide as their extent plus twice `padding`, never less than its `width`, and as tall as their extent plus twice `padding` plus `labelHeight`; the set is ranked along the edges whose ends stand in for two different members of the set (an end standing in for the member that encloses it), placed, and moved so its least x and y are 0; each boundary node's children are offset by its position plus `padding`. Unless `pinsIgnored`, a pinned node that has no parent and encloses nothing then takes its pin. The output gives the top-left corner of every node, boundary nodes included, in the canvas's domain units.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "mode": {
+      "type": "enum",
+      "values": [
+        "enclose",
+        "nest"
+      ],
+      "default": "enclose",
+      "doc": "Whether one boundary encloses its nodes within a single ranked set, with the other nodes moved out of it, or boundaries nest to any depth, each set of siblings ranked on its own."
+    },
+    "direction": {
+      "type": "query",
+      "default": "'tb'",
+      "doc": "The direction ranks follow: `tb`, `bt`, `lr` or `rl`, evaluated over the diagram."
+    },
+    "rankSeparation": {
+      "type": "query",
+      "default": "120",
+      "doc": "The gap between two ranks, evaluated over the diagram."
+    },
+    "nodeSeparation": {
+      "type": "query",
+      "default": "60",
+      "doc": "The gap between two nodes of one rank, evaluated over the diagram."
+    },
+    "pinsIgnored": {
+      "type": "query",
+      "default": "false",
+      "doc": "Whether every pin is ignored, evaluated over the diagram."
+    },
+    "padding": {
+      "type": "number",
+      "default": 32,
+      "doc": "The margin between a boundary and what it encloses."
+    },
+    "labelHeight": {
+      "type": "number",
+      "default": 19.6,
+      "doc": "The room at a boundary's foot for its label."
+    },
+    "clearance": {
+      "type": "number",
+      "default": 60,
+      "doc": "How far a node moved out of a boundary, or away from another such node, clears it."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "pinnedStay"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

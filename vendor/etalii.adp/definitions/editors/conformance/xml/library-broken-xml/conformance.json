@@ -1,0 +1,65 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record editor/xml` from crates/adp-conformance/tests/round_trip/editors/xml/examples/library-broken.xml of etalii.adp.ide.desktop, the standalone host's example; never edited by hand.",
+  "tool": "editor/xml",
+  "description": "../../../xml.atd",
+  "inputs": {
+    "body": "library-broken.xml",
+    "latin1.xml": "latin1.xml",
+    "library.xml": "library.xml",
+    "library.xsd": "library.xsd",
+    "notes.xml": "notes.xml",
+    "order.xml": "order.xml",
+    "order.xsd": "order.xsd",
+    "party.xsd": "party.xsd",
+    "readme.md": "readme.md",
+    "recipe.dtd": "recipe.dtd",
+    "recipe.xml": "recipe.xml"
+  },
+  "read": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "severity": "error",
+        "line": 7,
+        "column": 4,
+        "message": "The required attribute 'isbn' is missing."
+      },
+      {
+        "severity": "error",
+        "line": 12,
+        "column": 4,
+        "message": "The element 'book' has incomplete content. List of possible elements expected: 'author, year'."
+      },
+      {
+        "severity": "error",
+        "line": 19,
+        "column": 11,
+        "message": "The 'year' element is invalid - The value 'soon' is invalid according to its datatype 'http://www.w3.org/2001/XMLSchema:gYear' - The string 'soon' is not a valid GYear value."
+      },
+      {
+        "severity": "error",
+        "line": 21,
+        "column": 4,
+        "message": "The element 'library' has invalid child element 'publisher'. List of possible elements expected: 'book'."
+      }
+    ]
+  },
+  "provenance": {
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "7d08352",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "7d08352",
+      "source": "atd record (findings)"
+    }
+  }
+}

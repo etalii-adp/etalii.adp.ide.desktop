@@ -1,0 +1,296 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "bundle",
+      "type": "databricks/bundle+bundle",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": -40,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "lake house: main",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": -16
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "resource:jobs/audit",
+      "type": "databricks/bundle+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 260,
+        "y": 180,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "jobs",
+          "font": "10 400",
+          "position": {
+            "x": 268,
+            "y": 228
+          }
+        },
+        {
+          "id": "name",
+          "text": "audit",
+          "font": "13 400",
+          "position": {
+            "x": 268,
+            "y": 204
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "resource:jobs/nightly_ingest_v2",
+      "type": "databricks/bundle+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 180,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "jobs",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 228
+          }
+        },
+        {
+          "id": "name",
+          "text": "nightly_ingest_v2",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 204
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "resource:pipelines/bronze_to_gold",
+      "type": "databricks/bundle+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 274.1,
+        "y": 293.29,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "pipelines",
+          "font": "10 400",
+          "position": {
+            "x": 282.1,
+            "y": 341.29
+          }
+        },
+        {
+          "id": "name",
+          "text": "bronze_to_gold",
+          "font": "13 400",
+          "position": {
+            "x": 282.1,
+            "y": 317.29
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "resource:pipelines/silver_only",
+      "type": "databricks/bundle+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 780,
+        "y": 180,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "pipelines",
+          "font": "10 400",
+          "position": {
+            "x": 788,
+            "y": 228
+          }
+        },
+        {
+          "id": "name",
+          "text": "silver_only",
+          "font": "13 400",
+          "position": {
+            "x": 788,
+            "y": 204
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "target:dev",
+      "type": "databricks/bundle+target",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 400,
+        "w": 220,
+        "h": 120
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "development · default",
+          "font": "10 400",
+          "position": {
+            "x": 12,
+            "y": 418
+          }
+        },
+        {
+          "id": "name",
+          "text": "dev",
+          "font": "12 400",
+          "position": {
+            "x": 0,
+            "y": 394
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "target:prod",
+      "type": "databricks/bundle+target",
+      "shape": "rect",
+      "bounds": {
+        "x": 300,
+        "y": 520,
+        "w": 220,
+        "h": 120
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "production · 2 overrides",
+          "font": "10 400",
+          "position": {
+            "x": 312,
+            "y": 538
+          }
+        },
+        {
+          "id": "name",
+          "text": "prod",
+          "font": "12 400",
+          "position": {
+            "x": 300,
+            "y": 514
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "override:prod/pipelines/bronze_to_gold",
+      "type": "databricks/bundle+edge",
+      "source": "target:prod",
+      "target": "resource:pipelines/bronze_to_gold",
+      "route": [
+        {
+          "x": 401.67,
+          "y": 520
+        },
+        {
+          "x": 377.98,
+          "y": 349.29
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ]
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "target:dev",
+    "target:prod",
+    "bundle",
+    "resource:jobs/nightly_ingest_v2",
+    "resource:jobs/audit",
+    "resource:pipelines/bronze_to_gold",
+    "resource:pipelines/silver_only",
+    "override:prod/pipelines/bronze_to_gold"
+  ]
+}

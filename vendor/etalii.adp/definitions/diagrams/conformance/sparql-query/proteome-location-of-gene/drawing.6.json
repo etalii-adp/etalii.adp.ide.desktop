@@ -1,0 +1,399 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "header:query",
+      "type": "w3c/sparql+header",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 24,
+        "w": 0,
+        "h": 0
+      },
+      "labels": [
+        {
+          "id": "form",
+          "text": "SELECT DISTINCT",
+          "font": "12 600",
+          "position": {
+            "x": 0,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "iri:http://purl.uniprot.org/taxonomy/9606",
+      "type": "w3c/sparql+term",
+      "shape": "path",
+      "bounds": {
+        "x": 512.35,
+        "y": 194.11,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "taxon:9606",
+          "font": "13 400",
+          "position": {
+            "x": 597.35,
+            "y": 232.61
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "lit:true^boolean",
+      "type": "w3c/sparql+term",
+      "shape": "rect",
+      "bounds": {
+        "x": 270,
+        "y": 202,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "annotation",
+          "text": "boolean",
+          "font": "10 400",
+          "position": {
+            "x": 278,
+            "y": 256
+          }
+        },
+        {
+          "id": "display",
+          "text": "true",
+          "font": "13 400",
+          "position": {
+            "x": 355,
+            "y": 240.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "note:where/bind.0",
+      "type": "w3c/sparql+annotation",
+      "shape": "path",
+      "bounds": {
+        "x": 270,
+        "y": 88,
+        "w": 0,
+        "h": 0
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "BIND( strbefore( str(?proteomeData), \"#\" ) as ?proteome )",
+          "font": "11 400",
+          "position": {
+            "x": 270,
+            "y": 88
+          }
+        }
+      ]
+    },
+    {
+      "id": "note:where/bind.1",
+      "type": "w3c/sparql+annotation",
+      "shape": "path",
+      "bounds": {
+        "x": 800.5,
+        "y": -42.25,
+        "w": 0,
+        "h": 0
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "BIND( strafter( str(?proteomeData), \"#\" ) as ?replicon )",
+          "font": "11 400",
+          "position": {
+            "x": 800.5,
+            "y": -42.25
+          }
+        }
+      ]
+    },
+    {
+      "id": "var:protein",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 60,
+        "y": 120,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "?protein",
+          "font": "13 400",
+          "position": {
+            "x": 145,
+            "y": 158.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:proteome",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 270,
+        "y": 90,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "annotation",
+          "text": "BIND( strbefore( str(?prote…",
+          "font": "10 400",
+          "position": {
+            "x": 278,
+            "y": 144
+          }
+        },
+        {
+          "id": "display",
+          "text": "?proteome",
+          "font": "13 400",
+          "position": {
+            "x": 355,
+            "y": 128.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:proteomeData",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 540,
+        "y": 70,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "?proteomeData",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 108.5
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "id": "var:replicon",
+      "type": "w3c/sparql+variable",
+      "shape": "path",
+      "bounds": {
+        "x": 800.5,
+        "y": -40.25,
+        "w": 170,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "annotation",
+          "text": "BIND( strafter( str(?proteo…",
+          "font": "10 400",
+          "position": {
+            "x": 808.5,
+            "y": 13.75
+          }
+        },
+        {
+          "id": "display",
+          "text": "?replicon",
+          "font": "13 400",
+          "position": {
+            "x": 885.5,
+            "y": -1.75
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8a8880",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:var:protein|up:organism|iri:http://purl.uniprot.org/taxonomy/9606|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:protein",
+      "target": "iri:http://purl.uniprot.org/taxonomy/9606",
+      "route": [
+        {
+          "x": 230,
+          "y": 165.93
+        },
+        {
+          "x": 512.35,
+          "y": 212.18
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "up:organism",
+          "font": "11 400",
+          "position": {
+            "x": 371.17,
+            "y": 183.05
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:protein|up:proteome|var:proteomeData|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:protein",
+      "target": "var:proteomeData",
+      "route": [
+        {
+          "x": 230,
+          "y": 143.15
+        },
+        {
+          "x": 540,
+          "y": 110.85
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "up:proteome",
+          "font": "11 400",
+          "position": {
+            "x": 385,
+            "y": 121
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:var:protein|up:reviewed|lit:true^boolean|0",
+      "type": "w3c/sparql+edge",
+      "source": "var:protein",
+      "target": "lit:true^boolean",
+      "route": [
+        {
+          "x": 226.95,
+          "y": 184
+        },
+        {
+          "x": 273.05,
+          "y": 202
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "up:reviewed",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 187
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8a8880",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "header:query",
+    "edge:var:protein|up:reviewed|lit:true^boolean|0",
+    "edge:var:protein|up:organism|iri:http://purl.uniprot.org/taxonomy/9606|0",
+    "edge:var:protein|up:proteome|var:proteomeData|0",
+    "var:protein",
+    "var:proteome",
+    "var:proteomeData",
+    "var:replicon",
+    "lit:true^boolean",
+    "iri:http://purl.uniprot.org/taxonomy/9606",
+    "note:where/bind.0",
+    "note:where/bind.1"
+  ]
+}

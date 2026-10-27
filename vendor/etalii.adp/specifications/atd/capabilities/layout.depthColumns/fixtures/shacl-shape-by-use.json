@@ -1,0 +1,43 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.depthColumns` from the RDF module's layout of the reading that parity/cases/w3c/owl/shacl-shape-by-use.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#string",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columnWidth": 530,
+    "laneOffset": 250,
+    "slotHeight": 130,
+    "satelliteHeight": 110,
+    "satelliteOffset": 10,
+    "headerGap": 80,
+    "bandGap": 140,
+    "bandColumns": 5,
+    "bandColumnGap": 60,
+    "bandRowGap": 50,
+    "role": "self.role",
+    "supers": "self.supers",
+    "owner": "self.owner",
+    "pinnable": "self.id.startsWith('res:') || self.id.startsWith('ind:')"
+  },
+  "output": {
+    "positions": {
+      "res:http://www.w3.org/2001/XMLSchema#string": {
+        "x": 0.0,
+        "y": 140.0
+      }
+    }
+  }
+}

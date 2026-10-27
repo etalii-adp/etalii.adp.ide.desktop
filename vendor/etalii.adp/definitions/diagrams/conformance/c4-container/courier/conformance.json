@@ -1,0 +1,786 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record c4/container` from parity/scripts/c4/container/courier.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "c4/container",
+  "description": "../../../c4-container.atd",
+  "inputs": {
+    "body": "courier.dsl",
+    "registration": "courier.containers.adp",
+    "code-level.adp": "code-level.adp",
+    "courier.adp": "courier.adp",
+    "courier.api-components.adp": "courier.api-components.adp",
+    "courier.landscape.adp": "courier.landscape.adp",
+    "courier.layout.json": "courier.layout.json",
+    "courier.parcel-scanned.adp": "courier.parcel-scanned.adp",
+    "courier.production.adp": "courier.production.adp",
+    "decisions/0001-record-architecture-decisions.md": "decisions/0001-record-architecture-decisions.md",
+    "decisions/0002-decouple-scans-from-notifications.md": "decisions/0002-decouple-scans-from-notifications.md",
+    "docs/index.md": "docs/index.md"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "sender",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "Sender",
+          "description": "Books a delivery and follows where the parcel is.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "240",
+          "height": "98.4",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "courier",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "Courier",
+          "description": "Collects and delivers parcels, and scans them on the way.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "240",
+          "height": "118",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "agent",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "Support Agent",
+          "description": "Answers questions about deliveries that went wrong.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "240",
+          "height": "98.4",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "web",
+        "type": "c4/model+node",
+        "parent": "tracking",
+        "attributes": {
+          "kind": "Container",
+          "name": "Web Application",
+          "description": "Serves the single-page application to a browser.",
+          "technology": "Java and Spring Boot",
+          "typeLine": "[Container: Java and Spring Boot]",
+          "external": "false",
+          "parentId": "tracking",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "spa",
+        "type": "c4/model+node",
+        "parent": "tracking",
+        "attributes": {
+          "kind": "Container",
+          "name": "Single-Page Application",
+          "description": "Books deliveries and shows the progress of a parcel.",
+          "technology": "TypeScript and React",
+          "typeLine": "[Container: TypeScript and React]",
+          "external": "false",
+          "parentId": "tracking",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "mobile",
+        "type": "c4/model+node",
+        "parent": "tracking",
+        "attributes": {
+          "kind": "Container",
+          "name": "Courier App",
+          "description": "Scans parcels at pickup, handover and delivery.",
+          "technology": "Kotlin and Jetpack Compose",
+          "typeLine": "[Container: Kotlin and Jetpack Compose]",
+          "external": "false",
+          "parentId": "tracking",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "api",
+        "type": "c4/model+node",
+        "parent": "tracking",
+        "attributes": {
+          "kind": "Container",
+          "name": "API Application",
+          "description": "The booking and tracking API.",
+          "technology": "Java and Spring Boot",
+          "typeLine": "[Container: Java and Spring Boot]",
+          "external": "false",
+          "parentId": "tracking",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "broker",
+        "type": "c4/model+node",
+        "parent": "tracking",
+        "attributes": {
+          "kind": "Container",
+          "name": "Event Broker",
+          "description": "Carries scan events so ingest and notification are not one step.",
+          "technology": "Apache Kafka",
+          "typeLine": "[Container: Apache Kafka]",
+          "external": "false",
+          "parentId": "tracking",
+          "width": "240",
+          "height": "118",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "database",
+        "type": "c4/model+node",
+        "parent": "tracking",
+        "attributes": {
+          "kind": "Container",
+          "name": "Delivery Database",
+          "description": "Stores deliveries, parcels and every scan against them.",
+          "technology": "PostgreSQL 16",
+          "typeLine": "[Container: PostgreSQL 16]",
+          "external": "false",
+          "parentId": "tracking",
+          "width": "240",
+          "height": "98.4",
+          "background": "#438dd5",
+          "color": "#ffffff",
+          "shape": "Cylinder"
+        }
+      },
+      {
+        "id": "routing",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Routing Optimiser",
+          "description": "Works out the cheapest route for a set of parcels.",
+          "typeLine": "[Software System]",
+          "external": "true",
+          "width": "240",
+          "height": "98.4",
+          "background": "#999999",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "email",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "E-mail System",
+          "description": "The corporate mail relay.",
+          "typeLine": "[Software System]",
+          "external": "true",
+          "width": "216.5",
+          "height": "78.8",
+          "background": "#999999",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "maps",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Mapping Provider",
+          "description": "Turns addresses into coordinates and draws maps.",
+          "typeLine": "[Software System]",
+          "external": "true",
+          "width": "240",
+          "height": "98.4",
+          "background": "#999999",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "boundary:tracking",
+        "type": "c4/model+boundary",
+        "parent": null,
+        "attributes": {
+          "name": "Courier Tracking",
+          "kind": "Software System",
+          "width": "1744",
+          "height": "667"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "Container diagram for Courier Tracking",
+          "viewKind": "Container",
+          "viewKey": "Containers",
+          "legend.0.label": "Person",
+          "legend.0.background": "#08427b",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "Person",
+          "legend.1.label": "Container",
+          "legend.1.background": "#438dd5",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "RoundedBox",
+          "legend.2.label": "Software System (external)",
+          "legend.2.background": "#999999",
+          "legend.2.color": "#ffffff",
+          "legend.2.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "email->sender@78",
+        "type": "c4/model+relationship",
+        "source": "email",
+        "target": "sender",
+        "attributes": {
+          "description": "Delivers mail to",
+          "technology": "SMTP",
+          "sourceX": "1788.25",
+          "sourceY": "368.4",
+          "sourceWidth": "216.5",
+          "sourceHeight": "78.8",
+          "destinationX": "1892",
+          "destinationY": "9.800000000000004",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "sender->spa@81",
+        "type": "c4/model+relationship",
+        "source": "sender",
+        "target": "spa",
+        "attributes": {
+          "description": "Books and tracks using",
+          "technology": "HTTPS",
+          "sourceX": "1892",
+          "sourceY": "9.800000000000004",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "840",
+          "destinationY": "0",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "courier->mobile@82",
+        "type": "c4/model+relationship",
+        "source": "courier",
+        "target": "mobile",
+        "attributes": {
+          "description": "Scans parcels using",
+          "technology": "Touch",
+          "sourceX": "-212",
+          "sourceY": "-158.4",
+          "sourceWidth": "240",
+          "sourceHeight": "118",
+          "destinationX": "480",
+          "destinationY": "0",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "agent->spa@83",
+        "type": "c4/model+relationship",
+        "source": "agent",
+        "target": "spa",
+        "attributes": {
+          "description": "Looks up deliveries using",
+          "technology": "HTTPS",
+          "sourceX": "-212",
+          "sourceY": "168.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "840",
+          "destinationY": "0",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "web->spa@87",
+        "type": "c4/model+relationship",
+        "source": "web",
+        "target": "spa",
+        "attributes": {
+          "description": "Delivers to the web browser of the customer",
+          "technology": "HTTPS",
+          "sourceX": "120",
+          "sourceY": "168.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "840",
+          "destinationY": "0",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "spa->api@88",
+        "type": "c4/model+relationship",
+        "source": "spa",
+        "target": "api",
+        "attributes": {
+          "description": "Calls",
+          "technology": "JSON/HTTPS",
+          "sourceX": "840",
+          "sourceY": "0",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "1560",
+          "destinationY": "79.2",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "mobile->api@89",
+        "type": "c4/model+relationship",
+        "source": "mobile",
+        "target": "api",
+        "attributes": {
+          "description": "Calls",
+          "technology": "JSON/HTTPS",
+          "sourceX": "480",
+          "sourceY": "0",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "1560",
+          "destinationY": "79.2",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "api->database@90",
+        "type": "c4/model+relationship",
+        "source": "api",
+        "target": "database",
+        "attributes": {
+          "description": "Reads from and writes to",
+          "technology": "JDBC/SSL",
+          "sourceX": "1560",
+          "sourceY": "79.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "1200",
+          "destinationY": "-138.8",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "api->broker@91",
+        "type": "c4/model+relationship",
+        "source": "api",
+        "target": "broker",
+        "attributes": {
+          "description": "Publishes scan events to",
+          "technology": "Kafka protocol",
+          "sourceX": "1560",
+          "sourceY": "79.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "1200",
+          "destinationY": "-307",
+          "destinationWidth": "240",
+          "destinationHeight": "118"
+        }
+      },
+      {
+        "id": "broker->api@92",
+        "type": "c4/model+relationship",
+        "source": "broker",
+        "target": "api",
+        "attributes": {
+          "description": "Delivers scan events to",
+          "technology": "Kafka protocol",
+          "sourceX": "1200",
+          "sourceY": "-307",
+          "sourceWidth": "240",
+          "sourceHeight": "118",
+          "destinationX": "1560",
+          "destinationY": "79.2",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "api->routing@93",
+        "type": "c4/model+relationship",
+        "source": "api",
+        "target": "routing",
+        "attributes": {
+          "description": "Requests routes from",
+          "technology": "JSON/HTTPS",
+          "sourceX": "1560",
+          "sourceY": "79.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "1500",
+          "destinationY": "378.2",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      },
+      {
+        "id": "api->email@94",
+        "type": "c4/model+relationship",
+        "source": "api",
+        "target": "email",
+        "attributes": {
+          "description": "Sends mail through",
+          "technology": "SMTP",
+          "sourceX": "1560",
+          "sourceY": "79.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "1788.25",
+          "destinationY": "368.4",
+          "destinationWidth": "216.5",
+          "destinationHeight": "78.8"
+        }
+      },
+      {
+        "id": "api->maps@95",
+        "type": "c4/model+relationship",
+        "source": "api",
+        "target": "maps",
+        "attributes": {
+          "description": "Geocodes addresses using",
+          "technology": "JSON/HTTPS",
+          "sourceX": "1560",
+          "sourceY": "79.2",
+          "sourceWidth": "240",
+          "sourceHeight": "98.4",
+          "destinationX": "1200",
+          "destinationY": "378.2",
+          "destinationWidth": "240",
+          "destinationHeight": "98.4"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "c4.rename",
+      "args": {
+        "value": "Web Front End"
+      },
+      "select": [
+        "web"
+      ],
+      "expectFile": "after-1.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "c4.edit-description",
+      "args": {
+        "value": "Serves the single-page application and its static assets."
+      },
+      "expectFile": "after-2.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "c4.set-technology",
+      "args": {
+        "value": "Java 21 and Spring Boot 3"
+      },
+      "expectFile": "after-3.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "move": {
+        "element": "web"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"web\"],\"to\":{\"x\":200,\"y\":250}}",
+      "expectFile": "after-3.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "move": {
+        "element": "spa"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"spa\"],\"dx\":40,\"dy\":-20}",
+      "expectFile": "after-3.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "c4.relabel",
+      "args": {
+        "value": "Calls the API of"
+      },
+      "select": [
+        "spa->api@88"
+      ],
+      "expectFile": "after-4.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "c4.set-protocol",
+      "args": {
+        "value": "JSON/HTTPS (REST)"
+      },
+      "expectFile": "after-5.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "property": {
+        "element": "mobile->api@89",
+        "attribute": "c4.relationship.technology",
+        "value": "gRPC"
+      },
+      "expectFile": "after-6.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-5.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "property": {
+        "element": "courier->mobile@82",
+        "attribute": "c4.relationship.description",
+        "value": "Scans parcels with"
+      },
+      "expectFile": "after-7.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "c4.description",
+        "value": "The booking, tracking and scan API."
+      },
+      "select": [
+        "api"
+      ],
+      "expectFile": "after-8.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "c4.name",
+        "value": "Delivery Store"
+      },
+      "select": [
+        "database"
+      ],
+      "expectFile": "after-9.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-8.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-9.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "action": "c4.edit-description",
+      "args": {
+        "value": "Scans parcels at every handover."
+      },
+      "select": [
+        "mobile"
+      ],
+      "expectFile": "after-10.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "move": {
+        "element": "broker"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"broker\"],\"to\":{\"x\":1100,\"y\":-350}}",
+      "expectFile": "after-10.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-9.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-10.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "action": "c4.set-technology",
+      "args": {
+        "value": "Apache Kafka 3.7"
+      },
+      "select": [
+        "broker"
+      ],
+      "expectFile": "after-11.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "action": "c4.rename",
+      "args": {
+        "value": "Tracking API"
+      },
+      "select": [
+        "api"
+      ],
+      "expectFile": "after-12.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "move": {
+        "element": "api"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"api\"],\"dx\":0,\"dy\":40}",
+      "expectFile": "after-12.dsl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/c4/container/courier/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (drawing)"
+    }
+  }
+}

@@ -1,0 +1,548 @@
+atd 0.1
+
+/// What an RDF file states: its resources, their relationships and their values, straight from Turtle or N-Triples.
+///
+/// The data graph of an RDF file stored as Turtle (`.ttl`) or N-Triples (`.nt`). Every IRI or blank node in subject or
+/// object position is a card; a triple between two of them is a labelled, arrowed edge; a triple whose object is a
+/// literal is a row inside its subject's card; an `rdf:type` triple with an IRI object is a type badge on the card, not
+/// an edge; an RDF collection is drawn as ordered member edges labelled with their position, its cons cells staying in
+/// the file. Nothing is inferred and nothing is fetched: the diagram shows what the file says.
+///
+/// This is the anchor reading of the file: a bare `.ttl` or `.nt` opens as this diagram, and the OWL, SKOS and SHACL
+/// readings (`w3c-owl.dis`, `w3c-skos.dis`, `w3c-shacl.dis`) are chosen deliberately over the same bytes. The turtle
+/// plugin reads the file into stored `Triple`, `Prefix` and `Base` elements, which every reading shares; the cards,
+/// their rows and badges and the statement edges are derived from them here (4.11). Positions are kept in the `.adp`
+/// registration beside the file. What this specification cannot express is written down in `w3c-rdf.md` beside this
+/// file.
+diagram w3c/rdf version "2.0.0" {
+  label "RDF graph"
+  id: "net.etalii.adp.w3c.rdf"
+  icon: "mdi-graph-outline"
+  fileExtension: "ttl"
+  license: "Apache-2.0"
+  homepage: "https://www.w3.org/TR/rdf11-concepts/"
+  authors: [{ name: "Peter Vrenken" }]
+  limits: {
+    maxElements: 1000
+    budgets: {
+      cards: {
+        measure: { count: ["Resource", "BlankNode"] }
+        max: 1000
+        order: (index)
+        withhold: { edits: model, reason: { reason: "truncated" } }
+        notice: {
+          text: ('Showing ' + string(budget('cards').shown) + ' of ' + string(budget('cards').total) + ' resources — edits are withheld on this truncated view')
+          severity: warning
+          position: top
+        }
+        doc: "At most 1000 cards are drawn, in the order the file first names them; a statement is drawn only when both its cards are. While it truncates, every edit through the diagram is withheld and moves stay allowed."
+      }
+    }
+  }
+  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl"] }
+  doc {
+    tags: ["rdf", "turtle", "n-triples", "linked data", "knowledge graph", "semantic web"]
+    seeAlso: [{ title: "W3C RDF 1.1 Concepts and Abstract Syntax", href: "https://www.w3.org/TR/rdf11-concepts/" }, {
+      title: "W3C RDF 1.1 Turtle",
+      href: "https://www.w3.org/TR/turtle/"
+    }
+    , { title: "W3C RDF 1.1 N-Triples", href: "https://www.w3.org/TR/n-triples/" }, {
+      title: "What DISL cannot express for this tool",
+      href: "w3c-rdf.md"
+    }
+    ]
+  }
+
+  import "w3c-rdf.notation.atd"
+  import "w3c-rdf.turtle.atd"
+  requires capability reader.turtle@^1
+  requires capability layout.bandedGrid@^1
+
+  /// The plugin reads one stored `Triple` per triple, one `Prefix` per directive and at most one `Base`, and none of
+  /// them is drawn. Every card and edge is derived from the triples (4.11): a card groups every triple that names its
+  /// term, and a statement is a triple between two cards. Derived elements are never written and fire no hooks; their
+  /// edits go through the operations their `edits` name.
+  model {
+    /// One literal value folded into its subject's card, in document order, duplicates kept.
+    datatype LiteralRow {
+      fields: {
+        predicate: {
+          type: "string"
+          required: true
+          doc: "The predicate as drawn, with `[n]` after it for the n-th member of a collection."
+        }
+        value: { type: "string", required: true, doc: "The lexical form, quotes stripped and escapes resolved." }
+        annotation: {
+          type: "string"
+          default: ""
+          doc: "`@` and the language tag, else the datatype as a prefixed name, else nothing for a plain or `xsd:string` literal."
+        }
+      }
+      display: (value.predicate + ': ' + value.value + (value.annotation != '' ? ' ' + value.annotation : ''))
+    }
+
+    enum TermKind {
+      iri { label: "IRI" }
+      blank { label: "Blank node" }
+      literal { label: "Literal" }
+    }
+
+    enum PrefixForm {
+      turtle { label: "@prefix" }
+      sparql { label: "PREFIX" }
+    }
+
+    /// One triple of the file as the plugin reads it, with the line it starts on. Never drawn: every drawn element is
+    /// derived from these.
+    element Triple {
+      /// The subject: an IRI, or for a blank node its ordinal, the zero-based order of first appearance in this parse.
+      attribute s: string required
+      attribute sKind: TermKind required
+      /// A blank subject's label as written (`_:x` is `x`); '' for an IRI or an anonymous blank node.
+      attribute sLabel: string default ""
+      /// The subject as written: a prefixed name or a bracketed IRI; '' for a blank node.
+      attribute sWritten: string readonly default ""
+      attribute p: uri required
+      /// The object: an IRI, a blank node's ordinal, or a literal's lexical form.
+      attribute o: string required
+      attribute oKind: TermKind required
+      /// A blank object's label as written; '' otherwise.
+      attribute oLabel: string default ""
+      attribute language: string default ""
+      attribute datatype: string default ""
+      /// The 1-based line the triple's subject is written on.
+      attribute line: int readonly
+    }
+
+    /// One `@prefix` or `PREFIX` directive, re-declarations included, in document order. Never drawn.
+    element Prefix {
+      /// The prefix without its colon; '' for the default prefix.
+      attribute name: string required
+      attribute iri: uri required
+      attribute form: PrefixForm default "turtle"
+      attribute line: int readonly
+    }
+
+    /// The file's last `@base` or `BASE` directive; at most one. Never drawn.
+    element Base {
+      attribute iri: uri required readonly
+      multiplicity: { max: 1 }
+    }
+
+    /// What resource cards and blank-node cards share: the types the file asserts for them and the literal rows they
+    /// carry.
+    element Term {
+      /// Objects of the term's `rdf:type` triples with an IRI object, in document order, duplicates kept.
+      attribute types: uri many readonly
+      attribute rows: LiteralRow many readonly
+      attribute badgeLine: string { derived: (self.types.map(t, rdfDisplayName(t)).join(' · ')) }
+      /// The layout band: the display form of the first type, '' for an untyped card.
+      attribute band: string { derived: (size(self.types) > 0 ? rdfDisplayName(self.types[0]) : '') }
+      abstract: true
+    }
+
+    element Resource extends Term {
+      label "Resource"
+      attribute iri: uri { label: "IRI", group: "Identity" }
+      attribute display: string { derived: (rdfDisplayName(self.iri)) }
+      attribute typesText: string {
+        label: "Types",
+        group: "Identity",
+        derived: (self.types.map(t, rdfDisplayName(t)).join(', '))
+      }
+      attribute label: string {
+        label: "Label"
+        group: "Documentation"
+        derived: (self.sources.exists(t, t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal') ? self.sources.filter(t, t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal')[0].o : '')
+      }
+      attribute comment: text {
+        label: "Comment"
+        group: "Documentation"
+        derived: (self.sources.exists(t, t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal') ? self.sources.filter(t, t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal')[0].o : '')
+      }
+      labelAttribute: "display"
+      derived: {
+        from: (diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().filter(c, c[1] == 'iri'))
+        key: (item[0])
+        id: ('res:' + item[0])
+        attributes: {
+          iri: (item[0])
+          types: (group.map(g, g[3]).distinct().filter(t, t.s == item[0] && typeTriple(t)).map(t, t.o))
+          rows: (group.map(g, g[3]).distinct().filter(t, t.s == item[0] && !typeTriple(t)).map(t, t.oKind == 'literal' ? [{
+            'predicate': rdfDisplayName(t.p),
+            'value': t.o,
+            'annotation': (t.language != '' ? '@' + t.language : (t.datatype != '' && t.datatype != 'http://www.w3.org/2001/XMLSchema#string' ? rdfCompress(t.datatype) : ''))
+          }
+          ] : (t.oKind == 'blank' && isCell(t.o) ? collectionMembers(t.o).filter(m, m.oKind == 'literal').map(m, {
+            'predicate': rdfDisplayName(t.p) + ' [' + string(collectionMembers(t.o).indexOf(m) + 1) + ']',
+            'value': m.o,
+            'annotation': (m.language != '' ? '@' + m.language : (m.datatype != '' && m.datatype != 'http://www.w3.org/2001/XMLSchema#string' ? rdfCompress(m.datatype) : ''))
+          }
+          ) : [])).flatten())
+        }
+        sources: (diagram.nodesOfType('Triple').filter(t, (t.sKind == 'iri' && t.s == item[0]) || (t.oKind == 'iri' && t.o == item[0])))
+        reason: "Resources are read from the triples; add, rename or remove them through the context menu."
+        edits: {
+          delete: "removeResource"
+          rename: "renameResource"
+          "attribute:label": "setLabel"
+          "attribute:comment": "setComment"
+        }
+        doc: "One card per IRI in subject or object position, in the order the file first names it, grouping every triple that names it. A class used only as an `rdf:type` object is a badge, not a card."
+      }
+    }
+
+    element BlankNode extends Term {
+      label "Blank node"
+      /// The order of first appearance within one parse.
+      attribute ordinal: string readonly
+      attribute writtenLabel: string readonly default ""
+      attribute name: string {
+        label: "Node"
+        group: "Identity"
+        derived: (self.writtenLabel != '' ? '_:' + self.writtenLabel : '_:b' + self.ordinal)
+      }
+      labelAttribute: "name"
+      derived: {
+        from: (diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().filter(c, c[1] == 'blank'))
+        key: (item[0])
+        id: ('blank:' + item[0])
+        attributes: {
+          ordinal: (item[0])
+          writtenLabel: (item[2])
+          types: (group.map(g, g[3]).distinct().filter(t, t.s == item[0] && t.sKind == 'blank' && typeTriple(t)).map(t, t.o))
+          rows: (group.map(g, g[3]).distinct().filter(t, t.s == item[0] && t.sKind == 'blank' && !typeTriple(t)).map(t, t.oKind == 'literal' ? [{
+            'predicate': rdfDisplayName(t.p),
+            'value': t.o,
+            'annotation': (t.language != '' ? '@' + t.language : (t.datatype != '' && t.datatype != 'http://www.w3.org/2001/XMLSchema#string' ? rdfCompress(t.datatype) : ''))
+          }
+          ] : (t.oKind == 'blank' && isCell(t.o) ? collectionMembers(t.o).filter(m, m.oKind == 'literal').map(m, {
+            'predicate': rdfDisplayName(t.p) + ' [' + string(collectionMembers(t.o).indexOf(m) + 1) + ']',
+            'value': m.o,
+            'annotation': (m.language != '' ? '@' + m.language : (m.datatype != '' && m.datatype != 'http://www.w3.org/2001/XMLSchema#string' ? rdfCompress(m.datatype) : ''))
+          }
+          ) : [])).flatten())
+        }
+        sources: (diagram.nodesOfType('Triple').filter(t, (t.sKind == 'blank' && t.s == item[0]) || (t.oKind == 'blank' && t.o == item[0])))
+        reason: "A blank node's identity does not survive a reparse, so nothing about it can be edited from the diagram."
+      }
+    }
+
+    relation Statement from Resource, BlankNode to Resource, BlankNode {
+      label "Statement"
+      attribute predicateIri: uri { label: "Predicate", group: "Identity" }
+      /// The predicate as drawn, with `[n]` for a collection member.
+      attribute predicate: string readonly
+      /// Whether the edge is one triple between two resources, which is what Remove statement removes; a collection
+      /// member's edge and a blank node's are not.
+      attribute direct: bool readonly
+      directed: true
+      allowSelfLoops: true
+      allowParallel: true
+      derived: {
+        from: (withRepeat(diagram.nodesOfType('Triple').filter(t, !isPlumbing(t) && !typeTriple(t) && t.oKind != 'literal').map(t, t.oKind == 'blank' && isCell(t.o) ? collectionMembers(t.o).filter(m, m.oKind != 'literal').map(m, [cardId(t.s, t.sKind) + '|' + t.p + '|' + cardId(m.o, m.oKind), t, m.o, m.oKind, rdfDisplayName(t.p) + ' [' + string(collectionMembers(t.o).indexOf(m) + 1) + ']']) : [[cardId(t.s, t.sKind) + '|' + t.p + '|' + cardId(t.o, t.oKind), t, t.o, t.oKind, rdfDisplayName(t.p)]]).flatten()))
+        id: ('edge:' + item[0] + (item[5] > 0 ? '|' + string(item[5]) : ''))
+        source: (cardTerm(item[1].s, item[1].sKind))
+        target: (cardTerm(item[2], item[3]))
+        attributes: {
+          predicateIri: (item[1].p)
+          predicate: (item[4])
+          direct: (item[1].sKind == 'iri' && item[3] == 'iri' && item[2] == item[1].o)
+        }
+        sources: ([item[1]])
+        reason: "A statement is a triple of the file; remove it, or relate two resources to state a new one."
+        edits: { delete: "removeStatement", connect: "relate" }
+        doc: "One edge per triple between two cards, and one per member of a collection, labelled with the member's 1-based position. A repeated edge between the same two cards with the same predicate takes a repeat counter after its id (`edge:a|p|b|1`), as the tool numbers them."
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// An `rdf:type` triple with an IRI object: a type, never an edge.
+  fn typeTriple(t: Element) -> bool {
+    return t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && t.oKind == 'iri'
+  }
+
+  /// Whether a blank node is a cons cell of an RDF collection: one with an `rdf:first` triple.
+  fn isCell(ordinal: string) -> bool {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').exists(t, t.sKind == 'blank' && t.s == ordinal && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+  }
+
+  /// A collection's `rdf:first` or `rdf:rest` triple, which is folded into its members and never drawn itself.
+  fn isPlumbing(t: Element) -> bool {
+    return t.sKind == 'blank' && (t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first' || t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest') && isCell(t.s)
+  }
+
+  /// The `rdf:first` triples of the collection starting at `cell`, in order, walked through `rdf:rest` until `rdf:nil`
+  /// or a node that is no cons cell.
+  fn collectionMembers(cell: string) -> list recursion 64 {
+    // uses: ["diagram"]
+    return cel.bind(f, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))
+  }
+
+  /// The repeat counter of a stored triple or prefix declaration (11.5.2): '' for the first with its parts, '|1' for
+  /// the second and so on, in reading order.
+  fn repeatSuffix(e: Element) -> string {
+    // uses: ["diagram"]
+    return cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').filter(u, u.s == e.s && u.p == e.p && u.o == e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))
+  }
+
+  /// Each item of `xs`, whose first entry is its key, with the number of earlier items of the same key appended: the
+  /// repeat counter of a derived edge id (11.5.2), 0 for the first.
+  fn withRepeat(xs: list) -> list {
+    return lists.range(xs.size()).map(i, xs[i] + [lists.range(i).filter(j, xs[j][0] == xs[i][0]).size()])
+  }
+
+  /// The id of the card the RDF graph reading draws a subject or object term as.
+  fn cardId(term: string, kind: string) -> string {
+    return (kind == 'blank' ? 'blank:' : 'res:') + term
+  }
+
+  /// The terms a triple draws an RDF graph card for, in the order the tool meets them: its subject, then its object or
+  /// its collection's members, each with its kind, its written label and the triple. A type's IRI and a literal are no
+  /// card; a cons cell is folded away.
+  fn cardTerms(t: Element) -> list {
+    // uses: ["diagram"]
+    return isPlumbing(t) ? [] : ([[t.s, t.sKind, t.sLabel, t]] + (typeTriple(t) || t.oKind == 'literal' ? [] : (t.oKind == 'blank' && isCell(t.o) ? collectionMembers(t.o).filter(m, m.oKind != 'literal').map(m, [m.o, m.oKind, m.oLabel, t]) : [[t.o, t.oKind, t.oLabel, t]])))
+  }
+
+  /// Whether the RDF graph reading of this body is cut by its budget of 1000 cards. Every reading withholds its edits
+  /// while it is, because the tool gates every reading's edits on that one count.
+  fn familyTruncated() -> bool {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).distinct().size() > 1000
+  }
+
+  /// The card a subject or object term is drawn as.
+  fn cardTerm(term: string, kind: string) -> Element {
+    // uses: ["diagram"]
+    return diagram.elementById(cardId(term, kind))
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// Facts about the file, never a reasoner's opinion. The five `rdf.*` findings are the plugin's own, raised as it
+  /// reads the body and shared by every reading of it (FBL 9.1); a body that does not parse is `rdf.unparseable`, which
+  /// replaces every other finding.
+  constraints {
+    builtin std.unparseable { code: "rdf.unparseable", message: ('This is not RDF that can be read: ' + detail.reason) }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// The truncation gate: one sentence, shown on every withheld gesture, menu entry and property row.
+  reason truncated {
+    when budget('cards').truncated
+    message "The diagram shows only the first part of this file under the drawn-element budget, so edits through it are withheld - an edit through a partial view could touch what the view does not show. Edit the file as text instead."
+  }
+
+  message std.notApplicable('\'' + operationId + '\' does not apply to this selection.')
+
+  /// Writes one triple, `{iri} a rdfs:Resource`; the card follows from it.
+  operation addResource "Add resource here…" for diagram {
+    param iri: string required { label: "IRI or prefixed name" }
+    icon: "mdi-card-plus-outline"
+    paramsForm: "addResourceDialog"
+    if rdfResolveTerm(p.iri) == '' {
+      fail rdfTermRefusal(p.iri)
+    }
+    create Triple {
+      s: rdfResolveTerm(p.iri),
+      sKind: 'iri',
+      p: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+      o: 'http://www.w3.org/2000/01/rdf-schema#Resource',
+      oKind: 'iri'
+    }
+  }
+
+  /// Writes one `@prefix` directive from `prefix: iri`, brackets tolerated: a new stored `Prefix`, which the binding
+  /// `turtle` writes after the last declaration (`w3c-rdf.md`, gap 2).
+  operation declarePrefix "Declare prefix…" for diagram {
+    param declaration: string required { label: "Declaration, e.g. ex: http://example.org/" }
+    icon: "mdi-at"
+    paramsForm: "declarePrefixDialog"
+    let declared = rdfPrefixDeclaration(p.declaration)
+    if declared.name == '' {
+      fail 'Write the declaration as \'prefix: iri\', e.g. ex: http://example.org/.'
+    }
+    create Prefix { name: declared.name, iri: declared.iri }
+  }
+
+  /// Rewrites every token that names the IRI, in subject, predicate, object and datatype position: every stored triple
+  /// naming it is changed in one edit, which the binding `turtle` writes token by token, bracketed or prefixed under the
+  /// prefixes in force where each stands (`w3c-rdf.md`, gap 2). A name that is already in use is refused, since the
+  /// rename would merge two resources.
+  operation renameResource "Rename…" for Resource {
+    param newName: string required { label: "New IRI or prefixed name" }
+    paramsForm: "renameDialog"
+    let renamed = rdfResolveTerm(p.newName)
+    if renamed == '' {
+      fail rdfTermRefusal(p.newName)
+    }
+    if diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == renamed) || (t.oKind == 'iri' && t.o == renamed)) {
+      fail renamed + ' already names something in this document; renaming onto it would silently merge two resources.'
+    }
+    for t in diagram.nodesOfType('Triple') limit 100000 {
+      if t.sKind == 'iri' && t.s == self.iri {
+        set t.s = renamed
+      }
+      if t.p == self.iri {
+        set t.p = renamed
+      }
+      if t.oKind == 'iri' && t.o == self.iri {
+        set t.o = renamed
+      }
+      if t.oKind == 'literal' && t.datatype == self.iri {
+        set t.datatype = renamed
+      }
+    }
+  }
+
+  /// Removes every triple the card is drawn from; the card disappears on recomputation. A resource in one statement
+  /// goes without a question.
+  operation removeResource for Resource {
+    label (self.sources.size() == 1 ? 'Remove' : 'Remove (with ' + string(self.sources.size()) + ' statements)')
+    confirm {
+      count: (self.sources.size())
+      threshold: 2
+      title: "Remove resource"
+      message: ('Removing this resource also removes the ' + string(count) + ' statements it appears in.')
+      confirmLabel: "Remove"
+      danger: true
+    }
+    delete self.sources
+  }
+
+  operation removeStatement "Remove statement" for Statement {
+    delete self.sources
+  }
+
+  operation relate "Relate…" for diagram {
+    param from: Term required
+    param to: Term required
+    param predicate: string required { label: "Predicate (IRI or prefixed name)" }
+    icon: "mdi-ray-start-arrow"
+    paramsForm: "relateDialog"
+    if p.from.isA('BlankNode') || p.to.isA('BlankNode') {
+      fail 'A blank node\'s identity does not survive a reparse, so relations to it cannot land in the file. Name it with an IRI first.'
+    }
+    if rdfResolveTerm(p.predicate) == '' {
+      fail rdfTermRefusal(p.predicate)
+    }
+    create Triple { s: p.from.iri, sKind: 'iri', p: rdfResolveTerm(p.predicate), o: p.to.iri, oKind: 'iri' }
+  }
+
+  /// Rewrites the lexical form of the first `rdfs:label` literal, keeping its language and datatype, or adds a plain
+  /// one when there is none.
+  operation setLabel "Label" for Resource {
+    param value: string required
+    if self.sources.exists(t, t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal') {
+      let target = self.sources.filter(t, t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal')[0]
+      set target.o = p.value
+    } else {
+      create Triple {
+        s: self.iri,
+        sKind: 'iri',
+        p: 'http://www.w3.org/2000/01/rdf-schema#label',
+        o: p.value,
+        oKind: 'literal'
+      }
+    }
+  }
+
+  /// Rewrites the lexical form of the first `rdfs:comment` literal, keeping its language and datatype, or adds a plain
+  /// one when there is none.
+  operation setComment "Comment" for Resource {
+    param value: string required
+    if self.sources.exists(t, t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal') {
+      let target = self.sources.filter(t, t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal')[0]
+      set target.o = p.value
+    } else {
+      create Triple {
+        s: self.iri,
+        sKind: 'iri',
+        p: 'http://www.w3.org/2000/01/rdf-schema#comment',
+        o: p.value,
+        oKind: 'literal'
+      }
+    }
+  }
+
+  /// An edit writes triples, and the cards and edges follow from recomputation; no hook fires for a derived element.
+  behavior { editGate: [{ reason: "truncated" }] }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// The RDF file itself is the model, read and written through the module's FBL binding and the turtle plugin;
+  /// positions live in the `.adp` registration, keyed by element id.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: natural
+      stable: false
+      types: {
+        Triple: {
+          strategy: derived
+          expression: ('triple:' + self.s + '|' + self.p + '|' + self.o + repeatSuffix(self))
+          ephemeral: (self.sKind == 'blank' || self.oKind == 'blank')
+          doc: "A triple by its three parts and a repeat counter. One that names a blank node is ephemeral, since the blank's label is the parse's own."
+        }
+        Prefix: {
+          strategy: derived
+          expression: ('prefix:' + self.name + repeatSuffix(self))
+          doc: "A declaration by its prefix and a repeat counter for a re-declaration."
+        }
+        Base: { strategy: derived, expression: ('base'), doc: "A fixed singleton id." }
+        BlankNode: {
+          ephemeral: true
+          reason: "That is a blank node, whose identity does not survive a reparse, so a stored position could not be trusted. Name it with an IRI to arrange it."
+        }
+      }
+      pattern: "^(res:.+|blank:[0-9]+|edge:.+|triple:.+|prefix:.*|base|truncation)$"
+    }
+    view: { store: [bounds], styleOverrides: none }
+  }
+
+  plugin net.etalii.adp.w3c.turtle {
+    version: "^0.1.0"
+    required: true
+    provides: [persistenceFormat, celFunctions, action]
+    plans: [add, set, remove]
+    doc "The RDF family's engine: it reads a `.ttl` or `.nt` body into the stored `Triple`, `Prefix` and `Base` elements and the five `rdf.*` findings, plans the splices of an added, set or removed triple, carries out the two edits that are not a change of one triple (renaming a term everywhere it is written, declaring a prefix; gap 2 of `w3c-rdf.md`), and provides the naming functions. Every function is called by its bare name. This description states the reading and the planning as the binding `turtle` (w3c-rdf.turtle.atd), whose family is the capability `reader.turtle`, the two edits as model changes the binding writes, and the functions as the script functions of the same names; the plugin stays declared for the hosts that run the JSON files."
+  }
+
+  x-rdf: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names. A tool is keyed by its id, an action by its operation, a property by its form item's id."
+    tools: {
+      resource: { id: "rdf.toolbox.resource", drop: "rdf.add-resource" }
+      prefix: { id: "rdf.toolbox.prefix", drop: "rdf.add-prefix" }
+    }
+    actions: {
+      addResource: "rdf.add-resource"
+      declarePrefix: "rdf.add-prefix"
+      relate: "rdf.connect"
+      renameResource: "rdf.rename-resource"
+      removeResource: "rdf.remove-resource"
+      removeStatement: "rdf.remove-edge"
+    }
+    properties: {
+      iri: "rdf.iri",
+      types: "rdf.types",
+      label: "rdf.label",
+      comment: "rdf.comment",
+      predicateIri: "rdf.predicate"
+    }
+  }
+
+  x-adp: {
+    origin: "w3c/rdf"
+    state: "implemented"
+    extensions: [".ttl", ".nt"]
+    claimsBareFiles: true
+    suggestWhenBodyContains: []
+    family: ["w3c/rdf", "w3c/owl", "w3c/skos", "w3c/shacl"]
+    implementations: { standalone: "etalii.adp.ide.standalone src/diagrams/rdf" }
+  }
+}

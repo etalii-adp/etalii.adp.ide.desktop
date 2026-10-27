@@ -1,0 +1,154 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/scripts/databricks/pipeline/lakehouse.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "library:transformations/bronze",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/bronze",
+          "badges": "notebook"
+        }
+      },
+      {
+        "id": "library:transformations/silver",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/silver",
+          "badges": "notebook"
+        }
+      },
+      {
+        "id": "library:transformations/gold/**",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/gold/**",
+          "badges": "glob"
+        }
+      },
+      {
+        "id": "pipeline",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "pipeline",
+          "kind": "pipeline",
+          "label": "Bronze to gold",
+          "badges": "serverless\nCURRENT"
+        }
+      },
+      {
+        "id": "target",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "target",
+          "kind": "target",
+          "label": "${var.catalog}.gold",
+          "badges": ""
+        }
+      },
+      {
+        "id": "compute",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "serverless",
+          "badges": ""
+        }
+      },
+      {
+        "id": "notifications",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "notifications",
+          "kind": "notifications",
+          "label": "data-eng@vrenken.eu",
+          "badges": ""
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "flow:transformations/bronze->pipeline",
+        "source": "library:transformations/bronze",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:transformations/silver->pipeline",
+        "source": "library:transformations/silver",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:transformations/gold/**->pipeline",
+        "source": "library:transformations/gold/**",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:pipeline->target",
+        "source": "pipeline",
+        "target": "target"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 320,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "middle",
+    "band": "self.id == 'compute' || self.id == 'notifications'",
+    "column": "self.id.startsWith('library:') ? 0 : self.id == 'pipeline' ? 1 : 2"
+  },
+  "output": {
+    "positions": {
+      "library:transformations/bronze": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "library:transformations/silver": {
+        "x": 0.0,
+        "y": 120.0
+      },
+      "library:transformations/gold/**": {
+        "x": 0.0,
+        "y": 240.0
+      },
+      "pipeline": {
+        "x": 320.0,
+        "y": 120.0
+      },
+      "target": {
+        "x": 640.0,
+        "y": 120.0
+      },
+      "compute": {
+        "x": 0.0,
+        "y": 440.0
+      },
+      "notifications": {
+        "x": 320.0,
+        "y": 440.0
+      }
+    }
+  }
+}

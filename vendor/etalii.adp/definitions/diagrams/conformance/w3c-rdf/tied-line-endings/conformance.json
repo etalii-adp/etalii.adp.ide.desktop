@@ -1,0 +1,115 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/tied-line-endings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "tied-line-endings.ttl",
+    "registration": "tied-line-endings.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/a",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/a",
+          "display": "ex:a",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/c",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/c",
+          "display": "ex:c",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/d",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/d",
+          "display": "ex:d",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/f",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/f",
+          "display": "ex:f",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/a|http://example.org/b|res:http://example.org/c",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/a",
+        "target": "res:http://example.org/c",
+        "attributes": {
+          "fromElementId": "res:http://example.org/a",
+          "toElementId": "res:http://example.org/c",
+          "predicate": "ex:b",
+          "predicateIri": "http://example.org/b"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/d|http://example.org/e|res:http://example.org/f",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/d",
+        "target": "res:http://example.org/f",
+        "attributes": {
+          "fromElementId": "res:http://example.org/d",
+          "toElementId": "res:http://example.org/f",
+          "predicate": "ex:e",
+          "predicateIri": "http://example.org/e"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

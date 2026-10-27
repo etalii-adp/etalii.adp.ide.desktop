@@ -2806,6 +2806,13 @@
               "items": {
                 "type": "string"
               }
+            },
+            "reports": {
+              "description": "Further companion files beside `file`, such as a conversion's report, whose findings the items answer; named so that they are read with the trace. Their sections are not counted as items.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           "additionalProperties": false,
@@ -2817,7 +2824,7 @@
         "items": {
           "type": "array",
           "items": {
-            "description": "One item of the companion.",
+            "description": "One item of the companion: the part of the description that states it, the host's concern it is, or, while ATD cannot state it yet, the etalii.adp issue that adds what it needs.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -2843,6 +2850,11 @@
               },
               "reason": {
                 "type": "string"
+              },
+              "open": {
+                "description": "The etalii.adp issue, by its address, that adds the construct this item needs; the item is not stated yet (ATD §2.5).",
+                "type": "string",
+                "pattern": "^https://github\\.com/etalii-adp/etalii\\.adp/issues/[0-9]+$"
               }
             },
             "required": [
@@ -2855,8 +2867,17 @@
                   "statedBy"
                 ],
                 "not": {
-                  "required": [
-                    "hostConcern"
+                  "anyOf": [
+                    {
+                      "required": [
+                        "hostConcern"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "open"
+                      ]
+                    }
                   ]
                 }
               },
@@ -2866,8 +2887,37 @@
                   "reason"
                 ],
                 "not": {
-                  "required": [
-                    "statedBy"
+                  "anyOf": [
+                    {
+                      "required": [
+                        "statedBy"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "open"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "open",
+                  "reason"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "statedBy"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "hostConcern"
+                      ]
+                    }
                   ]
                 }
               }
@@ -2926,6 +2976,11 @@
               },
               "reason": {
                 "type": "string"
+              },
+              "open": {
+                "description": "The etalii.adp issue, by its address, that adds the construct this item needs; the item is not stated yet (ATD §2.5).",
+                "type": "string",
+                "pattern": "^https://github\\.com/etalii-adp/etalii\\.adp/issues/[0-9]+$"
               }
             },
             "required": [
@@ -2940,18 +2995,100 @@
               {
                 "required": [
                   "statedBy"
-                ]
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "divergesFrom"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "hostConcern"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "open"
+                      ]
+                    }
+                  ]
+                }
               },
               {
                 "required": [
                   "divergesFrom"
-                ]
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "statedBy"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "hostConcern"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "open"
+                      ]
+                    }
+                  ]
+                }
               },
               {
                 "required": [
                   "hostConcern",
                   "reason"
-                ]
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "statedBy"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "divergesFrom"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "open"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "open",
+                  "reason"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "statedBy"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "divergesFrom"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "hostConcern"
+                      ]
+                    }
+                  ]
+                }
               }
             ]
           }
@@ -3037,7 +3174,7 @@
           ]
         },
         "move": {
-          "description": "A move gesture.",
+          "description": "A move gesture: to a place (`x`, `y`), or into a parent before its child at `index`, last when it is -1.",
           "type": "object",
           "properties": {
             "element": {
@@ -3051,6 +3188,11 @@
             },
             "parent": {
               "type": "string"
+            },
+            "index": {
+              "description": "With `parent`: the place among the parent's children as they are before the move, the element itself included; -1, or absent, puts it last.",
+              "type": "integer",
+              "minimum": -1
             }
           },
           "additionalProperties": false
@@ -4029,8 +4171,26 @@
                   "y"
                 ]
               },
+              "position": {
+                "description": "Where the node is now: its top-left corner in the canvas's domain units, rounded to 0.01, for a layout that reads it without holding the node to it.",
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y"
+                ]
+              },
               "attributes": {
-                "type": "object"
+                "type": "object",
+                "description": "What the layout's arguments read of the node, by argument."
               }
             },
             "additionalProperties": false,
@@ -4055,6 +4215,10 @@
               },
               "target": {
                 "type": "string"
+              },
+              "attributes": {
+                "description": "What the layout's arguments read of the edge, by argument.",
+                "type": "object"
               }
             },
             "additionalProperties": false,
@@ -4079,7 +4243,7 @@
       ]
     },
     "LayoutResult": {
-      "description": "The output of a `layout` capability: a position for every node it places, in the canvas's domain units, rounded to 0.01, and optionally route points.",
+      "description": "The output of a `layout` capability: a position for every node it places, in the canvas's domain units, rounded to 0.01, optionally the size it gives a node it resizes, optionally route points, and optionally named numbers per node or edge that CEL reads as `layout.value(e, name)` (ATD §8.8).",
       "type": "object",
       "properties": {
         "positions": {
@@ -4100,6 +4264,23 @@
               "x",
               "y"
             ]
+          }
+        },
+        "sizes": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "The size a layout gives a node, in the canvas's domain units, rounded to 0.01: its width, its height, or both.",
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "number"
+              },
+              "height": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "minProperties": 1
           }
         },
         "routes": {
@@ -4124,11 +4305,223 @@
               ]
             }
           }
+        },
+        "values": {
+          "description": "Named numbers by node or edge id, as the capability's contract names them.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
         }
       },
       "additionalProperties": false,
       "required": [
         "positions"
+      ]
+    },
+    "RoutingInput": {
+      "description": "The input of a `routing` capability: each edge with the boxes of its two ends, and the boxes it must keep clear of, in the canvas's domain units.",
+      "type": "object",
+      "properties": {
+        "edges": {
+          "type": "array",
+          "items": {
+            "description": "An edge to route.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "description": "The box of the edge's source: its top-left corner and size, rounded to 0.01.",
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "width": {
+                    "type": "number"
+                  },
+                  "height": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y",
+                  "width",
+                  "height"
+                ]
+              },
+              "target": {
+                "description": "The box of the edge's target: its top-left corner and size, rounded to 0.01.",
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "width": {
+                    "type": "number"
+                  },
+                  "height": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y",
+                  "width",
+                  "height"
+                ]
+              },
+              "from": {
+                "description": "Where the edge leaves its source, where the notation fixes it, rounded to 0.01.",
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y"
+                ]
+              },
+              "to": {
+                "description": "Where the edge reaches its target, where the notation fixes it, rounded to 0.01.",
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y"
+                ]
+              },
+              "attributes": {
+                "description": "What the routing's arguments read of the edge, by argument.",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "source",
+              "target"
+            ]
+          }
+        },
+        "obstacles": {
+          "type": "array",
+          "items": {
+            "description": "A box the routes keep clear of: its top-left corner and size, rounded to 0.01.",
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "width": {
+                "type": "number"
+              },
+              "height": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y",
+              "width",
+              "height"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "edges"
+      ]
+    },
+    "RoutingResult": {
+      "description": "The output of a `routing` capability: the route of every edge it routes, by edge id, as path commands from the edge's first point to its last.",
+      "type": "object",
+      "properties": {
+        "routes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "description": "One command of a route, as a path draws it: its operation and its points, control points first and the point it ends at last (one for `move` and `line`, two for `quad`, three for `cubic`).",
+              "type": "object",
+              "properties": {
+                "op": {
+                  "enum": [
+                    "move",
+                    "line",
+                    "quad",
+                    "cubic"
+                  ]
+                },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "description": "A point in the canvas's domain units, rounded to 0.01.",
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "x",
+                      "y"
+                    ]
+                  },
+                  "minItems": 1,
+                  "maxItems": 3
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "op",
+                "points"
+              ]
+            },
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "routes"
       ]
     },
     "ReaderInput": {

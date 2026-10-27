@@ -1,0 +1,691 @@
+atd 0.1
+
+/// What a query asks: its graph pattern as nodes and edges, its variables as the joins they are, and its form and
+/// modifiers as the frame around them.
+///
+/// A read-only diagram of one SPARQL 1.1 query file (`.rq`). Triple patterns are directed, labelled edges between term
+/// nodes; every occurrence of a variable name is one node, so a variable's degree on the canvas is its join count.
+/// Group-shaped constructs (`OPTIONAL`, `UNION`, `MINUS`, `GRAPH`, `SERVICE`, a braced group, the `CONSTRUCT` template)
+/// are labelled containment regions; expression-shaped constructs (`FILTER`, `BIND`, `VALUES`) are annotations showing
+/// their text as written; the form and solution modifiers are the header above the canvas.
+///
+/// The query text is the model and is never written: it is edited in a text editor and the diagram follows. The reader
+/// `net.etalii.adp.w3c.sparqlQuery` reads it, through the binding named by `persistence`, into stored records, one per
+/// entry of the query: the prologue's prefixes, the groups, the triple patterns, the constraints and the subqueries.
+/// The variable and term nodes, where each is placed and the pattern edges are derived from them here (4.11). The one
+/// thing a user changes is where an element sits, and that is stored in the `.adp` registration beside the query, never
+/// in it. What this specification cannot express is written down in `sparql-query.md` beside this file.
+diagram w3c/sparql version "2.0.0" {
+  doc {
+    rationale: "A query shows *asking*, not modelling. The query-builder tradition (NITELIGHT, QueryVOWL, Gruff, RDF Explorer) keeps failing by drowning the pattern in boxes for the non-graph machinery; this type draws only what is a graph as structure and keeps the rest as annotation and frame."
+    tags: ["sparql", "rdf", "query", "semantic web", "read-only"]
+    seeAlso: [
+      { title: "SPARQL 1.1 Query Language", href: "https://www.w3.org/TR/sparql11-query/" },
+      {
+        title: "QueryVOWL: a visual query notation for Linked Data"
+        href: "https://link.springer.com/chapter/10.1007/978-3-319-25639-9_51"
+      },
+      { title: "What DISL cannot express for this tool", href: "sparql-query.md" }
+    ]
+  }
+  label "SPARQL query"
+  id: "net.etalii.adp.w3c.sparql"
+  icon: "mdi-help-network-outline"
+  fileExtension: "rq"
+  license: "Apache-2.0"
+  homepage: "https://etalii.net/adp/"
+  authors: [{ name: "Peter Vrenken" }]
+  limits: {
+    maxElements: 500
+    budgets: {
+      drawn: {
+        measure: { count: [Scope, Term, TriplePattern, ProjectedJoin, Annotation] }
+        max: 500
+        order: (drawOrder(self))
+        notice: {
+          text: ('Showing ' + string(budget('drawn').shown) + ' of ' + string(budget('drawn').total) + ' elements — this query is larger than the diagram draws')
+          severity: warning
+          position: top
+        }
+        withhold: { edits: none }
+        doc: "At most 500 regions, nodes, edges and annotations are drawn: the regions first, then the nodes, the edges and the annotations, each in the order the tool walks the query (`drawOrder`). An edge is drawn only when both its ends are. It is the tool's own bound, so that a generated query degrades honestly; a hand-written one holds tens of patterns. Nothing is withheld, because nothing is editable."
+      }
+    }
+  }
+  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl"] }
+
+  import "sparql-query.notation.atd"
+  import "sparql-query.query.atd"
+  requires capability reader.sparql@^1
+  requires capability layout.nestedGrid@^1
+
+  /// The reader reads one stored record per entry of the query: a `Prefix` per declaration, a `Scope` per group, a
+  /// `Pattern` per triple pattern, an `Annotation` per `FILTER`, `BIND` or `VALUES` (its binding type is `Constraint`)
+  /// and a `SubQuery` per nested `SELECT`, each with the span and line it was read from, and the query's form,
+  /// projection and modifiers as the diagram's attributes. `Prefix` and `Pattern` are never drawn. The variable and
+  /// term nodes, their containment and the edges are derived (4.11). Every attribute is read-only, because the text
+  /// editor is where a query is edited.
+  model {
+    document {
+      /// Which of the four SPARQL query forms the file is.
+      attribute form: QueryForm readonly default select
+      /// The form writes `DISTINCT`.
+      attribute distinct: bool readonly default false
+      /// The form writes `REDUCED`.
+      attribute reduced: bool readonly default false
+      /// The projection is `SELECT *`; `projection` then names every variable the query mentions, in the order it first
+      /// mentions them.
+      attribute projectsAll: bool readonly default false
+      /// The names the query's own projection carries outward, without their sigil, in the order written: named in
+      /// `SELECT`, aliased by `(expr AS ?name)`, every mentioned variable for `SELECT *`, or a `DESCRIBE` query's
+      /// variable targets.
+      attribute projection: string many readonly
+      /// For each entry of `projection`, at the same place, the text of the `(expr AS ?name)` that defines it as
+      /// written, or ''.
+      attribute projectionExpressions: string many readonly
+      /// A `DESCRIBE` query's targets as written (`*` included); empty for the other forms.
+      attribute describeTargets: string many readonly
+      /// A `DESCRIBE` query's targets that are terms, in the order written, each drawn as a node.
+      attribute describeTerms: DescribeTerm many readonly
+      /// The `FROM` and `FROM NAMED` clauses, as written.
+      attribute datasetClauses: string many readonly
+      /// The solution modifiers as written rows: `GROUP BY ?x`, `HAVING (...)`, `ORDER BY DESC(?d)`, `LIMIT 100`,
+      /// `OFFSET 10`.
+      attribute modifierRows: string many readonly
+      /// The query is `CONSTRUCT WHERE { ... }`, whose template is its where clause: the `template` scope then states
+      /// the where clause's patterns again.
+      attribute templateRepeatsWhere: bool readonly default false
+      /// The `BASE` IRI, when one is declared.
+      attribute baseIri: string readonly default ""
+      /// The first thing the header says: the form, its `DESCRIBE` targets, then `DISTINCT` or `REDUCED`.
+      attribute headerForm: string {
+        label: "Form"
+        derived: ((self.form == 'select' ? 'SELECT' : self.form == 'construct' ? 'CONSTRUCT' : self.form == 'ask' ? 'ASK' : 'DESCRIBE ' + self.describeTargets.join(' ')) + (self.distinct ? ' DISTINCT' : '') + (self.reduced ? ' REDUCED' : ''))
+      }
+      /// The dataset clauses and then the solution modifiers, as written, joined by ' · '.
+      attribute modifiers: string { label: "Modifiers", derived: ((self.datasetClauses + self.modifierRows).join(' · ')) }
+    }
+
+    /// One `PREFIX` declaration of the prologue, in document order, with the line it is on. Never drawn: it is what the
+    /// unused-prefix finding is about.
+    element Prefix {
+      /// The prefix without its colon; '' for the default prefix.
+      attribute prefix: string required readonly
+      /// The namespace IRI it expands to.
+      attribute iri: string required readonly
+      /// Whether `prefix:` occurs anywhere in the text outside a line that starts with `PREFIX`, comments, strings,
+      /// expressions and modifiers included. The reader decides it on the source text, which DISL does not read.
+      attribute used: bool readonly default false
+    }
+
+    /// One triple pattern as written, with the scope that states it. A `;` or `,` list writes several; a blank-node
+    /// property list or a collection writes patterns nobody wrote out, one per cell and `rdf:first` or `rdf:rest`.
+    /// Never drawn: each is the source of one pattern edge, two for a `CONSTRUCT WHERE` query.
+    element Pattern {
+      /// The path of the scope whose group states the pattern: `where`, `template`, or a path below either such as
+      /// `where/optional.0`.
+      attribute scope: string required readonly
+      /// What the subject is.
+      attribute sKind: TermKind required
+      /// The id of the node the subject is drawn as: `var:` and the name, `anon:` and its expansion ordinal, `iri:` and
+      /// the full IRI, or `lit:` and the lexical form percent-encoded, then `@` and the language or `^` and the
+      /// datatype's last segment percent-encoded (gap 6 of sparql-query.md).
+      attribute sKey: string required
+      /// What the subject's node shows: a prefixed name or `<iri>` as written, a literal's lexical form, `_:label` or
+      /// `[]`; '' for a variable, whose node shows `?` and its name.
+      attribute sDisplay: string default ""
+      /// The subject's full IRI, or a literal exactly as written; '' otherwise.
+      attribute sFull: string default ""
+      /// For a literal subject: `@` and its language, else its datatype IRI's last segment after `#` or `/`; ''
+      /// otherwise.
+      attribute sAnnotation: string default ""
+      /// The verb as written: a prefixed name, `a`, `<iri>`, `?variable` or a property path.
+      attribute predicate: string required readonly
+      /// The verb is a property path rather than one predicate or variable.
+      attribute isPath: bool readonly default false
+      /// The name of the variable in predicate position, without its sigil; ''.
+      attribute predicateVariable: string readonly default ""
+      /// What the object is.
+      attribute oKind: TermKind required
+      /// The id of the node the object is drawn as: `var:` and the name, `anon:` and its expansion ordinal, `iri:` and
+      /// the full IRI, or `lit:` and the lexical form percent-encoded, then `@` and the language or `^` and the
+      /// datatype's last segment percent-encoded (gap 6 of sparql-query.md).
+      attribute oKey: string required
+      /// What the object's node shows: a prefixed name or `<iri>` as written, a literal's lexical form, `_:label` or
+      /// `[]`; '' for a variable, whose node shows `?` and its name.
+      attribute oDisplay: string default ""
+      /// The object's full IRI, or a literal exactly as written; '' otherwise.
+      attribute oFull: string default ""
+      /// For a literal object: `@` and its language, else its datatype IRI's last segment after `#` or `/`; ''
+      /// otherwise.
+      attribute oAnnotation: string default ""
+      /// How many patterns with the same subject key, predicate as written and object key the tool meets before this
+      /// one, where clause first, then template. The reader counts it, because counting it per pattern in CEL is
+      /// quadratic in the number of patterns.
+      attribute repeat: int readonly default 0 { min: 0 }
+    }
+
+    /// Anything drawn as one node: a variable, a concrete term, or a collapsed subquery.
+    element Term {
+      abstract: true
+      labelAttribute: display
+      /// What the node shows: `?name`, a prefixed name, a literal's lexical form, `_:label` or `[]`, or a subquery's
+      /// projection.
+      attribute display: string readonly
+    }
+
+    /// A named variable: what the query asks for. One node per name, however many patterns mention it.
+    ///
+    /// Every mention of `?name` or `$name` in the query is this one node, subqueries' insides excepted, so the edges
+    /// meeting it are the joins it takes part in. A variable mentioned only in predicate position, only in a `FILTER`,
+    /// or only by a projection still gets its node. It sits in the shallowest scope that mentions it, lifted out of a
+    /// `UNION`, so an edge stated inside a region may cross its border to reach it.
+    element Variable extends Term {
+      label "Variable"
+      derived: {
+        from: (mentions())
+        key: (item[0])
+        id: ('var:' + item[0])
+        attributes: {
+          name: (item[0])
+          display: ('?' + item[0])
+          projected: (diagram.projection.exists(n, n == item[0]))
+          joinCount: (group.filter(m, m[2]).size())
+          definingExpression: (cel.bind(d, group.filter(m, m[3] != ''), d.size() > 0 ? d[d.size() - 1][3] : ''))
+          firstScope: (group[0][1])
+        }
+        parent: (regionAt(shallowestScope(group.filter(m, m[1] != '').map(m, m[1]))))
+        reason: "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+        doc: "One node per name, from every mention of it (`mentions()`), in the order the names are first mentioned; the budget draws them in `drawOrder`, by `firstScope` and then by name. The mentions are not sorted here: sorting each by its name's place among the names costs the square of their number, which the CEL cost limit refuses for a generated query of a few hundred patterns, and nothing would be drawn."
+      }
+      /// The variable's name without its sigil.
+      attribute name: string readonly
+      /// The query's own projection carries this variable outward.
+      attribute projected: bool readonly
+      /// How many triple-pattern positions (subject, predicate or object) mention this variable, template included.
+      attribute joinCount: int readonly { min: 0 }
+      /// The `(expr AS ?name)` of the projection that defines the variable, else the last `BIND (...)` that does, as
+      /// written; '' for an ordinary variable.
+      attribute definingExpression: text readonly
+      /// The scope path of the name's first mention in `mentions()`; '' for a name only the projection mentions. What
+      /// `drawOrder` orders the variables by, before their names.
+      attribute firstScope: string readonly
+    }
+
+    /// A blank node in a pattern, which in a query means a variable nobody named.
+    ///
+    /// Written as `_:label`, `[]`, a blank-node property list `[ ... ]` or a collection `( ... )`, whose cells expand
+    /// to one anonymous variable each. A labelled blank node is one node wherever its label recurs. It has no name to
+    /// key a stored position by, so it always takes its computed place.
+    element AnonymousVariable extends Term {
+      label "Anonymous variable"
+      derived: {
+        from: (termMentions().filter(m, m[0] == 'anon'))
+        key: (item[1])
+        id: (item[1])
+        attributes: { display: (item[2]), firstMention: (item[6]) }
+        parent: (regionAt(shallowestScope(group.filter(m, m[5] != '').map(m, m[5]).distinct())))
+        reason: "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+      }
+      /// The position of its first mention in `termMentions()`.
+      attribute firstMention: int readonly { min: 0 }
+    }
+
+    /// A concrete IRI the query pins down, shown as written, with the full IRI one selection away. One node per
+    /// distinct full IRI.
+    element Iri extends Term {
+      label "IRI"
+      derived: {
+        from: (termMentions().filter(m, m[0] == 'iri'))
+        key: (item[1])
+        id: (item[1])
+        attributes: { display: (item[2]), full: (item[3]), firstMention: (item[6]) }
+        parent: (regionAt(shallowestScope(group.filter(m, m[5] != '').map(m, m[5]).distinct())))
+        reason: "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+      }
+      /// The full IRI, resolved against the prologue.
+      attribute full: string readonly
+      /// The position of its first mention in `termMentions()`.
+      attribute firstMention: int readonly { min: 0 }
+    }
+
+    /// A concrete value the query pins down, shown by its lexical form and annotated with its language tag or short
+    /// datatype. One node per id, which two literals whose datatypes end alike share (finding A10, reproduced).
+    element Literal extends Term {
+      label "Literal"
+      derived: {
+        from: (termMentions().filter(m, m[0] == 'lit'))
+        key: (item[1])
+        id: (item[1])
+        attributes: { display: (item[2]), full: (item[3]), annotation: (item[4]), firstMention: (item[6]) }
+        parent: (regionAt(shallowestScope(group.filter(m, m[5] != '').map(m, m[5]).distinct())))
+        reason: "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+      }
+      /// The literal exactly as the query writes it, quotes and suffix included.
+      attribute full: string readonly
+      /// `@lang`, or the datatype IRI's last segment after `#` or `/`; ''.
+      attribute annotation: string readonly
+      /// The position of its first mention in `termMentions()`.
+      attribute firstMention: int readonly { min: 0 }
+    }
+
+    /// A nested `SELECT`, collapsed to one node that states its projection.
+    ///
+    /// Its insides are never drawn; the node shows the projection (`SELECT ?x (COUNT(?y) AS ?n)`) and the property rows
+    /// carry the whole text. Each name it projects joins the outer query through a labelled edge to that variable's
+    /// node. The reader reads it as one entry, placed in the region of the scope that holds it.
+    element SubQuery extends Term {
+      label "Subquery"
+      /// The path of the scope that holds it.
+      attribute scope: string required readonly
+      /// Its position among the subqueries of that scope.
+      attribute ordinal: int readonly default 0 { min: 0 }
+      /// The whole subquery, as written.
+      attribute text: text readonly default ""
+      /// The names the subquery projects; for `SELECT *`, every variable its text mentions.
+      attribute projectedNames: string many readonly
+    }
+
+    /// A group of graph patterns other than the root where clause, drawn as a labelled containment region; the reader
+    /// reads one per group, each inside the one that holds it. Nodes live at the shallowest scope that mentions them,
+    /// so an edge stated inside a region may cross its border to reach a node outside; that crossing is the join being
+    /// shown.
+    element Scope {
+      label "Group"
+      labelAttribute: label
+      /// The scope's path: its parent's path, `/`, its kind and its position among same-kind siblings
+      /// (`where/optional.1`, `where/union.0/branch.1`); `template` for the `CONSTRUCT` template. A path numbers groups
+      /// by their place in the text (gap 4 of sparql-query.md).
+      attribute path: string required readonly
+      /// What the group is.
+      attribute scopeKind: ScopeKind required readonly
+      /// The graph term of a `GRAPH`, or the endpoint of a `SERVICE` with `SILENT` before it when written, as written;
+      /// ''.
+      attribute term: string readonly default ""
+      /// The frame's label: the construct keyword, with its graph term or endpoint where it has one; '' for a braced
+      /// group and a `UNION` branch.
+      attribute label: string {
+        derived: (self.scopeKind == 'optional' ? 'OPTIONAL' : self.scopeKind == 'union' ? 'UNION' : self.scopeKind == 'minus' ? 'MINUS' : self.scopeKind == 'graph' ? 'GRAPH ' + self.term : self.scopeKind == 'service' ? 'SERVICE ' + self.term : self.scopeKind == 'template' ? 'CONSTRUCT' : '')
+      }
+      contains Term, Scope ordered
+    }
+
+    /// An expression-shaped construct, `FILTER`, `BIND` or `VALUES`, shown as its text exactly as written beside what
+    /// it constrains, defines or feeds; never as an expression tree. The binding names it `Constraint`.
+    element Annotation {
+      label "Annotation"
+      labelAttribute: text
+      /// Which construct it is.
+      attribute constraintKind: ConstraintKind required readonly
+      /// The construct exactly as written.
+      attribute text: text required readonly
+      /// The path of the scope whose group holds it.
+      attribute scope: string required readonly
+      /// Its position among the annotations of its kind in its scope.
+      attribute ordinal: int readonly default 0 { min: 0 }
+      /// The name a `BIND` defines; ''.
+      attribute definedVariable: string readonly default ""
+      /// The names its text mentions: what a `FILTER` reads, what a `BIND` reads, what a `VALUES` block binds, in the
+      /// order written.
+      attribute referencedVariables: string many readonly
+      /// The id of what it is drawn beside: a `BIND` the variable it defines, a `VALUES` block the first variable it
+      /// binds, anything else the region it sits in; '' at the root, where a `FILTER` floats above the patterns.
+      attribute attachedTo: string {
+        derived: (self.constraintKind == 'bind' ? 'var:' + self.definedVariable : (self.constraintKind == 'values' && self.referencedVariables.size() > 0 ? 'var:' + self.referencedVariables[0] : (self.scope.contains('/') ? 'region:' + self.scope : '')))
+      }
+    }
+
+    /// One triple pattern: an edge from its subject to its object, labelled with the predicate or the property path as
+    /// written (`foaf:knows+`). It belongs to the scope that states it, which may differ from where its ends live.
+    relation TriplePattern from Variable, AnonymousVariable, Iri, Literal to Variable, AnonymousVariable, Iri, Literal {
+      label "Triple pattern"
+      directed: true
+      allowSelfLoops: true
+      allowParallel: true
+      derived: {
+        from: (walkPatterns())
+        id: ('edge:' + item[0].sKey + '|' + item[0].predicate + '|' + item[0].oKey + '|' + string(repeatOf(item[0], item[1])))
+        source: (diagram.elementById(item[0].sKey))
+        target: (diagram.elementById(item[0].oKey))
+        owner: (regionAt(item[1]))
+        attributes: { predicate: (item[0].predicate), isPath: (item[0].isPath), scope: (item[1]) }
+        sources: ([item[0]])
+        reason: "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+        doc: "One edge per pattern the tool walks, a pattern written twice being two edges told apart by the count at the end of the id."
+      }
+      /// The verb as written.
+      attribute predicate: string readonly
+      /// The verb is a property path.
+      attribute isPath: bool readonly
+      /// The path of the scope that states the pattern.
+      attribute scope: string readonly
+      source: { role: subject }
+      target: { role: object }
+    }
+
+    /// One name a subquery projects, joining the outer query at that variable's node.
+    relation ProjectedJoin from SubQuery to Variable {
+      label "Subquery join"
+      directed: true
+      allowParallel: false
+      derived: {
+        from: (walkScopes().map(s, diagram.nodesOfType('SubQuery').filter(q, q.scope == s).map(q, q.projectedNames.map(n, [q, n])).flatten()).flatten())
+        id: ('edge:' + item[0].id + '|' + item[1] + '|var:' + item[1] + '|0')
+        source: (item[0])
+        target: (diagram.elementById('var:' + item[1]))
+        owner: (regionAt(item[0].scope))
+        attributes: { name: (item[1]) }
+        sources: ([item[0]])
+        reason: "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+      }
+      /// The projected name, shown as `?name`.
+      attribute name: string readonly
+    }
+
+    /// The four query forms of SPARQL 1.1.
+    enum QueryForm {
+      /// A table of bindings.
+      select { label: "SELECT" }
+      /// A graph built from a template.
+      construct { label: "CONSTRUCT" }
+      /// A yes or no.
+      ask { label: "ASK" }
+      /// Whatever the endpoint says describes the targets.
+      describe { label: "DESCRIBE" }
+    }
+
+    /// What a subject, object or `DESCRIBE` target is.
+    enum TermKind {
+      var { label: "Variable" }
+      /// A blank node, which in a query is a variable nobody named: `_:label`, `[]`, a blank-node property list or a
+      /// collection cell.
+      anon { label: "Anonymous variable" }
+      iri { label: "IRI" }
+      lit { label: "Literal" }
+    }
+
+    /// What a group is: the keyword that opens it, or the shape it has.
+    enum ScopeKind {
+      /// A braced group nested in another group.
+      group { label: "Group" }
+      optional { label: "OPTIONAL" }
+      /// Holds its branches only.
+      union { label: "UNION" }
+      branch { label: "UNION branch" }
+      minus { label: "MINUS" }
+      graph { label: "GRAPH" }
+      /// Drawn, never contacted: nothing in this type opens a network connection.
+      service { label: "SERVICE" }
+      template { label: "CONSTRUCT template" }
+    }
+
+    enum ConstraintKind {
+      filter { label: "FILTER" }
+      bind { label: "BIND" }
+      values { label: "VALUES" }
+    }
+
+    /// One term a `DESCRIBE` query names as a target.
+    datatype DescribeTerm {
+      fields: {
+        kind: { type: TermKind, required: true }
+        key: {
+          type: string
+          required: true
+          doc: "The id of the node it is drawn as, as for a pattern's ends."
+        }
+        display: { type: string, default: "" }
+        full: { type: string, default: "" }
+        annotation: { type: string, default: "" }
+      }
+      display: (value.display)
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// Every scope path in the order the tool walks the query: the where clause and its groups depth first, then the
+  /// `CONSTRUCT` template and its groups. Groups are read in document order, which is depth first.
+  fn walkScopes() -> list {
+    // uses: ['diagram']
+    return ['where'] + diagram.nodesOfType('Scope').filter(s, s.path.startsWith('where/')).map(s, s.path) + diagram.nodesOfType('Scope').filter(s, s.path == 'template' || s.path.startsWith('template/')).map(s, s.path)
+  }
+
+  /// A scope's place in `walkScopes()`.
+  fn scopeRank(path: string) -> int {
+    // uses: ['diagram']
+    return walkScopes().indexOf(path)
+  }
+
+  /// The patterns a scope states, in reading order. The template of `CONSTRUCT WHERE { ... }` states the where clause's
+  /// own patterns again: it has no entries of its own.
+  fn patternsIn(path: string) -> list {
+    // uses: ['diagram']
+    return path == 'template' && diagram.templateRepeatsWhere ? diagram.nodesOfType('Pattern').filter(p, p.scope == 'where') : diagram.nodesOfType('Pattern').filter(p, p.scope == path)
+  }
+
+  /// Every pattern the query states, as `[pattern, scope path]`, in the order the tool walks them: scope by scope in
+  /// `walkScopes()` order, each scope's own patterns in reading order. A `CONSTRUCT WHERE` pattern is in it twice, once
+  /// for the where clause and once for the template.
+  fn walkPatterns() -> list {
+    // uses: ['diagram']
+    return walkScopes().map(s, patternsIn(s).map(p, [p, s])).flatten()
+  }
+
+  /// How many patterns with the same subject, predicate as written and object come before this one in `walkPatterns()`:
+  /// the reader's `repeat`, and for the template's copy of a `CONSTRUCT WHERE` pattern, every where pattern with those
+  /// parts as well.
+  fn repeatOf(p: Element, path: string) -> int {
+    // uses: ['diagram']
+    return path == 'template' && diagram.templateRepeatsWhere ? diagram.nodesOfType('Pattern').filter(q, q.scope == 'where' && q.sKey == p.sKey && q.predicate == p.predicate && q.oKey == p.oKey).size() + p.repeat : p.repeat
+  }
+
+  /// Every mention of a variable name, as `[name, scope path, in a pattern, defining text]`, in the order the tool
+  /// indexes them: scope by scope in `walkScopes()` order, first the subject, predicate and object of each pattern,
+  /// then the names each constraint reads and the name it defines with its text, then the names each subquery projects;
+  /// and last the projection, with no scope and with its alias's text. A name is in it once per mention.
+  fn mentions() -> list {
+    // uses: ['diagram']
+    return walkScopes().map(s, patternsIn(s).map(p, (p.sKind == 'var' ? [[p.sKey.substring(4), s, true, '']] : []) + (p.predicateVariable != '' ? [[p.predicateVariable, s, true, '']] : []) + (p.oKind == 'var' ? [[p.oKey.substring(4), s, true, '']] : [])).flatten() + diagram.nodesOfType('Annotation').filter(c, c.scope == s).map(c, c.referencedVariables.map(n, [n, s, false, '']) + (c.definedVariable != '' ? [[c.definedVariable, s, false, c.text]] : [])).flatten() + diagram.nodesOfType('SubQuery').filter(q, q.scope == s).map(q, q.projectedNames.map(n, [n, s, false, ''])).flatten()).flatten() + lists.range(diagram.projection.size()).map(i, [diagram.projection[i], '', false, diagram.projectionExpressions[i]])
+  }
+
+  /// The shallowest scope that holds every path given: their longest common ancestor, lifted out of a `UNION`, because
+  /// a name its branches share joins at the scope that joins the branches. The where clause when none is given or none
+  /// is common.
+  fn shallowestScope(paths: list) -> string {
+    return paths.size() == 0 ? 'where' : cel.bind(segs, paths[0].split('/'), cel.bind(common, lists.range(segs.size()).map(k, segs.slice(0, k + 1).join('/')).filter(c, paths.all(p, p == c || p.startsWith(c + '/'))), cel.bind(best, common.size() == 0 ? 'where' : common[common.size() - 1], best.contains('/') && best.substring(best.lastIndexOf('/') + 1).startsWith('union.') ? best.substring(0, best.lastIndexOf('/')) : best)))
+  }
+
+  /// The region a scope path is drawn as; null for the where clause, which is the open canvas.
+  fn regionAt(path: string) -> Element {
+    // uses: ['diagram']
+    return path == 'where' ? null : diagram.elementById('region:' + path)
+  }
+
+  /// Every mention of a term in subject or object position, as `[kind, key, display, full, annotation, scope path,
+  /// position]`, in the order the tool meets them: the `DESCRIBE` targets with no scope, then each pattern's subject
+  /// and object in `walkPatterns()` order. The position is the mention's index in this list, by which the term nodes of
+  /// three types are ordered together.
+  fn termMentions() -> list {
+    // uses: ['diagram']
+    return cel.bind(ms, diagram.describeTerms.map(t, [t.kind, t.key, t.display, t.full, t.annotation, '']) + walkPatterns().map(x, [[x[0].sKind, x[0].sKey, x[0].sDisplay, x[0].sFull, x[0].sAnnotation, x[1]], [x[0].oKind, x[0].oKey, x[0].oDisplay, x[0].oFull, x[0].oAnnotation, x[1]]]).flatten(), lists.range(ms.size()).map(i, ms[i] + [i]))
+  }
+
+  /// Where an element comes in the tool's order, which is the budget's: regions in `walkScopes()` order; then the
+  /// variables by the scope of their first mention and then by name, both by code point, a name mentioned only by the
+  /// projection first with the scope '', the terms in the order they are first mentioned, and the subqueries scope by
+  /// scope; then the pattern edges in `walkPatterns()` order and the subqueries' edges; then the annotations scope by
+  /// scope.
+  fn drawOrder(e: Element) -> list {
+    // uses: ['diagram']
+    return e.isA('Scope') ? [0, scopeRank(e.path)] : e.isA('Variable') ? [1, 0, e.firstScope, e.name] : e.isA('SubQuery') ? [1, 2, scopeRank(e.scope), e.ordinal] : e.isA('Term') ? [1, 1, e.firstMention] : e.isA('TriplePattern') ? [2, 0, e.positionIn(diagram.relationsOfType('TriplePattern'))] : e.isA('ProjectedJoin') ? [2, 1, e.positionIn(diagram.relationsOfType('ProjectedJoin'))] : [3, scopeRank(e.scope), e.positionIn(diagram.nodesOfType('Annotation').filter(a, a.scope == e.scope))]
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// The findings over a query that parses. A file that does not parse yields exactly one finding instead,
+  /// `sparql.unparseable`, which the reader raises with the parser's sentence, line and column.
+  constraints {
+    builtin std.unparseable {
+      code: "sparql.unparseable"
+      severity: error
+      message: ('This is not a SPARQL query that can be read: ' + detail.reason)
+      doc: "`detail.reason` is one of the parser's and the tokenizer's sentences, which stay the plugin's."
+    }
+
+    /// A projected variable no triple pattern mentions and no expression defines, one finding per entry of the
+    /// projection, reported at line 1 of the query and attached to no element, as the tool reports it (finding A8).
+    constraint unboundProjection for diagram {
+      doc {
+        rationale: "The query is legal SPARQL and the column is silently empty: exactly the kind of lie a reader wants caught. A variable bound only by a `VALUES` block or only by a subquery's projection has no pattern position and no defining expression either, so it is reported too although its column is bound (finding A9, reproduced)."
+      }
+      label "Projected variable never bound"
+      rule cel.bind(v, diagram.elementById('var:' + item), v == null || v.joinCount > 0 || v.definingExpression != '')
+      severity warning
+      message ('?' + item + ' is selected but never appears in the where clause, so its column will always be unbound.')
+      code: "sparql.unbound-projection"
+      forEach: (diagram.projection)
+      location: ({'file': diagram.file, 'line': 1})
+      suppressible: true
+    }
+
+    /// A `PREFIX` declaration nothing in the query uses, one finding per declaration at its own line.
+    constraint unusedPrefix for Prefix {
+      doc {
+        rationale: "Harmless but misleading. A prefix used but never declared is a parse error, reported as the unparseable finding."
+      }
+      label "Prefix declared but never used"
+      rule self.used
+      severity info
+      message ("The prefix '" + self.prefix + ":' is declared but never used.")
+      code: "sparql.unused-prefix"
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+  message std.readOnly "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+
+  behavior {
+    doc: "Nothing edits the query. The one gesture is moving a node or a region frame, which stores a position in the registration beside the query as one undo step."
+    deletion: {
+      Term: { children: forbid, relations: forbid, references: forbid }
+      Scope: { children: forbid, relations: forbid, references: forbid }
+      Annotation: { children: forbid, relations: forbid, references: forbid }
+    }
+    clipboard: { relations: none, crossDocument: false }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// The `.rq` query text is the model, read through the module's FBL binding and the reader it names, and never
+  /// written: the binding is `readOnly`. Positions a user authors go to the `layout:` block of the `.adp` registration
+  /// beside it, keyed by element id.
+  persistence {
+    format: fbl
+    typeMap: {
+      Query: {
+        as: diagram
+        doc: "The query's form, projection, `DESCRIBE` targets, dataset clauses and modifiers."
+      }
+      Constraint: { as: Annotation, doc: "A `FILTER`, `BIND` or `VALUES`." }
+    }
+    ids: {
+      strategy: natural
+      stable: true
+      types: {
+        Scope: {
+          strategy: derived
+          expression: ('region:' + self.path)
+          doc: "A region by its scope path, which numbers it by its place among same-kind siblings (finding B10, gap 4 of sparql-query.md)."
+        }
+        SubQuery: { strategy: derived, expression: ('sub:' + self.scope + '.' + string(self.ordinal)) }
+        Annotation: {
+          strategy: derived
+          expression: ('note:' + self.scope + '/' + self.constraintKind + '.' + string(self.ordinal))
+        }
+        Prefix: {
+          strategy: derived
+          expression: ('prefix:' + self.prefix + cel.bind(n, self.positionIn(diagram.nodesOfType('Prefix').filter(p, p.prefix == self.prefix)), n > 0 ? '|' + string(n) : ''))
+        }
+        Pattern: {
+          strategy: derived
+          expression: ('pattern:' + string(self.positionIn(diagram.nodesOfType('Pattern'))))
+          ephemeral: true
+          reason: "A triple pattern is part of the query's text and is not drawn by itself; its edge is."
+        }
+        AnonymousVariable: {
+          ephemeral: true
+          reason: "That is an anonymous variable - written as a blank node, it has no name to key a stored position by, so it takes its computed place."
+        }
+      }
+      pattern: "^((var|anon|iri|lit|sub|region|note|edge|pattern):.+|prefix:.*)$"
+      doc: "Every id is what the tool uses today: `var:` and a name, `anon:` and an expansion ordinal, `iri:` and the full IRI, `lit:` and the encoded form, `sub:`, `region:` and `note:` with scope paths, and `edge:` with its ends, its predicate as written and a repeat count. An edge id holds a property path written with spaces, so the pattern allows any character after the prefix (finding A10)."
+    }
+    view: { store: [bounds], styleOverrides: none }
+    // DISL binding: https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/sparql/backend/EtAlii.Adp.Diagram.Sparql/sparql.fbl#query
+  }
+
+  plugin net.etalii.adp.w3c.sparqlQuery {
+    version: "^1.0.0"
+    provides: [persistenceFormat]
+    required: true
+    plans: []
+    doc: "The reader the binding names. It reads a SPARQL 1.1 Query file into the stored records above, one per entry with its span and line, and never writes it: the prologue, the four forms, the group-pattern tree, triple patterns with blank-node and collection syntax, solution modifiers and VALUES are parsed; expressions and property paths are kept as written; a SPARQL Update document is refused by name. A text it cannot parse is one `std.unparseable` finding with the parser's sentence, line and column. It plans nothing."
+  }
+  plugin net.etalii.adp.w3c.sparqlScopeGrid {
+    version: "^1.0.0"
+    provides: [layout]
+    required: false
+    fallback: { layout: grid }
+    doc: "The recursive scope grid of the standalone implementation, with authored region anchors moving a frame and its computed contents together."
+  }
+
+  x-sparql: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names. The header and the truncation notice are chrome here and elements on the wire, so they have an element id each; a type maps to an element type string, `diagram` to the header's and `budget:drawn` to the truncation banner's; a row is keyed by its form's type and the form item's id."
+    elements: { header: "header:query", truncation: truncation }
+    types: {
+      Variable: "w3c/sparql+variable"
+      AnonymousVariable: "w3c/sparql+variable"
+      Iri: "w3c/sparql+term"
+      Literal: "w3c/sparql+term"
+      SubQuery: "w3c/sparql+term"
+      TriplePattern: "w3c/sparql+edge"
+      ProjectedJoin: "w3c/sparql+edge"
+      Scope: "w3c/sparql+region"
+      Annotation: "w3c/sparql+annotation"
+      diagram: "w3c/sparql+header"
+      "budget:drawn": "w3c/sparql+truncation"
+    }
+    properties: {
+      "diagram/form": "sparql.query.form"
+      "diagram/modifiers": "sparql.query.modifiers"
+      "Variable/name": "sparql.variable.name"
+      "Variable/projected": "sparql.variable.projected"
+      "Variable/joins": "sparql.variable.joins"
+      "Variable/definition": "sparql.variable.definition"
+      "AnonymousVariable/name": "sparql.variable.name"
+      "AnonymousVariable/projected": "sparql.variable.projected"
+      "AnonymousVariable/joins": "sparql.variable.joins"
+      "AnonymousVariable/definition": "sparql.variable.definition"
+      "Iri/display": "sparql.term.display"
+      "Iri/full": "sparql.term.full"
+      "Iri/annotation": "sparql.term.annotation"
+      "Literal/display": "sparql.term.display"
+      "Literal/full": "sparql.term.full"
+      "Literal/annotation": "sparql.term.annotation"
+      "SubQuery/display": "sparql.term.display"
+      "SubQuery/text": "sparql.subquery.text"
+      "Scope/kind": "sparql.region.kind"
+      "Scope/label": "sparql.region.label"
+      "TriplePattern/label": "sparql.edge.label"
+      "ProjectedJoin/label": "sparql.edge.label"
+      "Annotation/text": "sparql.annotation.text"
+    }
+  }
+  x-adp: {
+    origin: "w3c/sparql"
+    state: implemented
+    extensions: [".rq"]
+    implementations: { standalone: "etalii.adp.ide.standalone src/diagrams/sparql" }
+  }
+}

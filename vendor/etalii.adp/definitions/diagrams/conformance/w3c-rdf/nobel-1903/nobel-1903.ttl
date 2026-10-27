@@ -1,0 +1,89 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix nobel: <https://data.nobelprize.org/terms/> .
+@prefix laureate: <https://data.nobelprize.org/resource/laureate/> .
+@prefix prize: <https://data.nobelprize.org/resource/nobelprize/> .
+@prefix category: <https://data.nobelprize.org/resource/category/> .
+
+category:chemistry a nobel:Category ;
+    rdfs:label "Chemistry" .
+
+category:literature a nobel:Category ;
+    rdfs:label "Literature" .
+
+category:peace a nobel:Category ;
+    rdfs:label "Peace" .
+
+category:physics a nobel:Category ;
+    rdfs:label "Physics" .
+
+category:physiology-or-medicine a nobel:Category ;
+    rdfs:label "Physiology or Medicine" .
+
+prize:chemistry-1903 a nobel:NobelPrize ;
+    rdfs:label "Nobel Prize in Chemistry 1903" ;
+    nobel:year "1903"^^xsd:gYear ;
+    nobel:category category:chemistry .
+
+prize:literature-1903 a nobel:NobelPrize ;
+    rdfs:label "Nobel Prize in Literature 1903" ;
+    nobel:year "1903"^^xsd:gYear ;
+    nobel:category category:literature .
+
+prize:peace-1903 a nobel:NobelPrize ;
+    rdfs:label "Nobel Prize in Peace 1903" ;
+    nobel:year "1903"^^xsd:gYear ;
+    nobel:category category:peace .
+
+prize:physics-1903 a nobel:NobelPrize ;
+    rdfs:label "Nobel Prize in Physics 1903" ;
+    nobel:year "1903"^^xsd:gYear ;
+    nobel:category category:physics .
+
+prize:physiology-or-medicine-1903 a nobel:NobelPrize ;
+    rdfs:label "Nobel Prize in Physiology or Medicine 1903" ;
+    nobel:year "1903"^^xsd:gYear ;
+    nobel:category category:physiology-or-medicine .
+
+laureate:4 a nobel:Laureate ;
+    rdfs:label "Henri Becquerel" ;
+    nobel:birthDate "1852-12-15"^^xsd:date ;
+    nobel:nobelPrize prize:physics-1903 ;
+    nobel:motivation "in recognition of the extraordinary services he has rendered by his discovery of spontaneous radioactivity"@en .
+
+laureate:5 a nobel:Laureate ;
+    rdfs:label "Pierre Curie" ;
+    nobel:birthDate "1859-05-15"^^xsd:date ;
+    nobel:nobelPrize prize:physics-1903 ;
+    nobel:motivation "in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel"@en .
+
+laureate:6 a nobel:Laureate ;
+    rdfs:label "Marie Curie" ;
+    nobel:birthDate "1867-11-07"^^xsd:date ;
+    nobel:nobelPrize prize:physics-1903 ;
+    nobel:motivation "in recognition of the extraordinary services they have rendered by their joint researches on the radiation phenomena discovered by Professor Henri Becquerel"@en .
+
+laureate:162 a nobel:Laureate ;
+    rdfs:label "Svante Arrhenius" ;
+    nobel:birthDate "1859-02-19"^^xsd:date ;
+    nobel:nobelPrize prize:chemistry-1903 ;
+    nobel:motivation "in recognition of the extraordinary services he has rendered to the advancement of chemistry by his electrolytic theory of dissociation"@en .
+
+laureate:295 a nobel:Laureate ;
+    rdfs:label "Niels Ryberg Finsen" ;
+    nobel:birthDate "1860-12-15"^^xsd:date ;
+    nobel:nobelPrize prize:physiology-or-medicine-1903 ;
+    nobel:motivation "in recognition of his contribution to the treatment of diseases, especially lupus vulgaris, with concentrated light radiation, whereby he has opened a new avenue for medical science"@en .
+
+laureate:466 a nobel:Laureate ;
+    rdfs:label "Randal Cremer" ;
+    nobel:birthDate "1828-03-18"^^xsd:date ;
+    nobel:nobelPrize prize:peace-1903 ;
+    nobel:motivation "for his longstanding and devoted effort in favour of the ideas of peace and arbitration"@en .
+
+laureate:572 a nobel:Laureate ;
+    rdfs:label "Bjørnstjerne Bjørnson" ;
+    nobel:birthDate "1832-12-08"^^xsd:date ;
+    nobel:nobelPrize prize:literature-1903 ;
+    nobel:motivation "as a tribute to his noble, magnificent and versatile poetry, which has always been distinguished by both the freshness of its inspiration and the rare purity of its spirit"@en .
+

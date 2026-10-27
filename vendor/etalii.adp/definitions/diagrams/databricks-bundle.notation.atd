@@ -1,0 +1,235 @@
+atd 0.1
+part of databricks/bundle
+
+// The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
+
+notation {
+  style box { fill: $color.surface, stroke: { color: $color.border, width: 1 }, cornerRadius: 4, font: { size: 13 } }
+  style badges { font: { size: 10, color: "#5a6376" } }
+  style simPending { opacity: 0.5 }
+  style simRunning { stroke: { color: "limegreen", width: 2.5 } }
+  style simSucceeded { stroke: { color: "#15803d", width: 2 } }
+
+  node Bundle {
+    shape rect
+    label @name as name {
+      placeholder: "bundle"
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start }
+      editable: inline
+      overflow: ellipsis
+    }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    deletable: false
+  }
+
+  node Resource {
+    shape rect
+    label @key as key {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: false,
+      overflow: ellipsis
+    }
+    label (self.resourceKind) as kind { position: { anchor: [0, 1], offset: [8, -8], align: start }, style: "badges" }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    deletable: false
+    conditions: [{ when: (has(self.simulated) && self.simulated == 'pending'), style: "simPending" }, {
+      when: (has(self.simulated) && self.simulated == 'running'),
+      style: "simRunning"
+    }
+    , { when: (has(self.simulated) && self.simulated == 'succeeded'), style: "simSucceeded" }]
+  }
+
+  node Unknown {
+    shape rect
+    label @key as key {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start },
+      editable: false,
+      overflow: ellipsis
+    }
+    label @path as path { position: { anchor: [0, 1], offset: [8, -8], align: start }, style: "badges" }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    deletable: false
+    conditions: [{ when: (has(self.simulated) && self.simulated == 'pending'), style: "simPending" }, {
+      when: (has(self.simulated) && self.simulated == 'running'),
+      style: "simRunning"
+    }
+    , { when: (has(self.simulated) && self.simulated == 'succeeded'), style: "simSucceeded" }]
+  }
+
+  node Target {
+    shape rect
+    label @name as name { position: outside-top, editable: false, style: { font: { size: 12, color: "#5a6376" } } }
+    label (cel.bind(n, self.outgoingOf('Override').size(), [has(self.mode) ? self.mode : '', self.isDefault ? 'default' : '', n == 1 ? '1 override' : (n > 1 ? string(n) + ' overrides' : '')].filter(s, s != '').join(' · '))) as summary {
+      position: { anchor: [0, 0], offset: [12, 18], align: start },
+      style: "badges"
+    }
+    style: { fill: "transparent", stroke: { color: $color.border, width: 1, dash: [6, 4] } }
+    size: { fixed: [220, 120] }
+    connectable: false
+    deletable: false
+    layer: background
+  }
+
+  /// An override is a reference, not a flow: straight and dashed.
+  edge Override {
+    line { stroke: { color: $color.border, width: 1, dash: [3, 3] }, routing: straight }
+    marker target arrowFilled
+  }
+}
+
+toolbox {
+  generic: { select: true, pan: true }
+  group resources "Resources" {
+    /// A job resource skeleton, complete with a starter task.
+    tool jobResource "Job" { kind: operation, operation: "addJobResource", icon: "mdi-transit-connection-horizontal" }
+    /// A pipeline resource skeleton, complete with a starter library.
+    tool pipelineResource "Pipeline" { kind: operation, operation: "addPipelineResource", icon: "mdi-pipe" }
+  }
+  context for Bundle {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" {
+      kind: operation,
+      operation: "renameBundle",
+      group: "edit",
+      icon: "mdi-pencil-outline",
+      shortcut: "F2"
+    }
+    tool "Add job resource…" {
+      kind: operation,
+      operation: "addJobResource",
+      group: "add",
+      icon: "mdi-transit-connection-horizontal"
+    }
+    tool "Add pipeline resource…" { kind: operation, operation: "addPipelineResource", group: "add", icon: "mdi-pipe" }
+  }
+  context for Target {
+    placement: menu
+    standardEntries: false
+    tool "Deploy here (simulated)" { kind: operation, operation: "simulateDeploy", icon: "mdi-rocket-launch-outline" }
+  }
+  /// The tool offers the job reading's canvas entries under this reading too (see databricks-bundle.md).
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add notebook task here" {
+      kind: operation,
+      operation: "addNotebookTaskHere",
+      group: "add",
+      icon: "mdi-notebook-outline"
+    }
+    tool "Add Python task here" {
+      kind: operation,
+      operation: "addPythonTaskHere",
+      group: "add",
+      icon: "mdi-language-python"
+    }
+    tool "Add condition task here" {
+      kind: operation,
+      operation: "addConditionTaskHere",
+      group: "add",
+      icon: "mdi-call-split"
+    }
+  }
+  /// The tool offers the job reading's connection entry under this reading too (see databricks-bundle.md).
+  context for connection {
+    placement: menu
+    standardEntries: false
+    tool "Depend on" {
+      kind: operation,
+      operation: "connectTasks",
+      icon: "mdi-ray-start-arrow",
+      args: { from: (source), to: (target) }
+    }
+  }
+}
+
+form bundle for Bundle {
+  usage: [inspector]
+  section "Identity" {
+    field name "Name" {
+      widget: text,
+      validate: [{ timing: commit, rule: (value != ''), message: "A bundle needs a name." }]
+    }
+  }
+  section "Workspace" {
+    item "Workspace connection" {
+      kind: computed
+      value: "Not connected"
+      readOnlyReasons: ["Not connected — a placeholder for the real workspace connection."]
+    }
+    item "Last simulated run" {
+      kind: computed,
+      value: "",
+      readOnlyReasons: ["Simulated runs play on the canvas and never touch the file."]
+    }
+  }
+}
+
+form target for Target {
+  usage: [inspector]
+  section "Identity" {
+    field name "Target" {
+      id: "targetName",
+      widget: readonly,
+      readOnlyReasons: ["The target's key is the file's structure."]
+    }
+    field mode "Mode" { id: "targetMode", widget: readonly, readOnlyReasons: ["Change the mode in the file."] }
+  }
+  section "Workspace" {
+    item "Workspace connection" {
+      kind: computed
+      value: "Not connected"
+      readOnlyReasons: ["Not connected — a placeholder for the real workspace connection."]
+    }
+    item "Last simulated run" {
+      kind: computed,
+      value: "",
+      readOnlyReasons: ["Simulated runs play on the canvas and never touch the file."]
+    }
+  }
+}
+
+form renameBundle "Rename bundle" for Bundle {
+  icon: "mdi-pencil-outline"
+  submitLabel: "Rename"
+  field name "Name" {
+    widget: text
+    initial: (has(self.name) ? self.name : '')
+    validate: [{ timing: commit, rule: (value != ''), message: "A bundle needs a name." }]
+  }
+}
+
+form addResource "Add resource" {
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field key "Key" {
+    widget: text
+    initial: ('')
+    validate: [{ timing: commit, rule: (value != ''), message: "A resource needs a key." }]
+  }
+}
+
+layout {
+  default bands
+  /// Three bands, a column 260 wide: the bundle at the top, then the resources and the unmodelled configuration in one
+  /// row at 180, then the target frames at 400 (`modules/diagrams/databricks/src/layout.rs`, `bundle`).
+  algorithm bands capability layout.bands {
+    columnWidth: 260
+    bands: [{ members: (self.id == 'bundle'), y: 0 }, {
+      members: (self.id.startsWith('resource:') || self.id.startsWith('unknown:')),
+      y: 180
+    }
+    , { members: (self.id.startsWith('target:')), y: 400 }]
+  }
+  /// The declarative approximation of bands, for a runtime without the capability.
+  algorithm grid { algorithm: "grid" }
+  trigger: always
+  respect: all
+}

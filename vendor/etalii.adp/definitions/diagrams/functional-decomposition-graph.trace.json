@@ -1,0 +1,321 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "etalii/functional-decomposition-graph",
+  "description": "functional-decomposition-graph.atd",
+  "companion": {
+    "file": "functional-decomposition-graph.md",
+    "sections": [
+      "Language gaps",
+      "What stays code in the standalone module"
+    ]
+  },
+  "items": [
+    {
+      "id": "language-gaps/1",
+      "text": "Gap 1: a slot that reads a YAML scalar as written",
+      "statedBy": "binding fdg element ui-element"
+    },
+    {
+      "id": "language-gaps/2",
+      "text": "Gap 2: a rule chosen by a value",
+      "statedBy": "binding fdg element unknown-element"
+    },
+    {
+      "id": "language-gaps/3",
+      "text": "Gap 3: the indentation indicator of a block scalar",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/572",
+      "reason": "FBL 6.3 states no indentation indicator for a literal block whose first line begins with a space, so the yaml family writes `|-` and the body no longer reads; the description cannot state the repair until FBL does."
+    },
+    {
+      "id": "language-gaps/4",
+      "text": "Gap 4: opening an empty flow collection",
+      "statedBy": "binding fdg element ui-element insert"
+    },
+    {
+      "id": "language-gaps/5",
+      "text": "Gap 5: a removal that leaves the comment above",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/574",
+      "reason": "A binding's `remove` has no option that leaves the leading comments of the entry it removes; the standalone stand-in FdgCommentKeeper does it in code."
+    },
+    {
+      "id": "language-gaps/6",
+      "text": "Gap 6: the wording of a body that cannot be read and of a planner's refusal",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/570",
+      "reason": "A binding cannot word what its reader reports or its planner refuses; `std.unreadableEntry` passes the reader's reason through, and the tool's own sentences come from FdgReaderSentences."
+    },
+    {
+      "id": "language-gaps/7",
+      "text": "Gap 7: which relation a pointer gesture creates",
+      "statedBy": "toolbox context for connection"
+    },
+    {
+      "id": "language-gaps/8",
+      "text": "Gap 8: an order of findings that is not by code and then by line",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "`constraints.order` orders by code and then by line; an order per code, by document, by relation or by line, is not stated in DISL or ATD (the owner's ruling of 2026-10-11 keeps today's order)."
+    },
+    {
+      "id": "language-gaps/9",
+      "text": "**Within `fdg.unreadable-entry`**, the findings come in reading order: elements, then connections, then the header.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "Reading order within one code is the gap 8 construct."
+    },
+    {
+      "id": "language-gaps/10",
+      "text": "**Across the link codes**, one finding per connection in document order, mixing `fdg.dangling-reference`, `fdg.self-link` and `fdg.forbidden-link`",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "Document order across several codes is the gap 8 construct."
+    },
+    {
+      "id": "language-gaps/11",
+      "text": "**For cardinality**, by relation in the order the notation lists the relations",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "An order by relation is the gap 8 construct."
+    },
+    {
+      "id": "language-gaps/12",
+      "text": "Gap 9: a size clamped on commit",
+      "statedBy": "form namedElement field width"
+    },
+    {
+      "id": "language-gaps/13",
+      "text": "Gap 10: a number written in quotes",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/569",
+      "reason": "A binding slot cannot state its own number conversion and fallback (a value that does not convert kept at a default and reported), so the binding reads the text and FdgReading converts it."
+    },
+    {
+      "id": "language-gaps/14",
+      "text": "Gap 11: the id an unresolved end was written with",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/553",
+      "reason": "CEL sees an unresolved end as absent and cannot read the id it was written with; `sourceId` and `targetId` on a relation would state it."
+    },
+    {
+      "id": "language-gaps/15",
+      "text": "Gap 12: the detail and place of a cycle and of a cardinality finding",
+      "statedBy": "constraint ownershipLoop"
+    },
+    {
+      "id": "language-gaps/16",
+      "text": "a loop as \"Ownership loops: a -> b -> a.\", the members rotated to start at the least id, one finding per elementary loop, on the line of that least-id member",
+      "statedBy": "fn ownershipLoops"
+    },
+    {
+      "id": "language-gaps/17",
+      "text": "a cardinality breach on the line of the last connection over the limit.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/571",
+      "reason": "`std.multiplicity` states no location for its findings, and a built-in's setting cannot name one; DISL 8.7 leaves it to the runtime."
+    },
+    {
+      "id": "language-gaps/18",
+      "text": "Gap 13: the indentation of a new entry",
+      "statedBy": "binding fdg text"
+    },
+    {
+      "id": "language-gaps/19",
+      "text": "Gap 14: the sign of a number that rounds to zero",
+      "statedBy": "binding fdg element ui-element attribute x"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/parser.rs",
+      "lines": "44-100",
+      "behaviour": "A body is read without ever failing: a text that is not YAML is an empty model with the reason and its line, an unknown key, type or malformed entry is kept and reported, a coordinate that does not read is zero and reported.",
+      "statedBy": "binding fdg"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/parser.rs",
+      "lines": "232-264",
+      "behaviour": "A position or a size is read from any scalar in the invariant culture (`\"120\"` is 120, `1e2` is 100), and one that does not read is zero with a finding.",
+      "divergesFrom": "binding fdg element ui-element attribute x"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/model.rs",
+      "lines": "77-88",
+      "behaviour": "A Comment is drawn at least 48 high, and an element of an unknown type is kept and drawn as nothing.",
+      "statedBy": "element Comment"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/commands.rs",
+      "lines": "92-112",
+      "behaviour": "A new element is named for its type (`New UI element`, `New action`, `New data element`, `New function`), with ` 2`, ` 3` and so on until no element has the name.",
+      "statedBy": "fn uniqueName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/commands.rs",
+      "lines": "114-216",
+      "behaviour": "Each edit (add, connect, disconnect, remove, rename, describe, place, size) is one splice of the body's lines, run on a copy so that a refusal leaves nothing; removing an element removes its connections in the same step.",
+      "statedBy": "behavior"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/commands.rs",
+      "lines": "237-294",
+      "behaviour": "Every edit is one command on the project's history whose undo restores the text the body held before.",
+      "hostConcern": "undo-stack",
+      "reason": "The history and how an exact undo is kept are the host's; the description says each gesture is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/actions.rs",
+      "lines": "67-112",
+      "behaviour": "An element's menu is Rename (Edit text on a Comment, F2) and Remove (Delete); a connection's is Rename and Remove connection; empty canvas offers one Add per type; a finished connect offers all five relations.",
+      "statedBy": "toolbox context for NamedElement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/actions.rs",
+      "lines": "187-226",
+      "behaviour": "Removing an element asks first only when connections go with it, naming how many (\"Removing this element also removes the 1 connection to or from it.\").",
+      "statedBy": "behavior"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/properties.rs",
+      "lines": "43-96",
+      "behaviour": "A Name for the four named types and a connection, a Text for a Comment instead, a Description for every element and connection, and Width, with a Comment's Height, shown as the file holds them to four decimals.",
+      "statedBy": "form namedElement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/properties.rs",
+      "lines": "97-138",
+      "behaviour": "A size that is not a positive number is refused before any command exists: \"'x' is not a size this graph can draw.\".",
+      "statedBy": "form namedElement field width"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/relations.rs",
+      "lines": "89-103",
+      "behaviour": "A drag from one element's body to another's draws the one relation whose ends admit the pair.",
+      "statedBy": "toolbox context for connection"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/relations.rs",
+      "lines": "137-197",
+      "behaviour": "Ownership loops are found by a depth-first walk over the four ownership relations, Shows exempt, each loop once and rotated to start at its least id.",
+      "statedBy": "fn ownershipLoops"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/relations.rs",
+      "lines": "201-221",
+      "behaviour": "An ownership link closes a loop when its owner is already reachable from what it would own.",
+      "statedBy": "fn closesOwnershipLoop"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/relations.rs",
+      "lines": "233-285",
+      "behaviour": "A connect is checked for type, then cardinality, then cycle, each refusal naming its check; a relation the notation does not have and an end that is gone are refused in the tool's words.",
+      "statedBy": "constraint ownershipLoopConnect"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/rules.rs",
+      "lines": "65-77",
+      "behaviour": "The rules are reported in rule order and then document order: duplicate ids, unreadable entries, links, cardinality, cycles.",
+      "statedBy": "constraints order"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/rules.rs",
+      "lines": "138-197",
+      "behaviour": "One link finding per connection in document order: dangling, then self, then unknown relation, then the pair.",
+      "divergesFrom": "constraints order"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/rules.rs",
+      "lines": "198-248",
+      "behaviour": "A cardinality breach is reported per relation in the notation's order, on the line of the last connection over the limit.",
+      "divergesFrom": "builtin std.multiplicity"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/rules.rs",
+      "lines": "249-264",
+      "behaviour": "One finding per ownership loop, \"Ownership loops: a -> b -> a.\", on the line of its first member.",
+      "statedBy": "constraint ownershipLoop"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/mapper.rs",
+      "lines": "43-65",
+      "behaviour": "What a rule would refuse is still drawn; an entry of an unknown type, a connection whose end is not an element and a later holder of an id already drawn are not.",
+      "hostConcern": "rendering",
+      "reason": "Which reading entries the canvas draws, and the payload it is sent, are the host's drawing; the description's notation draws every element and relation of the model."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/mapper.rs",
+      "lines": "136-178",
+      "behaviour": "The palette's five tools, each dropped centred on the point it lands at.",
+      "statedBy": "toolbox"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/view.rs",
+      "lines": "173-186",
+      "behaviour": "A Comment reads as its first line in the selection, an element as its name, a connection as its name or its ends.",
+      "statedBy": "notation node Comment"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/functional-decomposition-graph/src/lines.rs",
+      "lines": "89-93",
+      "behaviour": "A line spliced in takes the line ending most of the document's lines use, CRLF on a tie.",
+      "statedBy": "binding fdg text"
+    }
+  ]
+}

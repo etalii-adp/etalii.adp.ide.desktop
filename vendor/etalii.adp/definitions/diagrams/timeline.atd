@@ -1,0 +1,808 @@
+atd 0.1
+
+/// When things happen and for how long - periods and moments on rows along a time axis, connected however the author
+/// means it.
+///
+/// Time runs left to right. Every element has a **begin**; an element with an **end** as well is a **period** drawn as
+/// a bar from begin to end, an element without one is a **moment** drawn as a diamond. Each element sits on an authored
+/// **row**: an integer the author chooses, which several elements may share and which carries no meaning of its own.
+/// **Connections** join any two elements and mean whatever their label says.
+///
+/// Placement is authored on both axes and never computed: x is authored as time through begin and end, y as a row.
+/// Times are taken at face value, with no time zone, no calendar and no working days. Reading a time, comparing two and
+/// counting days are this description's own functions over the text a time is written with (`readTime` and those it
+/// calls), where the DISL specification needed the `net.etalii.adp.generic.timelineTimes` plugin; the wire ids are
+/// declared under `x-timeline`, and the rest is in timeline.md beside this file.
+diagram generic/timeline version "1.1.0" {
+  label "Timeline diagram"
+  id: "net.etalii.adp.generic.timeline"
+  authors: [{ name: "Peter Vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/timeline"
+  icon: mdi-chart-timeline
+  fileExtension: tml
+  requires: { conformance: standard, features: ["axis.time", "placement.bound", "snap.calendar", "edge.bezier", "persist.yaml"] }
+  doc {
+    rationale: "Distinct from a Gantt chart: placement is authored on both axes rather than computed, and connections are arbitrary rather than scheduling dependencies."
+    tags: [timeline, roadmap, planning, periods, moments]
+    seeAlso: [
+      { title: "What DISL cannot express for this tool", href: "timeline.md" },
+      {
+        title: "Standalone module"
+        href: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/timeline"
+      }
+    ]
+  }
+  import "timeline.notation.atd"
+  import "timeline.tml.atd"
+  requires capability layout.rowPacking@^1
+
+  x-timeline: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type>. A property is keyed by its form item's row id: its id, else its attribute."
+    tools: {
+      element: { id: "timeline.toolbox.element", drop: "timeline.add-element" }
+      moment: { id: "timeline.toolbox.moment", drop: "timeline.add-moment" }
+    }
+    actions: {
+      editLabel: "timeline.rename"
+      "Connection/editLabel": "timeline.relabel"
+      delete: "timeline.remove"
+      "Connection/delete": "timeline.disconnect"
+      giveEnd: "timeline.give-end"
+      removeEnd: "timeline.remove-end"
+      addAfter: "timeline.add-after"
+      addBelow: "timeline.add-below"
+      addElementHere: "timeline.add-element"
+      addMomentHere: "timeline.add-moment"
+      arrange: "timeline.arrange"
+      connect: "timeline.connect"
+    }
+    properties: {
+      label: "timeline.label"
+      begin: "timeline.begin"
+      end: "timeline.end"
+      row: "timeline.row"
+      from: "timeline.from"
+      to: "timeline.to"
+    }
+  }
+
+  /// An element as a finding names it: its label in quotes, or its id when the label is empty.
+  fn displayName(e: dyn) -> string {
+    return e.label != '' ? '\'' + e.label + '\'' : '\'' + e.id + '\''
+  }
+
+  /// What the canvas writes on an element: its label, or its id when the label is empty.
+  fn shownLabel(e: dyn) -> string {
+    return e.label != '' ? e.label : e.id
+  }
+
+  // ---------------------------------------------------------------- Arrange diagram
+
+  /// The elements Arrange diagram gives rows, in the order they are written: those with an id and a readable begin,
+  /// the first of each id. The others keep their row.
+  fn arrangeable() -> list {
+    var ids = []
+    var items = []
+    for e in diagram.nodes limit 100000 {
+      if e.id != '' && readableTime(e.begin) && !(e.id in ids) {
+        ids = ids + [e.id]
+        items = items + [e]
+      }
+    }
+    return items
+  }
+
+  /// Whether an element ends at a time it reads: a period whose end is readable. Any other element is drawn as a
+  /// moment, at its begin.
+  fn hasEnd(e: dyn) -> bool {
+    return e.isA('Period') && readableTime(e.end)
+  }
+
+  /// The ticks an element begins at.
+  fn beginTicks(e: dyn) -> int {
+    return readTime(e.begin)
+  }
+
+  /// The ticks an element ends at: its end when it has one and that is not before its begin, else its begin.
+  fn endTicks(e: dyn) -> int {
+    let begin = beginTicks(e)
+    if hasEnd(e) {
+      let end = readTime(e.end)
+      return end > begin ? end : begin
+    }
+    return begin
+  }
+
+  /// The canvas's first fit, which Arrange diagram measures extents at: the span of the arrangeable elements, at least
+  /// a day, over 1000 units (the 1200 of the canvas without its margin), as the tick it starts at and units per tick.
+  fn fitFrame() -> map {
+    let items = arrangeable()
+    var first = 0
+    var last = 0
+    for i in range(size(items)) limit 100000 {
+      let begin = beginTicks(items[i])
+      let end = endTicks(items[i])
+      if i == 0 || begin < first {
+        first = begin
+      }
+      if i == 0 || end > last {
+        last = end
+      }
+    }
+    let span = last - first
+    return {"origin": first, "scale": 1000.0 / double(span > 864000000000 ? span : 864000000000)}
+  }
+
+  /// Where an element starts across at the first fit: a period at its begin, a moment at its diamond's left, 9 units
+  /// before its time.
+  fn arrangedLeft(e: dyn) -> double {
+    let frame = fitFrame()
+    let at = double(beginTicks(e) - frame.origin) * frame.scale
+    return hasEnd(e) ? at : at - 9.0
+  }
+
+  /// Where an element ends across at the first fit: a period at its end, at least 2 units after its begin; a moment
+  /// after its label, which follows its diamond 6 units on, measured at the canvas's 12-unit label size.
+  fn arrangedRight(e: dyn) -> double {
+    let frame = fitFrame()
+    let at = double(beginTicks(e) - frame.origin) * frame.scale
+    if hasEnd(e) {
+      let to = double(endTicks(e) - frame.origin) * frame.scale
+      return to > at + 2.0 ? to : at + 2.0
+    }
+    return at + 15.0 + textWidth(shownLabel(e), 12.0)
+  }
+
+  /// Whether a relation's two ends are kept on different rows: a moment and a later element it is linked to, whose
+  /// link would otherwise run level through the moment's label.
+  fn keptApart(r: dyn) -> bool {
+    let s = r.source
+    let t = r.target
+    if s == null || t == null || !readableTime(s.begin) || !readableTime(t.begin) {
+      return false
+    }
+    return (!hasEnd(s) && beginTicks(t) > beginTicks(s)) || (!hasEnd(t) && beginTicks(s) > beginTicks(t))
+  }
+
+  // ---------------------------------------------------------------- Times
+
+  /// Whether `text` is a time this timeline can read: an ISO 8601 date or date-time, with `T` or a space, fractional
+  /// seconds and an offset or `Z`; the same with `/` or `.` between the parts (`2026/07/01`); the invariant culture's
+  /// `MM/dd/yyyy`; a year and a month (`2026-07`, the first of the month); or a date written out in English (`July 5,
+  /// 2026`, `5 July 2026`, `Jul 5 2026`), with a day of the week before it that must be that date's. Surrounding
+  /// whitespace is ignored. A date that is not in the calendar (`2026-02-30`) and the empty text do not read, and nor
+  /// does a time of day without a date: a timeline's times do not move with the clock.
+  fn readableTime(text: string) -> bool {
+    return instantOf(text) != null
+  }
+
+  /// -1, 0 or 1 as the instant `a` names is before, at or after the one `b` names, offsets applied.
+  fn compareTimes(a: string, b: string) -> int {
+    let x = readTime(a)
+    let y = readTime(b)
+    return x < y ? -1 : (x > y ? 1 : 0)
+  }
+
+  /// The date `days` days after the instant `time` names, written date-only as `yyyy-MM-dd`, in UTC:
+  /// `dateAfter('2026-01-05T22:00:00', 6)` is `2026-01-11`.
+  fn dateAfter(time: string, days: int) -> string {
+    let day = floorDiv(readTime(time), 864000000000) + days
+    let date = civilFromDays(day)
+    return padded(date[0], 4) + "-" + padded(date[1], 2) + "-" + padded(date[2], 2)
+  }
+
+  /// Today's date in UTC, `yyyy-MM-dd`: the date of the gesture's moment, `env.now` (DISL §12.4), which the host
+  /// supplies, so that the description reads no clock.
+  fn today() -> string {
+    return string(env.now).substring(0, 10)
+  }
+
+  /// The id a relation's `source` or `target` end is written with in the file (`from` or `to`): the end the relation
+  /// keeps, also when it names no element and the end is unset in the model (DISL §4.9, ATD §12.8); the empty text when
+  /// the key is absent or empty.
+  fn writtenEnd(relation: Connection, end: string) -> string {
+    let id = endId(relation, end)
+    return id == null ? "" : string(id)
+  }
+
+  /// The instant `text` names, in ticks of 100 nanoseconds since the Unix epoch, UTC; a failure naming the text when
+  /// it does not read.
+  fn readTime(text: string) -> int {
+    let ticks = instantOf(text)
+    if ticks == null {
+      fail "'" + text + "' is not a time this timeline can read."
+    }
+    return int(ticks)
+  }
+
+  /// The instant `text` names, in ticks since the Unix epoch, UTC; null when it does not read.
+  fn instantOf(text: string) {
+    let runs = timeRuns(text.trim())
+    var at = 0
+    var weekday = -1
+    if size(runs) > 0 && runs[0].kind == "word" && weekdayNumber(runs[0].text) >= 0 {
+      weekday = weekdayNumber(runs[0].text)
+      at = timeSkip(runs, timeSkip(runs, 1, ","), " ")
+    }
+    let date = timeDate(runs, at)
+    if !date.ok {
+      return null
+    }
+    if date.month < 1 || date.month > 12 || date.day < 1 || date.day > daysInMonth(date.year, date.month) {
+      return null
+    }
+    let days = daysFromCivil(date.year, date.month, date.day)
+    if weekday >= 0 && floorMod(days + 3, 7) != weekday {
+      return null
+    }
+    var ticks = days * 864000000000
+    at = date.at
+    if at < size(runs) && (runs[at].text == "T" || runs[at].kind == " ") {
+      let time = timeOfDay(runs, at + 1)
+      if time.ok {
+        ticks = ticks + time.ticks
+        at = time.at
+      }
+    }
+    let zone = timeZone(runs, timeSkip(runs, at, " "))
+    if zone.ok {
+      ticks = ticks - zone.ticks
+      at = zone.at
+    }
+    return timeSkip(runs, at, " ") == size(runs) ? ticks : null
+  }
+
+  /// The runs of a time's text, each `{kind, text}`: digits (`digits`), letters (`word`) and spaces or tabs (` `) each
+  /// as one run, every other character as a run of its own, its kind the character.
+  fn timeRuns(text: string) -> list {
+    var runs = []
+    var kind = ""
+    var run = ""
+    for i in range(size(text)) limit 1000 {
+      let c = text.charAt(i)
+      let k = c.matches("^[0-9]$") ? "digits" : (c.matches("^[A-Za-z]$") ? "word" : (c == " " || c == "\t" ? " " : c))
+      if k == kind && (k == "digits" || k == "word" || k == " ") {
+        run = run + c
+      } else {
+        if run != "" {
+          runs = runs + [{"kind": kind, "text": run}]
+        }
+        kind = k
+        run = c
+      }
+    }
+    if run != "" {
+      runs = runs + [{"kind": kind, "text": run}]
+    }
+    return runs
+  }
+
+  /// `at`, past one run of kind `kind` when it stands there.
+  fn timeSkip(runs: list, at: int, kind: string) -> int {
+    return at < size(runs) && runs[at].kind == kind ? at + 1 : at
+  }
+
+  /// A number of `min` to `max` digits at `at`, as `{ok, at, value}`.
+  fn timeNumber(runs: list, at: int, min: int, max: int) -> map {
+    if at < size(runs) && runs[at].kind == "digits" && size(runs[at].text) >= min && size(runs[at].text) <= max {
+      return {"ok": true, "at": at + 1, "value": int(runs[at].text)}
+    }
+    return {"ok": false}
+  }
+
+  /// The date at `at`: numeric (`yyyy-MM-dd`, `yyyy/MM/dd`, `yyyy.MM.dd`, `yyyy-MM`, `MM/dd/yyyy`) or written out, as
+  /// `{ok, at, year, month, day}`.
+  fn timeDate(runs: list, at: int) -> map {
+    let yearFirst = timeYearFirst(runs, at)
+    if yearFirst.ok {
+      return yearFirst
+    }
+    let monthFirst = timeMonthFirst(runs, at)
+    if monthFirst.ok {
+      return monthFirst
+    }
+    let monthName = timeMonthNameFirst(runs, at)
+    if monthName.ok {
+      return monthName
+    }
+    return timeDayFirst(runs, at)
+  }
+
+  fn timeYearFirst(runs: list, at: int) -> map {
+    let year = timeNumber(runs, at, 4, 4)
+    if !year.ok || year.at >= size(runs) || !(runs[year.at].kind in ["-", "/", "."]) {
+      return {"ok": false}
+    }
+    let separator = runs[year.at].kind
+    let month = timeNumber(runs, year.at + 1, 1, 2)
+    if !month.ok {
+      return {"ok": false}
+    }
+    if month.at >= size(runs) || runs[month.at].kind != separator {
+      // A year and a month: the first of the month.
+      return separator == "-" ? {"ok": true, "at": month.at, "year": year.value, "month": month.value, "day": 1} : {"ok": false}
+    }
+    let day = timeNumber(runs, month.at + 1, 1, 2)
+    return day.ok ? {"ok": true, "at": day.at, "year": year.value, "month": month.value, "day": day.value} : {"ok": false}
+  }
+
+  fn timeMonthFirst(runs: list, at: int) -> map {
+    let month = timeNumber(runs, at, 1, 2)
+    if !month.ok || timeSkip(runs, month.at, "/") == month.at {
+      return {"ok": false}
+    }
+    let day = timeNumber(runs, month.at + 1, 1, 2)
+    if !day.ok || timeSkip(runs, day.at, "/") == day.at {
+      return {"ok": false}
+    }
+    let year = timeNumber(runs, day.at + 1, 4, 4)
+    return year.ok ? {"ok": true, "at": year.at, "year": year.value, "month": month.value, "day": day.value} : {"ok": false}
+  }
+
+  fn timeMonthNameFirst(runs: list, at: int) -> map {
+    if at >= size(runs) || runs[at].kind != "word" || monthNumber(runs[at].text) == 0 {
+      return {"ok": false}
+    }
+    let month = monthNumber(runs[at].text)
+    let afterName = timeSkip(runs, at + 1, ".")
+    if timeSkip(runs, afterName, " ") == afterName {
+      return {"ok": false}
+    }
+    let day = timeNumber(runs, afterName + 1, 1, 2)
+    if !day.ok {
+      return {"ok": false}
+    }
+    let afterDay = timeSkip(runs, day.at, ",")
+    if timeSkip(runs, afterDay, " ") == afterDay {
+      return {"ok": false}
+    }
+    let year = timeNumber(runs, afterDay + 1, 4, 4)
+    return year.ok ? {"ok": true, "at": year.at, "year": year.value, "month": month, "day": day.value} : {"ok": false}
+  }
+
+  fn timeDayFirst(runs: list, at: int) -> map {
+    let day = timeNumber(runs, at, 1, 2)
+    if !day.ok || timeSkip(runs, day.at, " ") == day.at {
+      return {"ok": false}
+    }
+    let named = day.at + 1
+    if named >= size(runs) || runs[named].kind != "word" || monthNumber(runs[named].text) == 0 {
+      return {"ok": false}
+    }
+    let afterName = timeSkip(runs, timeSkip(runs, named + 1, "."), ",")
+    if timeSkip(runs, afterName, " ") == afterName {
+      return {"ok": false}
+    }
+    let year = timeNumber(runs, afterName + 1, 4, 4)
+    return year.ok ? {"ok": true, "at": year.at, "year": year.value, "month": monthNumber(runs[named].text), "day": day.value} : {"ok": false}
+  }
+
+  /// `H:mm`, `H:mm:ss` or `H:mm:ss.fffffff` at `at`, as `{ok, at, ticks}`.
+  fn timeOfDay(runs: list, at: int) -> map {
+    let hour = timeNumber(runs, at, 1, 2)
+    if !hour.ok || timeSkip(runs, hour.at, ":") == hour.at {
+      return {"ok": false}
+    }
+    let minute = timeNumber(runs, hour.at + 1, 2, 2)
+    if !minute.ok {
+      return {"ok": false}
+    }
+    var second = 0
+    var fraction = 0
+    var end = minute.at
+    if timeSkip(runs, end, ":") != end {
+      let seconds = timeNumber(runs, end + 1, 2, 2)
+      if !seconds.ok {
+        return {"ok": false}
+      }
+      second = seconds.value
+      end = seconds.at
+      if timeSkip(runs, end, ".") != end {
+        let digits = timeNumber(runs, end + 1, 1, 7)
+        if !digits.ok {
+          return {"ok": false}
+        }
+        fraction = int((runs[end + 1].text + "000000").substring(0, 7))
+        end = digits.at
+      }
+    }
+    if hour.value > 23 || minute.value > 59 || second > 59 {
+      return {"ok": false}
+    }
+    return {"ok": true, "at": end, "ticks": (hour.value * 3600 + minute.value * 60 + second) * 10000000 + fraction}
+  }
+
+  /// `Z`, or an offset `±HH:mm`, `±HHmm` or `±HH` at `at`, in ticks east of UTC, as `{ok, at, ticks}`.
+  fn timeZone(runs: list, at: int) -> map {
+    if at < size(runs) && runs[at].text == "Z" {
+      return {"ok": true, "at": at + 1, "ticks": 0}
+    }
+    if at >= size(runs) || !(runs[at].kind in ["+", "-"]) || at + 1 >= size(runs) || runs[at + 1].kind != "digits" {
+      return {"ok": false}
+    }
+    let sign = runs[at].kind == "+" ? 1 : -1
+    let digits = runs[at + 1].text
+    var hours = 0
+    var minutes = 0
+    var end = at + 2
+    if size(digits) == 4 {
+      hours = int(digits.substring(0, 2))
+      minutes = int(digits.substring(2, 4))
+    } else if size(digits) <= 2 {
+      hours = int(digits)
+      if timeSkip(runs, end, ":") != end {
+        end = end + 1
+        let written = timeNumber(runs, end, 2, 2)
+        if written.ok {
+          minutes = written.value
+          end = written.at
+        }
+      }
+    } else {
+      return {"ok": false}
+    }
+    if hours > 14 || minutes > 59 || (hours == 14 && minutes > 0) {
+      return {"ok": false}
+    }
+    return {"ok": true, "at": end, "ticks": sign * (hours * 3600 + minutes * 60) * 10000000}
+  }
+
+  /// A month by its English name, in full or by its first three letters, from 1; 0 for none.
+  fn monthNumber(word: string) -> int {
+    let names = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+    return namedIndex(word, names) + 1
+  }
+
+  /// A day of the week by its English name, in full or by its first three letters, from 0 for Monday; -1 for none.
+  fn weekdayNumber(word: string) -> int {
+    return namedIndex(word, ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])
+  }
+
+  /// The index of the name `word` is, in full or by its first three letters, ignoring case; -1 for none.
+  fn namedIndex(word: string, names: list) -> int {
+    let lower = word.lowerAscii()
+    for i in range(size(names)) limit 12 {
+      if names[i] == lower || (size(lower) == 3 && names[i].startsWith(lower)) {
+        return i
+      }
+    }
+    return -1
+  }
+
+  fn daysInMonth(year: int, month: int) -> int {
+    if month == 2 {
+      return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28
+    }
+    return month in [4, 6, 9, 11] ? 30 : 31
+  }
+
+  /// The day number since the Unix epoch of a proleptic Gregorian date (Howard Hinnant's `days_from_civil`).
+  fn daysFromCivil(year: int, month: int, day: int) -> int {
+    let y = month <= 2 ? year - 1 : year
+    let era = floorDiv(y, 400)
+    let yearOfEra = y - era * 400
+    let dayOfYear = (153 * (month > 2 ? month - 3 : month + 9) + 2) / 5 + day - 1
+    let dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear
+    return era * 146097 + dayOfEra - 719468
+  }
+
+  /// The proleptic Gregorian date of a day number since the Unix epoch, as `[year, month, day]`.
+  fn civilFromDays(days: int) -> list {
+    let z = days + 719468
+    let era = floorDiv(z, 146097)
+    let dayOfEra = z - era * 146097
+    let yearOfEra = (dayOfEra - dayOfEra / 1460 + dayOfEra / 36524 - dayOfEra / 146096) / 365
+    let dayOfYear = dayOfEra - (365 * yearOfEra + yearOfEra / 4 - yearOfEra / 100)
+    let mp = (5 * dayOfYear + 2) / 153
+    let day = dayOfYear - (153 * mp + 2) / 5 + 1
+    let month = mp < 10 ? mp + 3 : mp - 9
+    return [yearOfEra + era * 400 + (month <= 2 ? 1 : 0), month, day]
+  }
+
+  /// `a` divided by `b`, rounded down.
+  fn floorDiv(a: int, b: int) -> int {
+    return a % b != 0 && (a < 0) != (b < 0) ? a / b - 1 : a / b
+  }
+
+  /// `a` modulo `b`, with the sign of `b`.
+  fn floorMod(a: int, b: int) -> int {
+    return a - floorDiv(a, b) * b
+  }
+
+  /// `n` in decimal, padded with zeros to `width` digits.
+  fn padded(n: int, width: int) -> string {
+    var text = string(n)
+    while size(text) < width limit 20 {
+      text = "0" + text
+    }
+    return text
+  }
+
+  model {
+    document {
+      doc: "A timeline has no diagram-level attributes of its own. The document's schema marker and any keys it does not model are kept verbatim (see timeline.md)."
+    }
+
+    /// Something on the timeline: a period when it has an end, a moment when it does not.
+    element Element {
+      abstract: true
+      labelAttribute: label
+      /// What it is called. May be empty; the canvas then shows the element's id.
+      attribute label: string { label: Label, group: Identity, order: 1 }
+      /// When it starts, as written: normally an ISO 8601 date (2026-01-05) or date-time (2026-01-05T14:30:00).
+      ///
+      /// Kept exactly as written, including whether it is a date or a date-time, and also when it is not a time at all:
+      /// such a value is reported (`timeline.unreadable-time`) and the element is still drawn, as a moment at the
+      /// epoch. A missing `begin` key reads as the empty text. Taken at face value: no time zone conversion, no
+      /// calendar, no working days.
+      attribute begin: datetime required { label: Begin, timezone: preserve, group: Timing, order: 2 }
+      /// The row it sits on: an integer placement index, not a pixel.
+      ///
+      /// Negative rows are as valid as positive ones and gaps are the author's business. A row is a placement grid and
+      /// nothing more: it has no identity, no label, no membership and no meaning of its own. Several elements may
+      /// share a row, overlapping or not. A value that is not an integer reads as row 0.
+      attribute row: int default 0 { label: Row, group: Placement, order: 4 }
+    }
+
+    /// Something with a begin and an end. Drop on the canvas at the time and row it starts.
+    element Period extends Element {
+      label Element
+      icon: mdi-arrow-expand-horizontal
+      /// When it finishes, as written. An `end` key makes the element a period even when its value is empty or
+      /// unreadable; such a value is reported. Written in the same form as begin: both dates, or both date-times.
+      attribute end: datetime required { label: End, timezone: preserve, group: Timing, order: 3 }
+    }
+
+    /// A single point in time. Drop on the canvas at the time and row it marks.
+    element Moment extends Element {
+      label Moment
+      icon: mdi-rhombus-medium
+    }
+
+    /// A line from one element to another, carrying whatever the author says it means and nothing this type assigns to
+    /// it. It does not schedule and does not propagate.
+    relation Connection from Element to Element {
+      label Relation
+      icon: mdi-ray-start-arrow
+      directed: true
+      allowSelfLoops: false
+      allowParallel: true
+      /// What the author calls it, or empty.
+      attribute label: string { label: Label }
+    }
+  }
+
+  /// All findings are warnings except timeline.unparseable. They are reported grouped as the tool reports them, which
+  /// constraints.order cannot state (see timeline.md): first the ids (timeline.missing-id and timeline.duplicate-id, in
+  /// document order, elements before relations), then the times per element (unreadable begin, unreadable end, end
+  /// before begin, mixed precision), then the relations' ends per relation (source, then target).
+  constraints {
+    defaults: { severity: warning, timing: [live] }
+    blockSaveOn: never
+
+    builtin std.unparseable {
+      severity: error
+      code: "timeline.unparseable"
+      message: ('This is not YAML that can be read: ' + detail.reason)
+      doc: "The YAML parser's own message, at its line. Nothing else is reported for a file that does not parse."
+    }
+
+    builtin std.duplicateId {
+      code: "timeline.duplicate-id"
+      message: ('The id \'' + detail.id + '\' is declared more than once, which makes every reference to it ambiguous.')
+      doc: "Ids are unique across elements and relations together. Every holder after the first is reported, at its line; the first keeps the id."
+    }
+
+    builtin std.references {
+      enabled: false
+      doc: "Reported by danglingSource and danglingTarget instead, which leave an end written empty or not written at all unreported, as the tool does, and which read the id an end is written with."
+    }
+
+    builtin std.endpoints {
+      enabled: false
+      doc: "A relation from an element to itself cannot be drawn (noSelfRelation), but one written by hand is drawn and not reported."
+    }
+
+    builtin std.required {
+      enabled: false
+      doc: "A missing or empty begin or end is reported as unreadable (timeline.unreadable-time), not as missing."
+    }
+
+    /// An element or relation without an id, or with an empty one, at its line; it is drawn under an ephemeral id.
+    /// `self.id` is the id as written.
+    constraint missingId for Element, Connection {
+      rule self.id != ''
+      message ((self.isA('Connection') ? 'A relation' : displayName(self)) + ' has no id, so nothing can select, connect or edit it.')
+      code: "timeline.missing-id"
+    }
+
+    /// The element is still drawn, as a moment at the epoch, so it stays selectable.
+    constraint unreadableBegin for Element {
+      rule readableTime(self.begin)
+      message (displayName(self) + ' begins at \'' + self.begin + '\', which is not a time this timeline can read.')
+      code: "timeline.unreadable-time"
+      attribute: begin
+    }
+
+    constraint unreadableEnd for Period {
+      rule readableTime(self.end)
+      message (displayName(self) + ' ends at \'' + self.end + '\', which is not a time this timeline can read.')
+      code: "timeline.unreadable-time"
+      attribute: end
+    }
+
+    /// An element's end lies before its begin.
+    constraint endBeforeBegin for Period {
+      doc {
+        rationale: "Readable from a hand-edited file, so it is reported and the element still drawn; no gesture, form edit or menu action can create it."
+      }
+      label "Ends before it begins"
+      when readableTime(self.begin) && readableTime(self.end)
+      rule compareTimes(self.end, self.begin) >= 0
+      message (displayName(self) + ' ends before it begins. No edit in ADP can create this, so the file was changed by hand.')
+      code: "timeline.end-before-begin"
+      attribute: end
+    }
+
+    /// A time is a date-time when its text contains a `T`, and a date otherwise - also `Tuesday 7 July 2026`, which is
+    /// how the tool reads it. DISL's std.mixedPrecision compares written precisions, which this runtime does not know
+    /// for a text kept as written, so the tool's own test is stated here.
+    constraint mixedPrecision for Period {
+      when readableTime(self.begin) && readableTime(self.end)
+      rule self.begin.contains('T') == self.end.contains('T')
+      message (displayName(self) + ' mixes a date-only value with a date-time one; begin and end should use the same form.')
+      code: "timeline.mixed-precision"
+    }
+
+    /// The relation is kept and sent to the canvas with its end as written, so the canvas can show it; an end that
+    /// names a relation rather than an element dangles too.
+    constraint danglingSource for Connection {
+      when writtenEnd(self, 'source') != ''
+      rule has(self.source) && self.source.isA('Element')
+      message ('A relation names \'' + writtenEnd(self, 'source') + '\', and no element with that id is on this timeline.')
+      code: "timeline.dangling-connection"
+    }
+
+    constraint danglingTarget for Connection {
+      when writtenEnd(self, 'target') != ''
+      rule has(self.target) && self.target.isA('Element')
+      message ('A relation names \'' + writtenEnd(self, 'target') + '\', and no element with that id is on this timeline.')
+      code: "timeline.dangling-connection"
+    }
+
+    /// A resize stops the moving edge at the other rather than letting the element invert.
+    constraint noInversionByGesture for Period {
+      label "No inversion by a gesture"
+      rule newBounds.x2 >= newBounds.x
+      message "An element cannot end before it begins."
+      kind: placement
+      enforcement: prevent
+    }
+
+    constraint noSelfRelation {
+      label "No relation to itself"
+      when relationType == 'Connection'
+      rule source.id != target.id
+      message "An element cannot be connected to itself."
+      kind: connect
+      enforcement: prevent
+    }
+  }
+
+
+  /// A period two weeks long, its begin at the start of the day that was clicked or dropped on, on the nearest row.
+  /// Where the menu has no position, the begin is asked for, prefilled with today, and the row is that of the element
+  /// the menu was opened on, or 0.
+  operation addElementHere "Add element here" for document {
+    icon: mdi-plus
+    create Period { label: 'New element', begin: position.x, end: dateAfter(position.x, 14), row: position.y }
+  }
+
+  /// A moment at the start of the day that was clicked or dropped on, on the nearest row; asked for as addElementHere
+  /// is where the menu has no position.
+  operation addMomentHere "Add moment here" for document {
+    icon: mdi-rhombus-medium
+    create Moment { label: 'New moment', begin: position.x, row: position.y }
+  }
+
+  /// Turns a moment into a period ending at the given time, written as typed. The dialog is titled "Give it an end",
+  /// its field "End" and its button "Set", prefilled with the begin as written.
+  operation giveEnd "Give it an end…" for Moment {
+    param end: datetime required default (self.begin) { label: End }
+    icon: mdi-ray-start-end
+    if !readableTime(p.end) {
+      fail '\'' + p.end + '\' is not a time this timeline can read.'
+    }
+    if readableTime(self.begin) && compareTimes(p.end, self.begin) < 0 {
+      fail 'An element cannot end before it begins.'
+    }
+    retype self to Period
+    set end = p.end
+  }
+
+  /// Turns a period into a moment at its begin: the `end` line is removed.
+  operation removeEnd "Remove its end" for Period {
+    icon: mdi-ray-start
+    unset end
+    retype self to Moment
+  }
+
+  /// The next thing, a little later on the same row: six days after this one ends (or begins, for a moment, or after
+  /// today when neither reads), two weeks long, and related from the one it grew from, in one step.
+  operation addAfter "Add element after" for Element {
+    icon: mdi-arrow-expand-right
+    shortcut: Tab
+    let start = dateAfter(self.isA('Period') && readableTime(self.end) ? self.end : (readableTime(self.begin) ? self.begin : today()), 6)
+    create Period { label: 'New element', begin: start, end: dateAfter(start, 14), row: self.row } as next
+    connect Connection from self to next
+  }
+
+  /// A parallel track: the same begin as a date, one row down, two weeks long, and related from the one it grew from,
+  /// in one step.
+  operation addBelow "Add element below" for Element {
+    icon: mdi-arrow-expand-down
+    shortcut: Enter
+    let start = dateAfter(readableTime(self.begin) ? self.begin : today(), 0)
+    create Period { label: 'New element', begin: start, end: dateAfter(start, 14), row: self.row + 1 } as next
+    connect Connection from self to next
+  }
+
+  /// Puts every element on the row that keeps the diagram least cluttered, as one undoable step; only rows change,
+  /// never a time. Invoked, never automatic. The menu shows the reason beside the entry also while it is available.
+  operation arrange "Arrange diagram" for document {
+    unavailable [{ when: (diagram.nodes.size() == 0), message: "There is nothing to arrange until this timeline has an element." }]
+    icon: mdi-sitemap-outline
+    layout rowArrange on arrangeable()
+  }
+
+  behavior {
+    retype: { Moment: { to: [Period] }, Period: { to: [Moment] } }
+    deletion: {
+      Element: {
+        relations: delete
+        confirm: {
+          count: (self.incoming.size() + self.outgoing.filter(r, r.target != self).size())
+          threshold: 1
+          title: Remove
+          message: ('Removing this element also removes the ' + string(count) + (count == 1 ? ' relation' : ' relations') + ' attached to it.')
+          confirmLabel: Remove
+          danger: true
+        }
+      }
+    }
+  }
+
+  /// A .tml document (Timeline Markup Language): YAML with a top-level schema marker 'timeline: 1', an 'elements' list
+  /// and a 'connections' list, registered by a sibling .adp file whose first line is 'generic/timeline'. It is read and
+  /// written through the timeline module's own FBL binding, whose types and attributes the typeMap maps onto this
+  /// metamodel; the file layout and how the module's binding differs from the example `specifications/fbl/timeline.fbl`
+  /// are in timeline.md.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: uuid-v4
+      encoding: base36
+      stable: true
+      doc: "New elements and relations get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `discovery` are kept as written. Ids are unique across elements and relations together."
+    }
+    references: id
+    view: { store: [] }
+    collaboration: { mode: none }
+    typeMap: {
+      Period: {
+        as: Period
+        hostAttributes: [storedId]
+        doc: "An entry of `elements` with an `end` key. `storedId` is the id as written, kept beside the model, so that an id written more than once is reported and an element is found by what is written."
+      }
+      Moment: { as: Moment, hostAttributes: [storedId], doc: "An entry of `elements` without an `end` key." }
+      Connection: {
+        as: Connection
+        attributes: { from: source, to: target }
+        hostAttributes: [storedId]
+        doc: "Read as an entry with reference attributes, so a relation whose end names no element is kept, with that end unset, and reported by the rules `danglingSource` and `danglingTarget`."
+      }
+    }
+  }
+
+}

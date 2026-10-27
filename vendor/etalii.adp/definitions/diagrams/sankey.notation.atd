@@ -1,0 +1,454 @@
+atd 0.1
+part of etalii/sankey
+
+// The sankey diagram's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+/// One canvas in canvas units, y growing downwards. Nothing is ever stored: a node's x is its column's and its y and
+/// height are the layout's, a band's thickness is its value, and the only thing a reader arranges, the order within a
+/// column, is the order of the document's entries.
+coordinates {
+  system canvas {
+    kind: cartesian
+    orientation: y-down
+    infinite: true
+    grid: { visible: false }
+    doc: "Columns are 320 apart, left edge to left edge; positions are computed to two decimals."
+  }
+  default canvas
+}
+
+// ---------------------------------------------------------------- Notation
+
+/// Every node is a bar 24 wide and as tall as its value, filled with its colour; every flow is a translucent band in
+/// its colour, as thick as its value, curving from the source's right edge to the target's left edge where the layout
+/// stacked it. A node's name and value are written beside its bar in the bar's colour, with its note under them in
+/// muted italics. A node or flow that is not drawn (drawnNode, drawn) is removed by its style's visible.
+notation {
+  theme {
+    tokens: {
+      color.text: "#0f172a"
+      color.text.muted: "#64748b"
+      color.surface: "#ffffff"
+      color.selected: "#7c3aed"
+      color.sankey.grey: "#666666"
+      color.sankey.slate: "#2f5b8a"
+      color.sankey.purple: "#86198f"
+      color.sankey.blue: "#1d4ed8"
+      color.sankey.teal: "#0f766e"
+      color.sankey.green: "#15803d"
+      color.sankey.lime: "#4d7c0f"
+      color.sankey.yellow: "#a16207"
+      color.sankey.orange: "#c2410c"
+      color.sankey.red: "#a3151a"
+      color.sankey.pink: "#be185d"
+      color.sankey.brown: "#7c4a1e"
+    }
+    modes: {
+      dark: {
+        color.text: "#f1f5f9"
+        color.text.muted: "#94a3b8"
+        color.surface: "#1e293b"
+        color.selected: "#a78bfa"
+        color.sankey.grey: "#a8a8a8"
+        color.sankey.slate: "#8fb0d4"
+        color.sankey.purple: "#e879f9"
+        color.sankey.blue: "#60a5fa"
+        color.sankey.teal: "#2dd4bf"
+        color.sankey.green: "#4ade80"
+        color.sankey.lime: "#a3e635"
+        color.sankey.yellow: "#facc15"
+        color.sankey.orange: "#fb923c"
+        color.sankey.red: "#f87171"
+        color.sankey.pink: "#f472b6"
+        color.sankey.brown: "#d6a26f"
+      }
+    }
+    defaultMode: light
+    followSystem: true
+    doc: {
+      summary: "The twelve palette words are the module's own, declared in both modes; dark mode lifts each so bars, bands and labels still read on the dark surface. A hex colour is the document's own choice and is painted as written in both modes."
+      rationale: "The words name colours, never meanings: a Sankey diagram is not about any one subject, so the palette says what a band looks like and the document says what it stands for. The text, surface and selection tokens are the host's shared canvas values, carried here so the specification stands alone."
+    }
+  }
+
+  style bar {
+    fill: (paint(nodeColor(self)))
+    stroke: { width: 0 }
+    visible: {
+      cel: "drawnNode(self)"
+      doc: "A node is drawn only by drawnNode: it has an id and no earlier node holds it."
+    }
+  }
+
+  style nodeName {
+    font: {
+      size: 13
+      weight: 700
+      color: (paint(nodeColor(self)))
+      halo: { color: $color.surface, width: 3 }
+    }
+  }
+
+  style nodeValue {
+    font: { size: 12, color: (paint(nodeColor(self))), halo: { color: $color.surface, width: 3 } }
+  }
+
+  style nodeNote {
+    font: { size: 11, style: italic, color: $color.text.muted, halo: { color: $color.surface, width: 3 } }
+  }
+
+  style band {
+    stroke: { color: (paint(flowColor(self))), width: (bandThickness(self)), opacity: 0.42, cap: butt }
+    visible: {
+      cel: "drawn(self)"
+      doc: "A flow is drawn only by drawn: both its ends are drawn nodes and differ, and no node or earlier flow holds its id."
+    }
+  }
+
+  style bandHover {
+    stroke: { opacity: 0.62 }
+  }
+
+  style bandSelected {
+    stroke: { casing: { color: $color.selected, width: 2 } }
+  }
+
+  /// A plain rectangle, named as one part so a band's ends can be placed at a fraction along its left and right sides
+  /// (6.10, `part`).
+  shape sankeyBar {
+    label: "Bar"
+    parts: [{ id: "bar", shape: rect, box: { x: 0, y: 0, w: (w), h: (h) }, outline: true }]
+  }
+
+  /// Labels sit 10 beyond the bar, centred on its middle: name, then value 16 below, then note 15 below that. Bands
+  /// leave the right side and arrive at the left, where the layout stacked them; no anchor dot is drawn.
+  node Node {
+    refusals: { reparent: ["A node takes its place by being dragged up or down its column."] }
+    shape sankeyBar
+    style: bar
+    size: {
+      width: 24
+      height: (barHeight(self))
+      resizable: false
+      doc: "24 wide; as tall as the node's value on the diagram's scale, at least 6."
+    }
+    placement: {
+      system: canvas
+      x: { cel: "sankeyColumn(self) * 320.0", doc: "The left edge of the node's column." }
+      y: {
+        cel: "layout.value(self, 'top')"
+        doc: "Computed by the layout. A drag up or down the column stores no position: it moves the node's entry among the others (sankey.md, section 'Reordering a column')."
+      }
+      movable: { x: false, y: true }
+      resizable: false
+    }
+    anchors: { mode: sides, sides: [left, right], spread: true }
+    tooltip: (labelOf(self) + ': ' + nodeDisplay(self) + (self.note != '' ? ' (' + self.note + ')' : ''))
+    doubleClick: rename
+    label (labelOf(self)) as nameRight {
+      position: { anchor: [1, 0.5], offset: [10, -5], align: start }
+      style: nodeName
+      editable: false
+      wrap: none
+      visible: (sankeyColumn(self) > 0)
+    }
+    label (nodeDisplay(self)) as valueRight {
+      position: { anchor: [1, 0.5], offset: [10, 11], align: start }
+      style: nodeValue
+      editable: false
+      wrap: none
+      visible: (sankeyColumn(self) > 0)
+    }
+    label @note as noteRight {
+      position: { anchor: [1, 0.5], offset: [10, 26], align: start }
+      style: nodeNote
+      editable: false
+      wrap: none
+      visible: (sankeyColumn(self) > 0 && self.note != '')
+    }
+    label (labelOf(self)) as nameLeft {
+      position: { anchor: [0, 0.5], offset: [-10, -5], align: end }
+      style: nodeName
+      editable: false
+      wrap: none
+      visible: (sankeyColumn(self) == 0)
+    }
+    label (nodeDisplay(self)) as valueLeft {
+      position: { anchor: [0, 0.5], offset: [-10, 11], align: end }
+      style: nodeValue
+      editable: false
+      wrap: none
+      visible: (sankeyColumn(self) == 0)
+    }
+    label @note as noteLeft {
+      position: { anchor: [0, 0.5], offset: [-10, 26], align: end }
+      style: nodeNote
+      editable: false
+      wrap: none
+      visible: (sankeyColumn(self) == 0 && self.note != '')
+    }
+  }
+
+  /// A horizontal S from the source's right edge to the target's left edge, as thick as the flow's value, at the point
+  /// along each edge where the layout stacked it (its values `sourceAt` and `targetAt`), so the bands at a bar meet edge to edge. No arrowhead and no
+  /// label: the direction is the reading direction, and the value is written at the bars. The band the tool draws is a
+  /// filled ribbon, not a stroke (sankey.md).
+  edge Flow {
+    refusals: { move: ["That is not something this diagram can move."] }
+    line { routing: bezier, startDirection: right, endDirection: right, bendpoints: { editable: false } }
+    marker source none
+    marker target none
+    style: band
+    anchoring: {
+      source: { mode: part, part: bar, side: right, at: (layout.value(self, 'sourceAt')), movable: false }
+      target: { mode: part, part: bar, side: left, at: (layout.value(self, 'targetAt')), movable: false }
+    }
+    tooltip: (labelOf(self.source) + ' → ' + labelOf(self.target) + ': ' + flowDisplay(self))
+    reconnectable: false
+    connect: {
+      pointer: { button: secondary, start: body }
+      doc: "Drawn by dragging with the right button from anywhere on one node to another; the node dragged from is the source."
+    }
+    layer: belowNodes
+    states: { hover: bandHover, selected: bandSelected }
+  }
+
+  canvas {
+    minimap: false
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+/// One tool, because a Sankey diagram has one kind of element: what a node stands for is the document's business. A
+/// flow has no palette tool: it is drawn by dragging with the right button from one node to another.
+toolbox {
+  group nodes "Sankey diagram" {
+    /// Something a quantity flows into, out of, or through. Drop it in the column it belongs to.
+    tool node "Node" {
+      creates: Node
+      icon: "mdi-chart-sankey"
+      mode: drop
+      after: none
+      drop: { elsewhere: create }
+    }
+  }
+  context for Node {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: operation, operation: rename, group: "edit", icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Remove" { kind: delete, group: "edit", icon: "mdi-delete-outline", shortcut: Delete }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: "diagram", icon: "mdi-sitemap-outline" }
+    tool "Thicker bands" { kind: operation, operation: thicker, group: "diagram", icon: "mdi-arrow-expand-vertical" }
+    tool "Thinner bands" { kind: operation, operation: thinner, group: "diagram", icon: "mdi-arrow-collapse-vertical" }
+  }
+  context for Flow {
+    placement: menu
+    standardEntries: false
+    tool "Increase value" {
+      kind: operation
+      operation: increaseValue
+      group: "value"
+      icon: "mdi-plus-circle-outline"
+      shortcut: "+"
+    }
+    tool "Decrease value" {
+      kind: operation
+      operation: decreaseValue
+      group: "value"
+      icon: "mdi-minus-circle-outline"
+      shortcut: "-"
+    }
+    tool "Remove flow" { kind: delete, group: "remove", icon: "mdi-vector-polyline-remove", shortcut: Delete }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: "diagram", icon: "mdi-sitemap-outline" }
+    tool "Thicker bands" { kind: operation, operation: thicker, group: "diagram", icon: "mdi-arrow-expand-vertical" }
+    tool "Thinner bands" { kind: operation, operation: thinner, group: "diagram", icon: "mdi-arrow-collapse-vertical" }
+  }
+  /// Empty canvas at a point, and a toolbox drop there, which runs the same action.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add node here" { kind: operation, operation: addNodeHere, group: "add", icon: "mdi-plus" }
+    tool "Arrange diagram" { kind: operation, operation: arrange, group: "diagram", icon: "mdi-sitemap-outline" }
+    tool "Thicker bands" { kind: operation, operation: thicker, group: "diagram", icon: "mdi-arrow-expand-vertical" }
+    tool "Thinner bands" { kind: operation, operation: thinner, group: "diagram", icon: "mdi-arrow-collapse-vertical" }
+  }
+  /// A finished right-button drag from one node to another; the node dragged from is the source. No handle is drawn.
+  context for connection {
+    placement: menu
+    standardEntries: false
+    runSingle: true
+    tool "Add flow" { kind: connect, via: Flow, icon: "mdi-arrow-right-thin" }
+  }
+}
+
+// ---------------------------------------------------------------- Forms
+
+form node for Node {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name" { validate: [{ rule: (value.trim() != ''), message: "A node needs a name.", timing: commit }] }
+    field description "Description" { widget: textarea }
+  }
+  section {
+    label: "Look"
+    field color "Colour" {
+      widget: select
+      options: (['(default)', 'grey', 'slate', 'purple', 'blue', 'teal', 'green', 'lime', 'yellow', 'orange', 'red', 'pink', 'brown'] + (isHex(self.color) ? ['(custom)'] : []))
+      display: (colorChoice(self.color))
+      parse: {
+        accepts: (value.trim() in ['(default)', '(custom)'] || isKnownColor(value.trim()))
+        write: [
+          { unset: [color], when: (value.trim() == '(default)' || value.trim() == '') },
+          {
+            set: { color: (value.trim()) }
+            when: (value.trim() != '(default)' && value.trim() != '(custom)' && value.trim() != '')
+          }
+        ]
+        refusal: ('`' + value.trim() + '` is not a colour: one of grey, slate, purple, blue, teal, green, lime, yellow, orange, red, pink, brown, or #rrggbb.')
+        doc: "(default) removes the key; (custom), shown while a hex is in use, keeps it and writes nothing."
+      }
+    }
+    /// The same `color` key as Colour, typed: for a brand colour the palette does not have.
+    item customColor "Custom colour" {
+      kind: computed
+      value: (isHex(self.color) ? self.color : '')
+      parse: {
+        accepts: (isKnownColor(value.trim()))
+        write: [
+          { unset: [color], when: (value.trim() == '') },
+          { set: { color: (value.trim()) }, when: (value.trim() != '') }
+        ]
+        refusal: ('`' + value.trim() + '` is not a colour: one of grey, slate, purple, blue, teal, green, lime, yellow, orange, red, pink, brown, or #rrggbb.')
+      }
+    }
+    /// auto, or a column from 1 to one past the last (or the node's own, if higher); auto removes the key.
+    field column "Column" {
+      widget: select
+      options: (['auto'] + lists.range(math.greatest(sankeyColumnCount(), has(self.column) ? self.column : 0) + 1).map(i, string(i + 1)))
+      display: (has(self.column) ? string(self.column) : 'auto')
+      parse: {
+        accepts: (value.trim() == 'auto' || value.trim() == '' || (value.trim().matches('^[+-]?[0-9]+$') && int(value.trim()) >= 1))
+        write: [
+          { unset: [column], when: (value.trim() == 'auto' || value.trim() == '') },
+          {
+            set: { column: (int(value.trim())) }
+            when: (value.trim() != 'auto' && value.trim() != '')
+          }
+        ]
+        refusal: ('\'' + value.trim() + '\' is not a column: a whole number from 1, or nothing to let the flows decide.')
+      }
+    }
+  }
+  section {
+    label: "Amount"
+    item Value "Value" {
+      kind: computed
+      value: (rowNumber(self.quantity))
+      readOnlyReasons: ["A node's value is what flows through it; change a flow's value instead."]
+    }
+    field note "Note"
+    field format "Format"
+  }
+}
+
+form flow for Flow {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field description "Description" { widget: textarea }
+  }
+  section {
+    label: "Look"
+    field color "Colour" {
+      widget: select
+      options: (['(default)', 'grey', 'slate', 'purple', 'blue', 'teal', 'green', 'lime', 'yellow', 'orange', 'red', 'pink', 'brown'] + (isHex(self.color) ? ['(custom)'] : []))
+      display: (colorChoice(self.color))
+      parse: {
+        accepts: (value.trim() in ['(default)', '(custom)'] || isKnownColor(value.trim()))
+        write: [
+          { unset: [color], when: (value.trim() == '(default)' || value.trim() == '') },
+          {
+            set: { color: (value.trim()) }
+            when: (value.trim() != '(default)' && value.trim() != '(custom)' && value.trim() != '')
+          }
+        ]
+        refusal: ('`' + value.trim() + '` is not a colour: one of grey, slate, purple, blue, teal, green, lime, yellow, orange, red, pink, brown, or #rrggbb.')
+      }
+    }
+    item customColor "Custom colour" {
+      kind: computed
+      value: (isHex(self.color) ? self.color : '')
+      parse: {
+        accepts: (isKnownColor(value.trim()))
+        write: [
+          { unset: [color], when: (value.trim() == '') },
+          { set: { color: (value.trim()) }, when: (value.trim() != '') }
+        ]
+        refusal: ('`' + value.trim() + '` is not a colour: one of grey, slate, purple, blue, teal, green, lime, yellow, orange, red, pink, brown, or #rrggbb.')
+      }
+    }
+  }
+  section {
+    label: "Amount"
+    field quantity "Value" {
+      id: "value"
+      widget: text
+      display: (has(self.quantity) ? rowNumber(self.quantity) : '')
+      parse: {
+        accepts: (value.trim() == '' || readsAsAmount(value))
+        write: [
+          { unset: [quantity], when: (value.trim() == '') },
+          { set: { quantity: (double(value.trim())) }, when: (value.trim() != '') }
+        ]
+        refusal: ('\'' + value.trim() + '\' is not an amount this diagram can hold: a number of zero or more.')
+      }
+    }
+    /// Shows the default step for the current value when the flow states none, so the row says what + and - will do.
+    field step "Step" {
+      widget: text
+      display: (rowNumber(has(self.step) ? self.step : defaultStep(has(self.quantity) ? self.quantity : 0.0)))
+      parse: {
+        accepts: (value.trim() == '' || (readsAsAmount(value) && double(value.trim()) != 0.0))
+        write: [
+          { unset: [step], when: (value.trim() == '') },
+          { set: { step: (double(value.trim())) }, when: (value.trim() != '') }
+        ]
+        refusal: (readsAsAmount(value) ? 'A step of zero would make + and − do nothing.' : '\'' + value.trim() + '\' is not an amount this diagram can hold: a number of zero or more.')
+      }
+    }
+  }
+}
+
+/// Everything is placed by the layout and nothing by the document: columns from the flows, heights from the values, the
+/// order in a column from the document, and the vertical position from a relaxation that levels the bands without ever
+/// reordering. Computed over the whole document and again on every change.
+layout {
+  default sankey
+  /// Columns by the longest path from a node nothing flows into, with every cycle broken at the flow that closes it and
+  /// stated columns kept; one scale for every bar and band, the fullest column filling 560 times the drawn thickness;
+  /// 24 relaxation passes. Details in sankey.md, section 'Layout'.
+  algorithm sankey capability layout.flowRelaxation {
+    column: (drawnNode(self) ? sankeyColumn(self) : null)
+    weight: (drawn(self) ? amount(self) : null)
+    thickness: (amount(self) * sankeyScale())
+    columnGap: 320
+    nodeGap: 36
+    passes: 24
+    decay: 0.99
+  }
+  /// Arrange diagram (`sankey.arrange`): the order of the nodes within each column that makes the bands cross least,
+  /// written as moves of the entries. Not the layout itself, which never reorders.
+  algorithm sankeyArrange capability layout.crossingOrder {
+    column: (drawnNode(self) ? sankeyColumn(self) : null)
+    weight: (drawn(self) ? amount(self) : null)
+    sweeps: 24
+    columnGap: 320
+    nodeGap: 36
+  }
+  trigger: always
+  respect: none
+  incremental: false
+  animate: false
+}

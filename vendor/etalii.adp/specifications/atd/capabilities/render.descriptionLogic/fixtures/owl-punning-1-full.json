@@ -1,0 +1,68 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.descriptionLogic` from the RDF module's rendering of a class expression of the ontology that parity/cases/w3c/owl/owl-punning.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "value": {
+      "root": "_:b0",
+      "triples": [
+        {
+          "s": "_:b0",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b0",
+          "p": "http://www.w3.org/2002/07/owl#unionOf",
+          "o": "_:b1",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b1",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/zoo#Eagle",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b1",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "_:b2",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b2",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/zoo#Hawk",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b2",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri"
+        }
+      ],
+      "names": {
+        "http://example.org/zoo#Eagle": "ex:Eagle",
+        "http://example.org/zoo#Hawk": "ex:Hawk",
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil": "nil",
+        "http://www.w3.org/2002/07/owl#Class": "owl:Class"
+      }
+    },
+    "format": "rdf"
+  },
+  "args": {
+    "maxDepth": 0
+  },
+  "output": {
+    "runs": [
+      {
+        "text": "(ex:Eagle ∪ ex:Hawk)",
+        "style": {
+          "elided": false,
+          "cyclic": false
+        }
+      }
+    ]
+  }
+}

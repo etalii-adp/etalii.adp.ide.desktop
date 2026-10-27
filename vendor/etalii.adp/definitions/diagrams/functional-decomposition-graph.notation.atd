@@ -1,0 +1,508 @@
+atd 0.1
+part of etalii/functional-decomposition-graph
+
+// The functional decomposition graph's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+/// One free canvas in canvas units. Positions are the author's and are never computed; nothing snaps.
+coordinates {
+  system canvas {
+    kind: cartesian
+    x: { kind: linear }
+    y: { kind: linear }
+    doc: "The top-left corner of each element is stored; the y axis grows downwards."
+  }
+}
+
+// ---------------------------------------------------------------- Notation
+
+/// Each element type is recognisable at a glance by its shape and its fill. Four types share one height of 48 and
+/// differ in width; a Comment is sized freely. An entry of a type the notation does not have is not drawn.
+notation {
+  theme {
+    tokens: {
+      color.text: "#0f172a"
+      color.surface: "#ffffff"
+      color.border: "#e2e8f0"
+      color.fdg.ui-element: "#aaed92"
+      color.fdg.data-element: "#ededed"
+      color.fdg.action: "#9edcfa"
+      color.fdg.function: "#86e6d9"
+      color.fdg.comment: "#fcf281"
+    }
+    modes: {
+      dark: {
+        color.text: "#f1f5f9"
+        color.surface: "#1e293b"
+        color.border: "#334155"
+        color.fdg.ui-element: "#2e7814"
+        color.fdg.data-element: "#696969"
+        color.fdg.action: "#086fa1"
+        color.fdg.function: "#187569"
+        color.fdg.comment: "#736a03"
+      }
+    }
+    defaultMode: light
+    followSystem: true
+    contrast: [
+      {
+        foreground: "color.text"
+        background: [
+          "color.fdg.ui-element",
+          "color.fdg.data-element",
+          "color.fdg.action",
+          "color.fdg.function",
+          "color.fdg.comment"
+        ]
+        minRatio: 4.5
+        doc: "The fills were chosen for text contrast against the text colour in both themes."
+      }
+    ]
+    doc: {
+      summary: "Light mode uses the requested colours exactly; dark mode uses a darker variant of each hue."
+      rationale: "Each dark variant keeps the light colour's hue and saturation with the lightness lowered to the lightest value that reaches 5.0:1 against the dark text, a margin above the 4.5:1 WCAG AA line. The light fills reach 11.96:1 to 15.44:1 against the light text."
+    }
+  }
+
+  style element {
+    stroke: { color: $color.border, width: 1.5 }
+    font: { size: 12, color: $color.text }
+    textAlign: center
+    verticalAlign: middle
+  }
+
+  style uiElement extends element {
+    fill: $color.fdg.ui-element
+  }
+
+  style dataElement extends element {
+    fill: $color.fdg.data-element
+  }
+
+  style action extends element {
+    fill: $color.fdg.action
+  }
+
+  style function extends element {
+    fill: $color.fdg.function
+  }
+
+  style comment extends element {
+    fill: $color.fdg.comment
+  }
+
+  style link {
+    stroke: { color: $color.text, width: 1.5 }
+    font: { size: 12, color: $color.text }
+  }
+
+  /// Square on the left and round on the right: a rectangle from the left edge to w - r, closed on the right by a
+  /// semicircle of radius r = min(h / 2, w). Just a fill and a border, no other ornaments. A custom shape is exact
+  /// here, so DISL needs no built-in for it (6.7).
+  shape diode {
+    label: "Diode"
+    path: {
+      segments: [
+        { op: M, x: 0, y: 0 },
+        { op: L, x: (w - min(h / 2.0, w)), y: 0 },
+        {
+          op: A
+          rx: (min(h / 2.0, w))
+          ry: (min(h / 2.0, w))
+          rotation: 0
+          largeArc: false
+          sweep: true
+          x: (w - min(h / 2.0, w))
+          y: (h)
+        },
+        { op: L, x: 0, y: (h) },
+        { op: Z }
+      ]
+    }
+    textArea: { x: 6, y: (h * 0.25), w: (w - 0.134 * min(h / 2.0, w) - 12), h: (h * 0.5) }
+  }
+
+  /// A superellipse with exponent 4, filled with the UI Element colour.
+  node UiElement {
+    shape { type: superellipse, params: { exponent: 4 } }
+    style: uiElement
+    size: {
+      default: [160, 48]
+      min: [80, 48]
+      max: [null, 48]
+      width: @width
+      height: @height
+      resizable: horizontal
+    }
+    placement: {
+      system: canvas
+      x: @x
+      y: @y
+      anchor: top-left
+      movable: true
+      resizable: { x: true, y: false }
+    }
+    anchors: { mode: outline }
+    doubleClick: editLabel
+    label @name as name { editable: inline, wrap: none, overflow: ellipsis }
+  }
+
+  /// A parallelogram with its top shifted right relative to its bottom, by a fifth of the width: corners at (0.2, 0),
+  /// (1, 0), (0.8, 1) and (0, 1) of the bounds. Filled with the Data Element colour.
+  node DataElement {
+    shape { type: parallelogram, params: { skew: 0.2, direction: right } }
+    style: dataElement
+    size: {
+      default: [160, 48]
+      min: [80, 48]
+      max: [null, 48]
+      width: @width
+      height: @height
+      resizable: horizontal
+    }
+    placement: {
+      system: canvas
+      x: @x
+      y: @y
+      anchor: top-left
+      movable: true
+      resizable: { x: true, y: false }
+    }
+    anchors: { mode: outline }
+    doubleClick: editLabel
+    label @name as name { editable: inline, wrap: none, overflow: ellipsis }
+  }
+
+  /// A trapezoid narrower at the bottom than the top: corners at (0, 0), (1, 0), (0.85, 1) and (0.15, 1) of the bounds.
+  /// Both parameters are stated because DISL's defaults (an inset of 0.2, the narrow side at the top) differ. Filled
+  /// with the Action colour.
+  node Action {
+    shape { type: trapezoid, params: { inset: 0.15, direction: down } }
+    style: action
+    size: {
+      default: [160, 48]
+      min: [80, 48]
+      max: [null, 48]
+      width: @width
+      height: @height
+      resizable: horizontal
+    }
+    placement: {
+      system: canvas
+      x: @x
+      y: @y
+      anchor: top-left
+      movable: true
+      resizable: { x: true, y: false }
+    }
+    anchors: { mode: outline }
+    doubleClick: editLabel
+    label @name as name { editable: inline, wrap: none, overflow: ellipsis }
+  }
+
+  /// A diode, square on the left and round on the right, filled with the Function colour.
+  node Function {
+    shape diode
+    style: function
+    size: {
+      default: [160, 48]
+      min: [80, 48]
+      max: [null, 48]
+      width: @width
+      height: @height
+      resizable: horizontal
+    }
+    placement: {
+      system: canvas
+      x: @x
+      y: @y
+      anchor: top-left
+      movable: true
+      resizable: { x: true, y: false }
+    }
+    anchors: { mode: outline }
+    doubleClick: editLabel
+    label @name as name { editable: inline, wrap: none, overflow: ellipsis }
+  }
+
+  /// A box filled with the Comment colour, resizable in both directions, its text wrapped inside it and centred, as the
+  /// element labels are; text that does not fit ends in an ellipsis and its whole is shown on hover. It has no anchors:
+  /// no connection starts or ends on it and it is never highlighted as a target.
+  node Comment {
+    shape rect
+    style: comment
+    size: { default: [240, 96], min: [80, 48], width: @width, height: @height, resizable: true }
+    placement: { system: canvas, x: @x, y: @y, anchor: top-left, movable: true, resizable: true }
+    connectable: false
+    doubleClick: editLabel
+    label @text as text { editable: multiline, wrap: word, maxWidth: parent, overflow: ellipsis }
+  }
+
+  edge UiChild {
+    line {
+      routing: bezier
+      startDirection: normal
+      endDirection: normal
+      bendpoints: { editable: false }
+    }
+    marker source none
+    marker target arrowFilled
+    style: link
+    connect: { pointer: { button: secondary, start: body } }
+    label @name as name { at: middle, side: above, editable: inline }
+  }
+
+  edge OwnsAction {
+    line {
+      routing: bezier
+      startDirection: normal
+      endDirection: normal
+      bendpoints: { editable: false }
+    }
+    marker source none
+    marker target arrowFilled
+    style: link
+    connect: { pointer: { button: secondary, start: body } }
+    label @name as name { at: middle, side: above, editable: inline }
+  }
+
+  edge OwnsData {
+    line {
+      routing: bezier
+      startDirection: normal
+      endDirection: normal
+      bendpoints: { editable: false }
+    }
+    marker source none
+    marker target arrowFilled
+    style: link
+    connect: { pointer: { button: secondary, start: body } }
+    label @name as name { at: middle, side: above, editable: inline }
+  }
+
+  edge OwnsFunction {
+    line {
+      routing: bezier
+      startDirection: normal
+      endDirection: normal
+      bendpoints: { editable: false }
+    }
+    marker source none
+    marker target arrowFilled
+    style: link
+    connect: { pointer: { button: secondary, start: body } }
+    label @name as name { at: middle, side: above, editable: inline }
+  }
+
+  /// Drawn as the ownership links are, solid. Every relation is drawn by a right-button drag from one element's body to
+  /// another's; which of the five the drag makes follows from the two ends, because each relation is told apart by its
+  /// target type (see the companion, gap 7).
+  edge Shows {
+    line {
+      routing: bezier
+      startDirection: normal
+      endDirection: normal
+      bendpoints: { editable: false }
+    }
+    marker source none
+    marker target arrowFilled
+    style: link
+    connect: { pointer: { button: secondary, start: body } }
+    label @name as name { at: middle, side: above, editable: inline }
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+toolbox {
+  /// Five drop tools and no link tool: a relation is drawn by a right-button drag from one element's body to another's.
+  /// A dropped element is centred on the drop point; its top-left corner is stored.
+  group elements "Elements" {
+    /// A screen, or a part of one. Drop it where it belongs; its parent is a connection drawn to it.
+    tool uiElement "UI element" {
+      creates: UiElement
+      icon: "mdi-application-outline"
+      mode: drop
+      after: select
+      initial: {
+        name: (uniqueName('New UI element'))
+        x: (double(position.x) - 80.0)
+        y: (double(position.y) - 24.0)
+        width: 160
+      }
+    }
+    /// Something the user does on a screen. A screen owns it.
+    tool action "Action" {
+      creates: Action
+      icon: "mdi-gesture-tap"
+      mode: drop
+      after: select
+      initial: {
+        name: (uniqueName('New action'))
+        x: (double(position.x) - 80.0)
+        y: (double(position.y) - 24.0)
+        width: 160
+      }
+    }
+    /// Something the application keeps. A screen, an action or other data owns it.
+    tool dataElement "Data element" {
+      creates: DataElement
+      icon: "mdi-database-outline"
+      mode: drop
+      after: select
+      initial: {
+        name: (uniqueName('New data element'))
+        x: (double(position.x) - 80.0)
+        y: (double(position.y) - 24.0)
+        width: 160
+      }
+    }
+    /// Something that runs behind the screens. Anything but a Comment may own it.
+    tool function "Function" {
+      creates: Function
+      icon: "mdi-cog-outline"
+      mode: drop
+      after: select
+      initial: {
+        name: (uniqueName('New function'))
+        x: (double(position.x) - 80.0)
+        y: (double(position.y) - 24.0)
+        width: 160
+      }
+    }
+    /// A note on the graph. It connects to nothing.
+    tool comment "Comment" {
+      creates: Comment
+      icon: "mdi-note-text-outline"
+      mode: drop
+      after: select
+      initial: {
+        text: "New comment"
+        x: (double(position.x) - 120.0)
+        y: (double(position.y) - 48.0)
+        width: 240
+        height: 96
+      }
+    }
+  }
+  context for NamedElement {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: editLabel, icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Remove" { kind: delete, icon: "mdi-delete-outline", shortcut: Delete }
+  }
+  context for Comment {
+    placement: menu
+    standardEntries: false
+    tool "Edit text…" { kind: editLabel, icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Remove" { kind: delete, icon: "mdi-delete-outline", shortcut: Delete }
+  }
+  context for FdgRelation {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" { kind: editLabel, icon: "mdi-pencil-outline", shortcut: F2 }
+    tool "Remove connection" { kind: delete, icon: "mdi-vector-polyline-remove", shortcut: Delete }
+  }
+  /// A placement: the empty canvas at a point. The five entries follow the order of the tool's element types
+  /// (`FdgElementTypes.All`), which is not the palette's.
+  context for diagram {
+    placement: menu
+    standardEntries: false
+    tool "Add ui element here" { kind: operation, operation: addUiElementHere, icon: "mdi-plus" }
+    tool "Add data element here" { kind: operation, operation: addDataElementHere, icon: "mdi-plus" }
+    tool "Add action here" { kind: operation, operation: addActionHere, icon: "mdi-plus" }
+    tool "Add function here" { kind: operation, operation: addFunctionHere, icon: "mdi-plus" }
+    tool "Add comment here" { kind: operation, operation: addCommentHere, icon: "mdi-plus" }
+  }
+  /// A finished connect gesture: all five relations are offered whatever the two ends are, labelled with the document's
+  /// spelling of the relation; one the checks refuse is refused when chosen. `args.relation` names the relation for the
+  /// wire id (`x-fdg`).
+  context for connection {
+    placement: menu
+    standardEntries: false
+    tool "ui child" { kind: connect, via: UiChild, icon: "mdi-ray-start-arrow", args: { relation: ('UiChild') } }
+    tool "owns action" {
+      kind: connect
+      via: OwnsAction
+      icon: "mdi-ray-start-arrow"
+      args: { relation: ('OwnsAction') }
+    }
+    tool "owns data" { kind: connect, via: OwnsData, icon: "mdi-ray-start-arrow", args: { relation: ('OwnsData') } }
+    tool "owns function" {
+      kind: connect
+      via: OwnsFunction
+      icon: "mdi-ray-start-arrow"
+      args: { relation: ('OwnsFunction') }
+    }
+    tool "shows" { kind: connect, via: Shows, icon: "mdi-ray-start-arrow", args: { relation: ('Shows') } }
+  }
+}
+
+// ---------------------------------------------------------------- Forms
+
+form namedElement for NamedElement {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name"
+    field description "Description" { widget: textarea }
+  }
+  section {
+    label: "Size"
+    field width "Width" {
+      widget: text
+      display: (sizeText(self.width))
+      parse: {
+        accepts: (value.trim().matches('^[-+]?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][-+]?[0-9]+)?$') && double(value.trim()) > 0.0)
+        write: [{ set: { width: (double(value.trim())) } }]
+        refusal: ('\'' + value + '\' is not a size this graph can draw.')
+        doc: "The route a canvas resize takes. A positive number is accepted and a width below 80 is written as 80 (`outOfRange`); anything else is refused, naming the value."
+      }
+    }
+  }
+}
+
+form comment for Comment {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field text "Text" { widget: textarea }
+    field description "Description" { widget: textarea }
+  }
+  section {
+    label: "Size"
+    field width "Width" {
+      widget: text
+      display: (sizeText(self.width))
+      parse: {
+        accepts: (value.trim().matches('^[-+]?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][-+]?[0-9]+)?$') && double(value.trim()) > 0.0)
+        write: [{ set: { width: (double(value.trim())) } }]
+        refusal: ('\'' + value + '\' is not a size this graph can draw.')
+      }
+    }
+    field height "Height" {
+      widget: text
+      display: (sizeText(self.height))
+      parse: {
+        accepts: (value.trim().matches('^[-+]?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][-+]?[0-9]+)?$') && double(value.trim()) > 0.0)
+        write: [{ set: { height: (double(value.trim())) } }]
+        refusal: ('\'' + value + '\' is not a size this graph can draw.')
+        doc: "A height below 48 is written as 48 (`outOfRange`)."
+      }
+    }
+  }
+}
+
+form connection for FdgRelation {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name" { id: "connectionName" }
+    field description "Description" { widget: textarea }
+  }
+}
+
+/// No automatic layout: positions are the author's own, written to the document and never computed.
+layout {
+  trigger: manual
+  respect: all
+}

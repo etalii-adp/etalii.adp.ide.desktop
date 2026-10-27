@@ -1,0 +1,38 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.grid` from the RDF module's layout of the reading that parity/cases/w3c/shacl/shacl-shape-by-use.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/shapes#PersonShape",
+        "width": 320.0,
+        "height": 174.0,
+        "attributes": {}
+      },
+      {
+        "id": "res:http://example.org/shapes#CityShape",
+        "width": 320.0,
+        "height": 86.0,
+        "attributes": {}
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columns": 3,
+    "columnGap": 0,
+    "rowGap": 48
+  },
+  "output": {
+    "positions": {
+      "res:http://example.org/shapes#CityShape": {
+        "x": 320.0,
+        "y": 0.0
+      },
+      "res:http://example.org/shapes#PersonShape": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    }
+  }
+}

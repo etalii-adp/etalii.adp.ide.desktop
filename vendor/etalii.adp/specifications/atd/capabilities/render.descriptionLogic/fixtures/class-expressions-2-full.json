@@ -1,0 +1,68 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.descriptionLogic` from the RDF module's rendering of a class expression of the ontology that parity/cases/w3c/owl/class-expressions.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "value": {
+      "root": "_:b1",
+      "triples": [
+        {
+          "s": "_:b1",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b1",
+          "p": "http://www.w3.org/2002/07/owl#oneOf",
+          "o": "_:b2",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b2",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/shapes#Red",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b2",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "_:b3",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b3",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/shapes#Green",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b3",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri"
+        }
+      ],
+      "names": {
+        "http://example.org/shapes#Green": ":Green",
+        "http://example.org/shapes#Red": ":Red",
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil": "rdf:nil",
+        "http://www.w3.org/2002/07/owl#Class": "owl:Class"
+      }
+    },
+    "format": "rdf"
+  },
+  "args": {
+    "maxDepth": 0
+  },
+  "output": {
+    "runs": [
+      {
+        "text": "{:Red, :Green}",
+        "style": {
+          "elided": false,
+          "cyclic": false
+        }
+      }
+    ]
+  }
+}

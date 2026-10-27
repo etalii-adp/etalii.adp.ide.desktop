@@ -1,0 +1,78 @@
+agent-activity-diagram: 1
+# Two projects whose work meets on one machine, written for ADP as an example.
+projects:
+  - id: p-languages
+    name: etalii.adp
+    link: https://github.com/etalii-adp/etalii.adp
+  - id: p-ide
+    name: etalii.adp.ide.standalone
+    link: https://github.com/etalii-adp/etalii.adp.ide.standalone
+specifications:
+  - id: s-definitions
+    project: p-languages
+    name: Agent activity diagram definitions
+    status: finished
+    tasks:
+      - id: t-binding
+        title: The binding and its fixtures
+        status: finished
+        updated: 2026-10-09T16:16:00+02:00
+  - id: s-fbl
+    project: p-languages
+    name: FBL 0.4
+    status: progressing
+    tasks:
+      - id: t-levels
+        title: Create and remove missing levels
+        status: progressing
+        updated: 2026-10-09T16:54:00+02:00
+  - id: s-module
+    project: p-ide
+    name: Agent activity diagram
+    status: progressing
+    tasks:
+      - id: t-runtime
+        title: FBL 0.4 in the host's runtime
+        status: progressing
+        updated: 2026-10-09T17:30:00+02:00
+      - id: t-commands
+        title: The commands that write the file
+        status: pending
+  - id: s-conversion
+    project: p-ide
+    name: Causal loop diagram on DISL and FBL
+    status: pending
+agents:
+  - id: a-definitions
+    name: Definitions thread
+    specification: s-fbl
+  - id: a-module
+    name: Module thread
+    specification: s-module
+locations:
+  - id: l-definitions
+    agent: a-definitions
+    environment: e-cloud
+    branch: claude/project-thread-cqez7b
+    pullRequests:
+      - id: pr-109
+        title: "109: FBL 0.4"
+        updated: 2026-10-09T16:54:00+02:00
+        link: https://github.com/etalii-adp/etalii.adp/pull/109
+  - id: l-module
+    agent: a-module
+    environment: e-fractal
+    folder: .claude/worktrees/activity
+    branch: claude/project-thread-j58hge
+  - id: l-module-languages
+    agent: a-module
+    environment: e-fractal
+    folder: scratch/etalii.adp
+    branch: develop
+environments:
+  - id: e-fractal
+    name: Fractal
+    kind: local-machine
+  - id: e-cloud
+    name: Claude Code cloud environment
+    kind: cloud

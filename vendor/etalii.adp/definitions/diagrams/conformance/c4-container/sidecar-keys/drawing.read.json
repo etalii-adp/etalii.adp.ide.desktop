@@ -1,0 +1,194 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "alpha",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 12.35,
+        "y": -40.12,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "First.",
+          "font": "10 400",
+          "position": {
+            "x": 92.35,
+            "y": 17.88
+          }
+        },
+        {
+          "id": "name",
+          "text": "Alpha",
+          "font": "13 600",
+          "position": {
+            "x": 92.35,
+            "y": -18.12
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 92.35,
+            "y": -2.12
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "beta",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -80,
+        "y": 198.8,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Second.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 256.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Beta",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 220.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 236.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "alpha->beta@5",
+      "type": "c4/model+relationship",
+      "source": "alpha",
+      "target": "beta",
+      "route": [
+        {
+          "x": 77.12,
+          "y": 38.68
+        },
+        {
+          "x": 15.23,
+          "y": 198.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 46.18,
+            "y": 112.74
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "legend",
+      "text": "System Landscape diagram for Sidecar keys",
+      "bounds": {
+        "x": -80,
+        "y": -70.12,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": -80,
+        "y": 307.6,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "band",
+      "bounds": {
+        "x": -44,
+        "y": 297.6,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Software System",
+      "bounds": {
+        "x": -27,
+        "y": 307.6,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "alpha->beta@5",
+    "alpha",
+    "beta",
+    "chrome:1",
+    "chrome:2",
+    "chrome:3",
+    "chrome:4"
+  ]
+}

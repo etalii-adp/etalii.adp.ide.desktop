@@ -1,0 +1,121 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/loose",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:loose",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Loose",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 42
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/other",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:other",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Other",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 42
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/loose|http://example.org/near|res:http://example.org/other",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/loose",
+      "target": "res:http://example.org/other",
+      "route": [
+        {
+          "x": 220,
+          "y": 28
+        },
+        {
+          "x": 280,
+          "y": 28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:near",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 22
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/loose|http://example.org/near|res:http://example.org/other",
+    "res:http://example.org/loose",
+    "res:http://example.org/other"
+  ]
+}

@@ -1,0 +1,6 @@
+# A9: one body, three registrations writing its language header above body:, without a space, and in upper case.
+@prefix ex: <http://example.org/drinks#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+ex:drinks a skos:ConceptScheme ; skos:prefLabel "Drinks"@en , "Dranken"@nl ; skos:hasTopConcept ex:tea .
+ex:tea a skos:Concept ; skos:topConceptOf ex:drinks ; skos:prefLabel "Tea"@en , "Thee"@nl .

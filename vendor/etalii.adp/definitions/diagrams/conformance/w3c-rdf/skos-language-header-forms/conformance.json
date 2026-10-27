@@ -1,0 +1,109 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/skos-language-header-forms.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "skos-language-header-forms.ttl",
+    "registration": "skos-language-header-forms.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/drinks#drinks",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#drinks",
+          "display": "ex:drinks",
+          "typeBadges.0": "skos:ConceptScheme",
+          "rows.0.predicate": "skos:prefLabel",
+          "rows.0.value": "Drinks",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "skos:prefLabel",
+          "rows.1.value": "Dranken",
+          "rows.1.annotation": "@nl",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/drinks#tea",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#tea",
+          "display": "ex:tea",
+          "typeBadges.0": "skos:Concept",
+          "rows.0.predicate": "skos:prefLabel",
+          "rows.0.value": "Tea",
+          "rows.0.annotation": "@en",
+          "rows.1.predicate": "skos:prefLabel",
+          "rows.1.value": "Thee",
+          "rows.1.annotation": "@nl",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/drinks#drinks|http://www.w3.org/2004/02/skos/core#hasTopConcept|res:http://example.org/drinks#tea",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#drinks",
+        "target": "res:http://example.org/drinks#tea",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#drinks",
+          "toElementId": "res:http://example.org/drinks#tea",
+          "predicate": "skos:hasTopConcept",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#hasTopConcept"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#topConceptOf|res:http://example.org/drinks#drinks",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/drinks#tea",
+        "target": "res:http://example.org/drinks#drinks",
+        "attributes": {
+          "fromElementId": "res:http://example.org/drinks#tea",
+          "toElementId": "res:http://example.org/drinks#drinks",
+          "predicate": "skos:topConceptOf",
+          "predicateIri": "http://www.w3.org/2004/02/skos/core#topConceptOf"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

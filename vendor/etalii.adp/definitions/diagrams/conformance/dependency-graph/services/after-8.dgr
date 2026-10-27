@@ -1,0 +1,99 @@
+dependencies: 1
+# What the storefront needs to serve a checkout, read left to right: each arrow points at the
+# thing being depended upon. Rows carry no meaning beyond keeping related services together.
+elements:
+  - id: checkout-web
+    label: Checkout web app
+    x: 40
+    row: 5
+  - id: api-gateway
+    label: API gateway
+    x: 370.42873351852575
+    row: 5
+  - id: identity-service
+    label: Identity service
+    x: 797.5845690363473
+    row: 4
+  - id: order-service
+    label: Order service
+    x: 600
+    row: 3
+  - id: notification-service
+    label: Notification service
+    x: 419.92197785733026
+    row: -4
+  - id: payment-service
+    label: Payment service
+    x: 811.1779021088461
+    row: -2
+  - id: inventory-service
+    label: Inventory service
+    x: 811.1779021088463
+    row: 0
+  - id: payments-db
+    label: Payments database
+    x: 1091.848027445307
+    row: -1
+  - id: orders-db
+    label: Orders database
+    x: 1080
+    row: 2
+  - id: message-broker
+    label: RabbitMQ broker
+    x: 807.8672330646216
+    row: -4
+  - id: 51e71014b5hzxx4nk5cpkod6c
+    label: Fraud check
+    x: 840
+    row: 3
+  - id: 4hrin2ths5xmrwzlpb29abjtq
+    label: New node
+    x: 600
+    row: 4
+relations:
+  - id: r-web-gateway
+    from: checkout-web
+    to: api-gateway
+    label: calls
+  - id: r-gateway-identity
+    from: api-gateway
+    to: identity-service
+    label: verifies tokens with
+  - id: r-gateway-orders
+    from: api-gateway
+    to: order-service
+    label: routes to
+  - id: r-orders-identity
+    from: order-service
+    to: identity-service
+  - id: r-orders-payment
+    from: order-service
+    to: payment-service
+    label: authorises through
+  - id: r-orders-inventory
+    from: order-service
+    to: inventory-service
+    label: reserves through
+  - id: r-orders-db
+    from: order-service
+    to: orders-db
+  - id: r-orders-broker
+    from: order-service
+    to: message-broker
+    label: publishes to
+  - id: r-payment-db
+    from: payment-service
+    to: payments-db
+  - id: r-inventory-db
+    from: inventory-service
+    to: orders-db
+  - id: r-notify-broker
+    from: notification-service
+    to: message-broker
+    label: consumes from
+  - id: 11ct5q02gmtvd93otbevsfxt0
+    from: order-service
+    to: 51e71014b5hzxx4nk5cpkod6c
+  - id: buv3ohi3mqebghrp0h0qfy972
+    from: order-service
+    to: 4hrin2ths5xmrwzlpb29abjtq

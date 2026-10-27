@@ -1,0 +1,333 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "ext",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -96.7,
+        "y": 397.6,
+        "w": 193.4,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Someone else's system.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 455.6
+          }
+        },
+        {
+          "id": "name",
+          "text": "Partner",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 419.6
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 435.6
+          }
+        }
+      ],
+      "style": {
+        "fill": "#999999",
+        "stroke": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "s",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -80,
+        "y": 198.8,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "A system.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 256.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "System",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 220.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 236.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "u",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -80,
+        "y": 0,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "A user.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 58
+          }
+        },
+        {
+          "id": "name",
+          "text": "User",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 22
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "s->ext@14",
+      "type": "c4/model+relationship",
+      "source": "s",
+      "target": "ext",
+      "route": [
+        {
+          "x": 0,
+          "y": 277.6
+        },
+        {
+          "x": 0,
+          "y": 397.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 331.6
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "u->s@13",
+      "type": "c4/model+relationship",
+      "source": "u",
+      "target": "s",
+      "route": [
+        {
+          "x": 0,
+          "y": 78.8
+        },
+        {
+          "x": 0,
+          "y": 198.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Uses [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 132.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "legend",
+      "text": "System Context diagram for System",
+      "bounds": {
+        "x": -96.7,
+        "y": -30,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": -96.7,
+        "y": 506.4,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "band",
+      "bounds": {
+        "x": -60.7,
+        "y": 496.4,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Person",
+      "bounds": {
+        "x": -43.7,
+        "y": 506.4,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": 4.6,
+        "y": 496.4,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Software System (external)",
+      "bounds": {
+        "x": 21.6,
+        "y": 506.4,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:7",
+      "kind": "band",
+      "bounds": {
+        "x": 190.9,
+        "y": 496.4,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:8",
+      "kind": "legend",
+      "text": "Software System",
+      "bounds": {
+        "x": 207.9,
+        "y": 506.4,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "u->s@13",
+    "s->ext@14",
+    "u",
+    "ext",
+    "s",
+    "chrome:1",
+    "chrome:2",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6",
+    "chrome:7",
+    "chrome:8"
+  ]
+}

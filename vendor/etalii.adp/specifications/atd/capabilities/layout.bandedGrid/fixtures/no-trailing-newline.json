@@ -1,0 +1,44 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bandedGrid` from the RDF module's layout of the reading that parity/cases/w3c/rdf/no-trailing-newline.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/a",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/c",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columns": 4,
+    "columnWidth": 280.0,
+    "rowHeight": 160.0,
+    "bandGap": 80,
+    "band": "size(self.types) > 0 ? self.types[0] : ''"
+  },
+  "output": {
+    "positions": {
+      "res:http://example.org/a": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/c": {
+        "x": 280.0,
+        "y": 0.0
+      }
+    }
+  }
+}

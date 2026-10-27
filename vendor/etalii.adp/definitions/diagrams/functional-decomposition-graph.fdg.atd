@@ -1,0 +1,281 @@
+atd 0.1
+part of etalii/functional-decomposition-graph
+
+// The functional decomposition graph's .fdg body (definitions/diagrams/functional-decomposition-graph.dis,
+// functional-decomposition-graph.md): ADP's own YAML, read through FBL instead of a hand-written parser. An entry's
+// type is a value, so each of the five element types and the five relations is a rule of its own, chosen by its
+// `type:` with `when`, and each writes that value into a new entry with its insert's constant (FBL 0.8 section 6.2),
+// as the entry's second key. An entry whose type the notation does not have is taken by a catch-all rule and stays in
+// the model as UnknownElement or UnknownConnection, so its id is counted and its links are checked. An entry that is
+// not a mapping is taken by the list's not-a-mapping rule. A connection is an element with reference attributes rather
+// than a relation, so one whose end names no element is kept and reported. Every rule reads the id as written as the
+// host attribute storedId, so an id written more than once is reported and an element is found by its first holder.
+// Every value is read as the text it was written with (FBL 0.5 section 5.2): a position and a size too, which the tool
+// converts as it always has, so `x: "120"` is 120 and `x: 0x10` is not a number. There is no header, so a missing or
+// other version line raises nothing of FBL's; the tool words those itself. A new entry goes after the last entry of
+// its list whatever its type, as the tool has always added one.
+
+binding fdg family yaml {
+  label "Functional decomposition graph"
+  claims { extensions: [".fdg"], origins: ["etalii/functional-decomposition-graph"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  registration { createOnFirstPlacement: false }
+
+  element Graph as graph at "/" {
+    when type(entry) == map
+    readOnly: "The graph's version is changed in the file itself."
+    attribute version from key "functional-decomposition-graph" { read: text }
+  }
+
+  element UiElement as ui-element at "/elements/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'ui-element'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'name', 'description', 'text', 'x', 'y', 'width', 'height'])))
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute x from key "x" { read: text, number: { decimals: 4 } }
+    attribute y from key "y" { read: text, number: { decimals: 4 } }
+    attribute width from key "width" { read: text, number: { decimals: 4 } }
+    insert {
+      place: end
+      container: "/elements"
+      constant: { type: ui-element }
+      keys: [id, type, name, description, x, y, width]
+    }
+    remove { cascade: [ui-child, owns-action, owns-data, owns-function, shows, unknown-connection] }
+  }
+
+  element DataElement as data-element at "/elements/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'data-element'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'name', 'description', 'text', 'x', 'y', 'width', 'height'])))
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute x from key "x" { read: text, number: { decimals: 4 } }
+    attribute y from key "y" { read: text, number: { decimals: 4 } }
+    attribute width from key "width" { read: text, number: { decimals: 4 } }
+    insert {
+      place: end
+      container: "/elements"
+      constant: { type: data-element }
+      keys: [id, type, name, description, x, y, width]
+    }
+    remove { cascade: [ui-child, owns-action, owns-data, owns-function, shows, unknown-connection] }
+  }
+
+  element Action as action at "/elements/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'action'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'name', 'description', 'text', 'x', 'y', 'width', 'height'])))
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute x from key "x" { read: text, number: { decimals: 4 } }
+    attribute y from key "y" { read: text, number: { decimals: 4 } }
+    attribute width from key "width" { read: text, number: { decimals: 4 } }
+    insert {
+      place: end
+      container: "/elements"
+      constant: { type: action }
+      keys: [id, type, name, description, x, y, width]
+    }
+    remove { cascade: [ui-child, owns-action, owns-data, owns-function, shows, unknown-connection] }
+  }
+
+  element Function as function at "/elements/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'function'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'name', 'description', 'text', 'x', 'y', 'width', 'height'])))
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute x from key "x" { read: text, number: { decimals: 4 } }
+    attribute y from key "y" { read: text, number: { decimals: 4 } }
+    attribute width from key "width" { read: text, number: { decimals: 4 } }
+    insert {
+      place: end
+      container: "/elements"
+      constant: { type: function }
+      keys: [id, type, name, description, x, y, width]
+    }
+    remove { cascade: [ui-child, owns-action, owns-data, owns-function, shows, unknown-connection] }
+  }
+
+  element Comment as comment at "/elements/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'comment'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'name', 'description', 'text', 'x', 'y', 'width', 'height'])))
+    attribute strayName from key "name" { readOnly: true }
+    attribute text from key "text" { read: text, style: literal, empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute x from key "x" { read: text, number: { decimals: 4 } }
+    attribute y from key "y" { read: text, number: { decimals: 4 } }
+    attribute width from key "width" { read: text, number: { decimals: 4 } }
+    attribute height from key "height" { read: text, number: { decimals: 4 } }
+    insert {
+      place: end
+      container: "/elements"
+      constant: { type: comment }
+      keys: [id, type, text, description, x, y, width, height]
+    }
+    remove { cascade: [ui-child, owns-action, owns-data, owns-function, shows, unknown-connection] }
+  }
+
+  element UnknownElement as unknown-element at "/elements/*" {
+    when type(entry) == map
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'name', 'description', 'text', 'x', 'y', 'width', 'height'])))
+    attribute documentType from key "type" { read: text, readOnly: true }
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    attribute x from key "x" { read: text, number: { decimals: 4 } }
+    attribute y from key "y" { read: text, number: { decimals: 4 } }
+    attribute width from key "width" { read: text, number: { decimals: 4 } }
+    remove { cascade: [ui-child, owns-action, owns-data, owns-function, shows, unknown-connection] }
+  }
+
+  element Unreadable as element-not-a-mapping at "/elements/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element UiChild as ui-child at "/connections/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'ui-child'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'from', 'to', 'name', 'description'])))
+    attribute from from key "from" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute to from key "to" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    insert {
+      place: end
+      container: "/connections"
+      constant: { type: ui-child }
+      keys: [id, type, from, to, name, description]
+    }
+    remove {}
+  }
+
+  element OwnsAction as owns-action at "/connections/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'owns-action'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'from', 'to', 'name', 'description'])))
+    attribute from from key "from" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute to from key "to" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    insert {
+      place: end
+      container: "/connections"
+      constant: { type: owns-action }
+      keys: [id, type, from, to, name, description]
+    }
+    remove {}
+  }
+
+  element OwnsData as owns-data at "/connections/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'owns-data'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'from', 'to', 'name', 'description'])))
+    attribute from from key "from" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute to from key "to" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    insert {
+      place: end
+      container: "/connections"
+      constant: { type: owns-data }
+      keys: [id, type, from, to, name, description]
+    }
+    remove {}
+  }
+
+  element OwnsFunction as owns-function at "/connections/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'owns-function'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'from', 'to', 'name', 'description'])))
+    attribute from from key "from" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute to from key "to" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    insert {
+      place: end
+      container: "/connections"
+      constant: { type: owns-function }
+      keys: [id, type, from, to, name, description]
+    }
+    remove {}
+  }
+
+  element Shows as shows at "/connections/*" {
+    when type(entry) == map && has(entry.type) && entry.type == 'shows'
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'from', 'to', 'name', 'description'])))
+    attribute from from key "from" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute to from key "to" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    insert {
+      place: end
+      container: "/connections"
+      constant: { type: shows }
+      keys: [id, type, from, to, name, description]
+    }
+    remove {}
+  }
+
+  element UnknownConnection as unknown-connection at "/connections/*" {
+    when type(entry) == map
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'type', 'from', 'to', 'name', 'description'])))
+    attribute documentType from key "type" { read: text, readOnly: true }
+    attribute from from key "from" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute to from key "to" {
+      references ui-element, data-element, action, function, comment, unknown-element by storedId
+    }
+    attribute name from key "name" { empty: keep }
+    attribute description from key "description" { read: text, empty: remove }
+    remove {}
+  }
+
+  element Unreadable as connection-not-a-mapping at "/connections/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+  template {
+    text: """functional-decomposition-graph: 1
+elements: []
+connections: []
+"""
+  }
+}

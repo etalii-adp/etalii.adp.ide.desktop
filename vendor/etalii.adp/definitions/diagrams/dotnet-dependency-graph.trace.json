@@ -1,0 +1,272 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "dotnet/dependency-graph",
+  "description": "dotnet-dependency-graph.atd",
+  "companion": {
+    "file": "dotnet-dependency-graph.md",
+    "sections": [
+      "Language gaps",
+      "What stays code in the standalone module, and why",
+      "Known gaps and discrepancies"
+    ]
+  },
+  "items": [
+    {
+      "id": "known-gaps-and-discrepancies/1",
+      "text": "**The explicit refresh is not reachable by a user.**",
+      "statedBy": "binding solution"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/2",
+      "text": "**Read failures are not shown.** The canvas says \"Any reason is reported in the problems",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/564",
+      "reason": "The reader's failures travel with its reading, and ATD states no rule that turns a reader's failure into a finding; the reference host only logs them."
+    },
+    {
+      "id": "known-gaps-and-discrepancies/3",
+      "text": "**A package referenced with two casings loses references.** `DependencyGraph.Derive`",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/565",
+      "reason": "Whether a reader may deliver a relation whose end names nothing is unsettled in FBL 11.2 (the companion's gap 4, finding B8); the description follows the code and leaves such an end unset."
+    },
+    {
+      "id": "known-gaps-and-discrepancies/4",
+      "text": "**A project file the solution names but that is not on disk is not watched.** The",
+      "statedBy": "binding solution"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/5",
+      "text": "**An undo refused after a hand edit is reported as a failure.** When the registration",
+      "hostConcern": "undo-stack",
+      "reason": "Whether a refused undo is a failure or outdated is the history's; the description's commands are the registration's position writes."
+    },
+    {
+      "id": "known-gaps-and-discrepancies/6",
+      "text": "**Add on a file offers the alternate extension of every type.** It is what lets a lone",
+      "hostConcern": "file-dialogs",
+      "reason": "The Add offer on a file names no tool type; it is the host's, over every type's extensions, which the description lists under x-adp."
+    },
+    {
+      "id": "known-gaps-and-discrepancies/7",
+      "text": "`DotNetDependencyGraphLayout`'s remarks say \"A project that nothing in the solution",
+      "statedBy": "fn dependencyDepth"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/8",
+      "text": "The Notion row says the graph \"reveals cycles\", but nothing detects or marks a cycle; the",
+      "statedBy": "fn dependencyDepth"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/9",
+      "text": "Notion files the tool under the family \"Infrastructure / network / cloud diagrams\", which",
+      "statedBy": "tool"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/10",
+      "text": "A **model read from files the diagram type does not own** is read by the binding's",
+      "statedBy": "capability reader.msbuildSolution"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/11",
+      "text": "**Implicit pinning on drag** with continuous re-layout of everything unpinned is only",
+      "statedBy": "layout"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/12",
+      "text": "The **depth-layered layout with a package band** needs a plugin, and the **route's exact",
+      "statedBy": "algorithm dependencyDepth"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/13",
+      "text": "A **status notice** stating what the view hides, with its own buttons, cannot be declared.",
+      "statedBy": "operation showAmbientPackages"
+    },
+    {
+      "id": "known-gaps-and-discrepancies/14",
+      "text": "The **standalone wire ids** (element kinds, the activate action's id, the property row",
+      "statedBy": "tool"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/solution.rs",
+      "lines": "59-122",
+      "behaviour": "Reads a .sln or .slnx into the project files it names, skipping solution folders and reporting a named project that is not on disk.",
+      "statedBy": "capability reader.msbuildSolution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/project.rs",
+      "lines": "45-181",
+      "behaviour": "Reads a project file's target frameworks, project references (expanding wildcards) and package references.",
+      "statedBy": "capability reader.msbuildSolution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/project.rs",
+      "lines": "182-222",
+      "behaviour": "Takes a package version from the nearest Directory.Packages.props above the project.",
+      "statedBy": "capability analysis.msbuildImports"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/descriptions.rs",
+      "lines": "24-65",
+      "behaviour": "Reads a package's description from its .nuspec in the local NuGet cache, NUGET_PACKAGES or its default.",
+      "statedBy": "capability reader.msbuildSolution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/graph.rs",
+      "lines": "103-124",
+      "behaviour": "Derives a project's .NET version from its net<major>.<minor> target frameworks.",
+      "statedBy": "capability reader.msbuildSolution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/graph.rs",
+      "lines": "125-256",
+      "behaviour": "Derives one node per project and per package id, the versions, the version conflict, the dependent count and the ambient marking.",
+      "statedBy": "capability reader.msbuildSolution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/graph.rs",
+      "lines": "90-102",
+      "behaviour": "Builds the element ids project:<path>, package:<id> and depends:<source>-><target>.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/layout.rs",
+      "lines": "31-79",
+      "behaviour": "Places projects in layers by dependency depth, wrapping a layer of more than twelve, with the packages in one band beyond them.",
+      "statedBy": "algorithm dependencyDepth"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/mapper.rs",
+      "lines": "25-112",
+      "behaviour": "Maps the graph to the wire's element kinds and the stored positions over the computed ones.",
+      "statedBy": "tool"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/registration_layout.rs",
+      "lines": "72-182",
+      "behaviour": "Reads and writes the positions in the registration's layout block, in ordinal order, as .NET writes numbers.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/view.rs",
+      "lines": "148-187",
+      "behaviour": "Stores a dragged box's position in the registration and refuses every other move.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/view.rs",
+      "lines": "26-31",
+      "behaviour": "The sentences that refuse a move of a reference and a reparent of any element.",
+      "statedBy": "notation node Project refusals"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/view.rs",
+      "lines": "33-35",
+      "behaviour": "A move on a diagram opened without a registration is refused, since there is nowhere to store a position.",
+      "statedBy": "binding solution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/view.rs",
+      "lines": "105-112",
+      "behaviour": "Offers no action on any element, so the project file is never revealed.",
+      "divergesFrom": "operation revealProjectFile"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/definition.rs",
+      "lines": "67-79",
+      "behaviour": "The refusal of a write to a read-only attribute.",
+      "statedBy": "behavior"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/definition.rs",
+      "lines": "122-146",
+      "behaviour": "The inspector's rows for a project and a package.",
+      "statedBy": "form projectInspector"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/commands.rs",
+      "lines": "24-87",
+      "behaviour": "A position write and its removal as commands on the history, refused when the registration is gone.",
+      "hostConcern": "undo-stack",
+      "reason": "The history is the host's; the description says a drag is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/store.rs",
+      "lines": "39-160",
+      "behaviour": "Keeps each open solution, re-reads it when a file it depends on changes and closes it.",
+      "statedBy": "binding solution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/lib.rs",
+      "lines": "79-133",
+      "behaviour": "Reads the registration's body: header and resolves the solution within the workspace.",
+      "statedBy": "binding solution"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/dotnet-dependency-graph/src/theme.rs",
+      "lines": "9-51",
+      "behaviour": "The light and dark palettes.",
+      "statedBy": "notation theme"
+    }
+  ]
+}

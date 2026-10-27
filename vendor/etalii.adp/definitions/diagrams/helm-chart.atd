@@ -1,0 +1,655 @@
+atd 0.1
+
+/// What a Helm chart is made of and how it hangs together, drawn from the chart folder as it is.
+///
+/// A read-only diagram over a Helm chart directory (the folder holding `Chart.yaml`). It shows the chart's metadata,
+/// the values layering, the templates and the Kubernetes kinds they literally render, the declared dependencies and
+/// whether `charts/` answers them.
+///
+/// The chart folder is the subject and is never written. It is read through the binding `helm-chart.fbl#chart` by the
+/// capability `reader.helmChart`, which delivers every node, the relations `Resolves` and
+/// `Includes`, and one finding per file that does not parse; the three relations that always have both ends, every
+/// derived attribute, every property row and the other findings are stated here. The one thing a user changes is where
+/// the boxes sit, and those positions are stored in the registration beside `Chart.yaml`. What DISL 0.3 and FBL 0.2
+/// cannot state is in `helm-chart.md` beside this file; the standalone wire ids are under `x-helm`.
+diagram helm/chart version "0.2.0" {
+  doc {
+    tags: ["helm", "kubernetes", "software delivery", "read-only", "folder"]
+    seeAlso: [
+      { title: "Helm charts guide", href: "https://helm.sh/docs/topics/charts/" },
+      { title: "Chart template guide", href: "https://helm.sh/docs/chart_template_guide/" },
+      { title: "What DISL and FBL cannot express for this tool", href: "helm-chart.md" }
+    ]
+  }
+  label "Helm chart"
+  id: "net.etalii.adp.helm.chart"
+  license: "Apache-2.0"
+  authors: [{ name: "Peter Vrenken", url: "https://github.com/vrenken" }]
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/helm-chart"
+  icon: "mdi-ship-wheel"
+  requires: { conformance: standard }
+
+  import "helm-chart.notation.atd"
+  import "helm-chart.chart.atd"
+  requires capability reader.helmChart@^1
+  requires capability layout.rankedColumns@^1
+
+  /// Every node is a file, folder or declaration of the chart, delivered by the `net.etalii.adp.helm.chartFolder`
+  /// plugin. Nothing is created, renamed or deleted through the diagram. `Resolves` and `Includes` are stored relations
+  /// the reader delivers, because either may have no target (an open end), which a derived relation cannot have;
+  /// `Declares`, `Overrides` and `Configures` are derived here.
+  model {
+
+    /// Anything that stands for a file or folder of the chart. Activating it reveals that artifact in the project
+    /// explorer.
+    element ChartFile {
+      abstract: true
+      /// Chart-root-relative, `/`-separated; what the id is made of and what activation reveals.
+      attribute path: string readonly { label: "Path", group: "Identity" }
+    }
+
+    /// The chart itself: the facts of `Chart.yaml`, and the three counts the property panel shows for the whole chart.
+    element Chart extends ChartFile {
+      label "Chart"
+      labelAttribute: name
+      /// As written, an empty `name:` included; unset when `Chart.yaml` writes no name or could not be read, which
+      /// shows as `(chart)`.
+      attribute name: string readonly default "" { label: "Name", group: "Identity" }
+      /// As written; a scalar is never retyped, so `1.0` stays `1.0`.
+      attribute version: string readonly default "" { label: "Version", group: "Identity" }
+      /// The line of `version:` in `Chart.yaml`, or 0 when there is none. Stands in for `location('version')`, which
+      /// the reader cannot feed (helm-chart.md, gap 8).
+      attribute versionLine: int readonly default 0 { min: 0 }
+      attribute appVersion: string readonly default "" { label: "App version", group: "Identity" }
+      attribute apiVersion: string readonly default "" { label: "API version", group: "Identity" }
+      /// `type:` as written; absent reads as `application`. Delivered whenever `Chart.yaml` reads as a mapping, and
+      /// unset when nothing could be read from it, which hides its row.
+      attribute chartType: string readonly default application { label: "Type", group: "Identity" }
+      attribute description: text readonly default "" { label: "Description", group: "Identity" }
+      /// `deprecated:` reads true, as .NET's `bool.TryParse` reads it.
+      attribute deprecated: bool readonly default false { label: "Deprecated", group: "Identity" }
+      /// Set when `Chart.yaml` did not parse; no other fact of it is then read.
+      attribute failure: YamlFailure readonly { label: "Unreadable", group: "Identity" }
+      attribute templateCount: int readonly default 0 { min: 0, label: "Templates", group: "Summary" }
+      attribute dependencyCount: int readonly default 0 { min: 0, label: "Dependencies", group: "Summary" }
+      attribute valuesLayerCount: int readonly default 0 { min: 0, label: "Values layers", group: "Summary" }
+      /// A Helm 2 chart: its dependencies are declared in `requirements.yaml` and pinned in `requirements.lock`.
+      attribute legacy: bool { label: "Legacy", group: "Identity", derived: (self.apiVersion.lowerAscii() == 'v1') }
+    }
+
+    /// One layer of the values stack: `values.yaml` (or `values.yml`) itself, or an override sibling whose name starts
+    /// with `values`.
+    element Values extends ChartFile {
+      label "Values"
+      labelAttribute: path
+      /// True for `values.yaml` and `values.yml`, in any case; every other layer overrides it.
+      attribute isDefault: bool readonly default false { label: "Default layer", group: "Identity" }
+      /// Sorted ordinally; what a configures relation is matched against.
+      attribute keys: string many readonly { label: "Top-level keys", group: "Contents" }
+      attribute failure: YamlFailure readonly { label: "Unreadable", group: "Identity" }
+      /// A top-level `global:` key, visible to every subchart. A row, never a relation per dependency.
+      attribute hasGlobal: bool { label: "Global", group: "Contents", derived: ('global' in self.keys) }
+    }
+
+    /// `values.schema.json`: present, never evaluated.
+    element Schema extends ChartFile {
+      label "Values schema"
+      labelAttribute: path
+    }
+
+    /// One file under `templates/`, scanned line by line and never parsed as YAML: a Go-templated manifest is not YAML
+    /// until rendered.
+    element Template extends ChartFile {
+      label "Template"
+      labelAttribute: path
+      /// Literal values of column-zero `kind:` lines. A templated kind is unknown, never guessed.
+      attribute kinds: string many readonly { label: "Renders", group: "Contents" }
+      /// A manifest none of whose kinds could be read literally: still a node, never dropped.
+      attribute undetermined: bool readonly default false
+      /// Names defined by `{{ define "name" }}`.
+      attribute defines: string many readonly { label: "Defines", group: "Contents" }
+      /// Names referenced by `{{ include "name" }}` or `{{ template "name" }}` with a literal double-quoted name; one
+      /// `Includes` relation each.
+      attribute references: string many readonly { label: "Includes", group: "Contents" }
+      attribute role: TemplateRole {
+        label: "Role"
+        group: "Identity"
+        derived: (self.isA('Partial') ? 'partial' : (fileName(self.path).lowerAscii() == 'notes.txt' ? 'notes' : (self.path.lowerAscii().startsWith('templates/tests/') ? 'test' : 'manifest')))
+      }
+    }
+
+    /// A template whose file name starts with `_`: it defines named templates and renders nothing itself. Its own type
+    /// so that it travels as its own wire type; it is a `Template` everywhere else.
+    element Partial extends Template {
+      label "Partial"
+    }
+
+    /// The `crds/` folder as one node: plain, untemplated YAML that Helm installs before anything renders.
+    element Crds extends ChartFile {
+      label "CRDs"
+      labelAttribute: path
+      /// The `.yaml` and `.yml` files under `crds/`, recursively.
+      attribute files: int readonly default 0 { min: 0, label: "Files", group: "Contents" }
+      attribute failures: YamlFailure many readonly
+    }
+
+    /// One entry of `dependencies:` in `Chart.yaml`, or in `requirements.yaml` for a legacy chart. A declaration, not a
+    /// file of its own.
+    element Dependency {
+      label "Dependency"
+      labelAttribute: name
+      /// The chart name.
+      attribute name: string readonly default "" { label: "Chart", group: "Identity" }
+      attribute alias: string readonly default "" { label: "Alias", group: "Identity" }
+      /// Verbatim; never evaluated.
+      attribute constraint: string readonly default "" { label: "Version constraint", group: "Identity" }
+      /// Verbatim; never contacted.
+      attribute repository: string readonly default "" { label: "Repository", group: "Identity" }
+      attribute condition: string readonly default "" { label: "Condition", group: "Wiring" }
+      attribute conditionState: ConditionState readonly default none { label: "Condition state", group: "Wiring" }
+      /// The version the lock pins for this chart name, shown beside the constraint and never checked against it.
+      attribute pinnedVersion: string {
+        label: "Pinned"
+        group: "Wiring"
+        derived: (cel.bind(pins, diagram.nodesOfType('Lock').map(l, l.entries.filter(e, e.name == self.name)).flatten(), pins.size() > 0 ? pins[0].version : ''))
+      }
+      /// Something in `charts/` answers this declaration. Unvendored is the common case and never a finding: `helm
+      /// dependency build` fetches it at deploy time.
+      attribute resolved: bool {
+        label: "Resolved"
+        group: "Wiring"
+        derived: (self.outgoingOf('Resolves').exists(r, r.target != null))
+      }
+    }
+
+    /// Something sitting in `charts/`, whether or not anything declares it.
+    element Vendored extends ChartFile {
+      abstract: true
+      labelAttribute: entryName
+      /// The directory name, or the archive's file name without its `-<version>.tgz` tail: what a dependency is matched
+      /// against.
+      attribute entryName: string readonly default ""
+      attribute chartName: string readonly default "" { label: "Chart", group: "Identity" }
+      attribute chartVersion: string readonly default "" { label: "Version", group: "Identity" }
+      attribute chartType: string readonly default application { label: "Type", group: "Identity" }
+      /// Set when the subchart's own `Chart.yaml` did not parse; never a finding.
+      attribute failure: YamlFailure readonly
+      /// Some dependency resolves to it. Undeclared content is drawn and warned about.
+      attribute declared: bool { label: "Declared", group: "Wiring", derived: (self.incomingOf('Resolves').size() > 0) }
+    }
+
+    /// A chart directory under `charts/`, read one level deep and summarized.
+    element Subchart extends Vendored {
+      label "Subchart"
+      attribute templates: int readonly default 0 { min: 0, label: "Templates", group: "Contents" }
+      /// Entries, directories included, in the subchart's own `charts/`: counted, never recursed.
+      attribute deeper: int readonly default 0 { min: 0, label: "Deeper charts/", group: "Contents" }
+    }
+
+    /// A sealed `.tgz` under `charts/`: labelled by its file name and never unpacked.
+    element Archive extends Vendored {
+      label "Archive"
+    }
+
+    /// `Chart.lock`, or `requirements.lock` for a legacy chart: what `helm dependency update` pinned.
+    element Lock extends ChartFile {
+      label "Lock"
+      labelAttribute: path
+      /// Sorted by name ordinally.
+      attribute entries: LockEntry many readonly { label: "Pinned dependencies", group: "Contents" }
+      attribute failure: YamlFailure readonly { label: "Unreadable", group: "Identity" }
+    }
+
+    /// The chart declares a dependency, labelled with its version constraint.
+    relation Declares from Chart to Dependency {
+      label "declares"
+      derived: {
+        from: (diagram.nodesOfType('Chart').size() == 1 ? diagram.nodesOfType('Dependency') : [])
+        id: ('edge:' + diagram.nodesOfType('Chart')[0].id + '|Declares|' + item.id + '|' + item.constraint)
+        source: (diagram.nodesOfType('Chart')[0])
+        target: (item)
+        attributes: { label: (item.constraint) }
+      }
+      attribute label: string readonly { label: "Says" }
+    }
+
+    /// A declared dependency and the `charts/` entry that answers it: the first whose entry name is the dependency's
+    /// chart name or its alias. Delivered by the reader. A dependency nothing answers keeps the relation without a
+    /// target, labelled with its effective name, and is drawn as a stub: a state, never a finding.
+    relation Resolves from Dependency to Vendored {
+      label "resolves to"
+      attribute label: string readonly default "" { label: "Says" }
+      target: { optional: true }
+    }
+
+    /// An override values layer stacked onto the default layer. The diagram shows the layering; it never merges values.
+    relation Overrides from Values to Values {
+      label "overrides"
+      derived: {
+        from: (diagram.nodesOfType('Values').exists(v, v.isDefault) ? diagram.nodesOfType('Values').filter(v, !v.isDefault) : [])
+        id: ('edge:' + item.id + '|Overrides|' + diagram.nodesOfType('Values').filter(v, v.isDefault)[0].id + '|')
+        source: (item)
+        target: (diagram.nodesOfType('Values').filter(v, v.isDefault)[0])
+        attributes: { label: ('') }
+      }
+      attribute label: string readonly { label: "Says" }
+    }
+
+    /// A top-level key of the default values layer equal to a dependency's effective name configures that subchart,
+    /// labelled with the name. `global:` is a row of the values node instead.
+    relation Configures from Values to Dependency {
+      label "configures"
+      derived: {
+        from: (cel.bind(defaults, diagram.nodesOfType('Values').filter(v, v.isDefault), defaults.size() == 0 ? [] : diagram.nodesOfType('Dependency').filter(d, effectiveName(d) in defaults[0].keys).map(d, [defaults[0], d])))
+        id: ('edge:' + item[0].id + '|Configures|' + item[1].id + '|' + effectiveName(item[1]))
+        source: (item[0])
+        target: (item[1])
+        attributes: { label: (effectiveName(item[1])) }
+      }
+      attribute label: string readonly { label: "Says" }
+    }
+
+    /// A template includes one named template: one relation per included name, to the first partial that defines it,
+    /// labelled with the name. Delivered by the reader. A name no local partial defines keeps the relation without a
+    /// target and is drawn as a stub: a library chart provides it at render time, so it is never a finding.
+    relation Includes from Template to Partial {
+      label "includes"
+      allowSelfLoops: true
+      attribute label: string readonly default "" { label: "Says" }
+      target: { optional: true }
+    }
+
+    /// What a file under `templates/` is to Helm, decided by its name and place. The labels are the property panel's
+    /// words.
+    enum TemplateRole {
+      /// Renders to Kubernetes manifests: the ordinary case.
+      manifest { label: "manifest template" }
+      /// A file whose name starts with `_`.
+      partial { label: "partial - defines named templates, renders nothing itself" }
+      /// `NOTES.txt`, in any case.
+      notes { label: "install notes" }
+      /// Anything under `templates/tests/`, in any case.
+      test { label: "helm test hook" }
+    }
+
+    /// A dependency's `condition`, walked as a dotted path into the default values file when the chart was read. The
+    /// labels are the property panel's words.
+    enum ConditionState {
+      none { label: "no condition" }
+      /// The path exists and reads true.
+      on { label: "currently on" }
+      /// The path exists and reads false.
+      off { label: "currently off" }
+      /// A segment of the path is not in the default values; the condition-missing rule warns.
+      missing { label: "the path is not in values.yaml" }
+      /// The path ends at something that is not a boolean, or the default values did not parse.
+      unknown { label: "not resolvable to a boolean" }
+    }
+
+    /// A chart-owned YAML file that did not parse, in the parser's own words.
+    datatype YamlFailure {
+      fields: {
+        path: {
+          type: string
+          doc: "Chart-root-relative; given for a file of `crds/`, where one node stands for many files."
+        }
+        message: { type: text, doc: "The parser's message, verbatim." }
+        line: { type: int, min: 0, doc: "1-based line the parser blamed; 0 when it named none." }
+      }
+    }
+
+    /// One dependency pinned by `helm dependency update`.
+    datatype LockEntry {
+      fields: {
+        name: { type: string, doc: "The chart name the lock records, never an alias." }
+        version: {
+          type: string
+          doc: "The pinned version: shown beside the declared constraint, never evaluated against it."
+        }
+        line: {
+          type: int
+          min: 0
+          doc: "The line of the entry in the lock, which a stale entry's finding points at."
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// The last segment of a chart-root-relative path: what a template is called on the canvas.
+  fn fileName(path: string) -> string {
+    return path.split('/').last().orValue(path)
+  }
+
+  /// The name a dependency is mounted as: its alias when it has one, else its chart name. What a dependency's id, a
+  /// values key and an open end are matched against.
+  fn effectiveName(d: Dependency) -> string {
+    return d.alias != '' ? d.alias : d.name
+  }
+
+  /// A node's column in the layout `anatomy`: metadata, values, templates, dependencies, vendored content
+  /// (helm-chart.md, section 'Layout').
+  fn anatomyColumn(n: dyn) -> int {
+    return n.isA('Values') ? 1 : n.isA('Template') ? 2 : n.isA('Dependency') ? 3 : n.isA('Vendored') ? 4 : 0
+  }
+
+  /// A node's place within its column: chart, lock, schema and crds in that order; the default values layer first and
+  /// then the overrides by path; manifests, partials, notes and test hooks, each by path; dependencies by effective
+  /// name; vendored content by path. Paths and names compare ordinally.
+  fn anatomyOrder(n: dyn) -> string {
+    return n.isA('Chart') ? '0' : n.isA('Lock') ? '1' : n.isA('Schema') ? '2' : n.isA('Crds') ? '3' : n.isA('Values') ? (n.isDefault ? '0' : '1') + n.path : n.isA('Template') ? string(['manifest', 'partial', 'notes', 'test'].indexOf(n.role)) + n.path : n.isA('Dependency') ? effectiveName(n) : n.path
+  }
+
+  /// The file that declares the dependencies: `requirements.yaml` for a legacy chart, `Chart.yaml` otherwise. Every
+  /// dependency, relation and wiring row names it as where its value is defined.
+  fn declaringFile() -> string {
+    // uses: ['diagram']
+    return diagram.nodesOfType('Chart').exists(c, c.legacy) ? 'requirements.yaml' : 'Chart.yaml'
+  }
+
+  /// The lock's path, `Chart.lock` or `requirements.lock`, or empty when the chart has none.
+  fn lockPath() -> string {
+    // uses: ['diagram']
+    return diagram.nodesOfType('Lock').size() > 0 ? diagram.nodesOfType('Lock')[0].path : ''
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// Structural findings about the chart, each with the file and line it concerns. Unvendored dependencies, includes no
+  /// local partial defines and a missing lock are never findings: all three are ordinary states of a chart. A
+  /// registered folder that is not a chart is reported by the module, not here (helm-chart.md, gap 8).
+  constraints {
+    groups: {
+      chart: { label: "Chart structure", doc: "What Helm itself requires or would trip over." }
+      readOnly: { label: "Read-only diagram", doc: "Gestures this diagram refuses, with the reason." }
+    }
+    order: [
+      "helm.unreadable-yaml",
+      "helm.missing-name",
+      "helm.missing-version",
+      "helm.version-not-semver",
+      "helm.legacy-chart",
+      "helm.undeclared-vendored",
+      "helm.lock-drift",
+      "helm.empty-templates",
+      "helm.condition-missing",
+      "helm.name-collision"
+    ]
+    builtin std.unparseable {
+      code: "helm.unreadable-yaml"
+      message: (detail.reason)
+      doc: "The plugin reports one finding per chart-owned YAML file that does not parse, at the parser's line, and words it as the tool does: \"'values.yaml' is not readable YAML: \" and the parser's own message. Every other finding located in that file is then silenced; the rest of the folder is still validated."
+    }
+    builtin std.duplicateId {
+      code: "helm.name-collision"
+      severity: error
+      oncePerGroup: second
+      message: ("Two dependencies resolve to the effective name '" + effectiveName(detail.first) + "'; give one an alias.")
+      doc: "Two dependencies with one effective name get one id, `dep:` and the name, and are reported once, at the second declaration."
+    }
+    builtin std.derivedId {
+      enabled: false
+      doc: "Two same-named dependencies with one constraint give two `Declares` relations one id; the later is not drawn, but the tool reports nothing about it beside `helm.name-collision` (helm-chart.md, Q4)."
+    }
+
+    /// At the start of `Chart.yaml`'s root mapping, the chart's own location.
+    constraint missingName for Chart {
+      label "Missing name"
+      when !has(self.failure)
+      rule self.name != ''
+      severity error
+      message "Chart.yaml declares no name; Helm requires one."
+      code: "helm.missing-name"
+      group: "chart"
+      attribute: name
+    }
+
+    constraint missingVersion for Chart {
+      label "Missing version"
+      when !has(self.failure)
+      rule self.version != ''
+      severity error
+      message "Chart.yaml declares no version; Helm requires one."
+      code: "helm.missing-version"
+      group: "chart"
+      attribute: version
+    }
+
+    /// At the line of `version:`.
+    constraint versionNotSemver for Chart {
+      doc { rationale: "SemVer's shape is checked, not its algebra." }
+      label "Version not SemVer"
+      when !has(self.failure) && self.version != ''
+      rule self.version.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$')
+      severity warning
+      message ("'" + self.version + "' is not a SemVer version; Helm expects MAJOR.MINOR.PATCH.")
+      code: "helm.version-not-semver"
+      group: "chart"
+      attribute: version
+      location: ({'file': 'Chart.yaml', 'line': self.versionLine})
+    }
+
+    /// A warning worded as information, as the tool reports it (Q3).
+    constraint legacyChart for Chart {
+      label "Legacy chart"
+      when !has(self.failure)
+      rule !self.legacy
+      severity warning
+      message "This is a legacy Helm 2 chart (apiVersion: v1); dependencies live in requirements.yaml."
+      code: "helm.legacy-chart"
+      group: "chart"
+    }
+
+    constraint undeclaredVendored for Vendored {
+      label "Undeclared vendored content"
+      rule self.declared
+      severity warning
+      message ("'" + self.path + "' sits in charts/ but no dependency declares it.")
+      code: "helm.undeclared-vendored"
+      group: "chart"
+      location: ({'file': self.path})
+    }
+
+    /// One finding per drifted entry: first each declared chart name the lock lacks, at the lock without a line, then
+    /// each lock entry no dependency declares, at its line.
+    constraint lockDrift for Lock {
+      doc {
+        rationale: "Only when a readable lock exists: its absence before the first helm dependency update is a state, not a mistake."
+      }
+      label "Lock drift"
+      when !has(self.failure)
+      severity warning
+      message (item.stale ? self.path + " pins '" + item.name + "', which no dependency declares; the lock is stale." : "The dependency '" + item.name + "' is declared but not in " + self.path + "; run helm dependency update.")
+      code: "helm.lock-drift"
+      group: "chart"
+      forEach: (cel.bind(declared, diagram.nodesOfType('Dependency').map(d, d.name), declared.filter(n, !self.entries.exists(e, e.name == n)).distinct().sort().map(n, {'name': n, 'line': 0, 'stale': false}) + self.entries.filter(e, !(e.name in declared)).sortBy(e, e.name).map(e, {'name': e.name, 'line': e.line, 'stale': true})))
+      location: (item.stale ? {'file': self.path, 'line': item.line} : {'file': self.path})
+    }
+
+    constraint emptyTemplates for Chart {
+      doc { rationale: "Library charts are exempt: rendering nothing is what a library chart is for." }
+      label "No templates"
+      when has(self.chartType) && self.chartType.lowerAscii() != 'library'
+      rule diagram.nodesOfType('Template').size() > 0
+      severity warning
+      message "This application chart has no templates; helm install would render nothing."
+      code: "helm.empty-templates"
+      group: "chart"
+    }
+
+    /// At the dependency's line in the declaring file, its own location.
+    constraint conditionMissing for Dependency {
+      label "Condition path missing"
+      rule self.conditionState != 'missing'
+      severity warning
+      message ("The condition '" + self.condition + "' of dependency '" + effectiveName(self) + "' names a path that is not in values.yaml.")
+      code: "helm.condition-missing"
+      group: "chart"
+      attribute: condition
+    }
+
+    constraint noReparent {
+      rule false
+      message "A chart element has no parent to move it under; dragging changes where it sits on the canvas."
+      group: "readOnly"
+      kind: containment
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Reveals the node's file or folder in the IDE host's project explorer, from where it opens in a text editor. A
+  /// dependency has no artifact of its own, so it has nothing to reveal.
+  operation openArtifact "Reveal" for ChartFile {
+    enabled self.path != ''
+    open self.path
+  }
+  reason chartYaml {
+    message "Defined in Chart.yaml; edit it in a text editor."
+  }
+  reason templatesFolder {
+    message "Defined in templates/; edit it in a text editor."
+  }
+  reason valuesYaml {
+    message "Defined in values.yaml; edit it in a text editor."
+  }
+  reason ownFile {
+    message ('Defined in ' + self.path + '; edit it in a text editor.')
+    doc: "The node's own file: a values file, a template, the schema, the lock or an archive."
+  }
+  reason subchartFile {
+    message ('Defined in ' + self.path + '/Chart.yaml; edit it in a text editor.')
+  }
+  reason crdsFolder {
+    message ('Defined in ' + self.path + '/; edit it in a text editor.')
+  }
+  reason declaringFile {
+    message ('Defined in ' + declaringFile() + '; edit it in a text editor.')
+    doc: "`Chart.yaml`, or `requirements.yaml` for a legacy chart."
+  }
+  reason lockFile {
+    message ('Defined in ' + lockPath() + '; edit it in a text editor.')
+  }
+  message std.readOnly "A helm chart diagram shows the folder as it is and changes nothing in it. Edit the file this value comes from in a text editor."
+
+  behavior {
+    doc: "The only edit is a reposition, one undoable step that writes the position into the registration. Every other write is refused with `std.readOnly`. Double-clicking a file-backed node reveals its artifact."
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// The chart folder is the model and is never written: it is read through the binding by its reader capability, and the binding
+  /// is read-only. The only stored data is the position of each box a user dragged, in the registration beside
+  /// `Chart.yaml`.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: derived
+      expression: (self.type + ':' + self.path)
+      pattern: "^.+$"
+      doc: "Content-derived ids, because stored positions are keyed by them: a renamed file forfeits its position. Paths hold `/`, and relation ids hold `|` and whatever a constraint or a name holds, so the pattern admits any non-empty id. The derived relations take the same `edge:` shape from their `derived.id`."
+      types: {
+        Chart: { strategy: derived, expression: ('chart') }
+        Crds: { strategy: derived, expression: ('crds') }
+        Values: { strategy: derived, expression: ('values:' + self.path) }
+        Schema: { strategy: derived, expression: ('schema:' + self.path) }
+        Template: { strategy: derived, expression: ('tpl:' + self.path) }
+        Dependency: { strategy: derived, expression: ('dep:' + (self.alias != '' ? self.alias : self.name)) }
+        Subchart: { strategy: derived, expression: ('sub:' + self.path) }
+        Archive: { strategy: derived, expression: ('tgz:' + self.path) }
+        Lock: { strategy: derived, expression: ('lock:' + self.path) }
+        Resolves: {
+          strategy: derived
+          expression: ('edge:' + self.source.id + '|Resolves|' + (self.target == null ? '' : self.target.id) + '|' + self.label)
+        }
+        Includes: {
+          strategy: derived
+          expression: ('edge:' + self.source.id + '|Includes|' + (self.target == null ? '' : self.target.id) + '|' + self.label)
+        }
+      }
+    }
+    view: { store: [bounds], styleOverrides: none }
+    // DISL binding: https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/helm-chart/backend/EtAlii.Adp.Diagram.HelmChart/helm-chart.fbl#chart
+  }
+
+  plugin net.etalii.adp.helm.chartFolder {
+    version: "^0.1.0"
+    provides: [persistenceFormat]
+    required: true
+    plans: []
+    doc: "The binding's reader: reads the chart-owned YAML with every scalar as written, scans the templates line by line, walks each condition into the default values, and makes `Resolves` and `Includes` with or without a target. It never writes, and plans no change, because the binding is read-only. What it delivers, and why it is a plugin, is in helm-chart.md."
+  }
+  plugin net.etalii.adp.helm.anatomyBands {
+    version: "^0.1.0"
+    provides: [layout]
+    required: false
+    fallback: { layout: layered }
+    doc: "The banded column layout; helm-chart.md, section 'Layout'."
+  }
+  plugin net.etalii.adp.ide.revealPath {
+    version: "^0.1.0"
+    provides: [action]
+    required: false
+    args: { path: { type: string } }
+    doc: "Asks the IDE host to reveal a chart-root-relative file or folder in its project explorer."
+  }
+
+  x-helm: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-dotnet does for the .NET dependency graph. The element kinds on the wire are the prefix followed by one of the eleven names below; a partial travels as `partial` because it is its own type. A type or relation is keyed by its name, a property by its form item's row id. There are no tools and no actions."
+    typePrefix: "helm/chart+"
+    types: {
+      Chart: chart
+      Values: values
+      Schema: schema
+      Template: template
+      Partial: partial
+      Crds: crds
+      Dependency: dependency
+      Subchart: subchart
+      Archive: archive
+      Lock: lock
+      Declares: edge
+      Resolves: edge
+      Overrides: edge
+      Configures: edge
+      Includes: edge
+    }
+    properties: {
+      name: "helm.name"
+      version: "helm.version"
+      appVersion: "helm.app-version"
+      apiVersion: "helm.api-version"
+      type: "helm.type"
+      description: "helm.description"
+      deprecated: "helm.deprecated"
+      legacy: "helm.legacy"
+      unreadable: "helm.unreadable"
+      templates: "helm.templates"
+      dependencies: "helm.dependencies"
+      valuesLayers: "helm.values-layers"
+      path: "helm.path"
+      role: "helm.role"
+      keys: "helm.keys"
+      global: "helm.global"
+      kinds: "helm.kinds"
+      defines: "helm.defines"
+      includes: "helm.includes"
+      files: "helm.files"
+      alias: "helm.alias"
+      constraint: "helm.constraint"
+      repository: "helm.repository"
+      condition: "helm.condition"
+      pinned: "helm.pinned"
+      resolution: "helm.resolution"
+      deeper: "helm.deeper"
+      declared: "helm.declared"
+      sealed: "helm.sealed"
+      entries: "helm.entries"
+      kind: "helm.kind"
+      label: "helm.label"
+      openEnd: "helm.open-end"
+    }
+  }
+  x-adp: { kind: Diagram, state: Prototype, companion: "helm-chart.md" }
+}

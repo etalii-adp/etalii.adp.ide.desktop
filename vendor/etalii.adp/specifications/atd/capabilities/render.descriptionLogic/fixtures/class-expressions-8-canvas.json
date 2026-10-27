@@ -1,0 +1,48 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.descriptionLogic` from the RDF module's rendering of a class expression of the ontology that parity/cases/w3c/owl/class-expressions.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "value": {
+      "root": "_:b9",
+      "triples": [
+        {
+          "s": "_:b9",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b9",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasSide",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b9",
+          "p": "http://www.w3.org/2002/07/owl#minCardinality",
+          "o": "1",
+          "oKind": "literal"
+        }
+      ],
+      "names": {
+        "http://example.org/shapes#hasSide": ":hasSide",
+        "http://www.w3.org/2002/07/owl#Restriction": "owl:Restriction"
+      }
+    },
+    "format": "rdf"
+  },
+  "args": {
+    "maxDepth": 2
+  },
+  "output": {
+    "runs": [
+      {
+        "text": "≥ 1 :hasSide",
+        "style": {
+          "elided": false,
+          "cyclic": false
+        }
+      }
+    ]
+  }
+}

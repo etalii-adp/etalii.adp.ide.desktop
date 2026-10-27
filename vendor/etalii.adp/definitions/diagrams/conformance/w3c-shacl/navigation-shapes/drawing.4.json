@@ -1,0 +1,475 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://fairdatapoint.org/catNavShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 0,
+        "w": 260,
+        "h": 122
+      },
+      "labels": [
+        {
+          "id": "cardinality",
+          "text": "[0..*]\n[0..*]",
+          "font": "10 400",
+          "position": {
+            "x": 572,
+            "y": 68
+          }
+        },
+        {
+          "id": "rows",
+          "text": "dcat:dataset\ndct:isPartOf",
+          "font": "11 400",
+          "position": {
+            "x": 328,
+            "y": 68
+          }
+        },
+        {
+          "id": "targets",
+          "text": "targets class dcat:Catalog",
+          "font": "11 400 italic",
+          "position": {
+            "x": 328,
+            "y": 46
+          }
+        },
+        {
+          "id": "title",
+          "text": ":catNavShape — Catalog",
+          "font": "13 600",
+          "position": {
+            "x": 450,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://fairdatapoint.org/datasetNavShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 178,
+        "w": 260,
+        "h": 122
+      },
+      "labels": [
+        {
+          "id": "cardinality",
+          "text": "[0..*]\n[0..*]",
+          "font": "10 400",
+          "position": {
+            "x": 252,
+            "y": 246
+          }
+        },
+        {
+          "id": "rows",
+          "text": "dcat:distribution\ndct:isPartOf",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 246
+          }
+        },
+        {
+          "id": "targets",
+          "text": "targets class dcat:Dataset",
+          "font": "11 400 italic",
+          "position": {
+            "x": 8,
+            "y": 224
+          }
+        },
+        {
+          "id": "title",
+          "text": ":datasetNavShape",
+          "font": "13 600",
+          "position": {
+            "x": 130,
+            "y": 198
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://fairdatapoint.org/distNavShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 178,
+        "w": 260,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "title",
+          "text": ":distNavShape",
+          "font": "13 600",
+          "position": {
+            "x": 450,
+            "y": 198
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://fairdatapoint.org/fdpNavShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 640,
+        "y": 0,
+        "w": 260,
+        "h": 100
+      },
+      "labels": [
+        {
+          "id": "cardinality",
+          "text": "[0..*]",
+          "font": "10 400",
+          "position": {
+            "x": 892,
+            "y": 68
+          }
+        },
+        {
+          "id": "rows",
+          "text": "fdp:metadataCatalog",
+          "font": "11 400",
+          "position": {
+            "x": 648,
+            "y": 68
+          }
+        },
+        {
+          "id": "targets",
+          "text": "targets class fdp:FAIRDataPoint",
+          "font": "11 400 italic",
+          "position": {
+            "x": 648,
+            "y": 46
+          }
+        },
+        {
+          "id": "title",
+          "text": ":fdpNavShape",
+          "font": "13 600",
+          "position": {
+            "x": 770,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://fairdatapoint.org/repoNavShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 260,
+        "h": 100
+      },
+      "labels": [
+        {
+          "id": "cardinality",
+          "text": "[0..*]",
+          "font": "10 400",
+          "position": {
+            "x": 252,
+            "y": 68
+          }
+        },
+        {
+          "id": "rows",
+          "text": "r3d:dataCatalog",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 68
+          }
+        },
+        {
+          "id": "targets",
+          "text": "targets class r3d:Repository",
+          "font": "11 400 italic",
+          "position": {
+            "x": 8,
+            "y": 46
+          }
+        },
+        {
+          "id": "title",
+          "text": ":repoNavShape",
+          "font": "13 600",
+          "position": {
+            "x": 130,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/datasetNavShape",
+      "type": "w3c/shacl+edge",
+      "source": "res:http://fairdatapoint.org/catNavShape",
+      "target": "res:http://fairdatapoint.org/datasetNavShape",
+      "route": [
+        {
+          "x": 340.34,
+          "y": 122
+        },
+        {
+          "x": 239.66,
+          "y": 178
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "dcat:dataset",
+          "font": "11 400",
+          "position": {
+            "x": 290,
+            "y": 144
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/repoNavShape",
+      "type": "w3c/shacl+edge",
+      "source": "res:http://fairdatapoint.org/catNavShape",
+      "target": "res:http://fairdatapoint.org/repoNavShape",
+      "route": [
+        {
+          "x": 320,
+          "y": 56.53
+        },
+        {
+          "x": 260,
+          "y": 54.47
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "dct:isPartOf",
+          "font": "11 400",
+          "position": {
+            "x": 290,
+            "y": 49.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/catNavShape",
+      "type": "w3c/shacl+edge",
+      "source": "res:http://fairdatapoint.org/datasetNavShape",
+      "target": "res:http://fairdatapoint.org/catNavShape",
+      "route": [
+        {
+          "x": 239.66,
+          "y": 178
+        },
+        {
+          "x": 340.34,
+          "y": 122
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "dct:isPartOf",
+          "font": "11 400",
+          "position": {
+            "x": 290,
+            "y": 144
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/distNavShape",
+      "type": "w3c/shacl+edge",
+      "source": "res:http://fairdatapoint.org/datasetNavShape",
+      "target": "res:http://fairdatapoint.org/distNavShape",
+      "route": [
+        {
+          "x": 260,
+          "y": 225.59
+        },
+        {
+          "x": 320,
+          "y": 219.41
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "dcat:distribution",
+          "font": "11 400",
+          "position": {
+            "x": 290,
+            "y": 216.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "shacl-edge:res:http://fairdatapoint.org/fdpNavShape|node|res:http://fairdatapoint.org/catNavShape",
+      "type": "w3c/shacl+edge",
+      "source": "res:http://fairdatapoint.org/fdpNavShape",
+      "target": "res:http://fairdatapoint.org/catNavShape",
+      "route": [
+        {
+          "x": 640,
+          "y": 54.47
+        },
+        {
+          "x": 580,
+          "y": 56.53
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "fdp:metadataCatalog",
+          "font": "11 400",
+          "position": {
+            "x": 610,
+            "y": 49.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "shacl-edge:res:http://fairdatapoint.org/repoNavShape|node|res:http://fairdatapoint.org/catNavShape",
+      "type": "w3c/shacl+edge",
+      "source": "res:http://fairdatapoint.org/repoNavShape",
+      "target": "res:http://fairdatapoint.org/catNavShape",
+      "route": [
+        {
+          "x": 260,
+          "y": 54.47
+        },
+        {
+          "x": 320,
+          "y": 56.53
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "r3d:dataCatalog",
+          "font": "11 400",
+          "position": {
+            "x": 290,
+            "y": 49.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "shacl-edge:res:http://fairdatapoint.org/repoNavShape|node|res:http://fairdatapoint.org/catNavShape",
+    "shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/datasetNavShape",
+    "shacl-edge:res:http://fairdatapoint.org/catNavShape|node|res:http://fairdatapoint.org/repoNavShape",
+    "shacl-edge:res:http://fairdatapoint.org/fdpNavShape|node|res:http://fairdatapoint.org/catNavShape",
+    "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/distNavShape",
+    "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/catNavShape",
+    "res:http://fairdatapoint.org/repoNavShape",
+    "res:http://fairdatapoint.org/catNavShape",
+    "res:http://fairdatapoint.org/fdpNavShape",
+    "res:http://fairdatapoint.org/datasetNavShape",
+    "res:http://fairdatapoint.org/distNavShape"
+  ]
+}

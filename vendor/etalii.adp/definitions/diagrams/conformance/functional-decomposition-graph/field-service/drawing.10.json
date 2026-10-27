@@ -1,0 +1,1123 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "8eg94tfqireqo7cyvhnaoela1",
+      "type": "etalii/functional-decomposition-graph+function",
+      "shape": "path",
+      "bounds": {
+        "x": 1120,
+        "y": 616,
+        "w": 160,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Compress photos",
+          "font": "13 600",
+          "position": {
+            "x": 1200,
+            "y": 644.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "back-to-list",
+      "type": "etalii/functional-decomposition-graph+action",
+      "shape": "path",
+      "bounds": {
+        "x": 840,
+        "y": 280,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Back to list",
+          "font": "13 600",
+          "position": {
+            "x": 910,
+            "y": 308.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "complete-task",
+      "type": "etalii/functional-decomposition-graph+action",
+      "shape": "path",
+      "bounds": {
+        "x": 1020,
+        "y": 280,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Complete task",
+          "font": "13 600",
+          "position": {
+            "x": 1090,
+            "y": 308.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "location",
+      "type": "etalii/functional-decomposition-graph+data-element",
+      "shape": "path",
+      "bounds": {
+        "x": 1400,
+        "y": 400,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Location",
+          "font": "13 600",
+          "position": {
+            "x": 1470,
+            "y": 428.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "note-offline",
+      "type": "etalii/functional-decomposition-graph+comment",
+      "shape": "path",
+      "bounds": {
+        "x": 1560,
+        "y": 520,
+        "w": 260,
+        "h": 96
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "Everything on these screens must\nwork offline.\nCompleted work waits in the sync\nqueue until the device reconnects.",
+          "font": "13 400",
+          "position": {
+            "x": 1690,
+            "y": 540
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fcf281",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "note-round-trip",
+      "type": "etalii/functional-decomposition-graph+comment",
+      "shape": "path",
+      "bounds": {
+        "x": 20,
+        "y": 520,
+        "w": 260,
+        "h": 96
+      },
+      "labels": [
+        {
+          "id": "text",
+          "text": "Open task and Back to list make a\nloop through Shows.\nThat is navigation rather than\nownership, so the cycle rule\nallows it.",
+          "font": "13 400",
+          "position": {
+            "x": 150,
+            "y": 540
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fcf281",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "offline-cache",
+      "type": "etalii/functional-decomposition-graph+function",
+      "shape": "path",
+      "bounds": {
+        "x": 1480,
+        "y": 280,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Offline cache",
+          "font": "13 600",
+          "position": {
+            "x": 1550,
+            "y": 308.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "open-task",
+      "type": "etalii/functional-decomposition-graph+action",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 400,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Open task",
+          "font": "13 600",
+          "position": {
+            "x": 350,
+            "y": 428.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "planning",
+      "type": "etalii/functional-decomposition-graph+ui-element",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 600,
+        "y": 40,
+        "w": 180.5,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Day planning",
+          "font": "13 600",
+          "position": {
+            "x": 690.25,
+            "y": 68.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "planning-day",
+      "type": "etalii/functional-decomposition-graph+data-element",
+      "shape": "path",
+      "bounds": {
+        "x": 1300,
+        "y": 160,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Planning day",
+          "font": "13 600",
+          "position": {
+            "x": 1370,
+            "y": 188.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "step",
+      "type": "etalii/functional-decomposition-graph+data-element",
+      "shape": "path",
+      "bounds": {
+        "x": 1240,
+        "y": 400,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Step",
+          "font": "13 600",
+          "position": {
+            "x": 1310,
+            "y": 428.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "step-list",
+      "type": "etalii/functional-decomposition-graph+ui-element",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 660,
+        "y": 280,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Step list",
+          "font": "13 600",
+          "position": {
+            "x": 730,
+            "y": 308.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "step-row",
+      "type": "etalii/functional-decomposition-graph+ui-element",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 750,
+        "y": 434,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Step row",
+          "font": "13 600",
+          "position": {
+            "x": 820,
+            "y": 462.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "sync-queue",
+      "type": "etalii/functional-decomposition-graph+function",
+      "shape": "path",
+      "bounds": {
+        "x": 1020,
+        "y": 400,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Sync queue",
+          "font": "13 600",
+          "position": {
+            "x": 1090,
+            "y": 428.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task",
+      "type": "etalii/functional-decomposition-graph+data-element",
+      "shape": "path",
+      "bounds": {
+        "x": 1240,
+        "y": 280,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Task",
+          "font": "13 600",
+          "position": {
+            "x": 1310,
+            "y": 308.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ededed",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task-detail",
+      "type": "etalii/functional-decomposition-graph+ui-element",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 860,
+        "y": 140,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Task detail",
+          "font": "13 600",
+          "position": {
+            "x": 930,
+            "y": 168.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task-list",
+      "type": "etalii/functional-decomposition-graph+ui-element",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 280,
+        "y": 160,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Task list",
+          "font": "13 600",
+          "position": {
+            "x": 350,
+            "y": 188.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "task-row",
+      "type": "etalii/functional-decomposition-graph+ui-element",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 280,
+        "y": 280,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Task row",
+          "font": "13 600",
+          "position": {
+            "x": 350,
+            "y": 308.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#aaed92",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "tick-step",
+      "type": "etalii/functional-decomposition-graph+action",
+      "shape": "path",
+      "bounds": {
+        "x": 660,
+        "y": 520,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Tick step",
+          "font": "13 600",
+          "position": {
+            "x": 730,
+            "y": 548.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "upload-photos",
+      "type": "etalii/functional-decomposition-graph+function",
+      "shape": "path",
+      "bounds": {
+        "x": 1020,
+        "y": 520,
+        "w": 140,
+        "h": 48
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Upload photos",
+          "font": "13 600",
+          "position": {
+            "x": 1090,
+            "y": 548.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#86e6d9",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "6vt0l08bq0e2ea43mnk1vaf4m",
+      "type": "etalii/functional-decomposition-graph+owns-function",
+      "source": "sync-queue",
+      "target": "8eg94tfqireqo7cyvhnaoela1",
+      "route": [
+        {
+          "x": 1102.22,
+          "y": 448
+        },
+        {
+          "x": 1187.78,
+          "y": 616
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-back-shows-list",
+      "type": "etalii/functional-decomposition-graph+shows",
+      "source": "back-to-list",
+      "target": "task-list",
+      "route": [
+        {
+          "x": 840,
+          "y": 289
+        },
+        {
+          "x": 420,
+          "y": 199
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "returns to",
+          "font": "13 400",
+          "position": {
+            "x": 630,
+            "y": 238
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-complete-sync",
+      "type": "etalii/functional-decomposition-graph+owns-function",
+      "source": "complete-task",
+      "target": "sync-queue",
+      "route": [
+        {
+          "x": 1090,
+          "y": 328
+        },
+        {
+          "x": 1090,
+          "y": 400
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "queues",
+          "font": "13 400",
+          "position": {
+            "x": 1090,
+            "y": 358
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-day-cache",
+      "type": "etalii/functional-decomposition-graph+owns-function",
+      "source": "planning-day",
+      "target": "offline-cache",
+      "route": [
+        {
+          "x": 1406,
+          "y": 208
+        },
+        {
+          "x": 1514,
+          "y": 280
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-day-task",
+      "type": "etalii/functional-decomposition-graph+owns-data",
+      "source": "planning-day",
+      "target": "task",
+      "route": [
+        {
+          "x": 1358,
+          "y": 208
+        },
+        {
+          "x": 1322,
+          "y": 280
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "planned",
+          "font": "13 400",
+          "position": {
+            "x": 1340,
+            "y": 238
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-open-shows-detail",
+      "type": "etalii/functional-decomposition-graph+shows",
+      "source": "open-task",
+      "target": "task-detail",
+      "route": [
+        {
+          "x": 403.54,
+          "y": 400
+        },
+        {
+          "x": 876.46,
+          "y": 188
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "opens",
+          "font": "13 400",
+          "position": {
+            "x": 640,
+            "y": 288
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-planning-day",
+      "type": "etalii/functional-decomposition-graph+owns-data",
+      "source": "planning",
+      "target": "planning-day",
+      "route": [
+        {
+          "x": 780.5,
+          "y": 79.93
+        },
+        {
+          "x": 1300,
+          "y": 171.64
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-planning-task-detail",
+      "type": "etalii/functional-decomposition-graph+ui-child",
+      "source": "planning",
+      "target": "task-detail",
+      "route": [
+        {
+          "x": 747.79,
+          "y": 88
+        },
+        {
+          "x": 872.46,
+          "y": 140
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-planning-task-list",
+      "type": "etalii/functional-decomposition-graph+ui-child",
+      "source": "planning",
+      "target": "task-list",
+      "route": [
+        {
+          "x": 622.2,
+          "y": 88
+        },
+        {
+          "x": 418.05,
+          "y": 160
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-step-list-step-row",
+      "type": "etalii/functional-decomposition-graph+ui-child",
+      "source": "step-list",
+      "target": "step-row",
+      "route": [
+        {
+          "x": 744.03,
+          "y": 328
+        },
+        {
+          "x": 805.97,
+          "y": 434
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "one per step",
+          "font": "13 400",
+          "position": {
+            "x": 775,
+            "y": 375
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-step-row-tick",
+      "type": "etalii/functional-decomposition-graph+owns-action",
+      "source": "step-row",
+      "target": "tick-step",
+      "route": [
+        {
+          "x": 794.88,
+          "y": 482
+        },
+        {
+          "x": 755.12,
+          "y": 520
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-sync-upload",
+      "type": "etalii/functional-decomposition-graph+owns-function",
+      "source": "sync-queue",
+      "target": "upload-photos",
+      "route": [
+        {
+          "x": 1090,
+          "y": 448
+        },
+        {
+          "x": 1090,
+          "y": 520
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "calls",
+          "font": "13 400",
+          "position": {
+            "x": 1090,
+            "y": 478
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-task-detail-back",
+      "type": "etalii/functional-decomposition-graph+owns-action",
+      "source": "task-detail",
+      "target": "back-to-list",
+      "route": [
+        {
+          "x": 926.57,
+          "y": 188
+        },
+        {
+          "x": 913.43,
+          "y": 280
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-task-detail-complete",
+      "type": "etalii/functional-decomposition-graph+owns-action",
+      "source": "task-detail",
+      "target": "complete-task",
+      "route": [
+        {
+          "x": 957.43,
+          "y": 188
+        },
+        {
+          "x": 1062.57,
+          "y": 280
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-task-detail-step-list",
+      "type": "etalii/functional-decomposition-graph+ui-child",
+      "source": "task-detail",
+      "target": "step-list",
+      "route": [
+        {
+          "x": 895.71,
+          "y": 188
+        },
+        {
+          "x": 764.29,
+          "y": 280
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-task-list-task-row",
+      "type": "etalii/functional-decomposition-graph+ui-child",
+      "source": "task-list",
+      "target": "task-row",
+      "route": [
+        {
+          "x": 350,
+          "y": 208
+        },
+        {
+          "x": 350,
+          "y": 280
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "one per task",
+          "font": "13 400",
+          "position": {
+            "x": 350,
+            "y": 238
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-task-location",
+      "type": "etalii/functional-decomposition-graph+owns-data",
+      "source": "task",
+      "target": "location",
+      "route": [
+        {
+          "x": 1342,
+          "y": 328
+        },
+        {
+          "x": 1438,
+          "y": 400
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-task-row-open-task",
+      "type": "etalii/functional-decomposition-graph+owns-action",
+      "source": "task-row",
+      "target": "open-task",
+      "route": [
+        {
+          "x": 350,
+          "y": 328
+        },
+        {
+          "x": 350,
+          "y": 400
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "c-task-step",
+      "type": "etalii/functional-decomposition-graph+owns-data",
+      "source": "task",
+      "target": "step",
+      "route": [
+        {
+          "x": 1310,
+          "y": 328
+        },
+        {
+          "x": 1310,
+          "y": 400
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "c-planning-task-list",
+    "c-task-list-task-row",
+    "c-planning-task-detail",
+    "c-task-detail-step-list",
+    "c-step-list-step-row",
+    "c-task-row-open-task",
+    "c-task-detail-back",
+    "c-step-row-tick",
+    "c-task-detail-complete",
+    "c-open-shows-detail",
+    "c-back-shows-list",
+    "c-planning-day",
+    "c-day-task",
+    "c-task-step",
+    "c-task-location",
+    "c-complete-sync",
+    "c-sync-upload",
+    "c-day-cache",
+    "6vt0l08bq0e2ea43mnk1vaf4m",
+    "planning",
+    "task-list",
+    "task-row",
+    "task-detail",
+    "step-list",
+    "step-row",
+    "open-task",
+    "back-to-list",
+    "tick-step",
+    "complete-task",
+    "planning-day",
+    "task",
+    "step",
+    "location",
+    "sync-queue",
+    "upload-photos",
+    "offline-cache",
+    "note-offline",
+    "note-round-trip",
+    "8eg94tfqireqo7cyvhnaoela1"
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/cases/databricks/pipeline/library-ids.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "library:shared/x",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "shared/x",
+          "badges": "notebook"
+        }
+      },
+      {
+        "id": "library:shared/x",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "shared/x",
+          "badges": "file"
+        }
+      },
+      {
+        "id": "library:transformations/gold/**",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "transformations/gold/**",
+          "badges": "glob"
+        }
+      },
+      {
+        "id": "library:${workspace.file_path}/{braces}.py",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "${workspace.file_path}/{braces}.py",
+          "badges": "file"
+        }
+      },
+      {
+        "id": "library:",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "",
+          "badges": "other"
+        }
+      },
+      {
+        "id": "library:",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "source",
+          "kind": "source",
+          "label": "",
+          "badges": "other"
+        }
+      },
+      {
+        "id": "pipeline",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "pipeline",
+          "kind": "pipeline",
+          "label": "library_ids",
+          "badges": ""
+        }
+      },
+      {
+        "id": "target",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "target",
+          "kind": "target",
+          "label": "main.gold",
+          "badges": ""
+        }
+      },
+      {
+        "id": "compute",
+        "type": "databricks/pipeline+node",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "cluster",
+          "badges": ""
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "flow:shared/x->pipeline",
+        "source": "library:shared/x",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:shared/x->pipeline",
+        "source": "library:shared/x",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:transformations/gold/**->pipeline",
+        "source": "library:transformations/gold/**",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:${workspace.file_path}/{braces}.py->pipeline",
+        "source": "library:${workspace.file_path}/{braces}.py",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:->pipeline",
+        "source": "library:",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:->pipeline",
+        "source": "library:",
+        "target": "pipeline"
+      },
+      {
+        "id": "flow:pipeline->target",
+        "source": "pipeline",
+        "target": "target"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 320,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "middle",
+    "band": "self.id == 'compute' || self.id == 'notifications'",
+    "column": "self.id.startsWith('library:') ? 0 : self.id == 'pipeline' ? 1 : 2"
+  },
+  "output": {
+    "positions": {
+      "library:shared/x": {
+        "x": 0.0,
+        "y": 120.0
+      },
+      "library:transformations/gold/**": {
+        "x": 0.0,
+        "y": 240.0
+      },
+      "library:${workspace.file_path}/{braces}.py": {
+        "x": 0.0,
+        "y": 360.0
+      },
+      "library:": {
+        "x": 0.0,
+        "y": 600.0
+      },
+      "pipeline": {
+        "x": 320.0,
+        "y": 300.0
+      },
+      "target": {
+        "x": 640.0,
+        "y": 300.0
+      },
+      "compute": {
+        "x": 0.0,
+        "y": 800.0
+      }
+    }
+  }
+}

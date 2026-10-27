@@ -1,0 +1,640 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record azure-devops/pipeline` from parity/scripts/azure-devops/pipeline/multi-stage.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "azure-devops/pipeline",
+  "description": "../../../azure-devops-pipeline.atd",
+  "inputs": {
+    "body": "multi-stage.yml",
+    "registration": "multi-stage.adp",
+    "edge-anchors.adp": "edge-anchors.adp",
+    "edge-anchors.yml": "edge-anchors.yml",
+    "edge-broken-graph.adp": "edge-broken-graph.adp",
+    "edge-broken-graph.yml": "edge-broken-graph.yml",
+    "edge-comments.yml": "edge-comments.yml",
+    "edge-crlf.yml": "edge-crlf.yml",
+    "edge-expressions.adp": "edge-expressions.adp",
+    "edge-expressions.yml": "edge-expressions.yml",
+    "edge-indentation.adp": "edge-indentation.adp",
+    "edge-indentation.yml": "edge-indentation.yml",
+    "extends.yml": "extends.yml",
+    "jobs-only.adp": "jobs-only.adp",
+    "jobs-only.yml": "jobs-only.yml",
+    "readme.md": "readme.md",
+    "steps-only.adp": "steps-only.adp",
+    "steps-only.yml": "steps-only.yml",
+    "templates.adp": "templates.adp",
+    "templates.yml": "templates.yml",
+    "templates/build-jobs.adp": "templates/build-jobs.adp",
+    "templates/build-jobs.yml": "templates/build-jobs.yml",
+    "templates/pipeline.adp": "templates/pipeline.adp",
+    "templates/pipeline.yml": "templates/pipeline.yml",
+    "templates/test-steps.adp": "templates/test-steps.adp",
+    "templates/test-steps.yml": "templates/test-steps.yml"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "Build",
+        "type": "azure-devops/pipeline+stage",
+        "parent": null,
+        "attributes": {
+          "width": "220",
+          "height": "88",
+          "name": "Build",
+          "displayName": "Build the solution",
+          "kind": "stage",
+          "indeterminate": "false",
+          "fromTemplate": "false",
+          "enabled": "true",
+          "continuesOnError": "false",
+          "triggerIsManual": "false",
+          "multiplicity": "1",
+          "pool": "ubuntu-latest",
+          "poolInherited": "true",
+          "jobCount": "1",
+          "expanded": "false",
+          "firstLine": "16",
+          "lastLine": "27"
+        }
+      },
+      {
+        "id": "Test",
+        "type": "azure-devops/pipeline+stage",
+        "parent": null,
+        "attributes": {
+          "width": "220",
+          "height": "88",
+          "name": "Test",
+          "displayName": "Test",
+          "kind": "stage",
+          "indeterminate": "false",
+          "fromTemplate": "false",
+          "enabled": "true",
+          "continuesOnError": "false",
+          "triggerIsManual": "false",
+          "multiplicity": "1",
+          "pool": "ubuntu-latest",
+          "poolInherited": "true",
+          "jobCount": "2",
+          "expanded": "false",
+          "firstLine": "29",
+          "lastLine": "44"
+        }
+      },
+      {
+        "id": "DeployStaging",
+        "type": "azure-devops/pipeline+stage",
+        "parent": null,
+        "attributes": {
+          "width": "220",
+          "height": "88",
+          "name": "DeployStaging",
+          "displayName": "DeployStaging",
+          "kind": "stage",
+          "condition": "and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))",
+          "indeterminate": "false",
+          "fromTemplate": "false",
+          "enabled": "true",
+          "continuesOnError": "false",
+          "triggerIsManual": "false",
+          "multiplicity": "1",
+          "pool": "ubuntu-latest",
+          "poolInherited": "true",
+          "jobCount": "1",
+          "expanded": "false",
+          "firstLine": "46",
+          "lastLine": "59",
+          "indicators": "?|Runs only when: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))"
+        }
+      },
+      {
+        "id": "DeployProduction",
+        "type": "azure-devops/pipeline+stage",
+        "parent": null,
+        "attributes": {
+          "width": "220",
+          "height": "88",
+          "name": "DeployProduction",
+          "displayName": "DeployProduction",
+          "kind": "stage",
+          "indeterminate": "false",
+          "fromTemplate": "false",
+          "enabled": "true",
+          "continuesOnError": "false",
+          "triggerIsManual": "true",
+          "multiplicity": "1",
+          "pool": "ubuntu-latest",
+          "poolInherited": "true",
+          "jobCount": "1",
+          "expanded": "false",
+          "firstLine": "61",
+          "lastLine": "72",
+          "indicators": "▶|Manual trigger: this waits to be started by a person."
+        }
+      },
+      {
+        "id": "Notify",
+        "type": "azure-devops/pipeline+stage",
+        "parent": null,
+        "attributes": {
+          "width": "220",
+          "height": "88",
+          "name": "Notify",
+          "displayName": "Notify the team",
+          "kind": "stage",
+          "condition": "always()",
+          "indeterminate": "false",
+          "fromTemplate": "false",
+          "enabled": "true",
+          "continuesOnError": "false",
+          "triggerIsManual": "false",
+          "multiplicity": "1",
+          "pool": "ubuntu-latest",
+          "poolInherited": "true",
+          "jobCount": "1",
+          "expanded": "false",
+          "firstLine": "74",
+          "lastLine": "85",
+          "indicators": "?|Runs only when: always()"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:Build->Test",
+        "type": "azure-devops/pipeline+edge",
+        "source": "Build",
+        "target": "Test",
+        "attributes": {
+          "name": "Build",
+          "kind": "edge",
+          "edgeCondition": "onSuccess",
+          "implicitDependency": "false",
+          "broken": "false"
+        }
+      },
+      {
+        "id": "edge:Test->DeployStaging",
+        "type": "azure-devops/pipeline+edge",
+        "source": "Test",
+        "target": "DeployStaging",
+        "attributes": {
+          "name": "Test",
+          "kind": "edge",
+          "condition": "and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))",
+          "edgeCondition": "custom",
+          "implicitDependency": "false",
+          "broken": "false"
+        }
+      },
+      {
+        "id": "edge:Test->DeployProduction",
+        "type": "azure-devops/pipeline+edge",
+        "source": "Test",
+        "target": "DeployProduction",
+        "attributes": {
+          "name": "Test",
+          "kind": "edge",
+          "edgeCondition": "onSuccess",
+          "implicitDependency": "false",
+          "broken": "false"
+        }
+      },
+      {
+        "id": "edge:DeployStaging->Notify",
+        "type": "azure-devops/pipeline+edge",
+        "source": "DeployStaging",
+        "target": "Notify",
+        "attributes": {
+          "name": "DeployStaging",
+          "kind": "edge",
+          "condition": "always()",
+          "edgeCondition": "always",
+          "implicitDependency": "false",
+          "broken": "false"
+        }
+      },
+      {
+        "id": "edge:DeployProduction->Notify",
+        "type": "azure-devops/pipeline+edge",
+        "source": "DeployProduction",
+        "target": "Notify",
+        "attributes": {
+          "name": "DeployProduction",
+          "kind": "edge",
+          "condition": "always()",
+          "edgeCondition": "always",
+          "implicitDependency": "false",
+          "broken": "false"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "azure-pipeline.rename",
+      "args": {
+        "value": "Build and package"
+      },
+      "select": [
+        "Build"
+      ],
+      "expectFile": "after-1.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "element": "Test",
+        "attribute": "Display name",
+        "value": "Run the tests"
+      },
+      "expectFile": "after-2.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.toggle-enabled",
+      "args": {
+        "target": "Test/Integration"
+      },
+      "expectFile": "after-3.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.toggle-enabled",
+      "args": {
+        "target": "Test/Integration"
+      },
+      "expectFile": "after-2.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.toggle-enabled",
+      "args": {
+        "target": "Build/Compile/step-1"
+      },
+      "expectFile": "after-4.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "property": {
+        "element": "Build/Compile/step-1",
+        "attribute": "Enabled",
+        "value": "true"
+      },
+      "expectFile": "after-2.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.clear-dependencies",
+      "args": {
+        "target": "DeployProduction"
+      },
+      "ids": [
+        "edge:DeployStaging->DeployProduction"
+      ],
+      "expectFile": "after-5.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "property": {
+        "element": "DeployProduction",
+        "attribute": "azure-pipeline.depends-on",
+        "value": "Build"
+      },
+      "ids": [
+        "edge:Build->DeployProduction"
+      ],
+      "expectFile": "after-6.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.clear-dependencies",
+      "args": {
+        "target": "Notify"
+      },
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-6.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-7.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.add-stage",
+      "args": {
+        "target": "Notify"
+      },
+      "ids": [
+        "NewStage",
+        "edge:Notify->NewStage"
+      ],
+      "expectFile": "after-8.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.add-job",
+      "args": {
+        "target": "Test"
+      },
+      "expectFile": "after-9.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.add-deployment-job",
+      "args": {
+        "target": "DeployStaging"
+      },
+      "expectFile": "after-10.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.add-step",
+      "args": {
+        "target": "Notify/Announce"
+      },
+      "expectFile": "after-11.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.move-step-up",
+      "args": {
+        "target": "Build/Compile/step-2"
+      },
+      "expectFile": "after-12.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.move-step-down",
+      "args": {
+        "target": "Build/Compile/step-0"
+      },
+      "expectFile": "after-13.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-12.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.remove",
+      "args": {
+        "target": "Test/Unit"
+      },
+      "expectFile": "after-14.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-12.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-14.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.remove",
+      "args": {
+        "target": "DeployStaging/Staging/step-0"
+      },
+      "expectFile": "after-15.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.rename",
+      "args": {
+        "target": "Notify/Announce/step-0",
+        "value": "Send: notification"
+      },
+      "expectFile": "after-16.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "property": {
+        "element": "DeployProduction",
+        "attribute": "Display name",
+        "value": "  Ship it  "
+      },
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "property": {
+        "element": "Build",
+        "attribute": "Name",
+        "value": "Compile"
+      },
+      "refused": {
+        "reason": "This is edited in the pipeline file. A wrong value here would break the build."
+      },
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.add-job",
+      "args": {
+        "target": "Build/Compile"
+      },
+      "refused": {
+        "reason": "That action is not available for this item."
+      },
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "property": {
+        "element": "Notify",
+        "attribute": "azure-pipeline.depends-on",
+        "value": "Notify"
+      },
+      "refused": {
+        "reason": "That would make Notify the team wait for something that is already waiting for it."
+      },
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "move": {
+        "element": "Test"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"Test\"],\"to\":{\"x\":400,\"y\":300}}",
+      "refused": {
+        "reason": "This diagram cannot be arranged by dragging."
+      },
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.toggle-stage",
+      "args": {
+        "target": "Test"
+      },
+      "ids": [
+        "Test/Integration",
+        "Test/NewJob"
+      ],
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    },
+    {
+      "action": "azure-pipeline.remove",
+      "args": {
+        "target": "NewStage"
+      },
+      "expectFile": "after-18.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.30.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.31.json"
+      }
+    },
+    {
+      "action": "hierarchy.add",
+      "args": {
+        "entry": "templates",
+        "value": "azure-devops/pipeline",
+        "text": "release"
+      },
+      "expectFile": "after-17.yml",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.32.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/azure-devops/pipeline/multi-stage/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

@@ -1,0 +1,998 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/owl` from parity/cases/w3c/owl/class-expressions.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/owl",
+  "description": "../../../w3c-owl.atd",
+  "inputs": {
+    "body": "class-expressions.ttl",
+    "registration": "class-expressions.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/shapes#",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "ontology",
+          "iri": "http://example.org/shapes#",
+          "display": "http://example.org/shapes#",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Shape",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Shape",
+          "display": ":Shape",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Polygon",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Polygon",
+          "display": "Polygon",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Polygon",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Circle",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Circle",
+          "display": ":Circle",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Colour",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Colour",
+          "display": ":Colour",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Red",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "individual",
+          "iri": "http://example.org/shapes#Red",
+          "display": ":Red",
+          "badges.0": ":Colour",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Green",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "individual",
+          "iri": "http://example.org/shapes#Green",
+          "display": ":Green",
+          "badges.0": ":Colour",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Unround",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Unround",
+          "display": ":Unround",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "¬:Circle",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Unround",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Primary",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Primary",
+          "display": ":Primary",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "{:Red, :Green}",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Primary",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Triangle",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Triangle",
+          "display": ":Triangle",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "= 3 :hasSide",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Triangle",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "∋ :hasColour.:Red",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Triangle",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Square",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Square",
+          "display": ":Square",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "≥ 4 :hasSide.Polygon",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Square",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "≤ 1 :hasArea.xsd:decimal",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Square",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "= 4 :hasSide.:Shape",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Square",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "≥ 1 :hasSide",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Square",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#decimal",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "iri": "http://www.w3.org/2001/XMLSchema#decimal",
+          "display": "xsd:decimal",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Nested",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Nested",
+          "display": ":Nested",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "(:Shape ∩ ∃ :hasSide.…)",
+          "elided": "true",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Nested",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "∃ :hasSide.(Polygon ∪ …)",
+          "elided": "true",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Nested",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "(Polygon ∪ ¬…)",
+          "elided": "true",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Nested",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "¬∀ :hasColour.:Colour",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Nested",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "∀ :hasColour.:Colour",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Nested",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Unfinished",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Unfinished",
+          "display": ":Unfinished",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "? :hasSide",
+          "elided": "false",
+          "malformed": "true",
+          "ownerElementId": "res:http://example.org/shapes#Unfinished",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "∃ ?.:Shape",
+          "elided": "false",
+          "malformed": "true",
+          "ownerElementId": "res:http://example.org/shapes#Unfinished",
+          "kind": "restriction"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "(?)",
+          "elided": "false",
+          "malformed": "false",
+          "ownerElementId": "res:http://example.org/shapes#Unfinished",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Loop",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Loop",
+          "display": ":Loop",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+        "type": "w3c/owl+expression",
+        "parent": null,
+        "attributes": {
+          "label": "¬…",
+          "elided": "false",
+          "malformed": "true",
+          "ownerElementId": "res:http://example.org/shapes#Loop",
+          "kind": "operator"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Round",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Round",
+          "display": ":Round",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/shapes#Curved",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/shapes#Curved",
+          "display": ":Curved",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/shapes#hasSide|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/shapes#hasSide|range",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/shapes#hasColour|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/shapes#hasColour|range",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/shapes#hasArea|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "dt:http://example.org/shapes#hasArea",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "display": "Literal",
+          "deprecated": "false",
+          "external": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:thing:http://example.org/shapes#hasSide|domain|http://example.org/shapes#hasSide|thing:http://example.org/shapes#hasSide|range",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://example.org/shapes#hasSide|domain",
+        "target": "thing:http://example.org/shapes#hasSide|range",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "thing:http://example.org/shapes#hasSide|domain",
+          "toElementId": "thing:http://example.org/shapes#hasSide|range",
+          "label": ":hasSide",
+          "propertyIri": "http://example.org/shapes#hasSide"
+        }
+      },
+      {
+        "id": "edge:thing:http://example.org/shapes#hasColour|domain|http://example.org/shapes#hasColour|thing:http://example.org/shapes#hasColour|range",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://example.org/shapes#hasColour|domain",
+        "target": "thing:http://example.org/shapes#hasColour|range",
+        "attributes": {
+          "kind": "object-property",
+          "fromElementId": "thing:http://example.org/shapes#hasColour|domain",
+          "toElementId": "thing:http://example.org/shapes#hasColour|range",
+          "label": ":hasColour",
+          "propertyIri": "http://example.org/shapes#hasColour"
+        }
+      },
+      {
+        "id": "edge:thing:http://example.org/shapes#hasArea|domain|http://example.org/shapes#hasArea|dt:http://example.org/shapes#hasArea",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://example.org/shapes#hasArea|domain",
+        "target": "dt:http://example.org/shapes#hasArea",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "thing:http://example.org/shapes#hasArea|domain",
+          "toElementId": "dt:http://example.org/shapes#hasArea",
+          "label": ":hasArea",
+          "propertyIri": "http://example.org/shapes#hasArea"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Polygon|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Shape",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Polygon",
+        "target": "res:http://example.org/shapes#Shape",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Polygon",
+          "toElementId": "res:http://example.org/shapes#Shape",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Polygon",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Triangle",
+        "target": "res:http://example.org/shapes#Polygon",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Triangle",
+          "toElementId": "res:http://example.org/shapes#Polygon",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Polygon",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Square",
+        "target": "res:http://example.org/shapes#Polygon",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Square",
+          "toElementId": "res:http://example.org/shapes#Polygon",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Shape",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Square",
+        "target": "res:http://example.org/shapes#Shape",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Square",
+          "toElementId": "res:http://example.org/shapes#Shape",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Round|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Curved",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Round",
+        "target": "res:http://example.org/shapes#Curved",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Round",
+          "toElementId": "res:http://example.org/shapes#Curved",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Curved|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Round",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Curved",
+        "target": "res:http://example.org/shapes#Round",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Curved",
+          "toElementId": "res:http://example.org/shapes#Round",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Circle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Round",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Circle",
+        "target": "res:http://example.org/shapes#Round",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Circle",
+          "toElementId": "res:http://example.org/shapes#Round",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Circle",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/shapes#Circle",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "res:http://example.org/shapes#Circle"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Unround",
+        "target": "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "attributes": {
+          "kind": "equivalent",
+          "fromElementId": "res:http://example.org/shapes#Unround",
+          "toElementId": "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "propertyIri": "http://www.w3.org/2002/07/owl#equivalentClass"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Red",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/shapes#Red",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "res:http://example.org/shapes#Red"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Green",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/shapes#Green",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "res:http://example.org/shapes#Green"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Primary",
+        "target": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "attributes": {
+          "kind": "equivalent",
+          "fromElementId": "res:http://example.org/shapes#Primary",
+          "toElementId": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "propertyIri": "http://www.w3.org/2002/07/owl#equivalentClass"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Triangle",
+        "target": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Triangle",
+          "toElementId": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/shapes#Red",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "target": "res:http://example.org/shapes#Red",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "toElementId": "res:http://example.org/shapes#Red"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Triangle",
+        "target": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Triangle",
+          "toElementId": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0||res:http://example.org/shapes#Polygon",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "target": "res:http://example.org/shapes#Polygon",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+          "toElementId": "res:http://example.org/shapes#Polygon"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Square",
+        "target": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Square",
+          "toElementId": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://www.w3.org/2001/XMLSchema#decimal",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "target": "res:http://www.w3.org/2001/XMLSchema#decimal",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#decimal"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Square",
+        "target": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Square",
+          "toElementId": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2||res:http://example.org/shapes#Shape",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+        "target": "res:http://example.org/shapes#Shape",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+          "toElementId": "res:http://example.org/shapes#Shape"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Square",
+        "target": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Square",
+          "toElementId": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Square",
+        "target": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Square",
+          "toElementId": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Shape",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/shapes#Shape",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "res:http://example.org/shapes#Shape"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/shapes#Polygon",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "target": "res:http://example.org/shapes#Polygon",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+          "toElementId": "res:http://example.org/shapes#Polygon"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0||res:http://example.org/shapes#Colour",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+        "target": "res:http://example.org/shapes#Colour",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+          "toElementId": "res:http://example.org/shapes#Colour"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+        "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+          "toElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+          "toElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+          "toElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "toElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Nested",
+        "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "attributes": {
+          "kind": "equivalent",
+          "fromElementId": "res:http://example.org/shapes#Nested",
+          "toElementId": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+          "propertyIri": "http://www.w3.org/2002/07/owl#equivalentClass"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Unfinished",
+        "target": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Unfinished",
+          "toElementId": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/shapes#Shape",
+        "type": "w3c/owl+edge",
+        "source": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "target": "res:http://example.org/shapes#Shape",
+        "attributes": {
+          "kind": "expression",
+          "fromElementId": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "toElementId": "res:http://example.org/shapes#Shape"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Unfinished",
+        "target": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Unfinished",
+          "toElementId": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Unfinished",
+        "target": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/shapes#Unfinished",
+          "toElementId": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/shapes#Loop",
+        "target": "expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+        "attributes": {
+          "kind": "disjoint",
+          "fromElementId": "res:http://example.org/shapes#Loop",
+          "toElementId": "expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+          "propertyIri": "http://www.w3.org/2002/07/owl#disjointWith"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "owl.subclass-cycle",
+        "severity": "warning",
+        "line": 50,
+        "message": "These classes assert each other as subclasses in a cycle: :Round, :Curved. That is legal OWL - it makes them mutually equivalent - and it is almost always a mistake."
+      },
+      {
+        "rule": "owl.malformed-expression",
+        "severity": "error",
+        "line": 39,
+        "message": "This class expression is not well-formed: it renders as '? :hasSide', with ? standing for what the structure is missing."
+      },
+      {
+        "rule": "owl.malformed-expression",
+        "severity": "error",
+        "line": 40,
+        "message": "This class expression is not well-formed: it renders as '∃ ?.:Shape', with ? standing for what the structure is missing."
+      },
+      {
+        "rule": "owl.malformed-expression",
+        "severity": "error",
+        "line": 45,
+        "message": "This class expression is not well-formed: it renders as '¬…', with ? standing for what the structure is missing."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

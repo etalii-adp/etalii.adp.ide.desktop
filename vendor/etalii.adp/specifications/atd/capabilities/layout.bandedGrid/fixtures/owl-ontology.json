@@ -1,0 +1,350 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bandedGrid` from the RDF module's layout of the reading that parity/cases/w3c/rdf/owl-ontology.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/pizza",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Ontology"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/base",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Pizza",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class",
+            "owl:NamedIndividual"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Topping",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#VegetarianTopping",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#MeatTopping",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Vegetarian",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "blank:0",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Restriction"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#hasTopping",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:ObjectProperty",
+            "owl:InverseFunctionalProperty"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#VeggiePizza",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Special",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "blank:1",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "blank:4",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Restriction"
+          ]
+        }
+      },
+      {
+        "id": "blank:5",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/external#Smoked",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#toppingOf",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:ObjectProperty"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#hasCalories",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:DatatypeProperty",
+            "owl:FunctionalProperty"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#integer",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#hasNote",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:DatatypeProperty"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Margherita",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:NamedIndividual",
+            ":Pizza"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Mozzarella",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            ":VegetarianTopping"
+          ]
+        }
+      },
+      {
+        "id": "blank:8",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:AllDisjointClasses"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#HomemadeBase",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      },
+      {
+        "id": "res:http://example.org/external#Base",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columns": 4,
+    "columnWidth": 280.0,
+    "rowHeight": 160.0,
+    "bandGap": 80,
+    "band": "size(self.types) > 0 ? self.types[0] : ''"
+  },
+  "output": {
+    "positions": {
+      "blank:0": {
+        "x": 0.0,
+        "y": 2000.0
+      },
+      "blank:1": {
+        "x": 840.0,
+        "y": 640.0
+      },
+      "blank:4": {
+        "x": 280.0,
+        "y": 2000.0
+      },
+      "blank:5": {
+        "x": 0.0,
+        "y": 800.0
+      },
+      "blank:8": {
+        "x": 0.0,
+        "y": 240.0
+      },
+      "res:http://example.org/base": {
+        "x": 0.0,
+        "y": 2240.0
+      },
+      "res:http://example.org/external#Base": {
+        "x": 0.0,
+        "y": 2400.0
+      },
+      "res:http://example.org/external#Smoked": {
+        "x": 280.0,
+        "y": 2240.0
+      },
+      "res:http://example.org/pizza": {
+        "x": 0.0,
+        "y": 1760.0
+      },
+      "res:http://example.org/pizza#HomemadeBase": {
+        "x": 840.0,
+        "y": 2240.0
+      },
+      "res:http://example.org/pizza#Margherita": {
+        "x": 0.0,
+        "y": 1280.0
+      },
+      "res:http://example.org/pizza#MeatTopping": {
+        "x": 840.0,
+        "y": 480.0
+      },
+      "res:http://example.org/pizza#Mozzarella": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/pizza#Pizza": {
+        "x": 0.0,
+        "y": 480.0
+      },
+      "res:http://example.org/pizza#Special": {
+        "x": 560.0,
+        "y": 640.0
+      },
+      "res:http://example.org/pizza#Topping": {
+        "x": 280.0,
+        "y": 480.0
+      },
+      "res:http://example.org/pizza#Vegetarian": {
+        "x": 0.0,
+        "y": 640.0
+      },
+      "res:http://example.org/pizza#VegetarianTopping": {
+        "x": 560.0,
+        "y": 480.0
+      },
+      "res:http://example.org/pizza#VeggiePizza": {
+        "x": 280.0,
+        "y": 640.0
+      },
+      "res:http://example.org/pizza#hasCalories": {
+        "x": 0.0,
+        "y": 1040.0
+      },
+      "res:http://example.org/pizza#hasNote": {
+        "x": 280.0,
+        "y": 1040.0
+      },
+      "res:http://example.org/pizza#hasTopping": {
+        "x": 0.0,
+        "y": 1520.0
+      },
+      "res:http://example.org/pizza#toppingOf": {
+        "x": 280.0,
+        "y": 1520.0
+      },
+      "res:http://www.w3.org/2001/XMLSchema#integer": {
+        "x": 560.0,
+        "y": 2240.0
+      }
+    }
+  }
+}

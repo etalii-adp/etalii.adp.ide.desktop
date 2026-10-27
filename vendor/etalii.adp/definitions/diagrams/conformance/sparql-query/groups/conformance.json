@@ -1,0 +1,719 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/sparql` from parity/scripts/w3c/sparql/groups.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/sparql",
+  "description": "../../../sparql-query.atd",
+  "inputs": {
+    "body": "groups.rq",
+    "registration": "groups.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "region:where/optional.0",
+        "type": "w3c/sparql+region",
+        "parent": null,
+        "attributes": {
+          "kind": "optional",
+          "label": "OPTIONAL",
+          "width": "242",
+          "height": "134"
+        }
+      },
+      {
+        "id": "region:where/optional.1",
+        "type": "w3c/sparql+region",
+        "parent": null,
+        "attributes": {
+          "kind": "optional",
+          "label": "OPTIONAL",
+          "width": "242",
+          "height": "166"
+        }
+      },
+      {
+        "id": "region:where/union.0",
+        "type": "w3c/sparql+region",
+        "parent": null,
+        "attributes": {
+          "kind": "union",
+          "label": "UNION",
+          "width": "918",
+          "height": "236"
+        }
+      },
+      {
+        "id": "region:where/union.0/branch.0",
+        "type": "w3c/sparql+region",
+        "parent": "region:where/union.0",
+        "attributes": {
+          "kind": "branch",
+          "parentRegionId": "region:where/union.0",
+          "width": "242",
+          "height": "134"
+        }
+      },
+      {
+        "id": "region:where/union.0/branch.1",
+        "type": "w3c/sparql+region",
+        "parent": "region:where/union.0",
+        "attributes": {
+          "kind": "branch",
+          "parentRegionId": "region:where/union.0",
+          "width": "242",
+          "height": "134"
+        }
+      },
+      {
+        "id": "region:where/union.0/branch.2",
+        "type": "w3c/sparql+region",
+        "parent": "region:where/union.0",
+        "attributes": {
+          "kind": "branch",
+          "parentRegionId": "region:where/union.0",
+          "width": "242",
+          "height": "134"
+        }
+      },
+      {
+        "id": "region:where/minus.0",
+        "type": "w3c/sparql+region",
+        "parent": null,
+        "attributes": {
+          "kind": "minus",
+          "label": "MINUS",
+          "width": "242",
+          "height": "166"
+        }
+      },
+      {
+        "id": "region:where/graph.0",
+        "type": "w3c/sparql+region",
+        "parent": null,
+        "attributes": {
+          "kind": "graph",
+          "label": "GRAPH ?g",
+          "width": "242",
+          "height": "166"
+        }
+      },
+      {
+        "id": "region:where/service.0",
+        "type": "w3c/sparql+region",
+        "parent": null,
+        "attributes": {
+          "kind": "service",
+          "label": "SERVICE SILENT <http://example.org/sparql>",
+          "width": "242",
+          "height": "166"
+        }
+      },
+      {
+        "id": "var:best",
+        "type": "w3c/sparql+variable",
+        "parent": null,
+        "attributes": {
+          "name": "?best",
+          "projected": "false",
+          "joinCount": "0",
+          "anonymous": "false"
+        }
+      },
+      {
+        "id": "var:doubled",
+        "type": "w3c/sparql+variable",
+        "parent": null,
+        "attributes": {
+          "name": "?doubled",
+          "projected": "false",
+          "joinCount": "0",
+          "definingExpression": "BIND(?x * 2 AS ?doubled)",
+          "anonymous": "false"
+        }
+      },
+      {
+        "id": "var:s",
+        "type": "w3c/sparql+variable",
+        "parent": null,
+        "attributes": {
+          "name": "?s",
+          "projected": "true",
+          "joinCount": "9",
+          "anonymous": "false"
+        }
+      },
+      {
+        "id": "var:x",
+        "type": "w3c/sparql+variable",
+        "parent": null,
+        "attributes": {
+          "name": "?x",
+          "projected": "true",
+          "joinCount": "5",
+          "anonymous": "false"
+        }
+      },
+      {
+        "id": "var:g2",
+        "type": "w3c/sparql+variable",
+        "parent": null,
+        "attributes": {
+          "name": "?g2",
+          "projected": "false",
+          "joinCount": "1",
+          "anonymous": "false"
+        }
+      },
+      {
+        "id": "var:y",
+        "type": "w3c/sparql+variable",
+        "parent": null,
+        "attributes": {
+          "name": "?y",
+          "projected": "false",
+          "joinCount": "1",
+          "anonymous": "false"
+        }
+      },
+      {
+        "id": "var:r",
+        "type": "w3c/sparql+variable",
+        "parent": null,
+        "attributes": {
+          "name": "?r",
+          "projected": "false",
+          "joinCount": "1",
+          "anonymous": "false"
+        }
+      },
+      {
+        "id": "lit:true^boolean",
+        "type": "w3c/sparql+term",
+        "parent": null,
+        "attributes": {
+          "display": "true",
+          "full": "true",
+          "annotation": "boolean",
+          "kind": "literal"
+        }
+      },
+      {
+        "id": "sub:where.0",
+        "type": "w3c/sparql+term",
+        "parent": null,
+        "attributes": {
+          "display": "SELECT ?s (MAX(?v) AS ?best)",
+          "full": "{\n    SELECT ?s (MAX(?v) AS ?best) WHERE { ?s ex:v ?v } GROUP BY ?s\n  }",
+          "annotation": "subquery",
+          "kind": "unspecified"
+        }
+      },
+      {
+        "id": "note:where/filter.0",
+        "type": "w3c/sparql+annotation",
+        "parent": null,
+        "attributes": {
+          "kind": "filter",
+          "text": "FILTER NOT EXISTS { ?s ex:hidden true }"
+        }
+      },
+      {
+        "id": "note:where/bind.0",
+        "type": "w3c/sparql+annotation",
+        "parent": null,
+        "attributes": {
+          "kind": "bind",
+          "text": "BIND(?x * 2 AS ?doubled)",
+          "attachedTo": "var:doubled"
+        }
+      },
+      {
+        "id": "note:where/values.0",
+        "type": "w3c/sparql+annotation",
+        "parent": null,
+        "attributes": {
+          "kind": "values",
+          "text": "VALUES ?x { 1 2 3 }",
+          "attachedTo": "var:x"
+        }
+      },
+      {
+        "id": "note:where/optional.0/filter.0",
+        "type": "w3c/sparql+annotation",
+        "parent": null,
+        "attributes": {
+          "kind": "filter",
+          "text": "FILTER(?x > 3)",
+          "attachedTo": "region:where/optional.0"
+        }
+      },
+      {
+        "id": "header:query",
+        "type": "w3c/sparql+header",
+        "parent": null,
+        "attributes": {
+          "form": "SELECT",
+          "modifierRows": "0"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:var:s|ex:p|var:x|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "var:x",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "var:x",
+          "label": "ex:p",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:var:s|ex:q|var:x|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "var:x",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "var:x",
+          "label": "ex:q",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:var:s|ex:r|var:y|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "var:y",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "var:y",
+          "label": "ex:r",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:var:s|ex:t1|var:x|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "var:x",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "var:x",
+          "label": "ex:t1",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:var:s|ex:t2|var:x|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "var:x",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "var:x",
+          "label": "ex:t2",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:var:s|ex:t3|var:x|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "var:x",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "var:x",
+          "label": "ex:t3",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:var:s|ex:banned|lit:true^boolean|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "lit:true^boolean",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "lit:true^boolean",
+          "label": "ex:banned",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:var:s|ex:in|var:g2|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "var:g2",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "var:g2",
+          "label": "ex:in",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:var:s|ex:remote|var:r|0",
+        "type": "w3c/sparql+edge",
+        "source": "var:s",
+        "target": "var:r",
+        "attributes": {
+          "fromElementId": "var:s",
+          "toElementId": "var:r",
+          "label": "ex:remote",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:sub:where.0|s|var:s|0",
+        "type": "w3c/sparql+edge",
+        "source": "sub:where.0",
+        "target": "var:s",
+        "attributes": {
+          "fromElementId": "sub:where.0",
+          "toElementId": "var:s",
+          "label": "?s",
+          "isPath": "false"
+        }
+      },
+      {
+        "id": "edge:sub:where.0|best|var:best|0",
+        "type": "w3c/sparql+edge",
+        "source": "sub:where.0",
+        "target": "var:best",
+        "attributes": {
+          "fromElementId": "sub:where.0",
+          "toElementId": "var:best",
+          "label": "?best",
+          "isPath": "false"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "move": {
+        "element": "region:where/union.0"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"region:where/union.0\"],\"dx\":20,\"dy\":40}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "move": {
+        "element": "var:x"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"var:x\"],\"to\":{\"x\":900,\"y\":60}}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "move": {
+        "element": "region:where/union.0/branch.1"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"region:where/union.0/branch.1\"],\"dx\":-10.5,\"dy\":12.25}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "move": {
+        "element": "var:s"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"var:s\"],\"dx\":0,\"dy\":-50}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "move": {
+        "element": "region:where/optional.1"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"region:where/optional.1\"],\"to\":{\"x\":10,\"y\":1000}}",
+      "select": [
+        "region:where/optional.1"
+      ],
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "move": {
+        "element": "var:y"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"var:y\"],\"dx\":15,\"dy\":15}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "move": {
+        "element": "sub:where.0"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"sub:where.0\"],\"dx\":100.0004,\"dy\":-0.0006}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "redo": true
+    },
+    {
+      "redo": true,
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "move": {
+        "element": "edge:var:s|ex:p|var:x|0"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"edge:var:s|ex:p|var:x|0\"],\"to\":{\"x\":10,\"y\":10}}",
+      "refused": {
+        "reason": "An edge is drawn between its endpoints; move one of those instead."
+      },
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "move": {
+        "element": "note:where/optional.0/filter.0"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"note:where/optional.0/filter.0\"],\"to\":{\"x\":10,\"y\":10}}",
+      "refused": {
+        "reason": "An annotation stays with what it constrains; move that instead."
+      },
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "move": {
+        "element": "header:query"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"header:query\"],\"dx\":5,\"dy\":5}",
+      "refused": {
+        "reason": "The header band states the query's form and modifiers, and stays at the top of the diagram."
+      },
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "move": {
+        "element": "var:r",
+        "parent": "region:where/graph.0"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"var:r\"],\"parent\":\"region:where/graph.0\"}",
+      "refused": {
+        "reason": "A query's structure comes from its text, so nothing here can be moved into a different group. Dragging changes where an element sits on the canvas."
+      },
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "property": {
+        "element": "var:x",
+        "attribute": "Variable",
+        "value": "?renamed"
+      },
+      "refused": {
+        "reason": "This diagram reads the query; edit the .rq file in a text editor and the diagram follows."
+      },
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "move": {
+        "element": "lit:true^boolean"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"lit:true^boolean\"],\"dx\":-36,\"dy\":0}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "move": {
+        "element": "region:where/service.0"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"region:where/service.0\"],\"to\":{\"x\":-200.125,\"y\":0.5}}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "move": {
+        "element": "var:r"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"var:r\"],\"dx\":1,\"dy\":1}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "move": {
+        "element": "region:where/graph.0"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"region:where/graph.0\"],\"dx\":0,\"dy\":0}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "move": {
+        "element": "var:doubled"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"var:doubled\"],\"to\":{\"x\":270,\"y\":90}}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "move": {
+        "element": "region:where/minus.0"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"region:where/minus.0\"],\"dx\":300,\"dy\":-300}",
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "redo": true
+    },
+    {
+      "redo": true,
+      "expectFile": "groups.rq",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.30.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/w3c/sparql/groups/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

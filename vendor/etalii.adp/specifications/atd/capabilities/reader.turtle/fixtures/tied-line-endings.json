@@ -1,0 +1,73 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/tied-line-endings.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix ex: <http://example.org/> .\r\n\nex:a ex:b ex:c .\r\nex:d ex:e ex:f .\n",
+    "files": {
+      "tied-line-endings.adp": "w3c/rdf\nbody: tied-line-endings.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 1
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/b|http://example.org/c",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:a",
+          "p": "http://example.org/b",
+          "o": "http://example.org/c",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/d|http://example.org/e|http://example.org/f",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/d",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:d",
+          "p": "http://example.org/e",
+          "o": "http://example.org/f",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 4
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

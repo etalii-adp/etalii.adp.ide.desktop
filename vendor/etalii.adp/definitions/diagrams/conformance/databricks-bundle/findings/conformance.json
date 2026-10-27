@@ -1,0 +1,126 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record databricks/bundle` from parity/cases/databricks/bundle/findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "databricks/bundle",
+  "description": "../../../databricks-bundle.atd",
+  "inputs": {
+    "body": "databricks.yml",
+    "registration": "databricks.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "adrift",
+          "kind": "bundle",
+          "label": "adrift",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:jobs/declared",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "jobs",
+          "key": "declared",
+          "kind": "jobs",
+          "label": "declared",
+          "badges": "jobs",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "false",
+          "overrideCount": "0",
+          "label": "dev",
+          "width": "220",
+          "height": "120"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "1",
+          "label": "prod",
+          "width": "220",
+          "height": "120"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "override:prod/jobs/phantom",
+        "type": "databricks/bundle+edge",
+        "source": "target:prod",
+        "target": "resource:jobs/phantom",
+        "attributes": {
+          "kind": "override"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.no-default-target",
+        "severity": "warning",
+        "line": 10,
+        "message": "No target says default: true, so every deploy must name one. Mark one target as the default."
+      },
+      {
+        "rule": "databricks.override-of-undeclared",
+        "severity": "warning",
+        "line": 16,
+        "message": "Target 'prod' overrides jobs 'phantom', which this bundle does not declare. Declare the resource or drop the override."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "4d26ab5",
+      "source": "atd record (drawing)"
+    }
+  }
+}

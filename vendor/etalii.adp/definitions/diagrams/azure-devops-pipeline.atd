@@ -1,0 +1,777 @@
+atd 0.1
+
+/// A CI/CD pipeline's stages, jobs and steps, and which of them wait for which.
+///
+/// Reads an Azure Pipelines YAML file and draws it as stages that contain jobs that contain steps, with an arrow from
+/// everything a stage or job waits for. Stages and jobs open one level at a time, so a long pipeline stays readable.
+/// Every position comes from the dependencies and nothing about the drawing is written to the file. The file stays
+/// Azure DevOps' own: only three keys are written through the diagram (`displayName`, `dependsOn` and `enabled`),
+/// besides adding, removing and reordering elements, and every edit is spliced into the existing text.
+///
+/// Every sentence, label, code and id below is the standalone tool's, as its parity transcript
+/// (`Parity/azure-pipeline.transcript.json`) records them. The body is read through the FBL binding the standalone
+/// module ships, whose reader is a capability while FBL cannot follow a template (companion, gap 1). What DISL
+/// 0.3 and FBL 0.2 cannot state is written down in `azure-devops-pipeline.md` beside this file, and the wire ids the
+/// standalone client and backend share are declared under `x-azure-pipeline`.
+diagram azure-devops/pipeline version "0.2.0" {
+  doc {
+    rationale: "Pipeline YAML nests stages, jobs and steps inside templates; drilling down one level at a time keeps a long pipeline readable."
+    tags: ["ci-cd", "pipelines", "azure-devops", "dependencies"]
+    seeAlso: [
+      { title: "What DISL and FBL cannot express for this tool", href: "azure-devops-pipeline.md" },
+      {
+        title: "The draft declared binding"
+        href: "../../specifications/fbl/azure-devops-pipeline.fbl.draft"
+      },
+      {
+        title: "Standalone implementation"
+        href: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/azure-devops-pipeline"
+      },
+      {
+        title: "YAML schema reference for Azure Pipelines"
+        href: "https://learn.microsoft.com/en-us/azure/devops/pipelines/yaml-schema/"
+      },
+      {
+        title: "Add stages, dependencies and conditions"
+        href: "https://learn.microsoft.com/en-us/azure/devops/pipelines/process/stages"
+      }
+    ]
+  }
+  label "Azure DevOps pipeline"
+  id: "net.etalii.adp.azure-devops.pipeline"
+  defaultLocale: en
+  authors: [{ name: "Peter Vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/azure-devops-pipeline"
+  icon: "mdi-rocket-launch-outline"
+  fileExtension: "yml"
+  requires: {
+    conformance: standard
+    features: [
+      "placement.computed",
+      "node.variants",
+      "node.badgeLayout",
+      "edge.bezier",
+      "view.viewer",
+      "form.rowId",
+      "persist.typeMap",
+      "label.editText"
+    ]
+  }
+
+  import "azure-devops-pipeline.notation.atd"
+  import "azure-devops-pipeline.pipeline.atd"
+  requires capability reader.azurePipelinesYaml@^1
+
+  model {
+    document {
+      /// The pipeline's own pool, which every stage and job inherits unless it sets one.
+      attribute pool: Pool readonly { label: "Pool" }
+      /// The template the whole pipeline extends, if any. Its stages are shown as coming from that template.
+      attribute extends: string readonly { label: "Extends" }
+      /// Whether the file has a stages block of its own. Without one, no stage can be added.
+      attribute hasStagesBlock: bool readonly default false
+    }
+
+    /// What stages, jobs and steps share: the execution keys Azure Pipelines accepts on all three, each kept as the
+    /// text it was written with (companion, gap 2), and where the element came from.
+    element PipelineElement {
+      abstract: true
+      /// Editable. A rename writes displayName and never the name, because other elements depend on the name.
+      attribute displayName: string { label: "Display name" }
+      /// As written; never evaluated.
+      attribute condition: string readonly { label: "Condition" }
+      /// As written. Only the text true counts as continuing on error.
+      attribute continueOnError: string readonly { label: "Continue on error" }
+      /// As written. Only the text false disables the element. Enabling removes the key; disabling writes enabled:
+      /// false.
+      attribute enabled: string { label: "Enabled" }
+      /// As written; may be an expression.
+      attribute timeoutInMinutes: string readonly { label: "Timeout (minutes)" }
+      /// The template file the element was read from, relative to the workspace. An element from a template is edited
+      /// there, not here.
+      attribute template: string readonly { label: "From template" }
+      /// The ${{ }} expressions the element was written under, joined with ' and '; never evaluated (companion, gap 4).
+      attribute gate: string readonly { label: "Gate" }
+      /// Implied by the pipeline's shape rather than written down: the one stage of a pipeline without stages, or the
+      /// one job of a steps-only pipeline.
+      attribute isImplicit: bool readonly default false
+      /// What a sentence calls the element: its display name, else its name.
+      attribute label: string {
+        derived: (self.displayName != '' ? self.displayName : (has(self.name) && self.name != '' ? self.name : ''))
+      }
+      attribute isDisabled: bool { derived: (has(self.enabled) && self.enabled.trim().lowerAscii() == 'false') }
+      attribute continuesOnError: bool { derived: (has(self.continueOnError) && self.continueOnError.trim().lowerAscii() == 'true') }
+      attribute fromTemplate: bool { derived: (has(self.template) && self.template != '') }
+      attribute editable: bool { derived: (!self.isImplicit && !self.fromTemplate) }
+      attribute readOnlyReason: string {
+        derived: (self.isImplicit ? 'This is implied by the pipeline\'s shape rather than written down, so there is nothing here to edit.' : (self.fromTemplate ? 'This comes from ' + self.template + ', so it has to be edited there.' : ''))
+      }
+    }
+
+    element Stage extends PipelineElement {
+      label "Stage"
+      icon: "mdi-layers-plus"
+      labelAttribute: displayName
+      /// The name other stages depend on, matched without regard to case; the first stage of a name wins (companion,
+      /// gap 7). Not editable here.
+      attribute name: string readonly { label: "Name" }
+      /// The names this stage waits for, as written. Absent means the stage before it; [] means nothing;
+      /// has(self.dependsOn) tells the two apart (companion, gap 5).
+      attribute dependsOn: string many { label: "Depends on" }
+      /// trigger: manual - the stage waits to be started by a person.
+      attribute manualTrigger: bool readonly default false { label: "Trigger" }
+      attribute isSkippable: string readonly { label: "Skippable" }
+      attribute ownPool: Pool readonly { label: "Pool" }
+      attribute effectivePool: Pool { derived: (has(self.ownPool) ? self.ownPool : diagram.pool) }
+      attribute poolOrigin: PoolOrigin { derived: (has(self.ownPool) ? 'stage' : (has(diagram.pool) ? 'pipeline' : 'none')) }
+      attribute jobCount: int { label: "Jobs", derived: (self.childrenOfType('JobBase').size()) }
+      attribute indeterminate: bool {
+        derived: ((has(self.gate) && self.gate != '') || self.incomingOf('Dependency').exists(r, !has(r.source)))
+      }
+      contains JobBase ordered { doc: "A stage holds its jobs in written order. The last job cannot be removed." }
+    }
+
+    element JobBase extends PipelineElement {
+      abstract: true
+      /// The name sibling jobs depend on, matched without regard to case within the stage (companion, gap 7).
+      attribute name: string readonly { label: "Name" }
+      /// The names of sibling jobs this one waits for, as written. Jobs without dependsOn run in parallel.
+      attribute dependsOn: string many { label: "Depends on" }
+      attribute strategy: Strategy readonly default none { label: "Strategy" }
+      /// How many copies run, when the matrix or parallel count is written as a number.
+      attribute multiplicity: int readonly { label: "Runs" }
+      /// The matrix or parallel value when it is only known when the pipeline runs.
+      attribute multiplicityExpression: string readonly
+      attribute ownPool: Pool readonly { label: "Pool" }
+      attribute effectivePool: Pool {
+        derived: (has(self.ownPool) ? self.ownPool : (has(self.parent.ownPool) ? self.parent.ownPool : diagram.pool))
+      }
+      attribute poolOrigin: PoolOrigin {
+        derived: (has(self.ownPool) ? 'job' : (has(self.parent.ownPool) ? 'stage' : (has(diagram.pool) ? 'pipeline' : 'none')))
+      }
+      attribute indeterminate: bool {
+        derived: ((has(self.gate) && self.gate != '') || has(self.multiplicityExpression) || self.incomingOf('Dependency').exists(r, !has(r.source)))
+      }
+      contains Step ordered {
+        doc: "A job holds its steps in the order they run; a deployment job's grouped by lifecycle hook. The last step cannot be removed."
+      }
+    }
+
+    element Job extends JobBase {
+      label "Job"
+      icon: "mdi-plus-box-outline"
+      labelAttribute: displayName
+    }
+
+    element DeploymentJob extends JobBase {
+      label "Deployment job"
+      icon: "mdi-rocket-launch-outline"
+      labelAttribute: displayName
+      attribute environment: string readonly { label: "Environment" }
+    }
+
+    element Step extends PipelineElement {
+      label "Step"
+      icon: "mdi-console-line"
+      labelAttribute: displayName
+      attribute stepKind: StepKind readonly default unknown { label: "Kind" }
+      /// The value of the step's kind key: the script, the task reference, the checkout target and so on.
+      attribute identifier: text readonly
+      /// For a step of a deployment job: the hook whose steps it is in, such as preDeploy or deploy. The steps of
+      /// on.failure and on.success are not read (finding A7).
+      attribute hook: string readonly { label: "Lifecycle hook" }
+    }
+
+    /// A `template:` or `extends` in the file that is not followed (one that is followed contributes its elements in
+    /// its place, each marked with the template's path, and is not an element of its own). It is drawn below the
+    /// arrangement, under the element whose list names it, and is never editable.
+    element TemplateReference {
+      label "Template"
+      icon: "mdi-file-link-outline"
+      attribute path: string readonly { label: "Path" }
+      /// The part after @, naming a repository resource.
+      attribute resource: string readonly { label: "Repository resource" }
+      attribute slot: TemplateSlot readonly { label: "Used as" }
+      /// Names only: a parameter's value is never read, so a secret passed in stays unseen.
+      attribute parameterNames: string many readonly { label: "Parameters" }
+      attribute reason: UnresolvedReason readonly { label: "Why it is not shown" }
+      /// The reference's number among every template reference of the reading, followed ones and those in followed
+      /// templates included, in reading order (finding A9).
+      attribute ordinal: int readonly
+      /// The stage or job whose list names the template; absent for an extends or a stages template.
+      attribute referencedFrom: PipelineElement readonly
+      attribute reference: string {
+        derived: (has(self.resource) && self.resource != '' ? self.path + '@' + self.resource : self.path)
+      }
+      /// Why the reference is not followed, in the terms the file was written in: the sentence its hover shows.
+      attribute explanation: string {
+        derived: (!has(self.reason) ? '' : self.reason == 'otherRepository' ? 'It comes from the \'' + self.resource + '\' repository resource, which is not checked out here.' : self.reason == 'outsideWorkspace' ? 'Its path leads outside this workspace, so it was not read.' : self.reason == 'parameterDependent' ? 'Its path depends on a parameter, so which file it means is decided at compile time.' : self.reason == 'notFound' ? 'There is no file at \'' + self.path + '\'.' : self.reason == 'unreadable' ? '\'' + self.path + '\' could not be read as a pipeline.' : self.reason == 'cyclic' ? '\'' + self.path + '\' includes itself, directly or through another template.' : '')
+      }
+    }
+
+    /// Drawn from what is waited for to what waits.
+    relation Dependency from PipelineElement to PipelineElement {
+      label "Waits for"
+      abstract: true
+      directed: true
+      allowSelfLoops: true
+      allowParallel: false
+      attribute isImplicit: bool default false
+      attribute outcome: EdgeOutcome { derived: (edgeOutcome(has(self.target.condition) ? self.target.condition : '')) }
+    }
+
+    /// One per name a stage's or job's dependsOn writes, its target the element that waits. The source is resolved
+    /// without regard to case, to the first element of that name, among the stages or among the jobs of the same stage
+    /// (companion, gap 7). A name that names nothing leaves the source unset: the relation is kept and reported, and
+    /// the standalone tool still draws it as a broken edge (companion, gap 9).
+    relation DependsOn extends Dependency {
+      label "Depends on"
+      allowSelfLoops: true
+      /// The name as written.
+      attribute name: string readonly
+    }
+
+    /// A stage without dependsOn waits for the stage written before it; dependsOn: [] opts out. Two stages that share
+    /// an id (finding A8) have no edge between them, which would read as the stage waiting for itself.
+    relation DefaultOrder extends Dependency from Stage to Stage {
+      allowSelfLoops: true
+      derived: (cel.bind(st, diagram.nodesOfType('Stage'), lists.range(st.size()).filter(i, i > 0 && !has(st[i].dependsOn) && st[i - 1].id != st[i].id).map(i, {'source': st[i - 1], 'target': st[i], 'isImplicit': true})))
+    }
+
+    enum PoolOrigin {
+      none { label: "None" }
+      /// Set for the whole pipeline, at the top of the file.
+      pipeline { label: "Set for the whole pipeline" }
+      /// Set on the stage, not here.
+      stage { label: "Set on the stage" }
+      job { label: "Set on the job" }
+    }
+
+    /// The kind of a step is its first recognised key in written order (companion, gap 8). Each label is what the Kind
+    /// row shows.
+    enum StepKind {
+      unknown { label: "Unknown" }
+      task { label: "Task" }
+      script { label: "Script" }
+      bash { label: "Bash" }
+      pwsh { label: "Pwsh" }
+      powershell { label: "PowerShell" }
+      checkout { label: "Checkout" }
+      download { label: "Download" }
+      publish { label: "Publish" }
+      template { label: "Template" }
+    }
+
+    /// Each label is what the Strategy row shows.
+    enum Strategy {
+      none { label: "None" }
+      /// Deployment strategy: every lifecycle hook once.
+      runOnce { label: "RunOnce" }
+      /// Deployment strategy: a number of targets at a time.
+      rolling { label: "Rolling" }
+      /// Deployment strategy: increments of targets.
+      canary { label: "Canary" }
+      /// One copy of the job per matrix entry.
+      matrix { label: "Matrix" }
+      /// A number of identical copies of the job.
+      parallel { label: "Parallel" }
+    }
+
+    /// When the element that waits runs, read from its own condition.
+    enum EdgeOutcome {
+      onSuccess { label: "When it succeeded" }
+      always { label: "Always" }
+      onFailure { label: "When it failed" }
+      onSuccessOrFailure { label: "When it succeeded or failed" }
+      custom { label: "Custom condition" }
+    }
+
+    enum TemplateSlot {
+      extends { label: "extends" }
+      stages { label: "stages" }
+      jobs { label: "jobs" }
+      steps { label: "steps" }
+    }
+
+    /// Why a template reference is not followed; absent when it is.
+    enum UnresolvedReason {
+      /// It comes from the '{resource}' repository resource, which is not checked out here.
+      otherRepository { label: "Other repository" }
+      /// Its path leads outside this workspace, so it was not read.
+      outsideWorkspace { label: "Outside the workspace" }
+      /// Its path depends on a parameter, so which file it means is decided at compile time.
+      parameterDependent { label: "Parameter dependent" }
+      /// There is no file at '{path}'.
+      notFound { label: "Not found" }
+      /// '{path}' could not be read as a pipeline.
+      unreadable { label: "Unreadable" }
+      /// '{path}' includes itself, directly or through another template.
+      cyclic { label: "Includes itself" }
+    }
+
+    datatype Pool {
+      fields: {
+        name: {
+          type: string
+          label: "Name"
+          doc: "A private agent pool, written as `pool: Name` or `pool: { name: Name }`."
+        }
+        vmImage: { type: string, label: "VM image", doc: "A Microsoft-hosted image, such as ubuntu-latest." }
+        demands: { type: string, many: true, label: "Demands" }
+      }
+      display: (has(self.vmImage) ? self.vmImage : (has(self.name) ? self.name : ''))
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// The wanted name if nothing in `taken` already uses it, compared without regard to case, otherwise the wanted name
+  /// followed by 2, 3 and so on (`PipelineBlocks.UnusedName`). A new stage is named among every stage's name, a new job
+  /// among every job's name in the pipeline.
+  fn unusedName(wanted: string, taken: list<string>) -> string {
+    return cel.bind(lowered, taken.map(t, t.lowerAscii()), !(wanted.lowerAscii() in lowered) ? wanted : lists.range(taken.size() + 1).map(i, wanted + string(i + 2)).filter(c, !(c.lowerAscii() in lowered))[0])
+  }
+
+  /// Whether a value as written holds a template expression, a macro or a runtime expression. None of them is ever
+  /// evaluated.
+  fn isExpression(text: string) -> bool {
+    return text.contains('${{') || text.contains('$(') || text.contains('$[')
+  }
+
+  /// Classifies the condition of the element that waits (`PipelineGraphBuilder.Classify`): empty is on success; one of
+  /// the four status functions alone, optionally naming dependencies in quotes, is that function's outcome; anything
+  /// else, such as `and(succeeded(), eq(...))`, is custom.
+  fn edgeOutcome(condition: string) -> string {
+    return condition.trim() == '' ? 'onSuccess' : !condition.trim().matches('(?i)^(succeeded|failed|always|succeededOrFailed)\\(\\s*(\'[^\']*\'(\\s*,\\s*\'[^\']*\')*)?\\s*\\)$') ? 'custom' : condition.trim().lowerAscii().startsWith('succeededorfailed') ? 'onSuccessOrFailure' : condition.trim().lowerAscii().startsWith('succeeded') ? 'onSuccess' : condition.trim().lowerAscii().startsWith('failed') ? 'onFailure' : 'always'
+  }
+
+  /// What an element waits for, written or by the default order: the resolved ends of its dependencies.
+  fn waitsFor(e: Element) -> list<Element> {
+    // uses: ['diagram']
+    return e.incomingOf('Dependency').filter(r, has(r.source)).map(r, r.source)
+  }
+
+  /// The stages that wait for nothing, a dependency that names nothing counting as waiting.
+  fn starts() -> list<Element> {
+    // uses: ['diagram']
+    return diagram.nodesOfType('Stage').filter(s, s.incomingOf('Dependency').size() == 0)
+  }
+
+  /// What a finding calls an element: the last segment of its id, so its name, or `stage-<n>` and `job-<n>` for one
+  /// without. Not its display name: a finding says what dependsOn would name (`PipelineRuleSet.NameOf`).
+  fn idName(e: Element) -> string {
+    return e.id.substring(e.id.lastIndexOf('/') + 1)
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// A pipeline with no stage at all, as an empty file or an extends has, reports nothing. Findings come in the tool's
+  /// order: dangling stage dependencies, stage cycles, no starting stage, dangling job dependencies, job cycles,
+  /// unreachable stages, unnamed stages and jobs, unfollowed templates. The tool interleaves the job findings stage by
+  /// stage; the declared order puts every job's dangling dependency before every job's cycle (companion, *What the
+  /// definition cannot state*).
+  constraints {
+    defaults: { timing: [live] }
+    blockSaveOn: never
+    builtin acyclic { enabled: false }
+    builtin multiplicity { enabled: false }
+    builtin std.duplicateId {
+      enabled: false
+      doc: "Two stages of one name share an id and the first is the one a gesture finds, as today (Q3, finding A8). Reporting it is a change of its own, after this conversion."
+    }
+    builtin std.references {
+      enabled: false
+      doc: "A dependency that names nothing is reported by danglingDependency, in the tool's sentence."
+    }
+    builtin std.unreadableEntry {
+      enabled: false
+      doc: "A sequence item that is not a mapping is passed over without a finding, as today (Q3, finding B14)."
+    }
+    builtin std.unparseable {
+      code: "azure-pipeline.unparseable"
+      message: ('This is not YAML that can be read: ' + detail.reason)
+      doc: "The second half is the YAML reader's own message, so it follows the reader (Q3, finding B15)."
+    }
+
+    constraint danglingStageDependency for diagram {
+      when diagram.nodesOfType('Stage').size() > 0
+      rule false
+      severity error
+      message ('\'' + idName(item.target) + '\' waits for a stage called \'' + item.name + '\', which this pipeline does not have.')
+      code: "azure-pipeline.dangling-dependency"
+      forEach: (diagram.relationsOfType('DependsOn').filter(r, !has(r.source) && r.target.isA('Stage')))
+      target: (item.target)
+    }
+
+    constraint stageCycle for diagram {
+      rule false
+      severity error
+      message (item.size() == 1 ? '\'' + idName(item[0]) + '\' waits for itself, so it can never run.' : 'These wait for each other and so none of them can run: ' + item.map(e, idName(e)).join(' -> ') + ' -> ' + idName(item[0]) + '.')
+      code: "azure-pipeline.cycle"
+      forEach: (diagram.cycles('Dependency', 500).filter(c, c[0].isA('Stage')))
+      target: (item[0])
+    }
+
+    /// A stage whose dependencies all name nothing waits for no stage, so it can start; its dependencies are reported
+    /// as dangling. starts() counts such a stage as waiting, which is what unreachable needs.
+    constraint noStartingStage for diagram {
+      when diagram.nodesOfType('Stage').size() > 0
+      rule diagram.nodesOfType('Stage').exists(s, !s.incomingOf('Dependency').exists(r, has(r.source)))
+      severity error
+      message "Every stage waits for another one, so this pipeline has nothing to start with. At least one stage must depend on nothing."
+      code: "azure-pipeline.no-starting-stage"
+    }
+
+    constraint danglingJobDependency for diagram {
+      rule false
+      severity error
+      message ('\'' + idName(item.target) + '\' waits for a job called \'' + item.name + '\', which this pipeline does not have.')
+      code: "azure-pipeline.dangling-dependency"
+      forEach: (diagram.relationsOfType('DependsOn').filter(r, !has(r.source) && r.target.isA('JobBase')))
+      target: (item.target)
+    }
+
+    constraint jobCycle for diagram {
+      rule false
+      severity error
+      message (item.size() == 1 ? '\'' + idName(item[0]) + '\' waits for itself, so it can never run.' : 'These wait for each other and so none of them can run: ' + item.map(e, idName(e)).join(' -> ') + ' -> ' + idName(item[0]) + '.')
+      code: "azure-pipeline.cycle"
+      forEach: (diagram.cycles('Dependency', 500).filter(c, c[0].isA('JobBase')))
+      target: (item[0])
+    }
+
+    /// The stages that can start are those that wait for nothing; whatever they cannot reach cannot run. A stage in a
+    /// cycle, or with a dependency that names nothing, already has its own error and is not reported again.
+    constraint unreachable for Stage {
+      when !self.inCycle('Dependency') && !self.incomingOf('Dependency').exists(r, !has(r.source))
+      rule self.incomingOf('Dependency').size() == 0 || starts().exists(s, self in s.reachable('Dependency'))
+      severity warning
+      message ('Nothing can reach \'' + (self.label != '' ? self.label : 'stage') + '\': what it waits for can never finish, so it will never run.')
+      code: "azure-pipeline.unreachable"
+    }
+
+    constraint unnamedStage for Stage {
+      when !self.isImplicit
+      rule self.label != ''
+      severity warning
+      message "This stage has no name, so nothing can depend on it and it cannot be picked out of a run log."
+      code: "azure-pipeline.unnamed"
+    }
+
+    constraint unnamedJob for JobBase {
+      when !self.isImplicit
+      rule self.label != ''
+      severity warning
+      message "This job has no name, so nothing can depend on it and it cannot be picked out of a run log."
+      code: "azure-pipeline.unnamed"
+    }
+
+    constraint templateNotFollowed for TemplateReference {
+      rule !((has(self.resource) && self.resource != '') || isExpression(self.path))
+      severity warning
+      message (has(self.resource) && self.resource != '' ? '\'' + self.reference + '\' comes from another repository, so what it contributes is not shown here.' : '\'' + self.reference + '\' has a path decided at compile time, so what it contributes is not shown here.')
+      code: "azure-pipeline.template-not-followed"
+    }
+
+    constraint stepHasNothingToWaitFor for Step {
+      rule attribute != 'dependsOn'
+      message "Steps run in order, so a step has nothing to wait for."
+      kind: change
+      enforcement: prevent
+    }
+
+    /// Declared second of the change rules, because the first refusal is the one a user reads (DISL 8.4: the declared
+    /// gesture constraints are checked in the order of `rules`): a step's dependencies, then an element this file does
+    /// not write, then a name that names nothing, a cycle and a pipeline left with nothing to start with, as the tool
+    /// has always asked.
+    constraint readOnlyElements for PipelineElement {
+      rule self.editable
+      message (self.readOnlyReason)
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint knownName for JobBase {
+      rule attribute != 'dependsOn' || newValue == null || newValue.all(n, self.parent.childrenOfType('JobBase').exists(o, has(o.name) && o.name.lowerAscii() == n.lowerAscii()))
+      message ('This pipeline has nothing called \'' + newValue.filter(n, !self.parent.childrenOfType('JobBase').exists(o, has(o.name) && o.name.lowerAscii() == n.lowerAscii()))[0] + '\' to wait for.')
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint knownStageName for Stage {
+      rule attribute != 'dependsOn' || newValue == null || newValue.all(n, diagram.nodesOfType('Stage').exists(o, has(o.name) && o.name.lowerAscii() == n.lowerAscii()))
+      message ('This pipeline has nothing called \'' + newValue.filter(n, !diagram.nodesOfType('Stage').exists(o, has(o.name) && o.name.lowerAscii() == n.lowerAscii()))[0] + '\' to wait for.')
+      kind: change
+      enforcement: prevent
+    }
+
+    /// Refused before anything is written, as today: an edit that would close a cycle. A name means the first stage, or
+    /// the first job of the same stage, of that name; waiting for it closes a cycle when it is the element itself or
+    /// already waits for it, directly or not, which is what self.reachable('Dependency') holds, because a Dependency is
+    /// drawn from what is waited for to what waits.
+    constraint noCycleByEdit for Stage, JobBase {
+      rule attribute != 'dependsOn' || newValue == null || !newValue.exists(n, cel.bind(named, (self.isA('Stage') ? diagram.nodesOfType('Stage') : self.parent.childrenOfType('JobBase')).filter(o, has(o.name) && o.name != '' && o.name.lowerAscii() == n.lowerAscii()), named.size() > 0 && (named[0] == self || named[0] in self.reachable('Dependency'))))
+      message ('That would make ' + (self.label != '' ? self.label : (self.isA('Stage') ? 'stage' : 'job')) + ' wait for something that is already waiting for it.')
+      kind: change
+      enforcement: prevent
+    }
+
+    /// Refused before anything is written, as today: giving a stage dependencies when no other stage waits for nothing.
+    /// Clearing dependsOn (null, back to the default order) and dependsOn: [] are never refused. A stage whose
+    /// dependencies all name nothing counts as waiting for nothing, as noStartingStage has it.
+    constraint keepAStart for Stage {
+      rule attribute != 'dependsOn' || newValue == null || newValue.size() == 0 || diagram.nodesOfType('Stage').exists(s, s != self && !s.incomingOf('Dependency').exists(r, has(r.source)))
+      message "A pipeline must contain at least one stage with no dependencies, or it has nothing to start with."
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint keepLastStage for Stage {
+      rule diagram.nodesOfType('Stage').filter(s, !s.isImplicit).size() > 1
+      message "A pipeline needs at least one stage."
+      kind: delete
+      enforcement: prevent
+    }
+
+    /// Judged on the stages that would be left: one waits for nothing when its dependsOn is [] or names only stages
+    /// that would be gone, or when it has no dependsOn and would be the first stage, the default order then giving it
+    /// nothing before it. Removing the first of stages that follow the default order is therefore allowed, the next one
+    /// becoming the first.
+    constraint keepTheOnlyStart for Stage {
+      rule cel.bind(st, diagram.nodesOfType('Stage').filter(s, s != self), lists.range(st.size()).exists(i, has(st[i].dependsOn) ? !st[i].dependsOn.exists(n, st.exists(o, has(o.name) && o.name != '' && o.name.lowerAscii() == n.lowerAscii())) : i == 0 || st[i - 1].id == st[i].id))
+      message "A pipeline must contain at least one stage with no dependencies, and this is the only one."
+      kind: delete
+      enforcement: prevent
+    }
+
+    constraint keepLastJob for JobBase {
+      rule self.parent.childrenOfType('JobBase').size() > 1
+      message ((self.parent.label != '' ? self.parent.label : 'stage') + ' needs at least one job.')
+      kind: delete
+      enforcement: prevent
+    }
+
+    constraint keepLastStep for Step {
+      rule self.parent.children.size() > 1
+      message ((self.parent.label != '' ? self.parent.label : 'job') + ' needs at least one step.')
+      kind: delete
+      enforcement: prevent
+    }
+
+    constraint templateStepsKeepOrder for Step {
+      rule !self.parent.children.exists(s, s.fromTemplate)
+      message "Some of this job's steps come from a template, so their order cannot be changed here."
+      kind: reorder
+      enforcement: prevent
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Opens or closes the stage for this viewer only. Viewer state: nothing is written and nothing lands on the undo
+  /// history.
+  operation toggleJobs for Stage {
+    label (self.view.collapsed ? 'Show jobs' : 'Hide jobs')
+    enabled self.jobCount > 0
+    shortcut: Space
+    view self { collapsed: !self.view.collapsed }
+  }
+
+  /// Opens or closes the job for this viewer only. Viewer state: nothing is written and nothing lands on the undo
+  /// history.
+  operation toggleSteps for JobBase {
+    label (self.view.collapsed ? 'Show steps' : 'Hide steps')
+    enabled self.children.size() > 0
+    shortcut: Space
+    view self { collapsed: !self.view.collapsed }
+  }
+
+  /// Disabling writes enabled: false; enabling removes the key rather than writing enabled: true.
+  operation toggleEnabled for Stage, JobBase, Step {
+    label (self.isDisabled ? 'Enable' : 'Disable')
+    if self.isDisabled {
+      unset enabled
+    }
+    if !self.isDisabled {
+      set enabled = 'false'
+    }
+  }
+
+  /// Removes the dependsOn key: a stage then waits for the stage before it, a job for nothing.
+  operation clearDependencies "Use the default order" for Stage, JobBase {
+    unset dependsOn
+  }
+
+  /// Adds a stage after the last stage written in this file, whatever it was dropped on, with a job and a script step
+  /// so it runs (finding B10 says where that lands when the last stage is gated).
+  operation addStage "Add stage" for Stage, JobBase, Step {
+    unavailable [
+      {
+        when: (!diagram.nodesOfType('Stage').exists(s, s.editable))
+        message: "This pipeline has no stages block to add a stage to. Add one in the file first."
+      }
+    ]
+    icon: "mdi-layers-plus"
+    let stageName = unusedName('NewStage', diagram.nodesOfType('Stage').map(s, has(s.name) ? s.name : ''))
+    create Stage { name: stageName } as stage
+    create Job { name: stageName + 'Job' } in stage as job
+    create Step { stepKind: 'script', identifier: 'echo Add your build steps here' } in job
+  }
+
+  /// Adds a job after the stage's last job written in this file, named among every job of the pipeline. A stage whose
+  /// jobs all come from a template still offers it, and refuses.
+  operation addJob "Add job" for Stage, JobBase, Step {
+    unavailable [{ when: (!self.isA('Stage')), message: "A job goes in a stage." }]
+    icon: "mdi-plus-box-outline"
+    if !self.childrenOfType('JobBase').exists(j, !j.fromTemplate) {
+      fail 'This stage has no jobs of its own to add one beside.'
+    }
+    let jobName = unusedName('NewJob', diagram.nodesOfType('JobBase').map(j, has(j.name) ? j.name : ''))
+    create Job { name: jobName } in self as job
+    create Step { stepKind: 'script', identifier: 'echo Add your build steps here' } in job
+  }
+
+  /// Adds a deployment job with an environment of its name in lower case and a runOnce strategy whose deploy hook holds
+  /// one script step. A stage whose jobs all come from a template still offers it, and refuses.
+  operation addDeploymentJob "Add deployment job" for Stage, JobBase, Step {
+    unavailable [{ when: (!self.isA('Stage')), message: "A job goes in a stage." }]
+    icon: "mdi-rocket-launch-outline"
+    if !self.childrenOfType('JobBase').exists(j, !j.fromTemplate) {
+      fail 'This stage has no jobs of its own to add one beside.'
+    }
+    let jobName = unusedName('NewJob', diagram.nodesOfType('JobBase').map(j, has(j.name) ? j.name : ''))
+    create DeploymentJob { name: jobName, environment: jobName.lowerAscii(), strategy: 'runOnce' } in self as job
+    create Step { stepKind: 'script', identifier: 'echo Add your build steps here', hook: 'deploy' } in job
+  }
+
+  /// Adds a script step after the job's last step written in this file. A job whose steps all come from a template
+  /// still offers it, and refuses.
+  operation addStep "Add step" for Stage, JobBase, Step {
+    unavailable [{ when: (!self.isA('JobBase')), message: "A step goes in a job." }]
+    icon: "mdi-plus-box-outline"
+    if !self.children.exists(s, !s.fromTemplate) {
+      fail 'This job has no steps of its own to add one beside.'
+    }
+    create Step { stepKind: 'script', identifier: 'echo Add your build steps here' } in self
+  }
+  message std.notApplicable "That element is no longer in this pipeline."
+
+  behavior {
+    deletion: {
+      Stage: { children: delete, relations: delete }
+      JobBase: { children: delete, relations: delete }
+      Step: { relations: delete }
+    }
+    clipboard: { relations: none, crossDocument: false, formats: [] }
+    doc: "Every edit is one undoable step. A change made to the file outside the editor reaches every open view through the reader (FBL 7.3) and is not put on the undo history."
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// The file is an ordinary Azure Pipelines YAML file, Azure DevOps' own. The binding's reader is a capability
+  /// while FBL cannot follow a template (Q2, companion gap 1): it follows templates inside the workspace, never over
+  /// the network, and emits the binding types the draft declared binding
+  /// (`specifications/fbl/azure-devops-pipeline.fbl.draft`) names, so this `typeMap` holds under either reader. Writing
+  /// splices only what changed, so a file opened and saved without an edit is byte-identical.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: derived
+      expression: (self.id)
+      stable: false
+      types: {
+        Stage: {
+          strategy: derived
+          expression: (has(self.name) && self.name != '' ? self.name : 'stage-' + string(self.positionIn(diagram.nodesOfType('Stage'))))
+          ephemeral: (!has(self.name) || self.name == '')
+        }
+        JobBase: {
+          strategy: derived
+          expression: (self.parent.id + '/' + (has(self.name) && self.name != '' ? self.name : 'job-' + string(self.positionIn(self.parent.childrenOfType('JobBase')))))
+          ephemeral: (!has(self.name) || self.name == '')
+        }
+        Step: {
+          strategy: derived
+          expression: (self.parent.id + '/step-' + string(self.positionIn(self.parent.childrenOfType('Step'))))
+          ephemeral: true
+        }
+        TemplateReference: {
+          strategy: derived
+          expression: (self.slot == 'extends' ? 'template:extends' : 'template:template-' + string(self.ordinal))
+          ephemeral: true
+        }
+        DependsOn: {
+          strategy: derived
+          expression: ('edge:' + (has(self.source) ? self.source.id : '?' + self.name) + '->' + self.target.id)
+        }
+      }
+      doc: "Ids are paths through the file, never written (finding A8): a stage is its name, or `stage-<n>` when it has none; a job `<stage>/<name>`, or `<stage>/job-<n>`; a step `<job>/step-<n>`; a template reference `template:template-<n>`, numbered across followed templates in reading order, and an `extends` `template:extends`; a dependency `edge:<from>-><to>`, with `?<name>` as the from of one that names nothing. The default order's edges take the derived relation's default id. Positional ids are ephemeral. Two stages of one name share an id, and the first is the one a gesture finds."
+    }
+    view: {
+      store: []
+      viewer: [collapsed, viewport]
+      initial: { collapsed: true }
+      doc: "Nothing about the drawing is written: positions come from the layout, and which stages and jobs are open belongs to each viewer, starting with everything closed."
+    }
+    typeMap: {
+      Pipeline: { as: diagram }
+      Stage: { as: Stage }
+      ImplicitStage: { as: Stage }
+      Job: { as: Job }
+      ImplicitJob: { as: Job }
+      DeploymentJob: { as: DeploymentJob }
+      Step: { as: Step }
+      TemplateReference: { as: TemplateReference }
+      DependsOn: {
+        as: DependsOn
+        doc: "One per name a dependsOn writes; the reader sets the target to the element that waits and the source to the element the name resolves to, or leaves it unset."
+      }
+    }
+    // DISL binding: https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/azure-devops-pipeline/backend/EtAlii.Adp.Diagram.AzureDevOpsPipeline/azure-devops-pipeline.fbl#pipeline
+  }
+
+  x-azure-pipeline: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-cld and x-ghg do. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind. A property is keyed by its form item's row id: its id, else its attribute. Every finding code is its rule's or built-in's `code`."
+    tools: {
+      stage: { id: "azure-pipeline.toolbox.stage", drop: "azure-pipeline.add-stage" }
+      job: { id: "azure-pipeline.toolbox.job", drop: "azure-pipeline.add-job" }
+      deploymentJob: { id: "azure-pipeline.toolbox.deployment-job", drop: "azure-pipeline.add-deployment-job" }
+      step: { id: "azure-pipeline.toolbox.step", drop: "azure-pipeline.add-step" }
+    }
+    actions: {
+      editLabel: "azure-pipeline.rename"
+      toggleEnabled: "azure-pipeline.toggle-enabled"
+      addStage: "azure-pipeline.add-stage"
+      addJob: "azure-pipeline.add-job"
+      addDeploymentJob: "azure-pipeline.add-deployment-job"
+      addStep: "azure-pipeline.add-step"
+      delete: "azure-pipeline.remove"
+      moveUp: "azure-pipeline.move-step-up"
+      moveDown: "azure-pipeline.move-step-down"
+      clearDependencies: "azure-pipeline.clear-dependencies"
+      toggleJobs: "azure-pipeline.toggle-stage"
+      toggleSteps: "azure-pipeline.toggle-job"
+    }
+    properties: {
+      name: "azure-pipeline.name"
+      displayName: "azure-pipeline.display-name"
+      jobCount: "azure-pipeline.job-count"
+      kind: "azure-pipeline.kind"
+      stepKind: "azure-pipeline.kind"
+      dependsOn: "azure-pipeline.depends-on"
+      condition: "azure-pipeline.condition"
+      trigger: "azure-pipeline.trigger"
+      isSkippable: "azure-pipeline.is-skippable"
+      pool: "azure-pipeline.pool"
+      environment: "azure-pipeline.environment"
+      strategy: "azure-pipeline.strategy"
+      multiplicity: "azure-pipeline.multiplicity"
+      timeoutInMinutes: "azure-pipeline.timeout"
+      continueOnError: "azure-pipeline.continue-on-error"
+      enabled: "azure-pipeline.enabled"
+      identifier: "azure-pipeline.identifier"
+      hook: "azure-pipeline.hook"
+    }
+  }
+}

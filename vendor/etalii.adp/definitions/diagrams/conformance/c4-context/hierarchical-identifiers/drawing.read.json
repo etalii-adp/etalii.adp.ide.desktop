@@ -1,0 +1,325 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "api",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -80,
+        "y": 198.8,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "A's API.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 256.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "API",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 220.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Go]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 236.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "b",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 30,
+        "y": 0,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Second.",
+          "font": "10 400",
+          "position": {
+            "x": 110,
+            "y": 58
+          }
+        },
+        {
+          "id": "name",
+          "text": "B",
+          "font": "13 600",
+          "position": {
+            "x": 110,
+            "y": 22
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 110,
+            "y": 38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "u",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -190,
+        "y": 0,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "A user.",
+          "font": "10 400",
+          "position": {
+            "x": -110,
+            "y": 58
+          }
+        },
+        {
+          "id": "name",
+          "text": "User",
+          "font": "13 600",
+          "position": {
+            "x": -110,
+            "y": 22
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": -110,
+            "y": 38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "u->api@13",
+      "type": "c4/model+relationship",
+      "source": "u",
+      "target": "api",
+      "route": [
+        {
+          "x": -88.2,
+          "y": 78.8
+        },
+        {
+          "x": -21.8,
+          "y": 198.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls whichever [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": -55,
+            "y": 132.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "band",
+      "bounds": {
+        "x": -112,
+        "y": 166.8,
+        "w": 224,
+        "h": 162.4
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "A [Software System]",
+      "bounds": {
+        "x": -112,
+        "y": 160.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "legend",
+      "text": "Container diagram for A",
+      "bounds": {
+        "x": -190,
+        "y": -30,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": -190,
+        "y": 359.2,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": -154,
+        "y": 349.2,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Person",
+      "bounds": {
+        "x": -137,
+        "y": 359.2,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:7",
+      "kind": "band",
+      "bounds": {
+        "x": -88.7,
+        "y": 349.2,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:8",
+      "kind": "legend",
+      "text": "Container",
+      "bounds": {
+        "x": -71.7,
+        "y": 359.2,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:9",
+      "kind": "band",
+      "bounds": {
+        "x": -5.25,
+        "y": 349.2,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:10",
+      "kind": "legend",
+      "text": "Software System",
+      "bounds": {
+        "x": 11.75,
+        "y": 359.2,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "chrome:1",
+    "chrome:2",
+    "u->api@13",
+    "u",
+    "api",
+    "b",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6",
+    "chrome:7",
+    "chrome:8",
+    "chrome:9",
+    "chrome:10"
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.descriptionLogic` from the RDF module's rendering of a class expression of the ontology that parity/cases/w3c/owl/class-expressions.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "value": {
+      "root": "_:b10",
+      "triples": [
+        {
+          "s": "_:b10",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b10",
+          "p": "http://www.w3.org/2002/07/owl#intersectionOf",
+          "o": "_:b11",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b11",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/shapes#Shape",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b11",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "_:b12",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b12",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "_:b13",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b12",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b13",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b13",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasSide",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b13",
+          "p": "http://www.w3.org/2002/07/owl#someValuesFrom",
+          "o": "_:b14",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b14",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b14",
+          "p": "http://www.w3.org/2002/07/owl#unionOf",
+          "o": "_:b15",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b15",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/shapes#Polygon",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b15",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "_:b16",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b16",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "_:b17",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b16",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b17",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b17",
+          "p": "http://www.w3.org/2002/07/owl#complementOf",
+          "o": "_:b18",
+          "oKind": "blank"
+        },
+        {
+          "s": "_:b18",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b18",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/shapes#hasColour",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b18",
+          "p": "http://www.w3.org/2002/07/owl#allValuesFrom",
+          "o": "http://example.org/shapes#Colour",
+          "oKind": "iri"
+        }
+      ],
+      "names": {
+        "http://example.org/shapes#Colour": ":Colour",
+        "http://example.org/shapes#Polygon": "Polygon",
+        "http://example.org/shapes#Shape": ":Shape",
+        "http://example.org/shapes#hasColour": ":hasColour",
+        "http://example.org/shapes#hasSide": ":hasSide",
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil": "rdf:nil",
+        "http://www.w3.org/2002/07/owl#Class": "owl:Class",
+        "http://www.w3.org/2002/07/owl#Restriction": "owl:Restriction"
+      }
+    },
+    "format": "rdf"
+  },
+  "args": {
+    "maxDepth": 0
+  },
+  "output": {
+    "runs": [
+      {
+        "text": "(:Shape ∩ ∃ :hasSide.(Polygon ∪ ¬∀ :hasColour.:Colour))",
+        "style": {
+          "elided": false,
+          "cyclic": false
+        }
+      }
+    ]
+  }
+}

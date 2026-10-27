@@ -1,0 +1,68 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/shacl` from parity/cases/w3c/shacl/owl-with-file-findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/shacl",
+  "description": "../../../w3c-shacl.atd",
+  "inputs": {
+    "body": "owl-with-file-findings.ttl",
+    "registration": "owl-with-file-findings.adp"
+  },
+  "read": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "rdf.duplicate-prefix",
+        "severity": "warning",
+        "line": 3,
+        "message": "The prefix 'ex:' is declared more than once; from here on it means http://example.org/again#, which changes what every earlier-styled use would say."
+      },
+      {
+        "rule": "rdf.relative-iri",
+        "severity": "warning",
+        "line": 12,
+        "message": "This document uses relative IRIs but declares no base, so their meaning depends on where the file happens to sit. Declare an @base."
+      },
+      {
+        "rule": "rdf.language-tag",
+        "severity": "warning",
+        "line": 8,
+        "message": "'@en-' is not a well-formed language tag (letters, then optional '-' groups of letters and digits)."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

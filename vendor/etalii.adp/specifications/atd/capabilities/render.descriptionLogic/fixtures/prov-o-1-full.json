@@ -1,0 +1,48 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.descriptionLogic` from the RDF module's rendering of a class expression of the ontology that parity/scripts/w3c/owl/prov-o.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "value": {
+      "root": "_:b0",
+      "triples": [
+        {
+          "s": "_:b0",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri"
+        },
+        {
+          "s": "_:b0",
+          "p": "http://www.w3.org/2002/07/owl#maxCardinality",
+          "o": "0",
+          "oKind": "literal"
+        },
+        {
+          "s": "_:b0",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://www.w3.org/ns/prov#hadActivity",
+          "oKind": "iri"
+        }
+      ],
+      "names": {
+        "http://www.w3.org/2002/07/owl#Restriction": "owl:Restriction",
+        "http://www.w3.org/ns/prov#hadActivity": "hadActivity"
+      }
+    },
+    "format": "rdf"
+  },
+  "args": {
+    "maxDepth": 0
+  },
+  "output": {
+    "runs": [
+      {
+        "text": "≤ 0 hadActivity",
+        "style": {
+          "elided": false,
+          "cyclic": false
+        }
+      }
+    ]
+  }
+}

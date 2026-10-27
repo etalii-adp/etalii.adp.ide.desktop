@@ -1,0 +1,62 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bandedGrid` from the RDF module's layout of the reading that parity/cases/w3c/rdf/owl-malformed.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/bad#A",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "blank:0",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Restriction"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/bad#B",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columns": 4,
+    "columnWidth": 280.0,
+    "rowHeight": 160.0,
+    "bandGap": 80,
+    "band": "size(self.types) > 0 ? self.types[0] : ''"
+  },
+  "output": {
+    "positions": {
+      "blank:0": {
+        "x": 0.0,
+        "y": 240.0
+      },
+      "res:http://example.org/bad#A": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/bad#B": {
+        "x": 280.0,
+        "y": 0.0
+      }
+    }
+  }
+}

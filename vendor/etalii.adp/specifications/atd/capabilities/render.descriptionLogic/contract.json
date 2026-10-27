@@ -1,0 +1,26 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "render.descriptionLogic",
+  "version": "1.0.0",
+  "extensionPoint": "render",
+  "doc": "Renders a class expression written in OWL 2's mapping to RDF as description-logic text. The value is an object: `root`, the blank node the expression starts at; `triples`, every triple whose subject is a blank node the root reaches, each with `s`, `p`, `o` and `oKind` (`iri`, `blank` or `literal`, an IRI in full, a blank node as `_:b<n>`, a literal as its lexical form); and `names`, the display of every IRI those triples name. An IRI renders as its name and a literal as its lexical form. A blank node renders, at the first of these its triples state: `owl:unionOf` as `(A ∪ B)`, `owl:intersectionOf` as `(A ∩ B)`, `owl:complementOf` as `¬A`, `owl:oneOf` as `{a, b}`, a list's members found through `rdf:first` and `rdf:rest` and an empty or broken list as `?`; otherwise a restriction on the property `owl:onProperty` names (`?` without one, or when it is not an IRI), at the first quantifier its triples state: `owl:someValuesFrom` as `∃ p.C`, `owl:allValuesFrom` as `∀ p.C`, `owl:hasValue` as `∋ p.v`, `owl:cardinality`, `owl:minCardinality` and `owl:maxCardinality` as `= n p`, `≥ n p` and `≤ n p`, and their qualified forms as the same followed by `.C`, C being what `owl:onClass` or `owl:onDataRange` names (no `.C` without one), `n` being `?` when the count is not a literal; and without a quantifier as `? p`. A term within an operator or after a quantifier is one level deeper than its expression, the root being level 1. A blank node deeper than `maxDepth` renders as `…` and marks the result elided; a blank node met again within its own rendering renders as `…` and marks it cyclic. The output is one run whose text is the rendering and whose style holds `elided` and `cyclic`. Its fixtures are recorded with the W3C OWL tool type's cases (spec 035, T078).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/RenderInput"
+  },
+  "args": {
+    "maxDepth": {
+      "type": "integer",
+      "default": 0,
+      "doc": "The deepest level a blank node is rendered at; 0 renders every level."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/RenderResult"
+  },
+  "laws": [
+    "deterministic",
+    "pure"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

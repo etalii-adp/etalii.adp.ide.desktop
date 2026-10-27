@@ -1,0 +1,86 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.structurizr` from what the desktop host's module shows when parity/cases/c4/deployment/sidecar-keys.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "workspace \"Sidecar keys\" {\n    model {\n        alpha = softwareSystem \"Alpha\" \"First.\"\n        beta = softwareSystem \"Beta\" \"Second.\"\n        alpha -> beta \"Calls\" \"HTTPS\"\n    }\n    views {\n        systemLandscape \"Landscape\" {\n            include *\n        }\n    }\n}\n",
+    "files": {
+      "sidecar-keys.adp": "c4/deployment\nbody: sidecar-keys.dsl\n"
+    }
+  },
+  "args": {
+    "view": "deployment"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "alpha",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Alpha",
+          "description": "First.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "beta",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "Beta",
+          "description": "Second.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "System Landscape diagram for Sidecar keys",
+          "viewKind": "SystemLandscape",
+          "viewKey": "Landscape",
+          "legend.0.label": "Software System",
+          "legend.0.background": "#1168bd",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "alpha->beta@5",
+        "type": "c4/model+relationship",
+        "source": "alpha",
+        "target": "beta",
+        "attributes": {
+          "description": "Calls",
+          "technology": "HTTPS",
+          "sourceX": "92.35",
+          "sourceY": "-0.7199999999999989",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "0",
+          "destinationY": "238.20000000000002",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      }
+    ],
+    "findings": []
+  }
+}

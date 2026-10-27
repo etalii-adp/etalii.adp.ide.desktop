@@ -1,0 +1,179 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "etalii/agent-activity-diagram",
+  "description": "agent-activity-diagram.atd",
+  "companion": {
+    "file": "agent-activity-diagram.md",
+    "sections": [
+      "What DISL 0.4 and FBL 0.4 cannot state yet",
+      "Known gaps"
+    ]
+  },
+  "items": [
+    {
+      "id": "what-disl-0-4-and-fbl-0-4-cannot-state-yet/1",
+      "text": "**The reference layout's numbers.**",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/575",
+      "reason": "DISL 10.4 states the properties of a tiered `force` layout and not its constants, and ATD's `algorithm … { force: … }` carries only DISL's settings; the constants stay in the companion's Layout section until a capability or the language states them."
+    },
+    {
+      "id": "what-disl-0-4-and-fbl-0-4-cannot-state-yet/2",
+      "text": "**`updated` on every edit.**",
+      "statedBy": "hook touchUpdated"
+    },
+    {
+      "id": "what-disl-0-4-and-fbl-0-4-cannot-state-yet/3",
+      "text": "**The status label**",
+      "statedBy": "notation node Specification label status"
+    },
+    {
+      "id": "what-disl-0-4-and-fbl-0-4-cannot-state-yet/4",
+      "text": "**The link of a location's folder**",
+      "statedBy": "notation node Location compartment folder"
+    },
+    {
+      "id": "known-gaps/1",
+      "text": "**No host implements it yet.**",
+      "statedBy": "tool"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/body.rs",
+      "lines": "45-61",
+      "behaviour": "An entry the binding stores no id for is named by the definition's own scheme: `diagram`, `pinned:<element>` for a locked position, `groups:<element>#<group>` for a group's state.",
+      "statedBy": "binding aad element placement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/body.rs",
+      "lines": "130-150",
+      "behaviour": "A lock or a group state whose element is gone is removed on the next write and not reported.",
+      "statedBy": "binding aad element placement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/store.rs",
+      "lines": "45-87",
+      "behaviour": "A file the binding cannot read, not YAML or not an activity file, is held as unreadable with the reader's sentence, and nothing is written to it until it reads.",
+      "statedBy": "binding aad"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/commands.rs",
+      "lines": "213-312",
+      "behaviour": "Each edit is planned by the binding as splices of the file; a change to a task or a pull request also sets its updated moment, unless that moment is what was set.",
+      "statedBy": "hook touchUpdated"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/commands.rs",
+      "lines": "60-75",
+      "behaviour": "Every edit is one command on the project's history whose undo restores the text the file held.",
+      "hostConcern": "undo-stack",
+      "reason": "The history and how an exact undo is kept are the host's; the description says each gesture is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/actions.rs",
+      "lines": "82-150",
+      "behaviour": "The empty canvas offers one Add per toolbox tool and Unlock all positions, unavailable while nothing is locked; the diagram offers Show archived and Hide archived; a group offers Fold and Unfold; an element its derived menu.",
+      "statedBy": "toolbox context for diagram"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/actions.rs",
+      "lines": "151-179",
+      "behaviour": "Lock position is offered only on an element that is not locked and Unlock position only on one that is; the Open link entries are left out of the menu, a link being opened by its symbol on the canvas.",
+      "divergesFrom": "toolbox context for Project"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/actions.rs",
+      "lines": "282-287",
+      "behaviour": "A rename to nothing is refused with \"It needs a name.\".",
+      "statedBy": "constraint needsAName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/mapper.rs",
+      "lines": "104-111",
+      "behaviour": "An archived specification is left out unless the archived switch is on, with the relations at either end of it.",
+      "statedBy": "canvas filters"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/mapper.rs",
+      "lines": "113-173",
+      "behaviour": "Every element is placed by the tiered force layout, rings from the projects outwards, a locked element where it is locked.",
+      "statedBy": "algorithm rings"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/mapper.rs",
+      "lines": "80-103",
+      "behaviour": "A card's size is the definition's, grown by the rows its lists show.",
+      "hostConcern": "text-measurement",
+      "reason": "How tall a card's shown rows make it is measured by the host's renderer; the notation states the lists and their rows."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/view.rs",
+      "lines": "303-323",
+      "behaviour": "A drop locks each element where it is let go, several at once as one step.",
+      "statedBy": "toolbox context for Project"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/view.rs",
+      "lines": "325-334",
+      "behaviour": "Moving an element under another is refused: \"An element of this diagram has no parent to move it under; it is locked where it is dropped.\".",
+      "statedBy": "notation node Project refusals"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/validator.rs",
+      "lines": "32-103",
+      "behaviour": "A reference to something the file lacks and an id used twice are errors, an entry without an id is information, a file of a newer version is an error, a key the diagram does not read is mentioned once.",
+      "statedBy": "constraints"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/agent-activity-diagram/src/theme.rs",
+      "lines": "31-60",
+      "behaviour": "The status colours, light and dark, as the definition's theme tokens.",
+      "statedBy": "notation theme"
+    }
+  ]
+}

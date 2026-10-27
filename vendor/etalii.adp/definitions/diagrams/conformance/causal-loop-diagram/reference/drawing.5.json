@@ -1,0 +1,547 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "loop:B2",
+      "type": "Loop",
+      "shape": "path",
+      "bounds": {
+        "x": 27.01,
+        "y": -8,
+        "w": 25.98,
+        "h": 25.99
+      },
+      "labels": [
+        {
+          "id": "caption",
+          "text": "B2 · Deaths check the population",
+          "font": "12 600 system-ui, sans-serif",
+          "position": {
+            "x": 40,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "loop:B4",
+      "type": "Loop",
+      "shape": "path",
+      "bounds": {
+        "x": 27.01,
+        "y": -8,
+        "w": 25.98,
+        "h": 25.99
+      },
+      "labels": [
+        {
+          "id": "caption",
+          "text": "B4 · Food limits births",
+          "font": "12 600 system-ui, sans-serif",
+          "position": {
+            "x": 40,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "loop:R1",
+      "type": "Loop",
+      "shape": "path",
+      "bounds": {
+        "x": 27.01,
+        "y": -8,
+        "w": 25.98,
+        "h": 25.99
+      },
+      "labels": [
+        {
+          "id": "caption",
+          "text": "R1 · Births beget births",
+          "font": "12 600 system-ui, sans-serif",
+          "position": {
+            "x": 40,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "loop:R3",
+      "type": "Loop",
+      "shape": "path",
+      "bounds": {
+        "x": 27.01,
+        "y": -8,
+        "w": 25.98,
+        "h": 25.99
+      },
+      "labels": [
+        {
+          "id": "caption",
+          "text": "R3 · Crowding, sanitation and mortality",
+          "font": "12 600 system-ui, sans-serif",
+          "position": {
+            "x": 40,
+            "y": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "variable:births",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 158.92,
+        "y": -91.75,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Births per year",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 203.92,
+            "y": -67.95
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:crowding",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": -158.92,
+        "y": -91.75,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Crowding",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": -113.92,
+            "y": -67.95
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:deaths",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 183.5,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Deaths",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 45,
+            "y": 207.3
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:foodPerCapita",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 158.92,
+        "y": 91.75,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Food per capita",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 203.92,
+            "y": 115.55
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:population",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": -183.5,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "People",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": 45,
+            "y": -159.7
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    },
+    {
+      "id": "variable:sanitation",
+      "type": "Variable",
+      "shape": "path",
+      "bounds": {
+        "x": -158.92,
+        "y": 91.75,
+        "w": 90,
+        "h": 39.6
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Sanitation",
+          "font": "14 400 system-ui, sans-serif",
+          "position": {
+            "x": -113.92,
+            "y": 115.55
+          }
+        }
+      ],
+      "style": {
+        "fill": "#FFFFFF",
+        "stroke": "#94A3B8",
+        "strokeWidth": 1,
+        "tokens": {
+          "fill": "color.surface",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "link:births|population",
+      "type": "CausalLink",
+      "source": "variable:births",
+      "target": "variable:population",
+      "route": [
+        {
+          "x": 158.92,
+          "y": -78.43
+        },
+        {
+          "x": 60.58,
+          "y": -143.9
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:crowding|sanitation",
+      "type": "CausalLink",
+      "source": "variable:crowding",
+      "target": "variable:sanitation",
+      "route": [
+        {
+          "x": -106,
+          "y": -52.15
+        },
+        {
+          "x": -106,
+          "y": 91.75
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:deaths|population",
+      "type": "CausalLink",
+      "source": "variable:deaths",
+      "target": "variable:population",
+      "route": [
+        {
+          "x": 37.08,
+          "y": 183.5
+        },
+        {
+          "x": 37.08,
+          "y": -143.9
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:foodPerCapita|births",
+      "type": "CausalLink",
+      "source": "variable:foodPerCapita",
+      "target": "variable:births",
+      "route": [
+        {
+          "x": 196,
+          "y": 91.75
+        },
+        {
+          "x": 196,
+          "y": -52.15
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:population|births",
+      "type": "CausalLink",
+      "source": "variable:population",
+      "target": "variable:births",
+      "route": [
+        {
+          "x": 60.58,
+          "y": -143.9
+        },
+        {
+          "x": 158.92,
+          "y": -78.43
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:population|crowding",
+      "type": "CausalLink",
+      "source": "variable:population",
+      "target": "variable:crowding",
+      "route": [
+        {
+          "x": 29.42,
+          "y": -143.9
+        },
+        {
+          "x": -68.92,
+          "y": -78.43
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:population|deaths",
+      "type": "CausalLink",
+      "source": "variable:population",
+      "target": "variable:deaths",
+      "route": [
+        {
+          "x": 52.92,
+          "y": -143.9
+        },
+        {
+          "x": 52.92,
+          "y": 183.5
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:population|foodPerCapita",
+      "type": "CausalLink",
+      "source": "variable:population",
+      "target": "variable:foodPerCapita",
+      "route": [
+        {
+          "x": 70.16,
+          "y": -143.9
+        },
+        {
+          "x": 201.06,
+          "y": 91.75
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    },
+    {
+      "id": "link:sanitation|deaths",
+      "type": "CausalLink",
+      "source": "variable:sanitation",
+      "target": "variable:deaths",
+      "route": [
+        {
+          "x": -98.34,
+          "y": 131.35
+        },
+        {
+          "x": 0,
+          "y": 196.82
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#0F172A",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "stroke": "color.text"
+        }
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "link:population|births",
+    "link:births|population",
+    "link:population|deaths",
+    "link:deaths|population",
+    "link:population|crowding",
+    "link:crowding|sanitation",
+    "link:sanitation|deaths",
+    "link:population|foodPerCapita",
+    "link:foodPerCapita|births",
+    "variable:population",
+    "variable:births",
+    "variable:deaths",
+    "variable:crowding",
+    "variable:sanitation",
+    "variable:foodPerCapita",
+    "loop:R1",
+    "loop:B2",
+    "loop:R3",
+    "loop:B4"
+  ]
+}

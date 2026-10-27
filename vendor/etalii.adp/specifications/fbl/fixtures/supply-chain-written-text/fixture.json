@@ -1,0 +1,67 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A supply chain diagram whose values a YAML reader would type otherwise (FBL 0.5, sections 4.1.5 and 5.2): a group id written 01, a node id written 007 and another written \"12\", a name on, a year 2050. Every value reads as the text it was written with, so a node's group written 01 names the group 01 and a flow's end written 12 names the node \"12\"; the tool turns a number's text into its value and reports what will not read, which is why no number is written here. A legacy stage word is read as the stage it became (raw-material as source, retailer as outlet), a key the tool does not read is listed by the computed unknownKeys, an entry that is not a mapping is taken by the Unreadable rule, and an entry written as a flow mapping is a node whose members no key slot binds, read through the computed written attribute; it and the flow written with no id are reported as addressed by their place. Opening and saving without an edit writes the bytes that were read.",
+  "binding": "../../supply-chain.fbl#supply",
+  "input": "written.supply",
+  "read": {
+    "elements": [
+      {
+        "id": "01",
+        "type": "Group",
+        "attributes": {
+          "storedId": "01",
+          "name": "Upstream"
+        }
+      },
+      {
+        "id": "007",
+        "type": "Node",
+        "attributes": {
+          "storedId": "007",
+          "type": "source",
+          "name": "on",
+          "group": "01"
+        }
+      },
+      {
+        "id": "12",
+        "type": "Node",
+        "attributes": {
+          "storedId": "12",
+          "type": "outlet",
+          "name": "2050"
+        }
+      },
+      {
+        "id": "f1",
+        "type": "Flow",
+        "attributes": {
+          "storedId": "f1",
+          "from": "007",
+          "to": "12",
+          "product": "ore"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "std.missingId",
+        "line": 16
+      },
+      {
+        "rule": "std.missingId",
+        "line": 22
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read, the plain 01, 007 and on and the quoted \"12\" included.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "supply-chain: 1\r\n# What a supply chain diagram reads is what its author wrote.\r\ngroups:\r\n  - id: 01\r\n    name: Upstream\r\nnodes:\r\n  - id: 007\r\n    type: raw-material\r\n    name: on\r\n    group: 01\r\n  - id: \"12\"\r\n    type: retailer\r\n    name: 2050   # a year, not a number\r\n    region: north\r\n  - just text\r\n  - {id: x, type: hub, name: X}\r\nflows:\r\n  - id: f1\r\n    from: 007\r\n    to: 12\r\n    product: ore\r\n  - from: 12\r\n    to: 007\r\n    product: scrap\r\n"
+    }
+  ]
+}

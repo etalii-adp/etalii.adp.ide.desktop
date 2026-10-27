@@ -1,0 +1,176 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "gartner/hypecycle-graph",
+  "description": "gartner-hype-cycle-graph.atd",
+  "companion": {
+    "file": "gartner-hype-cycle-graph.md",
+    "sections": [
+      "What DISL 0.3 cannot express"
+    ]
+  },
+  "items": [],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/scale.rs",
+      "lines": "12-135",
+      "behaviour": "The time axis is four canvas units per step of the diagram's unit from 1900-01, a month being `year × 12 + (month − 1)` written back as `YYYY-MM`; an unknown unit draws in months; rows are 56 units apart, a snap rounding halves away from zero.",
+      "statedBy": "coordinates axis time"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/scale.rs",
+      "lines": "143-150",
+      "behaviour": "A date is shown in the precision of the diagram's unit: `Jun 1795` in months, the year alone in coarser units.",
+      "statedBy": "fn formatWhen"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/phases.rs",
+      "lines": "28-89",
+      "behaviour": "A trend draws its first `phases` phases; each inner boundary is its dragged month when one is stored, otherwise spread evenly between its nearest dragged neighbours or the trend's ends, and a dragged boundary at or beyond the last visible phase is kept but not drawn.",
+      "statedBy": "fn phaseBoundaries"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/phases.rs",
+      "lines": "92-121",
+      "behaviour": "A move shifts every dragged boundary by the months the trend moved; a span change scales each from the start by the new span over the old.",
+      "statedBy": "hook rescaleBoundaries"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/phases.rs",
+      "lines": "126-168",
+      "behaviour": "A boundary set is clamped so every visible phase stays at least a month long, against its nearest neighbours.",
+      "statedBy": "model element Trend"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/phases.rs",
+      "lines": "171-180",
+      "behaviour": "A span too short for its phase count is refused with \"A trend showing N phases must be at least N months long, one per phase.\".",
+      "statedBy": "fn tooShort"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/placement.rs",
+      "lines": "34-78",
+      "behaviour": "A trend and a note are drawn from their top-left corner, a trigger from its centre; a trend is as wide as it lasts and a note as wide and tall as it keeps.",
+      "statedBy": "notation node Trend placement"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/placement.rs",
+      "lines": "89-124",
+      "behaviour": "A move snaps a trend's or a note's left edge to the nearest step and its top to the nearest row, a trigger's centre to the nearest step and row; a trend keeps its length.",
+      "statedBy": "coordinates system hypeCycle snapping"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/placement.rs",
+      "lines": "135-194",
+      "behaviour": "A drag of a trend's edge writes its start or its stop, its dragged boundaries scaled; a drag of a note's edge writes its size, and its month and row when the left or top border moved; any other edge is refused with \"Only a trend's start and stop, and a note's borders, can be dragged.\".",
+      "statedBy": "constraint spanFitsPhasesOnCanvas"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/lib.rs",
+      "lines": "71-81",
+      "behaviour": "A point on the canvas is read by an addition as the month index and the row under it, fractional, in the diagram's unit.",
+      "statedBy": "fn dropMonth"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/edits.rs",
+      "lines": "73-136",
+      "behaviour": "A finished connect gesture draws an influence from the source's last visible phase, bottom, halfway, to the target's Peak, top, halfway; one from a trigger states no from end; into a trigger, onto itself or a second time in one direction it is refused.",
+      "statedBy": "notation edge Influence anchoring"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/edits.rs",
+      "lines": "165-191",
+      "behaviour": "A name is written trimmed and an empty one refused; a note's text is written with LF line breaks and no trailing ones.",
+      "statedBy": "hook trimName"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/edits.rs",
+      "lines": "195-249",
+      "behaviour": "A date typed in the grid sets the span with the dragged boundaries scaled; one boundary is clamped with the others, and only one between two visible phases may move; a phase count the span is too short for is refused.",
+      "statedBy": "constraint spanFitsPhases"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/edits.rs",
+      "lines": "252-263",
+      "behaviour": "Tags are written each once, in the order first written.",
+      "statedBy": "hook tagsOnce"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/arrangement.rs",
+      "lines": "24-165",
+      "behaviour": "Arrange diagram packs trends, triggers and notes onto as few rows as their drawn extents allow, influenced trends on rows close together and a note over as many rows as it is tall; only `row` is written, in one step.",
+      "statedBy": "layout algorithm rowArrange"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/compact.rs",
+      "lines": "26-146",
+      "behaviour": "The Compact viewpoint shortens every trend to 24 canvas units per visible phase and packs it left in its row, causes before effects, 4 units apart; nothing of it is saved, and a drop on it means the true-time point the packing's inverse gives.",
+      "statedBy": "viewpoint compact"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/ruler.rs",
+      "lines": "20-83",
+      "behaviour": "The ruler under the canvas labels the coarsest level whose labels stand 64 pixels apart: a month and a quarter as `MMM uuuu`, a year, a decade, a century and a millennium as `uuuu`, never finer than one step of the unit.",
+      "statedBy": "coordinates axis time ruler"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/gartner-hype-cycle-graph/src/reading.rs",
+      "lines": "123-177",
+      "behaviour": "An element is named by the id the binding read into `storedId`; a date that is missing or does not read is none, a row or phase count that does not read is its fallback.",
+      "statedBy": "persistence typeMap"
+    }
+  ]
+}

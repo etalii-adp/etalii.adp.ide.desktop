@@ -1,0 +1,52 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredRegions` from the RDF module's layout of the reading that parity/cases/w3c/skos/skos-language-uppercase.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/drinks#drinks",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "region",
+          "key": "http://example.org/drinks#drinks"
+        }
+      },
+      {
+        "id": "res:http://example.org/drinks#tea",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/drinks#drinks"
+          ]
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columnWidth": 240,
+    "rowHeight": 110,
+    "regionGap": 90,
+    "regionHeader": 60,
+    "layerGap": 50,
+    "minimumColumns": 8,
+    "role": "self.role",
+    "key": "self.key",
+    "regions": "self.regions"
+  },
+  "output": {
+    "positions": {
+      "res:http://example.org/drinks#drinks": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/drinks#tea": {
+        "x": 0.0,
+        "y": 60.0
+      }
+    }
+  }
+}

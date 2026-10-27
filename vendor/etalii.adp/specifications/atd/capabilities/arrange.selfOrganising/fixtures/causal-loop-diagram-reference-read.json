@@ -1,0 +1,121 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability arrange.selfOrganising` from modules/diagrams/causal-loop-diagram/src/self_organizing.rs of etalii.adp.ide.desktop, on parity/fixtures/systems/causal-loop-diagram/reference/reference.cld as parity/scripts/systems/causal-loop-diagram/reference.json opens it; never edited by hand. Each element's id is the causal loop diagram's `variable:<name>`; a relation names the ids of its ends.",
+  "input": {
+    "elements": [
+      {
+        "id": "variable:population",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:births",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:deaths",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:crowding",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:sanitation",
+        "width": 105.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:foodPerCapita",
+        "width": 143.5,
+        "height": 39.6
+      }
+    ],
+    "relations": [
+      {
+        "source": "variable:population",
+        "target": "variable:births"
+      },
+      {
+        "source": "variable:births",
+        "target": "variable:population"
+      },
+      {
+        "source": "variable:population",
+        "target": "variable:deaths"
+      },
+      {
+        "source": "variable:deaths",
+        "target": "variable:population"
+      },
+      {
+        "source": "variable:population",
+        "target": "variable:crowding"
+      },
+      {
+        "source": "variable:crowding",
+        "target": "variable:sanitation"
+      },
+      {
+        "source": "variable:sanitation",
+        "target": "variable:deaths"
+      },
+      {
+        "source": "variable:population",
+        "target": "variable:foodPerCapita"
+      },
+      {
+        "source": "variable:foodPerCapita",
+        "target": "variable:births"
+      }
+    ]
+  },
+  "args": {
+    "budget": 1000,
+    "separation": 40.0,
+    "rounds": 200
+  },
+  "output": {
+    "actions": [
+      {
+        "kind": "move",
+        "target": "variable:population",
+        "x": -42.52,
+        "y": 36.74
+      },
+      {
+        "kind": "move",
+        "target": "variable:births",
+        "x": -227.76,
+        "y": 132.56
+      },
+      {
+        "kind": "move",
+        "target": "variable:deaths",
+        "x": 85.92,
+        "y": -173.92
+      },
+      {
+        "kind": "move",
+        "target": "variable:crowding",
+        "x": 185.67,
+        "y": 159.34
+      },
+      {
+        "kind": "move",
+        "target": "variable:sanitation",
+        "x": 245.38,
+        "y": -72.98
+      },
+      {
+        "kind": "move",
+        "target": "variable:foodPerCapita",
+        "x": -231.74,
+        "y": -119.75
+      }
+    ]
+  }
+}

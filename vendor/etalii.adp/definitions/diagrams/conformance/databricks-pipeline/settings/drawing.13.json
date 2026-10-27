@@ -1,0 +1,219 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "compute",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 200,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "serverless",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 224
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "library:transformations/gold/**",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "glob",
+          "font": "10 400",
+          "position": {
+            "x": 8,
+            "y": 48
+          }
+        },
+        {
+          "id": "name",
+          "text": "transformations/gold/**",
+          "font": "13 400",
+          "position": {
+            "x": 8,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "notifications",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 200,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "data-eng@example.com",
+          "font": "13 400",
+          "position": {
+            "x": 328,
+            "y": 224
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "pipeline",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 40,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "serverless · development · PREVIEW",
+          "font": "10 400",
+          "position": {
+            "x": 328,
+            "y": 88
+          }
+        },
+        {
+          "id": "name",
+          "text": "bronze \"to\" gold",
+          "font": "13 400",
+          "position": {
+            "x": 328,
+            "y": 64
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "target",
+      "type": "databricks/pipeline+node",
+      "shape": "path",
+      "bounds": {
+        "x": 640,
+        "y": 0,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "main.gold",
+          "font": "13 400",
+          "position": {
+            "x": 648,
+            "y": 24
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "flow:pipeline->target",
+      "type": "databricks/pipeline+edge",
+      "source": "pipeline",
+      "target": "target",
+      "route": [
+        {
+          "x": 520,
+          "y": 68
+        },
+        {
+          "x": 640,
+          "y": 28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "flow:transformations/gold/**->pipeline",
+      "type": "databricks/pipeline+edge",
+      "source": "library:transformations/gold/**",
+      "target": "pipeline",
+      "route": [
+        {
+          "x": 200,
+          "y": 28
+        },
+        {
+          "x": 320,
+          "y": 68
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "library:transformations/gold/**",
+    "pipeline",
+    "target",
+    "compute",
+    "notifications",
+    "flow:transformations/gold/**->pipeline",
+    "flow:pipeline->target"
+  ]
+}

@@ -1,0 +1,11 @@
+@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# People
+ex:alice a ex:Person ;
+    rdfs:label "Alice" ;
+    ex:knows ex:bob .
+
+ex:bob rdfs:label "Bob" .  # kept
+
+[] ex:note "not bound" .

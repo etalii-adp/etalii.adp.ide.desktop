@@ -1,0 +1,45 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/cases/databricks/bundle/no-bundle-key.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "# No bundle: key, and a pipeline with neither catalog, schema nor notifications.\nvariables:\n  region:\n    default: westeurope\n\nresources:\n  pipelines:\n    bare:\n      name: Bare\n      libraries:\n        - notebook:\n            path: transformations/bare\n",
+    "files": {
+      "databricks.adp": "databricks/bundle\nbody: databricks.yml\n"
+    }
+  },
+  "args": {
+    "reading": "bundle"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "bundle",
+          "kind": "bundle",
+          "label": "bundle",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:pipelines/bare",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "bare",
+          "kind": "pipelines",
+          "label": "bare",
+          "badges": "pipelines",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

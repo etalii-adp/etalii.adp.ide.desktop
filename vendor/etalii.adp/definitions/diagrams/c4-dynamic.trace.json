@@ -1,0 +1,636 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "c4/dynamic",
+  "description": "c4-dynamic.atd",
+  "companion": {
+    "file": "c4-dynamic.md",
+    "sections": [
+      "The gaps",
+      "Stand-ins",
+      "What stays code",
+      "Outside the definition, and not a gap"
+    ]
+  },
+  "items": [
+    {
+      "id": "the-gaps/1",
+      "text": "1. FBL: the statements of the selected view (B13)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/2",
+      "text": "**Construct.** FBL names a view by its block (4.7) and leaves its content to the reading's viewpoint (9.3). Nothing reads the statements of the view",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/3",
+      "text": "**Shown by.** `findings/view-statements.dsl`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/4",
+      "text": "**Would resolve it.** Rules `within` a view block read for the registration's view only, and a `typeMap` entry that maps them `as: \"diagram\"`; or a",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/5",
+      "text": "**Meanwhile.** The module reads the body itself and builds the model this definition describes from its reading (`C4Disl` in the conversion's design,",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/6",
+      "text": "2. FBL 4.7 and 4.6: a comment after a brace or a statement (B3, B4)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/7",
+      "text": "**Construct.** FBL 4.7 opens a block only when a statement's last non-whitespace character is the brace, so `model { // …` opens none and the braces",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/8",
+      "text": "**Shown by.** `comments-everywhere.dsl` (one `unreadable` entry under the example binding), `findings/trailing-comments.dsl`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/9",
+      "text": "**Would resolve it.** The binding's `comment`, or a second expression, stripped from the end of a statement outside quoted strings before the block",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/10",
+      "text": "**Meanwhile.** As gap 1.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/11",
+      "text": "3. FBL: a comment that spans lines (B5)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/12",
+      "text": "**Construct.** The tool skips `/* … */`, within a line and across lines. FBL has no comment that spans lines: the lines inside one are statements, a",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/13",
+      "text": "**Shown by.** `findings/block-comments.dsl`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/14",
+      "text": "**Would resolve it.** `blockComment: {open, close}` on a binding.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/15",
+      "text": "**Meanwhile.** As gap 1.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/16",
+      "text": "4. FBL: an escape inside a quoted group (B7)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/17",
+      "text": "**Construct.** The tool reads `\\\"` inside a quoted argument as a quote and writes a quote back escaped. FBL has escaping rules for XML, YAML and",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/18",
+      "text": "**Shown by.** `findings/escaped-quote.dsl`; the transcript's renames to `Parity \"name\"`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/19",
+      "text": "**Would resolve it.** An escape for a quoted group, read and written.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/20",
+      "text": "**Meanwhile.** The module's commands write every edit.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/21",
+      "text": "5. FBL: positional optional arguments (B18)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/22",
+      "text": "**Construct.** Where an argument is absent the tool appends it and writes `\"\"` for each absent argument before it, so a technology set on `container",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/23",
+      "text": "**Shown by.** `findings/dangling-both-ends.dsl`: the transcript sets a technology on `ghost -> phantom`, which has no label, and the line becomes",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/24",
+      "text": "**Would resolve it.** Writing argument n writes an empty value for each absent argument before it, and never re-emits a statement that opens a block.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/25",
+      "text": "**Meanwhile.** As gap 4.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/26",
+      "text": "6. FBL 4.7 and 7.5: a body whose braces do not balance (B22)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/27",
+      "text": "**Construct.** The tool opens a document whose braces do not balance with what can be read; FBL 4.7 makes such a body unreadable, empty and",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/28",
+      "text": "**Shown by.** `findings/unbalanced.dsl`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/29",
+      "text": "**Would resolve it.** A binding that asks to read what balances.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/30",
+      "text": "**Meanwhile.** As gap 1.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/31",
+      "text": "7. FBL 8.7 and 9.3: the legacy layout and the view header (B14, B16)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/32",
+      "text": "**Construct.** The tool's positions live in `<base>.layout.json`, keyed by view and element, the element keys compared without case, each number as",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/33",
+      "text": "**Shown by.** `findings/sidecar-keys.dsl` with its `.layout.json`, `findings/first-drag-undo.dsl`, `findings/view-without-key.dsl`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/34",
+      "text": "**Would resolve it.** The number form, the comparison of element keys and the pruning of a legacy file, and what a `view` that names nothing opens.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/35",
+      "text": "**Meanwhile.** The module's `C4LayoutSidecar` stores positions as today, and a move on a view that names nothing is refused with \"This diagram has no",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/36",
+      "text": "8. FBL: adding a block, and a value gathered from two places (B24, B9)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/37",
+      "text": "**Construct.** A block rule has no `insert`, so a view block cannot be added; and a `tags \"A\" \"B\"` line inside an element's block adds to the tags of",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/38",
+      "text": "**Shown by.** `findings/tags-in-block.dsl` for the tags; for the view block, the transcript's `add view` steps, which every document of the corpus",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/39",
+      "text": "**Would resolve it.** An `insert` for a block rule; a slot that gathers its values from several statements.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/40",
+      "text": "**Meanwhile.** `AddC4ViewCommand` stays code. Tags are read-only in the tool, so nothing writes them.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/41",
+      "text": "9. DISL 10: a layout's direction and spacing from a diagram attribute (A12)",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "id": "the-gaps/42",
+      "text": "**Construct.** A view's `autoLayout` sets the layout's direction and its rank and node separation (top to bottom, 120 and 60 otherwise), and a view",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "id": "the-gaps/43",
+      "text": "**Shown by.** `findings/autolayout-ignores-positions.dsl` with its `.layout.json`.",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "id": "the-gaps/44",
+      "text": "**Would resolve it.** `direction` and `spacing` as bindable values, and a layout setting that makes stored view data ignored while an expression holds.",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "id": "the-gaps/45",
+      "text": "**Meanwhile.** The definition's `c4Ranks` states the defaults; the module's layout reads the view's statements.",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "id": "the-gaps/46",
+      "text": "10. DISL 8.6: findings ordered by element (A11)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/47",
+      "text": "**Construct.** The tool reports the includes, then for each element its description, technology, connection and placement findings, then each",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/48",
+      "text": "**Shown by.** `findings/finding-order.dsl`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/49",
+      "text": "**Would resolve it.** An order key per finding, such as the position of its target in reading order, before the rule's position.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/50",
+      "text": "**Meanwhile.** The module orders the definition's findings itself (`C4FindingOrder` in the conversion's design, Q4), finding a view's findings by",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/51",
+      "text": "11. DISL 11.5.1: the identifier of a new element made from its name (A9)",
+      "statedBy": "fn identifierFor"
+    },
+    {
+      "id": "the-gaps/52",
+      "text": "**Construct.** A new element's identifier is the letters and digits of its name, the first one lowered, `_` before a leading digit and `element` when",
+      "statedBy": "fn identifierFor"
+    },
+    {
+      "id": "the-gaps/53",
+      "text": "**Shown by.** The transcript's adds (`minimal.dsl`: `Web App` gives `webApp` and then `webApp2`, `42 Things` gives `_42Things`, `!!!` gives",
+      "statedBy": "fn identifierFor"
+    },
+    {
+      "id": "the-gaps/54",
+      "text": "**Would resolve it.** A transform of the key attributes before the pattern is applied, or `natural` defined to drop what the pattern refuses.",
+      "statedBy": "fn identifierFor"
+    },
+    {
+      "id": "the-gaps/55",
+      "text": "**Meanwhile.** The module makes the identifier (`C4Placement.IdentifierFor`) and hands it to the operation, and refuses one already in use with \"This",
+      "statedBy": "fn identifierFor"
+    },
+    {
+      "id": "the-gaps/56",
+      "text": "12. Both: an id that depends on a directive of the body (B12)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/57",
+      "text": "**Construct.** `!identifiers hierarchical` makes a dotted reference such as `a.api` name an element by its path. Neither language states an id that",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/58",
+      "text": "**Shown by.** `findings/hierarchical-identifiers.dsl`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/59",
+      "text": "**Would resolve it.** An id rule chosen by a value the reader takes from the body.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/60",
+      "text": "**Meanwhile.** Kept unsupported, as today: the directive is carried and not honoured, a dotted reference names nothing and is reported as dangling,",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/61",
+      "text": "13. DISL 12.2: what a view exposes to a rule about the model",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/62",
+      "text": "**Construct.** A rule about every view reads `diagram.views`, whose `View` has `id`, `viewpoint`, `name` and `members` only. The tool's view findings",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/63",
+      "text": "**Shown by.** `findings/finding-order.dsl` (`c4.unknown-view-scope` at line 20, `c4.empty-view` at line 26), `findings/view-without-key.dsl`, the new",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/64",
+      "text": "**Would resolve it.** `View` exposing its reading's diagram attributes and a `location()`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/65",
+      "text": "**Meanwhile.** `emptyView` is a rule without the line, its subject the view's key, and `c4.unknown-view-scope` is not a rule of the definition; the",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/66",
+      "text": "14. DISL 11.2: the text an unset end was written with",
+      "statedBy": "fn writtenEnd"
+    },
+    {
+      "id": "the-gaps/67",
+      "text": "**Construct.** A relation whose mapped end names nothing is created with that end unset (11.2), and the identifier the body writes there is then",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/68",
+      "text": "**Shown by.** `findings/dangling-both-ends.dsl`, `findings/nested-relationships.dsl`, `findings/hierarchical-identifiers.dsl`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/69",
+      "text": "**Would resolve it.** The written text of an unset end or reference, readable in CEL, such as `self.written('source')`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/70",
+      "text": "**Meanwhile.** The plugin function `writtenEnd(relation, end)`, which the module supplies from its reading, as the timeline does (`timeline.md`, gap 4).",
+      "statedBy": "fn writtenEnd"
+    },
+    {
+      "id": "the-gaps/71",
+      "text": "15. DISL 3.5 and 6.13: the order of a view's members and of its legend entries",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/72",
+      "text": "**Construct.** The tool draws, lays out and keys a view's members in the order of the statements that select them: what the view's `include`",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/73",
+      "text": "**Shown by.** `findings/view-statements.dsl` (the view `named`, whose `include` names a container before a person) and the dynamic view",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/74",
+      "text": "**Would resolve it.** An order of a viewpoint's members by an expression, such as the position of the first statement that selects each; and a legend",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/75",
+      "text": "**Meanwhile.** The module orders the members it reads from the model by the view's statements, and keys the legend by them, each entry painted from",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/1",
+      "text": "**The canvas.** How big a card is, the `c4Ranks` arrangement, the boundary drawn around a container or component view's scope and around a hosting",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/2",
+      "text": "**An element declared without an identifier** is named `<kind>_<name>_<n>` by the host for the session, n counting such elements in document order,",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/3",
+      "text": "**The host's own refusals**, which come from the wire rather than from an operation: \"'<action id>' does not apply to this selection.\" for an action",
+      "hostConcern": "gestures",
+      "reason": "These refusals answer a request the host's wire carries, an action id, a property id or an element id, that names nothing the description offers for the selection; mapping a gesture onto an intent the description names is the host's, and the writer's two refusals are the reader's (binding structurizr)."
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/4",
+      "text": "**Prompts.** A rename or relabel prompt may be drawn in place of the element's name or the line's label. The prompt's validation refuses a blank name",
+      "hostConcern": "gestures",
+      "reason": "Where a rename or relabel prompt is drawn, and its refusal of a blank name while it is typed, are how the host takes the operation's parameter; the operation itself refuses nothing more."
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/5",
+      "text": "**Styles.** The `styles` block's headers are recorded and its properties never read, so a document's styles change nothing; the definition states the",
+      "statedBy": "theme"
+    },
+    {
+      "id": "outside-the-definition-and-not-a-gap/6",
+      "text": "**`c4/code`** keeps its registration and its refusing factory, and has no definition.",
+      "statedBy": "binding structurizr claims"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/parser.rs",
+      "lines": "133-229",
+      "behaviour": "The workspace is read line by line, a comment after a statement or a brace and a comment spanning lines skipped and a body whose braces do not balance read as far as it balances, every element and relationship whichever view is shown, an element without an identifier named `<kind>_<name>_<n>`.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/parser.rs",
+      "lines": "347-461",
+      "behaviour": "The views block's statements are read view by view: the key, the scope, a deployment view's environment, `include`, `exclude`, `title`, `autoLayout` with its direction and separations, and a dynamic view's interactions in their order.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/store.rs",
+      "lines": "41-72",
+      "behaviour": "A body is read without its byte order mark, which a write puts back; a body that cannot be read is unreadable and refuses every edit.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/rules.rs",
+      "lines": "104-124",
+      "behaviour": "The findings are listed element by element: the includes, then each element's, then each relationship's, then each view's, then the coverage findings.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/rules.rs",
+      "lines": "177-360",
+      "behaviour": "Each finding's condition and sentence: an element's missing description and technology, an element nothing connects, one placed in the wrong parent, a relationship whose end names nothing, a view whose scope names nothing and an empty view.",
+      "statedBy": "constraints"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/rules.rs",
+      "lines": "361-391",
+      "behaviour": "A view's members: what its `include` statements name, in their order, then what `include *` adds within the kinds it permits, then a dynamic view's interactions' ends, less what it excludes and the element it is inside of.",
+      "statedBy": "fn isMember"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/mapper.rs",
+      "lines": "254-340",
+      "behaviour": "A relationship whose ends are not both drawn is lifted to the nearest drawn ancestor of each end, one line per pair of drawn elements, the first relationship on the pair giving its label.",
+      "statedBy": "fn lifted"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/mapper.rs",
+      "lines": "195-235",
+      "behaviour": "The title drawn above the view: the declared title, else one made from the view's kind and the name of what it is scoped to, a landscape naming the workspace and a deployment view its environment.",
+      "statedBy": "attribute heading"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/mapper.rs",
+      "lines": "40-194",
+      "behaviour": "What the canvas is sent: the drawn elements within the viewport, as payloads of the host's types, with the synthetic ids `c4:view` and `boundary:<id>`.",
+      "hostConcern": "rendering",
+      "reason": "The payloads, the viewport filter and the ids of what only the canvas draws are how this host draws a scene; the description names what is drawn."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/theme.rs",
+      "lines": "9-100",
+      "behaviour": "Each card's background and text colour by kind, muted for an external element, and the swatch of each legend entry; a document's styles change nothing.",
+      "statedBy": "theme"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/layout.rs",
+      "lines": "92-160",
+      "behaviour": "A view's members ranked by the longest path along the relationships (a dynamic view's interactions), each rank a row centred on the others, `autoLayout`'s direction and separations replacing top to bottom 120 and 60 and making stored positions ignored, a stored position replacing the computed one otherwise.",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/layout.rs",
+      "lines": "253-432",
+      "behaviour": "A deployment view nests every node around what it hosts, to any depth, each set of siblings ranked on its own; a stored position is honoured only for an element no node encloses.",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/layout.rs",
+      "lines": "587-789",
+      "behaviour": "A container or component view's boundary around its scope's children, and every other element that overlaps it moved out by its shortest route and then separated from the others moved out.",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/layout.rs",
+      "lines": "244-251",
+      "behaviour": "Each card's size, from its name, type line and description measured with the module's font metric.",
+      "hostConcern": "text-measurement",
+      "reason": "How wide a text is and how many lines a description wraps onto are the host's measurement; the layout takes each card's size as its input."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/metrics.rs",
+      "lines": "50-72",
+      "behaviour": "The box a card occupies: as wide as its widest line within 160 to 240, as tall as the lines its description wraps onto.",
+      "hostConcern": "text-measurement",
+      "reason": "The estimate of a text's width is the host's font metric."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/placement.rs",
+      "lines": "144-166",
+      "behaviour": "A new element's identifier: the letters and digits of its name, the first lowered, `_` before a leading digit and `element` when nothing is left, then `web2`, `web3` against an identifier in use.",
+      "statedBy": "fn identifierFor"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/placement.rs",
+      "lines": "15-49",
+      "behaviour": "A container is added only inside a software system and a component only inside a container, each refused elsewhere in its sentence; the deployment kinds are not added from the toolbox.",
+      "statedBy": "operation addContainer"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/placement.rs",
+      "lines": "50-100",
+      "behaviour": "A new element's declaration is written into the block of the element it goes in, a block opened on a parent that has none.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/commands.rs",
+      "lines": "78-150",
+      "behaviour": "Setting a name, description or technology rewrites the one line that declares it, writing `\"\"` for each absent argument before the one set.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/sidecar.rs",
+      "lines": "1-299",
+      "behaviour": "Positions live in `<base>.layout.json`, keyed by view and by element compared without regard to case, each number as .NET writes a double.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/toolbox.rs",
+      "lines": "86-158",
+      "behaviour": "A new body is a workspace named after its file with a placeholder software system and one view of the reading's kind that includes everything and lays out left to right.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/toolbox.rs",
+      "lines": "36-85",
+      "behaviour": "The toolbox of each kind of view: the kinds it permits, each with its label, icon and description.",
+      "statedBy": "toolbox"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/c4/src/view.rs",
+      "lines": "225-260",
+      "behaviour": "A drag never changes what contains an element (\"Dragging changes where an element is drawn, not what contains it.\"), and a move on a view that names nothing is refused (\"This diagram has no view to arrange.\").",
+      "hostConcern": "gestures",
+      "reason": "A drag is a gesture the host maps onto a move of a position; that a drag onto another element is no reparent is that mapping."
+    }
+  ]
+}

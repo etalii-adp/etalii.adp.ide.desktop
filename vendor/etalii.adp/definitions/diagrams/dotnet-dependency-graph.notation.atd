@@ -1,0 +1,267 @@
+atd 0.1
+part of dotnet/dependency-graph
+
+// The .net dependency graph's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+// ---------------------------------------------------------------- Notation
+
+/// A project is a solid box, a package a lighter dashed one, because a package is consumed rather than built. Project
+/// references are solid lines, package references dashed, because they leave the solution.
+notation {
+  theme {
+    tokens: {
+      color.project.fill: "#3b6ea5"
+      color.project.stroke: "#2b537c"
+      color.package.fill: "#cbd5e1"
+      color.package.stroke: "#94a3b8"
+      color.node.label: "#ffffff"
+      color.node.sublabel: "#dbe6f2"
+      color.edge.project: "#64748b"
+      color.edge.package: "#e2e8f0"
+      color.warning: "#b45309"
+      font.body: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+    }
+    modes: {
+      dark: {
+        color.project.fill: "#3b6ea5"
+        color.project.stroke: "#7fb0e0"
+        color.package.fill: "#4a5568"
+        color.package.stroke: "#6b7280"
+        color.node.label: "#ffffff"
+        color.node.sublabel: "#cbd5e1"
+        color.edge.project: "#94a3b8"
+        color.edge.package: "#334155"
+        color.warning: "#fbbf24"
+      }
+    }
+    defaultMode: light
+    followSystem: true
+    doc: "The project, package and label colours are the module's own. The edge and warning colours and the font are the host's muted text, border and warning colours and the font its page is set in, copied here with their current values."
+  }
+
+  style node {
+    cornerRadius: 6
+    font: { family: $font.body }
+  }
+
+  style project extends node {
+    fill: $color.project.fill
+    stroke: { color: $color.project.stroke, width: 1.5 }
+  }
+
+  style package extends node {
+    fill: $color.package.fill
+    stroke: { color: $color.package.stroke, width: 1.5, dash: [4, 3], dashScale: absolute }
+  }
+
+  style nodeLabel {
+    font: { weight: 600, color: $color.node.label }
+  }
+
+  style nodeSubtitle {
+    font: { size: 12, color: $color.node.sublabel }
+  }
+
+  style conflict {
+    stroke: { color: $color.warning, width: 2.5, dash: solid }
+  }
+
+  style hidden {
+    visible: false
+  }
+
+  /// Double-click, or activate from the keyboard, reveals the project file.
+  node Project {
+    refusals: { reparent: ["A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow."] }
+    shape { type: roundedRect, params: { radius: 6 } }
+    style: project
+    size: { fixed: [220, 56] }
+    anchors: { mode: sides, sides: [left, right] }
+    tooltip: (title(self))
+    accessibility: { role: button, name: (title(self)) }
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: revealProjectFile
+    label @name as name { editable: false, position: center, overflow: ellipsis, maxLines: 1, style: nodeLabel }
+    label (self.targetFrameworks.join(', ')) as subtitle {
+      position: { anchor: [0.5, 0.5], offset: [0, 14], align: center }
+      visible: (self.targetFrameworks.size() > 0)
+      style: nodeSubtitle
+    }
+  }
+
+  /// Activating a package does nothing: it is not a file in the workspace.
+  node Package {
+    refusals: { reparent: ["A .NET dependency graph is drawn from the solution's own files, so nothing on it can be moved from here. Change a reference in the project file, and the diagram will follow."] }
+    shape { type: roundedRect, params: { radius: 6 } }
+    style: package
+    size: { fixed: [220, 56] }
+    conditions: [
+      {
+        when: (self.hasVersionConflict)
+        style: conflict
+        doc: "A package referenced at more than one version is outlined in the warning colour."
+      },
+      {
+        when: (self.isAmbient && !diagram.showAmbientPackages)
+        style: hidden
+        doc: "Ambient packages are not drawn until the reader asks for them."
+      }
+    ]
+    anchors: { mode: sides, sides: [left, right] }
+    tooltip: (title(self))
+    accessibility: { role: button, name: (title(self)) }
+    deletable: false
+    copyable: false
+    connectable: false
+    doubleClick: none
+    label @name as name { editable: false, position: center, overflow: ellipsis, maxLines: 1, style: nodeLabel }
+    label (self.versions.join(', ')) as subtitle {
+      position: { anchor: [0.5, 0.5], offset: [0, 14], align: center }
+      visible: (self.versions.size() > 0)
+      style: nodeSubtitle
+    }
+  }
+
+  edge ProjectReference {
+    refusals: { move: ["That element is not something this diagram can move."] }
+    line {
+      stroke: { color: $color.edge.project, width: 1.5 }
+      routing: bezier
+      startDirection: right
+      endDirection: left
+      bezier: {
+        reach: auto
+        backward: loop
+        doc: "Forward, the control points sit at the horizontal midpoint; backward, the curve leaves the source's right side and enters the target's left side the long way round. The exact reach is in the companion file."
+      }
+      bendpoints: { editable: false }
+    }
+    marker target arrowFilled
+    anchoring: { source: { mode: sides }, target: { mode: sides } }
+    selectable: true
+    deletable: false
+    reconnectable: false
+    tooltip: "ProjectReference"
+  }
+
+  edge PackageReference {
+    refusals: { move: ["That element is not something this diagram can move."] }
+    line {
+      stroke: { color: $color.edge.package, width: 1.5, dash: [5, 4], dashScale: absolute }
+      routing: bezier
+      startDirection: right
+      endDirection: left
+      bezier: { reach: auto, backward: loop }
+      bendpoints: { editable: false }
+    }
+    marker target arrowFilled
+    anchoring: { source: { mode: sides }, target: { mode: sides } }
+    conditions: [
+      {
+        when: (self.target.isAmbient && !diagram.showAmbientPackages)
+        style: hidden
+        doc: "A reference to a hidden package would be a connector to nothing, so it goes with it."
+      }
+    ]
+    selectable: true
+    deletable: false
+    reconnectable: false
+    tooltip: "PackageReference"
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+/// Nothing can be created: the graph's shape belongs to the solution. Select and pan only, and no context menu of the
+/// type's own.
+toolbox {
+  generic: { select: true, pan: true, lasso: false, text: false, note: false, image: false, freehand: false }
+}
+
+// ---------------------------------------------------------------- Forms
+
+/// Every row is read-only, and every row says where its value is defined: the project file, to be edited in a text
+/// editor. A value that cannot be discovered is a row saying so, never a missing row or a blank.
+form projectInspector for Project {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name { widget: readonly, readOnlyReasons: [{ reason: "projectFile" }] }
+    field path { widget: readonly, readOnlyReasons: [{ reason: "projectFile" }] }
+  }
+  section {
+    label: "Build"
+    field targetFrameworks {
+      widget: readonly
+      label: (self.targetFrameworks.size() == 1 ? 'Target framework' : 'Target frameworks')
+      display: (self.targetFrameworks.size() == 0 ? 'Not discoverable' : self.targetFrameworks.join(', '))
+      readOnlyReasons: [{ reason: "projectFile" }]
+    }
+    field dotNetVersion {
+      widget: readonly
+      display: (has(self.dotNetVersion) ? self.dotNetVersion : 'Not discoverable')
+      readOnlyReasons: [{ reason: "projectFile" }]
+    }
+  }
+}
+
+/// Every row is read-only. Identity rows are defined in the project files that reference the package; the description
+/// is the package author's.
+form packageInspector for Package {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Package" { id: "packageId", widget: readonly, readOnlyReasons: [{ reason: "referencingProjects" }] }
+    field versions {
+      id: "packageVersion"
+      widget: readonly
+      label: (self.versions.size() > 1 ? 'Versions' : 'Version')
+      display: (self.versions.size() == 0 ? 'Not discoverable' : self.versions.join(', '))
+      readOnlyReasons: [{ reason: "referencingProjects" }]
+    }
+    item packageVersionConflict "Version conflict" {
+      kind: computed
+      widget: readonly
+      value: "This solution's projects reference this package at more than one version."
+      visible: (self.hasVersionConflict)
+      readOnlyReasons: [{ reason: "referencingProjects" }]
+    }
+  }
+  section {
+    label: "About"
+    field description {
+      id: "packageDescription"
+      widget: readonly
+      display: (has(self.description) ? self.description : 'Not available - this package is not in the local NuGet cache')
+      readOnlyReasons: [
+        "Published by the package's author and read from the local NuGet cache; nothing in this workspace defines it."
+      ]
+    }
+  }
+}
+
+/// Projects layered by dependency depth, packages banded beyond them. Positions a user drags are stored and win element
+/// by element; everything else follows the computed layout on every render.
+layout {
+  default dependencyDepth
+  /// A project that references no other project sits in the first layer; every other project one layer beyond the
+  /// deepest project it references. A layer of more than twelve wraps into columns 260 apart. Packages form one band
+  /// 200 beyond the last project column, ordered by id.
+  algorithm dependencyDepth capability layout.rankedColumns {
+    rank: (self.isA('Project') ? dependencyDepth(self, []) : null)
+    order: (lower(self.name))
+    band: (self.isA('Package'))
+    bandPlacement: after
+    origin: [0, 0]
+    columnGap: 100
+    rowGap: 34
+    wrapAfter: 12
+    wrapGap: 40
+    bandGap: 300
+  }
+  trigger: onChange
+  respect: pinned
+  animate: false
+}

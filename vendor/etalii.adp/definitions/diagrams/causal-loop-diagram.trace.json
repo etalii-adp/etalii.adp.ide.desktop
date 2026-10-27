@@ -1,0 +1,338 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "systems/causal-loop-diagram",
+  "description": "causal-loop-diagram.atd",
+  "companion": {
+    "file": "causal-loop-diagram.md",
+    "sections": [
+      "Language gaps",
+      "Other differences a runtime will meet",
+      "Pending with the owner",
+      "What stays code"
+    ]
+  },
+  "items": [
+    {
+      "id": "language-gaps/1",
+      "text": "1. FBL: a reason for a statement that almost matched",
+      "statedBy": "fn unreadableSentence"
+    },
+    {
+      "id": "language-gaps/2",
+      "text": "line 9, `bogus statement`: \"'bogus' is not a statement this reading knows.\"",
+      "statedBy": "fn unreadableSentence"
+    },
+    {
+      "id": "language-gaps/3",
+      "text": "line 10, `link a b`: \"A link reads 'link <from> -> <to>', optionally followed by a polarity, 'delayed', 'flipped', a weight and a label.\"",
+      "statedBy": "fn unreadableSentence"
+    },
+    {
+      "id": "language-gaps/4",
+      "text": "line 11, `link a -> b weight=heavy`: \"'weight=heavy' does not read as a weight.\"",
+      "statedBy": "fn readsAsNumber"
+    },
+    {
+      "id": "language-gaps/5",
+      "text": "line 12, `variable \"\"`: \"A variable needs an id of at least one character.\"",
+      "statedBy": "fn unreadableSentence"
+    },
+    {
+      "id": "language-gaps/6",
+      "text": "2. FBL: a tolerant word grammar",
+      "statedBy": "binding cld element Link attribute note"
+    },
+    {
+      "id": "language-gaps/7",
+      "text": "**A bare word as a note.**",
+      "statedBy": "binding cld element Link attribute note"
+    },
+    {
+      "id": "language-gaps/8",
+      "text": "**The last candidate wins.**",
+      "statedBy": "binding cld element Link attribute note"
+    },
+    {
+      "id": "language-gaps/9",
+      "text": "**Quotes are optional when the value has no space.**",
+      "statedBy": "binding cld element Variable insert"
+    },
+    {
+      "id": "language-gaps/10",
+      "text": "3. FBL: placing several new entries of different rules as one group",
+      "statedBy": "binding cld element Link insert"
+    },
+    {
+      "id": "language-gaps/11",
+      "text": "4. DISL: a wavy underline",
+      "statedBy": "notation node Loop conditions"
+    },
+    {
+      "id": "language-gaps/12",
+      "text": "5. DISL: the seating order and radius of `circular`",
+      "statedBy": "layout algorithm ring"
+    },
+    {
+      "id": "language-gaps/13",
+      "text": "6. DISL: a committed value that did not change",
+      "hostConcern": "undo-stack",
+      "reason": "Whether a committed value equal to the current one lands a step is the host's history: the description's forms and operations state what is written, and a history that records no unchanged edit, as the standalone and desktop hosts' do, keeps the undo stack free of steps that change nothing."
+    },
+    {
+      "id": "language-gaps/14",
+      "text": "7. DISL: whether a size sent on the wire is a layout-time measurement",
+      "hostConcern": "text-measurement",
+      "reason": "A variable's width is the label's measured width (`notation node Variable size`, `autoSize: fitWidth`, never narrower than 90); how a label is measured, and whether the measured size travels to a client, is the host's text measurement."
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/1",
+      "text": "**The order of cycles.**",
+      "statedBy": "fn causalCycles"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/2",
+      "text": "**Numbers.**",
+      "statedBy": "binding cld element Link attribute weight"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/3",
+      "text": "**A reason sent with an entry that applies.**",
+      "hostConcern": "rendering",
+      "reason": "The description states each menu reason with its `unavailable` condition; whether a host also shows that sentence on an entry that applies is how it draws its menus."
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/4",
+      "text": "**Reasons no definition states.**",
+      "hostConcern": "file-dialogs",
+      "reason": "A document that is not open, could not be read, or has no registration to store positions in is the host's handling of the files it opens and registers: the description's operation states only what Arrange diagram needs of the model (two variables), and a host words why it has no document or no registration to write to."
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/5",
+      "text": "**Moving a loop or a link.**",
+      "statedBy": "notation node Loop refusals"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/6",
+      "text": "**Adding a variable at a point.**",
+      "statedBy": "operation addVariableHere"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/7",
+      "text": "**The link's names are read, not written.**",
+      "statedBy": "binding cld element Link attribute causeName"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/8",
+      "text": "**The declared order.**",
+      "statedBy": "constraints order"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/9",
+      "text": "**The turn of an undecidable loop's marker.**",
+      "statedBy": "notation node Loop icon"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/10",
+      "text": "**Tooltips.**",
+      "statedBy": "notation node Variable tooltip"
+    },
+    {
+      "id": "other-differences-a-runtime-will-meet/11",
+      "text": "**A loop that is not a cycle.**",
+      "statedBy": "constraint loopIsNotACycle"
+    },
+    {
+      "id": "pending-with-the-owner/1",
+      "text": "**A quote in a label (B13).**",
+      "statedBy": "model element Variable attribute label"
+    },
+    {
+      "id": "pending-with-the-owner/2",
+      "text": "**Two variables of one name (A7).**",
+      "statedBy": "builtin std.duplicateId"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/cycles.rs",
+      "lines": "35-83",
+      "behaviour": "The elementary cycles of the links, at most 1,000, found for each start variable in model order by a depth-first walk of the links in model order over the variables at or after it; a name written twice is one variable, the first, and the search says when it stopped at the bound.",
+      "statedBy": "fn causalCycles"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/cycles.rs",
+      "lines": "158-175",
+      "behaviour": "A cycle's identity is its member names rotated to start at the ordinally least, so two statements of one loop that begin at different variables are the same loop.",
+      "statedBy": "fn signature"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/cycles.rs",
+      "lines": "177-215",
+      "behaviour": "The plugin `net.etalii.adp.systems.cldCycles` supplies `causalCycles(variables, links, max)` to the specification, each cycle a list of the first variable of each name it runs through.",
+      "statedBy": "fn causalCycles"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/unreadable.rs",
+      "lines": "9-30",
+      "behaviour": "A statement the binding leaves unread is told one of four sentences by what it starts like: an unknown first word, a link without its arrow, a link whose weight does not read as a number, and a variable with an empty id.",
+      "statedBy": "fn unreadableSentence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/unreadable.rs",
+      "lines": "32-77",
+      "behaviour": "A weight reads as a number as .NET's invariant `double.TryParse` reads one: surrounding whitespace, a sign, digits with one decimal point, an exponent, and the names of the infinities and of NaN.",
+      "statedBy": "fn readsAsNumber"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/unreadable.rs",
+      "lines": "79-111",
+      "behaviour": "A statement's words are split at whitespace, a double-quoted run kept together without its quotes and an unclosed quote running to the end of the line.",
+      "statedBy": "fn statementWords"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/ring.rs",
+      "lines": "18-64",
+      "behaviour": "A document opens with its variables evenly around a ring from the top and clockwise, on a radius that grows with the widest variable and the count so that no two neighbours overlap; a name written twice is placed once.",
+      "statedBy": "layout algorithm ring"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/ring.rs",
+      "lines": "66-124",
+      "behaviour": "The ring seats variables by a depth-first walk of the links read as undirected from the first declared variable, earliest-declared neighbour first, continuing from the earliest variable left, and rounds each coordinate to a millionth.",
+      "statedBy": "layout algorithm ring"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/metrics.rs",
+      "lines": "8-46",
+      "behaviour": "A variable is as wide as its label's estimated width plus padding and never narrower than 90, 39.6 high, and the layouts keep 40 between boxes.",
+      "statedBy": "notation node Variable size"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/self_organizing.rs",
+      "lines": "1-75",
+      "behaviour": "Arrange diagram is Meyer's self-organizing graphs made deterministic: a phyllotaxis start, Halton stimuli, ties to the earlier variable, 2,000 iterations, then at most 200 rounds of separation, declined past a budget of 1,000 elements.",
+      "statedBy": "capability arrange.selfOrganising"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/self_organizing.rs",
+      "lines": "76-90",
+      "behaviour": "A diagram past the budget, or whose boxes still overlap after the separation rounds, is not arranged, and the refusal names the size and the count of overlapping pairs.",
+      "statedBy": "capability arrange.selfOrganising"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/theme.rs",
+      "lines": "12-21",
+      "behaviour": "In the dark theme a reinforcing loop's caption is #4daafc and a balancing loop's #fb923c, over the notation's dark mode.",
+      "statedBy": "notation theme modes"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/reading.rs",
+      "lines": "58-94",
+      "behaviour": "The layouts and the cycle finder read the variables and links in model order, each named as the binding reads it without its quotes, a variable shown by its label or else its name.",
+      "statedBy": "binding cld element Variable"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/lib.rs",
+      "lines": "93-110",
+      "behaviour": "Each variable is drawn where the registration stores it, as the centre of its box, and on the ring otherwise.",
+      "statedBy": "persistence view"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/lib.rs",
+      "lines": "115-124",
+      "behaviour": "Arrange diagram on fewer than two variables answers with the specification's own reason.",
+      "statedBy": "operation arrange unavailable"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/lib.rs",
+      "lines": "117-131",
+      "behaviour": "Arrange diagram on a document that could not be read, without a registration, or whose registration was deleted, is refused with a sentence of the module's.",
+      "hostConcern": "file-dialogs",
+      "reason": "A document that is not open, could not be read, or has no registration to store positions in is the host's handling of the files it opens and registers: the description's operation states only what Arrange diagram needs of the model (two variables), and a host words why it has no document or no registration to write to."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/lib.rs",
+      "lines": "132-162",
+      "behaviour": "Arrange diagram writes the self-organizing layout's centres as the registration's positions, in model order, as one undoable step.",
+      "statedBy": "operation arrange"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/lib.rs",
+      "lines": "171-173",
+      "behaviour": "Only a variable is placed by a drag; a link or a loop is refused with \"Only a variable can be moved; a link is drawn between its ends and a loop label among its members.\".",
+      "statedBy": "notation node Loop refusals"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/lib.rs",
+      "lines": "192-194",
+      "behaviour": "A new `layout:` block of the registration is written with CRLF line endings.",
+      "statedBy": "binding cld text"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "path": "modules/diagrams/causal-loop-diagram/src/lib.rs",
+      "lines": "196-209",
+      "behaviour": "A statement the binding leaves unread is reported once on its line with the sentence the module words for it.",
+      "statedBy": "builtin std.unreadableEntry"
+    }
+  ]
+}

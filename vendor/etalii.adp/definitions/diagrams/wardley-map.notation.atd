@@ -1,0 +1,988 @@
+atd 0.1
+part of wardley/map
+
+// The wardley map's coordinates, notation, toolbox, forms and layout, in a part of their own (ATD §5.2).
+
+/// One cartesian system on the unit square: maturity across, visibility up. Positions are continuous, with no snapping.
+coordinates {
+  system map {
+    kind: cartesian
+    x: maturity
+    y: visibility
+    orientation: y-down
+    grid: { visible: false }
+    doc: "The unit square, 1000 canvas units a side, the user need at the top."
+  }
+  axis maturity {
+    kind: linear
+    label: "Evolution"
+    unit: unitless
+    scale: 1000
+    min: 0
+    max: 1
+    outOfRange: {
+      drag: clamp
+      typed: refuse
+      message: "Both of a Wardley map's axes run from 0 to 1, so a position outside that is off the map."
+    }
+    ranges: [
+      { id: "genesis", label: "Genesis", from: 0, to: 0.175, style: band1 },
+      {
+        id: "custom"
+        label: "Custom Built"
+        from: 0.175
+        to: 0.4
+        style: band2
+        separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
+      },
+      {
+        id: "product"
+        label: "Product (+rental)"
+        from: 0.4
+        to: 0.7
+        style: band3
+        separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
+      },
+      {
+        id: "commodity"
+        label: "Commodity (+utility)"
+        from: 0.7
+        to: 1
+        style: band4
+        separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
+      }
+    ]
+    doc: "The four stages are the reference renderer's offsets 3.5, 8 and 14 on its 20-unit scale."
+  }
+  axis visibility {
+    kind: linear
+    label: "Value chain"
+    unit: unitless
+    scale: 1000
+    min: 0
+    max: 1
+    reversed: true
+    outOfRange: {
+      drag: clamp
+      typed: refuse
+      message: "Both of a Wardley map's axes run from 0 to 1, so a position outside that is off the map."
+    }
+    endLabels: { min: Invisible, max: Visible }
+  }
+  default map
+}
+
+// ---------------------------------------------------------------- Notation
+
+/// A component is a ring, an anchor a filled square and a submap a ring inside a fainter one, each with its name beside
+/// it; decorators and inertia are written under the name, and inertia is also a thick bar beside the mark. Dependencies
+/// are thin muted lines, flows thick ones, and an evolution a dashed line to a dashed ring at the target maturity. The
+/// four stages are shaded bands behind everything.
+notation {
+  theme {
+    tokens: {
+      color.surface: "#FFFFFF"
+      color.surface.raised: "#F4F3EF"
+      color.text: "#1F1E1C"
+      color.text.muted: "#6B6A65"
+      color.border: "#8A8880"
+    }
+    modes: {
+      dark: {
+        color.surface: "#1F1E1C"
+        color.surface.raised: "#2A2926"
+        color.text: "#F1EFE8"
+        color.text.muted: "#A8A69E"
+        color.border: "#B4B2A9"
+      }
+    }
+    defaultMode: light
+    followSystem: true
+    doc: "The standalone host draws with its theme's surface, raised surface, text, muted text and border colours; these tokens stand in for them."
+  }
+
+  style band1 {
+    fill: $color.surface.raised
+    fillOpacity: 0.35
+  }
+
+  style band2 {
+    fill: $color.surface.raised
+    fillOpacity: 0.5
+  }
+
+  style band3 {
+    fill: $color.surface.raised
+    fillOpacity: 0.65
+  }
+
+  style band4 {
+    fill: $color.surface.raised
+    fillOpacity: 0.8
+  }
+
+  style mark {
+    fill: $color.surface
+    stroke: { color: $color.text, width: 2 }
+  }
+
+  style name {
+    font: { size: 15, color: $color.text }
+  }
+
+  style badges {
+    font: { size: 12, color: $color.text.muted }
+  }
+
+  style evolveTarget {
+    fill: none
+    stroke: { color: $color.text, width: 2, dash: [4, 3] }
+    visible: (drawnEvolution(self))
+  }
+
+  style evolveLine {
+    stroke: { color: $color.text, width: 2, dash: [8, 6] }
+    visible: (drawnEvolution(self))
+  }
+
+  /// A ring inside a fainter outer ring.
+  shape doubleRing {
+    label: "Submap"
+    parts: [
+      {
+        id: "outer"
+        shape: circle
+        box: { x: -3, y: -3, w: (w + 6.0), h: (h + 6.0) }
+        style: { fill: none, stroke: { width: 1 }, opacity: 0.6 }
+      },
+      { id: "inner", shape: circle, box: { x: 0, y: 0, w: (w), h: (h) }, outline: true }
+    ]
+    aspectRatio: 1
+  }
+
+  node Component {
+    shape circle
+    style: mark
+    size: { fixed: [18, 18] }
+    placement: {
+      system: map
+      x: @maturity
+      y: @visibility
+      anchor: center
+      movable: true
+      doc: "Dragging moves the element on both axes, stopped at the edge of the map."
+    }
+    label @name as name {
+      position: {
+        anchor: [0.5, 0.5]
+        offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy] : [15.0, 4.0])
+        align: start
+      }
+      editable: inline
+      draggable: false
+      wrap: none
+      style: name
+    }
+    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : [])).join(' · ')) as badges {
+      position: {
+        anchor: [0.5, 0.5]
+        offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy + 14.0] : [15.0, 18.0])
+        align: start
+      }
+      editable: false
+      draggable: false
+      wrap: none
+      style: badges
+      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia)
+    }
+    badge inertia {
+      position: right
+      offset: [4, 0]
+      shape: { type: line, params: { orientation: vertical } }
+      size: 30
+      style: { stroke: { color: $color.text, width: 4, cap: round } }
+      visible: @inertia
+      tooltip: "Inertia"
+      doc: "A thick bar beside the mark, from 6 above it to 6 below it."
+    }
+  }
+
+  node Anchor {
+    shape rect
+    style: { fill: $color.text, stroke: { color: $color.text, width: 2 } }
+    size: { fixed: [18, 18] }
+    placement: {
+      system: map
+      x: @maturity
+      y: @visibility
+      anchor: center
+      movable: true
+      doc: "Dragging moves the element on both axes, stopped at the edge of the map."
+    }
+    label @name as name {
+      position: {
+        anchor: [0.5, 0.5]
+        offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy] : [15.0, 4.0])
+        align: start
+      }
+      editable: inline
+      draggable: false
+      wrap: none
+      style: name
+    }
+    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : [])).join(' · ')) as badges {
+      position: {
+        anchor: [0.5, 0.5]
+        offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy + 14.0] : [15.0, 18.0])
+        align: start
+      }
+      editable: false
+      draggable: false
+      wrap: none
+      style: badges
+      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia)
+    }
+    badge inertia {
+      position: right
+      offset: [4, 0]
+      shape: { type: line, params: { orientation: vertical } }
+      size: 30
+      style: { stroke: { color: $color.text, width: 4, cap: round } }
+      visible: @inertia
+      tooltip: "Inertia"
+      doc: "A thick bar beside the mark, from 6 above it to 6 below it."
+    }
+  }
+
+  node Submap {
+    shape doubleRing
+    style: mark
+    size: { fixed: [18, 18] }
+    placement: {
+      system: map
+      x: @maturity
+      y: @visibility
+      anchor: center
+      movable: true
+      doc: "Dragging moves the element on both axes, stopped at the edge of the map."
+    }
+    label @name as name {
+      position: {
+        anchor: [0.5, 0.5]
+        offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy] : [15.0, 4.0])
+        align: start
+      }
+      editable: inline
+      draggable: false
+      wrap: none
+      style: name
+    }
+    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : [])).join(' · ')) as badges {
+      position: {
+        anchor: [0.5, 0.5]
+        offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy + 14.0] : [15.0, 18.0])
+        align: start
+      }
+      editable: false
+      draggable: false
+      wrap: none
+      style: badges
+      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia)
+    }
+    badge inertia {
+      position: right
+      offset: [4, 0]
+      shape: { type: line, params: { orientation: vertical } }
+      size: 30
+      style: { stroke: { color: $color.text, width: 4, cap: round } }
+      visible: @inertia
+      tooltip: "Inertia"
+      doc: "A thick bar beside the mark, from 6 above it to 6 below it."
+    }
+  }
+
+  /// The target sits at its element's visibility. Only the first `evolve` of an element that names an element is drawn.
+  node Evolution {
+    shape circle
+    style: evolveTarget
+    size: { fixed: [18, 18] }
+    placement: {
+      system: map
+      x: @maturity
+      y: (has(self.component) ? self.component.visibility : 0.0)
+      anchor: center
+      movable: false
+    }
+    selectable: false
+    deletable: false
+    label @renamedTo as renamedTo {
+      position: { anchor: [0.5, 0.5], offset: [15, 4], align: start }
+      editable: false
+      wrap: none
+      style: name
+      visible: (self.renamedTo != '')
+    }
+  }
+
+  /// A pipeline draws nothing of its own; its components are drawn at the parent's visibility.
+  node Pipeline {
+    shape none
+    size: { fixed: [0, 0] }
+    placement: {
+      system: map
+      x: (has(self.component) ? self.component.maturity : 0.0)
+      y: (has(self.component) ? self.component.visibility : 0.0)
+      anchor: center
+      movable: false
+    }
+    selectable: false
+  }
+
+  node PipelineComponent {
+    shape circle
+    style: mark
+    size: { fixed: [18, 18] }
+    placement: {
+      system: map
+      x: @maturity
+      y: (has(self.parent.component) ? self.parent.component.visibility : 0.0)
+      anchor: center
+      movable: { x: true, y: false }
+      doc: "Dragging changes the maturity only; the visibility is the parent's."
+    }
+    label @name as name {
+      position: { anchor: [0.5, 0.5], offset: [15, 4], align: start }
+      editable: false
+      wrap: none
+      style: name
+    }
+  }
+
+  node Note {
+    shape text
+    style: { font: { size: 14, color: $color.text } }
+    placement: { system: map, x: @maturity, y: @visibility, anchor: left, movable: false }
+    selectable: false
+    label @text as text { editable: false }
+  }
+
+  /// The annotation itself is not drawn; each of its occurrences is, as an AnnotationPin.
+  node Annotation {
+    shape none
+    size: { fixed: [0, 0] }
+    selectable: false
+  }
+
+  node AnnotationPin {
+    shape circle
+    style: { fill: $color.surface, stroke: { color: $color.text, width: 1.5 } }
+    size: { fixed: [22, 22] }
+    placement: { system: map, x: @maturity, y: @visibility, anchor: center, movable: false }
+    tooltip: (self.text)
+    selectable: false
+    label (string(self.number)) as number { position: center, editable: false, style: { font: { size: 12, color: $color.text } } }
+  }
+
+  node Accelerator {
+    shape { type: line, params: { orientation: horizontal } }
+    style: { stroke: { color: $color.text, width: 3 } }
+    size: { fixed: [32, 3] }
+    placement: { system: map, x: @maturity, y: @visibility, anchor: center, movable: false }
+    selectable: false
+    label @name as name {
+      position: { anchor: [0.5, 0.5], offset: [22, 4], align: start }
+      editable: false
+      wrap: none
+      style: name
+    }
+    variant v0 when self.deaccelerator {
+      style: { stroke: { dash: [5, 4] } }
+    }
+  }
+
+  node Attitude {
+    shape rect
+    style: {
+      fill: $color.text
+      fillOpacity: 0.05
+      stroke: { color: $color.border, width: 1, dash: [4, 4] }
+    }
+    placement: {
+      system: map
+      x: @maturity1
+      x2: @maturity2
+      y: @visibility1
+      y2: @visibility2
+      movable: false
+      resizable: false
+    }
+    layer: background
+    selectable: false
+    label (string(self.attitude)) as kind { position: top-left, editable: false, style: { font: { size: 13, color: $color.text.muted } } }
+  }
+
+  /// A url definition is not drawn.
+  node Url {
+    shape none
+    size: { fixed: [0, 0] }
+    selectable: false
+  }
+
+  /// A plain line with no arrowhead: the value chain reads from top to bottom. Not selectable on the canvas.
+  edge Dependency {
+    line { stroke: { color: $color.text.muted, width: 1.5 }, routing: straight }
+    marker source none
+    marker target none
+    selectable: false
+  }
+
+  edge Flow {
+    line { stroke: { color: $color.text, width: 3 }, routing: straight }
+    marker source none
+    marker target none
+    selectable: false
+  }
+
+  /// The dashed line from an element to where it is heading.
+  edge Evolution.component {
+    line { routing: straight }
+    marker source none
+    marker target none
+    style: evolveLine
+    selectable: false
+  }
+
+  canvas {
+    background: $color.surface
+    bounds: { x: 0, y: 0, w: 1000, h: 1000 }
+    fit: stretch
+    margin: 90
+    legend: { visible: false }
+    minimap: false
+  }
+}
+
+// ---------------------------------------------------------------- Toolbox
+
+/// Eight tools, each dropped on the map: a drop asks for the name (or the text) and adds the element in the middle of
+/// the map, where the next drag places it (wardley-map.md, 'What DISL cannot express'). The pipeline tool is dropped on
+/// the component it belongs to. Every menu is empty while the map's file is read-only.
+toolbox {
+  group map "Wardley map" {
+    /// Something the value chain is made of. Where you put it is what you are claiming about it.
+    tool component "Component" { kind: operation, operation: addComponent, icon: "mdi-shape-outline", mode: drop }
+    /// The user need the whole chain hangs from. A map usually has one.
+    tool anchor "Anchor" { kind: operation, operation: addAnchor, icon: "mdi-anchor", mode: drop }
+    /// A component supplied by a market rather than by one supplier.
+    tool market "Market" { kind: operation, operation: addMarket, icon: "mdi-store-outline", mode: drop }
+    /// A component with an ecosystem of others built around it.
+    tool ecosystem "Ecosystem" { kind: operation, operation: addEcosystem, icon: "mdi-graph-outline", mode: drop }
+    /// A reference to another map, which activating opens.
+    tool submap "Submap" { kind: operation, operation: addSubmap, icon: "mdi-map-outline", mode: drop }
+    /// A set of choices behind one component. Drop it on the component it belongs to.
+    tool pipeline "Pipeline" { kind: operation, operation: addToPipeline, icon: "mdi-pipe", mode: drop }
+    /// Free text pinned to a place on the map.
+    tool note "Note" { kind: operation, operation: addNote, icon: "mdi-note-outline", mode: drop }
+    /// A numbered remark, shown on the map and listed in its own block.
+    tool annotation "Annotation" { kind: operation, operation: addAnnotation, icon: "mdi-comment-text-outline", mode: drop }
+  }
+  /// Component, anchor and submap alike. An evolution and a pipeline belong to the first holder of a name, so a later
+  /// holder is offered Evolve to… and Start a pipeline…, which first give it a name of its own.
+  context for Positioned when !env.readOnly {
+    placement: menu
+    standardEntries: false
+    tool "Rename…" {
+      kind: operation
+      operation: rename
+      group: "identity"
+      icon: "mdi-pencil-outline"
+      shortcut: F2
+    }
+    tool "Remove" { kind: delete, group: "identity", icon: "mdi-trash-can-outline", shortcut: Delete }
+    tool {
+      kind: operation
+      operation: evolve
+      group: "strategy"
+      label: (evolutionOf(self).size() > 0 ? 'Change evolution target…' : 'Evolve to…')
+      icon: "mdi-arrow-right-bold-outline"
+    }
+    tool "Stop evolving" {
+      kind: operation
+      operation: stopEvolving
+      group: "strategy"
+      icon: "mdi-arrow-right-bold-outline"
+      visible: (evolutionOf(self).size() > 0)
+    }
+    tool {
+      kind: operation
+      operation: toggleInertia
+      group: "strategy"
+      label: (self.inertia ? 'Clear inertia' : 'Mark as having inertia')
+      icon: "mdi-weight"
+    }
+    tool {
+      kind: operation
+      operation: toggleDecorator
+      group: "decorators"
+      forEach: (decoratorNames())
+      as: decorator
+      args: { decorator: (decorator) }
+      label: ((decorated(self, decorator) ? 'Clear ' : 'Mark as ') + decorator)
+      icon: "mdi-tag-outline"
+    }
+    /// Every other element, each holder of a repeated name by its own id, ordered by name without regard to case.
+    /// Choosing one draws `A->B`; a later holder at either end is first given a name of its own (wardley-map.md,
+    /// 'Identities'). The picker's confirming button says Link (gap 11). `gesture` only names the entry's wire id
+    /// (x-wardley).
+    tool "Link to…" {
+      kind: connect
+      via: Dependency
+      group: "links"
+      icon: "mdi-arrow-right"
+      target: pick
+      candidates: (diagram.nodesOfType('Positioned').filter(n, n != self).sortBy(n, upper(n.name)))
+      candidateLabel: (item.name)
+      pickerTitle: "Link to"
+      emptyText: "This map has no other element to link to."
+      args: { gesture: ('link') }
+    }
+    /// As Link to…, drawing `A+>B`; the picker's confirming button says Flow (gap 11).
+    tool "Flow to…" {
+      kind: connect
+      via: Flow
+      group: "links"
+      icon: "mdi-transfer-right"
+      target: pick
+      candidates: (diagram.nodesOfType('Positioned').filter(n, n != self).sortBy(n, upper(n.name)))
+      candidateLabel: (item.name)
+      pickerTitle: "Flow to"
+      emptyText: "This map has no other element to link to."
+      args: { gesture: ('flow') }
+    }
+    tool "Remove link…" {
+      kind: operation
+      operation: unlink
+      group: "links"
+      icon: "mdi-link-variant-off"
+      visible: (linksOf(self).size() > 0)
+    }
+    tool {
+      kind: operation
+      operation: addToPipeline
+      group: "pipeline"
+      label: (pipelineOf(self).size() > 0 ? 'Add to pipeline…' : 'Start a pipeline…')
+      icon: "mdi-pipe"
+      visible: (!pipelineOf(self).exists(q, q.form == 'legacy'))
+    }
+  }
+  context for Link when !env.readOnly {
+    placement: menu
+    standardEntries: false
+    tool "Remove link" { kind: delete, group: "links", icon: "mdi-link-variant-off", shortcut: Delete }
+  }
+  context for PipelineComponent when !env.readOnly {
+    placement: menu
+    standardEntries: false
+    tool "Remove from pipeline" { kind: delete, group: "pipeline", icon: "mdi-trash-can-outline", shortcut: Delete }
+  }
+  /// The empty canvas. Each entry asks for the name, or the text, and adds the element in the middle of the map.
+  context for diagram when !env.readOnly {
+    placement: menu
+    standardEntries: false
+    tool "Add component…" { kind: operation, operation: addComponent, group: "add", icon: "mdi-plus" }
+    tool "Add anchor…" { kind: operation, operation: addAnchor, group: "add", icon: "mdi-anchor" }
+    tool "Add submap…" { kind: operation, operation: addSubmap, group: "add", icon: "mdi-map-outline" }
+    tool "Add market…" { kind: operation, operation: addMarket, group: "add", icon: "mdi-store-outline" }
+    tool "Add ecosystem…" { kind: operation, operation: addEcosystem, group: "add", icon: "mdi-graph-outline" }
+    tool "Add note…" { kind: operation, operation: addNote, group: "add", icon: "mdi-note-outline" }
+    tool "Add annotation…" { kind: operation, operation: addAnnotation, group: "add", icon: "mdi-comment-text-outline" }
+  }
+}
+
+// ---------------------------------------------------------------- Forms
+
+form positioned for Positioned {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name" {
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+      parse: {
+        accepts: (value.trim() != '')
+        write: [{ call: rename, args: { name: (value) } }]
+        refusal: "Every element needs a name."
+        doc: "Runs Rename… with the typed name, with its refusals."
+      }
+    }
+    item kind "Kind" {
+      kind: computed
+      value: (self.isA('Anchor') ? 'anchor' : self.isA('Submap') ? 'submap' : 'component')
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."
+      ]
+    }
+  }
+  section {
+    label: "Position"
+    /// A typed value past 0 or 1 is refused by the attribute's outOfRange.
+    field visibility "Visibility" {
+      widget: text
+      display: (fixedNumber(self.visibility))
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+      parse: {
+        accepts: (readsAsNumber(value))
+        refusal: "This is a number between 0 and 1, where 0 is the invisible end and 1 the user need."
+        write: [{ set: { visibility: (double(value.trim())) } }]
+      }
+    }
+    field maturity "Maturity" {
+      widget: text
+      display: (fixedNumber(self.maturity))
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+      parse: {
+        accepts: (readsAsNumber(value))
+        refusal: "This is a number between 0 and 1, where 0 is the invisible end and 1 the user need."
+        write: [{ set: { maturity: (double(value.trim())) } }]
+      }
+    }
+    field stage "Evolution stage" {
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."
+      ]
+    }
+    field labelOffset "Label offset" {
+      id: "labelOffset"
+      showAbsent: false
+      display: (fixedNumber(value.dx) + ', ' + fixedNumber(value.dy))
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "A label offset is in pixels rather than on the map's scale, which is a property of the format ADP reproduces rather than edits. Change it where the map was written."
+      ]
+    }
+  }
+  section {
+    label: "Strategy"
+    item evolvesTo "Evolves to" {
+      kind: computed
+      visible: (evolutionOf(self).size() > 0)
+      value: (evolutionOf(self).size() > 0 ? fixedNumber(evolutionOf(self)[0].maturity) : '')
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+      parse: {
+        accepts: (value.trim() == '' ? evolutionOf(self).size() > 0 : readsAsFraction(value))
+        write: [
+          {
+            delete: (evolutionOf(self)[0])
+            when: (value.trim() == '' && evolutionOf(self).size() > 0)
+          },
+          {
+            set: { maturity: (double(value.trim())) }
+            target: (evolutionOf(self)[0])
+            when: (value.trim() != '' && evolutionOf(self).size() > 0)
+          },
+          {
+            create: {
+              type: ('Evolution')
+              attributes: { component: (self), maturity: (double(value.trim())) }
+            }
+            when: (value.trim() != '' && evolutionOf(self).size() == 0)
+          }
+        ]
+        refusal: (value.trim() == '' ? "'" + self.name + "' is not evolving." : "An evolution target is a number between 0 and 1.")
+        doc: "Empty stops the evolution, and is refused on an element that is not evolving; a number from 0 to 1 sets its target, or starts one. The row is shown only while the element evolves."
+      }
+    }
+    item becomes "Becomes" {
+      kind: computed
+      visible: (evolutionOf(self).size() > 0 && evolutionOf(self)[0].renamedTo != '')
+      value: (evolutionOf(self).size() > 0 ? evolutionOf(self)[0].renamedTo : '')
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+      parse: {
+        accepts: (evolutionOf(self).size() > 0 && !value.trim().contains('//'))
+        write: [{ set: { renamedTo: (value.trim()) }, target: (evolutionOf(self)[0]) }]
+        refusal: (evolutionOf(self).size() == 0 ? "'" + self.name + "' is not evolving, so it has no name to arrive under." : "A name cannot hold '//', which the map reads as the start of a comment.")
+        doc: "The name the element arrives under; empty removes it. Shown only while the evolution has one."
+      }
+    }
+    field inertia "Inertia" {
+      widget: switch
+      display: (self.inertia ? 'true' : 'false')
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+    }
+    item decorators "Decorators" {
+      kind: computed
+      value: (decoratorList(self))
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+      parse: {
+        accepts: (unknownDecorator(value) == '')
+        write: [
+          { set: { market: ('market' in decoratorWords(value).map(w, lower(w))) } },
+          { set: { ecosystem: ('ecosystem' in decoratorWords(value).map(w, lower(w))) } },
+          { set: { build: ('build' in decoratorWords(value).map(w, lower(w))) } },
+          { set: { buy: ('buy' in decoratorWords(value).map(w, lower(w))) } },
+          { set: { outsource: ('outsource' in decoratorWords(value).map(w, lower(w))) } }
+        ]
+        refusal: ("'" + unknownDecorator(value) + "' is not one of this notation's decorators. They are: market, ecosystem, build, buy, outsource.")
+        doc: "The five decorators as one comma list, in any order and case; the row writes exactly the set typed."
+      }
+    }
+  }
+  section {
+    label: "Links"
+    field url {
+      label: (self.isA('Submap') ? 'Opens' : 'Url')
+      showAbsent: false
+      visible: (self.url != '')
+      display: (diagram.nodesOfType('Url').exists(u, u.name == self.url) ? self.url + ' (' + diagram.nodesOfType('Url').filter(u, u.name == self.url)[0].address + ')' : self.url)
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "A url points at a definition elsewhere in the document, and nothing edits those here yet. Change it where the map was written."
+      ]
+    }
+  }
+}
+
+form pipelineComponent for PipelineComponent {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    field name "Name" {
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "A pipeline component's name is also the only handle the map has on it, and nothing renames one yet. Remove it from the pipeline and add it under the name you want."
+      ]
+    }
+    item kind "Kind" {
+      kind: computed
+      value: ('pipeline component')
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."
+      ]
+    }
+  }
+  section {
+    label: "Position"
+    item visibility "Visibility" {
+      kind: computed
+      value: (has(self.parent.component) ? fixedNumber(self.parent.component.visibility) : '')
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        {
+          message: ("A pipeline child takes its visibility from its parent, so it is not its own. Change it on '" + writtenEnd(self.parent, 'component') + "'.")
+        }
+      ]
+    }
+    field maturity "Maturity" {
+      widget: text
+      display: (fixedNumber(self.maturity))
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+      parse: {
+        accepts: (readsAsNumber(value))
+        refusal: "This is a number between 0 and 1, where 0 is the invisible end and 1 the user need."
+        write: [{ set: { maturity: (double(value.trim())) } }]
+      }
+    }
+    field stage "Evolution stage" {
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."
+      ]
+    }
+  }
+}
+
+form pipeline for Pipeline {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    item name "Name" {
+      kind: computed
+      value: (writtenEnd(self, 'component'))
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."
+      ]
+    }
+  }
+  section {
+    label: "Position"
+    item visibility "Visibility" {
+      kind: computed
+      visible: (has(self.component))
+      value: (has(self.component) ? fixedNumber(self.component.visibility) : '')
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        {
+          message: ("A pipeline child takes its visibility from its parent, so it is not its own. Change it on '" + writtenEnd(self, 'component') + "'.")
+        }
+      ]
+    }
+    item children "Components" {
+      kind: computed
+      widget: textarea
+      value: (self.children.map(c, c.name + ' (' + fixedNumber(c.maturity) + ')').join(', '))
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "A pipeline's components are listed here for reading; each one is edited by selecting it."
+      ]
+    }
+  }
+}
+
+form link for Link {
+  usage: [inspector]
+  section {
+    label: "Identity"
+    item source "From" {
+      kind: computed
+      value: (writtenEnd(self, 'source'))
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "The ends of a link are what it is. Remove this link and draw the one you meant."
+      ]
+    }
+    item target "To" {
+      kind: computed
+      value: (writtenEnd(self, 'target'))
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "The ends of a link are what it is. Remove this link and draw the one you meant."
+      ]
+    }
+    item linkKind "Kind" {
+      kind: computed
+      value: (self.isA('Flow') ? 'flow' : 'dependency')
+      readOnlyReasons: [
+        { reason: "readOnlyFile" },
+        "A dependency and a flow are different claims, written with different arrows. Remove this link and draw the other kind."
+      ]
+    }
+    /// Shown only when the link has a context, and then editable.
+    field context "Context" {
+      visible: (self.context != '')
+      readOnlyReasons: [{ reason: "readOnlyFile" }]
+      parse: { accepts: (true), write: [{ set: { context: (value.trim()) } }], refusal: "" }
+    }
+  }
+}
+
+form renameDialog "Rename element" for Positioned {
+  usage: [popover]
+  icon: "mdi-pencil-outline"
+  submitLabel: "Rename"
+  field name "Name" {
+    initial: (self.name)
+    validate: [{ rule: (value.trim() != ''), message: "Every element needs a name.", timing: commit }]
+  }
+}
+
+form evolveDialog "Evolve element" for Positioned {
+  usage: [popover]
+  icon: "mdi-arrow-right-bold-outline"
+  submitLabel: "Save"
+  field maturity "Target maturity (0 to 1)" {
+    initial: (fixedNumber(evolutionOf(self).size() > 0 ? evolutionOf(self)[0].maturity : self.maturity))
+    validate: [
+      {
+        rule: (readsAsFraction(value))
+        message: "An evolution target is a number between 0 and 1."
+        timing: commit
+      }
+    ]
+  }
+}
+
+form unlinkDialog "Remove link" for Positioned {
+  usage: [popover]
+  icon: "mdi-link-variant-off"
+  submitLabel: "Remove"
+  field link "Link" { widget: select, options: (linksOf(self).map(l, {'value': l, 'label': linkLabel(l)})) }
+}
+
+form pipelineDialog for Positioned {
+  usage: [popover]
+  label: ('Add to ' + self.name + "'s pipeline")
+  icon: "mdi-pipe"
+  submitLabel: "Add"
+  field name "Name" {
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every element needs a name.", timing: commit }]
+  }
+}
+
+form addComponentDialog "Add component" for diagram {
+  usage: [popover]
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field name "Name" {
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every element needs a name.", timing: commit }]
+  }
+}
+
+form addAnchorDialog "Add anchor" for diagram {
+  usage: [popover]
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field name "Name" {
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every element needs a name.", timing: commit }]
+  }
+}
+
+form addSubmapDialog "Add submap" for diagram {
+  usage: [popover]
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field name "Name" {
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every element needs a name.", timing: commit }]
+  }
+}
+
+form addMarketDialog "Add market" for diagram {
+  usage: [popover]
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field name "Name" {
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every element needs a name.", timing: commit }]
+  }
+}
+
+form addEcosystemDialog "Add ecosystem" for diagram {
+  usage: [popover]
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field name "Name" {
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "Every element needs a name.", timing: commit }]
+  }
+}
+
+form addNoteDialog "Add note" for diagram {
+  usage: [popover]
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field name "Text" {
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "A note needs something to say.", timing: commit }]
+  }
+}
+
+form addAnnotationDialog "Add annotation" for diagram {
+  usage: [popover]
+  icon: "mdi-plus"
+  submitLabel: "Add"
+  field name "Text" {
+    initial: ('')
+    validate: [{ rule: (value.trim() != ''), message: "A note needs something to say.", timing: commit }]
+  }
+}
+
+/// There is no automatic layout: every position is authored, and positions are what the map claims.
+layout {
+  trigger: manual
+}

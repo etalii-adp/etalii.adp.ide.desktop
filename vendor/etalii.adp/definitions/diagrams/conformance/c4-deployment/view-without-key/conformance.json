@@ -1,0 +1,128 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record c4/deployment` from parity/cases/c4/deployment/view-without-key.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "c4/deployment",
+  "description": "../../../c4-deployment.atd",
+  "inputs": {
+    "body": "view-without-key.dsl",
+    "registration": "view-without-key.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "Person",
+          "name": "User",
+          "description": "A user.",
+          "typeLine": "[Person]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#08427b",
+          "color": "#ffffff",
+          "shape": "Person"
+        }
+      },
+      {
+        "id": "s",
+        "type": "c4/model+node",
+        "parent": null,
+        "attributes": {
+          "kind": "SoftwareSystem",
+          "name": "System",
+          "description": "A system.",
+          "typeLine": "[Software System]",
+          "external": "false",
+          "width": "160",
+          "height": "78.8",
+          "background": "#1168bd",
+          "color": "#ffffff",
+          "shape": "RoundedBox"
+        }
+      },
+      {
+        "id": "c4:view",
+        "type": "c4/model+view",
+        "parent": null,
+        "attributes": {
+          "title": "System Landscape diagram for Views without keys",
+          "viewKind": "SystemLandscape",
+          "viewKey": "landscape",
+          "legend.0.label": "Person",
+          "legend.0.background": "#08427b",
+          "legend.0.color": "#ffffff",
+          "legend.0.shape": "Person",
+          "legend.1.label": "Software System",
+          "legend.1.background": "#1168bd",
+          "legend.1.color": "#ffffff",
+          "legend.1.shape": "RoundedBox"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "u->s@9",
+        "type": "c4/model+relationship",
+        "source": "u",
+        "target": "s",
+        "attributes": {
+          "description": "Uses",
+          "technology": "HTTPS",
+          "sourceX": "-110",
+          "sourceY": "39.4",
+          "sourceWidth": "160",
+          "sourceHeight": "78.8",
+          "destinationX": "110",
+          "destinationY": "39.4",
+          "destinationWidth": "160",
+          "destinationHeight": "78.8"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "c4.unknown-view-scope",
+        "severity": "warning",
+        "line": 35,
+        "message": "The 'everywhere' view is scoped to '*', which the model does not declare."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "db80761",
+      "source": "atd record (drawing)"
+    }
+  }
+}

@@ -1,0 +1,461 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.depthColumns` from the RDF module's layout of the reading that parity/cases/w3c/owl/owl-ontology.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/pizza",
+        "width": 220.0,
+        "height": 88.0,
+        "attributes": {
+          "role": "header",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Pizza",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "ind:http://example.org/pizza#Pizza",
+        "width": 220.0,
+        "height": 40.0,
+        "attributes": {
+          "role": "individual",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Topping",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#VegetarianTopping",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://example.org/pizza#Topping"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#MeatTopping",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://example.org/pizza#Topping"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Vegetarian",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://example.org/pizza#Pizza",
+            "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1"
+          ]
+        }
+      },
+      {
+        "id": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "res:http://example.org/pizza#Vegetarian",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#VeggiePizza",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Special",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "res:http://example.org/pizza#Special",
+          "supers": []
+        }
+      },
+      {
+        "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "res:http://example.org/pizza#Special",
+          "supers": []
+        }
+      },
+      {
+        "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "res:http://example.org/pizza#Special",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#integer",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Margherita",
+        "width": 220.0,
+        "height": 88.0,
+        "attributes": {
+          "role": "individual",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#Mozzarella",
+        "width": 220.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "individual",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/pizza#HomemadeBase",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://example.org/external#Base"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/external#Base",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://example.org/pizza#toppingOf|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://example.org/pizza#toppingOf|range",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://example.org/pizza#hasNote|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "dt:http://example.org/pizza#hasNote",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/external#Smoked",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:res:http://example.org/pizza#Pizza|http://example.org/pizza#hasTopping|res:http://example.org/pizza#Topping",
+        "source": "res:http://example.org/pizza#Pizza",
+        "target": "res:http://example.org/pizza#Topping"
+      },
+      {
+        "id": "edge:thing:http://example.org/pizza#toppingOf|domain|http://example.org/pizza#toppingOf|thing:http://example.org/pizza#toppingOf|range",
+        "source": "thing:http://example.org/pizza#toppingOf|domain",
+        "target": "thing:http://example.org/pizza#toppingOf|range"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Pizza|http://example.org/pizza#hasCalories|res:http://www.w3.org/2001/XMLSchema#integer",
+        "source": "res:http://example.org/pizza#Pizza",
+        "target": "res:http://www.w3.org/2001/XMLSchema#integer"
+      },
+      {
+        "id": "edge:thing:http://example.org/pizza#hasNote|domain|http://example.org/pizza#hasNote|dt:http://example.org/pizza#hasNote",
+        "source": "thing:http://example.org/pizza#hasNote|domain",
+        "target": "dt:http://example.org/pizza#hasNote"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Topping",
+        "source": "res:http://example.org/pizza#VegetarianTopping",
+        "target": "res:http://example.org/pizza#Topping"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2002/07/owl#disjointWith|res:http://example.org/pizza#MeatTopping",
+        "source": "res:http://example.org/pizza#VegetarianTopping",
+        "target": "res:http://example.org/pizza#MeatTopping"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#MeatTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Topping",
+        "source": "res:http://example.org/pizza#MeatTopping",
+        "target": "res:http://example.org/pizza#Topping"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Pizza",
+        "source": "res:http://example.org/pizza#Vegetarian",
+        "target": "res:http://example.org/pizza#Pizza"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2002/07/owl#equivalentClass|res:http://example.org/pizza#VeggiePizza",
+        "source": "res:http://example.org/pizza#Vegetarian",
+        "target": "res:http://example.org/pizza#VeggiePizza"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Margherita|http://example.org/pizza#hasTopping|res:http://example.org/pizza#Mozzarella",
+        "source": "res:http://example.org/pizza#Margherita",
+        "target": "res:http://example.org/pizza#Mozzarella"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#HomemadeBase|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/external#Base",
+        "source": "res:http://example.org/pizza#HomemadeBase",
+        "target": "res:http://example.org/external#Base"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Pizza|http://www.w3.org/2002/07/owl#AllDisjointClasses|res:http://example.org/pizza#Topping",
+        "source": "res:http://example.org/pizza#Pizza",
+        "target": "res:http://example.org/pizza#Topping"
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/pizza#VegetarianTopping",
+        "source": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "target": "res:http://example.org/pizza#VegetarianTopping"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+        "source": "res:http://example.org/pizza#Vegetarian",
+        "target": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1"
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/pizza#Vegetarian",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/pizza#Vegetarian"
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/pizza#MeatTopping",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "target": "res:http://example.org/pizza#MeatTopping"
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/external#Smoked",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "target": "res:http://example.org/external#Smoked"
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0||expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0"
+      },
+      {
+        "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0||expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+        "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0"
+      },
+      {
+        "id": "edge:res:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "source": "res:http://example.org/pizza#Special",
+        "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 530,
+    "laneOffset": 250,
+    "slotHeight": 130,
+    "satelliteHeight": 110,
+    "satelliteOffset": 10,
+    "headerGap": 80,
+    "bandGap": 140,
+    "bandColumns": 5,
+    "bandColumnGap": 60,
+    "bandRowGap": 50,
+    "role": "self.role",
+    "supers": "self.supers",
+    "owner": "self.owner",
+    "pinnable": "self.id.startsWith('res:') || self.id.startsWith('ind:')"
+  },
+  "output": {
+    "positions": {
+      "dt:http://example.org/pizza#hasNote": {
+        "x": 750.0,
+        "y": 1676.0
+      },
+      "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0": {
+        "x": 250.0,
+        "y": 613.0
+      },
+      "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0": {
+        "x": 250.0,
+        "y": 723.0
+      },
+      "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0": {
+        "x": 250.0,
+        "y": 833.0
+      },
+      "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1": {
+        "x": 780.0,
+        "y": 178.0
+      },
+      "ind:http://example.org/pizza#Pizza": {
+        "x": 0.0,
+        "y": 1398.0
+      },
+      "res:http://example.org/external#Base": {
+        "x": 0.0,
+        "y": 998.0
+      },
+      "res:http://example.org/external#Smoked": {
+        "x": 0.0,
+        "y": 1128.0
+      },
+      "res:http://example.org/pizza": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/pizza#HomemadeBase": {
+        "x": 530.0,
+        "y": 603.0
+      },
+      "res:http://example.org/pizza#Margherita": {
+        "x": 280.0,
+        "y": 1398.0
+      },
+      "res:http://example.org/pizza#MeatTopping": {
+        "x": 530.0,
+        "y": 473.0
+      },
+      "res:http://example.org/pizza#Mozzarella": {
+        "x": 560.0,
+        "y": 1398.0
+      },
+      "res:http://example.org/pizza#Pizza": {
+        "x": 0.0,
+        "y": 168.0
+      },
+      "res:http://example.org/pizza#Special": {
+        "x": 0.0,
+        "y": 603.0
+      },
+      "res:http://example.org/pizza#Topping": {
+        "x": 0.0,
+        "y": 343.0
+      },
+      "res:http://example.org/pizza#Vegetarian": {
+        "x": 530.0,
+        "y": 168.0
+      },
+      "res:http://example.org/pizza#VegetarianTopping": {
+        "x": 530.0,
+        "y": 343.0
+      },
+      "res:http://example.org/pizza#VeggiePizza": {
+        "x": 0.0,
+        "y": 473.0
+      },
+      "res:http://www.w3.org/2001/XMLSchema#integer": {
+        "x": 250.0,
+        "y": 178.0
+      },
+      "thing:http://example.org/pizza#hasNote|domain": {
+        "x": 500.0,
+        "y": 1676.0
+      },
+      "thing:http://example.org/pizza#toppingOf|domain": {
+        "x": 0.0,
+        "y": 1676.0
+      },
+      "thing:http://example.org/pizza#toppingOf|range": {
+        "x": 250.0,
+        "y": 1676.0
+      }
+    }
+  }
+}

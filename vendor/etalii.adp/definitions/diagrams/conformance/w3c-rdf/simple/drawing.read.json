@@ -1,0 +1,135 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "blank:0",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 240,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:b0",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 260
+          }
+        },
+        {
+          "id": "rows",
+          "text": "name: Bob",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 282
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "res:http://example.org/alice",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 72
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "Person",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": "alice",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "name: Alice",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|blank:0",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/alice",
+      "target": "blank:0",
+      "route": [
+        {
+          "x": 110,
+          "y": 72
+        },
+        {
+          "x": 110,
+          "y": 240
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "knows",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 150
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|blank:0",
+    "res:http://example.org/alice",
+    "blank:0"
+  ]
+}

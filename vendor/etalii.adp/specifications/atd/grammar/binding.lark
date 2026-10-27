@@ -1,9 +1,10 @@
-// ATD 0.1, module binding: FBL 0.8's bindings, one to one (ATD §11; FBL §3 to §13).
+// ATD 0.1, module binding: FBL 0.9's bindings, one to one (ATD §11; FBL §3 to §13).
 // Uses from core: name, qualified, names, type_ref, value, setting, settings_block, doc_member, label_member, STRING,
-// INT, DASHED_WORD. Uses from cel: expr.
+// INT, DASHED_WORD. Uses from cel: expr. Uses from notation: grammar_text.
 
 // `binding freeplane family xml { … }`; `family capability <name>` reads the body with a persistence plugin's
-// contract (FBL §11); a binding without `family` is a folder binding (FBL §10).
+// contract (FBL §11); a binding without `family` is a folder binding (FBL §10). `family grammar` carries its grammar
+// in ATD grammar notation, inline as `grammar { … }` or as `grammar from "<file>.lark"` (FBL §4.9, ATD §11.9).
 binding: "binding" rule_name ["family" binding_family] "{" binding_member* "}"
 binding_family: name -> declared_family
               | "capability" qualified -> capability_family
@@ -15,6 +16,8 @@ binding_family: name -> declared_family
                | "header" settings_block -> header
                | "registration" settings_block -> registration
                | "template" value -> template
+               | "grammar" "{" grammar_text "}" -> grammar_inline
+               | "grammar" "from" STRING -> grammar_file
                | "block" rule_name ["line" STRING] [settings_block] -> block_rule
                | "section" rule_name STRING [settings_block] -> section_rule
                | element_rule

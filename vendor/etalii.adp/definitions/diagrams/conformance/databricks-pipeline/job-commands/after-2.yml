@@ -1,0 +1,55 @@
+# Two jobs and two pipelines in one file, each reading with a finding of its own.
+bundle:
+  name: twin_bundle
+
+resources:
+  jobs:
+    job_a:
+      name: Job A
+      tasks:
+        - task_key: ingest
+          job_cluster_key: missing_cluster
+          notebook_task:
+            notebook_path: notebooks/a_ingest
+        - task_key: shape
+          depends_on:
+            - task_key: ingest
+          notebook_task:
+            notebook_path: notebooks/a_shape
+        - task_key: notebook_1
+          notebook_task:
+            notebook_path: notebooks/notebook_1
+        - task_key: python_1
+          spark_python_task:
+            python_file: scripts/python_1.py
+    job_b:
+      name: Job B
+      tasks:
+        - task_key: ingest
+          notebook_task:
+            notebook_path: notebooks/b_ingest
+        - task_key: report
+          depends_on:
+            - task_key: absent
+          notebook_task:
+            notebook_path: notebooks/b_report
+  pipelines:
+    pipe_a:
+      name: Pipe A
+      catalog: main
+      schema: bronze
+      libraries:
+        - notebook:
+            path: transformations/a
+    pipe_b:
+      name: Pipe B
+      schema: silver
+      libraries:
+        - notebook:
+            path: transformations/b
+
+targets:
+  dev:
+    mode: development
+  prod:
+    mode: production

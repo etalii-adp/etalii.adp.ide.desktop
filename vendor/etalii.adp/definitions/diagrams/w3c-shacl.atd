@@ -1,0 +1,977 @@
+atd 0.1
+
+/// The constraints a shapes graph states: node shapes as cards, their property constraints as rows, and what each one
+/// targets - drawn, never executed.
+///
+/// A reading of a SHACL shapes graph stored as Turtle (`.ttl`) or N-Triples (`.nt`). Every shape the file declares or
+/// uses is read: IRI-named node shapes become cards, property shapes become constraint rows on the cards that reference
+/// them (path, constraint summary, cardinality), target declarations become sentences on their card, and shape-to-shape
+/// references (`sh:node`, `sh:and`, `sh:or`, `sh:xone`, `sh:not`, and `sh:class` where exactly one card claims the
+/// class) become labelled edges. A shapes graph is about data held elsewhere, so no element is ever made for a targeted
+/// term, and nothing is ever run against data.
+///
+/// The turtle plugin reads the file into stored `Triple`, `Prefix` and `Base` elements, which every reading of it
+/// shares; every card and edge here is derived from them (4.11), the path syntax by a recursive function with a depth
+/// cap. Positions are kept in the `.adp` registration beside the file. What this specification cannot express is
+/// written down in `w3c-shacl.md` beside this file.
+diagram w3c/shacl version "2.0.0" {
+  label "SHACL shapes"
+  id: "net.etalii.adp.w3c.shacl"
+  icon: "mdi-check-decagram-outline"
+  fileExtension: "ttl"
+  license: "Apache-2.0"
+  homepage: "https://www.w3.org/TR/shacl/"
+  authors: [{ name: "Peter Vrenken" }]
+  limits: {
+    maxElements: 1000
+    budgets: {
+      shapes: {
+        measure: { count: ["Shape"] }
+        max: 1000
+        notice: {
+          text: ('Showing ' + string(budget('shapes').shown) + ' of ' + string(budget('shapes').total) + ' shapes. Edits are withheld while the view is partial.')
+          severity: warning
+          position: top
+        }
+        doc: "At most 1000 cards are drawn, in discovery order; a reference is drawn only when both its cards are. Edits are withheld on the family's count, not this one (the `truncated` reason)."
+      }
+    }
+  }
+  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl"] }
+  doc {
+    tags: ["shacl", "shapes", "constraints", "application profile", "rdf", "semantic web"]
+    seeAlso: [{ title: "W3C SHACL recommendation", href: "https://www.w3.org/TR/shacl/" }, {
+      title: "SHACL Play",
+      href: "https://shacl-play.sparna.fr/play/"
+    }
+    ]
+  }
+
+  import "w3c-shacl.notation.atd"
+  import "w3c-shacl.turtle.atd"
+  requires capability reader.turtle@^1
+  requires capability layout.grid@^1
+
+  /// Only shapes become elements, by the recommendation's declaration-or-use definition: a subject typed `sh:NodeShape`
+  /// or `sh:PropertyShape`, a subject of a target predicate or a constraint parameter, an object of `sh:node`,
+  /// `sh:property`, `sh:qualifiedValueShape` or `sh:not`, or a member of an `sh:and`, `sh:or` or `sh:xone` list.
+  /// Co-resident ontology or instance content belongs to the sibling readings of the same file. Typing is read from
+  /// stated triples and never inferred. The turtle plugin reads the triples into stored `Triple`, `Prefix` and `Base`
+  /// elements, which every reading of the file shares; every card and edge here is derived from them (4.11).
+  model {
+    /// One target declaration on a card: a sentence, never an element and never an edge, whether or not the targeted
+    /// term is described in this file.
+    datatype TargetChip {
+      fields: {
+        kind: { type: "TargetKind", required: true }
+        term: {
+          type: "string"
+          required: true
+          doc: "The targeted term's display: a prefixed name, a literal's lexical form, or `_:label` for a blank node; the card's own display for the implicit target."
+        }
+        termIri: { type: "string", default: "", doc: "The targeted IRI; empty for a literal or blank target." }
+        predicateIri: {
+          type: "string"
+          default: ""
+          doc: "The target predicate; empty for the implicit class target, which no triple declares."
+        }
+        describedInFile: {
+          type: "bool"
+          default: false
+          doc: "The targeted term is a subject somewhere in this file. A fact the grid states, never a finding."
+        }
+      }
+      display: (value.kind == 'implicitClass' ? 'targets its own instances' : 'targets ' + {
+        'class': 'class ',
+        'node': 'node ',
+        'subjectsOf': 'subjects of ',
+        'objectsOf': 'objects of '
+      }
+      [value.kind] + value.term)
+    }
+
+    /// One row on a card: a referenced property shape, a combinator or `sh:not` with a blank operand stated on the
+    /// card, or an `sh:sparql` constraint. Rows carry no identity or position of their own.
+    datatype ConstraintRow {
+      fields: {
+        kind: { type: "RowKind", required: true }
+        path: {
+          type: "string"
+          default: ""
+          doc: "The property shape's `sh:path` in SHACL path syntax (`^p`, `a/b`, `a|b`, `p*`, `p+`, `p?`); empty for card-level rows and for a property shape without a path."
+        }
+        name: {
+          type: "string"
+          default: ""
+          doc: "The first `sh:name` literal; carried to the grid, not drawn on the card."
+        }
+        summary: {
+          type: "string"
+          default: ""
+          doc: "The constraint parameters in the fixed order of w3c-shacl.md, joined with ', '."
+        }
+        cardinality: {
+          type: "string"
+          default: ""
+          doc: "`[min..max]`, 0 and * standing in for an absent `sh:minCount` or `sh:maxCount`; empty on card-level rows."
+        }
+        sparql: {
+          type: "bool",
+          default: false,
+          doc: "The row carries an `sh:sparql` constraint, drawn opaque and never run."
+        }
+        blank: { type: "bool", default: false, doc: "The row's shape is a blank node: readable, never editable." }
+        severity: {
+          type: "string"
+          default: ""
+          doc: "A non-default `sh:severity` on the row's shape, as its display; carried but not drawn."
+        }
+      }
+      display: (((value.sparql ? 'SPARQL constraint' : value.path) + '  ' + value.summary + '  ' + value.cardinality).trim())
+    }
+
+    enum TermKind {
+      iri { label: "IRI" }
+      blank { label: "Blank node" }
+      literal { label: "Literal" }
+    }
+
+    enum PrefixForm {
+      turtle { label: "@prefix" }
+      sparql { label: "PREFIX" }
+    }
+
+    /// The four target predicates, plus the implicit class target of a shape the file states to be a class.
+    enum TargetKind {
+      /// `sh:targetClass`.
+      class { label: "Target class" }
+      /// `sh:targetNode`.
+      node { label: "Target node" }
+      /// `sh:targetSubjectsOf`.
+      subjectsOf { label: "Target subjects of" }
+      /// `sh:targetObjectsOf`.
+      objectsOf { label: "Target objects of" }
+      /// The shape is typed `rdfs:Class`, or typed with a class whose stated `rdfs:subClassOf` chain reaches
+      /// `rdfs:Class`.
+      implicitClass { label: "Target (implicit)" }
+    }
+
+    /// Where a row comes from.
+    enum RowKind {
+      /// One per `sh:property` object.
+      property { label: "Property shape" }
+      /// `sh:and`, `sh:or` or `sh:xone` stated on the card with at least one blank operand.
+      combinator { label: "Combinator" }
+      /// `sh:not` stated on the card with a blank operand.
+      not { label: "Negation" }
+      /// `sh:sparql` stated on the card.
+      sparql { label: "SPARQL constraint" }
+    }
+
+    /// Which triple a reference edge stands for.
+    enum ReferenceKind {
+      /// `sh:node`, from the card or from one of its property rows.
+      node
+      /// An IRI operand of `sh:and` on the card.
+      and
+      /// An IRI operand of `sh:or` on the card.
+      or
+      /// An IRI operand of `sh:xone` on the card.
+      xone
+      /// An IRI operand of `sh:not` on the card.
+      not
+      /// A property row's `sh:class`, where exactly one drawn card claims that class through `sh:targetClass` or its
+      /// implicit target.
+      class
+    }
+
+    /// One triple of the file as the plugin reads it, with the line it starts on. Never drawn: every drawn element is
+    /// derived from these.
+    element Triple {
+      /// The subject: an IRI, or for a blank node its ordinal, the zero-based order of first appearance in this parse.
+      attribute s: string required
+      attribute sKind: TermKind required
+      /// A blank subject's label as written (`_:x` is `x`); '' for an IRI or an anonymous blank node.
+      attribute sLabel: string default ""
+      /// The subject as written: a prefixed name or a bracketed IRI; '' for a blank node.
+      attribute sWritten: string readonly default ""
+      attribute p: uri required
+      /// The object: an IRI, a blank node's ordinal, or a literal's lexical form.
+      attribute o: string required
+      attribute oKind: TermKind required
+      /// A blank object's label as written; '' otherwise.
+      attribute oLabel: string default ""
+      attribute language: string default ""
+      attribute datatype: string default ""
+      /// The 1-based line the triple's subject is written on.
+      attribute line: int readonly
+    }
+
+    /// One `@prefix` or `PREFIX` directive, re-declarations included, in document order. Never drawn.
+    element Prefix {
+      /// The prefix without its colon; '' for the default prefix.
+      attribute name: string required
+      attribute iri: uri required
+      attribute form: PrefixForm default "turtle"
+      attribute line: int readonly
+    }
+
+    /// The file's last `@base` or `BASE` directive; at most one. Never drawn.
+    element Base {
+      attribute iri: uri required readonly
+      multiplicity: { max: 1 }
+    }
+
+    /// A card: an IRI-named node shape, an IRI-named property shape no card references, or a blank node shape that
+    /// `sh:node` references or that is no operand at all.
+    ///
+    /// Blank shapes living only inside a combinator, `sh:not` or `sh:qualifiedValueShape` are summarized inline in the
+    /// referring row instead. Card flags come only from the card's own subject triples.
+    element Shape {
+      /// The shape's full IRI; empty for an anonymous shape, which the grid shows as '(anonymous)'.
+      ///
+      /// Rename through the context menu, so every reference follows the name.
+      attribute iri: uri readonly { label: "IRI", group: "Identity" }
+      /// The IRI compressed with the file's own prefixes, else its last segment; `_:label` or 'anonymous shape' for a
+      /// blank node.
+      ///
+      /// Rename through the context menu, so every reference follows the name.
+      attribute display: string readonly { label: "Name", group: "Identity" }
+      /// The shape is a blank node: drawn, but never positioned or edited.
+      attribute blank: bool readonly default false
+      /// The shape is the subject of an `sh:path` triple, the recommendation's own distinction.
+      attribute isPropertyShape: bool readonly default false
+      /// The first `sh:name` literal. Editing rewrites its lexical form in place, or adds one.
+      attribute name: string { label: "sh:name", group: "Shape" }
+      /// The first `sh:description` literal. Editing rewrites its lexical form in place, or adds one.
+      attribute description: string { label: "sh:description", group: "Shape" }
+      /// Every `sh:message` literal's lexical form.
+      ///
+      /// This is edited as triples in the graph reading.
+      attribute message: string many readonly { label: "sh:message", group: "Shape" }
+      /// An `sh:deactivated` literal whose lexical form is 'true'.
+      ///
+      /// Switch the shape off and on through the context menu.
+      attribute deactivated: bool readonly default false { label: "Deactivated", group: "Shape" }
+      /// An `sh:closed` literal whose lexical form is 'true'.
+      ///
+      /// This is edited as triples in the graph reading.
+      attribute closed: bool readonly default false { label: "Closed", group: "Shape" }
+      /// A `sh:severity` other than `sh:Violation`, as its display; empty for the default.
+      ///
+      /// This is edited as triples in the graph reading.
+      attribute severity: string readonly default "" { label: "Severity", group: "Shape" }
+      /// One chip per target triple on the shape in source order, then the implicit class target where it applies.
+      ///
+      /// Targets are declared and withdrawn through the context menu.
+      attribute targets: TargetChip many readonly { label: "Targets", group: "Targets" }
+      /// The card's rows in the order of its own triples.
+      ///
+      /// Property rows are added through the context menu, and edited as triples.
+      attribute rows: ConstraintRow many readonly { label: "Constraints", group: "Constraints" }
+      /// The first `sh:select` literal of each `sh:sparql` constraint on the shape.
+      ///
+      /// Shown as written, never parsed beyond extraction and never executed - this reading draws constraints, it does
+      /// not run them.
+      attribute sparqlQueries: text many readonly { label: "sh:select", group: "Constraints" }
+      /// The card's title: the display, joined with `sh:name` when the shape has one.
+      attribute title: string { derived: (self.name != '' ? self.display + ' — ' + self.name : self.display) }
+      attribute badges: string {
+        derived: ([self.deactivated ? 'deactivated' : '', self.closed ? 'closed' : '', self.severity].filter(b, b != '').join(' · '))
+      }
+      attribute deactivatedText: string {
+        label: "Deactivated",
+        group: "Shape",
+        derived: (self.deactivated ? 'true' : 'false')
+      }
+      attribute iriText: string { label: "IRI", group: "Identity", derived: (self.blank ? '(anonymous)' : self.iri) }
+      attribute messageText: string { label: "sh:message", group: "Shape", derived: (self.message.join(' / ')) }
+      icon: "mdi-check-decagram-outline"
+      labelAttribute: "title"
+      derived: {
+        from: (shCards())
+        key: (item)
+        id: (item)
+        attributes: {
+          iri: (item.startsWith('res:') ? item.substring(4) : '')
+          display: (shDisplay(item))
+          blank: (item.startsWith('blank:'))
+          isPropertyShape: (shPropertyShape(item))
+          name: (shFirstLiteral(item, 'http://www.w3.org/ns/shacl#name'))
+          description: (shFirstLiteral(item, 'http://www.w3.org/ns/shacl#description'))
+          message: (item.startsWith('res:') ? shObjects(item, 'http://www.w3.org/ns/shacl#message').filter(t, t.oKind == 'literal').map(t, t.o) : [])
+          deactivated: (shObjects(item, 'http://www.w3.org/ns/shacl#deactivated').exists(t, t.oKind == 'literal' && t.o == 'true'))
+          closed: (shObjects(item, 'http://www.w3.org/ns/shacl#closed').exists(t, t.oKind == 'literal' && t.o == 'true'))
+          severity: (cel.bind(s, shObjects(item, 'http://www.w3.org/ns/shacl#severity').filter(t, t.oKind == 'iri' && t.o != 'http://www.w3.org/ns/shacl#Violation'), s.size() > 0 ? rdfDisplayName(s[s.size() - 1].o) : ''))
+          targets: (shChips(item))
+          rows: (shRows(item))
+          sparqlQueries: (item.startsWith('res:') ? shObjects(item, 'http://www.w3.org/ns/shacl#sparql').map(c, cel.bind(q, diagram.nodesOfType('Triple').filter(u, u.sKind == c.oKind && u.s == c.o && u.p == 'http://www.w3.org/ns/shacl#select' && u.oKind == 'literal'), q.size() > 0 ? q[0].o : '')).filter(q, q != '') : [])
+        }
+        sources: (shAbout(item))
+        reason: "Shapes are read from the triples; rename or remove a named one through the context menu."
+        edits: {
+          delete: "removeResource"
+          rename: "renameResource"
+          "attribute:name": "setName"
+          "attribute:description": "setDescription"
+        }
+        doc: "One card per shape that is a card, in the order of the triple that first made it a shape."
+      }
+    }
+
+    /// A shape-to-shape reference stated in the file, drawn between two drawn cards. Read-only: no gesture creates one.
+    ///
+    /// Kept only when both ends are drawn cards, and at most one per (source, kind, target). A property row's `sh:node`
+    /// and `sh:class` edges start at the card that holds the row and carry the row's path as their label. Targets never
+    /// draw an edge, even when the targeted term is itself a drawn shape.
+    relation Reference from Shape to Shape {
+      label "Reference"
+      attribute referenceKind: ReferenceKind required readonly
+      /// The kind's name, or the referring row's path for a row-level `node` or `class` edge.
+      attribute label: string readonly
+      directed: true
+      allowSelfLoops: true
+      allowParallel: true
+      derived: {
+        from: (shCards().map(c, shEdges(c)).flatten().filter(e, e[2] in shCards()))
+        key: (item[0] + '|' + item[1] + '|' + item[2])
+        id: ('shacl-edge:' + item[0] + '|' + item[1] + '|' + item[2])
+        source: (diagram.elementById(item[0]))
+        target: (diagram.elementById(item[2]))
+        attributes: { referenceKind: (item[1]), label: (item[3]) }
+        reason: "A reference is stated by the file; edit it as text."
+        doc: "At most one edge per (source, kind, target), the first one stated; both ends are cards."
+      }
+      source: { role: "referrer" }
+      target: { role: "referenced" }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// An `rdf:type` triple with an IRI object: a type, never an edge.
+  fn typeTriple(t: Element) -> bool {
+    return t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && t.oKind == 'iri'
+  }
+
+  /// Whether a blank node is a cons cell of an RDF collection: one with an `rdf:first` triple.
+  fn isCell(ordinal: string) -> bool {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').exists(t, t.sKind == 'blank' && t.s == ordinal && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+  }
+
+  /// A collection's `rdf:first` or `rdf:rest` triple, which is folded into its members and never drawn itself.
+  fn isPlumbing(t: Element) -> bool {
+    return t.sKind == 'blank' && (t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first' || t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest') && isCell(t.s)
+  }
+
+  /// The `rdf:first` triples of the collection starting at `cell`, in order, walked through `rdf:rest` until `rdf:nil`
+  /// or a node that is no cons cell.
+  fn collectionMembers(cell: string) -> list recursion 64 {
+    // uses: ["diagram"]
+    return cel.bind(f, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))
+  }
+
+  /// The repeat counter of a stored triple or prefix declaration (11.5.2): '' for the first with its parts, '|1' for
+  /// the second and so on, in reading order.
+  fn repeatSuffix(e: Element) -> string {
+    // uses: ["diagram"]
+    return cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').filter(u, u.s == e.s && u.p == e.p && u.o == e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))
+  }
+
+  /// Each item of `xs`, whose first entry is its key, with the number of earlier items of the same key appended: the
+  /// repeat counter of a derived edge id (11.5.2), 0 for the first.
+  fn withRepeat(xs: list) -> list {
+    return lists.range(xs.size()).map(i, xs[i] + [lists.range(i).filter(j, xs[j][0] == xs[i][0]).size()])
+  }
+
+  /// The id of the card the RDF graph reading draws a subject or object term as.
+  fn cardId(term: string, kind: string) -> string {
+    return (kind == 'blank' ? 'blank:' : 'res:') + term
+  }
+
+  /// The terms a triple draws an RDF graph card for, in the order the tool meets them: its subject, then its object or
+  /// its collection's members, each with its kind, its written label and the triple. A type's IRI and a literal are no
+  /// card; a cons cell is folded away.
+  fn cardTerms(t: Element) -> list {
+    // uses: ["diagram"]
+    return isPlumbing(t) ? [] : ([[t.s, t.sKind, t.sLabel, t]] + (typeTriple(t) || t.oKind == 'literal' ? [] : (t.oKind == 'blank' && isCell(t.o) ? collectionMembers(t.o).filter(m, m.oKind != 'literal').map(m, [m.o, m.oKind, m.oLabel, t]) : [[t.o, t.oKind, t.oLabel, t]])))
+  }
+
+  /// Whether the RDF graph reading of this body is cut by its budget of 1000 cards. Every reading withholds its edits
+  /// while it is, because the tool gates every reading's edits on that one count.
+  fn familyTruncated() -> bool {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).distinct().size() > 1000
+  }
+
+  /// The triples whose subject is the term with this id, in document order.
+  fn shAbout(id: string) -> list {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == id)
+  }
+
+  /// The triples `id predicate ?`, in document order.
+  fn shObjects(id: string, predicate: string) -> list {
+    // uses: ["diagram"]
+    return shAbout(id).filter(t, t.p == predicate)
+  }
+
+  /// The lexical form of the first object of `id predicate ?` when it is a literal, else ''.
+  fn shFirstLiteral(id: string, predicate: string) -> string {
+    // uses: ["diagram"]
+    return cel.bind(o, shObjects(id, predicate), o.size() > 0 && o[0].oKind == 'literal' ? o[0].o : '')
+  }
+
+  /// The `rdf:first` triples of a list, in list order; nothing for a list that is no cons cell.
+  fn shMembers(head: string, kind: string) -> list {
+    // uses: ["diagram"]
+    return kind == 'blank' && isCell(head) ? collectionMembers(head) : []
+  }
+
+  /// A term inside a summary: an IRI as drawn, a literal's lexical form, `…` for a blank node.
+  fn shTermDisplay(term: string, kind: string) -> string {
+    // uses: ["diagram"]
+    return kind == 'iri' ? rdfDisplayName(term) : (kind == 'literal' ? term : '…')
+  }
+
+  /// Every triple that makes a term a shape, as `[position, id]`: typed `sh:NodeShape` or `sh:PropertyShape`, the
+  /// subject of a target or constraint parameter, the object of a shape-expecting parameter, a member of a shape list
+  /// at its `rdf:first` triple.
+  fn shMarks() -> list {
+    // uses: ["diagram"]
+    return cel.bind(ts, diagram.nodesOfType('Triple'), lists.range(ts.size()).map(i, cel.bind(t, ts[i], (typeTriple(t) && t.o in ['http://www.w3.org/ns/shacl#NodeShape', 'http://www.w3.org/ns/shacl#PropertyShape'] ? [[i, cardId(t.s, t.sKind)]] : ((t.p in ['http://www.w3.org/ns/shacl#targetClass', 'http://www.w3.org/ns/shacl#targetNode', 'http://www.w3.org/ns/shacl#targetSubjectsOf', 'http://www.w3.org/ns/shacl#targetObjectsOf', 'http://www.w3.org/ns/shacl#class', 'http://www.w3.org/ns/shacl#datatype', 'http://www.w3.org/ns/shacl#nodeKind', 'http://www.w3.org/ns/shacl#minCount', 'http://www.w3.org/ns/shacl#maxCount', 'http://www.w3.org/ns/shacl#minExclusive', 'http://www.w3.org/ns/shacl#minInclusive', 'http://www.w3.org/ns/shacl#maxExclusive', 'http://www.w3.org/ns/shacl#maxInclusive', 'http://www.w3.org/ns/shacl#minLength', 'http://www.w3.org/ns/shacl#maxLength', 'http://www.w3.org/ns/shacl#pattern', 'http://www.w3.org/ns/shacl#flags', 'http://www.w3.org/ns/shacl#languageIn', 'http://www.w3.org/ns/shacl#uniqueLang', 'http://www.w3.org/ns/shacl#equals', 'http://www.w3.org/ns/shacl#disjoint', 'http://www.w3.org/ns/shacl#lessThan', 'http://www.w3.org/ns/shacl#lessThanOrEquals', 'http://www.w3.org/ns/shacl#not', 'http://www.w3.org/ns/shacl#and', 'http://www.w3.org/ns/shacl#or', 'http://www.w3.org/ns/shacl#xone', 'http://www.w3.org/ns/shacl#node', 'http://www.w3.org/ns/shacl#property', 'http://www.w3.org/ns/shacl#qualifiedValueShape', 'http://www.w3.org/ns/shacl#qualifiedMinCount', 'http://www.w3.org/ns/shacl#qualifiedMaxCount', 'http://www.w3.org/ns/shacl#qualifiedValueShapesDisjoint', 'http://www.w3.org/ns/shacl#closed', 'http://www.w3.org/ns/shacl#ignoredProperties', 'http://www.w3.org/ns/shacl#hasValue', 'http://www.w3.org/ns/shacl#in', 'http://www.w3.org/ns/shacl#sparql'] ? [[i, cardId(t.s, t.sKind)]] : []) + (t.p in ['http://www.w3.org/ns/shacl#node', 'http://www.w3.org/ns/shacl#property', 'http://www.w3.org/ns/shacl#qualifiedValueShape', 'http://www.w3.org/ns/shacl#not'] && t.oKind != 'literal' ? [[i, cardId(t.o, t.oKind)]] : []) + (t.p in ['http://www.w3.org/ns/shacl#and', 'http://www.w3.org/ns/shacl#or', 'http://www.w3.org/ns/shacl#xone'] ? shMembers(t.o, t.oKind).filter(m, m.oKind != 'literal').map(m, [m.positionIn(ts), cardId(m.o, m.oKind)]) : []))))).flatten())
+  }
+
+  /// Every shape, in the order of the triple that first made it one.
+  fn shShapes() -> list {
+    // uses: ["diagram"]
+    return shMarks().filter(m, m[1].startsWith('res:') || m[1].startsWith('blank:')).sortBy(m, m[0]).map(m, m[1]).distinct()
+  }
+
+  /// The position of the triple that first made the term a shape.
+  fn shFirstMark(id: string) -> int {
+    // uses: ["diagram"]
+    return shMarks().filter(m, m[1] == id).map(m, m[0]).sort()[0]
+  }
+
+  /// The recommendation's own distinction: a property shape states `sh:path`.
+  fn shPropertyShape(id: string) -> bool {
+    // uses: ["diagram"]
+    return shObjects(id, 'http://www.w3.org/ns/shacl#path').size() > 0
+  }
+
+  /// Whether a triple with one of these predicates names the term as its object.
+  fn shReferencedBy(id: string, predicates: list) -> bool {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').exists(t, t.p in predicates && t.oKind != 'literal' && cardId(t.o, t.oKind) == id)
+  }
+
+  /// Whether the term is an operand: of `sh:not`, of `sh:qualifiedValueShape`, or a member of a shape list.
+  fn shOperand(id: string) -> bool {
+    // uses: ["diagram"]
+    return shReferencedBy(id, ['http://www.w3.org/ns/shacl#not', 'http://www.w3.org/ns/shacl#qualifiedValueShape']) || diagram.nodesOfType('Triple').exists(t, t.p in ['http://www.w3.org/ns/shacl#and', 'http://www.w3.org/ns/shacl#or', 'http://www.w3.org/ns/shacl#xone'] && shMembers(t.o, t.oKind).exists(m, m.oKind != 'literal' && cardId(m.o, m.oKind) == id))
+  }
+
+  /// `rdfs:Class` and every class a stated `rdfs:subClassOf` chain connects to it.
+  fn shClassClosure(classes: list) -> list recursion 64 {
+    // uses: ["diagram"]
+    return cel.bind(more, diagram.nodesOfType('Triple').filter(t, t.p == 'http://www.w3.org/2000/01/rdf-schema#subClassOf' && t.sKind == 'iri' && t.oKind == 'iri' && t.o in classes && !(t.s in classes)).map(t, t.s).distinct(), more.size() == 0 ? classes : shClassClosure(classes + more))
+  }
+
+  /// An IRI shape the file states to be a class targets its own instances.
+  fn shImplicitTarget(id: string) -> bool {
+    // uses: ["diagram"]
+    return id.startsWith('res:') && cel.bind(classes, shClassClosure(['http://www.w3.org/2000/01/rdf-schema#Class']), shAbout(id).exists(t, typeTriple(t) && t.o in classes))
+  }
+
+  /// Which shapes are cards: node shapes, except blank ones living only inside a combinator or a qualified reference,
+  /// plus IRI property shapes no card references.
+  fn shCard(id: string) -> bool {
+    // uses: ["diagram"]
+    return shPropertyShape(id) ? (id.startsWith('res:') && !shReferencedBy(id, ['http://www.w3.org/ns/shacl#property'])) : (id.startsWith('res:') || shReferencedBy(id, ['http://www.w3.org/ns/shacl#node']) || !shOperand(id))
+  }
+
+  /// Every card, in discovery order.
+  fn shCards() -> list {
+    // uses: ["diagram"]
+    return shShapes().filter(id, shCard(id))
+  }
+
+  /// The classes a card targets, declared or implicit.
+  fn shTargetedClasses(id: string) -> list {
+    // uses: ["diagram"]
+    return shObjects(id, 'http://www.w3.org/ns/shacl#targetClass').filter(t, t.oKind == 'iri').map(t, t.o) + (shImplicitTarget(id) ? [id.substring(4)] : [])
+  }
+
+  /// The one card that claims a class, or '' when none or several do.
+  fn shClaimant(classIri: string) -> string {
+    // uses: ["diagram"]
+    return cel.bind(c, shCards().filter(id, classIri in shTargetedClasses(id)), c.size() == 1 ? c[0] : '')
+  }
+
+  /// A blank node's label as written, or ''.
+  fn shBlankName(ordinal: string) -> string {
+    // uses: ["diagram"]
+    return cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == ordinal && t.sLabel != '').map(t, t.sLabel) + diagram.nodesOfType('Triple').filter(t, t.oKind == 'blank' && t.o == ordinal && t.oLabel != '').map(t, t.oLabel), l.size() > 0 ? l[0] : '')
+  }
+
+  /// A card's display: its IRI as drawn, `_:label`, or 'anonymous shape'.
+  fn shDisplay(id: string) -> string {
+    // uses: ["diagram"]
+    return id.startsWith('res:') ? rdfDisplayName(id.substring(4)) : (shBlankName(id.substring(6)) != '' ? '_:' + shBlankName(id.substring(6)) : 'anonymous shape')
+  }
+
+  /// A shape as the findings name it.
+  fn shFindingName(id: string) -> string {
+    // uses: ["diagram"]
+    return id.startsWith('res:') ? rdfDisplayName(id.substring(4)) : 'An anonymous shape'
+  }
+
+  /// A `sh:path` value in SHACL path syntax: `^p`, `a|b`, `p*`, `p+`, `p?`, `a/b`, parenthesized when nested.
+  fn shPath(term: string, kind: string, nested: bool) -> string recursion 64 {
+    // uses: ["diagram"]
+    return kind == 'iri' ? rdfDisplayName(term) : (kind != 'blank' ? '' : cel.bind(id, cardId(term, kind), shObjects(id, 'http://www.w3.org/ns/shacl#inversePath').size() > 0 ? '^' + shPath(shObjects(id, 'http://www.w3.org/ns/shacl#inversePath')[0].o, shObjects(id, 'http://www.w3.org/ns/shacl#inversePath')[0].oKind, true) : (shObjects(id, 'http://www.w3.org/ns/shacl#alternativePath').size() > 0 ? cel.bind(j, shMembers(shObjects(id, 'http://www.w3.org/ns/shacl#alternativePath')[0].o, shObjects(id, 'http://www.w3.org/ns/shacl#alternativePath')[0].oKind).map(m, shPath(m.o, m.oKind, true)).join('|'), nested ? '(' + j + ')' : j) : (shObjects(id, 'http://www.w3.org/ns/shacl#zeroOrMorePath').size() > 0 ? shPath(shObjects(id, 'http://www.w3.org/ns/shacl#zeroOrMorePath')[0].o, shObjects(id, 'http://www.w3.org/ns/shacl#zeroOrMorePath')[0].oKind, true) + '*' : (shObjects(id, 'http://www.w3.org/ns/shacl#oneOrMorePath').size() > 0 ? shPath(shObjects(id, 'http://www.w3.org/ns/shacl#oneOrMorePath')[0].o, shObjects(id, 'http://www.w3.org/ns/shacl#oneOrMorePath')[0].oKind, true) + '+' : (shObjects(id, 'http://www.w3.org/ns/shacl#zeroOrOnePath').size() > 0 ? shPath(shObjects(id, 'http://www.w3.org/ns/shacl#zeroOrOnePath')[0].o, shObjects(id, 'http://www.w3.org/ns/shacl#zeroOrOnePath')[0].oKind, true) + '?' : (isCell(term) ? cel.bind(j, collectionMembers(term).map(m, shPath(m.o, m.oKind, true)).join('/'), nested ? '(' + j + ')' : j) : '')))))))
+  }
+
+  /// A blank operand summarized one level deep, anything nested deeper as `…`.
+  fn shInline(term: string, kind: string) -> string {
+    // uses: ["diagram"]
+    return kind == 'literal' ? '…' : '{ ' + shAbout(cardId(term, kind)).filter(t, t.p != 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && t.p.startsWith('http://www.w3.org/ns/shacl#')).map(t, t.p.substring(27) + ' ' + (t.oKind != 'blank' ? shTermDisplay(t.o, t.oKind) : '…')).join(', ') + ' }'
+  }
+
+  /// A combinator's operands: an IRI by name, a blank one summarized.
+  fn shOperands(t: Element) -> string {
+    // uses: ["diagram"]
+    return (t.p == 'http://www.w3.org/ns/shacl#not' ? [[t.o, t.oKind]] : shMembers(t.o, t.oKind).map(m, [m.o, m.oKind])).map(o, o[1] == 'iri' ? rdfDisplayName(o[0]) : shInline(o[0], o[1])).join(', ')
+  }
+
+  /// One parameter of a property row's summary; '' where it is drawn as an edge instead.
+  fn shSummaryPart(card: string, t: Element) -> string {
+    // uses: ["diagram"]
+    return cel.bind(p, t.p, cel.bind(local, p.substring(27), p == 'http://www.w3.org/ns/shacl#class' && t.oKind == 'iri' ? (shClaimant(t.o) != '' && shClaimant(t.o) != card ? '' : 'class ' + rdfDisplayName(t.o)) : (p == 'http://www.w3.org/ns/shacl#node' && t.oKind == 'iri' ? '' : (p == 'http://www.w3.org/ns/shacl#node' ? 'node ' + shInline(t.o, t.oKind) : (p == 'http://www.w3.org/ns/shacl#datatype' && t.oKind == 'iri' ? rdfDisplayName(t.o) : (p == 'http://www.w3.org/ns/shacl#nodeKind' && t.oKind == 'iri' ? (t.o.startsWith('http://www.w3.org/ns/shacl#') ? t.o.substring(27) : rdfDisplayName(t.o)) : (p == 'http://www.w3.org/ns/shacl#in' ? 'in (' + shMembers(t.o, t.oKind).map(m, shTermDisplay(m.o, m.oKind)).join(', ') + ')' : (p == 'http://www.w3.org/ns/shacl#hasValue' ? 'has ' + shTermDisplay(t.o, t.oKind) : (p == 'http://www.w3.org/ns/shacl#qualifiedValueShape' ? 'qualified ' + (t.oKind == 'iri' ? rdfDisplayName(t.o) : shInline(t.o, t.oKind)) : (p == 'http://www.w3.org/ns/shacl#sparql' ? '' : local + ' ' + shTermDisplay(t.o, t.oKind)))))))))))
+  }
+
+  /// The row a `sh:property` object draws on a card.
+  fn shPropertyRow(card: string, t: Element) -> map {
+    // uses: ["diagram"]
+    return t.oKind == 'literal' ? {
+      'kind': 'property',
+      'path': '',
+      'name': '',
+      'summary': '',
+      'cardinality': '',
+      'sparql': false,
+      'blank': true,
+      'severity': ''
+    }
+    : cel.bind(id, cardId(t.o, t.oKind), cel.bind(min, shFirstLiteral(id, 'http://www.w3.org/ns/shacl#minCount'), cel.bind(max, shFirstLiteral(id, 'http://www.w3.org/ns/shacl#maxCount'), cel.bind(sev, shObjects(id, 'http://www.w3.org/ns/shacl#severity'), {
+      'kind': 'property',
+      'path': shObjects(id, 'http://www.w3.org/ns/shacl#path').size() > 0 ? shPath(shObjects(id, 'http://www.w3.org/ns/shacl#path')[0].o, shObjects(id, 'http://www.w3.org/ns/shacl#path')[0].oKind, false) : '',
+      'name': shFirstLiteral(id, 'http://www.w3.org/ns/shacl#name'),
+      'summary': (['http://www.w3.org/ns/shacl#datatype', 'http://www.w3.org/ns/shacl#class', 'http://www.w3.org/ns/shacl#nodeKind', 'http://www.w3.org/ns/shacl#minLength', 'http://www.w3.org/ns/shacl#maxLength', 'http://www.w3.org/ns/shacl#pattern', 'http://www.w3.org/ns/shacl#minInclusive', 'http://www.w3.org/ns/shacl#maxInclusive', 'http://www.w3.org/ns/shacl#minExclusive', 'http://www.w3.org/ns/shacl#maxExclusive', 'http://www.w3.org/ns/shacl#uniqueLang', 'http://www.w3.org/ns/shacl#hasValue', 'http://www.w3.org/ns/shacl#in', 'http://www.w3.org/ns/shacl#node', 'http://www.w3.org/ns/shacl#qualifiedValueShape', 'http://www.w3.org/ns/shacl#sparql'].map(p, shObjects(id, p).map(v, shSummaryPart(card, v))).flatten().filter(s, s != '') + ['http://www.w3.org/ns/shacl#and', 'http://www.w3.org/ns/shacl#or', 'http://www.w3.org/ns/shacl#xone', 'http://www.w3.org/ns/shacl#not'].map(p, shObjects(id, p).map(v, p.substring(27) + '(' + shOperands(v) + ')')).flatten()).join(', '),
+      'cardinality': '[' + (min != '' ? min : '0') + '..' + (max != '' ? max : '*') + ']',
+      'sparql': shObjects(id, 'http://www.w3.org/ns/shacl#sparql').size() > 0,
+      'blank': t.oKind == 'blank',
+      'severity': sev.size() > 0 && sev[0].oKind == 'iri' && sev[0].o != 'http://www.w3.org/ns/shacl#Violation' ? rdfDisplayName(sev[0].o) : ''
+    }
+    ))))
+  }
+
+  /// A card's rows, in the order of its own triples.
+  fn shRows(card: string) -> list {
+    // uses: ["diagram"]
+    return shAbout(card).map(t, t.p == 'http://www.w3.org/ns/shacl#property' ? [shPropertyRow(card, t)] : (t.p in ['http://www.w3.org/ns/shacl#and', 'http://www.w3.org/ns/shacl#or', 'http://www.w3.org/ns/shacl#xone'] ? (shMembers(t.o, t.oKind).exists(m, m.oKind != 'iri') ? [{
+      'kind': 'combinator',
+      'path': '',
+      'name': '',
+      'summary': t.p.substring(27) + '(' + shOperands(t) + ')',
+      'cardinality': '',
+      'sparql': false,
+      'blank': true,
+      'severity': ''
+    }
+    ] : []) : (t.p == 'http://www.w3.org/ns/shacl#not' && t.oKind != 'iri' ? [{
+      'kind': 'not',
+      'path': '',
+      'name': '',
+      'summary': 'not(' + shInline(t.o, t.oKind) + ')',
+      'cardinality': '',
+      'sparql': false,
+      'blank': true,
+      'severity': ''
+    }
+    ] : (t.p == 'http://www.w3.org/ns/shacl#sparql' ? [{
+      'kind': 'sparql',
+      'path': '',
+      'name': '',
+      'summary': 'SPARQL constraint',
+      'cardinality': '',
+      'sparql': true,
+      'blank': t.oKind == 'blank',
+      'severity': ''
+    }
+    ] : [])))).flatten()
+  }
+
+  /// A card's targets: one chip per target triple in source order, then the implicit class target.
+  fn shChips(card: string) -> list {
+    // uses: ["diagram"]
+    return shAbout(card).filter(t, t.p in ['http://www.w3.org/ns/shacl#targetClass', 'http://www.w3.org/ns/shacl#targetNode', 'http://www.w3.org/ns/shacl#targetSubjectsOf', 'http://www.w3.org/ns/shacl#targetObjectsOf']).map(t, {
+      'kind': {
+        'http://www.w3.org/ns/shacl#targetClass': 'class',
+        'http://www.w3.org/ns/shacl#targetNode': 'node',
+        'http://www.w3.org/ns/shacl#targetSubjectsOf': 'subjectsOf',
+        'http://www.w3.org/ns/shacl#targetObjectsOf': 'objectsOf'
+      }
+      [t.p],
+      'term': t.oKind == 'iri' ? rdfDisplayName(t.o) : (t.oKind == 'literal' ? t.o : '_:' + (t.oLabel != '' ? t.oLabel : t.o)),
+      'termIri': t.oKind == 'iri' ? t.o : '',
+      'predicateIri': t.p,
+      'describedInFile': t.oKind != 'literal' && diagram.nodesOfType('Triple').exists(u, cardId(u.s, u.sKind) == cardId(t.o, t.oKind))
+    }
+    ) + (shImplicitTarget(card) ? [{
+      'kind': 'implicitClass',
+      'term': shDisplay(card),
+      'termIri': card.substring(4),
+      'predicateIri': '',
+      'describedInFile': true
+    }
+    ] : [])
+  }
+
+  /// The references a card draws, in the order of its own triples, as `[from, kind, to, label]`.
+  fn shEdges(card: string) -> list {
+    // uses: ["diagram"]
+    return shAbout(card).map(t, t.p == 'http://www.w3.org/ns/shacl#node' && t.oKind != 'literal' ? [[card, 'node', cardId(t.o, t.oKind), 'node']] : (t.p == 'http://www.w3.org/ns/shacl#not' && t.oKind == 'iri' ? [[card, 'not', cardId(t.o, t.oKind), 'not']] : (t.p in ['http://www.w3.org/ns/shacl#and', 'http://www.w3.org/ns/shacl#or', 'http://www.w3.org/ns/shacl#xone'] ? shMembers(t.o, t.oKind).filter(m, m.oKind == 'iri').map(m, [card, t.p.substring(27), cardId(m.o, m.oKind), t.p.substring(27)]) : (t.p == 'http://www.w3.org/ns/shacl#property' && t.oKind != 'literal' ? cel.bind(row, shPropertyRow(card, t), cel.bind(id, cardId(t.o, t.oKind), shObjects(id, 'http://www.w3.org/ns/shacl#class').filter(c, c.oKind == 'iri' && shClaimant(c.o) != '' && shClaimant(c.o) != card).map(c, [card, 'class', shClaimant(c.o), row.path]) + shObjects(id, 'http://www.w3.org/ns/shacl#node').filter(n, n.oKind == 'iri').map(n, [card, 'node', cardId(n.o, n.oKind), row.path]))) : [])))).flatten()
+  }
+
+  /// How many statements the shape's own subject triples are; the blank subtrees reachable only from it are counted by
+  /// the engine.
+  fn shRemovalCount(card: string) -> int {
+    // uses: ["diagram"]
+    return shAbout(card).size()
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// What a shapes graph says that cannot be meant, never a run of it against data. The five `rdf.*` findings are the
+  /// plugin's, raised as it reads the body and shared by every reading (FBL 9.1); a parse failure replaces every other
+  /// finding. Today the three per-shape rules are judged shape by shape; here each is its own rule (`w3c-shacl.md`).
+  constraints {
+    builtin std.unparseable { code: "rdf.unparseable", message: ('This is not RDF that can be read: ' + detail.reason) }
+
+    constraint pathCardinality for diagram {
+      label "Path cardinality"
+      severity error
+      message (shFindingName(item) + (shObjects(item, 'http://www.w3.org/ns/shacl#path').size() == 0 ? ' is used as a property shape but states no sh:path; SHACL requires exactly one, and the row is drawn with an empty path.' : ' states ' + string(shObjects(item, 'http://www.w3.org/ns/shacl#path').size()) + ' sh:path values; SHACL requires exactly one, so which values it constrains is undefined.'))
+      code: "shacl.path-cardinality"
+      forEach: (shShapes().filter(item, shReferencedBy(item, ['http://www.w3.org/ns/shacl#property']) && shObjects(item, 'http://www.w3.org/ns/shacl#path').size() != 1))
+      location: ({
+        'line': shObjects(item, 'http://www.w3.org/ns/shacl#path').size() > 0 ? shObjects(item, 'http://www.w3.org/ns/shacl#path')[0].line : diagram.nodesOfType('Triple')[shFirstMark(item)].line
+      }
+      )
+    }
+
+    constraint impossibleCounts for diagram {
+      label "Impossible counts"
+      severity warning
+      message (shFindingName(item) + ' requires at least ' + string(int(shFirstLiteral(item, 'http://www.w3.org/ns/shacl#minCount').trim())) + ' values and at most ' + string(int(shFirstLiteral(item, 'http://www.w3.org/ns/shacl#maxCount').trim())) + ', so nothing can ever conform to it.')
+      code: "shacl.impossible-counts"
+      forEach: (shShapes().filter(item, cel.bind(lo, shFirstLiteral(item, 'http://www.w3.org/ns/shacl#minCount').trim(), cel.bind(hi, shFirstLiteral(item, 'http://www.w3.org/ns/shacl#maxCount').trim(), lo.matches('^[+-]?[0-9]+$') && hi.matches('^[+-]?[0-9]+$') && int(lo) > int(hi)))))
+      location: ({ 'line': shObjects(item, 'http://www.w3.org/ns/shacl#minCount')[0].line })
+    }
+
+    constraint datatypeAndClass for diagram {
+      label "Datatype and class"
+      severity warning
+      message (shFindingName(item) + ' constrains its values by both sh:datatype and sh:class, and no value is both a literal and an instance of a class, so nothing can conform.')
+      code: "shacl.datatype-and-class"
+      forEach: (shShapes().filter(item, shObjects(item, 'http://www.w3.org/ns/shacl#datatype').size() > 0 && shObjects(item, 'http://www.w3.org/ns/shacl#class').size() > 0))
+      location: ({ 'line': shObjects(item, 'http://www.w3.org/ns/shacl#datatype')[0].line })
+    }
+
+    /// Info, not warning: one file is read, and a missing shape cannot be told from one defined next door. A target
+    /// naming an absent term stays silent.
+    constraint referenceLeavesFile for diagram {
+      label "Reference leaves the file"
+      severity info
+      message (rdfDisplayName(item.o) + ' is referenced as a shape but not described in this file - it is defined elsewhere, or missing. Nothing outside the file is read to find out.')
+      code: "shacl.reference-leaves-file"
+      forEach: (diagram.nodesOfType('Triple').filter(t, (t.p == 'http://www.w3.org/ns/shacl#node' || t.p == 'http://www.w3.org/ns/shacl#property') && t.oKind == 'iri' && !diagram.nodesOfType('Triple').exists(u, u.sKind == 'iri' && u.s == t.o)))
+      location: ({ 'line': item.line })
+    }
+
+    /// The vocabulary is a constant of this definition: every term the recommendation defines in the SHACL namespace.
+    constraint unknownTerm for diagram {
+      label "Unknown SHACL term"
+      severity warning
+      message ('sh:' + item[1].substring(27) + ' is not a term SHACL defines, so no processor will act on it - check the spelling.')
+      code: "shacl.unknown-term"
+      forEach: (diagram.nodesOfType('Triple').map(t, [[t, t.p]] + (t.oKind == 'iri' ? [[t, t.o]] : [])).flatten().filter(x, x[1].startsWith('http://www.w3.org/ns/shacl#') && !(x[1] in ['http://www.w3.org/ns/shacl#BlankNode', 'http://www.w3.org/ns/shacl#BlankNodeOrIRI', 'http://www.w3.org/ns/shacl#BlankNodeOrLiteral', 'http://www.w3.org/ns/shacl#IRI', 'http://www.w3.org/ns/shacl#IRIOrLiteral', 'http://www.w3.org/ns/shacl#Info', 'http://www.w3.org/ns/shacl#Literal', 'http://www.w3.org/ns/shacl#NodeShape', 'http://www.w3.org/ns/shacl#PropertyGroup', 'http://www.w3.org/ns/shacl#PropertyShape', 'http://www.w3.org/ns/shacl#SPARQLConstraint', 'http://www.w3.org/ns/shacl#Severity', 'http://www.w3.org/ns/shacl#Shape', 'http://www.w3.org/ns/shacl#ValidationReport', 'http://www.w3.org/ns/shacl#ValidationResult', 'http://www.w3.org/ns/shacl#Violation', 'http://www.w3.org/ns/shacl#Warning', 'http://www.w3.org/ns/shacl#alternativePath', 'http://www.w3.org/ns/shacl#and', 'http://www.w3.org/ns/shacl#ask', 'http://www.w3.org/ns/shacl#class', 'http://www.w3.org/ns/shacl#closed', 'http://www.w3.org/ns/shacl#conforms', 'http://www.w3.org/ns/shacl#construct', 'http://www.w3.org/ns/shacl#datatype', 'http://www.w3.org/ns/shacl#deactivated', 'http://www.w3.org/ns/shacl#declare', 'http://www.w3.org/ns/shacl#defaultValue', 'http://www.w3.org/ns/shacl#description', 'http://www.w3.org/ns/shacl#detail', 'http://www.w3.org/ns/shacl#disjoint', 'http://www.w3.org/ns/shacl#entailment', 'http://www.w3.org/ns/shacl#equals', 'http://www.w3.org/ns/shacl#flags', 'http://www.w3.org/ns/shacl#focusNode', 'http://www.w3.org/ns/shacl#group', 'http://www.w3.org/ns/shacl#hasValue', 'http://www.w3.org/ns/shacl#ignoredProperties', 'http://www.w3.org/ns/shacl#in', 'http://www.w3.org/ns/shacl#inversePath', 'http://www.w3.org/ns/shacl#languageIn', 'http://www.w3.org/ns/shacl#lessThan', 'http://www.w3.org/ns/shacl#lessThanOrEquals', 'http://www.w3.org/ns/shacl#maxCount', 'http://www.w3.org/ns/shacl#maxExclusive', 'http://www.w3.org/ns/shacl#maxInclusive', 'http://www.w3.org/ns/shacl#maxLength', 'http://www.w3.org/ns/shacl#message', 'http://www.w3.org/ns/shacl#minCount', 'http://www.w3.org/ns/shacl#minExclusive', 'http://www.w3.org/ns/shacl#minInclusive', 'http://www.w3.org/ns/shacl#minLength', 'http://www.w3.org/ns/shacl#name', 'http://www.w3.org/ns/shacl#namespace', 'http://www.w3.org/ns/shacl#node', 'http://www.w3.org/ns/shacl#nodeKind', 'http://www.w3.org/ns/shacl#not', 'http://www.w3.org/ns/shacl#oneOrMorePath', 'http://www.w3.org/ns/shacl#or', 'http://www.w3.org/ns/shacl#order', 'http://www.w3.org/ns/shacl#path', 'http://www.w3.org/ns/shacl#pattern', 'http://www.w3.org/ns/shacl#prefix', 'http://www.w3.org/ns/shacl#prefixes', 'http://www.w3.org/ns/shacl#property', 'http://www.w3.org/ns/shacl#qualifiedMaxCount', 'http://www.w3.org/ns/shacl#qualifiedMinCount', 'http://www.w3.org/ns/shacl#qualifiedValueShape', 'http://www.w3.org/ns/shacl#qualifiedValueShapesDisjoint', 'http://www.w3.org/ns/shacl#result', 'http://www.w3.org/ns/shacl#resultMessage', 'http://www.w3.org/ns/shacl#resultPath', 'http://www.w3.org/ns/shacl#resultSeverity', 'http://www.w3.org/ns/shacl#select', 'http://www.w3.org/ns/shacl#severity', 'http://www.w3.org/ns/shacl#shapesGraph', 'http://www.w3.org/ns/shacl#sourceConstraint', 'http://www.w3.org/ns/shacl#sourceConstraintComponent', 'http://www.w3.org/ns/shacl#sourceShape', 'http://www.w3.org/ns/shacl#sparql', 'http://www.w3.org/ns/shacl#targetClass', 'http://www.w3.org/ns/shacl#targetNode', 'http://www.w3.org/ns/shacl#targetObjectsOf', 'http://www.w3.org/ns/shacl#targetSubjectsOf', 'http://www.w3.org/ns/shacl#uniqueLang', 'http://www.w3.org/ns/shacl#update', 'http://www.w3.org/ns/shacl#value', 'http://www.w3.org/ns/shacl#xone', 'http://www.w3.org/ns/shacl#zeroOrMorePath', 'http://www.w3.org/ns/shacl#zeroOrOnePath'])))
+      location: ({ 'line': item[0].line })
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// The truncation gate: one sentence, shown on every withheld gesture, menu entry and property row. Today every
+  /// reading gates its edits on the RDF graph reading's count of cards, not on its own drawn count, so this reason
+  /// reads that count.
+  reason truncated {
+    when familyTruncated()
+    message "The diagram shows only the first part of this file under the drawn-element budget, so edits through it are withheld - an edit through a partial view could touch what the view does not show. Edit the file as text instead."
+  }
+
+  message std.notApplicable('\'' + operationId + '\' does not apply to this selection.')
+
+  /// Writes one triple, `{iri} a rdfs:Resource`; the card follows from it.
+  operation addResource "Add resource here…" for diagram {
+    param iri: string required { label: "IRI or prefixed name" }
+    icon: "mdi-card-plus-outline"
+    paramsForm: "addResourceDialog"
+    if rdfResolveTerm(p.iri) == '' {
+      fail rdfTermRefusal(p.iri)
+    }
+    create Triple {
+      s: rdfResolveTerm(p.iri),
+      sKind: 'iri',
+      p: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+      o: 'http://www.w3.org/2000/01/rdf-schema#Resource',
+      oKind: 'iri'
+    }
+  }
+
+  /// Writes one `@prefix` directive from `prefix: iri`, brackets tolerated: a new stored `Prefix`, which the binding
+  /// `turtle` writes after the last declaration (`w3c-rdf.md`, gap 2).
+  operation declarePrefix "Declare prefix…" for diagram {
+    param declaration: string required { label: "Declaration, e.g. ex: http://example.org/" }
+    icon: "mdi-at"
+    paramsForm: "declarePrefixDialog"
+    let declared = rdfPrefixDeclaration(p.declaration)
+    if declared.name == '' {
+      fail 'Write the declaration as \'prefix: iri\', e.g. ex: http://example.org/.'
+    }
+    create Prefix { name: declared.name, iri: declared.iri }
+  }
+
+  /// Rewrites every token that names the IRI, in subject, predicate, object and datatype position: every stored triple
+  /// naming it is changed in one edit, which the binding `turtle` writes token by token, bracketed or prefixed under the
+  /// prefixes in force where each stands (`w3c-rdf.md`, gap 2). A name that is already in use is refused, since the
+  /// rename would merge two resources.
+  operation renameResource "Rename…" for Shape {
+    param newName: string required { label: "New IRI or prefixed name" }
+    paramsForm: "renameDialog"
+    let renamed = rdfResolveTerm(p.newName)
+    if renamed == '' {
+      fail rdfTermRefusal(p.newName)
+    }
+    if diagram.nodesOfType('Triple').exists(t, (t.sKind == 'iri' && t.s == renamed) || (t.oKind == 'iri' && t.o == renamed)) {
+      fail renamed + ' already names something in this document; renaming onto it would silently merge two resources.'
+    }
+    for t in diagram.nodesOfType('Triple') limit 100000 {
+      if t.sKind == 'iri' && t.s == self.iri {
+        set t.s = renamed
+      }
+      if t.p == self.iri {
+        set t.p = renamed
+      }
+      if t.oKind == 'iri' && t.o == self.iri {
+        set t.o = renamed
+      }
+      if t.oKind == 'literal' && t.datatype == self.iri {
+        set t.datatype = renamed
+      }
+    }
+  }
+
+  /// Removes every triple whose subject or object is the IRI; the element disappears on recomputation. A resource in
+  /// one statement goes without a question.
+  operation removeResource for Shape {
+    label (self.sources.size() == 1 ? 'Remove' : 'Remove (with ' + string(self.sources.size()) + ' statements)')
+    confirm {
+      count: (self.sources.size())
+      threshold: 2
+      title: "Remove resource"
+      message: ('Removing this resource also removes the ' + string(count) + ' statements it appears in.')
+      confirmLabel: "Remove"
+      danger: true
+    }
+    delete self.sources
+  }
+
+  operation relate "Relate…" for diagram {
+    param from: Shape required
+    param to: Shape required
+    param predicate: string required { label: "Predicate (IRI or prefixed name)" }
+    icon: "mdi-ray-start-arrow"
+    paramsForm: "relateDialog"
+    if p.from.blank || p.to.blank {
+      fail 'A blank node\'s identity does not survive a reparse, so relations to it cannot land in the file. Name it with an IRI first.'
+    }
+    if rdfResolveTerm(p.predicate) == '' {
+      fail rdfTermRefusal(p.predicate)
+    }
+    create Triple { s: p.from.iri, sKind: 'iri', p: rdfResolveTerm(p.predicate), o: p.to.iri, oKind: 'iri' }
+  }
+
+  /// Writes one triple, `{iri} a sh:NodeShape`.
+  operation addNodeShape "Add node shape here…" for diagram {
+    param iri: string required { label: "Shape IRI or prefixed name" }
+    icon: "mdi-check-decagram-outline"
+    paramsForm: "addNodeShapeDialog"
+    if rdfResolveTerm(p.iri) == '' {
+      fail rdfTermRefusal(p.iri)
+    }
+    create Triple {
+      s: rdfResolveTerm(p.iri),
+      sKind: 'iri',
+      p: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+      o: 'http://www.w3.org/ns/shacl#NodeShape',
+      oKind: 'iri'
+    }
+  }
+
+  /// Writes one `sh:property [ sh:path {path} ]` block into the shape's statement: two stored triples on a blank node no
+  /// triple names yet, which the binding `turtle` writes as one `[ … ]` construct (`w3c-shacl.md`, gaps 1 and 2).
+  /// Reached by dropping the toolbox entry on a shape.
+  operation addPropertyRow "Add property row…" for Shape {
+    unavailable [{
+      when: (self.blank)
+      message: "This constraint is written as a blank node, which has no identity that survives a reparse, so an edit keyed to it could not be undone reliably. Open the file as text to change it, or give the shape an IRI of its own."
+    }
+    ]
+    param path: string required { label: "Path IRI or prefixed name" }
+    icon: "mdi-table-row-plus-after"
+    paramsForm: "addPropertyRowDialog"
+    let path = rdfResolveTerm(p.path)
+    if path == '' {
+      fail rdfTermRefusal(p.path)
+    }
+    let blank = string(size((diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank').map(t, t.s) + diagram.nodesOfType('Triple').filter(t, t.oKind == 'blank').map(t, t.o)).distinct()))
+    create Triple { s: self.iri, sKind: 'iri', p: 'http://www.w3.org/ns/shacl#property', o: blank, oKind: 'blank' }
+    create Triple { s: blank, sKind: 'blank', p: 'http://www.w3.org/ns/shacl#path', o: path, oKind: 'iri' }
+  }
+
+  /// Rewrites the first `sh:name` literal as a plain string, or adds one.
+  operation setName "sh:name" for Shape {
+    param value: string required
+    if self.blank {
+      fail 'This constraint is written as a blank node, which has no identity that survives a reparse, so an edit keyed to it could not be undone reliably. Open the file as text to change it, or give the shape an IRI of its own.'
+    }
+    if diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/ns/shacl#name' && t.oKind == 'literal').size() > 0 {
+      let target = diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/ns/shacl#name' && t.oKind == 'literal')[0]
+      set target.o = p.value
+      set target.language = ''
+      set target.datatype = ''
+    } else {
+      create Triple { s: self.iri, sKind: 'iri', p: 'http://www.w3.org/ns/shacl#name', o: p.value, oKind: 'literal' }
+    }
+  }
+
+  /// Rewrites the first `sh:description` literal as a plain string, or adds one.
+  operation setDescription "sh:description" for Shape {
+    param value: string required
+    if self.blank {
+      fail 'This constraint is written as a blank node, which has no identity that survives a reparse, so an edit keyed to it could not be undone reliably. Open the file as text to change it, or give the shape an IRI of its own.'
+    }
+    if diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/ns/shacl#description' && t.oKind == 'literal').size() > 0 {
+      let target = diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/ns/shacl#description' && t.oKind == 'literal')[0]
+      set target.o = p.value
+      set target.language = ''
+      set target.datatype = ''
+    } else {
+      create Triple {
+        s: self.iri,
+        sKind: 'iri',
+        p: 'http://www.w3.org/ns/shacl#description',
+        o: p.value,
+        oKind: 'literal'
+      }
+    }
+  }
+
+  /// An edit writes triples, and every card and edge follows from recomputation; no hook fires for a derived element.
+  behavior { editGate: [{ reason: "truncated" }] }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// The RDF file itself is the model, read and written through the module's FBL binding and the turtle plugin;
+  /// positions live in the `.adp` registration, keyed by element id.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: natural
+      stable: false
+      types: {
+        Triple: {
+          strategy: derived
+          expression: ('triple:' + self.s + '|' + self.p + '|' + self.o + repeatSuffix(self))
+          ephemeral: (self.sKind == 'blank' || self.oKind == 'blank')
+          doc: "A triple by its three parts and a repeat counter. One that names a blank node is ephemeral, since the blank's label is the parse's own."
+        }
+        Prefix: {
+          strategy: derived
+          expression: ('prefix:' + self.name + repeatSuffix(self))
+          doc: "A declaration by its prefix and a repeat counter for a re-declaration."
+        }
+        Base: { strategy: derived, expression: ('base'), doc: "A fixed singleton id." }
+        Shape: {
+          ephemeral: (self.blank)
+          reason: "That is a blank node, whose identity does not survive a reparse, so a stored position could not be trusted. Name it with an IRI to arrange it."
+          doc: "An anonymous shape's id restarts with every parse; a named shape's is its IRI."
+        }
+      }
+      pattern: "^(res:.+|blank:[0-9]+|shacl-edge:.+|triple:.+|prefix:.*|base|truncation)$"
+    }
+    view: { store: [bounds], styleOverrides: none }
+  }
+
+  plugin net.etalii.adp.w3c.turtle {
+    version: "^0.1.0"
+    required: true
+    provides: [persistenceFormat, celFunctions, action]
+    plans: [add, set, remove]
+    doc "The RDF family's engine: it reads a `.ttl` or `.nt` body into the stored `Triple`, `Prefix` and `Base` elements and the five `rdf.*` findings, plans the splices of an added, set or removed triple, carries out the two edits that are not a change of one triple (renaming a term everywhere it is written, declaring a prefix; gap 2 of `w3c-rdf.md`), and provides the naming functions. Every function is called by its bare name. This description states the reading and the planning as the binding `turtle` (w3c-shacl.turtle.atd), whose family is the capability `reader.turtle`, the two edits as model changes the binding writes, and the functions as the script functions of the same names; the plugin stays declared for the hosts that run the JSON files."
+  }
+
+  x-shacl: {
+    doc: "Today's wire ids, which the standalone client and backend share, mapped from this specification's names. A tool is keyed by its id, an action by its operation, a property by its form item's id; a target, constraint and SPARQL row is numbered by its position among the card's rows of that kind."
+    tools: {
+      nodeShape: { id: "shacl.toolbox.node-shape", drop: "shacl.add-node-shape" }
+      propertyRow: { id: "shacl.toolbox.property-row", drop: "shacl.add-property-row" }
+    }
+    actions: {
+      addResource: "rdf.add-resource"
+      declarePrefix: "rdf.add-prefix"
+      relate: "rdf.connect"
+      renameResource: "rdf.rename-resource"
+      removeResource: "rdf.remove-resource"
+      addNodeShape: "shacl.add-node-shape"
+      addPropertyRow: "shacl.add-property-row"
+    }
+    properties: {
+      iri: "shacl.iri"
+      display: "shacl.display"
+      name: "shacl.name"
+      description: "shacl.description"
+      message: "shacl.message"
+      deactivated: "shacl.deactivated"
+      closed: "shacl.closed"
+      severity: "shacl.severity"
+      targets: "shacl.target:{index}"
+      rows: "shacl.row:{index}"
+      sparql: "shacl.sparql:{index}"
+    }
+  }
+
+  x-adp: {
+    origin: "w3c/shacl"
+    state: "implemented"
+    extensions: [".ttl", ".nt"]
+    claimsBareFiles: false
+    suggestWhenBodyContains: ["sh:NodeShape", "sh:property", "http://www.w3.org/ns/shacl#NodeShape"]
+    family: ["w3c/rdf", "w3c/owl", "w3c/skos", "w3c/shacl"]
+    implementations: { standalone: "etalii.adp.ide.standalone src/diagrams/rdf (Shacl/)" }
+  }
+}

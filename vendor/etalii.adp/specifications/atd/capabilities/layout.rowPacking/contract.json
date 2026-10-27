@@ -1,0 +1,39 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.rowPacking",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Rows for items whose extent across is the data: each node is an item starting at `left` across, ending at `right` (absent, as wide as its `width`) and as many rows tall as its `height`, and the layout chooses only its row, never where it is across. It sweeps the items from left to right (by `left`, then by right end, then in their order) and puts each on a row free where it starts, so that it uses as few rows as the items allow: a row is opened only when every row is busy there. Among the free rows an item takes the one nearest the mean row of the items it is linked to that are already placed, ties to the lower row; a pair of linked items marked `apart` never shares a row, a row being opened for them where the shared row was the only free one. Then neighbouring rows swap places while that shortens the links in total, at most 64 passes, a row an item taller than one row touches staying where it is. An edge naming an unknown node, or a node itself, is ignored. A position's `x` is the node's `left`, unchanged, in the canvas's domain units; its `y` is its top row, counted from 0.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "gap": {
+      "type": "number",
+      "default": 12,
+      "doc": "The least clear space across between two items on one row."
+    },
+    "left": {
+      "type": "query",
+      "required": true,
+      "doc": "Where a node starts across, in the canvas's domain units, its label included."
+    },
+    "right": {
+      "type": "query",
+      "doc": "Where a node ends across, in the canvas's domain units, its label included; absent, its `left` plus its `width`. A description whose item's extent across is data rather than its drawn size, such as a timeline moment whose label follows its time, gives it here."
+    },
+    "apart": {
+      "type": "query",
+      "doc": "Whether a linked pair, by its edge, is kept on different rows; absent, no pair is."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

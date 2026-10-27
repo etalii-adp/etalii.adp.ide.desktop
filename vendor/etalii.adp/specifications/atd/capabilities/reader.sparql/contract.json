@@ -1,0 +1,19 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.sparql",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads a SPARQL 1.1 Query document, read-only: the prologue, the four query forms, the group-pattern tree, triple patterns with blank-node and collection syntax, solution modifiers and `VALUES`, each entry with its span and line; expressions and property paths are kept as written. A SPARQL Update document is refused by name, and a text it cannot parse reads as one finding with the parser's sentence, line and column. It plans no change. Its fixtures are recorded with the SPARQL query's cases (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderInput"
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderResult"
+  },
+  "laws": [
+    "deterministic",
+    "readingNeverFails"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

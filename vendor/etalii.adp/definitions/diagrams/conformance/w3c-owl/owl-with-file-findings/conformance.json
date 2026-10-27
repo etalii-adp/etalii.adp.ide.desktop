@@ -1,0 +1,163 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/owl` from parity/cases/w3c/owl/owl-with-file-findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/owl",
+  "description": "../../../w3c-owl.atd",
+  "inputs": {
+    "body": "owl-with-file-findings.ttl",
+    "registration": "owl-with-file-findings.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/again#Thing",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/again#Thing",
+          "display": "Thing",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Thing",
+          "rows.0.annotation": "@en-",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/again#Old",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/again#Old",
+          "display": "ex:Old",
+          "deprecated": "true",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/again#New",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/again#New",
+          "display": "ex:New",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#notAType",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "datatype",
+          "iri": "http://www.w3.org/2001/XMLSchema#notAType",
+          "display": "xsd:notAType",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "thing:http://example.org/again#size|domain",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "thing",
+          "display": "Thing",
+          "deprecated": "false",
+          "external": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:thing:http://example.org/again#size|domain|http://example.org/again#size|res:http://www.w3.org/2001/XMLSchema#notAType",
+        "type": "w3c/owl+edge",
+        "source": "thing:http://example.org/again#size|domain",
+        "target": "res:http://www.w3.org/2001/XMLSchema#notAType",
+        "attributes": {
+          "kind": "datatype-property",
+          "fromElementId": "thing:http://example.org/again#size|domain",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#notAType",
+          "label": "ex:size",
+          "propertyIri": "http://example.org/again#size"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/again#New|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/again#Old",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/again#New",
+        "target": "res:http://example.org/again#Old",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/again#New",
+          "toElementId": "res:http://example.org/again#Old",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "rdf.duplicate-prefix",
+        "severity": "warning",
+        "line": 3,
+        "message": "The prefix 'ex:' is declared more than once; from here on it means http://example.org/again#, which changes what every earlier-styled use would say."
+      },
+      {
+        "rule": "rdf.relative-iri",
+        "severity": "warning",
+        "line": 12,
+        "message": "This document uses relative IRIs but declares no base, so their meaning depends on where the file happens to sit. Declare an @base."
+      },
+      {
+        "rule": "rdf.language-tag",
+        "severity": "warning",
+        "line": 8,
+        "message": "'@en-' is not a well-formed language tag (letters, then optional '-' groups of letters and digits)."
+      },
+      {
+        "rule": "owl.deprecated-reference",
+        "severity": "information",
+        "line": 10,
+        "message": "ex:Old is deprecated, and something not deprecated still references it."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

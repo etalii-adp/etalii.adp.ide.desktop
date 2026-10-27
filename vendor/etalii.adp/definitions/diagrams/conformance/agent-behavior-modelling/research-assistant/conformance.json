@@ -1,0 +1,635 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/agent-behavior-modelling` from parity/scripts/etalii/agent-behavior-modelling/research-assistant.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "etalii/agent-behavior-modelling",
+  "description": "../../../agent-behavior-modelling.atd",
+  "inputs": {
+    "body": "research-assistant.md",
+    "registration": "research-assistant.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "1",
+        "type": "Sequence",
+        "parent": null,
+        "attributes": {
+          "label": "Answer the research question"
+        }
+      },
+      {
+        "id": "1.1",
+        "type": "Fallback",
+        "parent": "1",
+        "attributes": {
+          "label": "Settle the question"
+        }
+      },
+      {
+        "id": "1.1.1",
+        "type": "Check",
+        "parent": "1.1",
+        "attributes": {
+          "label": "The question names its topic, its period and what the answer is for"
+        }
+      },
+      {
+        "id": "1.1.2",
+        "type": "AskUser",
+        "parent": "1.1",
+        "attributes": {
+          "label": "What is the answer for, and which period should it cover?"
+        }
+      },
+      {
+        "id": "1.2",
+        "type": "Parallel",
+        "parent": "1",
+        "attributes": {
+          "label": "Search"
+        }
+      },
+      {
+        "id": "1.2.1",
+        "type": "Delegate",
+        "parent": "1.2",
+        "attributes": {
+          "label": "Search the academic literature"
+        }
+      },
+      {
+        "id": "1.2.2",
+        "type": "Delegate",
+        "parent": "1.2",
+        "attributes": {
+          "label": "Search news and official publications"
+        }
+      },
+      {
+        "id": "1.2.3",
+        "type": "Delegate",
+        "parent": "1.2",
+        "attributes": {
+          "label": "Search the user's own documents"
+        }
+      },
+      {
+        "id": "1.3",
+        "type": "RepeatUntil",
+        "parent": "1",
+        "attributes": {
+          "label": "Every claim in the draft has a source"
+        }
+      },
+      {
+        "id": "1.3.1",
+        "type": "Sequence",
+        "parent": "1.3",
+        "attributes": {
+          "label": "Draft and check"
+        }
+      },
+      {
+        "id": "1.3.1.1",
+        "type": "Do",
+        "parent": "1.3.1",
+        "attributes": {
+          "label": "Write or revise the draft",
+          "implicit": "false"
+        }
+      },
+      {
+        "id": "1.3.1.2",
+        "type": "Do",
+        "parent": "1.3.1",
+        "attributes": {
+          "label": "Mark every claim that has no source yet",
+          "implicit": "false"
+        }
+      },
+      {
+        "id": "1.4",
+        "type": "Do",
+        "parent": "1",
+        "attributes": {
+          "label": "Answer with the draft, its sources and what remains uncertain",
+          "notes": "Put the answer first, in one paragraph, before the detail.",
+          "implicit": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "child:1.1",
+        "type": "Child",
+        "source": "1",
+        "target": "1.1",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.1.1",
+        "type": "Child",
+        "source": "1.1",
+        "target": "1.1.1",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.1.2",
+        "type": "Child",
+        "source": "1.1",
+        "target": "1.1.2",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.2",
+        "type": "Child",
+        "source": "1",
+        "target": "1.2",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.2.1",
+        "type": "Child",
+        "source": "1.2",
+        "target": "1.2.1",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.2.2",
+        "type": "Child",
+        "source": "1.2",
+        "target": "1.2.2",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.2.3",
+        "type": "Child",
+        "source": "1.2",
+        "target": "1.2.3",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.3",
+        "type": "Child",
+        "source": "1",
+        "target": "1.3",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.3.1",
+        "type": "Child",
+        "source": "1.3",
+        "target": "1.3.1",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.3.1.1",
+        "type": "Child",
+        "source": "1.3.1",
+        "target": "1.3.1.1",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.3.1.2",
+        "type": "Child",
+        "source": "1.3.1",
+        "target": "1.3.1.2",
+        "attributes": {}
+      },
+      {
+        "id": "child:1.4",
+        "type": "Child",
+        "source": "1",
+        "target": "1.4",
+        "attributes": {}
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "abm.add.check",
+      "args": {
+        "value": "The user has said which sources to trust"
+      },
+      "select": [
+        "1.1"
+      ],
+      "ids": [
+        "1.1.3",
+        "child:1.1.3"
+      ],
+      "expectFile": "after-1.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.1.3",
+        "attribute": "Notes",
+        "value": "Ask once, then keep to the answer."
+      },
+      "expectFile": "after-2.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.2",
+        "attribute": "Label",
+        "value": "Search every source"
+      },
+      "expectFile": "after-3.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.3",
+        "attribute": "Kind",
+        "value": "Retry"
+      },
+      "expectFile": "after-4.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.3",
+        "attribute": "Attempts",
+        "value": "4"
+      },
+      "expectFile": "after-5.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.3",
+        "attribute": "Attempts",
+        "value": "0"
+      },
+      "refused": {
+        "reason": "'0' is not a number of attempts; a Retry allows at least 1."
+      },
+      "expectFile": "after-5.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "abm.move-earlier",
+      "args": {
+        "target": "1.2.3"
+      },
+      "expectFile": "after-6.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "abm.move-later",
+      "args": {
+        "target": "1.1.1"
+      },
+      "expectFile": "after-7.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "abm.edit-notes",
+      "args": {
+        "target": "1.2",
+        "value": "Search all three at once.\nKeep what each one found apart."
+      },
+      "expectFile": "after-8.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "abm.rename",
+      "args": {
+        "target": "1.4",
+        "value": "Answer with the draft and its sources"
+      },
+      "expectFile": "after-9.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1.1->1.4"
+      },
+      "ids": [
+        "1.1.4",
+        "child:1.1.4"
+      ],
+      "expectFile": "after-10.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-9.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-10.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "abm.add.action",
+      "args": {
+        "target": "1.3.1",
+        "value": "Cite every source"
+      },
+      "ids": [
+        "1.3.1.3",
+        "child:1.3.1.3"
+      ],
+      "expectFile": "after-11.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "action": "abm.remove",
+      "args": {
+        "target": "1.2.1"
+      },
+      "expectFile": "after-12.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "abm.remove",
+      "args": {
+        "target": "1.3",
+        "confirm": true
+      },
+      "expectFile": "after-13.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-12.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.1.1",
+        "attribute": "Kind",
+        "value": "Do"
+      },
+      "expectFile": "after-14.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "abm.add.check",
+      "args": {
+        "target": "1.1.1"
+      },
+      "refused": {
+        "reason": "That action is not available for this item."
+      },
+      "expectFile": "after-14.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "action": "abm.arrange",
+      "args": {
+        "target": "1"
+      },
+      "expectFile": "after-14.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-14.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-14.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "property": {
+        "element": "1.1.4",
+        "attribute": "Notes",
+        "value": ""
+      },
+      "expectFile": "after-15.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "action": "abm.add.parallel",
+      "args": {
+        "target": "1",
+        "value": "Report"
+      },
+      "expectFile": "after-16.md",
+      "findings": [
+        {
+          "rule": "abm.empty-composite",
+          "severity": "warning",
+          "element": "1.4",
+          "message": "\"Do together: Report\" has no children, so it has nothing to run."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "action": "abm.add.delegate",
+      "args": {
+        "target": "new:1250,300",
+        "value": "Ask a librarian"
+      },
+      "ids": [
+        "1.3.1.4",
+        "child:1.3.1.4"
+      ],
+      "expectFile": "after-17.md",
+      "findings": [
+        {
+          "rule": "abm.empty-composite",
+          "severity": "warning",
+          "element": "1.4",
+          "message": "\"Do together: Report\" has no children, so it has nothing to run."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "action": "abm.add.check",
+      "args": {
+        "target": "new:1700,250"
+      },
+      "ids": [
+        "1.4.1",
+        "child:1.4.1"
+      ],
+      "expectFile": "after-18.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "action": "abm.add.action",
+      "args": {
+        "target": "new:0,-400"
+      },
+      "refused": {
+        "reason": "Drop the node below the node it belongs under: a Do in order, a Try in order, a Do together, or a Retry, Repeat until, Only while or Ask approval before that has no child yet."
+      },
+      "expectFile": "after-18.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "action": "abm.move-earlier",
+      "args": {
+        "target": "1.1"
+      },
+      "refused": {
+        "reason": "That action is not available for this item."
+      },
+      "expectFile": "after-18.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "action": "abm.connect.child",
+      "args": {
+        "target": "rel:1.1.1->1.2"
+      },
+      "refused": {
+        "reason": "\"Do\" holds no children."
+      },
+      "expectFile": "after-18.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-17.md",
+      "findings": [
+        {
+          "rule": "abm.empty-composite",
+          "severity": "warning",
+          "element": "1.4",
+          "message": "\"Do together: Report\" has no children, so it has nothing to run."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.30.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-18.md",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.31.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/etalii/agent-behavior-modelling/research-assistant/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

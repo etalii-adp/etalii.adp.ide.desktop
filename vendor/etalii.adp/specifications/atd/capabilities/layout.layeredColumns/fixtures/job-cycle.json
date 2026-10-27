@@ -1,0 +1,147 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/cases/databricks/job/cycle.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "task:left",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "left",
+          "taskType": "notebook",
+          "source": "notebooks/left",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "left",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:right",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "right",
+          "taskType": "notebook",
+          "source": "notebooks/right",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "right",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:after_circle",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "after_circle",
+          "taskType": "notebook",
+          "source": "notebooks/after",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "after_circle",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:further_after",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "further_after",
+          "taskType": "notebook",
+          "source": "notebooks/further",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "further_after",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:independent",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "independent",
+          "taskType": "notebook",
+          "source": "notebooks/independent",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "independent",
+          "badges": "serverless"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:right->left",
+        "source": "task:right",
+        "target": "task:left"
+      },
+      {
+        "id": "edge:left->right",
+        "source": "task:left",
+        "target": "task:right"
+      },
+      {
+        "id": "edge:right->after_circle",
+        "source": "task:right",
+        "target": "task:after_circle"
+      },
+      {
+        "id": "edge:after_circle->further_after",
+        "source": "task:after_circle",
+        "target": "task:further_after"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 260,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "top",
+    "band": "self.id.startsWith('cluster:')",
+    "placeholder": "self.unresolved"
+  },
+  "output": {
+    "positions": {
+      "task:left": {
+        "x": 260.0,
+        "y": 0.0
+      },
+      "task:right": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "task:after_circle": {
+        "x": 260.0,
+        "y": 120.0
+      },
+      "task:further_after": {
+        "x": 520.0,
+        "y": 0.0
+      },
+      "task:independent": {
+        "x": 0.0,
+        "y": 120.0
+      }
+    }
+  }
+}

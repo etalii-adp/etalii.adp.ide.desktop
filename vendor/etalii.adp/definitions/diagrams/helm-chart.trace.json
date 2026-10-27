@@ -1,0 +1,257 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "helm/chart",
+  "description": "helm-chart.atd",
+  "companion": {
+    "file": "helm-chart.md",
+    "sections": [
+      "Language gaps",
+      "The stand-ins the module holds",
+      "What remains in the module, and why",
+      "Differences the definition cannot bring in line",
+      "Known gaps of the tool",
+      "Deliberately out of scope"
+    ]
+  },
+  "items": [
+    {
+      "id": "the-stand-ins-the-module-holds/1",
+      "text": "**`HelmFolderEntries`** (gap 3): hands the folder body, as supplementary entries outside",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/2",
+      "text": "**`HelmOpenEndRelations`** (gap 7): makes `Resolves` and `Includes` with today's ids,",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/3",
+      "text": "**`HelmNotAChart`** (gap 8): replaces the folder body's unreadable-body finding for a",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/563",
+      "reason": "A built-in's severity cannot be computed, so std.unparseable cannot be the error for a file and the warning helm.not-a-chart for a folder that is not a chart (the companion's gap 8)."
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/4",
+      "text": "**`HelmFindingOrder`** (gap 9): puts each run of findings about dependencies in",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "ATD orders a reader's findings by reading order and a code's findings by the element they were evaluated for; no construct orders a run of findings by an expression, here the dependencies' order (the companion's gap 9)."
+    },
+    {
+      "id": "the-stand-ins-the-module-holds/5",
+      "text": "**`versionLine` on the chart, and the line of each lock entry** (gap 8): the plugin",
+      "statedBy": "constraint versionNotSemver"
+    },
+    {
+      "id": "differences-the-definition-cannot-bring-in-line/1",
+      "text": "**Two dependencies with one effective name** (A10, Q4). Both get the id `dep:` and the",
+      "statedBy": "builtin std.derivedId"
+    },
+    {
+      "id": "differences-the-definition-cannot-bring-in-line/2",
+      "text": "**The order of findings**, gap 9.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "ATD orders a reader's findings by reading order and a code's findings by the element they were evaluated for; no construct orders a run of findings by an expression, here the dependencies' order (the companion's gap 9)."
+    },
+    {
+      "id": "differences-the-definition-cannot-bring-in-line/3",
+      "text": "**Severities** (Q3). `helm.legacy-chart` is declared `warning`, as the tool reports it,",
+      "statedBy": "constraint legacyChart"
+    },
+    {
+      "id": "known-gaps-of-the-tool/1",
+      "text": "**Not drawn on the canvas.** A template's kinds (R4.2), a condition badge and the pinned",
+      "statedBy": "form templateInspector"
+    },
+    {
+      "id": "known-gaps-of-the-tool/2",
+      "text": "**Notion's \"why specialized\"** says the view \"shows which values feed which resources\".",
+      "statedBy": "tool"
+    },
+    {
+      "id": "known-gaps-of-the-tool/3",
+      "text": "**Two defaults.** If both `values.yaml` and `values.yml` exist, both are default layers",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "id": "known-gaps-of-the-tool/4",
+      "text": "**CEL.** The `.dis` validates against `disl.schema.json` and every expression parses as",
+      "statedBy": "tool"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/reader.rs",
+      "lines": "194-535",
+      "behaviour": "Reads Chart.yaml, the values files with every scalar as written, the schema, the templates, the CRDs, the dependencies with their conditions, the vendored charts and the lock.",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/template_scan.rs",
+      "lines": "25-63",
+      "behaviour": "Scans a template line by line for its kinds, the values it reads and the named templates it includes.",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/resolution.rs",
+      "lines": "14-43",
+      "behaviour": "Matches each dependency against what charts/ holds.",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/entries.rs",
+      "lines": "15-52",
+      "behaviour": "Hands the reading the directory names under crds/ and charts/, which no file rule selects.",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/plugin.rs",
+      "lines": "78-230",
+      "behaviour": "Delivers the chart's elements with their ids, attributes and lines, and the reader's findings.",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/plugin.rs",
+      "lines": "387-443",
+      "behaviour": "Delivers Resolves and Includes as stored relations, with no target for an open end.",
+      "statedBy": "capability reader.helmChart"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/findings.rs",
+      "lines": "18-37",
+      "behaviour": "Reports a registered folder without Chart.yaml as the one warning helm.not-a-chart.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/563",
+      "reason": "A built-in's severity cannot be computed; the warning for a folder that is not a chart waits for that construct (the companion's gap 8)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/findings.rs",
+      "lines": "38-64",
+      "behaviour": "Puts each run of findings about dependencies in dependency order.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "ATD orders a reader's findings by reading order and a code's findings by the element they were evaluated for; no construct orders a run of findings by an expression, here the dependencies' order (the companion's gap 9)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/layout.rs",
+      "lines": "19-132",
+      "behaviour": "Five columns from (40, 40), 60 apart with 24 between rows: metadata, values, templates by role, dependencies, vendored content, a stored position winning element by element.",
+      "statedBy": "algorithm anatomy"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/mapper.rs",
+      "lines": "159-408",
+      "behaviour": "Maps the model to the wire's element kinds, with today's delivery order of relations and the viewport filter.",
+      "statedBy": "tool"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/definition.rs",
+      "lines": "84-95",
+      "behaviour": "The refusal of a write to a read-only attribute.",
+      "statedBy": "behavior"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/definition.rs",
+      "lines": "120-149",
+      "behaviour": "The inspector's rows for each kind.",
+      "statedBy": "form chartInspector"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/view.rs",
+      "lines": "24-30",
+      "behaviour": "The sentences that refuse a move of a relation and a reparent of any element.",
+      "statedBy": "constraint noReparent"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/view.rs",
+      "lines": "115-122",
+      "behaviour": "Offers no action on any element, so nothing is revealed.",
+      "divergesFrom": "operation openArtifact"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/view.rs",
+      "lines": "151-176",
+      "behaviour": "Stores each dragged box's position in the registration, several in one command.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/registration_layout.rs",
+      "lines": "1-288",
+      "behaviour": "Reads and writes the registration's layout block, ordinal by id, CRLF, up to three decimals.",
+      "statedBy": "persistence"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/commands.rs",
+      "lines": "40-88",
+      "behaviour": "A position write and its removal as commands on the history, refused when the registration is gone.",
+      "hostConcern": "undo-stack",
+      "reason": "The history is the host's; the description says a drag is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/store.rs",
+      "lines": "47-186",
+      "behaviour": "Opens the registered folder through the binding, re-reads it when a file under it changes and closes it.",
+      "statedBy": "binding chart"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/helm-chart/src/theme.rs",
+      "lines": "21-51",
+      "behaviour": "The light and dark palettes.",
+      "statedBy": "notation theme"
+    }
+  ]
+}

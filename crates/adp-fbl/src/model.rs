@@ -69,6 +69,8 @@ pub mod codes {
     pub const UNCONVERTED_VALUE: &str = "fbl.unconverted-value";
     pub const UNPARSEABLE: &str = "std.unparseable";
     pub const UNREADABLE_ENTRY: &str = "std.unreadableEntry";
+    /// *(FBL 0.9)* Text of a `grammar` body read in part that does not parse (FBL section 4.9).
+    pub const UNPARSED_TEXT: &str = "fbl.unparsed-text";
     pub const MISSING_ID: &str = "std.missingId";
     pub const DUPLICATE_ID: &str = "std.duplicateId";
     pub const PLUGIN_MISSING: &str = "std.pluginMissing";

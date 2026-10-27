@@ -1,0 +1,185 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "bundle",
+      "type": "databricks/bundle+bundle",
+      "shape": "path",
+      "bounds": {
+        "x": -68.67,
+        "y": 289.92,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "lakehouse",
+          "font": "13 400",
+          "position": {
+            "x": -60.67,
+            "y": 313.92
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "resource:pipelines/bronze_to_gold",
+      "type": "databricks/bundle+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 264.1,
+        "y": 283.29,
+        "w": 200,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "pipelines",
+          "font": "10 400",
+          "position": {
+            "x": 272.1,
+            "y": 331.29
+          }
+        },
+        {
+          "id": "name",
+          "text": "bronze_to_gold",
+          "font": "13 400",
+          "position": {
+            "x": 272.1,
+            "y": 307.29
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "target:dev",
+      "type": "databricks/bundle+target",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 400,
+        "w": 220,
+        "h": 120
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "development · default",
+          "font": "10 400",
+          "position": {
+            "x": 12,
+            "y": 418
+          }
+        },
+        {
+          "id": "name",
+          "text": "dev",
+          "font": "12 400",
+          "position": {
+            "x": 0,
+            "y": 394
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "target:prod",
+      "type": "databricks/bundle+target",
+      "shape": "rect",
+      "bounds": {
+        "x": 260,
+        "y": 400,
+        "w": 220,
+        "h": 120
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "production · 2 overrides",
+          "font": "10 400",
+          "position": {
+            "x": 272,
+            "y": 418
+          }
+        },
+        {
+          "id": "name",
+          "text": "prod",
+          "font": "12 400",
+          "position": {
+            "x": 260,
+            "y": 394
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "override:prod/pipelines/bronze_to_gold",
+      "type": "databricks/bundle+edge",
+      "source": "target:prod",
+      "target": "resource:pipelines/bronze_to_gold",
+      "route": [
+        {
+          "x": 367.62,
+          "y": 400
+        },
+        {
+          "x": 365.21,
+          "y": 339.29
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          3,
+          3
+        ]
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "target:dev",
+    "target:prod",
+    "bundle",
+    "resource:pipelines/bronze_to_gold",
+    "override:prod/pipelines/bronze_to_gold"
+  ]
+}

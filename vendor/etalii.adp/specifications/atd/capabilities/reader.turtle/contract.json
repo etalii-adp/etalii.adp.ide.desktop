@@ -3,13 +3,29 @@
   "name": "reader.turtle",
   "version": "1.0.0",
   "extensionPoint": "reader",
-  "doc": "Reads and writes RDF 1.1 Turtle under the persistence plugin contract of FBL §11: resources and the properties between them, with every byte no triple maps kept, every edit a minimal splice. Its fixtures are recorded with the W3C tool types' cases (spec 035, T078).",
-  "input": { "$ref": "../../atd.schema.json#/$defs/ReaderInput" },
-  "args": {
-    "prefixes": { "type": "enum", "values": ["keep", "expand"], "default": "keep", "doc": "Whether IRIs are read with the prefixes the body declares, or expanded." }
+  "doc": "Reads and writes RDF 1.1 Turtle and N-Triples under the persistence plugin contract of FBL §11, as the stored model every reading of the body shares. A byte order mark is skipped and kept. Then come, in document order, at most one element `Base` (`iri`, the last `@base` or `BASE`), one element `Prefix` per `@prefix` or `PREFIX` directive, re-declarations included (`name` without its colon, '' for the default prefix, `iri`, `line`), and one element `Triple` per triple (`s`, `sKind`, `sLabel`, `sWritten`, `p`, `o`, `oKind`, `oLabel`, `language`, `datatype`, `line`): a term's value is its full IRI, a blank node's ordinal (its zero-based order of first appearance in this parse) or a literal's lexical form with escapes resolved; its kind is `iri`, `blank` or `literal`; a blank node's label is what follows `_:`, '' for an anonymous one; `sWritten` is the subject as written (a prefixed name, a bracketed IRI); `language` and `datatype` are the literal object's, '' otherwise; `line` is the 1-based line the subject or the directive is written on. A collection is read as its `rdf:first` and `rdf:rest` triples. The ids are `base`, `prefix:<name>` and `triple:<s>|<p>|<o>`, with `|<n>` added for the n-th repeat of an id. The findings are, in order: a body that does not parse gives only `rdf.unparseable` (error, \"This is not RDF that can be read: <the parser's sentence>\", at the line it stopped at); otherwise every re-declaration of a prefix after its first, grouped by prefix in order of first declaration (`rdf.duplicate-prefix`), the first triple naming a relative IRI when there is no base (`rdf.relative-iri`), then per triple a malformed language tag (`rdf.language-tag`) and an XSD datatype XSD does not define (`rdf.unknown-datatype`), each a warning at its line. The reading begins with the element `document`, which carries what the registration (in `files`) says in its headers, the lines after its first, up to eight of them and before `layout:`: `language`, the first `language:` header's value lowercased, absent when it is empty or missing; and `languageLine`, the 1-based line of that header when a `body:` or `view:` line stands below it, in which case `language` is absent, 0 otherwise. The registration's `layout:` block holds the stored positions, keyed by element id. An edit is a minimal splice: an added triple is appended to its subject's statement as a `;` continuation matching its indentation, or written as a new statement at the end; a removed triple takes its whole lines where it owns them, its fragment and stranded separator where it shares a line, and its whole statement where it is the last; a set literal is rewritten in place; a set term is rewritten in every token naming it, bracketed, prefixed under the declarations in force at that point, or as a datatype; a term is written prefixed under the longest declared prefix that leaves a clean local name, else bracketed; a new `Prefix` is written as `@prefix <name>: <iri> .` after the last declaration. An edit keeps the body's dominant line ending, and an edit that names a blank node is refused, since its identity does not survive a reparse. Its fixtures are recorded with the W3C tool types' cases (spec 035, T078), one per body.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderInput"
   },
-  "output": { "$ref": "../../atd.schema.json#/$defs/ReaderResult" },
-  "laws": ["deterministic", "readingNeverFails", "minimalSplices"],
+  "args": {
+    "prefixes": {
+      "type": "enum",
+      "values": [
+        "keep",
+        "expand"
+      ],
+      "default": "keep",
+      "doc": "Whether IRIs are read with the prefixes the body declares, or expanded."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderResult"
+  },
+  "laws": [
+    "deterministic",
+    "readingNeverFails",
+    "minimalSplices"
+  ],
   "fallback": null,
   "status": "provisional"
 }

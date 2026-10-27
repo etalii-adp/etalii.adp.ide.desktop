@@ -1,0 +1,84 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.depthColumns` from the RDF module's layout of the reading that parity/cases/w3c/owl/owl-malformed.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/bad#A",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0"
+          ]
+        }
+      },
+      {
+        "id": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "res:http://example.org/bad#A",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/bad#B",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0||res:http://example.org/bad#B",
+        "source": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "target": "res:http://example.org/bad#B"
+      },
+      {
+        "id": "edge:res:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "source": "res:http://example.org/bad#A",
+        "target": "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 530,
+    "laneOffset": 250,
+    "slotHeight": 130,
+    "satelliteHeight": 110,
+    "satelliteOffset": 10,
+    "headerGap": 80,
+    "bandGap": 140,
+    "bandColumns": 5,
+    "bandColumnGap": 60,
+    "bandRowGap": 50,
+    "role": "self.role",
+    "supers": "self.supers",
+    "owner": "self.owner",
+    "pinnable": "self.id.startsWith('res:') || self.id.startsWith('ind:')"
+  },
+  "output": {
+    "positions": {
+      "expr:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|0": {
+        "x": 250.0,
+        "y": 10.0
+      },
+      "res:http://example.org/bad#A": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/bad#B": {
+        "x": 0.0,
+        "y": 175.0
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@
 //! the version, map every construct, resolve names, compile every regular expression and CEL expression, and check
 //! the rules. Every problem is collected; a document with an error yields no document.
 
+use std::collections::BTreeMap;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -47,13 +48,73 @@ fn error(pointer: impl Into<String>, message: impl Into<String>) -> LoadProblem 
 const SUPPORTED_MAJOR: i64 = 0;
 
 /// The newest minor version this library reads in full; a document of a newer one loads with a warning.
-const KNOWN_MINOR: i64 = 5;
+const KNOWN_MINOR: i64 = 9;
 
 /// Loads the document at `path`.
 pub fn load_file(path: &Path) -> (Vec<LoadProblem>, Option<FblDocument>) {
     match std::fs::read(path) {
-        Ok(bytes) => load(&bytes),
+        Ok(bytes) => {
+            let (mut problems, document) = load(&bytes);
+            let Some(mut document) = document else {
+                return (problems, None);
+            };
+            let folder = path.parent().unwrap_or(Path::new("."));
+            for (name, binding) in &mut document.bindings {
+                if let Some(grammar) = &mut binding.body.grammar
+                    && grammar.file.is_some()
+                {
+                    let pointer = format!("/bindings/{}/body/grammar", escape(name));
+                    read_grammar_files(grammar, folder, &pointer, &mut problems);
+                    check_grammar(grammar, &pointer, &mut problems);
+                }
+            }
+            if problems.iter().any(|p| p.severity == ProblemSeverity::Error) {
+                return (problems, None);
+            }
+            (problems, Some(document))
+        }
         Err(e) => (vec![error("", format!("The document cannot be read: {e}"))], None),
+    }
+}
+
+/// Reads a grammar's file beside the document and the modules it imports from beside it (FBL 0.9 section 4.9).
+fn read_grammar_files(grammar: &mut GrammarSettings, folder: &Path, pointer: &str, problems: &mut Vec<LoadProblem>) {
+    let mut wanted = vec![grammar.root.clone()];
+    while let Some(module) = wanted.pop() {
+        if grammar.modules.contains_key(&module) {
+            continue;
+        }
+        let file = folder.join(format!("{module}.lark"));
+        match std::fs::read_to_string(&file) {
+            Ok(text) => {
+                for line in text.lines() {
+                    if let Some(rest) = line.trim_start().strip_prefix("%import")
+                        && let Some(name) = rest.trim_start().strip_prefix('.')
+                    {
+                        let name: String = name
+                            .chars()
+                            .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
+                            .collect();
+                        wanted.push(name);
+                    }
+                }
+                grammar.modules.insert(module, text);
+            }
+            Err(e) => {
+                problems.push(error(
+                    pointer,
+                    format!("The grammar file '{}' cannot be read: {e}", file.display()),
+                ));
+                return;
+            }
+        }
+    }
+}
+
+/// Refuses a grammar that does not build as LALR(1) without a conflict (FBL 0.9 section 14.1).
+fn check_grammar(grammar: &GrammarSettings, pointer: &str, problems: &mut Vec<LoadProblem>) {
+    if let Err(reason) = crate::grammar::build(grammar) {
+        problems.push(error(pointer, reason));
     }
 }
 
@@ -124,6 +185,9 @@ pub fn load(json: &[u8]) -> (Vec<LoadProblem>, Option<FblDocument>) {
         }
         if let Some(binding) = read_binding(name, value, &pointer, &mut problems) {
             check(&binding, &pointer, &mut problems);
+            if let Some(grammar) = binding.body.grammar.as_ref().filter(|g| g.file.is_none()) {
+                check_grammar(grammar, &format!("{pointer}/body/grammar"), &mut problems);
+            }
             result.push((name.clone(), binding));
         }
     }
@@ -378,6 +442,7 @@ fn parse_family(name: Option<&str>) -> Option<Family> {
         "lines" => Some(Family::Lines),
         "blocks" => Some(Family::Blocks),
         "bullets" => Some(Family::Bullets),
+        "grammar" => Some(Family::Grammar),
         _ => None,
     }
 }
@@ -542,7 +607,58 @@ fn read_body(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>) -> Bod
             .collect(),
         ignore: strings(json, "ignore"),
         settle,
+        grammar: read_grammar(json, pointer, problems),
     }
+}
+
+/// A `grammar` body's grammar (FBL 0.9 section 4.9): its text, or the file beside the document it is in, whose
+/// modules [`load_file`] reads.
+fn read_grammar(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>) -> Option<GrammarSettings> {
+    let is_grammar = s(json, "family").as_deref() == Some("grammar");
+    let start = s(json, "start").unwrap_or_else(|| "start".to_owned());
+    let recover = json.get("recover").map(|r| Recover {
+        unit: s(r, "unit").unwrap_or_default(),
+        sync: strings(r, "sync"),
+    });
+    let settings = match json.get("grammar") {
+        Some(Json::String(text)) => GrammarSettings {
+            root: "grammar".to_owned(),
+            file: None,
+            modules: BTreeMap::from([("grammar".to_owned(), text.clone())]),
+            start,
+            recover,
+        },
+        Some(g) if s(g, "file").is_some() => {
+            let file = s(g, "file").unwrap_or_default();
+            GrammarSettings {
+                root: file.trim_end_matches(".lark").to_owned(),
+                file: Some(file),
+                modules: BTreeMap::new(),
+                start,
+                recover,
+            }
+        }
+        Some(_) => {
+            problems.push(error(
+                format!("{pointer}/grammar"),
+                "A grammar is its text or {\"file\": \"<name>.lark\"}.",
+            ));
+            return None;
+        }
+        None => {
+            if is_grammar {
+                problems.push(error(format!("{pointer}/grammar"), "A grammar body has a grammar."));
+            }
+            return None;
+        }
+    };
+    if !is_grammar {
+        problems.push(error(
+            format!("{pointer}/grammar"),
+            "Only a body of the grammar family has a grammar.",
+        ));
+    }
+    Some(settings)
 }
 
 fn read_text(json: &Json) -> TextDefaults {
@@ -668,6 +784,8 @@ fn read_slot(json: &Json) -> Slot {
         continuation: flag(json, "continuation"),
         word: s(json, "word"),
         flag: flag(json, "flag"),
+        node: s(json, "node"),
+        node_match: s(json, "match"),
     }
 }
 
@@ -1030,6 +1148,7 @@ fn count_slots(s: &Slot) -> usize {
         + usize::from(s.capture.is_some())
         + usize::from(s.value.is_some())
         + usize::from(s.continuation)
+        + usize::from(s.node.is_some())
 }
 
 /// The sections of a bullets body (FBL 0.7 section 4.8): a name each, used once, and a heading expression of FBL's

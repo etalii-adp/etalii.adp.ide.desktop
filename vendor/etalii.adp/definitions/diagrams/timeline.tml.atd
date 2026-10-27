@@ -1,0 +1,57 @@
+atd 0.1
+part of generic/timeline
+
+// The timeline's .tml body, in a part of its own (ATD §5.2, §9).
+
+/// The timeline's .tml body (definitions/diagrams/timeline.dis, timeline.md): ADP's own YAML, read through FBL
+/// instead of a hand-written parser. It differs from the example specifications/fbl/timeline.fbl where the tool reads
+/// differently. A relation is an element rule whose from and to are references by storedId, so a relation whose end
+/// names no element is kept and reported by the definition's rules. Every rule reads the id as written as the host
+/// attribute storedId, so an id written more than once is reported and an element is found by what is written. There
+/// is no header, so a missing or other timeline: line raises nothing. A row is read as its text and converted as the
+/// tool converts it, so 1.0 and 0x10 are row 0. A missing begin reads as the empty text. An entry is a period when
+/// its end key holds a scalar, empty included, and a moment otherwise, so an end holding a mapping or a sequence is a
+/// moment. An entry that is not a mapping is taken by no rule and kept as it is. A new period or moment goes after
+/// the last element of either kind, as the tool has always added one, rather than after the last of its own kind.
+binding timeline family yaml {
+  label "Timeline Markup Language"
+  claims { extensions: [".tml"], origins: ["generic/timeline"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  registration { createOnFirstPlacement: false }
+
+  element Period as period at "/elements/*" {
+    when entry.all(k, true) && has(entry.end) && !(type(entry.end) in [map, list])
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute label from key "label" { empty: keep }
+    attribute begin from key "begin" { read: text time: keep-precision default: "" }
+    attribute end from key "end" { read: text time: keep-precision empty: remove }
+    attribute row from key "row" { read: text default: 0 }
+    insert { place: end, container: "/elements", keys: [id, label, begin, end, row] }
+    remove { cascade: [connection] }
+  }
+
+  element Moment as moment at "/elements/*" {
+    when entry.all(k, true) && (!has(entry.end) || type(entry.end) in [map, list])
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute label from key "label" { empty: keep }
+    attribute begin from key "begin" { read: text time: keep-precision default: "" }
+    attribute row from key "row" { read: text default: 0 }
+    insert { place: end, container: "/elements", keys: [id, label, begin, row] }
+    remove { cascade: [connection] }
+  }
+
+  element Connection as connection at "/connections/*" {
+    when entry.all(k, true)
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute from from key "from" { references period, moment by storedId }
+    attribute to from key "to" { references period, moment by storedId }
+    attribute label from key "label" { empty: remove }
+    insert { place: after-last, container: "/connections", create: { at: end-of-document }, keys: [id, from, to, label] }
+    remove { container: keep }
+  }
+
+  template "timeline: 1\r\nelements: []\r\n"
+}

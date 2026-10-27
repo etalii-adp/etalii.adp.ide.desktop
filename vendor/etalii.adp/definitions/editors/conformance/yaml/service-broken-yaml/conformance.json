@@ -1,0 +1,80 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record editor/yaml` from crates/adp-conformance/tests/round_trip/editors/yaml/examples/service-broken.yaml of etalii.adp.ide.desktop, the standalone host's example; never edited by hand.",
+  "tool": "editor/yaml",
+  "description": "../../../yaml.atd",
+  "inputs": {
+    "body": "service-broken.yaml",
+    "anchors.yaml": "anchors.yaml",
+    "crlf.yaml": "crlf.yaml",
+    "no-schema.yaml": "no-schema.yaml",
+    "readme.md": "readme.md",
+    "service.schema.json": "service.schema.json",
+    "service.yaml": "service.yaml",
+    "several-documents.yaml": "several-documents.yaml"
+  },
+  "read": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "severity": "error",
+        "line": 7,
+        "column": 1,
+        "message": "\"image\" is a required property"
+      },
+      {
+        "severity": "error",
+        "line": 7,
+        "column": 1,
+        "message": "\"http\" is not one of \"tcp\" or \"udp\""
+      },
+      {
+        "severity": "error",
+        "line": 8,
+        "column": 1,
+        "message": "\"many\" is not of type \"integer\""
+      },
+      {
+        "severity": "error",
+        "line": 9,
+        "column": 1,
+        "message": "\"sometimes\" is not one of \"always\", \"on-failure\" or \"never\""
+      },
+      {
+        "severity": "error",
+        "line": 11,
+        "column": 1,
+        "message": "Additional properties are not allowed ('colour', 'defaults' were unexpected)"
+      },
+      {
+        "severity": "error",
+        "line": 16,
+        "column": 5,
+        "message": "\"port\" is a required property"
+      },
+      {
+        "severity": "error",
+        "line": 17,
+        "column": 5,
+        "message": "\"port\" is a required property"
+      }
+    ]
+  },
+  "provenance": {
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "7d08352",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "7d08352",
+      "source": "atd record (findings)"
+    }
+  }
+}

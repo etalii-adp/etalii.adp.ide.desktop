@@ -1,0 +1,77 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/cases/databricks/job/fresh-key.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "resources:\n  jobs:\n    numbered:\n      name: Keys already taken by a pattern\n      tasks:\n        - task_key: notebook_2\n          notebook_task:\n            notebook_path: notebooks/notebook_2\n        - task_key: python_1\n          spark_python_task:\n            python_file: scripts/python_1.py\n        - task_key: condition_1\n          depends_on:\n            - task_key: python_1\n          condition_task:\n            op: EQUAL_TO\n            left: \"1\"\n            right: \"1\"\n",
+    "files": {
+      "fresh-key.job.adp": "databricks/job\nbody: fresh-key.yml\n"
+    }
+  },
+  "args": {
+    "reading": "job"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "task:notebook_2",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "notebook_2",
+          "taskType": "notebook",
+          "source": "notebooks/notebook_2",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "notebook_2",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:python_1",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "python_1",
+          "taskType": "python",
+          "source": "scripts/python_1.py",
+          "unresolved": "false",
+          "kind": "python",
+          "label": "python_1",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "task:condition_1",
+        "type": "databricks/job+task",
+        "parent": null,
+        "attributes": {
+          "taskKey": "condition_1",
+          "taskType": "condition",
+          "source": "EQUAL_TO",
+          "unresolved": "false",
+          "kind": "condition",
+          "label": "condition_1",
+          "badges": "serverless",
+          "width": "200",
+          "height": "56"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:python_1->condition_1",
+        "type": "databricks/job+edge",
+        "source": "task:python_1",
+        "target": "task:condition_1",
+        "attributes": {
+          "kind": "depends"
+        }
+      }
+    ],
+    "findings": []
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "1",
+      "type": "Check",
+      "shape": "path",
+      "bounds": {
+        "x": 100,
+        "y": 30,
+        "w": 200,
+        "h": 60
+      },
+      "labels": [
+        {
+          "id": "keyword",
+          "text": "Check",
+          "font": "10 600",
+          "position": {
+            "x": 200,
+            "y": 50
+          }
+        },
+        {
+          "id": "label",
+          "text": "Ready",
+          "font": "12 400",
+          "position": {
+            "x": 200,
+            "y": 70
+          }
+        }
+      ],
+      "style": {
+        "fill": "#9edcfa",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1.5,
+        "tokens": {
+          "fill": "color.abm.check",
+          "stroke": "color.border"
+        }
+      }
+    }
+  ],
+  "edges": [],
+  "chrome": [],
+  "order": [
+    "1"
+  ]
+}

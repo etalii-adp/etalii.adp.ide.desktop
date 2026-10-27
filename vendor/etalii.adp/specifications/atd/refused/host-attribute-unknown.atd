@@ -1,0 +1,31 @@
+atd 0.1
+
+/// A constraint that reads a host attribute by a name no `typeMap` entry declares: one finding, at the name (ATD §12.8).
+diagram example/tasks version "0.1.0" {
+  model {
+    element Task {
+      attribute title: string required
+    }
+  }
+  notation {
+    node Task { label @title }
+  }
+  constraints {
+    constraint stored for Task {
+      rule hostAttribute(self, "storedID") != null
+      message "A task is read with an id."
+    }
+  }
+  persistence {
+    format: fbl
+    typeMap: { Task: { as: Task, hostAttributes: [storedId] } }
+  }
+  binding tasks family yaml {
+    claims files "*.tasks.yaml"
+    element Task as task at "/tasks/*" {
+      id from key "id"
+      attribute title from key "title"
+      attribute storedId from key "id" { read: text readOnly: true }
+    }
+  }
+}

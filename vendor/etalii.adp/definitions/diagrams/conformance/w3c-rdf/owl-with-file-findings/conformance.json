@@ -1,0 +1,176 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/owl-with-file-findings.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "owl-with-file-findings.ttl",
+    "registration": "owl-with-file-findings.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/again#Thing",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/again#Thing",
+          "display": "ex:Thing",
+          "typeBadges.0": "owl:Class",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "Thing",
+          "rows.0.annotation": "@en-",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/again#Old",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/again#Old",
+          "display": "ex:Old",
+          "typeBadges.0": "owl:Class",
+          "rows.0.predicate": "owl:deprecated",
+          "rows.0.value": "true",
+          "rows.0.annotation": "xsd:boolean",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/again#New",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/again#New",
+          "display": "ex:New",
+          "typeBadges.0": "owl:Class",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/again#size",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/again#size",
+          "display": "ex:size",
+          "typeBadges.0": "owl:DatatypeProperty",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#notAType",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://www.w3.org/2001/XMLSchema#notAType",
+          "display": "xsd:notAType",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:relative",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "relative",
+          "display": "relative",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/again#New|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/again#Old",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/again#New",
+        "target": "res:http://example.org/again#Old",
+        "attributes": {
+          "fromElementId": "res:http://example.org/again#New",
+          "toElementId": "res:http://example.org/again#Old",
+          "predicate": "rdfs:subClassOf",
+          "predicateIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/again#size|http://www.w3.org/2000/01/rdf-schema#range|res:http://www.w3.org/2001/XMLSchema#notAType",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/again#size",
+        "target": "res:http://www.w3.org/2001/XMLSchema#notAType",
+        "attributes": {
+          "fromElementId": "res:http://example.org/again#size",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#notAType",
+          "predicate": "rdfs:range",
+          "predicateIri": "http://www.w3.org/2000/01/rdf-schema#range"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/again#Thing|http://example.org/again#undeclared|res:relative",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/again#Thing",
+        "target": "res:relative",
+        "attributes": {
+          "fromElementId": "res:http://example.org/again#Thing",
+          "toElementId": "res:relative",
+          "predicate": "ex:undeclared",
+          "predicateIri": "http://example.org/again#undeclared"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "rdf.duplicate-prefix",
+        "severity": "warning",
+        "line": 3,
+        "message": "The prefix 'ex:' is declared more than once; from here on it means http://example.org/again#, which changes what every earlier-styled use would say."
+      },
+      {
+        "rule": "rdf.relative-iri",
+        "severity": "warning",
+        "line": 12,
+        "message": "This document uses relative IRIs but declares no base, so their meaning depends on where the file happens to sit. Declare an @base."
+      },
+      {
+        "rule": "rdf.language-tag",
+        "severity": "warning",
+        "line": 8,
+        "message": "'@en-' is not a well-formed language tag (letters, then optional '-' groups of letters and digits)."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "routing.forwardBezier",
+  "version": "1.0.0",
+  "extensionPoint": "routing",
+  "doc": "A cubic curve from an edge's source to its target that always reads left to right: it leaves the middle of the source's right side and enters the middle of the target's left side. While the target starts at or right of the source's right side, both control points are at the horizontal midpoint between the two ends, each level with its own end. When the target starts left of the source's right side, the curve loops round: its control points reach max(span / 2, 40, -0.6 × span) right of its start and left of its end, level with each, span being the end's x minus the start's x. A route is a `move` and one `cubic`, and obstacles are not avoided.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/RoutingInput"
+  },
+  "args": {},
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/RoutingResult"
+  },
+  "laws": [
+    "deterministic",
+    "pure"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

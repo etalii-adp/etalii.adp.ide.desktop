@@ -1,0 +1,242 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.depthColumns` from the RDF module's layout of the reading that parity/cases/w3c/owl/owl-punning.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/zoo#Bird",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Species",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Eagle",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://example.org/zoo#Bird"
+          ]
+        }
+      },
+      {
+        "id": "ind:http://example.org/zoo#Eagle",
+        "width": 220.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "individual",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Hawk",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://example.org/zoo#Bird"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Raptor",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "res:http://example.org/zoo#Raptor",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#boolean",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://example.org/zoo#eats|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://example.org/zoo#eats|range",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "dt:http://example.org/zoo#wingspan",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "thing:http://example.org/zoo#ringed|domain",
+        "width": 104.50000000000001,
+        "height": 38.5,
+        "attributes": {
+          "role": "satellite",
+          "owner": "",
+          "supers": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:thing:http://example.org/zoo#eats|domain|http://example.org/zoo#eats|thing:http://example.org/zoo#eats|range",
+        "source": "thing:http://example.org/zoo#eats|domain",
+        "target": "thing:http://example.org/zoo#eats|range"
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Bird|http://example.org/zoo#wingspan|dt:http://example.org/zoo#wingspan",
+        "source": "res:http://example.org/zoo#Bird",
+        "target": "dt:http://example.org/zoo#wingspan"
+      },
+      {
+        "id": "edge:thing:http://example.org/zoo#ringed|domain|http://example.org/zoo#ringed|res:http://www.w3.org/2001/XMLSchema#boolean",
+        "source": "thing:http://example.org/zoo#ringed|domain",
+        "target": "res:http://www.w3.org/2001/XMLSchema#boolean"
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Eagle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+        "source": "res:http://example.org/zoo#Eagle",
+        "target": "res:http://example.org/zoo#Bird"
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Hawk|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+        "source": "res:http://example.org/zoo#Hawk",
+        "target": "res:http://example.org/zoo#Bird"
+      },
+      {
+        "id": "edge:expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/zoo#Eagle",
+        "source": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/zoo#Eagle"
+      },
+      {
+        "id": "edge:expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/zoo#Hawk",
+        "source": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "target": "res:http://example.org/zoo#Hawk"
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0",
+        "source": "res:http://example.org/zoo#Raptor",
+        "target": "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 530,
+    "laneOffset": 250,
+    "slotHeight": 130,
+    "satelliteHeight": 110,
+    "satelliteOffset": 10,
+    "headerGap": 80,
+    "bandGap": 140,
+    "bandColumns": 5,
+    "bandColumnGap": 60,
+    "bandRowGap": 50,
+    "role": "self.role",
+    "supers": "self.supers",
+    "owner": "self.owner",
+    "pinnable": "self.id.startsWith('res:') || self.id.startsWith('ind:')"
+  },
+  "output": {
+    "positions": {
+      "dt:http://example.org/zoo#wingspan": {
+        "x": 250.0,
+        "y": 10.0
+      },
+      "expr:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|0": {
+        "x": 250.0,
+        "y": 315.0
+      },
+      "ind:http://example.org/zoo#Eagle": {
+        "x": 0.0,
+        "y": 620.0
+      },
+      "res:http://example.org/zoo#Bird": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/zoo#Eagle": {
+        "x": 530.0,
+        "y": 0.0
+      },
+      "res:http://example.org/zoo#Hawk": {
+        "x": 530.0,
+        "y": 130.0
+      },
+      "res:http://example.org/zoo#Raptor": {
+        "x": 0.0,
+        "y": 305.0
+      },
+      "res:http://example.org/zoo#Species": {
+        "x": 0.0,
+        "y": 175.0
+      },
+      "res:http://www.w3.org/2001/XMLSchema#boolean": {
+        "x": 0.0,
+        "y": 866.0
+      },
+      "thing:http://example.org/zoo#eats|domain": {
+        "x": 250.0,
+        "y": 866.0
+      },
+      "thing:http://example.org/zoo#eats|range": {
+        "x": 500.0,
+        "y": 866.0
+      },
+      "thing:http://example.org/zoo#ringed|domain": {
+        "x": 750.0,
+        "y": 866.0
+      }
+    }
+  }
+}

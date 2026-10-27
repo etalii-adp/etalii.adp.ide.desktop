@@ -1,0 +1,88 @@
+atd 0.1
+part of etalii/sankey
+
+// The Sankey diagram's .skv body (definitions/diagrams/sankey.dis, sankey.md): ADP's own YAML, read through FBL by the
+// Sankey module (sankey-disl-fbl). Every slot is read as the text it was written with, so an id written 007 and a name
+// written on stay what the author wrote, and the module's reader turns a number's text into its value as it always
+// has, reporting one that will not read without losing its entry (gap 2). A flow is an element with reference
+// attributes rather than a relation, so a flow whose end names no node is kept and reported (B6), and it has no id
+// rule (B7): the definition derives its id. Every entry carries the keys the module does not read as unknownKeys (B4),
+// and the written text of every member as written, from which the module reads an entry written as a flow mapping,
+// whose members no key slot binds (B16). An entry of nodes or flows that is not a mapping is taken by the Unreadable
+// rule behind its list's rule (B5). No header is declared (B10).
+
+binding skv family yaml {
+  label "Sankey diagram"
+  claims { extensions: [".skv"], origins: ["etalii/sankey"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+
+  element Document as document at "/" {
+    when type(entry) == map
+    attribute version from key "sankey" { read: text, readOnly: "The version is changed in the file itself." }
+    attribute format from key "format" { read: text, readOnly: "The format is changed in the file itself." }
+    attribute flowColor from key "flow-color" { read: text, readOnly: "The flow colour is changed in the file itself." }
+    attribute thickness from key "thickness" { read: text, number: { decimals: 2 } }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['sankey', 'format', 'flow-color', 'thickness', 'nodes', 'flows'])))
+  }
+
+  element Node as node at "/nodes/*" {
+    when type(entry) == map
+    id from key "id"
+    attribute storedId from key "id" { read: text, readOnly: true }
+    attribute written from value (text)
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'color', 'note', 'format', 'column', 'description'])))
+    attribute name from key "name" { read: text, empty: refuse }
+    attribute color from key "color" { read: text, empty: remove }
+    attribute note from key "note" { read: text, empty: remove }
+    attribute format from key "format" { read: text, empty: remove }
+    attribute column from key "column" { read: text, empty: remove }
+    attribute description from key "description" { read: text, empty: remove }
+    insert {
+      place: after-last
+      container: "/nodes"
+      create: { at: end-of-document }
+      keys: [id, name, color, note, format, column, description]
+    }
+    remove { cascade: [flow] }
+  }
+
+  element Flow as flow at "/flows/*" {
+    when type(entry) == map
+    attribute statedId from key "id" { read: text, readOnly: true }
+    attribute written from value (text)
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'from', 'to', 'value', 'step', 'color', 'description'])))
+    attribute from from key "from" {
+      references node by storedId
+      read: text
+    }
+    attribute to from key "to" {
+      references node by storedId
+      read: text
+    }
+    attribute value from key "value" { read: text, number: { decimals: 4 }, empty: remove }
+    attribute step from key "step" { read: text, number: { decimals: 4 }, empty: remove }
+    attribute color from key "color" { read: text, empty: remove }
+    attribute description from key "description" { read: text, empty: remove }
+    insert {
+      place: after-last
+      container: "/flows"
+      create: { at: end-of-document }
+      keys: [id, from, to, value, step, color, description]
+    }
+    remove {}
+  }
+
+  element Unreadable as node-not-a-mapping at "/nodes/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+
+  element Unreadable as flow-not-a-mapping at "/flows/*" {
+    readOnly: "This entry is not a mapping, so it is kept as it is."
+  }
+  template {
+    text: """sankey: 1
+nodes: []
+flows: []
+"""
+  }
+}

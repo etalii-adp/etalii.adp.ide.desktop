@@ -1,0 +1,319 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "etalii/supply-chain",
+  "description": "supply-chain.atd",
+  "companion": {
+    "file": "supply-chain.md",
+    "sections": [
+      "Interaction DISL cannot state",
+      "Notation DISL cannot state",
+      "Language gaps"
+    ]
+  },
+  "items": [
+    {
+      "id": "interaction-disl-cannot-state/1",
+      "text": "**Dragging a card into a frame** (finding A13). When the card's centre lands inside",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/599",
+      "reason": "A move cannot reparent by the frame its centre lands in, nor move a computed frame's members (supply-chain.md, gap 8)."
+    },
+    {
+      "id": "interaction-disl-cannot-state/2",
+      "text": "**The steppers.** Beside the one node or flow that is selected, the tool draws a − and a",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/600",
+      "reason": "A context tool cannot be placed beside a node's quantity or under a flow's label (supply-chain.md, gap 8)."
+    },
+    {
+      "id": "interaction-disl-cannot-state/3",
+      "text": "**An entry without an id is found by the empty id.** The tool finds an element by the id",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/605",
+      "reason": "CEL cannot read the id an entry was written with (storedId), so a later holder across groups, nodes and flows cannot be told apart and laterHolder answers false (supply-chain.md, gap 3)."
+    },
+    {
+      "id": "interaction-disl-cannot-state/4",
+      "text": "**The keys** `+` with or without Shift, and `=`, increase; `-`, and `_` with Shift,",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/601",
+      "reason": "A shortcut is one string, so the tool's further keys for increase and decrease cannot be stated (supply-chain.md, gap 13)."
+    },
+    {
+      "id": "notation-disl-cannot-state/1",
+      "text": "**The goods** are a second line along the band's path, in the surface colour: dashes of 1",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/602",
+      "reason": "An edge has one line; a second, moving line of goods along the band cannot be stated (supply-chain.md, gap 8)."
+    },
+    {
+      "id": "notation-disl-cannot-state/2",
+      "text": "**The unit beside the quantity** is a separate 11 px muted text just after the number, at",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/603",
+      "reason": "A label cannot be placed after another label by its width, so number and unit are one label (supply-chain.md, gap 8)."
+    },
+    {
+      "id": "notation-disl-cannot-state/3",
+      "text": "**The bezier's reach.** Both control points lie horizontally from the ends, `max(48, |dx|",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/558",
+      "reason": "A bezier has no least reach of max(48, |dx| / 2), and the arrowhead follows the tangent (supply-chain.md, section 'Notation DISL cannot state')."
+    },
+    {
+      "id": "notation-disl-cannot-state/4",
+      "text": "**A flow with lanes** is a chain of such curves: from the supplier to the left of its",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/604",
+      "reason": "layout.bandedLayers gives each flow's lane centres as its route, but an edge cannot be drawn as a chain of curves through them."
+    },
+    {
+      "id": "notation-disl-cannot-state/5",
+      "text": "**The share bar** of a card is its share of the largest quantity **among the nodes the",
+      "statedBy": "fn quantityShare"
+    },
+    {
+      "id": "language-gaps/1",
+      "text": "1. FBL: a scalar read as written (closed)",
+      "statedBy": "binding supply"
+    },
+    {
+      "id": "language-gaps/2",
+      "text": "2. DISL and FBL: membership by a key",
+      "statedBy": "element Stage"
+    },
+    {
+      "id": "language-gaps/3",
+      "text": "3. DISL: an entry that is kept, reported and not drawn",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/605",
+      "reason": "CEL cannot read the id an entry was written with (storedId), so a later holder across groups, nodes and flows cannot be told apart and laterHolder answers false (supply-chain.md, gap 3)."
+    },
+    {
+      "id": "language-gaps/4",
+      "text": "4. DISL: findings by line",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "ATD orders findings by code and then by line; no construct sorts them by line across codes (supply-chain.md, gap 4)."
+    },
+    {
+      "id": "language-gaps/5",
+      "text": "9. DISL: the reader's sentences",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/557",
+      "reason": "No built-in reports a reader finding on an entry that is still read, worded from what the reader saw (supply-chain.md, gap 9)."
+    },
+    {
+      "id": "language-gaps/6",
+      "text": "12. DISL: a walk over what is drawn",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/606",
+      "reason": "reachable walks the flows kept and not drawn too, so the trace lights what the tool dims (supply-chain.md, gap 12)."
+    },
+    {
+      "id": "language-gaps/7",
+      "text": "13. DISL: one key for one entry",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/601",
+      "reason": "A shortcut is one string, so the tool's further keys for increase and decrease cannot be stated (supply-chain.md, gap 13)."
+    },
+    {
+      "id": "language-gaps/8",
+      "text": "Not a gap: the amount's text",
+      "statedBy": "fn formatAmount"
+    }
+  ],
+  "hostCode": [
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/parser.rs",
+      "lines": "53-124",
+      "behaviour": "Reads the version header, the groups, the nodes and the flows from the document's YAML, with the reader's sentences on the lines they concern.",
+      "statedBy": "binding supply"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/parser.rs",
+      "lines": "233-257",
+      "behaviour": "Reports a key it does not read on an entry that is still read, and keeps the line.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/557",
+      "reason": "No built-in reports a reader finding on an entry that is still read (supply-chain.md, gap 9)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/lines.rs",
+      "lines": "357-412",
+      "behaviour": "Reads a number's written text as .NET reads it, reporting one that will not read.",
+      "statedBy": "binding supply"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/model.rs",
+      "lines": "90-110",
+      "behaviour": "Finds an element by the id it is written with: the first node with it, else the first flow, else the first group.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/605",
+      "reason": "CEL cannot read the id an entry was written with (storedId), so a later holder across groups, nodes and flows cannot be told apart and laterHolder answers false (supply-chain.md, gap 3)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/model.rs",
+      "lines": "144-148",
+      "behaviour": "A stage's place in the chain, source 0 to consumer 6 and 0 for one it does not know, an older word as the stage it reads as.",
+      "statedBy": "fn stageRank"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/layout.rs",
+      "lines": "51-155",
+      "behaviour": "Lays out the drawable entries in layers by stage and supply, with lanes for long flows, bands per group, barycentre order and a per-layer skyline.",
+      "statedBy": "algorithm chain"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/layout.rs",
+      "lines": "180-361",
+      "behaviour": "Orders and places each layer's bands and slots, and gives a flow's route through its lanes.",
+      "statedBy": "capability layout.bandedLayers"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/validator.rs",
+      "lines": "43-152",
+      "behaviour": "The findings: missing and duplicate ids, dangling and self flows, unknown and empty groups.",
+      "statedBy": "constraints"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/validator.rs",
+      "lines": "153-156",
+      "behaviour": "Lists the findings by their line, whatever their code.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/552",
+      "reason": "ATD orders findings by code and then by line; no construct sorts them by line across codes (supply-chain.md, gap 4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/trace.rs",
+      "lines": "36-180",
+      "behaviour": "Lights the chain through the selection over the flows it draws, and dims the rest.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/606",
+      "reason": "reachable walks the flows that are not drawn too (supply-chain.md, gap 12)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/commands.rs",
+      "lines": "211-355",
+      "behaviour": "Each edit as one command that rewrites the document's text: add, connect, remove, rename, step a value, group, arrange.",
+      "hostConcern": "undo-stack",
+      "reason": "The history is the host's; the description says each gesture is one command (ATD 12.4)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/commands.rs",
+      "lines": "356-369",
+      "behaviour": "Steps a value by its step, or by the default step, never below zero.",
+      "statedBy": "fn stepOf"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/commands.rs",
+      "lines": "446-555",
+      "behaviour": "Moves a node into the frame its centre lands in, keeps an emptied group where it was, and moves a group with its members.",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/599",
+      "reason": "A move cannot reparent by where the centre lands (supply-chain.md, gap 8)."
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/writer.rs",
+      "lines": "16-176",
+      "behaviour": "Writes a key, a node, a group and a flow into the document, and removes them, copying the entries' indentation.",
+      "statedBy": "binding supply"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/actions.rs",
+      "lines": "80-165",
+      "behaviour": "The diagram's, a node's, a group's and a flow's actions, enabled with their reasons.",
+      "statedBy": "operation arrange"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/actions.rs",
+      "lines": "186-324",
+      "behaviour": "How each action runs, its prompts and their checks.",
+      "statedBy": "operation putInNewGroup"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/properties.rs",
+      "lines": "52-184",
+      "behaviour": "The property rows of a node, a flow and a group, with the group choices.",
+      "statedBy": "form stage"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/view.rs",
+      "lines": "30-31",
+      "behaviour": "The sentence that refuses the canvas's own reparent gesture.",
+      "statedBy": "notation node Stage refusals"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/mapper.rs",
+      "lines": "42-231",
+      "behaviour": "Maps the model to the wire's element kinds, with the viewport filter and the trace marks.",
+      "statedBy": "tool"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/mapper.rs",
+      "lines": "232-239",
+      "behaviour": "Writes an amount on the canvas.",
+      "statedBy": "fn formatAmount"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/theme.rs",
+      "lines": "10-63",
+      "behaviour": "The stage colours and the light and dark palettes.",
+      "statedBy": "notation theme"
+    },
+    {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "9f41c6a",
+      "path": "modules/diagrams/supply-chain/src/toolbox.rs",
+      "lines": "13-58",
+      "behaviour": "The toolbox's seven stages and their descriptions.",
+      "statedBy": "toolbox"
+    }
+  ]
+}

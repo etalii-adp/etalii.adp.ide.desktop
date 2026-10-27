@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Two namespaces, each with its own schema, named in pairs by xsi:schemaLocation. -->
+<order xmlns="urn:example:orders" xmlns:p="urn:example:parties"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="urn:example:orders order.xsd urn:example:parties party.xsd">
+  <number>2026-0042</number>
+  <p:party>
+    <p:name>Hendrik de Vries</p:name>
+    <p:city>Utrecht</p:city>
+  </p:party>
+  <line item="tea" quantity="2"/>
+  <line item="biscuits" quantity="1"/>
+</order>

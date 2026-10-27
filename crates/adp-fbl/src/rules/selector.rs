@@ -1,6 +1,6 @@
 //! FBL section 4.2's selectors over the entries of a tree (yaml, json) or of an xml document (the standalone host's
 //! `Rules/Selector`): keys and names, `*`, `**`, `{capture}` and `name[@A='v']`, absolute from the root or relative
-//! to an entry.
+//! to an entry, and *(FBL 0.9)* `name[path='v']` over a grammar body's tree.
 
 use std::collections::HashSet;
 use std::rc::Rc;
@@ -26,11 +26,12 @@ fn parse(text: &str) -> Segment {
     if text.len() >= 2 && text.starts_with('{') && text.ends_with('}') {
         return Segment::Capture(text[1..text.len() - 1].to_owned());
     }
-    if let Some(bracket) = text.find("[@")
+    // `name[@A='v']` tests an xml attribute; *(FBL 0.9)* `name[path='v']` a grammar node's descendant.
+    if let Some(bracket) = text.find('[')
         && bracket > 0
         && text.ends_with("']")
     {
-        let predicate = &text[bracket + 2..text.len() - 1];
+        let predicate = text[bracket + 1..text.len() - 1].trim_start_matches('@');
         if let Some(equals) = predicate.find("='")
             && equals > 0
         {

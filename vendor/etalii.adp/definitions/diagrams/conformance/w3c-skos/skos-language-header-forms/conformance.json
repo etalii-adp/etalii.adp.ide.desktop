@@ -1,0 +1,76 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/skos` from parity/cases/w3c/skos/skos-language-header-forms.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/skos",
+  "description": "../../../w3c-skos.atd",
+  "inputs": {
+    "body": "skos-language-header-forms.ttl",
+    "registration": "skos-language-header-forms.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/drinks#drinks",
+        "type": "w3c/skos+scheme",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#drinks",
+          "label": "Drinks",
+          "languageTag": "en",
+          "labelKind": "0",
+          "memberCount": "1"
+        }
+      },
+      {
+        "id": "res:http://example.org/drinks#tea",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/drinks#tea",
+          "label": "Tea",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/drinks#drinks",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

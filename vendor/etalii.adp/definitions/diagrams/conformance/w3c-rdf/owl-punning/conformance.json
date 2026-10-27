@@ -1,0 +1,244 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/owl-punning.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "owl-punning.ttl",
+    "registration": "owl-punning.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/zoo#Bird",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/zoo#Bird",
+          "display": "ex:Bird",
+          "typeBadges.0": "owl:Class",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Species",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/zoo#Species",
+          "display": "ex:Species",
+          "typeBadges.0": "owl:Class",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Eagle",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/zoo#Eagle",
+          "display": "ex:Eagle",
+          "typeBadges.0": "owl:Class",
+          "typeBadges.1": "ex:Species",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Hawk",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/zoo#Hawk",
+          "display": "ex:Hawk",
+          "typeBadges.0": "owl:Class",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Raptor",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/zoo#Raptor",
+          "display": "ex:Raptor",
+          "typeBadges.0": "owl:Class",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "blank:0",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:b0",
+          "typeBadges.0": "owl:Class",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#eats",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/zoo#eats",
+          "display": "ex:eats",
+          "typeBadges.0": "owl:ObjectProperty",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#wingspan",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/zoo#wingspan",
+          "display": "ex:wingspan",
+          "typeBadges.0": "owl:DatatypeProperty",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#ringed",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/zoo#ringed",
+          "display": "ex:ringed",
+          "typeBadges.0": "owl:DatatypeProperty",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#boolean",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://www.w3.org/2001/XMLSchema#boolean",
+          "display": "xsd:boolean",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/zoo#Eagle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/zoo#Eagle",
+        "target": "res:http://example.org/zoo#Bird",
+        "attributes": {
+          "fromElementId": "res:http://example.org/zoo#Eagle",
+          "toElementId": "res:http://example.org/zoo#Bird",
+          "predicate": "rdfs:subClassOf",
+          "predicateIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Hawk|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/zoo#Bird",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/zoo#Hawk",
+        "target": "res:http://example.org/zoo#Bird",
+        "attributes": {
+          "fromElementId": "res:http://example.org/zoo#Hawk",
+          "toElementId": "res:http://example.org/zoo#Bird",
+          "predicate": "rdfs:subClassOf",
+          "predicateIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      },
+      {
+        "id": "edge:blank:0|http://www.w3.org/2002/07/owl#unionOf|res:http://example.org/zoo#Eagle",
+        "type": "w3c/rdf+edge",
+        "source": "blank:0",
+        "target": "res:http://example.org/zoo#Eagle",
+        "attributes": {
+          "fromElementId": "blank:0",
+          "toElementId": "res:http://example.org/zoo#Eagle",
+          "predicate": "owl:unionOf [1]",
+          "predicateIri": "http://www.w3.org/2002/07/owl#unionOf"
+        }
+      },
+      {
+        "id": "edge:blank:0|http://www.w3.org/2002/07/owl#unionOf|res:http://example.org/zoo#Hawk",
+        "type": "w3c/rdf+edge",
+        "source": "blank:0",
+        "target": "res:http://example.org/zoo#Hawk",
+        "attributes": {
+          "fromElementId": "blank:0",
+          "toElementId": "res:http://example.org/zoo#Hawk",
+          "predicate": "owl:unionOf [2]",
+          "predicateIri": "http://www.w3.org/2002/07/owl#unionOf"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#Raptor|http://www.w3.org/2002/07/owl#equivalentClass|blank:0",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/zoo#Raptor",
+        "target": "blank:0",
+        "attributes": {
+          "fromElementId": "res:http://example.org/zoo#Raptor",
+          "toElementId": "blank:0",
+          "predicate": "owl:equivalentClass",
+          "predicateIri": "http://www.w3.org/2002/07/owl#equivalentClass"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#wingspan|http://www.w3.org/2000/01/rdf-schema#domain|res:http://example.org/zoo#Bird",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/zoo#wingspan",
+        "target": "res:http://example.org/zoo#Bird",
+        "attributes": {
+          "fromElementId": "res:http://example.org/zoo#wingspan",
+          "toElementId": "res:http://example.org/zoo#Bird",
+          "predicate": "rdfs:domain",
+          "predicateIri": "http://www.w3.org/2000/01/rdf-schema#domain"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/zoo#ringed|http://www.w3.org/2000/01/rdf-schema#range|res:http://www.w3.org/2001/XMLSchema#boolean",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/zoo#ringed",
+        "target": "res:http://www.w3.org/2001/XMLSchema#boolean",
+        "attributes": {
+          "fromElementId": "res:http://example.org/zoo#ringed",
+          "toElementId": "res:http://www.w3.org/2001/XMLSchema#boolean",
+          "predicate": "rdfs:range",
+          "predicateIri": "http://www.w3.org/2000/01/rdf-schema#range"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

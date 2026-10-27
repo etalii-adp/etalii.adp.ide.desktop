@@ -1,0 +1,21 @@
+{
+  "name": "bronze \"to\" gold",
+  "catalog": "main",
+  "schema": "gold",
+  "serverless": true,
+  "continuous": false,
+  "development": true,
+  "channel": "PREVIEW",
+  "libraries": [
+    { "notebook": { "path": "transformations/bronze" } },
+    { "glob": { "include": "transformations/gold/**" } },
+    { "file": { "path": "a/b.py" } }
+  ],
+  "notifications": [
+    {
+      "email_recipients": ["data-eng@example.com"],
+      "alerts": ["on-update-failure"]
+    }
+  ],
+  "edition": "ADVANCED"
+}

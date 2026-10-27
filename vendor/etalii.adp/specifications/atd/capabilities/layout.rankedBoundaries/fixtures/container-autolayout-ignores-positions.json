@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/cases/c4/container/autolayout-ignores-positions.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "a",
+        "type": "software system",
+        "width": 160.0,
+        "height": 78.8,
+        "pinned": {
+          "x": 10.0,
+          "y": 20.0
+        }
+      },
+      {
+        "id": "b",
+        "type": "software system",
+        "width": 160.0,
+        "height": 78.8
+      }
+    ],
+    "edges": [
+      {
+        "id": "a->b#1",
+        "source": "a",
+        "target": "b"
+      }
+    ]
+  },
+  "args": {
+    "mode": "enclose",
+    "direction": "'lr'",
+    "rankSeparation": "200",
+    "nodeSeparation": "80",
+    "pinsIgnored": "true",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "a": {
+        "x": 0.0,
+        "y": -39.4
+      },
+      "b": {
+        "x": 360.0,
+        "y": -39.4
+      }
+    }
+  }
+}

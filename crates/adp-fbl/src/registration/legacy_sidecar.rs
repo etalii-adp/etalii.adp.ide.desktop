@@ -37,6 +37,7 @@ fn sidecar_binding() -> FblBinding {
             files: Vec::new(),
             ignore: Vec::new(),
             settle: DEFAULT_SETTLE,
+            grammar: None,
         },
         plugin: None,
         read_only: None,

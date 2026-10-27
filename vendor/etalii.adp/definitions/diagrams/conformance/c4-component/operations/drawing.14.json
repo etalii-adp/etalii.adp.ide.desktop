@@ -1,0 +1,2105 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "agent",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -300,
+        "y": -388.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Answers questions about deliveries that\nwent wrong.",
+          "font": "10 400",
+          "position": {
+            "x": -180,
+            "y": -330.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Support Agent",
+          "font": "13 600",
+          "position": {
+            "x": -180,
+            "y": -366.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": -180,
+            "y": -350.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "billing",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 40,
+        "y": 416.2,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Describe Billing.",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 474.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Billing",
+          "font": "13 600",
+          "position": {
+            "x": 120,
+            "y": 438.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 454.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "bookingController",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 1800,
+        "y": -197.8,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Takes a booking and turns it into a\ndelivery.",
+          "font": "10 400",
+          "position": {
+            "x": 1920,
+            "y": -139.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Booking Controller",
+          "font": "13 600",
+          "position": {
+            "x": 1920,
+            "y": -175.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Component: Spring MVC Controller]",
+          "font": "10 400",
+          "position": {
+            "x": 1920,
+            "y": -159.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#85bbf0",
+        "stroke": "#85bbf0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "broker",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 1080,
+        "y": 190.2,
+        "w": 240,
+        "h": 118
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Carries scan events so ingest and\nnotification are not one step.",
+          "font": "10 400",
+          "position": {
+            "x": 1200,
+            "y": 248.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Event Broker",
+          "font": "13 600",
+          "position": {
+            "x": 1200,
+            "y": 212.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Apache Kafka]",
+          "font": "10 400",
+          "position": {
+            "x": 1200,
+            "y": 228.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "courier",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": -495,
+        "w": 240,
+        "h": 118
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Collects and delivers parcels, and\nscans them on the way.",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": -437
+          }
+        },
+        {
+          "id": "name",
+          "text": "Courier",
+          "font": "13 600",
+          "position": {
+            "x": 120,
+            "y": -473
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": -457
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "database",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 2316.5,
+        "y": 190.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Stores deliveries, parcels and every\nscan against them.",
+          "font": "10 400",
+          "position": {
+            "x": 2436.5,
+            "y": 248.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Delivery Database",
+          "font": "13 600",
+          "position": {
+            "x": 2436.5,
+            "y": 212.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: PostgreSQL 16]",
+          "font": "10 400",
+          "position": {
+            "x": 2436.5,
+            "y": 228.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "dispatcher",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 31,
+        "y": 277.4,
+        "w": 178,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Describe Dispatcher.",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 335.4
+          }
+        },
+        {
+          "id": "name",
+          "text": "Dispatcher",
+          "font": "13 600",
+          "position": {
+            "x": 120,
+            "y": 299.4
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 315.4
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "email",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 2040,
+        "y": 190.2,
+        "w": 216.5,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "The corporate mail relay.",
+          "font": "10 400",
+          "position": {
+            "x": 2148.25,
+            "y": 248.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "E-mail System",
+          "font": "13 600",
+          "position": {
+            "x": 2148.25,
+            "y": 212.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 2148.25,
+            "y": 228.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#999999",
+        "stroke": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "mobile",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 600,
+        "y": 190.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Scans parcels at pickup, handover and\ndelivery.",
+          "font": "10 400",
+          "position": {
+            "x": 720,
+            "y": 248.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Courier App",
+          "font": "13 600",
+          "position": {
+            "x": 720,
+            "y": 212.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Kotlin and Jetpack Compose]",
+          "font": "10 400",
+          "position": {
+            "x": 720,
+            "y": 228.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "notifier",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 1080,
+        "y": -138.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Tells a sender when their parcel moves.",
+          "font": "10 400",
+          "position": {
+            "x": 1200,
+            "y": -80.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Notification Sender",
+          "font": "13 600",
+          "position": {
+            "x": 1200,
+            "y": -116.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Component: Spring Component]",
+          "font": "10 400",
+          "position": {
+            "x": 1200,
+            "y": -100.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#85bbf0",
+        "stroke": "#85bbf0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "routing",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 2520,
+        "y": -49.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Works out the cheapest route for a set\nof parcels.",
+          "font": "10 400",
+          "position": {
+            "x": 2640,
+            "y": 8.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Routing Optimiser",
+          "font": "13 600",
+          "position": {
+            "x": 2640,
+            "y": -27.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 2640,
+            "y": -11.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#999999",
+        "stroke": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "routingFacade",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 2160,
+        "y": -49.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Talks to the routing optimiser.",
+          "font": "10 400",
+          "position": {
+            "x": 2280,
+            "y": 8.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Routing Facade",
+          "font": "13 600",
+          "position": {
+            "x": 2280,
+            "y": -27.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Component: Spring Component]",
+          "font": "10 400",
+          "position": {
+            "x": 2280,
+            "y": -11.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#85bbf0",
+        "stroke": "#85bbf0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "scanIngest",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 720,
+        "y": -49.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Accepts scans from couriers and orders\nthem by time.",
+          "font": "10 400",
+          "position": {
+            "x": 840,
+            "y": 8.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Scan Ingest",
+          "font": "13 600",
+          "position": {
+            "x": 840,
+            "y": -27.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Component: Spring Component]",
+          "font": "10 400",
+          "position": {
+            "x": 840,
+            "y": -11.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#85bbf0",
+        "stroke": "#85bbf0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "scanner",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 19.45,
+        "y": -0.2,
+        "w": 201.1,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Describe Scanner.",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 57.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Scanner",
+          "font": "13 600",
+          "position": {
+            "x": 120,
+            "y": 21.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Component: Technology]",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 37.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#85bbf0",
+        "stroke": "#85bbf0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "sender",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 2616.5,
+        "y": -388.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books a delivery and follows where the\nparcel is.",
+          "font": "10 400",
+          "position": {
+            "x": 2736.5,
+            "y": -330.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "",
+          "font": "13 600",
+          "position": {
+            "x": 2736.5,
+            "y": -366.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 2736.5,
+            "y": -350.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "spa",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 1440,
+        "y": 190.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books deliveries and shows the progress\nof a parcel.",
+          "font": "10 400",
+          "position": {
+            "x": 1560,
+            "y": 248.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Single-Page Application",
+          "font": "13 600",
+          "position": {
+            "x": 1560,
+            "y": 212.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: TypeScript and React]",
+          "font": "10 400",
+          "position": {
+            "x": 1560,
+            "y": 228.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "tracking",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 1740,
+        "y": -407.8,
+        "w": 240,
+        "h": 118
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books deliveries, tracks parcels and\ntells everyone where they are.",
+          "font": "10 400",
+          "position": {
+            "x": 1860,
+            "y": -349.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Courier Tracking",
+          "font": "13 600",
+          "position": {
+            "x": 1860,
+            "y": -385.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 1860,
+            "y": -369.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      },
+      "children": [
+        "web",
+        "spa",
+        "mobile",
+        "broker",
+        "database",
+        "worker"
+      ]
+    },
+    {
+      "id": "trackingController",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 1800,
+        "y": -39.4,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Answers where a parcel has got to.",
+          "font": "10 400",
+          "position": {
+            "x": 1920,
+            "y": 18.6
+          }
+        },
+        {
+          "id": "name",
+          "text": "Tracking Controller",
+          "font": "13 600",
+          "position": {
+            "x": 1920,
+            "y": -17.4
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Component: Spring MVC Controller]",
+          "font": "10 400",
+          "position": {
+            "x": 1920,
+            "y": -1.4
+          }
+        }
+      ],
+      "style": {
+        "fill": "#85bbf0",
+        "stroke": "#85bbf0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "web",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 300,
+        "y": -388.2,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Serves the single-page application to a\nbrowser.",
+          "font": "10 400",
+          "position": {
+            "x": 420,
+            "y": -330.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "Web Application",
+          "font": "13 600",
+          "position": {
+            "x": 420,
+            "y": -366.2
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Java and Spring Boot]",
+          "font": "10 400",
+          "position": {
+            "x": 420,
+            "y": -350.2
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "worker",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 19.45,
+        "y": 138.6,
+        "w": 201.1,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Describe Worker.",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 196.6
+          }
+        },
+        {
+          "id": "name",
+          "text": "Worker",
+          "font": "13 600",
+          "position": {
+            "x": 120,
+            "y": 160.6
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Technology]",
+          "font": "10 400",
+          "position": {
+            "x": 120,
+            "y": 176.6
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "agent->spa@85",
+      "type": "c4/model+relationship",
+      "source": "agent",
+      "target": "spa",
+      "route": [
+        {
+          "x": -60,
+          "y": -299.11
+        },
+        {
+          "x": 1440,
+          "y": 199.51
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Looks up deliveries using [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 690,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "agent->tracking@74",
+      "type": "c4/model+relationship",
+      "source": "agent",
+      "target": "tracking",
+      "route": [
+        {
+          "x": -60,
+          "y": -339.58
+        },
+        {
+          "x": 1740,
+          "y": -348.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Looks up deliveries using [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 840,
+            "y": -349.9
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "bookingController->database@103",
+      "type": "c4/model+relationship",
+      "source": "bookingController",
+      "target": "database",
+      "route": [
+        {
+          "x": 1985.49,
+          "y": -99.4
+        },
+        {
+          "x": 2371.01,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Writes the delivery to [JDBC/SSL]",
+          "font": "10 400",
+          "position": {
+            "x": 2178.25,
+            "y": 39.4
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "bookingController->routingFacade@53",
+      "type": "c4/model+relationship",
+      "source": "bookingController",
+      "target": "routingFacade",
+      "route": [
+        {
+          "x": 2039.19,
+          "y": -99.4
+        },
+        {
+          "x": 2160.81,
+          "y": -49.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Asks for a route [Method call]",
+          "font": "10 400",
+          "position": {
+            "x": 2100,
+            "y": -80.3
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "broker->tracking@94",
+      "type": "c4/model+relationship",
+      "source": "broker",
+      "target": "tracking",
+      "route": [
+        {
+          "x": 1265.12,
+          "y": 190.2
+        },
+        {
+          "x": 1794.88,
+          "y": -289.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Delivers scan events to [Kafka protocol]",
+          "font": "10 400",
+          "position": {
+            "x": 1530,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "courier->mobile@84",
+      "type": "c4/model+relationship",
+      "source": "courier",
+      "target": "mobile",
+      "route": [
+        {
+          "x": 172.41,
+          "y": -377
+        },
+        {
+          "x": 676.29,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Scans parcels using [Touch]",
+          "font": "10 400",
+          "position": {
+            "x": 424.35,
+            "y": -99.4
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "courier->tracking@73",
+      "type": "c4/model+relationship",
+      "source": "courier",
+      "target": "tracking",
+      "route": [
+        {
+          "x": 240,
+          "y": -429.99
+        },
+        {
+          "x": 1740,
+          "y": -354.81
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Scans parcels using [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 990,
+            "y": -398.4
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "email->sender@80",
+      "type": "c4/model+relationship",
+      "source": "email",
+      "target": "sender",
+      "route": [
+        {
+          "x": 2189.01,
+          "y": 190.2
+        },
+        {
+          "x": 2685.6,
+          "y": -289.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Delivers mail to [SMTP]",
+          "font": "10 400",
+          "position": {
+            "x": 2437.31,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "mobile->scanIngest@102",
+      "type": "c4/model+relationship",
+      "source": "mobile",
+      "target": "scanIngest",
+      "route": [
+        {
+          "x": 744.66,
+          "y": 190.2
+        },
+        {
+          "x": 815.34,
+          "y": 49.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Posts scans to [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 780,
+            "y": 113.7
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "mobile->tracking@91",
+      "type": "c4/model+relationship",
+      "source": "mobile",
+      "target": "tracking",
+      "route": [
+        {
+          "x": 815.36,
+          "y": 190.2
+        },
+        {
+          "x": 1745.65,
+          "y": -289.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 1280.5,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "notifier->email@106",
+      "type": "c4/model+relationship",
+      "source": "notifier",
+      "target": "email",
+      "route": [
+        {
+          "x": 1320,
+          "y": -48.68
+        },
+        {
+          "x": 2040,
+          "y": 193.23
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Sends through [SMTP]",
+          "font": "10 400",
+          "position": {
+            "x": 1680,
+            "y": 66.27
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "routingFacade->routing@107",
+      "type": "c4/model+relationship",
+      "source": "routingFacade",
+      "target": "routing",
+      "route": [
+        {
+          "x": 2400,
+          "y": 0
+        },
+        {
+          "x": 2520,
+          "y": 0
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 2460,
+            "y": -6
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "scanIngest->broker@105",
+      "type": "c4/model+relationship",
+      "source": "scanIngest",
+      "target": "broker",
+      "route": [
+        {
+          "x": 911.08,
+          "y": 49.2
+        },
+        {
+          "x": 1114.77,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Publishes to [Kafka protocol]",
+          "font": "10 400",
+          "position": {
+            "x": 1012.92,
+            "y": 113.7
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "scanIngest->notifier@54",
+      "type": "c4/model+relationship",
+      "source": "scanIngest",
+      "target": "notifier",
+      "route": [
+        {
+          "x": 960,
+          "y": -29.67
+        },
+        {
+          "x": 1080,
+          "y": -59.33
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Raises a parcel moved event [Method call]",
+          "font": "10 400",
+          "position": {
+            "x": 1020,
+            "y": -50.5
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "sender->spa@83",
+      "type": "c4/model+relationship",
+      "source": "sender",
+      "target": "spa",
+      "route": [
+        {
+          "x": 2636.42,
+          "y": -289.8
+        },
+        {
+          "x": 1660.08,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Books and tracks using [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 2148.25,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "sender->tracking@72",
+      "type": "c4/model+relationship",
+      "source": "sender",
+      "target": "tracking",
+      "route": [
+        {
+          "x": 2616.5,
+          "y": -340.34
+        },
+        {
+          "x": 1980,
+          "y": -347.46
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Books deliveries and tracks parcels using [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 2298.25,
+            "y": -349.9
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "spa->bookingController@100",
+      "type": "c4/model+relationship",
+      "source": "spa",
+      "target": "bookingController",
+      "route": [
+        {
+          "x": 1605.65,
+          "y": 190.2
+        },
+        {
+          "x": 1874.35,
+          "y": -99.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Books a delivery through [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 1740,
+            "y": 39.4
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "spa->tracking@90",
+      "type": "c4/model+relationship",
+      "source": "spa",
+      "target": "tracking",
+      "route": [
+        {
+          "x": 1585.09,
+          "y": 190.2
+        },
+        {
+          "x": 1829.91,
+          "y": -289.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls the API of [gRPC]",
+          "font": "10 400",
+          "position": {
+            "x": 1707.5,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "spa->trackingController@101",
+      "type": "c4/model+relationship",
+      "source": "spa",
+      "target": "trackingController",
+      "route": [
+        {
+          "x": 1637.14,
+          "y": 190.2
+        },
+        {
+          "x": 1842.86,
+          "y": 59
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Asks where a parcel is through [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 1740,
+            "y": 118.6
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "tracking->broker@93",
+      "type": "c4/model+relationship",
+      "source": "tracking",
+      "target": "broker",
+      "route": [
+        {
+          "x": 1794.88,
+          "y": -289.8
+        },
+        {
+          "x": 1265.12,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Publishes scan events to [Kafka protocol]",
+          "font": "10 400",
+          "position": {
+            "x": 1530,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "tracking->database@92",
+      "type": "c4/model+relationship",
+      "source": "tracking",
+      "target": "database",
+      "route": [
+        {
+          "x": 1917.83,
+          "y": -289.8
+        },
+        {
+          "x": 2388.28,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Reads from and writes to [JDBC/SSL]",
+          "font": "10 400",
+          "position": {
+            "x": 2153.05,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "tracking->email@78",
+      "type": "c4/model+relationship",
+      "source": "tracking",
+      "target": "email",
+      "route": [
+        {
+          "x": 1889.4,
+          "y": -289.8
+        },
+        {
+          "x": 2128.61,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Sends mail through [SMTP]",
+          "font": "10 400",
+          "position": {
+            "x": 2009.01,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "tracking->routing@77",
+      "type": "c4/model+relationship",
+      "source": "tracking",
+      "target": "routing",
+      "route": [
+        {
+          "x": 1980,
+          "y": -295.14
+        },
+        {
+          "x": 2529.98,
+          "y": -49.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Requests routes from [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 2254.99,
+            "y": -178.17
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "trackingController->database@104",
+      "type": "c4/model+relationship",
+      "source": "trackingController",
+      "target": "database",
+      "route": [
+        {
+          "x": 2030.68,
+          "y": 59
+        },
+        {
+          "x": 2325.82,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Reads scans from [JDBC/SSL]",
+          "font": "10 400",
+          "position": {
+            "x": 2178.25,
+            "y": 118.6
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "web->spa@89",
+      "type": "c4/model+relationship",
+      "source": "web",
+      "target": "spa",
+      "route": [
+        {
+          "x": 516.97,
+          "y": -289.8
+        },
+        {
+          "x": 1463.03,
+          "y": 190.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Delivers to the web browser of the customer [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 990,
+            "y": -55.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "band",
+      "bounds": {
+        "x": -12.55,
+        "y": -229.8,
+        "w": 2444.55,
+        "h": 360
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "Tracking API [Container]",
+      "bounds": {
+        "x": -12.55,
+        "y": -235.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "legend",
+      "text": "Component diagram for Tracking API",
+      "bounds": {
+        "x": -300,
+        "y": -525,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": -300,
+        "y": 525,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": -264,
+        "y": 515,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Person",
+      "bounds": {
+        "x": -247,
+        "y": 525,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:7",
+      "kind": "band",
+      "bounds": {
+        "x": -198.7,
+        "y": 515,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:8",
+      "kind": "legend",
+      "text": "Software System",
+      "bounds": {
+        "x": -181.7,
+        "y": 525,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:9",
+      "kind": "band",
+      "bounds": {
+        "x": -78.95,
+        "y": 515,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:10",
+      "kind": "legend",
+      "text": "Container",
+      "bounds": {
+        "x": -61.95,
+        "y": 525,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:11",
+      "kind": "band",
+      "bounds": {
+        "x": 4.5,
+        "y": 515,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#85bbf0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:12",
+      "kind": "legend",
+      "text": "Component",
+      "bounds": {
+        "x": 21.5,
+        "y": 525,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:13",
+      "kind": "band",
+      "bounds": {
+        "x": 87.95,
+        "y": 515,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:14",
+      "kind": "legend",
+      "text": "Software System (external)",
+      "bounds": {
+        "x": 104.95,
+        "y": 525,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "chrome:1",
+    "chrome:2",
+    "bookingController->routingFacade@53",
+    "scanIngest->notifier@54",
+    "sender->tracking@72",
+    "courier->tracking@73",
+    "agent->tracking@74",
+    "tracking->routing@77",
+    "tracking->email@78",
+    "email->sender@80",
+    "sender->spa@83",
+    "courier->mobile@84",
+    "agent->spa@85",
+    "web->spa@89",
+    "spa->tracking@90",
+    "mobile->tracking@91",
+    "tracking->database@92",
+    "tracking->broker@93",
+    "broker->tracking@94",
+    "spa->bookingController@100",
+    "spa->trackingController@101",
+    "mobile->scanIngest@102",
+    "bookingController->database@103",
+    "trackingController->database@104",
+    "scanIngest->broker@105",
+    "notifier->email@106",
+    "routingFacade->routing@107",
+    "sender",
+    "courier",
+    "agent",
+    "tracking",
+    "web",
+    "spa",
+    "mobile",
+    "bookingController",
+    "trackingController",
+    "scanIngest",
+    "notifier",
+    "routingFacade",
+    "scanner",
+    "broker",
+    "database",
+    "worker",
+    "routing",
+    "email",
+    "dispatcher",
+    "billing",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6",
+    "chrome:7",
+    "chrome:8",
+    "chrome:9",
+    "chrome:10",
+    "chrome:11",
+    "chrome:12",
+    "chrome:13",
+    "chrome:14"
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/a",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:a",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/c",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 0,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:c",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/a|http://example.org/b|res:http://example.org/c",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/a",
+      "target": "res:http://example.org/c",
+      "route": [
+        {
+          "x": 220,
+          "y": 20
+        },
+        {
+          "x": 280,
+          "y": 20
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ex:b",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 14
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/a|http://example.org/b|res:http://example.org/c",
+    "res:http://example.org/a",
+    "res:http://example.org/c"
+  ]
+}

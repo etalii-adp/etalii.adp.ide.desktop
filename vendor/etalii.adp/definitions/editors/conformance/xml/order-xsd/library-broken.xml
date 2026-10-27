@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The same library, broken against library.xsd in each way the editor reports:
+     a book without its required isbn attribute, a book without its required year,
+     a year that is not a year, and an element the schema does not allow there. -->
+<library xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="library.xsd">
+  <name>The reading room</name>
+  <book format="paperback">
+    <title>Middlemarch</title>
+    <author>George Eliot</author>
+    <year>1871</year>
+  </book>
+  <book isbn="978-0-19-953556-9">
+    <title>The Moonstone</title>
+    <author>Wilkie Collins</author>
+  </book>
+  <book isbn="978-0-14-043926-8">
+    <title>Bleak House</title>
+    <author>Charles Dickens</author>
+    <year>soon</year>
+  </book>
+  <publisher>Penguin</publisher>
+</library>

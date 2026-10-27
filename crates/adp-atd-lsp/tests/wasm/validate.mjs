@@ -38,7 +38,9 @@ for (const kind of folders(definitions)) {
       const description = resolve(folder, JSON.parse(fixture).description);
       const cases = described.get(description) ?? [];
       const files = {};
+      // The files of the case's own folder, as `read_case` takes them; a folder in it is not a file of the case.
       for (const file of readdirSync(folder).sort()) {
+        if (!statSync(join(folder, file)).isFile()) continue;
         files[file] = readFileSync(join(folder, file)).toString('base64');
       }
       cases.push({ name: basename(folder), files });
@@ -59,20 +61,37 @@ const wasm = (d) => ({ step: d.step, part: d.part, expected: d.expected, actual:
 
 let failed = 0;
 for (const [description, cases] of described) {
-  let expected;
+  let output;
+  let refusal = '';
   try {
-    expected = execFileSync(atd, ['validate', '--json', description], { encoding: 'utf8', maxBuffer: 1 << 28 });
+    output = execFileSync(atd, ['validate', '--json', description], {
+      encoding: 'utf8',
+      maxBuffer: 1 << 28,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
   } catch (error) {
-    // `atd validate` exits 1 when a case does not pass; its result is still on standard output.
-    expected = error.stdout;
+    // `atd validate` exits 1 when a case does not pass, its result still on standard output; it refuses a description
+    // it cannot validate, such as a designer's, which has no runtime yet, on standard error.
+    output = error.stdout;
+    refusal = error.stderr;
   }
-  expected = JSON.parse(expected).cases.map((c) => ({ name: c.name, passed: c.passed,
-    differences: c.differences.map(native) }));
 
   const server = WasmServer.withFiles(read, list);
   server.handle(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { capabilities: {} } }));
   const [answer] = JSON.parse(server.handle(JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'atd/validate',
     params: { root: pathToFileURL(description).href, cases } })));
+  if (!output.trim()) {
+    // Both refuse, the server with an error response.
+    if (answer.result) {
+      console.error(`${description}: atd validate refuses it (${refusal.trim()}), atd/validate answers`);
+      failed++;
+    } else {
+      console.log(`ok   ${description}: refused by both`);
+    }
+    continue;
+  }
+  const expected = JSON.parse(output).cases.map((c) => ({ name: c.name, passed: c.passed,
+    differences: c.differences.map(native) }));
   if (!answer.result) {
     console.error(`${description}: ${JSON.stringify(answer.error)}`);
     failed++;

@@ -1,0 +1,7 @@
+﻿# B5: a body that starts with a byte-order mark and holds a Cyrillic literal before an edit point.
+@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:moscow rdfs:label "Москва"@ru ;
+    ex:twin ex:prague .
+ex:prague rdfs:label "Praha"@cs .

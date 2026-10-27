@@ -1,0 +1,368 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record systems/causal-loop-diagram` from parity/scripts/systems/causal-loop-diagram/on-call.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "systems/causal-loop-diagram",
+  "description": "../../../causal-loop-diagram.atd",
+  "inputs": {
+    "body": "on-call.cld",
+    "registration": "on-call.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "variable:incidents",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "incidents",
+          "label": "Incidents"
+        }
+      },
+      {
+        "id": "variable:onCallLoad",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "onCallLoad",
+          "label": "On-call load"
+        }
+      },
+      {
+        "id": "variable:fatigue",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "fatigue",
+          "label": "Fatigue"
+        }
+      },
+      {
+        "id": "variable:mistakes",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "mistakes",
+          "label": "Mistakes"
+        }
+      },
+      {
+        "id": "variable:attrition",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "attrition",
+          "label": "Attrition"
+        }
+      },
+      {
+        "id": "variable:teamSize",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "teamSize",
+          "label": "Team size"
+        }
+      },
+      {
+        "id": "variable:automation",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "automation",
+          "label": "Automation work"
+        }
+      },
+      {
+        "id": "variable:toil",
+        "type": "Variable",
+        "parent": null,
+        "attributes": {
+          "name": "toil",
+          "label": "Manual toil"
+        }
+      },
+      {
+        "id": "loop:R1",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "R1",
+          "title": "Tired hands make more work",
+          "members": "variable:incidents, variable:onCallLoad, variable:fatigue, variable:mistakes"
+        }
+      },
+      {
+        "id": "loop:R2",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "R2",
+          "title": "Fewer hands, heavier rota",
+          "members": "variable:onCallLoad, variable:fatigue, variable:attrition, variable:teamSize"
+        }
+      },
+      {
+        "id": "loop:R3",
+        "type": "Loop",
+        "parent": null,
+        "attributes": {
+          "identifier": "R3",
+          "title": "Too busy to stop being busy",
+          "members": "variable:onCallLoad, variable:automation, variable:toil"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "link:incidents|onCallLoad",
+        "type": "CausalLink",
+        "source": "variable:incidents",
+        "target": "variable:onCallLoad",
+        "attributes": {
+          "causeName": "incidents",
+          "effectName": "onCallLoad",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false",
+          "weight": "1"
+        }
+      },
+      {
+        "id": "link:onCallLoad|fatigue",
+        "type": "CausalLink",
+        "source": "variable:onCallLoad",
+        "target": "variable:fatigue",
+        "attributes": {
+          "causeName": "onCallLoad",
+          "effectName": "fatigue",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:fatigue|mistakes",
+        "type": "CausalLink",
+        "source": "variable:fatigue",
+        "target": "variable:mistakes",
+        "attributes": {
+          "causeName": "fatigue",
+          "effectName": "mistakes",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false",
+          "weight": "1.5",
+          "note": "the tired-hands effect"
+        }
+      },
+      {
+        "id": "link:mistakes|incidents",
+        "type": "CausalLink",
+        "source": "variable:mistakes",
+        "target": "variable:incidents",
+        "attributes": {
+          "causeName": "mistakes",
+          "effectName": "incidents",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:fatigue|attrition",
+        "type": "CausalLink",
+        "source": "variable:fatigue",
+        "target": "variable:attrition",
+        "attributes": {
+          "causeName": "fatigue",
+          "effectName": "attrition",
+          "polarity": "positive",
+          "delayed": "true",
+          "flipped": "false",
+          "note": "people leave months later, not days"
+        }
+      },
+      {
+        "id": "link:attrition|teamSize",
+        "type": "CausalLink",
+        "source": "variable:attrition",
+        "target": "variable:teamSize",
+        "attributes": {
+          "causeName": "attrition",
+          "effectName": "teamSize",
+          "polarity": "negative",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:teamSize|onCallLoad",
+        "type": "CausalLink",
+        "source": "variable:teamSize",
+        "target": "variable:onCallLoad",
+        "attributes": {
+          "causeName": "teamSize",
+          "effectName": "onCallLoad",
+          "polarity": "negative",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:toil|onCallLoad",
+        "type": "CausalLink",
+        "source": "variable:toil",
+        "target": "variable:onCallLoad",
+        "attributes": {
+          "causeName": "toil",
+          "effectName": "onCallLoad",
+          "polarity": "positive",
+          "delayed": "false",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:automation|toil",
+        "type": "CausalLink",
+        "source": "variable:automation",
+        "target": "variable:toil",
+        "attributes": {
+          "causeName": "automation",
+          "effectName": "toil",
+          "polarity": "negative",
+          "delayed": "true",
+          "flipped": "false"
+        }
+      },
+      {
+        "id": "link:onCallLoad|automation",
+        "type": "CausalLink",
+        "source": "variable:onCallLoad",
+        "target": "variable:automation",
+        "attributes": {
+          "causeName": "onCallLoad",
+          "effectName": "automation",
+          "polarity": "negative",
+          "delayed": "false",
+          "flipped": "false",
+          "note": "no time to fix the thing that has no time"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "causal-loop.arrange",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "on-call.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "on-call.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "on-call.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "move": {
+        "element": "variable:toil"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"variable:toil\"],\"to\":{\"x\":10,\"y\":20}}",
+      "expectFile": "on-call.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-variable",
+      "args": {
+        "target": "new:-400,250"
+      },
+      "ids": [
+        "variable:variable1"
+      ],
+      "expectFile": "after-1.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "causal-loop.add-link",
+      "args": {
+        "value": "teamSize"
+      },
+      "select": [
+        "variable:variable1"
+      ],
+      "ids": [
+        "link:variable1|teamSize"
+      ],
+      "expectFile": "after-2.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "causal-loop.arrange",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "after-2.cld",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/systems/causal-loop-diagram/on-call/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

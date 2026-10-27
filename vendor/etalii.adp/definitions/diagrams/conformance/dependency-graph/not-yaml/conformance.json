@@ -1,0 +1,77 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record generic/dependencies` from parity/cases/generic/dependencies/not-yaml.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "generic/dependencies",
+  "description": "../../../dependency-graph.atd",
+  "inputs": {
+    "body": "not-yaml.dgr"
+  },
+  "read": {
+    "elements": [],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "dependencies.unparseable",
+        "severity": "error",
+        "line": 4,
+        "message": "This is not YAML that can be read: A flow collection is never closed."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "dependencies.add-element",
+      "args": {
+        "target": "new:0,0"
+      },
+      "refused": {
+        "reason": "not-yaml.dgr could not be read, so it cannot be edited."
+      },
+      "expectFile": "not-yaml.dgr",
+      "findings": [
+        {
+          "rule": "dependencies.unparseable",
+          "severity": "error",
+          "line": 4,
+          "message": "This is not YAML that can be read: A flow collection is never closed."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (drawing)"
+    }
+  }
+}

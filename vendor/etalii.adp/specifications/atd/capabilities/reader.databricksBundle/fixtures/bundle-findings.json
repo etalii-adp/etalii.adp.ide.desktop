@@ -1,0 +1,95 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.databricksBundle` from what the desktop host's module shows when parity/cases/databricks/bundle/findings.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "body": "bundle:\n  name: adrift\n\nresources:\n  jobs:\n    declared:\n      name: Declared\n\ntargets:\n  dev:\n    mode: development\n  prod:\n    mode: production\n    resources:\n      jobs:\n        phantom:\n          name: Overridden\n",
+    "files": {
+      "databricks.adp": "databricks/bundle\nbody: databricks.yml\n"
+    }
+  },
+  "args": {
+    "reading": "bundle"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "adrift",
+          "kind": "bundle",
+          "label": "adrift",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "resource:jobs/declared",
+        "type": "databricks/bundle+resource",
+        "parent": null,
+        "attributes": {
+          "resourceKind": "jobs",
+          "key": "declared",
+          "kind": "jobs",
+          "label": "declared",
+          "badges": "jobs",
+          "width": "200",
+          "height": "56"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "development",
+          "isDefault": "false",
+          "overrideCount": "0",
+          "label": "dev",
+          "width": "220",
+          "height": "120"
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "databricks/bundle+target",
+        "parent": null,
+        "attributes": {
+          "mode": "production",
+          "isDefault": "false",
+          "overrideCount": "1",
+          "label": "prod",
+          "width": "220",
+          "height": "120"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "override:prod/jobs/phantom",
+        "type": "databricks/bundle+edge",
+        "source": "target:prod",
+        "target": "resource:jobs/phantom",
+        "attributes": {
+          "kind": "override"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "databricks.no-default-target",
+        "severity": "warning",
+        "line": 10,
+        "message": "No target says default: true, so every deploy must name one. Mark one target as the default."
+      },
+      {
+        "rule": "databricks.override-of-undeclared",
+        "severity": "warning",
+        "line": 16,
+        "message": "Target 'prod' overrides jobs 'phantom', which this bundle does not declare. Declare the resource or drop the override."
+      }
+    ]
+  }
+}

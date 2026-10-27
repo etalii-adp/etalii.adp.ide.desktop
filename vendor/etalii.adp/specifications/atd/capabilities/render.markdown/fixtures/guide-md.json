@@ -1,0 +1,121 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability render.markdown` from modules/editors/markdown/src/lib.rs of etalii.adp.ide.desktop, on crates/adp-conformance/tests/round_trip/editors/markdown/examples/guide.md; never edited by hand.",
+  "input": {
+    "value": "# Field guide\r\n\r\nA heading-rich document for the markdown editor: the outline above the text\r\nlists every heading here, and clicking one scrolls the editor to its line.\r\n\r\n## Reading the preview\r\n\r\nThe pane beside the text renders what you type, as you type it.\r\n\r\n### Emphasis\r\n\r\nText can be *emphasised*, **strong**, or `code`.\r\n\r\n## Code fences\r\n\r\n```bash\r\n# This line is a shell comment, not a heading - the outline must skip it.\r\necho \"fences are excluded from the outline\"\r\n```\r\n\r\n## Closing notes\r\n\r\nEverything the plain editor guarantees - encoding, line endings, honest\r\nconflict handling - holds here too; the preview and outline are extras.\r\n",
+    "format": "markdown"
+  },
+  "args": {},
+  "output": {
+    "runs": [
+      {
+        "text": "Field guide",
+        "style": {},
+        "block": "heading-1"
+      },
+      {
+        "text": "A heading-rich document for the markdown editor: the outline above the text",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": " ",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": "lists every heading here, and clicking one scrolls the editor to its line.",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": "Reading the preview",
+        "style": {},
+        "block": "heading-2"
+      },
+      {
+        "text": "The pane beside the text renders what you type, as you type it.",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": "Emphasis",
+        "style": {},
+        "block": "heading-3"
+      },
+      {
+        "text": "Text can be ",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": "emphasised",
+        "style": {
+          "emphasis": true
+        },
+        "block": "paragraph"
+      },
+      {
+        "text": ", ",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": "strong",
+        "style": {
+          "strong": true
+        },
+        "block": "paragraph"
+      },
+      {
+        "text": ", or ",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": "code",
+        "style": {
+          "code": true
+        },
+        "block": "paragraph"
+      },
+      {
+        "text": ".",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": "Code fences",
+        "style": {},
+        "block": "heading-2"
+      },
+      {
+        "text": "# This line is a shell comment, not a heading - the outline must skip it.\necho \"fences are excluded from the outline\"",
+        "style": {
+          "language": "bash"
+        },
+        "block": "code"
+      },
+      {
+        "text": "Closing notes",
+        "style": {},
+        "block": "heading-2"
+      },
+      {
+        "text": "Everything the plain editor guarantees - encoding, line endings, honest",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": " ",
+        "style": {},
+        "block": "paragraph"
+      },
+      {
+        "text": "conflict handling - holds here too; the preview and outline are extras.",
+        "style": {},
+        "block": "paragraph"
+      }
+    ]
+  }
+}

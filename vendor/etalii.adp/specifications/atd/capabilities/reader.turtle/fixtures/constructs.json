@@ -1,0 +1,533 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/constructs.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# The parser corpus: every construct Requirement 1.1 names, in one coherent file.\r\n@prefix ex: <http://example.org/> .\r\n@prefix foaf: <http://xmlns.com/foaf/0.1/> .\r\n@base <http://example.org/base/> .\r\nPREFIX dc: <http://purl.org/dc/elements/1.1/>\r\n\r\nex:alice a foaf:Person ;\r\n    foaf:name \"Alice\" ;\r\n    foaf:age 42 ;\r\n    foaf:score 1.2e3 ;\r\n    foaf:knows ex:bob, ex:carol ; # an object list\r\n    dc:description \"A description\\nwith a break\"@en .\r\n\r\nex:bob foaf:name \"Bob\"^^<http://www.w3.org/2001/XMLSchema#string> ; foaf:knows _:c .\r\n\r\n_:c foaf:name \"Carol\" ;\r\n    foaf:mbox <mailto:carol@example.org> .\r\n\r\nex:carol foaf:interests ( ex:music ex:art 4.5 ) ;\r\n    ex:verified true ; .\r\n\r\nex:group ex:member [ foaf:name \"Dave\" ; foaf:age 23 ], ex:carol .\r\n\r\nex:empty ex:member [] .\r\n\r\n<relative> ex:sameAs <> .\r\n\r\nex:doc dc:title \"\"\"A long\r\nstring with \"quotes\" inside\"\"\" .\r\n",
+    "files": {
+      "constructs.adp": "w3c/rdf\nbody: constructs.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "base",
+        "type": "Base",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/base/"
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:foaf",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "foaf",
+          "iri": "http://xmlns.com/foaf/0.1/",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:dc",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "dc",
+          "iri": "http://purl.org/dc/elements/1.1/",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://xmlns.com/foaf/0.1/Person",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://xmlns.com/foaf/0.1/Person",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://xmlns.com/foaf/0.1/name|Alice",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://xmlns.com/foaf/0.1/name",
+          "o": "Alice",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://xmlns.com/foaf/0.1/age|42",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://xmlns.com/foaf/0.1/age",
+          "o": "42",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://xmlns.com/foaf/0.1/score|1.2e3",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://xmlns.com/foaf/0.1/score",
+          "o": "1.2e3",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#double",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|http://example.org/bob",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://xmlns.com/foaf/0.1/knows",
+          "o": "http://example.org/bob",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|http://example.org/carol",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://xmlns.com/foaf/0.1/knows",
+          "o": "http://example.org/carol",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://purl.org/dc/elements/1.1/description|A description\nwith a break",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:alice",
+          "p": "http://purl.org/dc/elements/1.1/description",
+          "o": "A description\nwith a break",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 12
+        }
+      },
+      {
+        "id": "triple:http://example.org/bob|http://xmlns.com/foaf/0.1/name|Bob",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/bob",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:bob",
+          "p": "http://xmlns.com/foaf/0.1/name",
+          "o": "Bob",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#string",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:http://example.org/bob|http://xmlns.com/foaf/0.1/knows|0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/bob",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:bob",
+          "p": "http://xmlns.com/foaf/0.1/knows",
+          "o": "0",
+          "oKind": "blank",
+          "oLabel": "c",
+          "language": "",
+          "datatype": "",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:0|http://xmlns.com/foaf/0.1/name|Carol",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "c",
+          "sWritten": "",
+          "p": "http://xmlns.com/foaf/0.1/name",
+          "o": "Carol",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 16
+        }
+      },
+      {
+        "id": "triple:0|http://xmlns.com/foaf/0.1/mbox|mailto:carol@example.org",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "c",
+          "sWritten": "",
+          "p": "http://xmlns.com/foaf/0.1/mbox",
+          "o": "mailto:carol@example.org",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 17
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/music",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/music",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|2",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "2",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/art",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/art",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|3",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "3",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|4.5",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "4.5",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:http://example.org/carol|http://xmlns.com/foaf/0.1/interests|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/carol",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:carol",
+          "p": "http://xmlns.com/foaf/0.1/interests",
+          "o": "1",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:http://example.org/carol|http://example.org/verified|true",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/carol",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:carol",
+          "p": "http://example.org/verified",
+          "o": "true",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+          "line": 20
+        }
+      },
+      {
+        "id": "triple:4|http://xmlns.com/foaf/0.1/name|Dave",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://xmlns.com/foaf/0.1/name",
+          "o": "Dave",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:4|http://xmlns.com/foaf/0.1/age|23",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://xmlns.com/foaf/0.1/age",
+          "o": "23",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:http://example.org/group|http://example.org/member|4",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/group",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:group",
+          "p": "http://example.org/member",
+          "o": "4",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:http://example.org/group|http://example.org/member|http://example.org/carol",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/group",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:group",
+          "p": "http://example.org/member",
+          "o": "http://example.org/carol",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:http://example.org/empty|http://example.org/member|5",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/empty",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:empty",
+          "p": "http://example.org/member",
+          "o": "5",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 24
+        }
+      },
+      {
+        "id": "triple:http://example.org/base/relative|http://example.org/sameAs|http://example.org/base/",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/base/relative",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "<relative>",
+          "p": "http://example.org/sameAs",
+          "o": "http://example.org/base/",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:http://example.org/doc|http://purl.org/dc/elements/1.1/title|A long\r\nstring with \"quotes\" inside",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/doc",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:doc",
+          "p": "http://purl.org/dc/elements/1.1/title",
+          "o": "A long\r\nstring with \"quotes\" inside",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 28
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

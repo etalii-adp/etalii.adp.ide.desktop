@@ -1,0 +1,47 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bands` from what the desktop host's module shows when parity/cases/databricks/bundle/unparseable.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "bundle",
+        "type": "databricks/bundle+bundle",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "resourceKind": "bundle",
+          "key": "",
+          "kind": "bundle",
+          "label": "bundle",
+          "badges": ""
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columnWidth": 260,
+    "bands": [
+      {
+        "members": "self.id == 'bundle'",
+        "y": 0
+      },
+      {
+        "members": "self.id.startsWith('resource:') || self.id.startsWith('unknown:')",
+        "y": 180
+      },
+      {
+        "members": "self.id.startsWith('target:')",
+        "y": 400
+      }
+    ]
+  },
+  "output": {
+    "positions": {
+      "bundle": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    }
+  }
+}

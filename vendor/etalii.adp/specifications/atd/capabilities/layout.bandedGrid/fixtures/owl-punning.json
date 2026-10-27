@@ -1,0 +1,159 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.bandedGrid` from the RDF module's layout of the reading that parity/cases/w3c/rdf/owl-punning.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/zoo#Bird",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Species",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Eagle",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class",
+            "ex:Species"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Hawk",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#Raptor",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "blank:0",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:Class"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#eats",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:ObjectProperty"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#wingspan",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:DatatypeProperty"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/zoo#ringed",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": [
+            "owl:DatatypeProperty"
+          ]
+        }
+      },
+      {
+        "id": "res:http://www.w3.org/2001/XMLSchema#boolean",
+        "width": 280.0,
+        "height": 160.0,
+        "attributes": {
+          "types": []
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columns": 4,
+    "columnWidth": 280.0,
+    "rowHeight": 160.0,
+    "bandGap": 80,
+    "band": "size(self.types) > 0 ? self.types[0] : ''"
+  },
+  "output": {
+    "positions": {
+      "blank:0": {
+        "x": 280.0,
+        "y": 160.0
+      },
+      "res:http://example.org/zoo#Bird": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/zoo#Eagle": {
+        "x": 560.0,
+        "y": 0.0
+      },
+      "res:http://example.org/zoo#Hawk": {
+        "x": 840.0,
+        "y": 0.0
+      },
+      "res:http://example.org/zoo#Raptor": {
+        "x": 0.0,
+        "y": 160.0
+      },
+      "res:http://example.org/zoo#Species": {
+        "x": 280.0,
+        "y": 0.0
+      },
+      "res:http://example.org/zoo#eats": {
+        "x": 0.0,
+        "y": 640.0
+      },
+      "res:http://example.org/zoo#ringed": {
+        "x": 280.0,
+        "y": 400.0
+      },
+      "res:http://example.org/zoo#wingspan": {
+        "x": 0.0,
+        "y": 400.0
+      },
+      "res:http://www.w3.org/2001/XMLSchema#boolean": {
+        "x": 0.0,
+        "y": 880.0
+      }
+    }
+  }
+}

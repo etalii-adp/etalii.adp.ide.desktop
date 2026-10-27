@@ -1,0 +1,64 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/cases/c4/context/finding-order.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "p",
+        "type": "person",
+        "width": 160.0,
+        "height": 59.2
+      },
+      {
+        "id": "s",
+        "type": "software system",
+        "width": 160.0,
+        "height": 78.8
+      },
+      {
+        "id": "q",
+        "type": "person",
+        "width": 160.0,
+        "height": 78.8
+      }
+    ],
+    "edges": [
+      {
+        "id": "q->c#1",
+        "source": "q",
+        "target": "c"
+      },
+      {
+        "id": "q->missing#2",
+        "source": "q",
+        "target": "missing"
+      }
+    ]
+  },
+  "args": {
+    "mode": "enclose",
+    "direction": "'tb'",
+    "rankSeparation": "120",
+    "nodeSeparation": "60",
+    "pinsIgnored": "false",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "p": {
+        "x": -300.0,
+        "y": 9.8
+      },
+      "s": {
+        "x": -80.0,
+        "y": 0.0
+      },
+      "q": {
+        "x": 140.0,
+        "y": 0.0
+      }
+    }
+  }
+}

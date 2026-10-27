@@ -1,0 +1,563 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record generic/dependencies` from parity/scripts/generic/dependencies/services.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "generic/dependencies",
+  "description": "../../../dependency-graph.atd",
+  "inputs": {
+    "body": "services.dgr",
+    "registration": "services.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "checkout-web",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Checkout web",
+          "x": "8.072929300833366",
+          "row": "4"
+        }
+      },
+      {
+        "id": "api-gateway",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "API gateway",
+          "x": "270.42873351852575",
+          "row": "4"
+        }
+      },
+      {
+        "id": "identity-service",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Identity service",
+          "x": "797.5845690363473",
+          "row": "4"
+        }
+      },
+      {
+        "id": "order-service",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Order service",
+          "x": "520",
+          "row": "2"
+        }
+      },
+      {
+        "id": "notification-service",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Notification service",
+          "x": "419.92197785733026",
+          "row": "-4"
+        }
+      },
+      {
+        "id": "payment-service",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Payment service",
+          "x": "811.1779021088461",
+          "row": "-2"
+        }
+      },
+      {
+        "id": "inventory-service",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Inventory service",
+          "x": "811.1779021088463",
+          "row": "0"
+        }
+      },
+      {
+        "id": "payments-db",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Payments database",
+          "x": "1091.848027445307",
+          "row": "-1"
+        }
+      },
+      {
+        "id": "orders-db",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Orders database",
+          "x": "1080",
+          "row": "2"
+        }
+      },
+      {
+        "id": "message-broker",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "RabbitMQ broker",
+          "x": "807.8672330646216",
+          "row": "-4"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "r-web-gateway",
+        "type": "DependsOn",
+        "source": "checkout-web",
+        "target": "api-gateway",
+        "attributes": {
+          "label": "calls"
+        }
+      },
+      {
+        "id": "r-gateway-identity",
+        "type": "DependsOn",
+        "source": "api-gateway",
+        "target": "identity-service",
+        "attributes": {
+          "label": "verifies tokens with"
+        }
+      },
+      {
+        "id": "r-gateway-orders",
+        "type": "DependsOn",
+        "source": "api-gateway",
+        "target": "order-service",
+        "attributes": {
+          "label": "routes to"
+        }
+      },
+      {
+        "id": "r-orders-identity",
+        "type": "DependsOn",
+        "source": "order-service",
+        "target": "identity-service",
+        "attributes": {}
+      },
+      {
+        "id": "r-orders-payment",
+        "type": "DependsOn",
+        "source": "order-service",
+        "target": "payment-service",
+        "attributes": {
+          "label": "authorises through"
+        }
+      },
+      {
+        "id": "r-orders-inventory",
+        "type": "DependsOn",
+        "source": "order-service",
+        "target": "inventory-service",
+        "attributes": {
+          "label": "reserves through"
+        }
+      },
+      {
+        "id": "r-orders-db",
+        "type": "DependsOn",
+        "source": "order-service",
+        "target": "orders-db",
+        "attributes": {}
+      },
+      {
+        "id": "r-orders-broker",
+        "type": "DependsOn",
+        "source": "order-service",
+        "target": "message-broker",
+        "attributes": {
+          "label": "publishes to"
+        }
+      },
+      {
+        "id": "r-payment-db",
+        "type": "DependsOn",
+        "source": "payment-service",
+        "target": "payments-db",
+        "attributes": {}
+      },
+      {
+        "id": "r-inventory-db",
+        "type": "DependsOn",
+        "source": "inventory-service",
+        "target": "orders-db",
+        "attributes": {}
+      },
+      {
+        "id": "r-notify-broker",
+        "type": "DependsOn",
+        "source": "notification-service",
+        "target": "message-broker",
+        "attributes": {
+          "label": "consumes from"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "dependencies.rename",
+      "args": {
+        "value": "Checkout web app"
+      },
+      "select": [
+        "checkout-web"
+      ],
+      "expectFile": "after-1.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "dependencies.x",
+        "value": "40"
+      },
+      "expectFile": "after-2.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "dependencies.row",
+        "value": "5"
+      },
+      "expectFile": "after-3.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "dependencies.row",
+        "value": "2.5"
+      },
+      "refused": {
+        "reason": "'2.5' is not a number this graph can place a node at."
+      },
+      "expectFile": "after-3.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "dependencies.x",
+        "value": "far left"
+      },
+      "refused": {
+        "reason": "'far left' is not a number this graph can place a node at."
+      },
+      "expectFile": "after-3.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "move": {
+        "element": "api-gateway"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"api-gateway\"],\"dx\":100,\"dy\":60}",
+      "expectFile": "after-4.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "move": {
+        "element": "order-service"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"order-service\"],\"to\":{\"x\":600,\"y\":170}}",
+      "expectFile": "after-5.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "dependencies.add-after",
+      "select": [
+        "order-service"
+      ],
+      "ids": [
+        "51e71014b5hzxx4nk5cpkod6c",
+        "11ct5q02gmtvd93otbevsfxt0"
+      ],
+      "expectFile": "after-6.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "dependencies.add-below",
+      "ids": [
+        "4hrin2ths5xmrwzlpb29abjtq",
+        "buv3ohi3mqebghrp0h0qfy972"
+      ],
+      "expectFile": "after-7.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "property": {
+        "element": "51e71014b5hzxx4nk5cpkod6c",
+        "attribute": "dependencies.label",
+        "value": "Fraud check"
+      },
+      "expectFile": "after-8.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "dependencies.relabel",
+      "args": {
+        "value": "calls over HTTPS"
+      },
+      "select": [
+        "r-web-gateway"
+      ],
+      "expectFile": "after-9.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "property": {
+        "element": "r-orders-identity",
+        "attribute": "dependencies.label",
+        "value": "authenticates with"
+      },
+      "expectFile": "after-10.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "dependencies.connect",
+      "args": {
+        "target": "rel:checkout-web->identity-service"
+      },
+      "ids": [
+        "f2l95kayzmapdgsrek57ftky9"
+      ],
+      "expectFile": "after-11.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "dependencies.disconnect",
+      "args": {
+        "target": "f2l95kayzmapdgsrek57ftky9"
+      },
+      "expectFile": "after-10.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-11.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "dependencies.add-element",
+      "args": {
+        "target": "new:300,0"
+      },
+      "ids": [
+        "5kc4kfyegzhkq7njr0s8mv4we"
+      ],
+      "expectFile": "after-12.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "action": "dependencies.connect",
+      "args": {
+        "target": "rel:payments-db->new:1400,0"
+      },
+      "ids": [
+        "7yxwlqfi4fcv63bmdakhufj59",
+        "25efk23pn7c4dt00txzfxlhry"
+      ],
+      "expectFile": "after-13.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "action": "dependencies.remove",
+      "args": {
+        "confirm": true
+      },
+      "select": [
+        "message-broker"
+      ],
+      "expectFile": "after-14.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-13.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-14.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-13.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "action": "dependencies.disconnect",
+      "select": [
+        "r-orders-db"
+      ],
+      "expectFile": "after-15.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Row",
+        "value": "-3"
+      },
+      "select": [
+        "notification-service"
+      ],
+      "expectFile": "after-16.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "action": "dependencies.add-element",
+      "args": {
+        "target": "new:-250.5,0"
+      },
+      "ids": [
+        "b33yper85kxyzww12puriz9c5"
+      ],
+      "expectFile": "after-17.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "property": {
+        "element": "b33yper85kxyzww12puriz9c5",
+        "attribute": "Label",
+        "value": "Search service"
+      },
+      "expectFile": "after-18.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "action": "dependencies.remove",
+      "select": [
+        "b33yper85kxyzww12puriz9c5"
+      ],
+      "expectFile": "after-16.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-18.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/generic/dependencies/services/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (drawing)"
+    }
+  }
+}

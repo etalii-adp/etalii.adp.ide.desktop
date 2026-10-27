@@ -1,0 +1,36 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "arrange.selfOrganising",
+  "version": "1.0.0",
+  "extensionPoint": "arrange",
+  "doc": "Arranges a graph with Meyer's self-organizing graphs, every source of randomness replaced by a function of the input and the iteration, and stores the result as the elements' own positions: one `move` action per element, in the elements' order, to the centre of its box (`{\"kind\": \"move\", \"target\": <id>, \"x\": <x>, \"y\": <y>}`, rounded to 0.01). The elements start on a phyllotaxis spiral in their order, spaced by (the widest width + the height + 2 × `separation`) / 2; 2000 stimuli follow, a two-dimensional Halton sequence (radixes 2 and 3) over the rectangle around the spiral; the winner is the element nearest the stimulus, ties to the earlier, and every element in its component is drawn towards the stimulus by the learning rate (0.9 falling geometrically to 0.01) times exp(-hops² / (2 × radius²)), the radius falling from 3 to 0.35 hops over the relations read as undirected. Then boxes still overlapping are pushed apart, `separation` clear of each other, in at most `rounds` rounds. A graph of more than `budget` elements, or one whose boxes still overlap after the rounds, is refused with one finding of severity `error` whose message names its size, and no action.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/AnalysisInput"
+  },
+  "args": {
+    "budget": {
+      "type": "integer",
+      "default": 1000,
+      "doc": "The most elements arranged; past it, the arrangement is refused."
+    },
+    "separation": {
+      "type": "number",
+      "default": 40,
+      "doc": "The clear space kept between two boxes."
+    },
+    "rounds": {
+      "type": "integer",
+      "default": 200,
+      "doc": "How many rounds the pass that pushes overlapping boxes apart gets."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/AnalysisResult"
+  },
+  "laws": [
+    "deterministic",
+    "pure"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

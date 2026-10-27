@@ -1,0 +1,804 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "agent",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -199,
+        "y": 9.8,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Answers questions about deliveries that\nwent wrong.",
+          "font": "10 400",
+          "position": {
+            "x": -79,
+            "y": 67.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Support Agent",
+          "font": "13 600",
+          "position": {
+            "x": -79,
+            "y": 31.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": -79,
+            "y": 47.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "billing",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 339,
+        "y": 19.6,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Describe Billing.",
+          "font": "10 400",
+          "position": {
+            "x": 419,
+            "y": 77.6
+          }
+        },
+        {
+          "id": "name",
+          "text": "Billing",
+          "font": "13 600",
+          "position": {
+            "x": 419,
+            "y": 41.6
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 419,
+            "y": 57.6
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "courier",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -499,
+        "y": 0,
+        "w": 240,
+        "h": 118
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Collects and delivers parcels, and\nscans them on the way.",
+          "font": "10 400",
+          "position": {
+            "x": -379,
+            "y": 58
+          }
+        },
+        {
+          "id": "name",
+          "text": "Courier",
+          "font": "13 600",
+          "position": {
+            "x": -379,
+            "y": 22
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": -379,
+            "y": 38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "dispatcher",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 101,
+        "y": 19.6,
+        "w": 178,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Describe Dispatcher.",
+          "font": "10 400",
+          "position": {
+            "x": 190,
+            "y": 77.6
+          }
+        },
+        {
+          "id": "name",
+          "text": "Dispatcher",
+          "font": "13 600",
+          "position": {
+            "x": 190,
+            "y": 41.6
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 190,
+            "y": 57.6
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "email",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -108.25,
+        "y": 485.8,
+        "w": 216.5,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "The corporate mail relay.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 543.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "E-mail System",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 507.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 523.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#999999",
+        "stroke": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "maps",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": 168.25,
+        "y": 476,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Turns addresses into coordinates and\ndraws maps.",
+          "font": "10 400",
+          "position": {
+            "x": 288.25,
+            "y": 534
+          }
+        },
+        {
+          "id": "name",
+          "text": "Mapping Provider",
+          "font": "13 600",
+          "position": {
+            "x": 288.25,
+            "y": 498
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 288.25,
+            "y": 514
+          }
+        }
+      ],
+      "style": {
+        "fill": "#999999",
+        "stroke": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "routing",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -408.25,
+        "y": 476,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Works out the cheapest route for a set\nof parcels.",
+          "font": "10 400",
+          "position": {
+            "x": -288.25,
+            "y": 534
+          }
+        },
+        {
+          "id": "name",
+          "text": "Routing Optimiser",
+          "font": "13 600",
+          "position": {
+            "x": -288.25,
+            "y": 498
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": -288.25,
+            "y": 514
+          }
+        }
+      ],
+      "style": {
+        "fill": "#999999",
+        "stroke": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "sender",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -120,
+        "y": 694.4,
+        "w": 240,
+        "h": 98.4
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books a delivery and follows where the\nparcel is.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 752.4
+          }
+        },
+        {
+          "id": "name",
+          "text": "",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 716.4
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 732.4
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "tracking",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -120,
+        "y": 238,
+        "w": 240,
+        "h": 118
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Books deliveries, tracks parcels and\ntells everyone where they are.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 296
+          }
+        },
+        {
+          "id": "name",
+          "text": "Courier Tracking",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 260
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Software System]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 276
+          }
+        }
+      ],
+      "style": {
+        "fill": "#1168bd",
+        "stroke": "#1168bd",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "agent->tracking@72",
+      "type": "c4/model+relationship",
+      "source": "agent",
+      "target": "tracking",
+      "route": [
+        {
+          "x": -62.67,
+          "y": 108.2
+        },
+        {
+          "x": -19.58,
+          "y": 238
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Looks up deliveries using [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": -41.13,
+            "y": 167.1
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "courier->tracking@71",
+      "type": "c4/model+relationship",
+      "source": "courier",
+      "target": "tracking",
+      "route": [
+        {
+          "x": -285.05,
+          "y": 118
+        },
+        {
+          "x": -93.95,
+          "y": 238
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Scans parcels using [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": -189.5,
+            "y": 172
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "email->sender@78",
+      "type": "c4/model+relationship",
+      "source": "email",
+      "target": "sender",
+      "route": [
+        {
+          "x": 0,
+          "y": 564.6
+        },
+        {
+          "x": 0,
+          "y": 694.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Delivers mail to [SMTP]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 623.5
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "sender->tracking@70",
+      "type": "c4/model+relationship",
+      "source": "sender",
+      "target": "tracking",
+      "route": [
+        {
+          "x": 0,
+          "y": 694.4
+        },
+        {
+          "x": 0,
+          "y": 356
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Books deliveries and tracks parcels using [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 519.2
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "tracking->email@76",
+      "type": "c4/model+relationship",
+      "source": "tracking",
+      "target": "email",
+      "route": [
+        {
+          "x": 0,
+          "y": 356
+        },
+        {
+          "x": 0,
+          "y": 485.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Sends mail through [SMTP]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 414.9
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "tracking->maps@77",
+      "type": "c4/model+relationship",
+      "source": "tracking",
+      "target": "maps",
+      "route": [
+        {
+          "x": 74.53,
+          "y": 356
+        },
+        {
+          "x": 226.1,
+          "y": 476
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Geocodes addresses using [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 150.31,
+            "y": 410
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "tracking->routing@75",
+      "type": "c4/model+relationship",
+      "source": "tracking",
+      "target": "routing",
+      "route": [
+        {
+          "x": -74.53,
+          "y": 356
+        },
+        {
+          "x": -226.1,
+          "y": 476
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Requests routes from [JSON/HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": -150.31,
+            "y": 410
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "legend",
+      "text": "System Context diagram for Courier Tracking",
+      "bounds": {
+        "x": -499,
+        "y": -30,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": -499,
+        "y": 822.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "band",
+      "bounds": {
+        "x": -463,
+        "y": 812.8,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Person",
+      "bounds": {
+        "x": -446,
+        "y": 822.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": -397.7,
+        "y": 812.8,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#1168bd",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Software System",
+      "bounds": {
+        "x": -380.7,
+        "y": 822.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:7",
+      "kind": "band",
+      "bounds": {
+        "x": -277.95,
+        "y": 812.8,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#999999",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:8",
+      "kind": "legend",
+      "text": "Software System (external)",
+      "bounds": {
+        "x": -260.95,
+        "y": 822.8,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "sender->tracking@70",
+    "courier->tracking@71",
+    "agent->tracking@72",
+    "tracking->routing@75",
+    "tracking->email@76",
+    "tracking->maps@77",
+    "email->sender@78",
+    "sender",
+    "courier",
+    "agent",
+    "tracking",
+    "routing",
+    "email",
+    "maps",
+    "dispatcher",
+    "billing",
+    "chrome:1",
+    "chrome:2",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6",
+    "chrome:7",
+    "chrome:8"
+  ]
+}

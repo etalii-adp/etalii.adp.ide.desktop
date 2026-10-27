@@ -1,0 +1,41 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record editor/markdown` from crates/adp-conformance/tests/round_trip/editors/markdown/examples/readme.md of etalii.adp.ide.desktop, the standalone host's example; never edited by hand.",
+  "tool": "editor/markdown",
+  "description": "../../../markdown.atd",
+  "inputs": {
+    "body": "readme.md",
+    "guide.md": "guide.md"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "heading-1",
+        "type": "Heading",
+        "attributes": {
+          "level": 1,
+          "title": "markdown - examples",
+          "line": 1
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  },
+  "provenance": {
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "7d08352",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "7d08352",
+      "source": "atd record (findings)"
+    }
+  }
+}

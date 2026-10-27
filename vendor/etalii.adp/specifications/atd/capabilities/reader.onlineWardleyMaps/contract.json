@@ -1,0 +1,25 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "reader.onlineWardleyMaps",
+  "version": "1.0.0",
+  "extensionPoint": "reader",
+  "doc": "Reads and writes the Online Wardley Maps text format, `.owm` (and `.wm`): `title`, `style`, `size`, components, anchors, submaps and their `url` definitions, dependency and flow links with their context, `evolve`, pipelines in the nested form with their brace on the line below and in the older two-coordinate form, notes, annotations with one or several occurrences, accelerators and the three attitudes, with each statement's line. A link, an `evolve` and a `pipeline` name an element by its name and attach to the first holder of that name in document order. Every statement it does not model and every `//` comment is kept byte for byte (a `//` after a `:` is not a comment), and every line it passes over is reported. A document nothing changed is written back byte for byte, every line ending, blank-line run and missing final ending included; an edit is planned as splices of only the lines it changes, and a new statement is appended at the end. It refuses, with its sentence, a name a link to or from could not be read back with, a pipeline component on a pipeline in the older form and one on a pipeline whose block never closes. Every element's id is kept beside the body in `<name>.identities.json`, keyed by the element's kind and natural key with the ordinal of a later holder, and reconciled against the body on reading. Its fixtures are recorded with the Wardley map's cases (spec 035, T080, T081).",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderInput"
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/ReaderResult"
+  },
+  "laws": [
+    "deterministic",
+    "readingNeverFails"
+  ],
+  "exceptions": [
+    {
+      "reads": "`<name>.identities.json` beside the body",
+      "reason": "The body holds no ids, so the ids that keep an element's stored state across edits are kept in a file of their own; a case lists that file among its inputs, and a missing or stale one is reconciled against the body."
+    }
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

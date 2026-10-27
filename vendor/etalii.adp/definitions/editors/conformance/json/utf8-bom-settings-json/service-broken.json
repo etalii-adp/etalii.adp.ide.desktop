@@ -1,0 +1,12 @@
+{
+  "$schema": "./service.schema.json",
+  "name": "",
+  "port": "8080",
+  "logLevel": "chatty",
+  "verbose": true,
+  "dependsOn": ["inventory", "inventory"],
+  "limits": {
+    "maxBodyKilobytes": -1
+  },
+  "region": "west"
+}

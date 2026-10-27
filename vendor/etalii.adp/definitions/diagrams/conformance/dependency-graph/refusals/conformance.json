@@ -1,0 +1,161 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record generic/dependencies` from parity/cases/generic/dependencies/refusals.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "generic/dependencies",
+  "description": "../../../dependency-graph.atd",
+  "inputs": {
+    "body": "graph.dgr"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "api",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "API",
+          "x": "0",
+          "row": "0"
+        }
+      },
+      {
+        "id": "db",
+        "type": "Node",
+        "parent": null,
+        "attributes": {
+          "label": "Database",
+          "x": "240",
+          "row": "0"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "r-api-db",
+        "type": "DependsOn",
+        "source": "api",
+        "target": "db",
+        "attributes": {}
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "dependencies.connect",
+      "args": {
+        "target": "rel:api->api"
+      },
+      "ids": [
+        "ID_case1"
+      ],
+      "refused": {
+        "reason": "A node cannot depend on itself."
+      },
+      "expectFile": "graph.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "element": "api",
+        "attribute": "dependencies.row",
+        "value": "2.5"
+      },
+      "refused": {
+        "reason": "'2.5' is not a number this graph can place a node at."
+      },
+      "expectFile": "graph.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "element": "db",
+        "attribute": "dependencies.x",
+        "value": "far left"
+      },
+      "refused": {
+        "reason": "'far left' is not a number this graph can place a node at."
+      },
+      "expectFile": "graph.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "move": {
+        "element": "r-api-db"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"r-api-db\"],\"dx\":10,\"dy\":0}",
+      "select": [
+        "r-api-db"
+      ],
+      "refused": {
+        "reason": "no node 'r-api-db' is on the diagram"
+      },
+      "expectFile": "graph.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "move": {
+        "element": "api",
+        "parent": "db",
+        "index": 0
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"api\"],\"parent\":\"db\",\"index\":0}",
+      "select": [
+        "api"
+      ],
+      "refused": {
+        "reason": "A Node cannot be placed inside a Node."
+      },
+      "expectFile": "graph.dgr",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "297942c",
+      "source": "atd record (drawing)"
+    }
+  }
+}

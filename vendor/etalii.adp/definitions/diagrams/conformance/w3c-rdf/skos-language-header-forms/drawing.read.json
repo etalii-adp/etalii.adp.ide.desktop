@@ -1,0 +1,175 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/drinks#drinks",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 240,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "skos:ConceptScheme",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 280
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:drinks",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 260
+          }
+        },
+        {
+          "id": "rows",
+          "text": "skos:prefLabel: Drinks @en\nskos:prefLabel: Dranken @nl",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 298
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/drinks#tea",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "skos:Concept",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:tea",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "skos:prefLabel: Tea @en\nskos:prefLabel: Thee @nl",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/drinks#drinks|http://www.w3.org/2004/02/skos/core#hasTopConcept|res:http://example.org/drinks#tea",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/drinks#drinks",
+      "target": "res:http://example.org/drinks#tea",
+      "route": [
+        {
+          "x": 110,
+          "y": 240
+        },
+        {
+          "x": 110,
+          "y": 88
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "skos:hasTopConcept",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 158
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#topConceptOf|res:http://example.org/drinks#drinks",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/drinks#tea",
+      "target": "res:http://example.org/drinks#drinks",
+      "route": [
+        {
+          "x": 110,
+          "y": 88
+        },
+        {
+          "x": 110,
+          "y": 240
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "skos:topConceptOf",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 158
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/drinks#drinks|http://www.w3.org/2004/02/skos/core#hasTopConcept|res:http://example.org/drinks#tea",
+    "edge:res:http://example.org/drinks#tea|http://www.w3.org/2004/02/skos/core#topConceptOf|res:http://example.org/drinks#drinks",
+    "res:http://example.org/drinks#drinks",
+    "res:http://example.org/drinks#tea"
+  ]
+}

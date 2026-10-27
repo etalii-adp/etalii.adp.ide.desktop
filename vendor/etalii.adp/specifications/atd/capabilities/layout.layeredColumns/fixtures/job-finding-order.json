@@ -1,0 +1,227 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredColumns` from what the desktop host's module shows when parity/cases/databricks/job/finding-order.json of etalii.adp.ide.desktop opens its document; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "task:both",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "both",
+          "taskType": "notebook",
+          "source": "notebooks/both",
+          "clusterKey": "imaginary_cluster",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "both",
+          "badges": "imaginary_cluster"
+        }
+      },
+      {
+        "id": "task:plain_missing",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "plain_missing",
+          "taskType": "notebook",
+          "source": "notebooks/plain",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "plain_missing",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:both",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "both",
+          "taskType": "notebook",
+          "source": "notebooks/both_again",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "both",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:ring_a",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "ring_a",
+          "taskType": "notebook",
+          "source": "notebooks/ring_a",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "ring_a",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:ring_b",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "ring_b",
+          "taskType": "notebook",
+          "source": "notebooks/ring_b",
+          "clusterKey": "other_imaginary",
+          "runIf": "",
+          "unresolved": "false",
+          "kind": "notebook",
+          "label": "ring_b",
+          "badges": "other_imaginary"
+        }
+      },
+      {
+        "id": "task:first_missing",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "first_missing",
+          "taskType": "other",
+          "source": "",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "first_missing",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:second_missing",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "second_missing",
+          "taskType": "other",
+          "source": "",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "second_missing",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "task:third_missing",
+        "type": "databricks/job+task",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "taskKey": "third_missing",
+          "taskType": "other",
+          "source": "",
+          "clusterKey": "",
+          "runIf": "",
+          "unresolved": "true",
+          "kind": "other",
+          "label": "third_missing",
+          "badges": "serverless"
+        }
+      },
+      {
+        "id": "cluster:real_cluster",
+        "type": "databricks/job+cluster",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "role": "compute",
+          "kind": "compute",
+          "label": "real_cluster",
+          "badges": "15.4.x-scala2.12\n1 workers"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:first_missing->both",
+        "source": "task:first_missing",
+        "target": "task:both"
+      },
+      {
+        "id": "edge:second_missing->both",
+        "source": "task:second_missing",
+        "target": "task:both"
+      },
+      {
+        "id": "edge:third_missing->plain_missing",
+        "source": "task:third_missing",
+        "target": "task:plain_missing"
+      },
+      {
+        "id": "edge:ring_b->ring_a",
+        "source": "task:ring_b",
+        "target": "task:ring_a"
+      },
+      {
+        "id": "edge:ring_a->ring_b",
+        "source": "task:ring_a",
+        "target": "task:ring_b"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 260,
+    "rowHeight": 120,
+    "bandGap": 80,
+    "align": "top",
+    "band": "self.id.startsWith('cluster:')",
+    "placeholder": "self.unresolved"
+  },
+  "output": {
+    "positions": {
+      "task:both": {
+        "x": 0.0,
+        "y": 240.0
+      },
+      "task:plain_missing": {
+        "x": 0.0,
+        "y": 120.0
+      },
+      "task:ring_a": {
+        "x": 260.0,
+        "y": 0.0
+      },
+      "task:ring_b": {
+        "x": 0.0,
+        "y": 360.0
+      },
+      "task:first_missing": {
+        "x": 0.0,
+        "y": 480.0
+      },
+      "task:second_missing": {
+        "x": 0.0,
+        "y": 600.0
+      },
+      "task:third_missing": {
+        "x": 0.0,
+        "y": 720.0
+      },
+      "cluster:real_cluster": {
+        "x": 0.0,
+        "y": 920.0
+      }
+    }
+  }
+}

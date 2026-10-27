@@ -1,0 +1,739 @@
+atd 0.1
+
+/// How a quantity divides and combines on its way from where it comes from to where it ends up: nodes as bars as tall
+/// as what passes through them, and flows as bands as thick as their value.
+///
+/// A Sankey diagram follows a quantity that is conserved as it moves - money through an income statement, energy
+/// through a country, people through their outcomes - without knowing which: the document names its **nodes** and the
+/// **flows** between them, and the diagram only knows nodes and flows. A flow has a **value**; a node's value is the
+/// larger of what flows into it and what flows out of it over the flows that are drawn, and is never stated. Every bar
+/// and band is drawn on one scale, so a bar is as tall as its value and a band as thick as its value, and the fullest
+/// column fills a fixed height times the diagram's **thickness**.
+///
+/// Nothing has a position of its own. A node's **column** is one right of the furthest node that flows into it, unless
+/// it states its own; its place in the column is the order the nodes are written in, which is the one thing a reader
+/// arranges, by dragging a node up or down its column while the others make room. Each node and flow is coloured with
+/// one of twelve palette words or a hex colour of its own; a flow without one takes the colour of its source or its
+/// target, as the diagram says. Values are written through a **format** such as `€{value}M` or `{value} TWh`, and a
+/// selected flow's value steps up and down in place, never below zero.
+///
+/// Everything this specification cannot say (the gestures that place a node, the filled band, the order of the
+/// findings, the reader's own sentences) is written down beside it in `sankey.md`. What the standalone tool calls each
+/// palette entry, menu entry and property row is in the `x-sankey` block.
+diagram etalii/sankey version "0.2.0" {
+  doc {
+    rationale: "A generic diagram shows that two things are connected; a Sankey diagram shows how much of a whole goes each way, so the proportions are read off the picture rather than the labels."
+    tags: ["sankey", "flows", "quantities", "proportions", "income statement", "energy"]
+    audience: [user, author]
+    seeAlso: [
+      {
+        title: "What DISL cannot express about this diagram type"
+        href: "https://github.com/etalii-adp/etalii.adp/blob/develop/definitions/diagrams/sankey.md"
+      },
+      {
+        title: "The standalone implementation"
+        href: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/sankey"
+      },
+      { title: "Sankey diagram (Wikipedia)", href: "https://en.wikipedia.org/wiki/Sankey_diagram" }
+    ]
+  }
+  label "Sankey diagram"
+  id: "net.etalii.adp.etalii.sankey"
+  defaultLocale: en
+  authors: [{ name: "Peter Vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://etalii.net/adp"
+  icon: "mdi-chart-sankey"
+  fileExtension: "skv"
+  requires: { conformance: standard, features: ["persist.yaml"] }
+
+  import "sankey.notation.atd"
+  import "sankey.skv.atd"
+  requires capability layout.flowRelaxation@^1
+  requires capability layout.crossingOrder@^1
+
+  /// One node type, Node, and one relation type, Flow. What a node stands for is the document's business, so there is
+  /// nothing to choose between: the diagram knows nodes and flows only.
+  model {
+    document {
+      /// How a value is written, {value} standing for the number: €{value}M, {value} TWh, {value}k. Empty shows the
+      /// number alone. Written in the document as `format`, and changed in the file itself.
+      attribute format: string default "" { label: "Format" }
+      /// Whose colour a flow takes when it states none: `source` or `target`. Written in the document as `flow-color`;
+      /// any other value is reported by the reader and read as target. A string rather than an enumeration, because the
+      /// reader keeps a value it does not know.
+      attribute flowColor: string default target { label: "Flow colour" }
+      /// How thick every bar and band is drawn, as a multiple of the default.
+      ///
+      /// Drawn clamped to 0.1 to 10 (drawnThickness); zero, a negative number or a word is reported by the reader and
+      /// drawn as 1. Changed only by Thicker bands and Thinner bands, which multiply or divide the drawn thickness by
+      /// 1.25.
+      attribute thickness: number { label: "Thickness" }
+    }
+
+    /// Something a quantity flows into, out of, or through.
+    ///
+    /// Drawn as a bar as tall as its value, with its name, its value and an optional note beside it: before the bar in
+    /// the first column, after it everywhere else.
+    element Node {
+      label "Node"
+      icon: "mdi-chart-sankey"
+      labelAttribute: name
+      /// Drawn beside the bar in the node's colour. When empty, the label shows the node's id. A rename refuses an
+      /// empty name.
+      attribute name: string default "" { label: "Name", group: "Identity", order: 0 }
+      /// Prose about the node. Kept in the document and shown in the property grid, never drawn.
+      attribute description: text default "" { label: "Description", markup: plain, group: "Identity", order: 1 }
+      /// A palette word - grey, slate, purple, blue, teal, green, lime, yellow, orange, red, pink, brown - painted by
+      /// the theme in both modes, or a #rgb or #rrggbb painted as written in both. Empty for grey. An unknown word is
+      /// reported and painted grey.
+      attribute color: string default "" { label: "Colour", group: "Look", order: 2 }
+      /// The one-based column the node is drawn in, or nothing to let the flows decide. A value that is not a whole
+      /// number from 1 is reported by the reader and ignored; values above 1000 are read as 1000.
+      attribute column: int { label: "Column", group: "Look", order: 3 }
+      /// The larger of what flows in and what flows out, over the flows that are drawn. Never stored: it changes by
+      /// changing a flow.
+      attribute quantity: number readonly {
+        label: "Value"
+        derived: (math.greatest(self.incomingOf('Flow').filter(f, drawn(f)).map(f, amount(f)).sum(), self.outgoingOf('Flow').filter(f, drawn(f)).map(f, amount(f)).sum()))
+        group: "Amount"
+        order: 4
+      }
+      /// A line shown in italics under the value, verbatim: +6% Y/Y, 32% margin.
+      attribute note: string default "" { label: "Note", group: "Amount", order: 5 }
+      /// How this node's value is written, overriding the diagram's format: (€{value}M) on a cost reads as a deduction.
+      /// Empty for the diagram's.
+      attribute format: string default "" { label: "Format", group: "Amount", order: 6 }
+    }
+
+    /// A quantity moving from one node to another.
+    ///
+    /// Drawn as a band as thick as its value from the source's right edge to the target's left edge. A flow seldom
+    /// needs a name: its id is the one it states, or `from->to` when it states none, so two flows between the same pair
+    /// in the same direction need ids of their own. A flow that runs back to a column at or left of its source's is
+    /// drawn and reported.
+    relation Flow from Node to Node {
+      label "Flow"
+      icon: "mdi-arrow-right-thin"
+      directed: true
+      allowSelfLoops: false
+      allowParallel: true
+      /// The id the entry states, or empty: most flows state none. A model attribute rather than a host attribute,
+      /// because the flow's derived id reads it. Written in the document as `id`.
+      attribute statedId: string readonly default "" { label: "Stated id" }
+      /// How much flows, which is the band's thickness. A flow without one is drawn as a hairline and reported; a
+      /// negative one is drawn as zero and reported. An edit refuses a negative value, and an empty value removes the
+      /// key. Written in the document as `value`.
+      attribute quantity: number { label: "Value", group: "Amount", order: 0 }
+      /// How much one + or - changes the value. Unset means a tenth of the value's order of magnitude (defaultStep);
+      /// zero and negative values are refused by an edit.
+      attribute step: number { label: "Step", group: "Amount", order: 1 }
+      /// A palette word or a hex, as for a node. Empty to take the colour of the end the diagram's flowColor names.
+      attribute color: string default "" { label: "Colour", group: "Look", order: 2 }
+      /// Prose about the flow, shown in the property grid only.
+      attribute description: text default "" { label: "Description", markup: plain, group: "Identity", order: 3 }
+      source: { role: from }
+      target: { role: to }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// What a node's label says: its name, or its id when it states no name.
+  fn labelOf(n: Element) -> string {
+    return n.name != '' ? n.name : n.id
+  }
+
+  /// The name itself when no node is labelled with it yet, otherwise the name followed by the lowest number from 2 up
+  /// that makes it unique among the nodes' labels ("New node", "New node 2").
+  fn uniqueName(base: string) -> string {
+    // uses: ['diagram']
+    return !diagram.nodesOfType('Node').exists(n, labelOf(n) == base) ? base : base + ' ' + string(lists.range(diagram.nodes.size() + 2).filter(i, i >= 2 && !diagram.nodesOfType('Node').exists(n, labelOf(n) == base + ' ' + string(i)))[0])
+  }
+
+  /// Whether a node is drawn: it has an id, and no earlier node holds it. A node without an id and a later holder of an
+  /// id are kept and reported, and not drawn (sankey.md, section 'What DISL cannot express').
+  fn drawnNode(n: Element) -> bool {
+    // uses: ['diagram']
+    return n.isA('Node') && n.id != '' && n.positionIn(diagram.nodesOfType('Node').filter(m, m.id == n.id)) == 0
+  }
+
+  /// Whether a flow is drawn: both its ends are drawn nodes and differ, and no node or earlier flow holds its id. Only
+  /// a drawn flow counts towards a node's value (finding A12 of sankey-disl-fbl).
+  fn drawn(f: Element) -> bool {
+    // uses: ['diagram']
+    return has(f.source) && has(f.target) && drawnNode(f.source) && drawnNode(f.target) && f.source != f.target && !diagram.nodesOfType('Node').exists(n, n.id == f.id) && f.positionIn(diagram.relationsOfType('Flow').filter(g, g.id == f.id)) == 0
+  }
+
+  /// The id a flow's `source` or `target` end is written with: the id of the node it names, or the empty text when it
+  /// names none. A flow whose end is written with an id no node holds reads that end as unset (4.9), and ATD has no
+  /// construct that reads the text it was written with, so such an end reads as the empty text here (sankey.md, gap 10).
+  fn writtenEnd(f: Element, end: string) -> string {
+    return end == 'source' ? (has(f.source) ? f.source.id : '') : (has(f.target) ? f.target.id : '')
+  }
+
+  /// The drawn nodes, in the order the file writes them.
+  fn drawnNodes() -> list<Element> {
+    // uses: ['diagram']
+    return diagram.nodesOfType('Node').filter(n, drawnNode(n))
+  }
+
+  /// The drawn flows that close no cycle, as [source id, target id] pairs: a depth-first walk over the drawn nodes in
+  /// the order the file writes them, following each node's flows in the order the file writes them, leaves out each
+  /// flow that reaches a node still on the walk (sankey.md, section 'Layout').
+  fn forwardFlows() -> list<list<string>> {
+    // uses: ['diagram']
+    let pairs = diagram.relationsOfType('Flow').filter(f, drawn(f)).map(f, [f.source.id, f.target.id])
+    var done = []
+    var kept = []
+    for start in drawnNodes().map(n, n.id) limit 100000 {
+      if !(start in done) {
+        var path = [start]
+        var next = [0]
+        while path.size() > 0 limit 1000000 {
+          let depth = path.size() - 1
+          let id = path[depth]
+          let targets = pairs.filter(p, p[0] == id).map(p, p[1])
+          let i = next[depth]
+          if i >= targets.size() {
+            path = path.slice(0, depth)
+            next = next.slice(0, depth)
+            done = done + [id]
+          } else {
+            next = next.slice(0, depth) + [i + 1]
+            let target = targets[i]
+            if !(target in path) {
+              kept = kept + [[id, target]]
+              if !(target in done) {
+                path = path + [target]
+                next = next + [0]
+              }
+            }
+          }
+        }
+      }
+    }
+    return kept
+  }
+
+  /// Every drawn node's zero-based column, in the order of drawnNodes(): the column it states, less one, or one right
+  /// of the furthest node that flows into it over forwardFlows(), and the first column when nothing does. A node that
+  /// states its column keeps it, so the flows into it place nothing; a sink is not pushed to the last column.
+  fn sankeyColumns() -> list<int> {
+    let nodes = drawnNodes()
+    let ids = nodes.map(n, n.id)
+    let stated = nodes.map(n, has(n.column))
+    let pairs = forwardFlows().filter(p, !stated[ids.indexOf(p[1])])
+    var columns = nodes.map(n, has(n.column) ? math.greatest(0, n.column - 1) : 0)
+    var changed = true
+    while changed limit 100000 {
+      changed = false
+      for p in pairs limit 1000000 {
+        let s = ids.indexOf(p[0])
+        let t = ids.indexOf(p[1])
+        if columns[s] + 1 > columns[t] {
+          columns = columns.slice(0, t) + [columns[s] + 1] + columns.slice(t + 1, columns.size())
+          changed = true
+        }
+      }
+    }
+    return columns
+  }
+
+  /// A drawn node's zero-based column; 0 for a node that is not drawn.
+  fn sankeyColumn(n: Element) -> int {
+    let i = drawnNodes().map(m, m.id).indexOf(n.id)
+    return i >= 0 ? sankeyColumns()[i] : 0
+  }
+
+  /// How many columns the diagram has: one more than the highest column, or 0 when nothing is drawn.
+  fn sankeyColumnCount() -> int {
+    let columns = sankeyColumns()
+    return columns.size() == 0 ? 0 : math.greatest(columns) + 1
+  }
+
+  /// Canvas units per unit of value: 560 times the drawn thickness divided by the fullest column's sum of node values,
+  /// or 0 when nothing flows.
+  fn sankeyScale() -> double {
+    let nodes = drawnNodes()
+    let columns = sankeyColumns()
+    var fullest = 0.0
+    for c in lists.range(sankeyColumnCount()) limit 100000 {
+      fullest = math.greatest(fullest, lists.range(nodes.size()).filter(i, columns[i] == c).map(i, nodes[i].quantity).sum())
+    }
+    return fullest > 0.0 ? 560.0 * drawnThickness() / fullest : 0.0
+  }
+
+  /// What a flow carries: its value, with a missing or negative value counting as zero.
+  fn amount(f: Element) -> double {
+    return has(f.quantity) ? math.greatest(0.0, f.quantity) : 0.0
+  }
+
+  /// Whether the text is one of the twelve palette words, which name colours and nothing else.
+  fn isPaletteWord(c: string) -> bool {
+    return c in ['grey', 'slate', 'purple', 'blue', 'teal', 'green', 'lime', 'yellow', 'orange', 'red', 'pink', 'brown']
+  }
+
+  /// Whether the text is a colour written outright, #rgb or #rrggbb.
+  fn isHex(c: string) -> bool {
+    return c.matches('^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
+  }
+
+  /// Whether the text is a colour this diagram can paint, the empty default included.
+  fn isKnownColor(c: string) -> bool {
+    return c == '' || isPaletteWord(c) || isHex(c)
+  }
+
+  /// The colour to paint: the palette word, or the hex in lower case; anything else - nothing, or an unknown word -
+  /// paints the fallback, and grey when the fallback is no colour either.
+  fn resolveColor(c: string, fallback: string) -> string {
+    return isPaletteWord(c) ? c : isHex(c) ? c.lowerAscii() : (isPaletteWord(fallback) ? fallback : isHex(fallback) ? fallback.lowerAscii() : 'grey')
+  }
+
+  /// A node's colour as a palette word or a hex; grey when it states none or one this diagram does not know.
+  fn nodeColor(n: Element) -> string {
+    return resolveColor(n.color, 'grey')
+  }
+
+  /// A flow's colour: its own, or else the colour of the end the diagram's flowColor names - the target unless the
+  /// document says source.
+  fn flowColor(f: Element) -> string {
+    // uses: ['diagram']
+    return resolveColor(f.color, nodeColor(diagram.flowColor == 'source' ? f.source : f.target))
+  }
+
+  /// A resolved colour as a paint: a hex as itself, a palette word through its theme token.
+  fn paint(c: string) -> string {
+    return c.startsWith('#') ? c : token('color.sankey.' + c)
+  }
+
+  /// A value as a reader reads it: thousands grouped, at most two decimals, none when whole, in the invariant culture.
+  fn valueText(v: double) -> string {
+    return formatNumber(v, '#,##0.##')
+  }
+
+  /// A number as a property row shows it and the document writes it: at most four decimals, none when whole, no
+  /// grouping.
+  fn rowNumber(v: double) -> string {
+    return formatNumber(v, '0.####')
+  }
+
+  /// A value written through a format: {value} stands for the number (€{value}M, {value} TWh, ({value})); a format
+  /// without the placeholder is shown after the number, and an empty one shows the number alone.
+  fn formatValue(format: string, v: double) -> string {
+    return format == '' ? valueText(v) : format.contains('{value}') ? format.replace('{value}', valueText(v)) : valueText(v) + ' ' + format
+  }
+
+  /// A node's value through its own format, or the diagram's when it states none.
+  fn nodeDisplay(n: Element) -> string {
+    // uses: ['diagram']
+    return formatValue(n.format != '' ? n.format : diagram.format, n.quantity)
+  }
+
+  /// A flow's value through the diagram's format; a node's own format never applies to a flow.
+  fn flowDisplay(f: Element) -> string {
+    // uses: ['diagram']
+    return formatValue(diagram.format, amount(f))
+  }
+
+  /// What one step adds to a flow that states none: a tenth of the value's own order of magnitude, and 0.1 below 10, so
+  /// a flow of 3.3 steps by 0.1 and one of 1,302 by 100. CEL has no logarithm, so the orders are listed; the list ends
+  /// at 10^15.
+  fn defaultStep(v: double) -> double {
+    return cel.bind(k, [1.0e1, 1.0e2, 1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7, 1.0e8, 1.0e9, 1.0e10, 1.0e11, 1.0e12, 1.0e13, 1.0e14, 1.0e15].filter(b, math.abs(v) >= b).size(), k == 0 ? 0.1 : [1.0, 1.0e1, 1.0e2, 1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7, 1.0e8, 1.0e9, 1.0e10, 1.0e11, 1.0e12, 1.0e13, 1.0e14][k - 1])
+  }
+
+  /// How much one + or - changes a flow's value: its own step, or the default step for its value when it states none or
+  /// one that is not above zero.
+  fn stepOf(f: Element) -> double {
+    return has(f.step) && f.step > 0.0 ? f.step : defaultStep(has(f.quantity) ? f.quantity : 0.0)
+  }
+
+  /// What flows into a node and has not flowed out again, over every flow the file writes to or from its id, drawn or
+  /// not, or 1 when nothing is left over: the value a new flow from it starts with, so a new band continues the
+  /// quantity rather than inventing one.
+  fn remainder(n: Element) -> double {
+    // uses: ['diagram']
+    return cel.bind(left, math.round((diagram.relationsOfType('Flow').filter(f, writtenEnd(f, 'target') == n.id).map(f, amount(f)).sum() - diagram.relationsOfType('Flow').filter(f, writtenEnd(f, 'source') == n.id).map(f, amount(f)).sum()) * 10000.0) / 10000.0, left > 0.0 ? left : 1.0)
+  }
+
+  /// The thickness every bar and band is drawn at: the document's, clamped to 0.1 to 10, and 1 when it states none or
+  /// one that is not above zero (finding A13 of sankey-disl-fbl). Thicker bands and Thinner bands compute from this
+  /// value, not from the one written.
+  fn drawnThickness() -> double {
+    // uses: ['diagram']
+    return has(diagram.thickness) && diagram.thickness > 0.0 ? math.least(10.0, math.greatest(0.1, diagram.thickness)) : 1.0
+  }
+
+  /// A bar's height: its value on the diagram's scale, and at least 6 so a node nothing flows through can still be seen
+  /// and picked.
+  fn barHeight(n: Element) -> double {
+    return math.greatest(6.0, n.quantity * sankeyScale())
+  }
+
+  /// A band's thickness: its value on the same scale as the bars, and at least 1 so a trickle still shows.
+  fn bandThickness(f: Element) -> double {
+    return math.greatest(1.0, amount(f) * sankeyScale())
+  }
+
+  /// What the Colour row shows: (default) for none, (custom) for a hex, and the word otherwise, also one this diagram
+  /// does not know.
+  fn colorChoice(c: string) -> string {
+    return c == '' ? '(default)' : isHex(c) ? '(custom)' : c
+  }
+
+  /// Whether typed text reads as a finite number of zero or more in the invariant culture.
+  fn readsAsAmount(t: string) -> bool {
+    return t.trim().matches('^[+]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$')
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// What is lost is an error, what is merely untidy a warning: an error names something that is not drawn, a warning
+  /// something that still draws what the author meant. The findings are listed in the order of their lines across every
+  /// code, which constraints.order cannot state (sankey.md); `order` gives the order in which they arise, which the
+  /// host's sort keeps among findings on one line.
+  constraints {
+    defaults: { severity: warning, timing: [live] }
+    blockSaveOn: never
+    order: [
+      "sankey.unreadable",
+      "sankey.missing-id",
+      "sankey.duplicate-id",
+      "sankey.self-flow",
+      "sankey.dangling-flow",
+      "sankey.missing-value",
+      "sankey.negative-value",
+      "sankey.unknown-color",
+      "sankey.backward-flow"
+    ]
+    builtin std.unparseable {
+      severity: warning
+      code: "sankey.unreadable"
+      message: ('The document could not be read as YAML: ' + detail.reason)
+      doc: "At the parser's line. Nothing else is reported for a body that does not parse, and it opens empty and read-only."
+    }
+    builtin std.unreadableEntry {
+      severity: warning
+      code: "sankey.unreadable"
+      message: (detail.reason)
+      doc: "The reader's own sentences: an unknown key, a number that will not read, a column that is not a whole number from 1, a flow-color that is neither word, a thickness not above zero, the three about the header, and an entry that is not a mapping. All but the last are about an entry that is still drawn, which std.unreadableEntry does not mean (sankey.md, gap 3)."
+    }
+    builtin std.missingId {
+      severity: error
+      code: "sankey.missing-id"
+      message: "A node has no id and is not drawn."
+      doc: "A node with no id, at its first line. A flow needs none: its id is derived."
+    }
+    builtin std.duplicateId {
+      severity: error
+      code: "sankey.duplicate-id"
+      message: (self.isA('Flow') && detail.id.contains('->') ? 'A flow from `' + detail.id.replace('->', '` to `') + '` is written twice; only the first is drawn - add their values, or give each an id.' : 'The id `' + detail.id + '` is used more than once; only its first entry is drawn.')
+      doc: "Nodes and flows share one id space, nodes read first. Every holder after the first is reported, at its first line, and is not drawn."
+    }
+    builtin std.references {
+      enabled: false
+      doc: "Reported by danglingSource and danglingTarget instead, which read the id an end is written with and say when an end is missing."
+    }
+    builtin std.endpoints {
+      enabled: false
+      doc: "A flow to itself is reported by selfFlow instead, which judges the ids as written, also when no node holds them."
+    }
+
+    /// A flow whose two ends name the same id, whether or not a node holds it. It is reported as this and nothing else.
+    constraint selfFlow for Flow {
+      when writtenEnd(self, 'source') != ''
+      rule writtenEnd(self, 'source') != writtenEnd(self, 'target')
+      severity error
+      message ('The flow from `' + writtenEnd(self, 'source') + '` runs to itself and is not drawn.')
+      code: "sankey.self-flow"
+    }
+
+    /// Once per end that names no node, or is missing, on the flow.
+    constraint danglingSource for Flow {
+      when writtenEnd(self, 'source') == '' || writtenEnd(self, 'source') != writtenEnd(self, 'target')
+      rule has(self.source) && self.source.isA('Node')
+      severity error
+      message (writtenEnd(self, 'source') == '' ? 'A flow is missing an end and is not drawn.' : 'A flow names `' + writtenEnd(self, 'source') + '`, which is not a node here; it is not drawn.')
+      code: "sankey.dangling-flow"
+    }
+
+    constraint danglingTarget for Flow {
+      when writtenEnd(self, 'source') == '' || writtenEnd(self, 'source') != writtenEnd(self, 'target')
+      rule has(self.target) && self.target.isA('Node')
+      severity error
+      message (writtenEnd(self, 'target') == '' ? 'A flow is missing an end and is not drawn.' : 'A flow names `' + writtenEnd(self, 'target') + '`, which is not a node here; it is not drawn.')
+      code: "sankey.dangling-flow"
+    }
+
+    /// Only on a flow whose two ends are nodes and differ: a self-flow and a dangling flow are reported as that and
+    /// nothing else.
+    constraint missingValue for Flow {
+      when has(self.source) && self.source.isA('Node') && has(self.target) && self.target.isA('Node') && self.source != self.target
+      rule has(self.quantity)
+      message ('The flow from `' + writtenEnd(self, 'source') + '` to `' + writtenEnd(self, 'target') + '` states no value, so it is drawn as a hairline.')
+      code: "sankey.missing-value"
+    }
+
+    constraint negativeValue for Flow {
+      when has(self.source) && self.source.isA('Node') && has(self.target) && self.target.isA('Node') && self.source != self.target && has(self.quantity)
+      rule self.quantity >= 0.0
+      message ('The flow from `' + writtenEnd(self, 'source') + '` to `' + writtenEnd(self, 'target') + '` has a negative value; it is drawn as zero.')
+      code: "sankey.negative-value"
+    }
+
+    constraint unknownFlowColor for Flow {
+      when has(self.source) && self.source.isA('Node') && has(self.target) && self.target.isA('Node') && self.source != self.target
+      rule isKnownColor(self.color)
+      message ('`' + self.color + '` is not a colour this diagram knows - one of grey, slate, purple, blue, teal, green, lime, yellow, orange, red, pink, brown, or #rrggbb; it is drawn as if it stated none.')
+      code: "sankey.unknown-color"
+    }
+
+    /// On every node, drawn or not.
+    constraint unknownNodeColor for Node {
+      rule isKnownColor(self.color)
+      message ('`' + self.color + '` is not a colour this diagram knows - one of grey, slate, purple, blue, teal, green, lime, yellow, orange, red, pink, brown, or #rrggbb; it is drawn as if it stated none.')
+      code: "sankey.unknown-color"
+    }
+
+    /// A drawn flow into a column at or left of its source's: a cycle, or a stated column. Still drawn.
+    constraint backwardFlow for Flow {
+      when drawn(self)
+      rule sankeyColumn(self.target) > sankeyColumn(self.source)
+      message ('The flow from `' + self.source.id + '` to `' + self.target.id + '` runs back to a column at or before its own, so it loops round instead of reading left to right.')
+      code: "sankey.backward-flow"
+    }
+
+    constraint connectBetweenNodes {
+      label "A flow runs between nodes"
+      when relationType == 'Flow'
+      rule source.isA('Node') && target.isA('Node')
+      message "A flow runs from one node to another."
+      kind: connect
+      enforcement: prevent
+    }
+
+    constraint noSelfFlowWhileDrawing {
+      label "No flow to itself"
+      when relationType == 'Flow'
+      rule source.id != target.id
+      message "A node does not flow into itself."
+      kind: connect
+      enforcement: prevent
+    }
+
+    /// Drawing refuses a second flow between the same pair in the same direction, and one whose from->to id another
+    /// entry already uses; a flow back the other way is allowed. A file holding two with ids of their own draws both.
+    constraint noSecondFlowWhileDrawing {
+      label "One flow per direction"
+      when relationType == 'Flow'
+      rule !diagram.relationsOfType('Flow').exists(f, writtenEnd(f, 'source') == source.id && writtenEnd(f, 'target') == target.id) && !diagram.nodes.exists(n, n.id == source.id + '->' + target.id) && !diagram.relations.exists(r, r.id == source.id + '->' + target.id)
+      message "These two are already joined by a flow in this direction; change its value instead."
+      kind: connect
+      enforcement: prevent
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  /// Asks for the name in a prompt titled "Rename", its field "Name" prefilled with the current label and its button
+  /// "Rename", and refuses a blank one. Double-clicking a node does the same.
+  operation rename "Rename…" for Node {
+    param name: string required default (labelOf(self)) { label: "Name" }
+    icon: "mdi-pencil-outline"
+    shortcut: F2
+    if p.name.trim() == '' {
+      fail 'A node needs a name.'
+    }
+    set name = p.name.trim()
+  }
+
+  /// Adds the flow's step to its value; a flow with no value, or a negative one, starts from zero. Rounded to four
+  /// decimals, so ten steps of 0.1 come back to a whole number. The keys + with or without Shift, and =, run it.
+  operation increaseValue "Increase value" for Flow {
+    icon: "mdi-plus-circle-outline"
+    shortcut: "+"
+    set quantity = math.greatest(0.0, math.round((amount(self) + stepOf(self)) * 10000.0) / 10000.0)
+  }
+
+  /// Takes the flow's step from its value, never below zero: a decrease that would pass zero lands on zero. The keys -
+  /// and Shift+_ run it.
+  operation decreaseValue "Decrease value" for Flow {
+    unavailable [{ when: (amount(self) <= 0.0), message: "The value is already zero." }]
+    icon: "mdi-minus-circle-outline"
+    shortcut: "-"
+    set quantity = math.greatest(0.0, math.round((amount(self) - stepOf(self)) * 10000.0) / 10000.0)
+  }
+
+  /// Draws every bar and band 1.25 times thicker, up to 10 times the default, computed from the drawn thickness. One
+  /// number for the whole diagram, because making one band thicker than its value says would make the diagram lie.
+  operation thicker "Thicker bands" for diagram {
+    unavailable [{ when: (drawnThickness() >= 10.0), message: "The bands are already as thick as they go." }]
+    icon: "mdi-arrow-expand-vertical"
+    let scaled = math.round(math.least(10.0, math.greatest(0.1, drawnThickness() * 1.25)) * 100.0) / 100.0
+    if scaled == drawnThickness() {
+      fail 'The bands are already as thick as this diagram draws them.'
+    }
+    set diagram.thickness = scaled
+  }
+
+  /// Draws every bar and band 1.25 times thinner, down to a tenth of the default, computed from the drawn thickness.
+  operation thinner "Thinner bands" for diagram {
+    unavailable [{ when: (drawnThickness() <= 0.1), message: "The bands are already as thin as they go." }]
+    icon: "mdi-arrow-collapse-vertical"
+    let scaled = math.round(math.least(10.0, math.greatest(0.1, drawnThickness() / 1.25)) * 100.0) / 100.0
+    if scaled == drawnThickness() {
+      fail 'The bands are already as thin as this diagram draws them.'
+    }
+    set diagram.thickness = scaled
+  }
+
+  /// Reorders the nodes of every column so the bands cross least, as one undoable step: only the order of the entries
+  /// changes, never a column or a value. Invoked, never automatic. The menu shows the reason beside the entry also
+  /// while it is available.
+  operation arrange "Arrange diagram" for diagram {
+    unavailable [
+      {
+        when: (diagram.nodesOfType('Node').size() == 0)
+        message: "There is nothing to arrange until this diagram has a node."
+      }
+    ]
+    icon: "mdi-sitemap-outline"
+    layout sankeyArrange
+  }
+
+  /// Adds a node named "New node" (numbered from 2 when a node's label already says so) in the column nearest the
+  /// point, with no colour. When that is not the first column, the column is written, because a node with no flows
+  /// would otherwise fall to the first. Where among the entries it is written, directly before the first node of that
+  /// column whose middle is below the point, is not something DISL states (sankey.md, gap 9).
+  operation addNodeHere "Add node here" for diagram {
+    icon: "mdi-plus"
+    let column = int(math.greatest(0.0, math.round((double(position.x) - 12.0) / 320.0)))
+    create Node { name: uniqueName('New node') } at position as added
+    if column > 0 {
+      set added.column = column + 1
+    }
+  }
+
+  /// A new flow carries on whatever its source has not yet passed on, or 1 when nothing is left over. It is written
+  /// with `from`, `to` and `value`, and no id.
+  hook valueNewFlow on connect for Flow {
+    when !has(self.quantity)
+    set quantity = remainder(self.source)
+  }
+
+  behavior {
+    doc: "Every change - add, remove, reorder, connect, rename, step, scale, set a property, arrange - is one undoable step that restores the document's whole text."
+    deletion: {
+      Node: {
+        relations: delete
+        confirm: {
+          count: (diagram.relationsOfType('Flow').filter(f, writtenEnd(f, 'source') == self.id || writtenEnd(f, 'target') == self.id).size())
+          threshold: 1
+          title: "Remove"
+          message: ('Removing this node also removes the ' + string(count) + (count == 1 ? ' flow' : ' flows') + ' to or from it.')
+          confirmLabel: "Remove"
+          danger: true
+          doc: "Every flow the file writes to or from the node's id, drawn or not, is removed with it in the same undoable step. With none it happens at once."
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  /// A .skv file: YAML with a version header 'sankey: 1', the document-wide keys 'format', 'flow-color' and
+  /// 'thickness', and 'nodes' and 'flows' lists, registered by an .adp file whose origin is etalii/sankey. It is read
+  /// and written through the Sankey module's own FBL binding, whose types and attributes the typeMap maps onto this
+  /// metamodel. The binding reads a flow as an element with reference attributes, so one whose end names nothing is
+  /// kept and reported, and declares no header: the version is read as a host attribute and its three sentences are the
+  /// reader's. The file layout is in sankey.md.
+  persistence {
+    format: fbl
+    ids: {
+      strategy: uuid-v4
+      encoding: base36
+      stable: true
+      pattern: "^.+$"
+      missing: ephemeral
+      types: {
+        Flow: {
+          strategy: derived
+          expression: (self.statedId != '' ? self.statedId : writtenEnd(self, 'source') + '->' + writtenEnd(self, 'target'))
+          doc: "The id the flow states, or its two ends as written, joined by `->`: `a->ghost` for a flow to a node that is not there, `->b` for one with no `from`. It never fails, so a flow is never reported as missing an id."
+        }
+      }
+      doc: "New nodes get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `gross-profit`, with a space, an accent or a `>`, are kept as written, which the pattern admits. Nodes and flows share one id space, nodes first; a node without an id and a later holder of an id are kept, reported, given an ephemeral id and not drawn."
+    }
+    view: { store: [] }
+    collaboration: { mode: none }
+    typeMap: {
+      Document: {
+        as: diagram
+        hostAttributes: [version, unknownKeys]
+        doc: "The root mapping: format, flow-color and thickness. `version` is the header as written, for the reader's three sentences."
+      }
+      Node: {
+        as: Node
+        hostAttributes: [storedId, written, unknownKeys]
+        doc: "An entry of `nodes`. `storedId` is the id as written."
+      }
+      Flow: {
+        as: Flow
+        attributes: { from: source, to: target, value: quantity }
+        hostAttributes: [written, unknownKeys]
+        doc: "An entry of `flows`, read as an element with reference attributes, so one whose end names no node is kept, with that end unset."
+      }
+      Unreadable: { as: unreadable, doc: "An entry of `nodes` or `flows` that is not a mapping." }
+    }
+    // DISL binding: https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/sankey/backend/EtAlii.Adp.Diagram.Sankey/sankey.fbl#skv
+  }
+
+  plugin net.etalii.adp.etalii.sankeyLayout {
+    version: "^1.0.0"
+    provides: [layout]
+    required: true
+    doc: "The Sankey layout of sankey.md, section 'Layout', and Arrange diagram's reordering of the columns: here the capabilities layout.flowRelaxation (algorithm sankey) and layout.crossingOrder (algorithm sankeyArrange), with the columns and the scale they read as the script functions sankeyColumn, sankeyColumnCount and sankeyScale, and a bar's top and a band's ends as the layout's values `top`, `sourceAt` and `targetAt`. The standalone module implements it as `SankeyLayout` and `SankeyArrangement`."
+  }
+  plugin net.etalii.adp.etalii.sankeyEnds {
+    version: "^1.0.0"
+    provides: []
+    required: false
+    doc: "A flow's ends as the file writes them, which DISL's CEL cannot read: an end that names no node is null in the model (4.9). Here the script function writtenEnd, which reads such an end as the empty text (sankey.md, gap 10)."
+  }
+
+  x-sankey: {
+    doc: "Today's wire ids, which the standalone client (client/sankeyIds.ts) and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind. A property is keyed by its form item's row id: its id, else its attribute. The node's computed Value row and the flow's value row share one wire id."
+    tools: { node: { id: "sankey.toolbox.node", drop: "sankey.add" } }
+    actions: {
+      addNodeHere: "sankey.add"
+      connect: "sankey.connect"
+      increaseValue: "sankey.increase"
+      decreaseValue: "sankey.decrease"
+      rename: "sankey.rename"
+      delete: "sankey.remove"
+      thicker: "sankey.thicker"
+      thinner: "sankey.thinner"
+      arrange: "sankey.arrange"
+    }
+    properties: {
+      name: "sankey.name"
+      description: "sankey.description"
+      color: "sankey.color"
+      customColor: "sankey.custom-color"
+      column: "sankey.column"
+      value: "sankey.value"
+      Value: "sankey.value"
+      note: "sankey.note"
+      format: "sankey.format"
+      step: "sankey.step"
+    }
+  }
+  x-adp: {
+    kind: Diagram
+    state: Prototype
+    implementations: {
+      standalone: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/sankey"
+    }
+  }
+}

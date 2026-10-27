@@ -1,0 +1,341 @@
+atd 0.1
+
+/// A declarative pipeline's flow: source libraries through the pipeline into its catalog target.
+///
+/// The diagram of one Lakeflow Declarative Pipeline (formerly Delta Live Tables), read from its settings: either a bare
+/// pipeline settings JSON file, or a `resources.pipelines.<key>` mapping in a Databricks Asset Bundle's YAML. The
+/// source libraries sit on the left, each flowing into the pipeline node, which flows into the catalog and schema it
+/// publishes to; the compute and the notifications sit beneath. This is the settings view, not the graph of datasets
+/// the pipeline defines. The settings stay Databricks' own file: ADP never writes positions into it. The `x-databricks`
+/// block maps this specification's names to the wire ids the standalone tool uses today. See `databricks-pipeline.md`
+/// beside this file for what DISL 0.3 cannot say.
+diagram databricks/pipeline version "0.2.0" {
+  label "Databricks pipeline"
+  id: "net.etalii.adp.databricks.pipeline"
+  icon: "mdi-pipe"
+  fileExtension: ".json"
+  license: "Apache-2.0"
+  homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/databricks"
+  requires: { conformance: standard }
+  doc {
+    seeAlso: [{
+      title: "Databricks: pipeline settings",
+      href: "https://docs.databricks.com/aws/en/dlt/configure-pipeline"
+    }
+    , {
+      title: "Databricks: pipeline resource in a bundle"
+      href: "https://docs.databricks.com/aws/en/dev-tools/bundles/resources#pipeline"
+    }
+    ]
+  }
+
+  import "databricks-pipeline.notation.atd"
+  import "databricks-pipeline.bundle.atd"
+  requires capability reader.databricksBundle@^1
+  requires capability layout.layeredColumns@^1
+
+  model {
+    document {
+      /// The key under `resources.pipelines` when the pipeline lives in a bundle; empty for a bare settings file.
+      /// Chosen by the `.adp` registration's `resource:` header when a file declares several.
+      attribute pipelineKey: string readonly
+    }
+
+    datatype Notification {
+      label: "Notification"
+      fields: {
+        recipients: { type: "string", many: true, doc: "`email_recipients`." }
+        alerts: { type: "string", many: true, doc: "`alerts`, the events that send it." }
+      }
+    }
+
+    enum LibraryKind {
+      /// `{ notebook: { path } }`.
+      notebook { label: "Notebook", icon: "mdi-notebook-outline" }
+      /// `{ file: { path } }`.
+      file { label: "File", icon: "mdi-file-code-outline" }
+      /// `{ glob: { include } }`.
+      glob { label: "Glob" }
+      /// Any other library entry (for example a jar, whl or maven entry). Its path is empty.
+      other { label: "Other" }
+    }
+
+    enum Channel {
+      CURRENT { label: "CURRENT" }
+      PREVIEW { label: "PREVIEW" }
+      extensible: true
+    }
+
+    /// Where an element stands in a simulated update. Never stored.
+    enum SimulatedState {
+      pending
+      running
+      succeeded
+    }
+
+    /// One entry of the pipeline's `libraries` list: a source its transformations come from.
+    element Library {
+      label "Library"
+      attribute libraryKind: LibraryKind required readonly
+      /// `path`, or `include` for a glob; empty for an `other` entry.
+      attribute path: string required readonly { key: true }
+      attribute simulated: SimulatedState readonly { transient: viewer }
+      labelAttribute: "path"
+    }
+
+    /// The pipeline's own settings. There is exactly one.
+    element Pipeline {
+      label "Pipeline"
+      /// `name`.
+      attribute name: string
+      /// `catalog`, the Unity Catalog the pipeline publishes to.
+      attribute catalog: string
+      /// `schema`, or the legacy `target` when there is no `schema`.
+      attribute schema: string
+      attribute serverless: bool readonly default false
+      attribute continuous: bool readonly default false
+      attribute development: bool readonly default false
+      /// `channel`.
+      attribute channel: Channel
+      attribute simulated: SimulatedState readonly { transient: viewer }
+      multiplicity: { min: 1, max: 1 }
+      labelAttribute: "name"
+    }
+
+    /// Where the pipeline publishes: its catalog and schema. Drawn from the pipeline's own settings, always, with no
+    /// entry of its own (see databricks-pipeline.md).
+    element Destination {
+      label "Target"
+      attribute simulated: SimulatedState readonly { transient: viewer }
+      multiplicity: { min: 1, max: 1 }
+    }
+
+    /// What the pipeline runs on: serverless, or clusters. Drawn from `serverless`, always, with no entry of its own
+    /// (see databricks-pipeline.md).
+    element Compute {
+      label "Compute"
+      multiplicity: { min: 1, max: 1 }
+    }
+
+    /// The `notifications` list. Present only when the pipeline has notifications.
+    element Notifications {
+      label "Notifications"
+      attribute entries: Notification many readonly { minItems: 1 }
+      multiplicity: { min: 0, max: 1 }
+    }
+
+    /// From every library into the pipeline, and from the pipeline into its target. Not stored: it follows from the
+    /// libraries list.
+    relation Flow from Library, Pipeline to Pipeline, Destination {
+      label "Flows into"
+      directed: true
+      allowSelfLoops: false
+      derived: {
+        from: (diagram.nodesOfType('Library') + diagram.nodesOfType('Destination'))
+        id: (item.isA('Library') ? 'flow:' + item.path + '->pipeline' : 'flow:pipeline->target')
+        source: (item.isA('Library') ? item : diagram.nodesOfType('Pipeline')[0])
+        target: (item.isA('Library') ? diagram.nodesOfType('Pipeline')[0] : item)
+        sources: ([item])
+        reason: "A flow follows from the libraries list; add or remove a library instead."
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Functions
+
+  /// The element's place in a ripple: the members ordered by position on the canvas, left to right, then top to bottom,
+  /// then in reading order.
+  fn rippleRank(e: Element, members: list<Element>) -> int {
+    return cel.bind(x, e.view.bounds.center()[0], cel.bind(y, e.view.bounds.center()[1], members.filter(o, o.view.bounds.center()[0] < x || (o.view.bounds.center()[0] == x && (o.view.bounds.center()[1] < y || (o.view.bounds.center()[1] == y && o.positionIn(members) < e.positionIn(members))))).size()))
+  }
+
+  /// What a simulated update ripples over: the source libraries, the pipeline and its target.
+  fn updateMembers() -> list<Element> {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Library') + diagram.nodesOfType('Pipeline') + diagram.nodesOfType('Destination')
+  }
+
+  // ---------------------------------------------------------------- Constraints
+
+  /// Every finding is located at a line of the pipeline's settings: a rule on an element reports the element's
+  /// `location()`, which the reader records, so both of the pipeline's findings stand on its first line.
+  constraints {
+    builtin std.duplicateId {
+      enabled: false
+      doc "Two libraries of one path and different kinds share an id, as do every library of kind `other` (finding B15), and the tool has never reported it: the writer edits the first."
+    }
+    builtin std.unparseable {
+      code: "databricks.unparseable"
+      severity: "error"
+      message: ('This is not configuration that can be read: ' + detail.reason)
+    }
+
+    constraint noLibraries for Pipeline {
+      rule diagram.nodesOfType('Library').size() > 0
+      severity error
+      message ('The pipeline' + (has(self.name) && self.name != '' ? ' \'' + self.name + '\'' : '') + ' has no libraries, so it has nothing to run. Add at least one notebook, file or glob.')
+      code: "databricks.no-libraries"
+    }
+
+    constraint schemaWithoutCatalog for Pipeline {
+      rule !(has(self.schema) && self.schema != '' && (!has(self.catalog) || self.catalog == ''))
+      severity warning
+      message ('The pipeline' + (has(self.name) && self.name != '' ? ' \'' + self.name + '\'' : '') + ' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too.')
+      code: "databricks.schema-without-catalog"
+    }
+
+    constraint keepOneLibrary for Library {
+      rule diagram.nodesOfType('Library').size() > 1
+      message "A pipeline needs at least one library; removing the last one is not allowed."
+      kind: delete
+      enforcement: prevent
+    }
+  }
+
+  // ---------------------------------------------------------------- Operations
+
+  operation addNotebookLibrary "Add notebook library…" for diagram {
+    param path: string required { label: "Path" }
+    icon: "mdi-notebook-outline"
+    paramsForm: "addLibrary"
+    if p.path == '' {
+      fail 'A library needs a path.'
+    }
+    if diagram.nodesOfType('Library').exists(l, l.libraryKind == 'notebook' && l.path == p.path) {
+      fail 'The notebook library \'' + p.path + '\' is already there.'
+    }
+    create Library { libraryKind: 'notebook', path: p.path }
+  }
+
+  operation addFileLibrary "Add file library…" for diagram {
+    param path: string required { label: "Path" }
+    icon: "mdi-file-code-outline"
+    paramsForm: "addLibrary"
+    if p.path == '' {
+      fail 'A library needs a path.'
+    }
+    if diagram.nodesOfType('Library').exists(l, l.libraryKind == 'file' && l.path == p.path) {
+      fail 'The file library \'' + p.path + '\' is already there.'
+    }
+    create Library { libraryKind: 'file', path: p.path }
+  }
+
+  /// Runs the job reading's command of the same name, which adds a notebook task to a job of the file; the tool offers
+  /// it under this reading too.
+  operation addNotebookTaskHere "Add notebook task here" for diagram {
+    icon: "mdi-notebook-outline"
+    plugin: { name: "net.etalii.adp.databricks.files", args: { taskType: "notebook" } }
+  }
+
+  /// Runs the job reading's command of the same name, which adds a Python task to a job of the file; the tool offers it
+  /// under this reading too.
+  operation addPythonTaskHere "Add Python task here" for diagram {
+    icon: "mdi-language-python"
+    plugin: { name: "net.etalii.adp.databricks.files", args: { taskType: "python" } }
+  }
+
+  /// Runs the job reading's command of the same name, which adds a condition task to a job of the file; the tool offers
+  /// it under this reading too.
+  operation addConditionTaskHere "Add condition task here" for diagram {
+    icon: "mdi-call-split"
+    plugin: { name: "net.etalii.adp.databricks.files", args: { taskType: "condition" } }
+  }
+
+  /// Runs the job reading's connect command, which the tool offers under this reading too.
+  operation connectTasks "Depend on" for diagram {
+    /// Where the gesture started.
+    param from: Element
+    /// Where the gesture ended.
+    param to: Element
+    icon: "mdi-ray-start-arrow"
+    plugin: { name: "net.etalii.adp.databricks.files", args: { connect: "dependency" } }
+  }
+
+  operation simulateUpdate "Start update (simulated)" for Pipeline {
+    icon: "mdi-play-outline"
+    simulate: {
+      for: ["Library", "Pipeline", "Destination"]
+      state: "simulated"
+      initial: ('pending')
+      next: (cel.bind(r, rippleRank(self, updateMembers()), step == 2 * r + 1 ? 'running' : (step >= 2 * r + 2 ? 'succeeded' : 'pending')))
+      until: (step >= 2 * updateMembers().size())
+      stepMs: 700
+      notice: { running: "Simulated: pipeline update", finished: "Simulated: pipeline update — finished" }
+      doc: "A mock update that ripples over the sources, the pipeline and its target, one element at a time in position order: each goes from pending to running to succeeded, one change every 700 ms. Nothing is written, nothing enters the undo history."
+    }
+  }
+
+  // ---------------------------------------------------------------- Persistence
+
+  persistence {
+    format: fbl
+    files: {
+      mode: split
+      model: "{name}.json"
+      view: "{name}.adp"
+      doc: "The model is the pipeline's own settings, a bare JSON settings file or a pipeline resource in a bundle's YAML, which Databricks owns; the view is the ADP registration file's layout: block."
+    }
+    ids: {
+      strategy: natural
+      prefix: { Library: "library:" }
+      pattern: "^[^\\r\\n]{1,512}$"
+      types: {
+        Pipeline: { strategy: derived, expression: ('pipeline') }
+        Destination: { strategy: derived, expression: ('target') }
+        Compute: { strategy: derived, expression: ('compute') }
+        Notifications: { strategy: derived, expression: ('notifications') }
+      }
+      doc: "`library:<path>`, the fixed `pipeline`, `target`, `compute` and `notifications`, and the derived flows `flow:<path>->pipeline` and `flow:pipeline->target`."
+    }
+    view: { store: [bounds], styleOverrides: none }
+  }
+
+  plugin net.etalii.adp.databricks.files {
+    version: "^0.1.0"
+    provides: [persistenceFormat, action]
+    required: true
+    doc "Reads and writes the pipeline inside Databricks' own settings file (JSON or YAML) by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. As an action it runs the job reading's commands that the tool offers under this reading too. This description states both as the binding `bundle` (databricks-pipeline.bundle.atd), whose family is the capability `reader.databricksBundle`, which plans those commands' edits as the job reading does; the plugin stays declared for the hosts that run the JSON files."
+  }
+
+  plugin net.etalii.adp.databricks.layout {
+    version: "^0.1.0"
+    provides: [layout]
+    required: false
+    fallback: { layout: "layered" }
+    args: {
+      reading: { type: "string", required: true }
+      sourceX: { type: "number" }
+      pipelineX: { type: "number" }
+      targetX: { type: "number" }
+      rowHeight: { type: "number" }
+      satelliteBandGap: { type: "number" }
+    }
+    doc "The family's computed layouts. This description requires the pipeline's as the capability `layout.layeredColumns`; the plugin stays declared for the hosts that run the JSON files."
+  }
+
+  x-databricks: {
+    doc: "Today's wire ids, which the standalone backend and client share, mapped from this specification's names, as x-ghg does for the hype cycle. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type>. A property is keyed by its form item's row id: its id, else its attribute, else a computed item's label."
+    tools: {
+      notebookLibrary: { id: "databricks.toolbox.notebook-library", drop: "databricks.add-library:notebook" }
+      fileLibrary: { id: "databricks.toolbox.file-library", drop: "databricks.add-library:file" }
+    }
+    actions: {
+      addNotebookLibrary: "databricks.add-library:notebook"
+      addFileLibrary: "databricks.add-library:file"
+      "Library/delete": "databricks.remove-library"
+      simulateUpdate: "databricks.simulated.pipeline-update"
+      addNotebookTaskHere: "databricks.add-task:notebook"
+      addPythonTaskHere: "databricks.add-task:python"
+      addConditionTaskHere: "databricks.add-task:condition"
+      connectTasks: "databricks.connect"
+    }
+    properties: {
+      name: "databricks.pipeline:name"
+      catalog: "databricks.pipeline:catalog"
+      schema: "databricks.pipeline:schema"
+      channel: "databricks.pipeline:channel"
+      "Workspace connection": "databricks.workspace"
+      "Last simulated run": "databricks.last-simulated-run"
+    }
+  }
+}

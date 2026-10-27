@@ -1,0 +1,47 @@
+atd 0.1
+
+/// The plain text editor: any text file as text, the editor that answers for every file no other editor takes. It
+/// reads nothing of the text and checks nothing; what it guarantees is that a file it opens saves back as it was read.
+///
+/// No host loads this description: hosts open these files with their own editor, and run no editor from `.atd` (ATD
+/// §1.2). It is written from what the desktop host's editor does at its reference commit `fe5feec` (ATD §10.1), its
+/// trace lists where, and its conformance cases under `conformance/` record it.
+editor editor/plain version "1.0.0" {
+  label "Plain text editor"
+
+  surface text {
+    /// Every file: the editor of a file whose extension no other editor's `files` names.
+    files "*"
+    /// Colours by the syntax the file's extension names, among syntect's Sublime syntaxes, when there is one. Above 20,000 lines the text is shown without colour.
+    tokens extension { largestColouredLines: 20000 }
+    /// How the file is opened and saved, as every editor of the desktop host opens one: UTF-8 with or without a
+    /// byte-order mark, or ASCII; refused, with the reason, above 5 MB (before a byte is read), when it looks binary or
+    /// when it is not UTF-8. Every line keeps its own line ending, a new line takes the dominant one, a last line keeps
+    /// whether it had an ending, and the byte-order mark is written back exactly when the file had one, so an
+    /// unchanged file saves back byte for byte.
+    open: {
+      encodings: ["UTF-8", "ASCII"]
+      byteOrderMark: keep
+      largestBytes: 5242880
+      binary: refuse
+      otherEncodings: refuse
+      lineEndings: keep
+      newLineEnding: dominant
+    }
+    /// The buffer: one cursor and one selection; Tab writes four spaces; pasted text has its CRLF made LF; no soft
+    /// wrap; a gutter with the line numbers and the current line marked. Typing, the movements by character, word, line
+    /// and document, copy, cut and paste are the host's gestures, and grouping undo word by word is the host's undo
+    /// stack (ATD §17).
+    buffer: {
+      cursors: 1
+      tab: "    "
+      paste: { newline: lf }
+      softWrap: false
+      gutter: lineNumbers
+      currentLine: marked
+    }
+    /// Where a finding is said: drawn under its range by severity, and listed in the problems panel at its line and
+    /// column, both from 1, columns counted in characters.
+    findings: { line: 1, column: 1, columns: characters }
+  }
+}

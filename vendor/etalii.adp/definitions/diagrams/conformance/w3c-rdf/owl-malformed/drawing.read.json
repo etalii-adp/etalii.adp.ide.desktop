@@ -1,0 +1,199 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "blank:0",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 240,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "owl:Restriction",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 280
+          }
+        },
+        {
+          "id": "display",
+          "text": "_:b0",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 260
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "res:http://example.org/bad#A",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "owl:Class",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": ":A",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/bad#B",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "owl:Class",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": ":B",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:blank:0|http://www.w3.org/2002/07/owl#someValuesFrom|res:http://example.org/bad#B",
+      "type": "w3c/rdf+edge",
+      "source": "blank:0",
+      "target": "res:http://example.org/bad#B",
+      "route": [
+        {
+          "x": 142.67,
+          "y": 240
+        },
+        {
+          "x": 357.33,
+          "y": 56
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "owl:someValuesFrom",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 142
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|blank:0",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/bad#A",
+      "target": "blank:0",
+      "route": [
+        {
+          "x": 110,
+          "y": 56
+        },
+        {
+          "x": 110,
+          "y": 240
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "rdfs:subClassOf",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 142
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:blank:0|http://www.w3.org/2002/07/owl#someValuesFrom|res:http://example.org/bad#B",
+    "edge:res:http://example.org/bad#A|http://www.w3.org/2000/01/rdf-schema#subClassOf|blank:0",
+    "res:http://example.org/bad#A",
+    "blank:0",
+    "res:http://example.org/bad#B"
+  ]
+}

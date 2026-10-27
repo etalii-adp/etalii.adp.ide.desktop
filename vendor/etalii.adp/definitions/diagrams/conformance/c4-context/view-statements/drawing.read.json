@@ -1,0 +1,337 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "api",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -85.15,
+        "y": 757.6,
+        "w": 170.3,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Answers.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 815.6
+          }
+        },
+        {
+          "id": "name",
+          "text": "API",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 779.6
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: Kotlin]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 795.6
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "u",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -80,
+        "y": 0,
+        "w": 160,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "A user.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 58
+          }
+        },
+        {
+          "id": "name",
+          "text": "User",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 22
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Person]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 38
+          }
+        }
+      ],
+      "style": {
+        "fill": "#08427b",
+        "stroke": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "web",
+      "type": "c4/model+node",
+      "shape": "path",
+      "bounds": {
+        "x": -81.3,
+        "y": 378.8,
+        "w": 162.6,
+        "h": 78.8
+      },
+      "labels": [
+        {
+          "id": "description",
+          "text": "Serves.",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 436.8
+          }
+        },
+        {
+          "id": "name",
+          "text": "Web",
+          "font": "13 600",
+          "position": {
+            "x": 0,
+            "y": 400.8
+          }
+        },
+        {
+          "id": "type",
+          "text": "[Container: React]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 416.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#438dd5",
+        "stroke": "#438dd5",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "u->web@9",
+      "type": "c4/model+relationship",
+      "source": "u",
+      "target": "web",
+      "route": [
+        {
+          "x": 0,
+          "y": 78.8
+        },
+        {
+          "x": 0,
+          "y": 378.8
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Visits [HTTPS]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 222.8
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "web->api@10",
+      "type": "c4/model+relationship",
+      "source": "web",
+      "target": "api",
+      "route": [
+        {
+          "x": 0,
+          "y": 457.6
+        },
+        {
+          "x": 0,
+          "y": 757.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Calls [JSON]",
+          "font": "10 400",
+          "position": {
+            "x": 0,
+            "y": 601.6
+          }
+        }
+      ],
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [
+    {
+      "id": "chrome:1",
+      "kind": "band",
+      "bounds": {
+        "x": -117.15,
+        "y": 346.8,
+        "w": 234.3,
+        "h": 541.2
+      },
+      "style": {
+        "strokeWidth": 1.5,
+        "dash": [
+          8,
+          6
+        ],
+        "opacity": 0.8
+      }
+    },
+    {
+      "id": "chrome:2",
+      "kind": "legend",
+      "text": "System [Software System]",
+      "bounds": {
+        "x": -117.15,
+        "y": 340.8,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:3",
+      "kind": "legend",
+      "text": "A title the document declares",
+      "bounds": {
+        "x": -117.15,
+        "y": -30,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:4",
+      "kind": "legend",
+      "text": "Key",
+      "bounds": {
+        "x": -117.15,
+        "y": 918,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:5",
+      "kind": "band",
+      "bounds": {
+        "x": -81.15,
+        "y": 908,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#08427b",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:6",
+      "kind": "legend",
+      "text": "Person",
+      "bounds": {
+        "x": -64.15,
+        "y": 918,
+        "w": 0,
+        "h": 0
+      }
+    },
+    {
+      "id": "chrome:7",
+      "kind": "band",
+      "bounds": {
+        "x": -15.85,
+        "y": 908,
+        "w": 12,
+        "h": 12
+      },
+      "style": {
+        "fill": "#438dd5",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "chrome:8",
+      "kind": "legend",
+      "text": "Container",
+      "bounds": {
+        "x": 1.15,
+        "y": 918,
+        "w": 0,
+        "h": 0
+      }
+    }
+  ],
+  "order": [
+    "chrome:1",
+    "chrome:2",
+    "u->web@9",
+    "web->api@10",
+    "u",
+    "web",
+    "api",
+    "chrome:3",
+    "chrome:4",
+    "chrome:5",
+    "chrome:6",
+    "chrome:7",
+    "chrome:8"
+  ]
+}

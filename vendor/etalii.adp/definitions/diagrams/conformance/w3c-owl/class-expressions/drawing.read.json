@@ -1,0 +1,2363 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "dt:http://example.org/shapes#hasArea",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 250,
+        "y": 2681,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Literal",
+          "font": "13 400",
+          "position": {
+            "x": 345,
+            "y": 2720.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 1750,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "¬…",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 1788.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#b45309",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 740,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "(:Shape ∩ ∃ :hasSide.…)…",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 778.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 850,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "∃ :hasSide.(Polygon ∪ ……",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 888.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 960,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "(Polygon ∪ ¬…) …",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 998.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 1070,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "¬∀ :hasColour.:Colour",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 1108.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 1180,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "∀ :hasColour.:Colour",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 1218.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 565,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "{:Red, :Green}",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 603.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1310,
+        "y": 415,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "≥ 4 :hasSide.Polygon",
+          "font": "11 400",
+          "position": {
+            "x": 1405,
+            "y": 453.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1310,
+        "y": 525,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "≤ 1 :hasArea.xsd:decimal",
+          "font": "11 400",
+          "position": {
+            "x": 1405,
+            "y": 563.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1310,
+        "y": 635,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "= 4 :hasSide.:Shape",
+          "font": "11 400",
+          "position": {
+            "x": 1405,
+            "y": 673.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1310,
+        "y": 745,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "≥ 1 :hasSide",
+          "font": "11 400",
+          "position": {
+            "x": 1405,
+            "y": 783.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1310,
+        "y": 130,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "= 3 :hasSide",
+          "font": "11 400",
+          "position": {
+            "x": 1405,
+            "y": 168.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1310,
+        "y": 240,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "∋ :hasColour.:Red",
+          "font": "11 400",
+          "position": {
+            "x": 1405,
+            "y": 278.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 1355,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "? :hasSide",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 1393.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#b45309",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 1465,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "∃ ?.:Shape",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 1503.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#b45309",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 1575,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "(?)",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 1613.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 390,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "¬:Circle",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 428.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "http://example.org/shapes#",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Circle",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 250,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Circle",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 289.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Colour",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 250,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Colour",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 289.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Curved",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 2045,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Curved",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 2084.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Green",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 2315,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": ":Colour",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 2355
+          }
+        },
+        {
+          "id": "display",
+          "text": ":Green",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 2335
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Loop",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 1740,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Loop",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 1779.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Nested",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 730,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Nested",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 769.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Polygon",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 120,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Polygon",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 159.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Primary",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 555,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Primary",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 594.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Red",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 1200,
+        "y": 700,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": ":Colour",
+          "font": "11 400",
+          "position": {
+            "x": 1208,
+            "y": 740
+          }
+        },
+        {
+          "id": "display",
+          "text": ":Red",
+          "font": "13 400",
+          "position": {
+            "x": 1310,
+            "y": 720
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Round",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 1915,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Round",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 1954.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Shape",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 120,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Shape",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 159.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Square",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 900,
+        "y": 40,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Square",
+          "font": "13 400",
+          "position": {
+            "x": 995,
+            "y": 79.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Triangle",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1060,
+        "y": 120,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Triangle",
+          "font": "13 400",
+          "position": {
+            "x": 1155,
+            "y": 159.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Unfinished",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 1345,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Unfinished",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 1384.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Unround",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 380,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Unround",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 419.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/2001/XMLSchema#decimal",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 2561,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "xsd:decimal",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 2600.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "thing:http://example.org/shapes#hasArea|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 2681,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 52.25,
+            "y": 2704.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://example.org/shapes#hasColour|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 750,
+        "y": 2561,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 802.25,
+            "y": 2584.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://example.org/shapes#hasColour|range",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 1000,
+        "y": 2561,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 1052.25,
+            "y": 2584.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://example.org/shapes#hasSide|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 2561,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 302.25,
+            "y": 2584.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://example.org/shapes#hasSide|range",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 500,
+        "y": 2561,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 552.25,
+            "y": 2584.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0||res:http://example.org/shapes#Colour",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+      "target": "res:http://example.org/shapes#Colour",
+      "route": [
+        {
+          "x": 335.64,
+          "y": 1180.17
+        },
+        {
+          "x": 104.36,
+          "y": 319.83
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+      "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+      "route": [
+        {
+          "x": 345,
+          "y": 1140
+        },
+        {
+          "x": 345,
+          "y": 1180
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+      "route": [
+        {
+          "x": 345,
+          "y": 1030
+        },
+        {
+          "x": 345,
+          "y": 1070
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/shapes#Polygon",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "target": "res:http://example.org/shapes#Polygon",
+      "route": [
+        {
+          "x": 356.58,
+          "y": 960.26
+        },
+        {
+          "x": 613.42,
+          "y": 189.74
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+      "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "route": [
+        {
+          "x": 345,
+          "y": 920
+        },
+        {
+          "x": 345,
+          "y": 960
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+      "route": [
+        {
+          "x": 345,
+          "y": 810
+        },
+        {
+          "x": 345,
+          "y": 850
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Shape",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "res:http://example.org/shapes#Shape",
+      "route": [
+        {
+          "x": 331.04,
+          "y": 740.38
+        },
+        {
+          "x": 108.96,
+          "y": 189.62
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Green",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "res:http://example.org/shapes#Green",
+      "route": [
+        {
+          "x": 345.9,
+          "y": 635
+        },
+        {
+          "x": 389.28,
+          "y": 2315
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Red",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "res:http://example.org/shapes#Red",
+      "route": [
+        {
+          "x": 434.38,
+          "y": 611.86
+        },
+        {
+          "x": 1200,
+          "y": 713.41
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0||res:http://example.org/shapes#Polygon",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "target": "res:http://example.org/shapes#Polygon",
+      "route": [
+        {
+          "x": 1338.71,
+          "y": 424.93
+        },
+        {
+          "x": 691.29,
+          "y": 180.07
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://www.w3.org/2001/XMLSchema#decimal",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "target": "res:http://www.w3.org/2001/XMLSchema#decimal",
+      "route": [
+        {
+          "x": 1383.09,
+          "y": 594.06
+        },
+        {
+          "x": 117.52,
+          "y": 2561
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2||res:http://example.org/shapes#Shape",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+      "target": "res:http://example.org/shapes#Shape",
+      "route": [
+        {
+          "x": 1340.04,
+          "y": 644.46
+        },
+        {
+          "x": 159.96,
+          "y": 180.54
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/shapes#Red",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "target": "res:http://example.org/shapes#Red",
+      "route": [
+        {
+          "x": 1397.68,
+          "y": 309.9
+        },
+        {
+          "x": 1315.87,
+          "y": 700
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/shapes#Shape",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "target": "res:http://example.org/shapes#Shape",
+      "route": [
+        {
+          "x": 338.51,
+          "y": 1465.08
+        },
+        {
+          "x": 101.49,
+          "y": 189.92
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Circle",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "res:http://example.org/shapes#Circle",
+      "route": [
+        {
+          "x": 401.35,
+          "y": 396.82
+        },
+        {
+          "x": 568.65,
+          "y": 313.18
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Circle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Round",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Circle",
+      "target": "res:http://example.org/shapes#Round",
+      "route": [
+        {
+          "x": 613.93,
+          "y": 319.76
+        },
+        {
+          "x": 106.07,
+          "y": 1915.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Curved|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Round",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Curved",
+      "target": "res:http://example.org/shapes#Round",
+      "route": [
+        {
+          "x": 95,
+          "y": 2045
+        },
+        {
+          "x": 95,
+          "y": 1985
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Loop",
+      "target": "expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 1778.78
+        },
+        {
+          "x": 250.56,
+          "y": 1781.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Nested",
+      "target": "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 768.78
+        },
+        {
+          "x": 250.56,
+          "y": 771.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Polygon|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Shape",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Polygon",
+      "target": "res:http://example.org/shapes#Shape",
+      "route": [
+        {
+          "x": 530,
+          "y": 155
+        },
+        {
+          "x": 190,
+          "y": 155
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Primary",
+      "target": "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 593.78
+        },
+        {
+          "x": 250.56,
+          "y": 596.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Round|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Curved",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Round",
+      "target": "res:http://example.org/shapes#Curved",
+      "route": [
+        {
+          "x": 95,
+          "y": 1985
+        },
+        {
+          "x": 95,
+          "y": 2045
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Square",
+      "target": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "route": [
+        {
+          "x": 1030.5,
+          "y": 107.47
+        },
+        {
+          "x": 1369.5,
+          "y": 417.53
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Square",
+      "target": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "route": [
+        {
+          "x": 1023.25,
+          "y": 108.42
+        },
+        {
+          "x": 1376.75,
+          "y": 526.58
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Square",
+      "target": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+      "route": [
+        {
+          "x": 1018.38,
+          "y": 108.92
+        },
+        {
+          "x": 1381.62,
+          "y": 636.08
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Square",
+      "target": "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+      "route": [
+        {
+          "x": 1014.9,
+          "y": 109.22
+        },
+        {
+          "x": 1385.1,
+          "y": 745.78
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Polygon",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Square",
+      "target": "res:http://example.org/shapes#Polygon",
+      "route": [
+        {
+          "x": 913.07,
+          "y": 92.72
+        },
+        {
+          "x": 706.93,
+          "y": 137.28
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Shape",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Square",
+      "target": "res:http://example.org/shapes#Shape",
+      "route": [
+        {
+          "x": 902.65,
+          "y": 83.21
+        },
+        {
+          "x": 187.35,
+          "y": 146.79
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Triangle",
+      "target": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "route": [
+        {
+          "x": 1249.44,
+          "y": 158.78
+        },
+        {
+          "x": 1310.56,
+          "y": 161.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Triangle",
+      "target": "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "route": [
+        {
+          "x": 1212.84,
+          "y": 182.76
+        },
+        {
+          "x": 1347.16,
+          "y": 247.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Polygon",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Triangle",
+      "target": "res:http://example.org/shapes#Polygon",
+      "route": [
+        {
+          "x": 1060,
+          "y": 155
+        },
+        {
+          "x": 720,
+          "y": 155
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Unfinished",
+      "target": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 1383.78
+        },
+        {
+          "x": 250.56,
+          "y": 1386.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Unfinished",
+      "target": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "route": [
+        {
+          "x": 152.84,
+          "y": 1407.76
+        },
+        {
+          "x": 287.16,
+          "y": 1472.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Unfinished",
+      "target": "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+      "route": [
+        {
+          "x": 130.32,
+          "y": 1412.49
+        },
+        {
+          "x": 309.68,
+          "y": 1577.51
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/shapes#Unround",
+      "target": "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 418.78
+        },
+        {
+          "x": 250.56,
+          "y": 421.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "edge:thing:http://example.org/shapes#hasArea|domain|http://example.org/shapes#hasArea|dt:http://example.org/shapes#hasArea",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://example.org/shapes#hasArea|domain",
+      "target": "dt:http://example.org/shapes#hasArea",
+      "route": [
+        {
+          "x": 103.95,
+          "y": 2703.03
+        },
+        {
+          "x": 250,
+          "y": 2710.89
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":hasArea",
+          "font": "11 400",
+          "position": {
+            "x": 176.98,
+            "y": 2700.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:thing:http://example.org/shapes#hasColour|domain|http://example.org/shapes#hasColour|thing:http://example.org/shapes#hasColour|range",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://example.org/shapes#hasColour|domain",
+      "target": "thing:http://example.org/shapes#hasColour|range",
+      "route": [
+        {
+          "x": 854.5,
+          "y": 2580.25
+        },
+        {
+          "x": 1000,
+          "y": 2580.25
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":hasColour",
+          "font": "11 400",
+          "position": {
+            "x": 927.25,
+            "y": 2574.25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:thing:http://example.org/shapes#hasSide|domain|http://example.org/shapes#hasSide|thing:http://example.org/shapes#hasSide|range",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://example.org/shapes#hasSide|domain",
+      "target": "thing:http://example.org/shapes#hasSide|range",
+      "route": [
+        {
+          "x": 354.5,
+          "y": 2580.25
+        },
+        {
+          "x": 500,
+          "y": 2580.25
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":hasSide",
+          "font": "11 400",
+          "position": {
+            "x": 427.25,
+            "y": 2574.25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:thing:http://example.org/shapes#hasSide|domain|http://example.org/shapes#hasSide|thing:http://example.org/shapes#hasSide|range",
+    "edge:thing:http://example.org/shapes#hasColour|domain|http://example.org/shapes#hasColour|thing:http://example.org/shapes#hasColour|range",
+    "edge:thing:http://example.org/shapes#hasArea|domain|http://example.org/shapes#hasArea|dt:http://example.org/shapes#hasArea",
+    "edge:res:http://example.org/shapes#Polygon|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Shape",
+    "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Polygon",
+    "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Polygon",
+    "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Shape",
+    "edge:res:http://example.org/shapes#Round|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Curved",
+    "edge:res:http://example.org/shapes#Curved|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Round",
+    "edge:res:http://example.org/shapes#Circle|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/shapes#Round",
+    "edge:expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Circle",
+    "edge:res:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "edge:expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Red",
+    "edge:expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Green",
+    "edge:res:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+    "edge:expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/shapes#Red",
+    "edge:res:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0||res:http://example.org/shapes#Polygon",
+    "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+    "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://www.w3.org/2001/XMLSchema#decimal",
+    "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "edge:expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2||res:http://example.org/shapes#Shape",
+    "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+    "edge:res:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+    "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/shapes#Shape",
+    "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/shapes#Polygon",
+    "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0||res:http://example.org/shapes#Colour",
+    "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+    "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+    "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+    "edge:expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0||expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+    "edge:res:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+    "edge:expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/shapes#Shape",
+    "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "edge:res:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+    "edge:res:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+    "res:http://example.org/shapes#",
+    "res:http://example.org/shapes#Shape",
+    "res:http://example.org/shapes#Polygon",
+    "res:http://example.org/shapes#Circle",
+    "res:http://example.org/shapes#Colour",
+    "res:http://example.org/shapes#Red",
+    "res:http://example.org/shapes#Green",
+    "res:http://example.org/shapes#Unround",
+    "expr:http://example.org/shapes#Unround|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "res:http://example.org/shapes#Primary",
+    "expr:http://example.org/shapes#Primary|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "res:http://example.org/shapes#Triangle",
+    "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+    "expr:http://example.org/shapes#Triangle|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "res:http://example.org/shapes#Square",
+    "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+    "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+    "expr:http://example.org/shapes#Square|http://www.w3.org/2000/01/rdf-schema#subClassOf|3",
+    "res:http://www.w3.org/2001/XMLSchema#decimal",
+    "res:http://example.org/shapes#Nested",
+    "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+    "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+    "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0",
+    "expr:http://example.org/shapes#Nested|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0/0/0",
+    "res:http://example.org/shapes#Unfinished",
+    "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+    "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "expr:http://example.org/shapes#Unfinished|http://www.w3.org/2000/01/rdf-schema#subClassOf|2",
+    "res:http://example.org/shapes#Loop",
+    "expr:http://example.org/shapes#Loop|http://www.w3.org/2002/07/owl#disjointWith|0",
+    "res:http://example.org/shapes#Round",
+    "res:http://example.org/shapes#Curved",
+    "thing:http://example.org/shapes#hasSide|domain",
+    "thing:http://example.org/shapes#hasSide|range",
+    "thing:http://example.org/shapes#hasColour|domain",
+    "thing:http://example.org/shapes#hasColour|range",
+    "thing:http://example.org/shapes#hasArea|domain",
+    "dt:http://example.org/shapes#hasArea"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.bands",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Horizontal bands at fixed heights: each band's members, the nodes its `members` query holds for, stand side by side in input order at x = index × `columnWidth` and at the band's `y`. A node no band holds is not placed; a node two bands hold is placed by the later. A pinned node keeps its pin and moves no other node. Positions are top-left corners in the canvas's domain units.",
+  "input": { "$ref": "../../atd.schema.json#/$defs/LayoutInput" },
+  "args": {
+    "columnWidth": { "type": "number", "default": 260, "doc": "The distance from one member's left edge to the next's." },
+    "bands": { "type": "list", "required": true, "doc": "The bands from top to bottom, each a map of `members` (a query over a node) and `y` (the band's top edge)." }
+  },
+  "output": { "$ref": "../../atd.schema.json#/$defs/LayoutResult" },
+  "laws": ["deterministic", "pinnedStay", "stable"],
+  "fallback": null,
+  "status": "provisional"
+}

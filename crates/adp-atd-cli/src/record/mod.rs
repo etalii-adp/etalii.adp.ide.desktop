@@ -220,9 +220,16 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
 
     // The bytes each step leaves, each distinct text written once: the inputs' own name for the bytes the case
     // started with, `after-<n>` for the others.
+    // A folder's own registration is named `.adp` and has no extension by Rust's reckoning; its bytes after a step are
+    // `after-N.adp`, a name every platform can check out.
     let extension = Path::new(&body)
         .extension()
         .map(|e| e.to_string_lossy().into_owned())
+        .or_else(|| {
+            Path::new(&body)
+                .file_name()
+                .and_then(|n| n.to_str()?.strip_prefix('.').map(str::to_owned))
+        })
         .unwrap_or_default();
     let mut texts: BTreeMap<Vec<u8>, String> = BTreeMap::new();
     if let Some(bytes) = &opened.bytes {
@@ -265,8 +272,11 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
             if let Some(element) = movement["refs"].as_array().and_then(|r| r.first()) {
                 to.insert("element".into(), element.clone());
             }
-            for key in ["parent", "x", "y"] {
-                if let Some(value) = movement.get(key) {
+            // A move into a parent goes before the child at `index` there, or last when it is -1 (ATD §2.3).
+            for key in ["parent", "index", "x", "y"] {
+                if let Some(value) = movement.get(key)
+                    && (key != "index" || movement.get("parent").is_some())
+                {
                     to.insert(key.into(), value.clone());
                 }
             }

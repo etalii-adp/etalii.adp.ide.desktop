@@ -1,0 +1,996 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "blank:0",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 240,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:b0",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 260
+          }
+        },
+        {
+          "id": "rows",
+          "text": "sh:minCount: 1 xsd:integer",
+          "font": "11 400",
+          "position": {
+            "x": 568,
+            "y": 282
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "blank:1",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 400,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:b1",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 420
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "blank:4",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 840,
+        "y": 560,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:b4",
+          "font": "13 400",
+          "position": {
+            "x": 950,
+            "y": 580
+          }
+        },
+        {
+          "id": "rows",
+          "text": "sh:maxCount: 5 xsd:integer",
+          "font": "11 400",
+          "position": {
+            "x": 848,
+            "y": 602
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "blank:5",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 560,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:b5",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 580
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "blank:6",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 720,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "_:b6",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 740
+          }
+        },
+        {
+          "id": "rows",
+          "text": "sh:pattern: ^[0-9]{4}",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 762
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          5,
+          3
+        ],
+        "opacity": 0.75
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#CityShape",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 560,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:CityShape",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 580
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#Person",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 240,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:Person",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 260
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#PersonShape",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "sh:NodeShape",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 40
+          }
+        },
+        {
+          "id": "display",
+          "text": "ex:PersonShape",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#address",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 400,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:address",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 420
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#alice",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 240,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:alice",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 260
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#city",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 840,
+        "y": 400,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:city",
+          "font": "13 400",
+          "position": {
+            "x": 950,
+            "y": 420
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#knows",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 560,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:knows",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 580
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#name",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 840,
+        "y": 240,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:name",
+          "font": "13 400",
+          "position": {
+            "x": 950,
+            "y": 260
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/shapes#postcode",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 720,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "ex:postcode",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 740
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/2001/XMLSchema#string",
+      "type": "w3c/rdf+resource",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 400,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "xsd:string",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 420
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:blank:0|http://www.w3.org/ns/shacl#datatype|res:http://www.w3.org/2001/XMLSchema#string",
+      "type": "w3c/rdf+edge",
+      "source": "blank:0",
+      "target": "res:http://www.w3.org/2001/XMLSchema#string",
+      "route": [
+        {
+          "x": 566.84,
+          "y": 296
+        },
+        {
+          "x": 183.68,
+          "y": 400
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:datatype",
+          "font": "11 400",
+          "position": {
+            "x": 375.26,
+            "y": 342
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:blank:0|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#name",
+      "type": "w3c/rdf+edge",
+      "source": "blank:0",
+      "target": "res:http://example.org/shapes#name",
+      "route": [
+        {
+          "x": 780,
+          "y": 264.86
+        },
+        {
+          "x": 840,
+          "y": 263.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:path",
+          "font": "11 400",
+          "position": {
+            "x": 810,
+            "y": 258
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:blank:1|http://www.w3.org/ns/shacl#node|res:http://example.org/shapes#CityShape",
+      "type": "w3c/rdf+edge",
+      "source": "blank:1",
+      "target": "res:http://example.org/shapes#CityShape",
+      "route": [
+        {
+          "x": 355,
+          "y": 440
+        },
+        {
+          "x": 145,
+          "y": 560
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:node",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 494
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:blank:1|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#address",
+      "type": "w3c/rdf+edge",
+      "source": "blank:1",
+      "target": "res:http://example.org/shapes#address",
+      "route": [
+        {
+          "x": 500,
+          "y": 420
+        },
+        {
+          "x": 560,
+          "y": 420
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:path [1]",
+          "font": "11 400",
+          "position": {
+            "x": 530,
+            "y": 414
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:blank:1|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#city",
+      "type": "w3c/rdf+edge",
+      "source": "blank:1",
+      "target": "res:http://example.org/shapes#city",
+      "route": [
+        {
+          "x": 500,
+          "y": 420
+        },
+        {
+          "x": 840,
+          "y": 420
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:path [2]",
+          "font": "11 400",
+          "position": {
+            "x": 670,
+            "y": 414
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:blank:4|http://www.w3.org/ns/shacl#path|blank:5",
+      "type": "w3c/rdf+edge",
+      "source": "blank:4",
+      "target": "blank:5",
+      "route": [
+        {
+          "x": 840,
+          "y": 586.43
+        },
+        {
+          "x": 500,
+          "y": 581.57
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:path",
+          "font": "11 400",
+          "position": {
+            "x": 670,
+            "y": 578
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:blank:5|http://www.w3.org/ns/shacl#inversePath|res:http://example.org/shapes#knows",
+      "type": "w3c/rdf+edge",
+      "source": "blank:5",
+      "target": "res:http://example.org/shapes#knows",
+      "route": [
+        {
+          "x": 500,
+          "y": 580
+        },
+        {
+          "x": 560,
+          "y": 580
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:inversePath",
+          "font": "11 400",
+          "position": {
+            "x": 530,
+            "y": 574
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:blank:6|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#postcode",
+      "type": "w3c/rdf+edge",
+      "source": "blank:6",
+      "target": "res:http://example.org/shapes#postcode",
+      "route": [
+        {
+          "x": 220,
+          "y": 744.86
+        },
+        {
+          "x": 280,
+          "y": 743.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:path",
+          "font": "11 400",
+          "position": {
+            "x": 250,
+            "y": 738
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#CityShape|http://www.w3.org/ns/shacl#property|blank:6",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/shapes#CityShape",
+      "target": "blank:6",
+      "route": [
+        {
+          "x": 110,
+          "y": 600
+        },
+        {
+          "x": 110,
+          "y": 720
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:property",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 654
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:0",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/shapes#PersonShape",
+      "target": "blank:0",
+      "route": [
+        {
+          "x": 175.33,
+          "y": 56
+        },
+        {
+          "x": 604.67,
+          "y": 240
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:property",
+          "font": "11 400",
+          "position": {
+            "x": 390,
+            "y": 142
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:1",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/shapes#PersonShape",
+      "target": "blank:1",
+      "route": [
+        {
+          "x": 130,
+          "y": 56
+        },
+        {
+          "x": 375.71,
+          "y": 400
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:property",
+          "font": "11 400",
+          "position": {
+            "x": 252.86,
+            "y": 222
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:4",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/shapes#PersonShape",
+      "target": "blank:4",
+      "route": [
+        {
+          "x": 152,
+          "y": 56
+        },
+        {
+          "x": 908,
+          "y": 560
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:property",
+          "font": "11 400",
+          "position": {
+            "x": 530,
+            "y": 302
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#targetClass|res:http://example.org/shapes#Person",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/shapes#PersonShape",
+      "target": "res:http://example.org/shapes#Person",
+      "route": [
+        {
+          "x": 110,
+          "y": 56
+        },
+        {
+          "x": 110,
+          "y": 240
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:targetClass",
+          "font": "11 400",
+          "position": {
+            "x": 110,
+            "y": 142
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#targetNode|res:http://example.org/shapes#alice",
+      "type": "w3c/rdf+edge",
+      "source": "res:http://example.org/shapes#PersonShape",
+      "target": "res:http://example.org/shapes#alice",
+      "route": [
+        {
+          "x": 143.79,
+          "y": 56
+        },
+        {
+          "x": 365.86,
+          "y": 240
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "sh:targetNode",
+          "font": "11 400",
+          "position": {
+            "x": 254.83,
+            "y": 142
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#targetClass|res:http://example.org/shapes#Person",
+    "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#targetNode|res:http://example.org/shapes#alice",
+    "edge:blank:0|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#name",
+    "edge:blank:0|http://www.w3.org/ns/shacl#datatype|res:http://www.w3.org/2001/XMLSchema#string",
+    "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:0",
+    "edge:blank:1|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#address",
+    "edge:blank:1|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#city",
+    "edge:blank:1|http://www.w3.org/ns/shacl#node|res:http://example.org/shapes#CityShape",
+    "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:1",
+    "edge:blank:5|http://www.w3.org/ns/shacl#inversePath|res:http://example.org/shapes#knows",
+    "edge:blank:4|http://www.w3.org/ns/shacl#path|blank:5",
+    "edge:res:http://example.org/shapes#PersonShape|http://www.w3.org/ns/shacl#property|blank:4",
+    "edge:blank:6|http://www.w3.org/ns/shacl#path|res:http://example.org/shapes#postcode",
+    "edge:res:http://example.org/shapes#CityShape|http://www.w3.org/ns/shacl#property|blank:6",
+    "res:http://example.org/shapes#PersonShape",
+    "res:http://example.org/shapes#Person",
+    "res:http://example.org/shapes#alice",
+    "blank:0",
+    "res:http://example.org/shapes#name",
+    "res:http://www.w3.org/2001/XMLSchema#string",
+    "blank:1",
+    "res:http://example.org/shapes#address",
+    "res:http://example.org/shapes#city",
+    "res:http://example.org/shapes#CityShape",
+    "blank:5",
+    "res:http://example.org/shapes#knows",
+    "blank:4",
+    "blank:6",
+    "res:http://example.org/shapes#postcode"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.5",
+  "doc": "The supply chain diagram's .supply body (definitions/diagrams/supply-chain.dis, supply-chain.md): ADP's own YAML, read through FBL by the supply chain module (supply-chain-disl-fbl). This is the binding of the requirements' appendix with its \"as\": \"text\" spelled as FBL 0.5 spells the construct, \"read\": \"text\" (gap 1), so every slot is read as the text it was written with and the module's reader turns a number's text into its value as .NET reads it, reporting one that will not read without losing its entry (B1, B2). A flow is an element with reference attributes, so a flow whose end names no node is kept and reported (B3). Every entry carries the id it is written with as storedId (B4) and the keys the module does not read as unknownKeys (A11). Every rule reads only a mapping (type(entry) == map, where the appendix's entry.all(k, true) also holds for a list), and every entry carries the written text of every member as written, from which the module reads an entry written as a flow mapping, whose members no key slot binds (B13). One rule reads all seven stages and the six older words through map (Q2), and group is a reference rather than a parent (Q5). An entry that is not a mapping is taken by the Unreadable rule behind its list's rule. No header is declared, so the three header cases keep the module's own sentences.",
+  "bindings": {
+    "supply": {
+      "title": "Supply chain diagram",
+      "claims": { "extensions": [".supply"], "origins": ["etalii/supply-chain"] },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "sequenceIndent": "indented", "finalNewline": true, "quote": "double" },
+      "elements": [
+        {
+          "name": "document", "type": "Document", "at": "/", "when": "type(entry) == map",
+          "readOnly": "The document's version is changed in the file itself.",
+          "attributes": { "version": { "key": "supply-chain", "read": "text" } }
+        },
+        {
+          "name": "group", "type": "Group", "at": "/groups/*", "when": "type(entry) == map",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "storedId": { "key": "id", "read": "text", "readOnly": true },
+            "written": { "value": "text" },
+            "unknownKeys": { "value": "entry.filter(k, !(k in ['id', 'name', 'description', 'x', 'y']))" },
+            "name": { "key": "name", "read": "text", "empty": "keep" },
+            "description": { "key": "description", "read": "text", "empty": "remove" },
+            "x": { "key": "x", "read": "text", "number": { "decimals": 0 }, "empty": "remove" },
+            "y": { "key": "y", "read": "text", "number": { "decimals": 0 }, "empty": "remove" }
+          },
+          "insert": { "place": "after-last", "container": "/groups", "create": { "at": "end-of-document" }, "keys": ["id", "name", "description", "x", "y"] },
+          "remove": {}
+        },
+        {
+          "name": "node", "type": "Node", "at": "/nodes/*", "when": "type(entry) == map",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "storedId": { "key": "id", "read": "text", "readOnly": true },
+            "written": { "value": "text" },
+            "unknownKeys": { "value": "entry.filter(k, !(k in ['id', 'type', 'name', 'description', 'group', 'quantity', 'unit', 'step', 'x', 'y']))" },
+            "type": { "key": "type", "read": "text", "map": { "source": "source", "processor": "processor", "producer": "producer", "integrator": "integrator", "hub": "hub", "outlet": "outlet", "consumer": "consumer", "raw-material": "source", "supplier": "processor", "manufacturer": "producer", "assembler": "integrator", "distributor": "hub", "retailer": "outlet" } },
+            "name": { "key": "name", "read": "text", "empty": "keep" },
+            "description": { "key": "description", "read": "text", "empty": "remove" },
+            "group": { "key": "group", "read": "text", "empty": "remove", "reference": { "to": ["group"], "by": "storedId" } },
+            "quantity": { "key": "quantity", "read": "text", "number": { "decimals": 4 }, "empty": "remove" },
+            "unit": { "key": "unit", "read": "text", "empty": "remove" },
+            "step": { "key": "step", "read": "text", "number": { "decimals": 4 }, "empty": "remove" },
+            "x": { "key": "x", "read": "text", "number": { "decimals": 0 }, "empty": "remove" },
+            "y": { "key": "y", "read": "text", "number": { "decimals": 0 }, "empty": "remove" }
+          },
+          "insert": { "place": "after-last", "container": "/nodes", "create": { "at": "end-of-document" }, "keys": ["id", "type", "name", "description", "group", "quantity", "unit", "step", "x", "y"] },
+          "remove": { "cascade": ["flow"] }
+        },
+        {
+          "name": "flow", "type": "Flow", "at": "/flows/*", "when": "type(entry) == map",
+          "id": { "from": { "key": "id" } },
+          "attributes": {
+            "storedId": { "key": "id", "read": "text", "readOnly": true },
+            "written": { "value": "text" },
+            "unknownKeys": { "value": "entry.filter(k, !(k in ['id', 'from', 'to', 'product', 'description', 'volume', 'unit', 'step']))" },
+            "from": { "key": "from", "read": "text", "reference": { "to": ["node"], "by": "storedId" } },
+            "to": { "key": "to", "read": "text", "reference": { "to": ["node"], "by": "storedId" } },
+            "product": { "key": "product", "read": "text", "empty": "remove" },
+            "description": { "key": "description", "read": "text", "empty": "remove" },
+            "volume": { "key": "volume", "read": "text", "number": { "decimals": 4 }, "empty": "remove" },
+            "unit": { "key": "unit", "read": "text", "empty": "remove" },
+            "step": { "key": "step", "read": "text", "number": { "decimals": 4 }, "empty": "remove" }
+          },
+          "insert": { "place": "after-last", "container": "/flows", "create": { "at": "end-of-document" }, "keys": ["id", "from", "to", "product", "description", "volume", "unit", "step"] },
+          "remove": {}
+        },
+        { "name": "group-not-a-mapping", "type": "Unreadable", "at": "/groups/*", "readOnly": "This entry is not a mapping, so it is kept as it is." },
+        { "name": "node-not-a-mapping", "type": "Unreadable", "at": "/nodes/*", "readOnly": "This entry is not a mapping, so it is kept as it is." },
+        { "name": "flow-not-a-mapping", "type": "Unreadable", "at": "/flows/*", "readOnly": "This entry is not a mapping, so it is kept as it is." }
+      ],
+      "registration": { "createOnFirstPlacement": false },
+      "template": { "text": "supply-chain: 1\r\ngroups: []\r\nnodes: []\r\nflows: []\r\n" }
+    }
+  }
+}

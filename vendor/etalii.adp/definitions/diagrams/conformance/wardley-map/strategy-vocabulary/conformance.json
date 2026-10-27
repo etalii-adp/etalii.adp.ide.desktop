@@ -1,0 +1,616 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record wardley/map` from parity/scripts/wardley/map/strategy-vocabulary.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "wardley/map",
+  "description": "../../../wardley-map.atd",
+  "inputs": {
+    "body": "strategy-vocabulary.owm",
+    "registration": "strategy-vocabulary.adp",
+    "strategy-vocabulary.identities.json": "strategy-vocabulary.identities.json"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "wardley-evolution-axis",
+        "type": "wardley/map+evolution-axis",
+        "parent": null,
+        "attributes": {
+          "title": "Strategy vocabulary",
+          "width": "900",
+          "height": "700",
+          "stage.0": "Genesis|0|0.175",
+          "stage.1": "Custom Built|0.175|0.4",
+          "stage.2": "Product (+rental)|0.4|0.7",
+          "stage.3": "Commodity (+utility)|0.7|1"
+        }
+      },
+      {
+        "id": "esqtv1tg6r31atziq717uebs2",
+        "type": "wardley/map+element",
+        "parent": null,
+        "attributes": {
+          "name": "Customer",
+          "kind": "anchor",
+          "visibility": "0.95",
+          "maturity": "0.63",
+          "stage": "Product (+rental)",
+          "inertia": "false"
+        }
+      },
+      {
+        "id": "28aq8skvp5n22fbrkdpr7w6eu",
+        "type": "wardley/map+element",
+        "parent": null,
+        "attributes": {
+          "name": "Order Portal",
+          "kind": "component",
+          "visibility": "0.85",
+          "maturity": "0.42",
+          "stage": "Product (+rental)",
+          "inertia": "false"
+        }
+      },
+      {
+        "id": "et0fqurcgd3ri1az051jupyvf",
+        "type": "wardley/map+element",
+        "parent": null,
+        "attributes": {
+          "name": "Payment",
+          "kind": "component",
+          "visibility": "0.7",
+          "maturity": "0.72",
+          "stage": "Commodity (+utility)",
+          "decorators": "buy",
+          "inertia": "false"
+        }
+      },
+      {
+        "id": "5mohg9hrrnhjw5t5bvksobqlo",
+        "type": "wardley/map+element",
+        "parent": null,
+        "attributes": {
+          "name": "Fraud Scoring",
+          "kind": "component",
+          "visibility": "0.6626",
+          "maturity": "0.2824",
+          "stage": "Custom Built",
+          "decorators": "build",
+          "inertia": "false",
+          "evolveMaturity": "0.72",
+          "evolveStage": "Commodity (+utility)"
+        }
+      },
+      {
+        "id": "b474cr9m9t3eczg1gdv5gcjhk",
+        "type": "wardley/map+element",
+        "parent": null,
+        "attributes": {
+          "name": "Ledger",
+          "kind": "component",
+          "visibility": "0.48",
+          "maturity": "0.55",
+          "stage": "Product (+rental)",
+          "decorators": "outsource",
+          "inertia": "false"
+        }
+      },
+      {
+        "id": "804r9rdikiiftb5uxc4dmz1sb",
+        "type": "wardley/map+element",
+        "parent": null,
+        "attributes": {
+          "name": "Datacentre",
+          "kind": "component",
+          "visibility": "0.15",
+          "maturity": "0.55",
+          "stage": "Product (+rental)",
+          "inertia": "true",
+          "evolveMaturity": "0.83",
+          "evolveStage": "Commodity (+utility)",
+          "evolveName": "Cloud Hosting"
+        }
+      },
+      {
+        "id": "b7ak4vpps5jzv5z6e35bwkdk0",
+        "type": "wardley/map+element",
+        "parent": null,
+        "attributes": {
+          "name": "Card Networks",
+          "kind": "component",
+          "visibility": "0.66",
+          "maturity": "0.88",
+          "stage": "Commodity (+utility)",
+          "decorators": "market",
+          "inertia": "false"
+        }
+      },
+      {
+        "id": "2m9av9ipvmp6w45ql55bgcsjf",
+        "type": "wardley/map+element",
+        "parent": null,
+        "attributes": {
+          "name": "Partner Plugins",
+          "kind": "component",
+          "visibility": "0.4",
+          "maturity": "0.47",
+          "stage": "Product (+rental)",
+          "decorators": "ecosystem",
+          "inertia": "false"
+        }
+      },
+      {
+        "id": "bykfr9hcxfpps1l49klzuluob",
+        "type": "wardley/map+note",
+        "parent": null,
+        "attributes": {
+          "text": "Renewal is due in March"
+        }
+      },
+      {
+        "id": "8p9jej5y93i5ysya0b7j65iip",
+        "type": "wardley/map+accelerator",
+        "parent": null,
+        "attributes": {
+          "name": "Regulatory pressure",
+          "isDeaccelerator": "false"
+        }
+      },
+      {
+        "id": "9l1b0bvffz7ito2thcgdf8r38",
+        "type": "wardley/map+accelerator",
+        "parent": null,
+        "attributes": {
+          "name": "Legacy contracts",
+          "isDeaccelerator": "true"
+        }
+      },
+      {
+        "id": "989s6q7b31jycrxe4h277ugm2",
+        "type": "wardley/map+attitude",
+        "parent": null,
+        "attributes": {
+          "kind": "Pioneers",
+          "oppositeX": "0.45",
+          "oppositeY": "0.45"
+        }
+      },
+      {
+        "id": "3k0oofp1wgg8jsv15zfe20vor",
+        "type": "wardley/map+attitude",
+        "parent": null,
+        "attributes": {
+          "kind": "Settlers",
+          "oppositeX": "0.7",
+          "oppositeY": "0.2"
+        }
+      },
+      {
+        "id": "32oixhad7eqijevz7j5ame2i0",
+        "type": "wardley/map+attitude",
+        "parent": null,
+        "attributes": {
+          "kind": "Town Planners",
+          "oppositeX": "0.95",
+          "oppositeY": "0.55"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "5mlj9gwvz7f6tq8jk44j2fvc2",
+        "type": "wardley/map+link",
+        "source": "esqtv1tg6r31atziq717uebs2",
+        "target": "28aq8skvp5n22fbrkdpr7w6eu",
+        "attributes": {
+          "isFlow": "false",
+          "sourceName": "Customer",
+          "targetName": "Order Portal"
+        }
+      },
+      {
+        "id": "59zcjnkv6fawrmuwv3ocn580b",
+        "type": "wardley/map+link",
+        "source": "28aq8skvp5n22fbrkdpr7w6eu",
+        "target": "et0fqurcgd3ri1az051jupyvf",
+        "attributes": {
+          "isFlow": "false",
+          "sourceName": "Order Portal",
+          "targetName": "Payment"
+        }
+      },
+      {
+        "id": "8ohahd9dc1hkootitayqkw5vx",
+        "type": "wardley/map+link",
+        "source": "28aq8skvp5n22fbrkdpr7w6eu",
+        "target": "5mohg9hrrnhjw5t5bvksobqlo",
+        "attributes": {
+          "isFlow": "false",
+          "sourceName": "Order Portal",
+          "targetName": "Fraud Scoring"
+        }
+      },
+      {
+        "id": "20i7it0yv1wkh363kojh2c0t9",
+        "type": "wardley/map+link",
+        "source": "et0fqurcgd3ri1az051jupyvf",
+        "target": "b7ak4vpps5jzv5z6e35bwkdk0",
+        "attributes": {
+          "isFlow": "false",
+          "sourceName": "Payment",
+          "targetName": "Card Networks"
+        }
+      },
+      {
+        "id": "dtxqdj8ob3q7wi7am98ynxrzx",
+        "type": "wardley/map+link",
+        "source": "et0fqurcgd3ri1az051jupyvf",
+        "target": "b474cr9m9t3eczg1gdv5gcjhk",
+        "attributes": {
+          "isFlow": "false",
+          "sourceName": "Payment",
+          "targetName": "Ledger"
+        }
+      },
+      {
+        "id": "bzedjszz6agvrcjw2hnrcdbq4",
+        "type": "wardley/map+link",
+        "source": "5mohg9hrrnhjw5t5bvksobqlo",
+        "target": "b474cr9m9t3eczg1gdv5gcjhk",
+        "attributes": {
+          "isFlow": "true",
+          "sourceName": "Fraud Scoring",
+          "targetName": "Ledger"
+        }
+      },
+      {
+        "id": "563p17c7wugo1otauzp5lv4fp",
+        "type": "wardley/map+link",
+        "source": "b474cr9m9t3eczg1gdv5gcjhk",
+        "target": "804r9rdikiiftb5uxc4dmz1sb",
+        "attributes": {
+          "isFlow": "false",
+          "sourceName": "Ledger",
+          "targetName": "Datacentre"
+        }
+      },
+      {
+        "id": "14d8vq4v94823dsi6wpf5w4oi",
+        "type": "wardley/map+link",
+        "source": "28aq8skvp5n22fbrkdpr7w6eu",
+        "target": "2m9av9ipvmp6w45ql55bgcsjf",
+        "attributes": {
+          "isFlow": "false",
+          "context": "via the plugin SDK",
+          "sourceName": "Order Portal",
+          "targetName": "Partner Plugins"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "move": {
+        "element": "et0fqurcgd3ri1az051jupyvf"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"et0fqurcgd3ri1az051jupyvf\"],\"dx\":0.05,\"dy\":-0.05}",
+      "expectFile": "after-1.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "move": {
+        "element": "5mohg9hrrnhjw5t5bvksobqlo"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"5mohg9hrrnhjw5t5bvksobqlo\"],\"to\":{\"x\":0.31,\"y\":0.4}}",
+      "expectFile": "after-2.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-1.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-2.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "wardley.toggle-inertia",
+      "args": {
+        "target": "b474cr9m9t3eczg1gdv5gcjhk"
+      },
+      "expectFile": "after-3.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "wardley.toggle-market",
+      "args": {
+        "target": "et0fqurcgd3ri1az051jupyvf"
+      },
+      "expectFile": "after-4.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "property": {
+        "element": "2m9av9ipvmp6w45ql55bgcsjf",
+        "attribute": "Decorators",
+        "value": "ecosystem, build"
+      },
+      "expectFile": "after-5.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "wardley.set-evolve",
+      "args": {
+        "target": "et0fqurcgd3ri1az051jupyvf",
+        "value": "0.85"
+      },
+      "expectFile": "after-6.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "property": {
+        "element": "5mohg9hrrnhjw5t5bvksobqlo",
+        "attribute": "Evolves to",
+        "value": "0.8"
+      },
+      "expectFile": "after-7.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "property": {
+        "element": "804r9rdikiiftb5uxc4dmz1sb",
+        "attribute": "Becomes",
+        "value": "Cloud Platform"
+      },
+      "expectFile": "after-8.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "wardley.rename",
+      "args": {
+        "target": "28aq8skvp5n22fbrkdpr7w6eu",
+        "value": "Storefront"
+      },
+      "ids": [
+        "4ndt134kcx713rrnqizzpsn5i",
+        "e5qi005zdnsn83xbspnom5383",
+        "0b2ensyrqwjkpm78urcywjxi3",
+        "bfp4jmsn8fo2ihdguzx58a86e"
+      ],
+      "expectFile": "after-9.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "action": "wardley.link",
+      "args": {
+        "target": "28aq8skvp5n22fbrkdpr7w6eu",
+        "value": "b474cr9m9t3eczg1gdv5gcjhk"
+      },
+      "ids": [
+        "0k5jmapx566tx6rwyd8rd2qb0"
+      ],
+      "expectFile": "after-10.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "action": "wardley.flow",
+      "args": {
+        "target": "b7ak4vpps5jzv5z6e35bwkdk0",
+        "value": "et0fqurcgd3ri1az051jupyvf"
+      },
+      "ids": [
+        "bauda479zrlbnng6v0709b5d7"
+      ],
+      "expectFile": "after-11.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "wardley.unlink",
+      "args": {
+        "target": "et0fqurcgd3ri1az051jupyvf",
+        "value": "Payment\u001fLedger\u001fDependency"
+      },
+      "expectFile": "after-12.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "property": {
+        "element": "bfp4jmsn8fo2ihdguzx58a86e",
+        "attribute": "Context",
+        "value": "through the plugin SDK"
+      },
+      "expectFile": "after-13.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "wardley.remove",
+      "args": {
+        "target": "b7ak4vpps5jzv5z6e35bwkdk0",
+        "confirm": true
+      },
+      "expectFile": "after-14.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "action": "wardley.clear-evolve",
+      "args": {
+        "target": "804r9rdikiiftb5uxc4dmz1sb"
+      },
+      "expectFile": "after-15.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-14.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-15.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "property": {
+        "element": "esqtv1tg6r31atziq717uebs2",
+        "attribute": "Maturity",
+        "value": "0.7"
+      },
+      "expectFile": "after-16.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "property": {
+        "element": "b474cr9m9t3eczg1gdv5gcjhk",
+        "attribute": "Visibility",
+        "value": "1.4"
+      },
+      "refused": {
+        "reason": "Both of a Wardley map's axes run from 0 to 1, so a position outside that is off the map."
+      },
+      "expectFile": "after-16.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "action": "wardley.toggle-buy",
+      "args": {
+        "target": "et0fqurcgd3ri1az051jupyvf"
+      },
+      "expectFile": "after-17.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "property": {
+        "element": "2m9av9ipvmp6w45ql55bgcsjf",
+        "attribute": "Name",
+        "value": "Plugin Market"
+      },
+      "ids": [
+        "7bjjtlylq1hi0fdkh5oyw87sb"
+      ],
+      "expectFile": "after-18.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "action": "wardley.toggle-inertia",
+      "args": {
+        "target": "804r9rdikiiftb5uxc4dmz1sb"
+      },
+      "expectFile": "after-19.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-18.owm",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/wardley/map/strategy-vocabulary/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "8a37f0f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

@@ -1,0 +1,1335 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "dt:http://example.org/pizza#hasNote",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 750,
+        "y": 1676,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Literal",
+          "font": "13 400",
+          "position": {
+            "x": 845,
+            "y": 1715.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 613,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "(:Vegetarian ∪ ∃ :hasTo…",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 651.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 723,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "∃ :hasTopping.(:MeatTop…",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 761.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 833,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "(:MeatTopping ∩ ext:Smo…",
+          "font": "11 400",
+          "position": {
+            "x": 345,
+            "y": 871.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+expression",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 780,
+        "y": 178,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "∀ :hasTopping.:Vegetari…",
+          "font": "11 400",
+          "position": {
+            "x": 875,
+            "y": 216.67
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          3,
+          2
+        ]
+      }
+    },
+    {
+      "id": "ind:http://example.org/pizza#Pizza",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 1398,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Pizza",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 1418
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/external#Base",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 998,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ext:Base",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 1037.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "opacity": 0.55
+      }
+    },
+    {
+      "id": "res:http://example.org/external#Smoked",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 1128,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "ext:Smoked",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 1167.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "opacity": 0.55
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "Pizza ontology",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Pizza ontology\nowl:versionInfo: 1.0\nowl:imports: http://example.org/…",
+          "font": "11 400",
+          "position": {
+            "x": 8,
+            "y": 42
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#HomemadeBase",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 603,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":HomemadeBase",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 642.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#Margherita",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 280,
+        "y": 1398,
+        "w": 220,
+        "h": 88
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": "Pizza",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 1438
+          }
+        },
+        {
+          "id": "display",
+          "text": "Margherita",
+          "font": "13 400",
+          "position": {
+            "x": 390,
+            "y": 1418
+          }
+        },
+        {
+          "id": "rows",
+          "text": "rdfs:label: Margherita\n:hasCalories: 850 xsd:integer",
+          "font": "11 400",
+          "position": {
+            "x": 288,
+            "y": 1456
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#MeatTopping",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 473,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":MeatTopping",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 512.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "opacity": 0.55
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#Mozzarella",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 560,
+        "y": 1398,
+        "w": 220,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "badges",
+          "text": ":VegetarianTopping",
+          "font": "11 400",
+          "position": {
+            "x": 568,
+            "y": 1438
+          }
+        },
+        {
+          "id": "display",
+          "text": ":Mozzarella",
+          "font": "13 400",
+          "position": {
+            "x": 670,
+            "y": 1418
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#Pizza",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 168,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Pizza",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 207.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#Special",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 603,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Special",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 642.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#Topping",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 343,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Topping",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 382.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#Vegetarian",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 168,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Vegetarian",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 207.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#VegetarianTopping",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 343,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":VegetarianTopping",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 382.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/pizza#VeggiePizza",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 473,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":VeggiePizza",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 512.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://www.w3.org/2001/XMLSchema#integer",
+      "type": "w3c/owl+node",
+      "shape": "rect",
+      "bounds": {
+        "x": 250,
+        "y": 178,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "xsd:integer",
+          "font": "13 400",
+          "position": {
+            "x": 345,
+            "y": 217.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "thing:http://example.org/pizza#hasNote|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 500,
+        "y": 1676,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 552.25,
+            "y": 1699.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://example.org/pizza#toppingOf|domain",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 1676,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 52.25,
+            "y": 1699.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    },
+    {
+      "id": "thing:http://example.org/pizza#toppingOf|range",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 250,
+        "y": 1676,
+        "w": 104.5,
+        "h": 38.5
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Thing",
+          "font": "13 400",
+          "position": {
+            "x": 302.25,
+            "y": 1699.58
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1,
+        "dash": [
+          4,
+          3
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/external#Smoked",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "target": "res:http://example.org/external#Smoked",
+      "route": [
+        {
+          "x": 316.69,
+          "y": 901.41
+        },
+        {
+          "x": 123.31,
+          "y": 1129.59
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/pizza#MeatTopping",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "target": "res:http://example.org/pizza#MeatTopping",
+      "route": [
+        {
+          "x": 371.17,
+          "y": 834.35
+        },
+        {
+          "x": 598.83,
+          "y": 541.65
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0||expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+      "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+      "route": [
+        {
+          "x": 345,
+          "y": 793
+        },
+        {
+          "x": 345,
+          "y": 833
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0||expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+      "route": [
+        {
+          "x": 345,
+          "y": 683
+        },
+        {
+          "x": 345,
+          "y": 723
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/pizza#Vegetarian",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "target": "res:http://example.org/pizza#Vegetarian",
+      "route": [
+        {
+          "x": 366.45,
+          "y": 613.9
+        },
+        {
+          "x": 603.55,
+          "y": 237.1
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/pizza#VegetarianTopping",
+      "type": "w3c/owl+edge",
+      "source": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "target": "res:http://example.org/pizza#VegetarianTopping",
+      "route": [
+        {
+          "x": 828.7,
+          "y": 243.56
+        },
+        {
+          "x": 671.3,
+          "y": 347.44
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          2,
+          3
+        ],
+        "opacity": 0.7
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#HomemadeBase|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/external#Base",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#HomemadeBase",
+      "target": "res:http://example.org/external#Base",
+      "route": [
+        {
+          "x": 582.9,
+          "y": 669.38
+        },
+        {
+          "x": 137.1,
+          "y": 1001.62
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#Margherita|http://example.org/pizza#hasTopping|res:http://example.org/pizza#Mozzarella",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#Margherita",
+      "target": "res:http://example.org/pizza#Mozzarella",
+      "route": [
+        {
+          "x": 500,
+          "y": 1435.71
+        },
+        {
+          "x": 560,
+          "y": 1432.29
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":hasTopping",
+          "font": "11 400",
+          "position": {
+            "x": 530,
+            "y": 1428
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#MeatTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Topping",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#MeatTopping",
+      "target": "res:http://example.org/pizza#Topping",
+      "route": [
+        {
+          "x": 545.92,
+          "y": 488.6
+        },
+        {
+          "x": 174.08,
+          "y": 397.4
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#Pizza|http://example.org/pizza#hasCalories|res:http://www.w3.org/2001/XMLSchema#integer",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#Pizza",
+      "target": "res:http://www.w3.org/2001/XMLSchema#integer",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 206.78
+        },
+        {
+          "x": 250,
+          "y": 209.2
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":hasCalories (functional)",
+          "font": "11 400",
+          "position": {
+            "x": 219.72,
+            "y": 201.99
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#Pizza|http://example.org/pizza#hasTopping|res:http://example.org/pizza#Topping",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#Pizza",
+      "target": "res:http://example.org/pizza#Topping",
+      "route": [
+        {
+          "x": 95,
+          "y": 238
+        },
+        {
+          "x": 95,
+          "y": 343
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":hasTopping (inverse functional, inverse of :toppingOf)",
+          "font": "11 400",
+          "position": {
+            "x": 95,
+            "y": 284.5
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#Pizza|http://www.w3.org/2002/07/owl#AllDisjointClasses|res:http://example.org/pizza#Topping",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#Pizza",
+      "target": "res:http://example.org/pizza#Topping",
+      "route": [
+        {
+          "x": 95,
+          "y": 238
+        },
+        {
+          "x": 95,
+          "y": 343
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#Special",
+      "target": "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+      "route": [
+        {
+          "x": 189.44,
+          "y": 641.78
+        },
+        {
+          "x": 250.56,
+          "y": 644.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Topping",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#VegetarianTopping",
+      "target": "res:http://example.org/pizza#Topping",
+      "route": [
+        {
+          "x": 530,
+          "y": 378
+        },
+        {
+          "x": 190,
+          "y": 378
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2002/07/owl#disjointWith|res:http://example.org/pizza#MeatTopping",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#VegetarianTopping",
+      "target": "res:http://example.org/pizza#MeatTopping",
+      "route": [
+        {
+          "x": 625,
+          "y": 413
+        },
+        {
+          "x": 625,
+          "y": 473
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#Vegetarian",
+      "target": "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+      "route": [
+        {
+          "x": 719.44,
+          "y": 206.78
+        },
+        {
+          "x": 780.56,
+          "y": 209.22
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Pizza",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#Vegetarian",
+      "target": "res:http://example.org/pizza#Pizza",
+      "route": [
+        {
+          "x": 530,
+          "y": 203
+        },
+        {
+          "x": 190,
+          "y": 203
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2002/07/owl#equivalentClass|res:http://example.org/pizza#VeggiePizza",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/pizza#Vegetarian",
+      "target": "res:http://example.org/pizza#VeggiePizza",
+      "route": [
+        {
+          "x": 573.78,
+          "y": 232.48
+        },
+        {
+          "x": 146.22,
+          "y": 478.52
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "edge:thing:http://example.org/pizza#hasNote|domain|http://example.org/pizza#hasNote|dt:http://example.org/pizza#hasNote",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://example.org/pizza#hasNote|domain",
+      "target": "dt:http://example.org/pizza#hasNote",
+      "route": [
+        {
+          "x": 603.95,
+          "y": 1698.03
+        },
+        {
+          "x": 750,
+          "y": 1705.89
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":hasNote",
+          "font": "11 400",
+          "position": {
+            "x": 676.98,
+            "y": 1695.96
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:thing:http://example.org/pizza#toppingOf|domain|http://example.org/pizza#toppingOf|thing:http://example.org/pizza#toppingOf|range",
+      "type": "w3c/owl+edge",
+      "source": "thing:http://example.org/pizza#toppingOf|domain",
+      "target": "thing:http://example.org/pizza#toppingOf|range",
+      "route": [
+        {
+          "x": 104.5,
+          "y": 1695.25
+        },
+        {
+          "x": 250,
+          "y": 1695.25
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":toppingOf",
+          "font": "11 400",
+          "position": {
+            "x": 177.25,
+            "y": 1689.25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/pizza#Pizza|http://example.org/pizza#hasTopping|res:http://example.org/pizza#Topping",
+    "edge:thing:http://example.org/pizza#toppingOf|domain|http://example.org/pizza#toppingOf|thing:http://example.org/pizza#toppingOf|range",
+    "edge:res:http://example.org/pizza#Pizza|http://example.org/pizza#hasCalories|res:http://www.w3.org/2001/XMLSchema#integer",
+    "edge:thing:http://example.org/pizza#hasNote|domain|http://example.org/pizza#hasNote|dt:http://example.org/pizza#hasNote",
+    "edge:res:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Topping",
+    "edge:res:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2002/07/owl#disjointWith|res:http://example.org/pizza#MeatTopping",
+    "edge:res:http://example.org/pizza#MeatTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Topping",
+    "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/pizza#Pizza",
+    "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2002/07/owl#equivalentClass|res:http://example.org/pizza#VeggiePizza",
+    "edge:res:http://example.org/pizza#Margherita|http://example.org/pizza#hasTopping|res:http://example.org/pizza#Mozzarella",
+    "edge:res:http://example.org/pizza#HomemadeBase|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/external#Base",
+    "edge:res:http://example.org/pizza#Pizza|http://www.w3.org/2002/07/owl#AllDisjointClasses|res:http://example.org/pizza#Topping",
+    "edge:expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1||res:http://example.org/pizza#VegetarianTopping",
+    "edge:res:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0||res:http://example.org/pizza#Vegetarian",
+    "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/pizza#MeatTopping",
+    "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0||res:http://example.org/external#Smoked",
+    "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0||expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+    "edge:expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0||expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+    "edge:res:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "res:http://example.org/pizza",
+    "res:http://example.org/pizza#Pizza",
+    "ind:http://example.org/pizza#Pizza",
+    "res:http://example.org/pizza#Topping",
+    "res:http://example.org/pizza#VegetarianTopping",
+    "res:http://example.org/pizza#MeatTopping",
+    "res:http://example.org/pizza#Vegetarian",
+    "expr:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|1",
+    "res:http://example.org/pizza#VeggiePizza",
+    "res:http://example.org/pizza#Special",
+    "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0",
+    "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0",
+    "expr:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|0/0/0",
+    "res:http://www.w3.org/2001/XMLSchema#integer",
+    "res:http://example.org/pizza#Margherita",
+    "res:http://example.org/pizza#Mozzarella",
+    "res:http://example.org/pizza#HomemadeBase",
+    "res:http://example.org/external#Base",
+    "thing:http://example.org/pizza#toppingOf|domain",
+    "thing:http://example.org/pizza#toppingOf|range",
+    "thing:http://example.org/pizza#hasNote|domain",
+    "dt:http://example.org/pizza#hasNote",
+    "res:http://example.org/external#Smoked"
+  ]
+}

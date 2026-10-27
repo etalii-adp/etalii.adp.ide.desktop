@@ -1,0 +1,66 @@
+atd 0.1
+part of systems/causal-loop-diagram
+
+// The causal loop diagram's .cld body, in a part of its own (ATD §5.2, §9).
+
+/// The causal loop diagram's .cld body (definitions/diagrams/causal-loop-diagram.dis, causal-loop-diagram.md): the
+/// lines family, as the standalone module reads it. One statement per line. The header is read as an entry of its
+/// own, so a missing or repeated one raises nothing. A link is an element whose ends are reference attributes, so a
+/// link with an end that names nothing is kept and reported rather than dropped; its cause and effect names are read
+/// again as read-only value slots, which the definition keys the link by. A word after a link's arrow is a quoted
+/// run, a weight written as a number, or a bare word without '='; a link with any other word, such as weight=heavy,
+/// is not a link. A name may be quoted, and a quoted name may hold spaces. The last rule takes every statement no
+/// other rule reads, so it is kept byte for byte and reported on its line. Removing a variable removes the links and
+/// loops that name it.
+binding cld family lines {
+  label "Causal loop diagram"
+  claims { extensions: [".cld"], origins: ["systems/causal-loop-diagram"] }
+  text { newline: crlf, finalNewline: true }
+  comment: "^\\s*#"
+  unmatched: report
+
+  element Header as header line "^\\s*causal-loop(\\s.*)?$" {
+  }
+
+  element Variable as variable line "^\\s*variable\\s+(?<name>\"[^\"]+\"|[^\\s\"]+)(?:\\s+(?<label>\"[^\"]*\"|[^\\s\"]+))?(?<rest>.*)$" {
+    attribute name from group "name" { word: "^.+$" empty: refuse }
+    attribute label from group "label" { word: "^.+$" empty: remove }
+    insert { place: after-last, emit: "variable {name}[ \"{label}\"]" }
+    remove { cascade: [link, loop] }
+  }
+
+  element Link as link line "^\\s*link\\s+(?<from>\"[^\"]+\"|[^\\s\"]+)\\s+->\\s+(?<to>\"[^\"]+\"|[^\\s\"]+)(?<tail>(?:\\s+(?:\"[^\"]*\"|weight=[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?|[^\\s\"=]+))*)\\s*$" {
+    attribute from from group "from" { references variable by name word: "^.+$" }
+    attribute to from group "to" { references variable by name word: "^.+$" }
+    attribute causeName from value "groups.from.replace('\"', '')"
+    attribute effectName from value "groups.to.replace('\"', '')"
+    attribute polarity from group "tail" {
+      word: "^[+\\-sSoO]$"
+      map: { "+": positive, s: positive, S: positive, "-": negative, o: negative, O: negative }
+      empty: remove
+    }
+    attribute delayed from group "tail" { word: "^delayed$" flag: true }
+    attribute flipped from group "tail" { word: "^flipped$" flag: true }
+    attribute weight from group "tail" { word: "^weight=(?<value>.+)$" number: shortest empty: remove }
+    attribute note from group "tail" { word: "^\".*\"$" empty: remove }
+    insert {
+      place: after-last
+      emit: "link {from} -> {to}[ {polarity}][ {delayed}][ {flipped}][ weight={weight}][ \"{note}\"]"
+    }
+    remove {}
+  }
+
+  element Loop as loop line "^\\s*loop\\s+(?<identifier>[^\\s\"]+)\\s+(?<title>\"[^\"]*\"|[^\\s\"]+)(?<members>(?:\\s+[^\\s\"]+)+)\\s*$" {
+    attribute identifier from group "identifier" { empty: refuse }
+    attribute title from group "title" { word: "^.+$" empty: keep }
+    attribute members from group "members" { references variable by name }
+    insert { place: after-last, emit: "loop {identifier} \"{title}\" {members}" }
+    remove {}
+  }
+
+  element Unreadable as unreadable line "^.*\\S.*$" {
+    readOnly: true
+  }
+
+  template "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\nlink population -> births +\r\nlink births -> population +\r\n\r\nloop R1 \"Births beget births\" population births\r\n"
+}

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record gartner/hypecycle-graph` from parity/cases/gartner/hypecycle-graph/refusals.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "gartner/hypecycle-graph",
+  "description": "../../../gartner-hype-cycle-graph.atd",
+  "inputs": {
+    "body": "graph.ghg"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "steam",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Steam",
+          "start": "21600",
+          "stop": "22200",
+          "row": "1",
+          "phases": "4"
+        }
+      },
+      {
+        "id": "rail",
+        "type": "Trend",
+        "parent": null,
+        "attributes": {
+          "name": "Rail",
+          "start": "21840",
+          "stop": "22440",
+          "row": "2",
+          "phases": "3"
+        }
+      },
+      {
+        "id": "patent",
+        "type": "Trigger",
+        "parent": null,
+        "attributes": {
+          "name": "Patent",
+          "date": "21545",
+          "row": "3"
+        }
+      },
+      {
+        "id": "unplaced",
+        "type": "Note",
+        "parent": null,
+        "attributes": {
+          "text": "A note without a place",
+          "row": "4"
+        }
+      },
+      {
+        "id": "placed",
+        "type": "Note",
+        "parent": null,
+        "attributes": {
+          "text": "A placed note",
+          "at": "21960",
+          "row": "5",
+          "width": "120",
+          "height": "40"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "steam-rail",
+        "type": "Influence",
+        "source": "steam",
+        "target": "rail",
+        "attributes": {
+          "fromPhase": "plateau",
+          "fromEdge": "bottom",
+          "fromAt": "0.5",
+          "toPhase": "peak",
+          "toEdge": "top",
+          "toAt": "0.5"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "ghg.note-position",
+        "severity": "warning",
+        "element": "unplaced",
+        "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+      }
+    ]
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "property": {
+        "element": "steam",
+        "attribute": "ghg.name",
+        "value": "   "
+      },
+      "refused": {
+        "reason": "A trend needs a name."
+      },
+      "expectFile": "graph.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "element": "steam",
+        "attribute": "ghg.stop",
+        "value": "1790-01"
+      },
+      "refused": {
+        "reason": "A trend must stop after it starts, at least one month later."
+      },
+      "expectFile": "graph.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "element": "steam",
+        "attribute": "ghg.start",
+        "value": "1849-12"
+      },
+      "refused": {
+        "reason": "A trend showing 4 phases must be at least 4 months long, one per phase."
+      },
+      "expectFile": "graph.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "element": "rail",
+        "attribute": "ghg.phases",
+        "value": "Peak"
+      },
+      "expectFile": "after-1.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "ghg.connect.influence",
+      "args": {
+        "target": "rel:steam->patent"
+      },
+      "refused": {
+        "reason": "An influence cannot end at a trigger."
+      },
+      "expectFile": "after-1.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "ghg.connect.influence",
+      "args": {
+        "target": "rel:steam->steam"
+      },
+      "refused": {
+        "reason": "A trend cannot influence itself."
+      },
+      "expectFile": "after-1.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "ghg.connect.influence",
+      "args": {
+        "target": "rel:steam->rail"
+      },
+      "refused": {
+        "reason": "This trend already influences that one; a trend influences another once in each direction."
+      },
+      "expectFile": "after-1.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "ghg.connect.influence",
+      "args": {
+        "target": "rel:patent->rail"
+      },
+      "ids": [
+        "ID_case1"
+      ],
+      "expectFile": "after-2.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "ghg.even-phases",
+      "select": [
+        "patent"
+      ],
+      "refused": {
+        "reason": "'ghg.even-phases' does not apply to this selection."
+      },
+      "expectFile": "after-2.ghg",
+      "findings": [
+        {
+          "rule": "ghg.note-position",
+          "severity": "warning",
+          "element": "unplaced",
+          "message": "`unplaced` needs an `at` written as YYYY-MM and a `width` and `height` that are positive numbers; it cannot be drawn without them."
+        }
+      ],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "2f18863",
+      "source": "atd record (drawing)"
+    }
+  }
+}

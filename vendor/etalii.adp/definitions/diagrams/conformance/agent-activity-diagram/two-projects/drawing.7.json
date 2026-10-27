@@ -1,0 +1,872 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "6xe90awwiog7f15dpcecgsrmo",
+      "type": "etalii/agent-activity-diagram+agent",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": -142,
+        "w": 160,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Conversion thread",
+          "font": "12 600",
+          "position": {
+            "x": 400,
+            "y": -122
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ede9fe",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "a-definitions",
+      "type": "etalii/agent-activity-diagram+agent",
+      "shape": "path",
+      "bounds": {
+        "x": 505.07,
+        "y": 11.78,
+        "w": 160,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Definitions thread",
+          "font": "12 600",
+          "position": {
+            "x": 585.07,
+            "y": 31.78
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ede9fe",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "a-module",
+      "type": "etalii/agent-activity-diagram+agent",
+      "shape": "path",
+      "bounds": {
+        "x": -513.99,
+        "y": 382.23,
+        "w": 160,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Module thread",
+          "font": "12 600",
+          "position": {
+            "x": -433.99,
+            "y": 402.23
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ede9fe",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "e-cloud",
+      "type": "etalii/agent-activity-diagram+environment",
+      "shape": "path",
+      "bounds": {
+        "x": 1026.09,
+        "y": 3.97,
+        "w": 170,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "environmentKind",
+          "text": "Cloud",
+          "font": "11 400",
+          "position": {
+            "x": 1111.09,
+            "y": 41.97
+          }
+        },
+        {
+          "id": "name",
+          "text": "Claude Code cloud env…",
+          "font": "12 600",
+          "position": {
+            "x": 1111.09,
+            "y": 23.97
+          }
+        }
+      ],
+      "style": {
+        "fill": "#dcfce7",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "e-fractal",
+      "type": "etalii/agent-activity-diagram+environment",
+      "shape": "path",
+      "bounds": {
+        "x": -912.6,
+        "y": 691.61,
+        "w": 170,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "environmentKind",
+          "text": "Local machine",
+          "font": "11 400",
+          "position": {
+            "x": -827.6,
+            "y": 729.61
+          }
+        },
+        {
+          "id": "name",
+          "text": "Fractal",
+          "font": "12 600",
+          "position": {
+            "x": -827.6,
+            "y": 711.61
+          }
+        }
+      ],
+      "style": {
+        "fill": "#dcfce7",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "l-definitions",
+      "type": "etalii/agent-activity-diagram+location",
+      "shape": "rect",
+      "bounds": {
+        "x": 729,
+        "y": -41.8,
+        "w": 240,
+        "h": 104
+      },
+      "labels": [
+        {
+          "id": "folder",
+          "text": "Default",
+          "font": "11 400",
+          "position": {
+            "x": 849,
+            "y": 4.2
+          }
+        },
+        {
+          "id": "heading:pullRequests",
+          "text": "▸ Pull requests (1)",
+          "font": "11 600",
+          "position": {
+            "x": 741,
+            "y": 55.2
+          }
+        },
+        {
+          "id": "name",
+          "text": "claude/project-thread-cqez7b",
+          "font": "12 600",
+          "position": {
+            "x": 849,
+            "y": -21.8
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fef3c7",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "l-module",
+      "type": "etalii/agent-activity-diagram+location",
+      "shape": "rect",
+      "bounds": {
+        "x": -681.55,
+        "y": 602.02,
+        "w": 240,
+        "h": 82
+      },
+      "labels": [
+        {
+          "id": "folder",
+          "text": ".claude/worktrees/activity",
+          "font": "11 400",
+          "position": {
+            "x": -561.55,
+            "y": 648.02
+          }
+        },
+        {
+          "id": "name",
+          "text": "claude/project-thread-j58hge",
+          "font": "12 600",
+          "position": {
+            "x": -561.55,
+            "y": 622.02
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fef3c7",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "l-module-languages",
+      "type": "etalii/agent-activity-diagram+location",
+      "shape": "rect",
+      "bounds": {
+        "x": -823.13,
+        "y": 432.96,
+        "w": 240,
+        "h": 82
+      },
+      "labels": [
+        {
+          "id": "folder",
+          "text": "scratch/etalii.adp",
+          "font": "11 400",
+          "position": {
+            "x": -703.13,
+            "y": 478.96
+          }
+        },
+        {
+          "id": "name",
+          "text": "develop",
+          "font": "12 600",
+          "position": {
+            "x": -703.13,
+            "y": 452.96
+          }
+        }
+      ],
+      "style": {
+        "fill": "#fef3c7",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "p-ide",
+      "type": "etalii/agent-activity-diagram+project",
+      "shape": "path",
+      "bounds": {
+        "x": -116.7,
+        "y": 21.7,
+        "w": 180,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "etalii.adp.ide.standal…",
+          "font": "12 600",
+          "position": {
+            "x": -26.7,
+            "y": 41.7
+          }
+        }
+      ],
+      "style": {
+        "fill": "#dbeafe",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "p-languages",
+      "type": "etalii/agent-activity-diagram+project",
+      "shape": "path",
+      "bounds": {
+        "x": -16.25,
+        "y": -65.02,
+        "w": 180,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "etalii.adp",
+          "font": "12 600",
+          "position": {
+            "x": 73.75,
+            "y": -45.02
+          }
+        }
+      ],
+      "style": {
+        "fill": "#dbeafe",
+        "stroke": "#94a3b8",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "s-conversion",
+      "type": "etalii/agent-activity-diagram+specification",
+      "shape": "path",
+      "bounds": {
+        "x": -384.71,
+        "y": -4.47,
+        "w": 240,
+        "h": 64
+      },
+      "labels": [
+        {
+          "id": "name",
+          "text": "Causal loop diagram, on DISL an…",
+          "font": "12 600",
+          "position": {
+            "x": -264.71,
+            "y": 15.53
+          }
+        },
+        {
+          "id": "status",
+          "text": "Progressing",
+          "font": "11 600",
+          "position": {
+            "x": -264.71,
+            "y": 35.53
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#2563eb",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "s-definitions",
+      "type": "etalii/agent-activity-diagram+specification",
+      "shape": "path",
+      "bounds": {
+        "x": 151.66,
+        "y": -256.12,
+        "w": 240,
+        "h": 86
+      },
+      "labels": [
+        {
+          "id": "heading:finished",
+          "text": "▸ Finished (1)",
+          "font": "11 600",
+          "position": {
+            "x": 163.66,
+            "y": -177.12
+          }
+        },
+        {
+          "id": "name",
+          "text": "Agent activity diagram definiti…",
+          "font": "12 600",
+          "position": {
+            "x": 271.66,
+            "y": -236.12
+          }
+        },
+        {
+          "id": "status",
+          "text": "Finished",
+          "font": "11 600",
+          "position": {
+            "x": 271.66,
+            "y": -216.12
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#15803d",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "s-fbl",
+      "type": "etalii/agent-activity-diagram+specification",
+      "shape": "path",
+      "bounds": {
+        "x": 196.2,
+        "y": 41.12,
+        "w": 240,
+        "h": 104
+      },
+      "labels": [
+        {
+          "id": "heading:progressing",
+          "text": "▾ Progressing (1)",
+          "font": "11 600",
+          "position": {
+            "x": 208.2,
+            "y": 120.12
+          }
+        },
+        {
+          "id": "name",
+          "text": "FBL 0.4",
+          "font": "12 600",
+          "position": {
+            "x": 316.2,
+            "y": 61.12
+          }
+        },
+        {
+          "id": "row:progressing:0",
+          "text": "Create and remove missing levels",
+          "font": "11 400",
+          "position": {
+            "x": 220.2,
+            "y": 140.12
+          }
+        },
+        {
+          "id": "status",
+          "text": "Progressing",
+          "font": "11 600",
+          "position": {
+            "x": 316.2,
+            "y": 81.12
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#2563eb",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "s-module",
+      "type": "etalii/agent-activity-diagram+specification",
+      "shape": "path",
+      "bounds": {
+        "x": -306.41,
+        "y": 217.27,
+        "w": 240,
+        "h": 126
+      },
+      "labels": [
+        {
+          "id": "heading:pending",
+          "text": "▸ Pending (1)",
+          "font": "11 600",
+          "position": {
+            "x": -294.41,
+            "y": 336.27
+          }
+        },
+        {
+          "id": "heading:progressing",
+          "text": "▾ Progressing (1)",
+          "font": "11 600",
+          "position": {
+            "x": -294.41,
+            "y": 296.27
+          }
+        },
+        {
+          "id": "name",
+          "text": "Agent activity diagram",
+          "font": "12 600",
+          "position": {
+            "x": -186.41,
+            "y": 237.27
+          }
+        },
+        {
+          "id": "row:progressing:0",
+          "text": "FBL 0.4 in the host's runtime",
+          "font": "11 400",
+          "position": {
+            "x": -282.41,
+            "y": 316.27
+          }
+        },
+        {
+          "id": "status",
+          "text": "Progressing",
+          "font": "11 600",
+          "position": {
+            "x": -186.41,
+            "y": 257.27
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#2563eb",
+        "strokeWidth": 2
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "agent:l-definitions",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "a-definitions",
+      "target": "l-definitions",
+      "route": [
+        {
+          "x": 665.07,
+          "y": 26.63
+        },
+        {
+          "x": 729,
+          "y": 20.92
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "agent:l-module",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "a-module",
+      "target": "l-module",
+      "route": [
+        {
+          "x": -445.74,
+          "y": 426.23
+        },
+        {
+          "x": -539.65,
+          "y": 602.02
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "agent:l-module-languages",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "a-module",
+      "target": "l-module-languages",
+      "route": [
+        {
+          "x": -513.99,
+          "y": 424.96
+        },
+        {
+          "x": -583.13,
+          "y": 442.87
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "environment:l-definitions",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "l-definitions",
+      "target": "e-cloud",
+      "route": [
+        {
+          "x": 969,
+          "y": 20.17
+        },
+        {
+          "x": 1026.09,
+          "y": 24.91
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "environment:l-module",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "l-module",
+      "target": "e-fractal",
+      "route": [
+        {
+          "x": -681.55,
+          "y": 677.57
+        },
+        {
+          "x": -742.6,
+          "y": 695.14
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "environment:l-module-languages",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "l-module-languages",
+      "target": "e-fractal",
+      "route": [
+        {
+          "x": -723.9,
+          "y": 514.96
+        },
+        {
+          "x": -813.41,
+          "y": 691.61
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "project:s-conversion",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "p-ide",
+      "target": "s-conversion",
+      "route": [
+        {
+          "x": -116.7,
+          "y": 41.32
+        },
+        {
+          "x": -144.71,
+          "y": 38.71
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "project:s-definitions",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "p-languages",
+      "target": "s-definitions",
+      "route": [
+        {
+          "x": 105.22,
+          "y": -65.02
+        },
+        {
+          "x": 223.33,
+          "y": -170.12
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "project:s-fbl",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "p-languages",
+      "target": "s-fbl",
+      "route": [
+        {
+          "x": 125.91,
+          "y": -9.02
+        },
+        {
+          "x": 219.32,
+          "y": 41.12
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "project:s-module",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "p-ide",
+      "target": "s-module",
+      "route": [
+        {
+          "x": -46.09,
+          "y": 77.7
+        },
+        {
+          "x": -142.77,
+          "y": 217.27
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "specification:6xe90awwiog7f15dpcecgsrmo",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "s-conversion",
+      "target": "6xe90awwiog7f15dpcecgsrmo",
+      "route": [
+        {
+          "x": -144.71,
+          "y": 0.9
+        },
+        {
+          "x": 320,
+          "y": -102.24
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "specification:a-definitions",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "s-fbl",
+      "target": "a-definitions",
+      "route": [
+        {
+          "x": 436.2,
+          "y": 66.64
+        },
+        {
+          "x": 505.07,
+          "y": 51.44
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "specification:a-module",
+      "type": "etalii/agent-activity-diagram+relation",
+      "source": "s-module",
+      "target": "a-module",
+      "route": [
+        {
+          "x": -306.41,
+          "y": 340.35
+        },
+        {
+          "x": -390.05,
+          "y": 382.23
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "project:s-definitions",
+    "project:s-fbl",
+    "project:s-module",
+    "project:s-conversion",
+    "specification:a-definitions",
+    "specification:a-module",
+    "specification:6xe90awwiog7f15dpcecgsrmo",
+    "agent:l-definitions",
+    "agent:l-module",
+    "agent:l-module-languages",
+    "environment:l-definitions",
+    "environment:l-module",
+    "environment:l-module-languages",
+    "p-languages",
+    "p-ide",
+    "s-definitions",
+    "s-fbl",
+    "s-module",
+    "s-conversion",
+    "a-definitions",
+    "a-module",
+    "6xe90awwiog7f15dpcecgsrmo",
+    "l-definitions",
+    "l-module",
+    "l-module-languages",
+    "e-fractal",
+    "e-cloud"
+  ]
+}

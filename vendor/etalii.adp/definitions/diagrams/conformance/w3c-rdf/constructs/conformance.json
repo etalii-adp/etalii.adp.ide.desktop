@@ -1,0 +1,337 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/constructs.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "constructs.ttl",
+    "registration": "constructs.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/alice",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/alice",
+          "display": "ex:alice",
+          "typeBadges.0": "foaf:Person",
+          "rows.0.predicate": "foaf:name",
+          "rows.0.value": "Alice",
+          "rows.1.predicate": "foaf:age",
+          "rows.1.value": "42",
+          "rows.1.annotation": "<http://www.w3.org/2001/XMLSchema#integer>",
+          "rows.2.predicate": "foaf:score",
+          "rows.2.value": "1.2e3",
+          "rows.2.annotation": "<http://www.w3.org/2001/XMLSchema#double>",
+          "rows.3.predicate": "dc:description",
+          "rows.3.value": "A description\nwith a break",
+          "rows.3.annotation": "@en",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/bob",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/bob",
+          "display": "ex:bob",
+          "rows.0.predicate": "foaf:name",
+          "rows.0.value": "Bob",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/carol",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/carol",
+          "display": "ex:carol",
+          "rows.0.predicate": "foaf:interests [3]",
+          "rows.0.value": "4.5",
+          "rows.0.annotation": "<http://www.w3.org/2001/XMLSchema#decimal>",
+          "rows.1.predicate": "ex:verified",
+          "rows.1.value": "true",
+          "rows.1.annotation": "<http://www.w3.org/2001/XMLSchema#boolean>",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "blank:0",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:c",
+          "rows.0.predicate": "foaf:name",
+          "rows.0.value": "Carol",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "res:mailto:carol@example.org",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "mailto:carol@example.org",
+          "display": "mailto:carol@example.org",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/music",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/music",
+          "display": "ex:music",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/art",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/art",
+          "display": "ex:art",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "blank:4",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:b4",
+          "rows.0.predicate": "foaf:name",
+          "rows.0.value": "Dave",
+          "rows.1.predicate": "foaf:age",
+          "rows.1.value": "23",
+          "rows.1.annotation": "<http://www.w3.org/2001/XMLSchema#integer>",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "res:http://example.org/group",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/group",
+          "display": "ex:group",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/empty",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/empty",
+          "display": "ex:empty",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "blank:5",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "display": "_:b5",
+          "blank": "true"
+        }
+      },
+      {
+        "id": "res:http://example.org/base/relative",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/base/relative",
+          "display": "relative",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/base/",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/base/",
+          "display": "http://example.org/base/",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/doc",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/doc",
+          "display": "ex:doc",
+          "rows.0.predicate": "dc:title",
+          "rows.0.value": "A long\r\nstring with \"quotes\" inside",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|res:http://example.org/bob",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/alice",
+        "target": "res:http://example.org/bob",
+        "attributes": {
+          "fromElementId": "res:http://example.org/alice",
+          "toElementId": "res:http://example.org/bob",
+          "predicate": "foaf:knows",
+          "predicateIri": "http://xmlns.com/foaf/0.1/knows"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|res:http://example.org/carol",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/alice",
+        "target": "res:http://example.org/carol",
+        "attributes": {
+          "fromElementId": "res:http://example.org/alice",
+          "toElementId": "res:http://example.org/carol",
+          "predicate": "foaf:knows",
+          "predicateIri": "http://xmlns.com/foaf/0.1/knows"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/bob|http://xmlns.com/foaf/0.1/knows|blank:0",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/bob",
+        "target": "blank:0",
+        "attributes": {
+          "fromElementId": "res:http://example.org/bob",
+          "toElementId": "blank:0",
+          "predicate": "foaf:knows",
+          "predicateIri": "http://xmlns.com/foaf/0.1/knows"
+        }
+      },
+      {
+        "id": "edge:blank:0|http://xmlns.com/foaf/0.1/mbox|res:mailto:carol@example.org",
+        "type": "w3c/rdf+edge",
+        "source": "blank:0",
+        "target": "res:mailto:carol@example.org",
+        "attributes": {
+          "fromElementId": "blank:0",
+          "toElementId": "res:mailto:carol@example.org",
+          "predicate": "foaf:mbox",
+          "predicateIri": "http://xmlns.com/foaf/0.1/mbox"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/carol|http://xmlns.com/foaf/0.1/interests|res:http://example.org/music",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/carol",
+        "target": "res:http://example.org/music",
+        "attributes": {
+          "fromElementId": "res:http://example.org/carol",
+          "toElementId": "res:http://example.org/music",
+          "predicate": "foaf:interests [1]",
+          "predicateIri": "http://xmlns.com/foaf/0.1/interests"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/carol|http://xmlns.com/foaf/0.1/interests|res:http://example.org/art",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/carol",
+        "target": "res:http://example.org/art",
+        "attributes": {
+          "fromElementId": "res:http://example.org/carol",
+          "toElementId": "res:http://example.org/art",
+          "predicate": "foaf:interests [2]",
+          "predicateIri": "http://xmlns.com/foaf/0.1/interests"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/group|http://example.org/member|blank:4",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/group",
+        "target": "blank:4",
+        "attributes": {
+          "fromElementId": "res:http://example.org/group",
+          "toElementId": "blank:4",
+          "predicate": "ex:member",
+          "predicateIri": "http://example.org/member"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/group|http://example.org/member|res:http://example.org/carol",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/group",
+        "target": "res:http://example.org/carol",
+        "attributes": {
+          "fromElementId": "res:http://example.org/group",
+          "toElementId": "res:http://example.org/carol",
+          "predicate": "ex:member",
+          "predicateIri": "http://example.org/member"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/empty|http://example.org/member|blank:5",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/empty",
+        "target": "blank:5",
+        "attributes": {
+          "fromElementId": "res:http://example.org/empty",
+          "toElementId": "blank:5",
+          "predicate": "ex:member",
+          "predicateIri": "http://example.org/member"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/base/relative|http://example.org/sameAs|res:http://example.org/base/",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/base/relative",
+        "target": "res:http://example.org/base/",
+        "attributes": {
+          "fromElementId": "res:http://example.org/base/relative",
+          "toElementId": "res:http://example.org/base/",
+          "predicate": "ex:sameAs",
+          "predicateIri": "http://example.org/sameAs"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "fee398f",
+      "source": "atd record (drawing)"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedBoundaries` from the C4 module's layout of the view that parity/cases/c4/container/misplaced-container.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "s",
+        "type": "software system",
+        "width": 160.0,
+        "height": 78.8
+      },
+      {
+        "id": "p",
+        "type": "person",
+        "width": 160.0,
+        "height": 78.8
+      }
+    ],
+    "edges": [
+      {
+        "id": "p->stray#1",
+        "source": "p",
+        "target": "stray"
+      },
+      {
+        "id": "stray->loose#2",
+        "source": "stray",
+        "target": "loose"
+      }
+    ]
+  },
+  "args": {
+    "mode": "enclose",
+    "direction": "'tb'",
+    "rankSeparation": "120",
+    "nodeSeparation": "60",
+    "pinsIgnored": "false",
+    "padding": 32.0,
+    "labelHeight": 19.6,
+    "clearance": 60.0
+  },
+  "output": {
+    "positions": {
+      "s": {
+        "x": -190.0,
+        "y": 0.0
+      },
+      "p": {
+        "x": 30.0,
+        "y": 0.0
+      }
+    }
+  }
+}

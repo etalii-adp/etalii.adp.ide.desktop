@@ -1,0 +1,1313 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/supply-chain` from parity/scripts/etalii/supply-chain/automotive.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "etalii/supply-chain",
+  "description": "../../../supply-chain.atd",
+  "inputs": {
+    "body": "automotive.supply",
+    "registration": "automotive.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "south-america",
+        "type": "etalii/supply-chain+group",
+        "parent": null,
+        "attributes": {
+          "name": "South America",
+          "width": "232",
+          "height": "280",
+          "members": "2",
+          "membersText": "2 nodes"
+        }
+      },
+      {
+        "id": "central-africa",
+        "type": "etalii/supply-chain+group",
+        "parent": null,
+        "attributes": {
+          "name": "Central Africa",
+          "width": "232",
+          "height": "156",
+          "members": "1",
+          "membersText": "1 node"
+        }
+      },
+      {
+        "id": "australia",
+        "type": "etalii/supply-chain+group",
+        "parent": null,
+        "attributes": {
+          "name": "Australia",
+          "width": "232",
+          "height": "280",
+          "members": "2",
+          "membersText": "2 nodes"
+        }
+      },
+      {
+        "id": "southeast-asia",
+        "type": "etalii/supply-chain+group",
+        "parent": null,
+        "attributes": {
+          "name": "Southeast Asia",
+          "width": "232",
+          "height": "280",
+          "members": "2",
+          "membersText": "2 nodes"
+        }
+      },
+      {
+        "id": "china",
+        "type": "etalii/supply-chain+group",
+        "parent": null,
+        "attributes": {
+          "name": "China",
+          "width": "872",
+          "height": "404",
+          "members": "3",
+          "membersText": "3 nodes"
+        }
+      },
+      {
+        "id": "east-asia",
+        "type": "etalii/supply-chain+group",
+        "parent": null,
+        "attributes": {
+          "name": "Japan, Korea and Taiwan",
+          "width": "552",
+          "height": "156",
+          "members": "2",
+          "membersText": "2 nodes"
+        }
+      },
+      {
+        "id": "europe",
+        "type": "etalii/supply-chain+group",
+        "parent": null,
+        "attributes": {
+          "name": "Europe",
+          "width": "2472",
+          "height": "528",
+          "members": "12",
+          "membersText": "12 nodes"
+        }
+      },
+      {
+        "id": "atacama-lithium",
+        "type": "etalii/supply-chain+source",
+        "parent": null,
+        "attributes": {
+          "name": "Atacama lithium brine",
+          "group": "south-america",
+          "groupId": "south-america",
+          "quantity": "50",
+          "hasQuantity": "true",
+          "amount": "50",
+          "unit": "kt LCE",
+          "width": "192",
+          "height": "96",
+          "stage": "Source",
+          "stageTitle": "SOURCE",
+          "share": "0.4166666666666667",
+          "tooltip": "Source: Atacama lithium brine — 50 kt LCE"
+        }
+      },
+      {
+        "id": "andes-copper",
+        "type": "etalii/supply-chain+source",
+        "parent": null,
+        "attributes": {
+          "name": "Andean copper mines",
+          "group": "south-america",
+          "groupId": "south-america",
+          "quantity": "5500",
+          "hasQuantity": "true",
+          "amount": "5,500",
+          "unit": "kt Cu",
+          "width": "192",
+          "height": "96",
+          "stage": "Source",
+          "stageTitle": "SOURCE",
+          "share": "1",
+          "tooltip": "Source: Andean copper mines — 5,500 kt Cu"
+        }
+      },
+      {
+        "id": "kolwezi-cobalt",
+        "type": "etalii/supply-chain+source",
+        "parent": null,
+        "attributes": {
+          "name": "Kolwezi cobalt mines",
+          "group": "central-africa",
+          "groupId": "central-africa",
+          "quantity": "170",
+          "hasQuantity": "true",
+          "amount": "170",
+          "unit": "kt Co",
+          "width": "192",
+          "height": "96",
+          "stage": "Source",
+          "stageTitle": "SOURCE",
+          "share": "1",
+          "tooltip": "Source: Kolwezi cobalt mines — 170 kt Co"
+        }
+      },
+      {
+        "id": "pilbara-spodumene",
+        "type": "etalii/supply-chain+source",
+        "parent": null,
+        "attributes": {
+          "name": "Pilbara spodumene",
+          "group": "australia",
+          "groupId": "australia",
+          "quantity": "90",
+          "hasQuantity": "true",
+          "amount": "90",
+          "unit": "kt LCE",
+          "width": "192",
+          "height": "96",
+          "stage": "Source",
+          "stageTitle": "SOURCE",
+          "share": "0.75",
+          "tooltip": "Source: Pilbara spodumene — 90 kt LCE"
+        }
+      },
+      {
+        "id": "pilbara-iron",
+        "type": "etalii/supply-chain+source",
+        "parent": null,
+        "attributes": {
+          "name": "Pilbara iron ore",
+          "group": "australia",
+          "groupId": "australia",
+          "quantity": "900",
+          "hasQuantity": "true",
+          "amount": "900",
+          "unit": "Mt",
+          "width": "192",
+          "height": "96",
+          "stage": "Source",
+          "stageTitle": "SOURCE",
+          "share": "1",
+          "tooltip": "Source: Pilbara iron ore — 900 Mt"
+        }
+      },
+      {
+        "id": "sulawesi-nickel",
+        "type": "etalii/supply-chain+source",
+        "parent": null,
+        "attributes": {
+          "name": "Sulawesi nickel",
+          "group": "southeast-asia",
+          "groupId": "southeast-asia",
+          "quantity": "1800",
+          "hasQuantity": "true",
+          "amount": "1,800",
+          "unit": "kt Ni",
+          "width": "192",
+          "height": "96",
+          "stage": "Source",
+          "stageTitle": "SOURCE",
+          "share": "1",
+          "tooltip": "Source: Sulawesi nickel — 1,800 kt Ni"
+        }
+      },
+      {
+        "id": "thai-rubber",
+        "type": "etalii/supply-chain+source",
+        "parent": null,
+        "attributes": {
+          "name": "Natural rubber plantations",
+          "group": "southeast-asia",
+          "groupId": "southeast-asia",
+          "quantity": "4800",
+          "hasQuantity": "true",
+          "amount": "4,800",
+          "unit": "kt",
+          "width": "192",
+          "height": "96",
+          "stage": "Source",
+          "stageTitle": "SOURCE",
+          "share": "1",
+          "tooltip": "Source: Natural rubber plantations — 4,800 kt"
+        }
+      },
+      {
+        "id": "lithium-refinery",
+        "type": "etalii/supply-chain+processor",
+        "parent": null,
+        "attributes": {
+          "name": "Lithium hydroxide refinery",
+          "group": "china",
+          "groupId": "china",
+          "quantity": "120",
+          "hasQuantity": "true",
+          "amount": "120",
+          "unit": "kt LCE",
+          "width": "192",
+          "height": "96",
+          "stage": "Processor",
+          "stageTitle": "PROCESSOR",
+          "share": "1",
+          "tooltip": "Processor: Lithium hydroxide refinery — 120 kt LCE"
+        }
+      },
+      {
+        "id": "cathode-plant",
+        "type": "etalii/supply-chain+producer",
+        "parent": null,
+        "attributes": {
+          "name": "NMC cathode plant",
+          "group": "china",
+          "groupId": "china",
+          "quantity": "900",
+          "hasQuantity": "true",
+          "amount": "900",
+          "unit": "kt",
+          "width": "192",
+          "height": "96",
+          "stage": "Producer",
+          "stageTitle": "PRODUCER",
+          "share": "0.1875",
+          "tooltip": "Producer: NMC cathode plant — 900 kt"
+        }
+      },
+      {
+        "id": "cell-gigafactory",
+        "type": "etalii/supply-chain+producer",
+        "parent": null,
+        "attributes": {
+          "name": "Battery cell gigafactory",
+          "group": "china",
+          "groupId": "china",
+          "quantity": "400",
+          "hasQuantity": "true",
+          "amount": "400",
+          "unit": "GWh",
+          "width": "192",
+          "height": "96",
+          "stage": "Producer",
+          "stageTitle": "PRODUCER",
+          "share": "1",
+          "tooltip": "Producer: Battery cell gigafactory — 400 GWh"
+        }
+      },
+      {
+        "id": "steel-mill",
+        "type": "etalii/supply-chain+producer",
+        "parent": null,
+        "attributes": {
+          "name": "Flat steel mill",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "30",
+          "hasQuantity": "true",
+          "amount": "30",
+          "unit": "Mt",
+          "width": "192",
+          "height": "96",
+          "stage": "Producer",
+          "stageTitle": "PRODUCER",
+          "share": "0.03333333333333333",
+          "tooltip": "Producer: Flat steel mill — 30 Mt"
+        }
+      },
+      {
+        "id": "chip-foundry",
+        "type": "etalii/supply-chain+producer",
+        "parent": null,
+        "attributes": {
+          "name": "Automotive microcontroller fab",
+          "group": "east-asia",
+          "groupId": "east-asia",
+          "quantity": "12",
+          "hasQuantity": "true",
+          "amount": "12",
+          "unit": "bn chips",
+          "width": "192",
+          "height": "96",
+          "stage": "Producer",
+          "stageTitle": "PRODUCER",
+          "share": "1",
+          "tooltip": "Producer: Automotive microcontroller fab — 12 bn chips"
+        }
+      },
+      {
+        "id": "pouch-cells",
+        "type": "etalii/supply-chain+producer",
+        "parent": null,
+        "attributes": {
+          "name": "Pouch cell plant",
+          "group": "east-asia",
+          "groupId": "east-asia",
+          "quantity": "150",
+          "hasQuantity": "true",
+          "amount": "150",
+          "unit": "GWh",
+          "width": "192",
+          "height": "96",
+          "stage": "Producer",
+          "stageTitle": "PRODUCER",
+          "share": "0.375",
+          "tooltip": "Producer: Pouch cell plant — 150 GWh"
+        }
+      },
+      {
+        "id": "tyre-plant",
+        "type": "etalii/supply-chain+producer",
+        "parent": null,
+        "attributes": {
+          "name": "Tyre plant",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "60",
+          "hasQuantity": "true",
+          "amount": "60",
+          "unit": "M tyres",
+          "width": "192",
+          "height": "96",
+          "stage": "Producer",
+          "stageTitle": "PRODUCER",
+          "share": "1",
+          "tooltip": "Producer: Tyre plant — 60 M tyres"
+        }
+      },
+      {
+        "id": "ecu-supplier",
+        "type": "etalii/supply-chain+processor",
+        "parent": null,
+        "attributes": {
+          "name": "Tier-1 electronics",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "40",
+          "hasQuantity": "true",
+          "amount": "40",
+          "unit": "M ECUs",
+          "width": "192",
+          "height": "96",
+          "stage": "Processor",
+          "stageTitle": "PROCESSOR",
+          "share": "1",
+          "tooltip": "Processor: Tier-1 electronics — 40 M ECUs"
+        }
+      },
+      {
+        "id": "seat-supplier",
+        "type": "etalii/supply-chain+processor",
+        "parent": null,
+        "attributes": {
+          "name": "Tier-1 seating",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "15",
+          "hasQuantity": "true",
+          "amount": "15",
+          "unit": "M seats",
+          "width": "192",
+          "height": "96",
+          "stage": "Processor",
+          "stageTitle": "PROCESSOR",
+          "share": "1",
+          "tooltip": "Processor: Tier-1 seating — 15 M seats"
+        }
+      },
+      {
+        "id": "pack-assembly",
+        "type": "etalii/supply-chain+integrator",
+        "parent": null,
+        "attributes": {
+          "name": "Battery pack assembly",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "2.5",
+          "hasQuantity": "true",
+          "amount": "2.5",
+          "unit": "M packs",
+          "width": "192",
+          "height": "96",
+          "stage": "Integrator",
+          "stageTitle": "INTEGRATOR",
+          "share": "1",
+          "tooltip": "Integrator: Battery pack assembly — 2.5 M packs"
+        }
+      },
+      {
+        "id": "body-shop",
+        "type": "etalii/supply-chain+integrator",
+        "parent": null,
+        "attributes": {
+          "name": "Press and body shop",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "3",
+          "hasQuantity": "true",
+          "amount": "3",
+          "unit": "M bodies",
+          "width": "192",
+          "height": "96",
+          "stage": "Integrator",
+          "stageTitle": "INTEGRATOR",
+          "share": "1",
+          "tooltip": "Integrator: Press and body shop — 3 M bodies"
+        }
+      },
+      {
+        "id": "vehicle-plant",
+        "type": "etalii/supply-chain+integrator",
+        "parent": null,
+        "attributes": {
+          "name": "Vehicle assembly plant",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "2.8",
+          "hasQuantity": "true",
+          "amount": "2.8",
+          "unit": "M vehicles",
+          "width": "192",
+          "height": "96",
+          "stage": "Integrator",
+          "stageTitle": "INTEGRATOR",
+          "share": "1",
+          "tooltip": "Integrator: Vehicle assembly plant — 2.8 M vehicles"
+        }
+      },
+      {
+        "id": "port-logistics",
+        "type": "etalii/supply-chain+hub",
+        "parent": null,
+        "attributes": {
+          "name": "Port and rail logistics",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "2.6",
+          "hasQuantity": "true",
+          "amount": "2.6",
+          "unit": "M vehicles",
+          "width": "192",
+          "height": "96",
+          "stage": "Hub",
+          "stageTitle": "HUB",
+          "share": "0.9285714285714287",
+          "tooltip": "Hub: Port and rail logistics — 2.6 M vehicles"
+        }
+      },
+      {
+        "id": "dealer-network",
+        "type": "etalii/supply-chain+outlet",
+        "parent": null,
+        "attributes": {
+          "name": "Dealer network",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "1.9",
+          "hasQuantity": "true",
+          "amount": "1.9",
+          "unit": "M vehicles",
+          "width": "192",
+          "height": "96",
+          "stage": "Outlet",
+          "stageTitle": "OUTLET",
+          "share": "0.6785714285714286",
+          "tooltip": "Outlet: Dealer network — 1.9 M vehicles"
+        }
+      },
+      {
+        "id": "fleet-leasing",
+        "type": "etalii/supply-chain+outlet",
+        "parent": null,
+        "attributes": {
+          "name": "Fleet leasing",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "0.7",
+          "hasQuantity": "true",
+          "amount": "0.7",
+          "unit": "M vehicles",
+          "width": "192",
+          "height": "96",
+          "stage": "Outlet",
+          "stageTitle": "OUTLET",
+          "share": "0.25",
+          "tooltip": "Outlet: Fleet leasing — 0.7 M vehicles"
+        }
+      },
+      {
+        "id": "private-buyers",
+        "type": "etalii/supply-chain+consumer",
+        "parent": null,
+        "attributes": {
+          "name": "Private buyers",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "1.9",
+          "hasQuantity": "true",
+          "amount": "1.9",
+          "unit": "M vehicles",
+          "width": "192",
+          "height": "96",
+          "stage": "Consumer",
+          "stageTitle": "CONSUMER",
+          "share": "0.6785714285714286",
+          "tooltip": "Consumer: Private buyers — 1.9 M vehicles"
+        }
+      },
+      {
+        "id": "company-fleets",
+        "type": "etalii/supply-chain+consumer",
+        "parent": null,
+        "attributes": {
+          "name": "Company fleets",
+          "group": "europe",
+          "groupId": "europe",
+          "quantity": "0.7",
+          "hasQuantity": "true",
+          "amount": "0.7",
+          "unit": "M vehicles",
+          "width": "192",
+          "height": "96",
+          "stage": "Consumer",
+          "stageTitle": "CONSUMER",
+          "share": "0.25",
+          "tooltip": "Consumer: Company fleets — 0.7 M vehicles"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "atacama-lithium-to-lithium-refinery",
+        "type": "etalii/supply-chain+flow",
+        "source": "atacama-lithium",
+        "target": "lithium-refinery",
+        "attributes": {
+          "product": "Lithium carbonate",
+          "volume": "40",
+          "hasVolume": "true",
+          "volumeText": "40 kt LCE",
+          "unit": "kt LCE",
+          "weight": "0.4"
+        }
+      },
+      {
+        "id": "pilbara-spodumene-to-lithium-refinery",
+        "type": "etalii/supply-chain+flow",
+        "source": "pilbara-spodumene",
+        "target": "lithium-refinery",
+        "attributes": {
+          "product": "Spodumene concentrate",
+          "volume": "80",
+          "hasVolume": "true",
+          "volumeText": "80 kt LCE",
+          "unit": "kt LCE",
+          "weight": "0.8"
+        }
+      },
+      {
+        "id": "kolwezi-cobalt-to-cathode-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "kolwezi-cobalt",
+        "target": "cathode-plant",
+        "attributes": {
+          "product": "Cobalt hydroxide",
+          "volume": "120",
+          "hasVolume": "true",
+          "volumeText": "120 kt Co",
+          "unit": "kt Co",
+          "weight": "1",
+          "lanes": "416,88"
+        }
+      },
+      {
+        "id": "sulawesi-nickel-to-cathode-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "sulawesi-nickel",
+        "target": "cathode-plant",
+        "attributes": {
+          "product": "Nickel matte",
+          "volume": "600",
+          "hasVolume": "true",
+          "volumeText": "600 kt Ni",
+          "unit": "kt Ni",
+          "weight": "1",
+          "lanes": "416,460"
+        }
+      },
+      {
+        "id": "lithium-refinery-to-cathode-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "lithium-refinery",
+        "target": "cathode-plant",
+        "attributes": {
+          "product": "Lithium hydroxide",
+          "volume": "100",
+          "hasVolume": "true",
+          "volumeText": "100 kt LCE",
+          "unit": "kt LCE",
+          "weight": "1"
+        }
+      },
+      {
+        "id": "cathode-plant-to-cell-gigafactory",
+        "type": "etalii/supply-chain+flow",
+        "source": "cathode-plant",
+        "target": "cell-gigafactory",
+        "attributes": {
+          "product": "NMC cathode",
+          "volume": "600",
+          "hasVolume": "true",
+          "volumeText": "600 kt",
+          "unit": "kt",
+          "weight": "0.6666666666666666"
+        }
+      },
+      {
+        "id": "cathode-plant-to-pouch-cells",
+        "type": "etalii/supply-chain+flow",
+        "source": "cathode-plant",
+        "target": "pouch-cells",
+        "attributes": {
+          "product": "NMC cathode",
+          "volume": "220",
+          "hasVolume": "true",
+          "volumeText": "220 kt",
+          "unit": "kt",
+          "weight": "0.24444444444444444"
+        }
+      },
+      {
+        "id": "andes-copper-to-cell-gigafactory",
+        "type": "etalii/supply-chain+flow",
+        "source": "andes-copper",
+        "target": "cell-gigafactory",
+        "attributes": {
+          "product": "Copper foil",
+          "volume": "300",
+          "hasVolume": "true",
+          "volumeText": "300 kt Cu",
+          "unit": "kt Cu",
+          "weight": "1",
+          "lanes": "416,212;736,88"
+        }
+      },
+      {
+        "id": "andes-copper-to-ecu-supplier",
+        "type": "etalii/supply-chain+flow",
+        "source": "andes-copper",
+        "target": "ecu-supplier",
+        "attributes": {
+          "product": "Copper wire",
+          "volume": "200",
+          "hasVolume": "true",
+          "volumeText": "200 kt Cu",
+          "unit": "kt Cu",
+          "weight": "0.6666666666666666",
+          "lanes": "416,836;736,836"
+        }
+      },
+      {
+        "id": "cell-gigafactory-to-pack-assembly",
+        "type": "etalii/supply-chain+flow",
+        "source": "cell-gigafactory",
+        "target": "pack-assembly",
+        "attributes": {
+          "product": "Prismatic cells",
+          "volume": "120",
+          "hasVolume": "true",
+          "volumeText": "120 GWh",
+          "unit": "GWh",
+          "weight": "1"
+        }
+      },
+      {
+        "id": "pouch-cells-to-pack-assembly",
+        "type": "etalii/supply-chain+flow",
+        "source": "pouch-cells",
+        "target": "pack-assembly",
+        "attributes": {
+          "product": "Pouch cells",
+          "volume": "60",
+          "hasVolume": "true",
+          "volumeText": "60 GWh",
+          "unit": "GWh",
+          "weight": "0.5"
+        }
+      },
+      {
+        "id": "pilbara-iron-to-steel-mill",
+        "type": "etalii/supply-chain+flow",
+        "source": "pilbara-iron",
+        "target": "steel-mill",
+        "attributes": {
+          "product": "Iron ore",
+          "volume": "45",
+          "hasVolume": "true",
+          "volumeText": "45 Mt",
+          "unit": "Mt",
+          "weight": "1",
+          "lanes": "416,960"
+        }
+      },
+      {
+        "id": "steel-mill-to-body-shop",
+        "type": "etalii/supply-chain+flow",
+        "source": "steel-mill",
+        "target": "body-shop",
+        "attributes": {
+          "product": "Coil steel",
+          "volume": "2.4",
+          "hasVolume": "true",
+          "volumeText": "2.4 Mt",
+          "unit": "Mt",
+          "weight": "0.05333333333333333"
+        }
+      },
+      {
+        "id": "thai-rubber-to-tyre-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "thai-rubber",
+        "target": "tyre-plant",
+        "attributes": {
+          "product": "Natural rubber",
+          "volume": "900",
+          "hasVolume": "true",
+          "volumeText": "900 kt",
+          "unit": "kt",
+          "weight": "1",
+          "lanes": "416,1084"
+        }
+      },
+      {
+        "id": "chip-foundry-to-ecu-supplier",
+        "type": "etalii/supply-chain+flow",
+        "source": "chip-foundry",
+        "target": "ecu-supplier",
+        "attributes": {
+          "product": "Microcontrollers",
+          "volume": "1.6",
+          "hasVolume": "true",
+          "volumeText": "1.6 bn chips",
+          "unit": "bn chips",
+          "weight": "1"
+        }
+      },
+      {
+        "id": "ecu-supplier-to-vehicle-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "ecu-supplier",
+        "target": "vehicle-plant",
+        "attributes": {
+          "product": "Control units",
+          "volume": "30",
+          "hasVolume": "true",
+          "volumeText": "30 M ECUs",
+          "unit": "M ECUs",
+          "weight": "1",
+          "lanes": "1376,960"
+        }
+      },
+      {
+        "id": "seat-supplier-to-vehicle-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "seat-supplier",
+        "target": "vehicle-plant",
+        "attributes": {
+          "product": "Seat sets",
+          "volume": "2.8",
+          "hasVolume": "true",
+          "volumeText": "2.8 M sets",
+          "unit": "M sets",
+          "weight": "1",
+          "lanes": "736,1208;1056,1084;1376,1332"
+        }
+      },
+      {
+        "id": "tyre-plant-to-vehicle-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "tyre-plant",
+        "target": "vehicle-plant",
+        "attributes": {
+          "product": "Tyres",
+          "volume": "14",
+          "hasVolume": "true",
+          "volumeText": "14 M tyres",
+          "unit": "M tyres",
+          "weight": "1",
+          "lanes": "1056,1208;1376,1208"
+        }
+      },
+      {
+        "id": "pack-assembly-to-vehicle-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "pack-assembly",
+        "target": "vehicle-plant",
+        "attributes": {
+          "product": "Battery packs",
+          "volume": "1.2",
+          "hasVolume": "true",
+          "volumeText": "1.2 M packs",
+          "unit": "M packs",
+          "weight": "1"
+        }
+      },
+      {
+        "id": "body-shop-to-vehicle-plant",
+        "type": "etalii/supply-chain+flow",
+        "source": "body-shop",
+        "target": "vehicle-plant",
+        "attributes": {
+          "product": "Body in white",
+          "volume": "2.8",
+          "hasVolume": "true",
+          "volumeText": "2.8 M bodies",
+          "unit": "M bodies",
+          "weight": "1",
+          "lanes": "1376,1084"
+        }
+      },
+      {
+        "id": "vehicle-plant-to-port-logistics",
+        "type": "etalii/supply-chain+flow",
+        "source": "vehicle-plant",
+        "target": "port-logistics",
+        "attributes": {
+          "product": "Finished vehicles",
+          "volume": "2.6",
+          "hasVolume": "true",
+          "volumeText": "2.6 M vehicles",
+          "unit": "M vehicles",
+          "weight": "1"
+        }
+      },
+      {
+        "id": "port-logistics-to-dealer-network",
+        "type": "etalii/supply-chain+flow",
+        "source": "port-logistics",
+        "target": "dealer-network",
+        "attributes": {
+          "product": "Finished vehicles",
+          "volume": "1.9",
+          "hasVolume": "true",
+          "volumeText": "1.9 M vehicles",
+          "unit": "M vehicles",
+          "weight": "0.7307692307692307"
+        }
+      },
+      {
+        "id": "port-logistics-to-fleet-leasing",
+        "type": "etalii/supply-chain+flow",
+        "source": "port-logistics",
+        "target": "fleet-leasing",
+        "attributes": {
+          "product": "Finished vehicles",
+          "volume": "0.7",
+          "hasVolume": "true",
+          "volumeText": "0.7 M vehicles",
+          "unit": "M vehicles",
+          "weight": "0.2692307692307692"
+        }
+      },
+      {
+        "id": "dealer-network-to-private-buyers",
+        "type": "etalii/supply-chain+flow",
+        "source": "dealer-network",
+        "target": "private-buyers",
+        "attributes": {
+          "product": "New cars",
+          "volume": "1.9",
+          "hasVolume": "true",
+          "volumeText": "1.9 M vehicles",
+          "unit": "M vehicles",
+          "weight": "0.7307692307692307"
+        }
+      },
+      {
+        "id": "fleet-leasing-to-company-fleets",
+        "type": "etalii/supply-chain+flow",
+        "source": "fleet-leasing",
+        "target": "company-fleets",
+        "attributes": {
+          "product": "Lease cars",
+          "volume": "0.7",
+          "hasVolume": "true",
+          "volumeText": "0.7 M vehicles",
+          "unit": "M vehicles",
+          "weight": "0.2692307692307692"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "action": "supply-chain.increase",
+      "select": [
+        "pack-assembly"
+      ],
+      "expectFile": "after-1.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "action": "supply-chain.decrease",
+      "args": {
+        "target": "kolwezi-cobalt"
+      },
+      "expectFile": "after-2.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "supply-chain.rename",
+      "args": {
+        "value": "Battery pack line"
+      },
+      "expectFile": "after-3.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "element": "pack-assembly",
+        "attribute": "supply-chain.unit",
+        "value": "M packs"
+      },
+      "expectFile": "after-3.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "property": {
+        "element": "pack-assembly",
+        "attribute": "Step",
+        "value": "0.25"
+      },
+      "expectFile": "after-4.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "supply-chain.increase",
+      "args": {
+        "target": "pack-assembly"
+      },
+      "expectFile": "after-5.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "property": {
+        "element": "port-logistics",
+        "attribute": "supply-chain.stage",
+        "value": "outlet"
+      },
+      "expectFile": "after-6.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "property": {
+        "element": "seat-supplier",
+        "attribute": "supply-chain.group",
+        "value": "(none)"
+      },
+      "expectFile": "after-7.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "property": {
+        "element": "seat-supplier",
+        "attribute": "supply-chain.quantity",
+        "value": "lots"
+      },
+      "refused": {
+        "reason": "'lots' is not an amount this diagram can hold: a number of zero or more."
+      },
+      "expectFile": "after-7.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "action": "supply-chain.increase",
+      "select": [
+        "cathode-plant-to-pouch-cells"
+      ],
+      "expectFile": "after-8.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "action": "supply-chain.rename",
+      "args": {
+        "value": "NMC cathode: coated"
+      },
+      "expectFile": "after-9.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Description",
+        "value": "Shipped by rail."
+      },
+      "expectFile": "after-10.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-9.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-10.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    },
+    {
+      "action": "supply-chain.add.hub",
+      "args": {
+        "target": "new:2600,1400"
+      },
+      "ids": [
+        "3b178e67wkhkkkbv43kg73std"
+      ],
+      "expectFile": "after-11.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.15.json"
+      }
+    },
+    {
+      "action": "supply-chain.connect",
+      "args": {
+        "target": "rel:vehicle-plant->3b178e67wkhkkkbv43kg73std"
+      },
+      "ids": [
+        "azjobtvsshswgrzyiz22869mv"
+      ],
+      "expectFile": "after-12.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.16.json"
+      }
+    },
+    {
+      "action": "supply-chain.connect",
+      "args": {
+        "target": "rel:vehicle-plant->3b178e67wkhkkkbv43kg73std"
+      },
+      "refused": {
+        "reason": "the standalone host generated no further id at step 18, but the desktop host creates a flow"
+      },
+      "expectFile": "after-12.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.17.json"
+      }
+    },
+    {
+      "move": {
+        "element": "3b178e67wkhkkkbv43kg73std"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"3b178e67wkhkkkbv43kg73std\"],\"to\":{\"x\":2700,\"y\":1500}}",
+      "expectFile": "after-13.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.18.json"
+      }
+    },
+    {
+      "action": "supply-chain.group",
+      "args": {
+        "target": "3b178e67wkhkkkbv43kg73std",
+        "value": "Overseas"
+      },
+      "ids": [
+        "29eav2jgqtd3511rt0yq68qwg"
+      ],
+      "expectFile": "after-14.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.19.json"
+      }
+    },
+    {
+      "action": "supply-chain.add-group",
+      "args": {
+        "target": "new:-600,200"
+      },
+      "ids": [
+        "4gcbv04e700b4mzxwatjulaxq"
+      ],
+      "expectFile": "after-15.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.20.json"
+      }
+    },
+    {
+      "move": {
+        "element": "4gcbv04e700b4mzxwatjulaxq"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"4gcbv04e700b4mzxwatjulaxq\"],\"to\":{\"x\":-900,\"y\":300}}",
+      "expectFile": "after-16.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.21.json"
+      }
+    },
+    {
+      "move": {
+        "element": "thai-rubber"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"thai-rubber\"],\"to\":{\"x\":-880,\"y\":340}}",
+      "expectFile": "after-17.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.22.json"
+      }
+    },
+    {
+      "action": "supply-chain.remove",
+      "args": {
+        "target": "body-shop",
+        "confirm": true
+      },
+      "expectFile": "after-18.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.23.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-17.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.24.json"
+      }
+    },
+    {
+      "action": "supply-chain.remove",
+      "args": {
+        "target": "australia"
+      },
+      "expectFile": "after-19.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.25.json"
+      }
+    },
+    {
+      "action": "supply-chain.arrange",
+      "args": {
+        "target": "new:0,0"
+      },
+      "expectFile": "after-20.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.26.json"
+      }
+    },
+    {
+      "move": {
+        "element": "kolwezi-cobalt"
+      },
+      "doc": "The parity script's gesture: {\"refs\":[\"kolwezi-cobalt\"],\"to\":{\"x\":40,\"y\":900}}",
+      "expectFile": "after-21.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.27.json"
+      }
+    },
+    {
+      "action": "supply-chain.remove",
+      "args": {
+        "target": "fleet-leasing-to-company-fleets"
+      },
+      "expectFile": "after-22.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.28.json"
+      }
+    },
+    {
+      "action": "supply-chain.decrease",
+      "args": {
+        "target": "3b178e67wkhkkkbv43kg73std"
+      },
+      "refused": {
+        "reason": "That action is not available for this item."
+      },
+      "expectFile": "after-22.supply",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.29.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/etalii/supply-chain/automotive/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "9956eec",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "9956eec",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "9956eec",
+      "source": "atd record (drawing)"
+    }
+  }
+}
